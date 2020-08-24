@@ -1094,7 +1094,6 @@ instance Eq a => Eq (Value a) where
     Cond obs1 thn1 els1 == Cond obs2 thn2 els2 =  obs1 == obs2 && thn1 == thn2 && els1 == els2
     _ == _ = False
 
-
 instance Eq Observation where
     {-# INLINABLE (==) #-}
     AndObs o1l o2l == AndObs o1r o2r = o1l == o1r && o2l == o2r

@@ -17,9 +17,9 @@ module Wallet.Emulator.ChainIndex where
 
 import           Control.Lens
 import           Control.Monad.Freer
+import           Control.Monad.Freer.Log
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH
-import           Control.Monad.Freer.Writer
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (traverse_)
 import           Data.Map.Strict                  (Map)
@@ -49,12 +49,21 @@ makeEffect ''ChainIndexControlEffect
 data ChainIndexEvent =
     AddressStartWatching Address
     | ReceiveBlockNotification Int
+    | HandlingAddressChangeRequest AddressChangeRequest [ChainIndexItem]
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty ChainIndexEvent where
-    pretty (AddressStartWatching addr)  = "StartWatching:" <+> pretty addr
-    pretty (ReceiveBlockNotification i) = "ReceiveBlockNotification:" <+> pretty i <+> " transactions."
+    pretty = \case
+        AddressStartWatching addr  -> "StartWatching:" <+> pretty addr
+        ReceiveBlockNotification i -> "ReceiveBlockNotification:" <+> pretty i <+> " transactions."
+        HandlingAddressChangeRequest req itms ->
+            let prettyItem ChainIndexItem{ciSlot, ciTxId} = pretty ciSlot <+> pretty ciTxId
+            in hang 2 $ vsep
+                [ "AddressChangeRequest:"
+                , pretty req
+                , vsep (fmap prettyItem itms)
+                ]
 
 data ChainIndexState =
     ChainIndexState
@@ -69,7 +78,7 @@ data ChainIndexState =
 
 makeLenses ''ChainIndexState
 
-type ChainIndexEffs = '[State ChainIndexState, Writer [ChainIndexEvent]]
+type ChainIndexEffs = '[State ChainIndexState, LogMsg ChainIndexEvent]
 
 handleChainIndexControl
     :: (Members ChainIndexEffs effs)
@@ -77,7 +86,7 @@ handleChainIndexControl
 handleChainIndexControl = interpret $ \case
     ChainIndexNotify (SlotChanged sl) -> modify (idxCurrentSlot .~ Just (Max sl))
     ChainIndexNotify (BlockValidated txns) -> do
-        tell [ReceiveBlockNotification (length txns)]
+        logInfo $ ReceiveBlockNotification (length txns)
         modify (idxConfirmedBlocks <>~ pure txns)
         (cs, addressMap) <- (,) <$> gets _idxCurrentSlot <*> gets _idxWatchedAddresses
         let currentSlot = maybe 0 getMax cs
@@ -93,13 +102,18 @@ handleChainIndex
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
-    StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
+    StartWatching addr -> logInfo (AddressStartWatching addr) >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses
     ConfirmedBlocks -> gets _idxConfirmedBlocks
     TransactionConfirmed txid ->
         Map.member txid <$> gets _idxConfirmedTransactions
-    NextTx AddressChangeRequest{acreqSlot, acreqAddress} -> do
+    NextTx r@AddressChangeRequest{acreqSlot, acreqAddress} -> do
         idx <- gets _idxIdx
-        let txns = Index.transactionsAt idx acreqSlot acreqAddress
-        pure $ AddressChangeResponse{acrAddress=acreqAddress, acrSlot=acreqSlot,acrTxns = txns}
+        let itms = Index.transactionsAt idx acreqSlot acreqAddress
+        logDebug $ HandlingAddressChangeRequest r itms
+        pure $ AddressChangeResponse
+            { acrAddress=acreqAddress
+            , acrSlot=acreqSlot
+            , acrTxns = fmap ciTx itms
+            }

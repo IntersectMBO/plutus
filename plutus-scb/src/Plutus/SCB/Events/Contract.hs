@@ -40,6 +40,7 @@ module Plutus.SCB.Events.Contract(
   ) where
 
 import           Control.Lens.TH                                   (makePrisms)
+import           Control.Monad.Freer.Log                           (LogMessage)
 import           Data.Aeson                                        (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value,
                                                                     (.:))
 import qualified Data.Aeson                                        as JSON
@@ -195,6 +196,7 @@ data PartiallyDecodedResponse v =
     PartiallyDecodedResponse
         { newState :: Contract.State Value
         , hooks    :: [Contract.Request v]
+        , logs     :: [LogMessage Value]
         }
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)

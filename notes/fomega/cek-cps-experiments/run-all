@@ -3,9 +3,9 @@
 plutus_root=$HOME/plutus/plutus
 # Change this to point to the root of the plutus repository if necessary
 
-evaluator_srcdir=$plutus_root/language-plutus-core/src/Language/PlutusCore/Interpreter
+evaluator_srcdir=$plutus_root/plutus-core/src/Language/PlutusCore/Interpreter
 cek=$evaluator_srcdir/CekMachine.hs
-Make=$plutus_root/language-plutus-core/src/Language/PlutusCore/Constant/Make.hs
+Make=$plutus_root/plutus-core/src/Language/PlutusCore/Constant/Make.hs
 # ^ The version of this in the original CEK commit calculates 2^(8n-1)
 # during bounds checks for ints of size n, and is very slow for large n
 

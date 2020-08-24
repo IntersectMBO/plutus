@@ -6,7 +6,7 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 
--- plutus/language-plutus-core/test/data/stringLiteral.plc
+-- plutus/plutus-core/test/data/stringLiteral.plc
 
 postulate str1 : ByteString
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy.Char8 as BS #-}

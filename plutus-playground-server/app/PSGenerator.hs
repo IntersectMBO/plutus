@@ -73,8 +73,10 @@ import           System.FilePath                            ((</>))
 import qualified Vesting
 import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
+import           Wallet.Effects                             (AddressChangeRequest)
 import qualified Wallet.Emulator.Chain                      as EM
 import qualified Wallet.Emulator.ChainIndex                 as EM
+import           Wallet.Emulator.ChainIndex.Index           (ChainIndexItem)
 import qualified Wallet.Emulator.LogMessages                as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
@@ -114,7 +116,10 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
-    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
+    , (genericShow <*> mkSumType) (Proxy @ChainIndexItem)
+    , (genericShow <*> mkSumType) (Proxy @AddressChangeRequest)
+    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent')
+    , (genericShow <*> mkSumType) (Proxy @(EM.EmulatorTimeEvent A))
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @Log.LogLevel)
     , (genericShow <*> mkSumType) (Proxy @(Log.LogMessage A))

@@ -2,7 +2,7 @@ How to build plc-agda
 
 starting from the plutus root dir:
 ```
-cd language-plutus-core
+cd plutus-core
 cabal install
 cd ..
 

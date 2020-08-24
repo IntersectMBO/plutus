@@ -1,20 +1,25 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Plutus.SCB.Types where
 
+import           Cardano.BM.Data.Tracer.Extras  (StructuredLog (..))
 import qualified Cardano.ChainIndex.Types       as ChainIndex
+import qualified Cardano.Metadata.Types         as Metadata
 import qualified Cardano.Node.Server            as NodeServer
 import qualified Cardano.SigningProcess.Server  as SigningProcess
 import qualified Cardano.Wallet.Server          as WalletServer
 import           Control.Lens.TH                (makePrisms)
-import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Aeson                     (FromJSON, ToJSON (..))
+import qualified Data.HashMap.Strict            as HM
 import           Data.Map.Strict                (Map)
 import qualified Data.Map.Strict                as Map
 import           Data.Text                      (Text)
@@ -27,6 +32,7 @@ import           Language.Plutus.Contract.Types (ContractError)
 import           Ledger                         (Block, Blockchain, Tx, TxId, txId)
 import           Ledger.Index                   as UtxoIndex
 import           Plutus.SCB.Events              (ContractInstanceId)
+import           Plutus.SCB.Instances           ()
 import           Servant.Client                 (BaseUrl, ClientError)
 import           Wallet.API                     (WalletAPIError)
 
@@ -36,6 +42,9 @@ newtype ContractExe =
         }
     deriving (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+instance StructuredLog ContractExe where
+    toStructuredLog e = HM.singleton "contract" (toJSON e)
 
 instance Pretty ContractExe where
     pretty ContractExe {contractPath} = "Path:" <+> pretty contractPath
@@ -47,13 +56,15 @@ data SCBError
     | SCBContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
+    | MetadataClientError ClientError
     | SigningProcessError ClientError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
     | InvalidUUIDError  Text
     | OtherError Text
-    deriving (Show, Eq)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty SCBError where
     pretty = \case
@@ -63,6 +74,7 @@ instance Pretty SCBError where
         SCBContractError e -> "Contract error:" <+> pretty e
         WalletClientError e -> "Wallet client error:" <+> viaShow e
         NodeClientError e -> "Node client error:" <+> viaShow e
+        MetadataClientError e -> "Metadata client error:" <+> viaShow e
         SigningProcessError e -> "Signing process error:" <+> viaShow e
         ChainIndexError e -> "Chain index error:" <+> viaShow e
         WalletError e -> "Wallet error:" <+> pretty e
@@ -85,10 +97,10 @@ data Config =
         { dbConfig                :: DbConfig
         , walletServerConfig      :: WalletServer.Config
         , nodeServerConfig        :: NodeServer.MockServerConfig
+        , metadataServerConfig    :: Metadata.MetadataConfig
         , scbWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , signingProcessConfig    :: SigningProcess.SigningProcessConfig
-        , monitoringConfig        :: Maybe MonitoringConfig
         , requestProcessingConfig :: RequestProcessingConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
@@ -96,13 +108,6 @@ data Config =
 newtype RequestProcessingConfig =
     RequestProcessingConfig
         { requestProcessingInterval :: Second -- ^ How many seconds to wait between calls to 'Plutus.SCB.Core.ContractInstance.processAllContractOutboxes'
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON)
-
-newtype MonitoringConfig =
-    MonitoringConfig
-        { monitoringPort :: Int
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)

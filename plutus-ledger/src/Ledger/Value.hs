@@ -49,10 +49,11 @@ import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
 import qualified Data.ByteString.Lazy             as BSL
-import qualified Data.ByteString.Lazy.Char8       as C8
 import           Data.Hashable                    (Hashable)
 import           Data.String                      (IsString (fromString))
+import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
+import qualified Data.Text.Encoding               as E
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
@@ -106,6 +107,7 @@ currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
 currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
+-- | UTF-8 encoded ByteString of a name of a token
 newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
@@ -114,10 +116,16 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
-  fromString = TokenName . C8.pack
+  fromString = fromText . Text.pack
+
+fromText :: Text -> TokenName
+fromText = TokenName . BSL.fromStrict . E.encodeUtf8
+
+toText :: TokenName -> Text
+toText = E.decodeUtf8 . BSL.toStrict . unTokenName
 
 toString :: TokenName -> String
-toString = C8.unpack . unTokenName
+toString = Text.unpack . toText
 
 instance Show TokenName where
   show = toString
@@ -125,13 +133,13 @@ instance Show TokenName where
 instance ToJSON TokenName where
     toJSON tokenName =
         JSON.object
-        [ ( "unTokenName", JSON.toJSON $ toString tokenName)]
+        [ ( "unTokenName", JSON.toJSON $ toText tokenName)]
 
 instance FromJSON TokenName where
     parseJSON =
         JSON.withObject "TokenName" $ \object -> do
         raw <- object .: "unTokenName"
-        Haskell.pure . fromString . Text.unpack $ raw
+        Haskell.pure . fromText $ raw
 
 makeLift ''TokenName
 

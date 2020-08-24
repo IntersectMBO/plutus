@@ -8,14 +8,9 @@ module Language.PlutusTx.Evaluation
     , evaluateCekTrace
     , ErrorWithCause(..)
     , EvaluationError(..)
+    , ExTally
     , CekEvaluationException
     , Plain
-    , ExBudget(..)
-    , ExTally(..)
-    , exBudgetStateBudget
-    , exBudgetStateTally
-    , exBudgetCPU
-    , exBudgetMemory
     )
 where
 
@@ -37,7 +32,7 @@ stringBuiltins
     :: ( GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (WithMemory Term uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty

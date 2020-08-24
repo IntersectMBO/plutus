@@ -22,8 +22,8 @@ import           Servant.API.WebSocket                            (WebSocketPend
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
-     :<|> "actus" :> "generate" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] (Either String M.Contract)
-     :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] (Either String M.Contract)
+     :<|> "actus" :> "generate" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String
+     :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String
 
 type WSAPI = "ws" :> WebSocketPending
 

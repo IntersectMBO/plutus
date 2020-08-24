@@ -1,25 +1,28 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StrictData         #-}
 
 module Plutus.SCB.Webserver.Types where
 
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Map                  (Map)
-import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow, (<+>))
-import           Data.UUID                 (UUID)
-import           GHC.Generics              (Generic)
-import           Ledger                    (PubKeyHash, Tx, TxId)
-import           Ledger.Index              (UtxoIndex)
-import           Playground.Types          (FunctionSchema)
-import           Plutus.SCB.Events         (ChainEvent, ContractInstanceState)
-import           Plutus.SCB.Types          (ContractExe)
-import           Schema                    (FormSchema)
-import           Wallet.Emulator.Wallet    (Wallet)
-import           Wallet.Rollup.Types       (AnnotatedTx)
+import           Cardano.BM.Data.Tracer        (ToObject (..))
+import           Cardano.BM.Data.Tracer.Extras (mkObjectStr)
+import           Data.Aeson                    (FromJSON, ToJSON)
+import           Data.Map                      (Map)
+import           Data.Text                     (Text)
+import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
+import           Data.UUID                     (UUID)
+import           GHC.Generics                  (Generic)
+import           Ledger                        (PubKeyHash, Tx, TxId)
+import           Ledger.Index                  (UtxoIndex)
+import           Playground.Types              (FunctionSchema)
+import           Plutus.SCB.Events             (ChainEvent, ContractInstanceState)
+import           Plutus.SCB.Types              (ContractExe)
+import           Schema                        (FormSchema)
+import           Wallet.Emulator.Wallet        (Wallet)
+import           Wallet.Rollup.Types           (AnnotatedTx)
 
 data ContractReport t =
     ContractReport
@@ -72,9 +75,19 @@ data StreamToClient
 data WebSocketLogMsg
     = CreatedConnection UUID
     | ClosedConnection UUID
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WebSocketLogMsg where
     pretty (CreatedConnection uuid) =
         "Created WebSocket conection:" <+> viaShow uuid
     pretty (ClosedConnection uuid) =
         "Closed WebSocket conection:" <+> viaShow uuid
+
+instance ToObject WebSocketLogMsg where
+    toObject _ = \case
+        CreatedConnection u ->
+            mkObjectStr "created connection" u
+        ClosedConnection u ->
+            mkObjectStr "closed connection" u
+

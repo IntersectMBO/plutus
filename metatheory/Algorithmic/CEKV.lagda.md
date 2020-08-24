@@ -13,7 +13,7 @@ open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
-open import Data.Maybe
+open import Utils
 
 open import Type
 open import Type.BetaNormal
@@ -240,12 +240,10 @@ step (◆ A) = ◆ A
 
 open import Data.Nat
 
-stepper : ℕ → ∀{T}
-  → State T
-  → Maybe (State T)
-stepper zero st = nothing 
+stepper : ℕ → ∀{T} → State T → Either Error (State T)
+stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
-stepper (suc n) st | (□ V)   = just (□ V)
-stepper (suc n) st | ◆ A     = just (◆ A)
+stepper (suc n) st | (□ V)   = return (□ V)
+stepper (suc n) st | ◆ A     = return (◆ A)

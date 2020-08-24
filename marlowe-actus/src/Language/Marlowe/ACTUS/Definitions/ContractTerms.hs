@@ -108,6 +108,30 @@ data ScheduleConfig = ScheduleConfig
 
 data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
+
+data Assertions = Assertions
+  {
+    context      :: AssertionContext
+    , assertions :: [Assertion]
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
+
+data AssertionContext = AssertionContext
+  {
+    rrmoMin   :: Double
+    , rrmoMax :: Double
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
+
+data Assertion = NpvAssertionAgainstZeroRiskBond
+  {
+    zeroRiskInterest :: Double
+    , expectedNpv    :: Double
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
+
+
+
 data ContractTerms = ContractTerms {
   contractId     :: String
   , contractType :: ContractType
@@ -160,6 +184,9 @@ data ContractTerms = ContractTerms {
   , ct_FEAC      :: Maybe Double
   , ct_FEB       :: FEB  -- fee basis
   , ct_FER       :: Double -- fee rate
+  -- enable settlement currency
+  , ct_CURS      :: Bool
+  , constraints  :: Maybe Assertions
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

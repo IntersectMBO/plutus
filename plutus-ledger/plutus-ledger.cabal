@@ -86,7 +86,7 @@ library
         hashable -any,
         hedgehog -any,
         iots-export -any,
-        language-plutus-core -any,
+        plutus-core -any,
         memory -any,
         mtl -any,
         natural-transformation -any,

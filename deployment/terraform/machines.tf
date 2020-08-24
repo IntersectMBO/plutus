@@ -30,6 +30,17 @@ locals {
     ip   = "${element(concat(aws_instance.marlowe_b.*.private_ip, list("")), 0)}"
     dns  = "marlowe-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
+  webghcA = {
+    name = "webghcA"
+    ip   = "${element(concat(aws_instance.webghc_a.*.private_ip, list("")), 0)}"
+    dns  = "webghc-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
+  webghcB = {
+    name = "webghcB"
+    ip   = "${element(concat(aws_instance.webghc_b.*.private_ip, list("")), 0)}"
+    dns  = "webghc-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
 
   nixops = {
     name = "nixops"
@@ -49,6 +60,8 @@ locals {
     playgroundB       = "${local.playgroundB}"
     marlowePlaygroundA       = "${local.marlowePlaygroundA}"
     marlowePlaygroundB       = "${local.marlowePlaygroundB}"
+    webghcA       = "${local.webghcA}"
+    webghcB       = "${local.webghcB}"
     nixops         = "${local.nixops}"
     playgroundSshKeys = "${data.template_file.playground_ssh_keys.*.rendered}"
     rootSshKeys = "${data.template_file.nixops_ssh_keys.*.rendered}"
