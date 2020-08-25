@@ -38,9 +38,9 @@ module Language.PlutusCore.Generators.NEAT.Type
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor
-import           Data.Coolean (Cool,toCool,true,false,(&&&))
-import qualified Data.Stream                    as Stream
-import qualified Data.Text                      as Text
+import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
+import qualified Data.Stream                                as Stream
+import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf

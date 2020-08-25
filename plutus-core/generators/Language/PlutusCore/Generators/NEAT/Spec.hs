@@ -17,21 +17,25 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , GenOptions (..)
   , defaultGenOptions
   , Options (..)
+  , TestFail (..)
+  , testCaseGen
+  , tynames
   ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search (Enumerable(..),Options(..),ctrex')
-import           Data.Coolean (Cool,toCool,(!=>))
+import           Control.Search                             (Enumerable (..), Options (..), ctrex')
+import           Data.Coolean                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                    as Stream
-import qualified Data.Text                      as Text
+import qualified Data.Stream                                as Stream
+import qualified Data.Text                                  as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -161,6 +165,8 @@ testCaseGen name GenOptions{..} t prop =
 data TestFail
   = GenError GenError
   | TypeError (TypeError DefaultUni ())
+  | AgdaErrorP () -- FIXME
+  | FVErrorP FreeVariableError -- FIXME
   | Ctrex Ctrex
 
 data Ctrex
@@ -174,9 +180,11 @@ data Ctrex
     ClosedTypeG
 
 instance Show TestFail where
-  show (TypeError e) = show e
-  show (GenError e) = show e
-  show (Ctrex e) = show e
+  show (TypeError e)  = show e
+  show (GenError e)   = show e
+  show (Ctrex e)      = show e
+  show (AgdaErrorP e) = show e -- FIXME
+  show (FVErrorP e)   = show e -- FIXME
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2) =
