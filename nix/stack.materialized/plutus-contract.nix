@@ -72,7 +72,6 @@
           "Data/Row/Extras"
           "Data/Text/Extras"
           "Language/Plutus/Contract"
-          "Language/Plutus/Contract/App"
           "Language/Plutus/Contract/Effects/AwaitSlot"
           "Language/Plutus/Contract/Effects/AwaitTxConfirmed"
           "Language/Plutus/Contract/Effects/ExposeEndpoint"
