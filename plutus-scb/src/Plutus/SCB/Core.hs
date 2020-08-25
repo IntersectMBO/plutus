@@ -1,5 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -27,12 +30,10 @@ module Plutus.SCB.Core
     , refreshProjection
     , runCommand
     , runGlobalQuery
-    , addProcessBus
     , Source(..)
     , toUUID
     -- * Effects
     , ContractEffects
-    , SCBEffects
     , CoreMsg(..)
     -- * Contract messages
     , processAllContractInboxes
@@ -41,36 +42,36 @@ module Plutus.SCB.Core
     , callContractEndpoint
     ) where
 
-import           Cardano.Node.RandomTx            (GenRandomTx)
+import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras    (StructuredLog)
+import           Cardano.BM.Data.Tracer.Extras    (mkObjectStr)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer              (Eff, Member)
-import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Error        (Error)
+import           Control.Monad.Freer.Extra.Log    (LogMsg, logInfo)
 import           Control.Monad.IO.Unlift          (MonadUnliftIO)
 import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
+import           Data.Aeson                       (FromJSON, ToJSON (..))
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
 import           Data.Text.Prettyprint.Doc        (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
+import           GHC.Generics                     (Generic)
 import qualified Ledger
 import           Plutus.SCB.Command               (installCommand)
-import           Plutus.SCB.Events                (ChainEvent, ContractInstanceId, ContractInstanceState)
-import qualified Plutus.SCB.Query                 as Query
-import           Plutus.SCB.Types                 (ContractExe, DbConfig (DbConfig), SCBError, Source (..),
-                                                   dbConfigFile, dbConfigPoolSize, toUUID)
-
-import           Cardano.Node.Follower            (NodeFollowerEffect)
 import           Plutus.SCB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,
                                                    processAllContractOutboxes, processContractInbox)
 import           Plutus.SCB.Effects.Contract      (ContractCommand (..), ContractEffect, invokeContract)
-import           Plutus.SCB.Effects.EventLog      (Connection (..), EventLogEffect, addProcessBus, refreshProjection,
-                                                   runCommand, runGlobalQuery)
+import           Plutus.SCB.Effects.EventLog      (Connection (..), EventLogEffect, refreshProjection, runCommand,
+                                                   runGlobalQuery)
 import qualified Plutus.SCB.Effects.EventLog      as EventLog
 import           Plutus.SCB.Effects.UUID          (UUIDEffect)
-import           Wallet.API                       (WalletEffect)
-import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect, SigningProcessEffect)
+import           Plutus.SCB.Events                (ChainEvent, ContractInstanceId, ContractInstanceState)
+import qualified Plutus.SCB.Query                 as Query
+import           Plutus.SCB.Types                 (DbConfig (DbConfig), SCBError, Source (..), dbConfigFile,
+                                                   dbConfigPoolSize, toUUID)
 
 type ContractEffects t =
         '[ EventLogEffect (ChainEvent t)
@@ -84,6 +85,8 @@ data CoreMsg t =
     | Installed
     | FindingContract ContractInstanceId
     | FoundContract (Maybe (ContractInstanceState t))
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty t => Pretty (CoreMsg t) where
     pretty = \case
@@ -91,6 +94,20 @@ instance Pretty t => Pretty (CoreMsg t) where
         Installed -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
         FoundContract c -> "Found contract" <+> pretty c
+
+instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
+    toObject v = \case
+        Installing t ->
+            mkObjectStr "installing contract" t
+        Installed ->
+            mkObjectStr "contract installed" ()
+        FindingContract instanceID ->
+            mkObjectStr "finding contract instance" instanceID
+        FoundContract state ->
+            mkObjectStr "found contract" $
+                case v of
+                    MaximalVerbosity -> Left state
+                    _                -> Right ()
 
 installContract ::
     forall t effs.
@@ -147,15 +164,3 @@ dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
     MonadLogger.logDebugN "Connecting to DB"
     connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
     pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)
-
-type SCBEffects =
-        '[ GenRandomTx
-        , NodeFollowerEffect
-        , WalletEffect
-        , UUIDEffect
-        , ContractEffect ContractExe
-        , ChainIndexEffect
-        , NodeClientEffect
-        , SigningProcessEffect
-        , EventLogEffect (ChainEvent ContractExe)
-        ]

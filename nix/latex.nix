@@ -34,5 +34,5 @@
       '';
     });
   # A typical good filter for latex sources.
-  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ];
+  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ];
 }

@@ -6,7 +6,9 @@ You can edit this file as you like.
 , dependencies =
   [ "prelude"
   , "aff"
+  , "avar"
   , "console"
+  , "concurrent-queues"
   , "debug"
   , "effect"
   , "halogen"
@@ -22,6 +24,7 @@ You can edit this file as you like.
   , "undefinable"
   , "uuid"
   , "newtype"
+  , "web-socket"
   ]
 , packages = ./packages.dhall
 , sources =

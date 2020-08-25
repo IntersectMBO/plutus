@@ -17,18 +17,6 @@ let
         installPhase = "ln -s $src $out";
       };
 
-    "aff-coroutines" = pkgs.stdenv.mkDerivation {
-        name = "aff-coroutines";
-        version = "v7.0.0";
-        src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-aff-coroutines.git";
-          rev = "f2f410f3cc9030487ddadf9ffdaab75ba508bde9";
-          sha256 = "1cbly4m2na5kf3halj68rjy5khydb71gzz0ry323z5h1i0fna2g9";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
     "affjax" = pkgs.stdenv.mkDerivation {
         name = "affjax";
         version = "v10.0.0";
@@ -132,6 +120,18 @@ let
           url = "https://github.com/purescript/purescript-catenable-lists.git";
           rev = "d81b7df30d9879d0bb531b3102fb36f429c2f12e";
           sha256 = "0mbpb8xr9a7a4bvawhki7js5cbv7c0lv0vdwb6r8nmv6b61gzg27";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "concurrent-queues" = pkgs.stdenv.mkDerivation {
+        name = "concurrent-queues";
+        version = "v1.1.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript-contrib/purescript-concurrent-queues.git";
+          rev = "e461aa5bbcfb99dd59c993a7c5c4f0e0751e4a8b";
+          sha256 = "1a0vlxbl0vnk68v4wszgy6sz51klvnxfw8v8l4fpwkbb886mvxaj";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -343,11 +343,11 @@ let
 
     "foreign-generic" = pkgs.stdenv.mkDerivation {
         name = "foreign-generic";
-        version = "purs-0.13";
+        version = "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-foreign-generic";
-          rev = "4d0bd651c240e741890901af30ea4953847b2cfd";
-          sha256 = "06lsfzia7p0w7m9rcgaax6bzp0xvi7s9slnkvmrzcygfaaaz3x20";
+          rev = "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c";
+          sha256 = "1jc097yqj7dw7iix8y6bw3zjrw6xkq2ml0xa1g6ydnhlad2p36m2";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -1015,11 +1015,11 @@ let
 
     "servant-support" = pkgs.stdenv.mkDerivation {
         name = "servant-support";
-        version = "v10.0.0";
+        version = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-servant-support";
-          rev = "54cd333b87f74225d855c8f7d2d1bf1801856830";
-          sha256 = "19zp7yzxaf5mbja18c56gr5rmyxjhzh0xdih705r8bxmdhgn5d9m";
+          rev = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
+          sha256 = "1c6y84y0b8mxgjgnvv6cpx3j205xbkgzjydn05fxl15knnxs2g4f";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

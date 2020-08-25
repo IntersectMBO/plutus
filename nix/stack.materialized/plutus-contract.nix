@@ -127,7 +127,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))

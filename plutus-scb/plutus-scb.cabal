@@ -45,10 +45,15 @@ common lang
 library
     import: lang
     exposed-modules:
+        Cardano.BM.Data.Tracer.Extras
         Cardano.ChainIndex.API
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
+        Cardano.Metadata.API
+        Cardano.Metadata.Client
+        Cardano.Metadata.Server
+        Cardano.Metadata.Types
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Follower
@@ -69,8 +74,10 @@ library
         Cardano.Wallet.Mock
         Cardano.Wallet.Server
         Cardano.Wallet.Types
+        Control.Monad.Freer.Delay
         Control.Monad.Freer.Extra.Log
         Control.Monad.Freer.Extra.State
+        Control.Monad.Freer.WebSocket
         Control.Concurrent.Availability
         Data.Time.Units.Extra
         Plutus.SCB.App
@@ -88,16 +95,23 @@ library
         Plutus.SCB.Effects.EventLog
         Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
-        Plutus.SCB.Webserver.Types
+        Plutus.SCB.Instances
+        Plutus.SCB.MonadLoggerBridge
+        Plutus.SCB.Monitoring
         Plutus.SCB.Webserver.API
+        Plutus.SCB.Webserver.Handler
         Plutus.SCB.Webserver.Server
+        Plutus.SCB.Webserver.Types
+        Plutus.SCB.Webserver.WebSocket
         Plutus.SCB.Events
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Node
         Plutus.SCB.Events.User
         Plutus.SCB.Events.Wallet
+        Plutus.SCB.ParseStringifiedJSON
         Plutus.SCB.Query
         Plutus.SCB.Relation
+        Plutus.SCB.SCBLogMsg
         Plutus.SCB.Types
         Plutus.SCB.Utils
     other-modules:
@@ -158,6 +172,7 @@ library
         servant-server -any,
         typed-protocols -any,
         typed-protocols-examples -any,
+        servant-websockets -any,
         stm -any,
         text -any,
         time-units -any,
@@ -168,11 +183,15 @@ library
         vector -any,
         warp -any,
         Win32-network -any,
+        websockets -any,
         yaml -any,
         freer-simple -any,
         mwc-random -any,
         primitive -any,
-        hedgehog -any
+        hedgehog -any,
+        iohk-monitoring -any,
+        lobemo-backend-ekg -any,
+        exceptions -any,
 
 executable plutus-scb
     main-is: Main.hs
@@ -189,7 +208,6 @@ executable plutus-scb
         async -any,
         base >=4.9 && <5,
         bytestring -any,
-        ekg -any,
         filepath -any,
         freer-simple -any,
         lens -any,
@@ -212,7 +230,9 @@ executable plutus-scb
         containers -any,
         iohk-monitoring -any,
         time-units -any,
-        servant-client -any
+        servant-client -any,
+        contra-tracer -any,
+        lobemo-backend-ekg -any
 
 executable plutus-game
     main-is: Main.hs

@@ -13,6 +13,7 @@ import Data.Symbol (SProxy(..))
 import Halogen (AttrName(..), ClassName)
 import Halogen as H
 import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
+import Halogen.ActusBlockly as AB
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
 import Halogen.Monaco as Monaco
@@ -21,28 +22,30 @@ import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
-import Simulation.Types as ST
 import Simulation.Types as Simulation
 import Wallet as Wallet
+import WebSocket.Support as WS
+import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebsocketMessage String a
+  = ReceiveWebSocketMessage (WS.FromSocket WebSocketResponseMessage) a
   | ChangeRoute Route a
 
 data Message
-  = WebsocketMessage String
+  = WebSocketMessage WebSocketRequestMessage
 
 data HAction
   = Init
   -- Haskell Editor
   | HaskellAction HE.Action
-  | SimulationAction ST.Action
+  | SimulationAction Simulation.Action
   | ShowBottomPanel Boolean
   -- haskell actions
   | ChangeView View
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
+  | HandleActusBlocklyMessage AB.BlocklyMessage
   -- Wallet Actions
   | HandleWalletMessage Wallet.Message
 
@@ -55,12 +58,15 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
+  toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
 
 ------------------------------------------------------------
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
+    , actusBlocklySlot :: H.Slot AB.BlocklyQuery AB.BlocklyMessage Unit
+    , simulationSlot :: H.Slot Simulation.Query BlocklyMessage Unit
     , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
@@ -70,6 +76,12 @@ _haskellEditorSlot = SProxy
 
 _blocklySlot :: SProxy "blocklySlot"
 _blocklySlot = SProxy
+
+_actusBlocklySlot :: SProxy "actusBlocklySlot"
+_actusBlocklySlot = SProxy
+
+_simulationSlot :: SProxy "simulationSlot"
+_simulationSlot = SProxy
 
 _marloweEditorSlot :: SProxy "marloweEditorSlot"
 _marloweEditorSlot = SProxy
@@ -82,6 +94,7 @@ data View
   = HaskellEditor
   | Simulation
   | BlocklyEditor
+  | ActusBlocklyEditor
   | WalletEmulator
 
 derive instance eqView :: Eq View
@@ -95,6 +108,7 @@ newtype FrontendState
   = FrontendState
   { view :: View
   , blocklyState :: Maybe BlocklyState
+  , actusBlocklyState :: Maybe BlocklyState
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
   , simulationState :: Simulation.State
@@ -113,6 +127,9 @@ _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
+
+_actusBlocklyState :: Lens' FrontendState (Maybe BlocklyState)
+_actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
 
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")

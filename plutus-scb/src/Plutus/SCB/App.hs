@@ -16,8 +16,12 @@
 
 module Plutus.SCB.App where
 
+import qualified Cardano.BM.Configuration.Model   as CM
+import           Cardano.BM.Trace                 (Trace)
 import           Cardano.ChainIndex.Client        (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types         as ChainIndex
+import           Cardano.Metadata.Client          (handleMetadataClient)
+import           Cardano.Metadata.Types           as Metadata
 import           Cardano.Node.Client              (handleNodeClientClient, handleNodeFollowerClient,
                                                    handleRandomTxClient)
 import           Cardano.Node.Follower            (NodeFollowerEffect)
@@ -27,30 +31,27 @@ import qualified Cardano.SigningProcess.Client    as SigningProcessClient
 import qualified Cardano.SigningProcess.Server    as SigningProcess
 import qualified Cardano.Wallet.Client            as WalletClient
 import qualified Cardano.Wallet.Server            as WalletServer
+import           Control.Monad.Catch              (MonadCatch)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo, runStderrLog)
-import           Control.Monad.Freer.Log          (LogMessage, LogObserve, handleObserveLog, renderLogMessages)
+import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo)
+import           Control.Monad.Freer.Log          (LogMessage, LogObserve)
 import qualified Control.Monad.Freer.Log          as Log
 import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
+import           Control.Monad.Freer.WebSocket    (WebSocketEffect, handleWebSocket)
 import           Control.Monad.Freer.Writer       (Writer)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift          (MonadUnliftIO)
-import           Control.Monad.Logger             (LogLevel, LoggingT (..), MonadLogger, filterLogger,
-                                                   runStdoutLoggingT)
+import           Control.Monad.Logger             (MonadLogger)
+import           Control.Tracer                   (natTracer)
 import           Data.Aeson                       (FromJSON, eitherDecode)
-import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Encode.Pretty         as JSON
-import qualified Data.ByteString.Lazy.Char8       as LBS
+import           Data.Bifunctor                   (Bifunctor (..))
 import qualified Data.ByteString.Lazy.Char8       as BSL8
-import           Data.String                      (IsString (fromString))
+import           Data.Functor.Contravariant       (Contravariant (..))
 import qualified Data.Text                        as Text
-import qualified Data.Text.Encoding               as Text
-import           Data.Text.Prettyprint.Doc        (Doc, Pretty (..), hang, viaShow, vsep, (<+>))
-import           Data.Void                        (Void, absurd)
 import           Database.Persist.Sqlite          (runSqlPool)
 import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
-import           Language.Plutus.Contract.State   (ContractRequest)
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import           Plutus.SCB.Core                  (Connection (Connection),
                                                    ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
@@ -59,8 +60,14 @@ import           Plutus.SCB.Effects.Contract      (ContractEffect (..))
 import           Plutus.SCB.Effects.EventLog      (EventLogEffect (..), handleEventLogSql)
 import           Plutus.SCB.Effects.UUID          (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                (ChainEvent)
+import           Plutus.SCB.MonadLoggerBridge     (TraceLoggerT (..))
+import           Plutus.SCB.Monitoring            (handleLogMsgTraceMap, handleObserveTrace)
+import           Plutus.SCB.ParseStringifiedJSON  (UnStringifyJSONLog)
+import           Plutus.SCB.SCBLogMsg             (ContractExeLogMsg (..), SCBLogMsg (..))
 import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
-                                                   dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
+                                                   dbConfig, metadataServerConfig, nodeServerConfig,
+                                                   signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Webserver.Types       (WebSocketLogMsg)
 import           Servant.Client                   (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                      (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                   (readProcessWithExitCode)
@@ -76,6 +83,7 @@ data Env =
         { dbConnection      :: Connection
         , walletClientEnv   :: ClientEnv
         , nodeClientEnv     :: ClientEnv
+        , metadataClientEnv :: ClientEnv
         , signingProcessEnv :: ClientEnv
         , chainIndexEnv     :: ClientEnv
         }
@@ -89,6 +97,8 @@ type AppBackend m =
          , Error ClientError
          , NodeClientEffect
          , Error ClientError
+         , MetadataEffect
+         , Error ClientError
          , SigningProcessEffect
          , Error ClientError
          , UUIDEffect
@@ -96,16 +106,18 @@ type AppBackend m =
          , ChainIndexEffect
          , Error ClientError
          , EventLogEffect (ChainEvent ContractExe)
+         , WebSocketEffect
          , Error SCBError
          , Writer [Wallet.Emulator.Wallet.WalletEvent]
          , LogMsg Wallet.Emulator.Wallet.WalletEvent
          , LogMsg ContractExeLogMsg
          , LogMsg (ContractInstanceMsg ContractExe)
+         , LogMsg WebSocketLogMsg
          , LogMsg UnStringifyJSONLog
          , LogMsg (CoreMsg ContractExe)
          , LogObserve (LogMessage Text.Text)
-         , LogMsg Text.Text
          , Reader Connection
+         , Reader Config
          , Reader Env
          , m
          ]
@@ -113,111 +125,111 @@ type AppBackend m =
 runAppBackend ::
     forall m a.
     ( MonadIO m
-    , MonadLogger m
     , MonadUnliftIO m
+    , MonadLogger m
+    , MonadCatch m
     )
-    => Env
-    -> Eff (AppBackend m) a
+    => Trace m SCBLogMsg -- ^ Top-level tracer
+    -> CM.Configuration -- ^ Logging / monitoring configuration
+    -> Config -- ^ Client configuration
+    -> Eff (AppBackend m) a -- ^ Action
     -> m (Either SCBError a)
-runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcessEnv, chainIndexEnv} =
-    runM
-    . runReader e
-    . runReader dbConnection
-    . runStderrLog
-    . handleObserveLog
-    . renderLogMessages
-    . renderLogMessages
-    . renderLogMessages
-    . renderLogMessages
-    . renderLogMessages
-    . handleWriterLog (\_ -> Log.Info)
-    . runError
-    . handleEventLogSql
-    . handleChainIndex
-    . handleContractEffectApp
-    . handleUUIDEffect
-    . handleSigningProcess
-    . handleNodeClient
-    . handleWallet
-    . handleNodeFollower
-    . handleRandomTxClient nodeClientEnv
-    where
+runAppBackend trace loggingConfig config action = do
+    env@Env { dbConnection
+            , nodeClientEnv
+            , metadataClientEnv
+            , walletClientEnv
+            , signingProcessEnv
+            , chainIndexEnv
+            } <- mkEnv config
+    let
         handleChainIndex :: Eff (ChainIndexEffect ': Error ClientError ': _) a -> Eff _ a
         handleChainIndex =
-            flip handleError (throwError . ChainIndexError)
-            . handleChainIndexClient chainIndexEnv
-
-        handleSigningProcess :: Eff (SigningProcessEffect ': Error ClientError ': _) a -> Eff _ a
+            flip handleError (throwError . ChainIndexError) .
+            handleChainIndexClient chainIndexEnv
+        handleSigningProcess ::
+               Eff (SigningProcessEffect ': Error ClientError ': _) a -> Eff _ a
         handleSigningProcess =
-            flip handleError (throwError . SigningProcessError)
-            . SigningProcessClient.handleSigningProcessClient signingProcessEnv
-
-        handleNodeClient :: Eff (NodeClientEffect ': Error ClientError ': _) a -> Eff _ a
+            flip handleError (throwError . SigningProcessError) .
+            SigningProcessClient.handleSigningProcessClient signingProcessEnv
+        handleNodeClient ::
+               Eff (NodeClientEffect ': Error ClientError ': _) a -> Eff _ a
         handleNodeClient =
-            flip handleError (throwError . NodeClientError)
-            . handleNodeClientClient nodeClientEnv
-
-        handleNodeFollower :: Eff (NodeFollowerEffect ': Error ClientError ': _) a -> Eff _ a
+            flip handleError (throwError . NodeClientError) .
+            handleNodeClientClient nodeClientEnv
+        handleNodeFollower ::
+               Eff (NodeFollowerEffect ': Error ClientError ': _) a -> Eff _ a
         handleNodeFollower =
-            flip handleError (throwError . NodeClientError)
-            . handleNodeFollowerClient nodeClientEnv
-
-        handleWallet :: Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a -> Eff _ a
+            flip handleError (throwError . NodeClientError) .
+            handleNodeFollowerClient nodeClientEnv
+        handleMetadata ::
+               Eff (MetadataEffect ': Error ClientError ': _) a -> Eff _ a
+        handleMetadata =
+            flip handleError (throwError . MetadataClientError) .
+            handleMetadataClient metadataClientEnv
+        handleWallet ::
+               Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a
+            -> Eff _ a
         handleWallet =
-            flip handleError (throwError . WalletClientError)
-            . flip handleError (throwError . WalletError)
-            . WalletClient.handleWalletClient walletClientEnv
+            flip handleError (throwError . WalletClientError) .
+            flip handleError (throwError . WalletError) .
+            WalletClient.handleWalletClient walletClientEnv
 
+    runM
+        . runReader env
+        . runReader config
+        . runReader dbConnection
+        . handleObserveTrace loggingConfig trace
+        . handleLogMsgTraceMap SCoreMsg trace
+        . handleLogMsgTraceMap SUnstringifyJSON trace
+        . handleLogMsgTraceMap SWebsocketMsg trace
+        . handleLogMsgTraceMap SContractInstanceMsg trace
+        . handleLogMsgTraceMap SContractExeLogMsg trace
+        . handleLogMsgTraceMap SWalletEvent trace
+        . handleWriterLog (\_ -> Log.Info)
+        . runError
+        . handleWebSocket
+        . handleEventLogSql
+        . handleChainIndex
+        . handleContractEffectApp
+        . handleUUIDEffect
+        . handleSigningProcess
+        . handleMetadata
+        . handleNodeClient
+        . handleWallet
+        . handleNodeFollower
+        $ handleRandomTxClient nodeClientEnv action
 
-type App a = Eff (AppBackend (LoggingT IO)) a
+type App a = Eff (AppBackend (TraceLoggerT IO)) a
 
-runApp :: LogLevel -> Config -> App a -> IO (Either SCBError a)
-runApp minLogLevel Config {dbConfig, nodeServerConfig, walletServerConfig, signingProcessConfig, chainIndexConfig} action =
-    runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ do
-        walletClientEnv <- mkEnv (WalletServer.baseUrl walletServerConfig)
-        nodeClientEnv <- mkEnv (NodeServer.mscBaseUrl nodeServerConfig)
-        signingProcessEnv <- mkEnv (SigningProcess.spBaseUrl signingProcessConfig)
-        chainIndexEnv <- mkEnv (ChainIndex.ciBaseUrl chainIndexConfig)
-        dbConnection <- dbConnect dbConfig
-        let env = Env {..}
-        runAppBackend @(LoggingT IO) env action
+mkEnv :: (MonadUnliftIO m, MonadLogger m) => Config -> m Env
+mkEnv Config { dbConfig
+             , nodeServerConfig
+             , metadataServerConfig
+             , walletServerConfig
+             , signingProcessConfig
+             , chainIndexConfig
+             } = do
+    walletClientEnv <- clientEnv (WalletServer.baseUrl walletServerConfig)
+    nodeClientEnv <- clientEnv (NodeServer.mscBaseUrl nodeServerConfig)
+    metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
+    signingProcessEnv <-
+        clientEnv (SigningProcess.spBaseUrl signingProcessConfig)
+    chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)
+    dbConnection <- dbConnect dbConfig
+    pure Env {..}
   where
-    mkEnv baseUrl =
-            mkClientEnv
-                <$> liftIO (newManager defaultManagerSettings)
-                <*> pure baseUrl
+    clientEnv baseUrl =
+        mkClientEnv <$> liftIO (newManager defaultManagerSettings) <*>
+        pure baseUrl
 
-data ContractExeLogMsg =
-    InvokeContractMsg
-    | InitContractMsg FilePath
-    | UpdateContractMsg FilePath (ContractRequest JSON.Value)
-    | ExportSignatureMsg FilePath
-    | ProcessExitFailure String
-    | ContractResponse String
-    | Migrating
-    | InvokingEndpoint String JSON.Value
-    | EndpointInvocationResponse [Doc Void]
-    | ContractExeSCBError SCBError
+runApp :: Trace IO SCBLogMsg -> CM.Configuration -> Config -> App a -> IO (Either SCBError a)
+runApp theTrace logConfig config action =
+    runTraceLoggerT
 
-instance Pretty ContractExeLogMsg where
-    pretty = \case
-        InvokeContractMsg -> "InvokeContract"
-        InitContractMsg fp -> fromString fp <+> "init"
-        UpdateContractMsg fp vl ->
-            let pl = BSL8.unpack (JSON.encodePretty vl) in
-            fromString fp
-            <+> "update"
-            <+> fromString pl
-        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
-        ProcessExitFailure err -> "ExitFailure" <+> pretty err
-        ContractResponse str -> pretty str
-        Migrating -> "Migrating"
-        InvokingEndpoint s v ->
-            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
-        EndpointInvocationResponse v ->
-            hang 2 $ vsep ("Invocation response:" : fmap (fmap absurd) v)
-        ContractExeSCBError e ->
-            "SCB error:" <+> pretty e
+    -- see note [Use of iohk-monitoring in PAB]
+    (runAppBackend @(TraceLoggerT IO) (monadLoggerTracer theTrace) logConfig config action)
+    (contramap (second (fmap SLoggerBridge)) theTrace)
 
 handleContractEffectApp ::
        (Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
@@ -264,31 +276,5 @@ migrate = do
         $ flip runSqlPool connectionPool
         $ initializeSqliteEventStore sqlConfig connectionPool
 
-data UnStringifyJSONLog =
-    ParseStringifiedJSONAttempt
-    | ParseStringifiedJSONFailed
-    | ParseStringifiedJSONSuccess
-
-instance Pretty UnStringifyJSONLog where
-    pretty = \case
-        ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
-        ParseStringifiedJSONSuccess -> "parseStringifiedJSON: Succeeded"
-
-parseStringifiedJSON ::
-    forall effs.
-    Member (LogMsg UnStringifyJSONLog) effs
-    => JSON.Value
-    -> Eff effs JSON.Value
-parseStringifiedJSON v = case v of
-    JSON.String s -> do
-        logDebug ParseStringifiedJSONAttempt
-        let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
-        case s' of
-            Nothing -> do
-                logDebug ParseStringifiedJSONFailed
-                pure v
-            Just s'' -> do
-                logDebug ParseStringifiedJSONSuccess
-                pure s''
-    _ -> pure v
+monadLoggerTracer :: Trace IO a -> Trace (TraceLoggerT IO) a
+monadLoggerTracer = natTracer (\x -> TraceLoggerT $ \_ -> x)

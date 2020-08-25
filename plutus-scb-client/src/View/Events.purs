@@ -1,4 +1,7 @@
-module View.Events (eventsPane, utxoIndexPane) where
+module View.Events
+  ( eventsPane
+  , utxoIndexPane
+  ) where
 
 import Prelude
 import Bootstrap (badgePrimary_, cardBody_, cardHeader_, card_, nbsp)

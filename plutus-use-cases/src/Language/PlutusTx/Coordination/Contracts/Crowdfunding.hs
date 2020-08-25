@@ -48,6 +48,8 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
 import           Control.Applicative               (Applicative (..))
 import           Control.Monad                     (void)
 import           Data.Aeson                        (FromJSON, ToJSON)
+import Data.Text (Text)
+import qualified Data.Text as Text
 import           GHC.Generics                      (Generic)
 import           IOTS                              (IotsType)
 
@@ -206,6 +208,7 @@ theCampaign = Campaign
 contribute :: Campaign -> Contract CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
+    logInfo @Text $ "Contributing " <> Text.pack (show contribValue)
     contributor <- ownPubKey
     let inst = scriptInstance cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
@@ -223,7 +226,9 @@ contribute cmp = do
                 <> Constraints.mustValidateIn (refundRange cmp)
                 <> Constraints.mustBeSignedBy (pubKeyHash contributor)
     if Constraints.modifiesUtxoSet tx'
-    then void (submitTxConstraintsSpending inst utxo tx')
+    then do
+        logInfo @Text "Claiming refund"
+        void (submitTxConstraintsSpending inst utxo tx')
     else pure ()
 
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
@@ -237,12 +242,15 @@ scheduleCollection cmp = do
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
+    logInfo @Text "Campaign started. Waiting for campaign deadline to collect funds."
 
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
 
     let tx = Typed.collectFromScript unspentOutputs Collect
             <> Constraints.mustValidateIn (collectionRange cmp)
+
+    logInfo @Text "Collecting funds"
     void $ submitTxConstraintsSpending inst unspentOutputs tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's

@@ -141,14 +141,24 @@ let additions =
           , repo =
               "https://github.com/shmish111/purescript-servant-support"
           , version =
-              "v10.0.0"
+              "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
+          }
+      , concurrent-queues =
+          { dependencies =
+              [ "aff"
+              , "avar"
+              ]
+          , repo =
+              "https://github.com/purescript-contrib/purescript-concurrent-queues.git"
+          , version =
+              "v1.1.0"
           }
       , foreign-generic =
               upstream.foreign-generic
           //  { repo =
                   "https://github.com/shmish111/purescript-foreign-generic"
               , version =
-                  "purs-0.13"
+                  "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c"
               }
       , matryoshka =
           { dependencies =

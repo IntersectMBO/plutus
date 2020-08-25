@@ -25,7 +25,9 @@ module Wallet.Emulator.Types(
     AssertionError(..),
     AsAssertionError(..),
     ChainClientNotification(..),
-    EmulatorEvent(..),
+    EmulatorEvent,
+    EmulatorEvent',
+    EmulatorTimeEvent(..),
     EmulatorAction(..),
     -- ** Wallet state
     WalletState(..),
@@ -132,7 +134,13 @@ newtype EmulatorAction e a = EmulatorAction { unEmulatorAction :: ExceptT e (Sta
     deriving newtype (Functor, Applicative, Monad, MonadState EmulatorState, MonadError e)
 
 processEmulated :: forall m e a . (MonadEmulator e m) => Eff.Eff EmulatorEffs a -> m a
-processEmulated act =
+processEmulated act = do
+    emulatorTime <- use (chainState . currentSlot)
+    let
+        p1 :: Prism' [LogMessage EmulatorEvent] [ChainEvent]
+        p1 =  below (logMessage Info . emulatorTimeEvent emulatorTime . chainEvent)
+        p2 :: Prism' e AssertionError
+        p2 = _AssertionError
     act
         & Eff.raiseEnd3
         & handleMultiAgent
@@ -147,11 +155,7 @@ processEmulated act =
         & Eff.interpretM Eff.stateToMonadState
         & Eff.interpretM Eff.errorToMonadError
         & Eff.runM
-    where
-        p1 :: Prism' [LogMessage EmulatorEvent] [ChainEvent]
-        p1 =  below (logMessage Info . chainEvent)
-        p2 :: Prism' e AssertionError
-        p2 = _AssertionError
+
 
 -- | Run a 'MonadEmulator' action on an 'EmulatorState', returning the final
 --   state and either the result or an 'AssertionError'.

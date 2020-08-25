@@ -2,12 +2,14 @@
 , checkMaterialization ? false
 , useCabalProject ? true
 , compiler-nix-name ? "ghc883"
+, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args)
 }@args:
 let
-  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args);
-  pyEnv = packageSet.pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
-in
-with packageSet; haskell.packages.shellFor {
+  # For Sphinx, and ad-hoc usage
+  pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+  # Called from Cabal to generate the Haskell source for the metatheory package
+  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
+in haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -24,6 +26,8 @@ with packageSet; haskell.packages.shellFor {
     pkgs.stack
 
     pyEnv
+
+    agdaWithStdlib
 
     # Deployment tools
     pkgs.terraform_0_11

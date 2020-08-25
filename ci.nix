@@ -23,6 +23,7 @@ in dimension "System" (systems genericPkgs) (systemName: system:
     platformFilter = platformFilterGeneric pkgs system;
   in filterAttrsOnlyRecursive (_: v: platformFilter v) {
     inherit (packageSet) docs papers dev tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+    inherit (packageSet.haskell.project) roots;
     # build the shell expression to be sure it works on all platforms
     shell = import ./shell.nix { inherit packageSet; };
     haskell =

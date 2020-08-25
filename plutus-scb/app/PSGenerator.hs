@@ -16,6 +16,7 @@ module PSGenerator
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Control.Monad                                     (void)
+import           Control.Monad.Freer.Log                           (LogLevel, LogMessage)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Proxy                                        (Proxy (Proxy))
@@ -51,9 +52,10 @@ import           Plutus.SCB.MockApp                                (defaultWalle
 import qualified Plutus.SCB.MockApp                                as MockApp
 import           Plutus.SCB.Types                                  (ContractExe)
 import qualified Plutus.SCB.Webserver.API                          as API
-import qualified Plutus.SCB.Webserver.Server                       as Webserver
+import qualified Plutus.SCB.Webserver.Handler                      as Webserver
 import           Plutus.SCB.Webserver.Types                        (ChainReport, ContractReport,
-                                                                    ContractSignatureResponse, FullReport)
+                                                                    ContractSignatureResponse, FullReport,
+                                                                    StreamToClient, StreamToServer)
 import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
@@ -93,6 +95,8 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
     , (equal <*> (genericShow <*> mkSumType))
           (Proxy @(ContractSignatureResponse A))
@@ -124,6 +128,10 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
+
+    -- Logging types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @LogLevel)
     ]
 
 mySettings :: Settings

@@ -7,6 +7,7 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -50,8 +51,9 @@ data Assertion
   | OwnFundsEqual Wallet.Wallet Value -- ^ Assert that the funds belonging to a wallet's public-key address are equal to a value.
 
 -- | An error emitted when an 'Assertion' fails.
-newtype AssertionError = GenericAssertion T.Text
-    deriving (Show, Eq)
+newtype AssertionError = GenericAssertion { unAssertionError :: T.Text }
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 makeClassyPrisms ''AssertionError
 
 instance Pretty AssertionError where
@@ -62,8 +64,27 @@ instance Pretty AssertionError where
 instance AsAssertionError T.Text where
     _AssertionError = prism' (T.pack . show) (const Nothing)
 
+-- | An event with a timestamp measured in emulator time
+--   (currently: 'Slot')
+data EmulatorTimeEvent e =
+    EmulatorTimeEvent
+        { _eteEmulatorTime :: Slot
+        , _eteEvent        :: e
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+makeLenses ''EmulatorTimeEvent
+
+instance Pretty e => Pretty (EmulatorTimeEvent e) where
+    pretty EmulatorTimeEvent{_eteEmulatorTime, _eteEvent} =
+        pretty _eteEmulatorTime <> colon <+> pretty _eteEvent
+
+emulatorTimeEvent :: Slot -> Prism' (EmulatorTimeEvent e) e
+emulatorTimeEvent t = prism' (EmulatorTimeEvent t) (\case { EmulatorTimeEvent s e | s == t -> Just e; _ -> Nothing})
+
 -- | Events produced by the blockchain emulator.
-data EmulatorEvent =
+data EmulatorEvent' =
     ChainEvent Chain.ChainEvent
     | ClientEvent Wallet.Wallet NC.NodeClientEvent
     | WalletEvent Wallet.Wallet Wallet.WalletEvent
@@ -71,23 +92,25 @@ data EmulatorEvent =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty EmulatorEvent where
+instance Pretty EmulatorEvent' where
     pretty = \case
-        ClientEvent _ e -> pretty e
+        ClientEvent w e -> pretty w <> colon <+> pretty e
         ChainEvent e -> pretty e
-        WalletEvent _ e -> pretty e
-        ChainIndexEvent _ e -> pretty e
+        WalletEvent w e -> pretty w <> colon <+> pretty e
+        ChainIndexEvent w e -> pretty w <> colon <+> pretty e
 
-chainEvent :: Prism' EmulatorEvent Chain.ChainEvent
+type EmulatorEvent = EmulatorTimeEvent EmulatorEvent'
+
+chainEvent :: Prism' EmulatorEvent' Chain.ChainEvent
 chainEvent = prism' ChainEvent (\case { ChainEvent c -> Just c; _ -> Nothing })
 
-walletClientEvent :: Wallet.Wallet -> Prism' EmulatorEvent NC.NodeClientEvent
+walletClientEvent :: Wallet.Wallet -> Prism' EmulatorEvent' NC.NodeClientEvent
 walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent Wallet.WalletEvent
+walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
+chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
 type EmulatedWalletEffects =
@@ -267,62 +290,71 @@ handleMultiAgent
     => Eff (MultiAgentEffect ': effs) ~> Eff effs
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
-    WalletAction wallet act -> act
-        & raiseEnd9
-        & Wallet.handleWallet
-        & subsume
-        & NC.handleNodeClient
-        & ChainIndex.handleChainIndex
-        & SP.handleSigningProcess
-        & handleObserveLog
-        & interpret (handleLogWriter p5)
-        & interpret (handleLogWriter p6)
-        & interpret (handleLogWriter p4)
-        & interpret (handleZoomedState (walletState wallet))
-        & interpret (handleZoomedWriter p1)
-        & interpret (handleZoomedState (walletClientState wallet))
-        & interpret (handleZoomedWriter p2)
-        & interpret (handleZoomedState (walletChainIndexState wallet))
-        & interpret (handleZoomedWriter p3)
-        & interpret (handleZoomedState (signingProcessState wallet))
-        & interpret (writeIntoState emulatorLog)
-        where
+    WalletAction wallet act ->  do
+        emulatorTime :: Slot <- Chain.getCurrentSlot
+        let
+            timed :: forall e. Prism' (EmulatorTimeEvent e) e
+            timed = emulatorTimeEvent emulatorTime
             p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
-            p1 = below (logMessage Info . walletEvent wallet)
+            p1 = below (logMessage Info . timed . walletEvent wallet)
             p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
-            p2 = below (logMessage Info . walletClientEvent wallet)
-            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . chainIndexEvent wallet)
+            p2 = below (logMessage Info . timed . walletClientEvent wallet)
+            p3 :: AReview [LogMessage EmulatorEvent] (LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage EmulatorEvent] (LogMessage T.Text)
-            p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
+            p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
             p5 :: AReview [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
-            p5 = _singleton . below (walletEvent wallet . Wallet._RequestHandlerLog)
+            p5 = _singleton . below (timed . walletEvent wallet . Wallet._RequestHandlerLog)
             p6 :: AReview [LogMessage EmulatorEvent] (LogMessage TxBalanceMsg)
-            p6 = _singleton . below (walletEvent wallet . Wallet._TxBalanceLog)
-    WalletControlAction wallet act -> act
-        & raiseEnd5
-        & NC.handleNodeControl
-        & ChainIndex.handleChainIndexControl
-        & SP.handleSigningProcessControl
-        & handleObserveLog
-        & interpret (handleLogWriter p4)
-        & interpret (handleZoomedState (walletState wallet))
-        & interpret (handleZoomedWriter p1)
-        & interpret (handleZoomedState (walletClientState wallet))
-        & interpret (handleZoomedWriter p2)
-        & interpret (handleZoomedState (walletChainIndexState wallet))
-        & interpret (handleZoomedWriter p3)
-        & interpret (handleZoomedState (signingProcessState wallet))
-        & interpret (writeIntoState emulatorLog)
-        where
+            p6 = _singleton . below (timed . walletEvent wallet . Wallet._TxBalanceLog)
+        act
+            & raiseEnd9
+            & Wallet.handleWallet
+            & subsume
+            & NC.handleNodeClient
+            & ChainIndex.handleChainIndex
+            & SP.handleSigningProcess
+            & handleObserveLog
+            & interpret (handleLogWriter p5)
+            & interpret (handleLogWriter p6)
+            & interpret (handleLogWriter p4)
+            & interpret (handleZoomedState (walletState wallet))
+            & interpret (handleZoomedWriter p1)
+            & interpret (handleZoomedState (walletClientState wallet))
+            & interpret (handleZoomedWriter p2)
+            & interpret (handleZoomedState (walletChainIndexState wallet))
+            & interpret (handleLogWriter p3)
+            & interpret (handleZoomedState (signingProcessState wallet))
+            & interpret (writeIntoState emulatorLog)
+
+    WalletControlAction wallet act -> do
+        emulatorTime :: Slot <- Chain.getCurrentSlot
+        let
+            timed :: forall e. Prism' (EmulatorTimeEvent e) e
+            timed = emulatorTimeEvent emulatorTime
             p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
-            p1 = below (logMessage Info . walletEvent wallet)
+            p1 = below (logMessage Info . timed . walletEvent wallet)
             p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
-            p2 = below (logMessage Info . walletClientEvent wallet)
-            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . chainIndexEvent wallet)
+            p2 = below (logMessage Info . timed . walletClientEvent wallet)
+            p3 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
-            p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
+            p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
+        act
+            & raiseEnd5
+            & NC.handleNodeControl
+            & ChainIndex.handleChainIndexControl
+            & SP.handleSigningProcessControl
+            & handleObserveLog
+            & interpret (handleLogWriter p4)
+            & interpret (handleZoomedState (walletState wallet))
+            & interpret (handleZoomedWriter p1)
+            & interpret (handleZoomedState (walletClientState wallet))
+            & interpret (handleZoomedWriter p2)
+            & interpret (handleZoomedState (walletChainIndexState wallet))
+            & interpret (handleLogWriter p3)
+            & interpret (handleZoomedState (signingProcessState wallet))
+            & interpret (writeIntoState emulatorLog)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.

@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE DerivingStrategies        #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -157,7 +158,8 @@ data ConnectionError =
     | WrongDatumType
     | NoDatum TxId DatumHash
     | UnknownRef
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty ConnectionError where
     pretty = \case

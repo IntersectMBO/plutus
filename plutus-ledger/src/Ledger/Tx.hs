@@ -104,7 +104,7 @@ Binary serialisation could be achieved via
 2. The `cbor` package
 
 (1) is used in the cardano-sl repository, and (2) is used in the
-`language-plutus-core` project in this repository.
+`plutus-core` project in this repository.
 
 In this module we use (2) because of the precedent. This means however that we
 may generate different hashes for the same transactions compared to cardano-sl.

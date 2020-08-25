@@ -12,7 +12,7 @@ where
 
 import           Control.Arrow                                    ((>>>))
 import           Data.Function                                    ((&))
-import qualified Data.List                                        as L (elem, init, last, notElem)
+import qualified Data.List                                        as L (init, last, notElem)
 import           Data.Time.Calendar                               (Day, addDays, addGregorianMonthsClip,
                                                                    addGregorianYearsClip, fromGregorian,
                                                                    gregorianMonthLength, toGregorian)
@@ -23,27 +23,37 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (c
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
 
 
-sup :: [ShiftedDay] -> Day -> ShiftedDay
-sup set threshold =
-  minimum [t | t <- set, calculationDay t >= threshold]
 
-inf :: [ShiftedDay] -> Day -> ShiftedDay
+maximumMaybe :: Ord a => [a] -> Maybe a
+maximumMaybe [] = Nothing
+maximumMaybe xs = Just $ maximum xs
+
+minimumMaybe :: Ord a => [a] -> Maybe a
+minimumMaybe [] = Nothing
+minimumMaybe xs = Just $ minimum xs
+
+inf :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 inf set threshold =
-  maximum [t | t <- set, calculationDay t <= threshold]
+  minimumMaybe [t | t <- set, calculationDay t >= threshold]
+
+sup :: [ShiftedDay] -> Day -> Maybe ShiftedDay
+sup set threshold =
+  maximumMaybe [t | t <- set, calculationDay t <= threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)
 
 stubCorrection :: Stub -> Day -> ShiftedSchedule -> ShiftedSchedule
 stubCorrection stub endDay schedule =
-  if (paymentDay $ L.last schedule) == endDay && stub == ShortStub
-    then schedule
-    else L.init schedule
+  if null schedule then schedule
+  else if (paymentDay $ L.last schedule) == endDay || stub == ShortStub then schedule
+  else L.init schedule
 
 endDateCorrection :: Bool -> Day -> [Day] -> [Day]
 endDateCorrection includeEndDay endDay schedule
   | includeEndDay && L.notElem endDay schedule = schedule ++ [endDay]
-  | not includeEndDay && L.elem endDay schedule = L.init schedule
+-- we don't remove end date if it's already in the schedule:
+--  | not includeEndDay && L.elem endDay schedule = L.init schedule
   | otherwise = schedule
 
 generateRecurrentSchedule :: Cycle -> Day -> Day -> [Day]
@@ -55,7 +65,7 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
           (let current' = shiftDate anchorDate (k * n) p
            in  go current' (k + 1) (acc ++ [current])
           )
-  in  go anchorDate 0 []
+  in  go anchorDate 1 []
 
 
 generateRecurrentScheduleWithCorrections

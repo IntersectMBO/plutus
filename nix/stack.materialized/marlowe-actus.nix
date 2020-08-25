@@ -51,6 +51,8 @@
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
+          (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
@@ -60,6 +62,7 @@
           "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/MarloweCompat"
           "Language/Marlowe/ACTUS/Generator"
+          "Language/Marlowe/ACTUS/Analysis"
           "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
           "Language/Marlowe/ACTUS/Definitions/ContractTerms"
           "Language/Marlowe/ACTUS/Definitions/ContractState"

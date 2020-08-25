@@ -85,6 +85,7 @@
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
+          (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
@@ -95,18 +96,27 @@
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
           (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
+          (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           (hsPkgs."mwc-random" or (errorHandler.buildDepError "mwc-random"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+          (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
+          (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           ];
         buildable = true;
         modules = [
           "Servant/Extra"
+          "Cardano/BM/Data/Tracer/Extras"
           "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
+          "Cardano/Metadata/API"
+          "Cardano/Metadata/Client"
+          "Cardano/Metadata/Server"
+          "Cardano/Metadata/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
           "Cardano/Node/Follower"
@@ -127,8 +137,10 @@
           "Cardano/Wallet/Mock"
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
+          "Control/Monad/Freer/Delay"
           "Control/Monad/Freer/Extra/Log"
           "Control/Monad/Freer/Extra/State"
+          "Control/Monad/Freer/WebSocket"
           "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
@@ -146,16 +158,23 @@
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
-          "Plutus/SCB/Webserver/Types"
+          "Plutus/SCB/Instances"
+          "Plutus/SCB/MonadLoggerBridge"
+          "Plutus/SCB/Monitoring"
           "Plutus/SCB/Webserver/API"
+          "Plutus/SCB/Webserver/Handler"
           "Plutus/SCB/Webserver/Server"
+          "Plutus/SCB/Webserver/Types"
+          "Plutus/SCB/Webserver/WebSocket"
           "Plutus/SCB/Events"
           "Plutus/SCB/Events/Contract"
           "Plutus/SCB/Events/Node"
           "Plutus/SCB/Events/User"
           "Plutus/SCB/Events/Wallet"
+          "Plutus/SCB/ParseStringifiedJSON"
           "Plutus/SCB/Query"
           "Plutus/SCB/Relation"
+          "Plutus/SCB/SCBLogMsg"
           "Plutus/SCB/Types"
           "Plutus/SCB/Utils"
           ];
@@ -169,7 +188,6 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."ekg" or (errorHandler.buildDepError "ekg"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -193,6 +211,8 @@
             (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+            (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
             ];
           buildable = true;
           modules = [ "PSGenerator" ];

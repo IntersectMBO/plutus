@@ -6,6 +6,38 @@
 ############################################################################
 { pkgs, compiler-nix-name, index-state, checkMaterialization, sources }:
 {
+  Agda = pkgs.haskell-nix.hackage-package {
+    name = "Agda";
+    version = "2.6.1";
+    plan-sha256 = "0gvvhwjcwmq8avcqz8azv8db2171qvigkam3i9bgr6z13xk995ha";
+    inherit compiler-nix-name index-state checkMaterialization;
+    modules = [{
+      # Agda is a huge pain. They have a special custom setup that compiles the interface files for
+      # the Agda that ships with the compiler. These go in the data files for the *library*, but they
+      # require the *executable* to compile them, which depends on the library!
+      # They get away with it by using the old-style builds and building everything together, we can't
+      # do that.
+      # So we work around it:
+      # - turn off the custom setup
+      # - manually compile the executable (fortunately it has no extra dependencies!) and do the
+      # compilation at the end of the library derivation.
+      packages.Agda.package.buildType = pkgs.lib.mkForce "Simple";
+      packages.Agda.components.library.postInstall = ''
+        # Compile the executable using the package DB we've just made, which contains
+        # the main Agda library
+        ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
+        # Find all the files in $out (would be $data if we had a separate data output)
+        shopt -s globstar
+        files=($out/**/*.agda)
+        for f in "''${files[@]}" ; do
+          echo "Compiling $f"
+          # This is what the custom setup calls in the end
+          ./agda --no-libraries --local-interfaces $f
+        done
+      '';
+    }];
+  };
   cabal-install = (pkgs.haskell-nix.cabalProject {
     name = "cabal-install";
     src = sources.cabal;
@@ -85,13 +117,14 @@
           rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
           sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
         };
-        # Swap out ghc 8.6.4 (selected based on the LTS in the stack.yaml)
-        # for 8.6.5 (which is more likely to be cached)
-        ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
         # Invalidate and update if you change the version
         stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
         inherit checkMaterialization;
+
+        # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
+        ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
         modules = [{ compiler.nix-name = pkgs.lib.mkForce "ghc865"; }];
+
         pkg-def-extras = [
           # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
           (hackage: {

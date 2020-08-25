@@ -163,6 +163,7 @@ data Arg
   | Number { name :: String, value :: Number, min :: Maybe Number, max :: Maybe Number, precision :: Maybe Number }
   | Angle { name :: String, angle :: Number }
   | Variable { name :: String, variable :: String }
+  -- Dates don't work in Blockly, see: https://developers.google.com/blockly/guides/create-custom-blocks/fields/built-in-fields/date
   | Date { name :: String, date :: String }
   | Label { text :: Maybe String, class :: Maybe String }
   | Image { src :: String, width :: Number, height :: Number, alt :: String }

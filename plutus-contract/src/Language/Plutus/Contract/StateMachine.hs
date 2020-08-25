@@ -16,6 +16,7 @@ module Language.Plutus.Contract.StateMachine(
     , SM.StateMachine(..)
     , SM.StateMachineInstance(..)
     , SM.State(..)
+    , OnChainState
     -- * Constructing the machine instance
     , SM.mkValidator
     , SM.mkStateMachine
@@ -149,7 +150,10 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
 -- | Wait until the on-chain state of the state machine instance has changed,
---   and return the new state.
+--   and return the new state, or return 'Nothing' if the instance has been
+--   terminated. If 'waitForUpdate' is called before the instance has even
+--   started then it returns the first state of the instance as soon as it
+--   has started.
 waitForUpdate ::
     ( AsSMContractError e state i
     , AsContractError e
@@ -157,7 +161,7 @@ waitForUpdate ::
     , HasAwaitSlot schema
     , HasWatchAddress schema)
     => StateMachineClient state i
-    -> Contract schema e (OnChainState state i)
+    -> Contract schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
         outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
@@ -167,7 +171,9 @@ waitForUpdate StateMachineClient{scInstance, scChooser} = do
                 $ Tx.unspentOutputsTx t
     txns <- nextTransactionsAt addr
     let states = txns >>= getStates scInstance . outputsMap
-    either (throwing _SMContractError) pure (scChooser states)
+    case states of
+        [] -> pure Nothing
+        xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.

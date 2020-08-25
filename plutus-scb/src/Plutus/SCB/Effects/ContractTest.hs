@@ -103,7 +103,7 @@ doContractInit ::
     => Contract schema Text ()
     -> Eff effs (PartiallyDecodedResponse ContractSCBRequest)
 doContractInit contract = either throwError pure $ do
-    value <- first OtherError $ ContractState.initialiseContract contract
+    let value = ContractState.initialiseContract contract
     fromString $ fmap (fmap unContractHandlersResponse) $ JSON.eitherDecode $ JSON.encode value
 
 doContractUpdate ::
@@ -126,23 +126,22 @@ doContractUpdate contract payload = do
         $ fromString
         $ traverse (JSON.parseEither JSON.parseJSON) payload
     logDebug $ Request $ pretty request
-    response <-
-        either (throwError . OtherError) (pure . mkResponse)
-        $ ContractState.insertAndUpdateContract contract request
+    let response = mkResponse $ ContractState.insertAndUpdateContract contract request
     logDebug $ Response response
     pure response
 
 mkResponse ::
-    forall schema.
+    forall schema err.
     ( Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
     )
-    => ContractResponse (Event schema) (Handlers schema)
+    => ContractResponse err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractSCBRequest
-mkResponse ContractResponse{newState, hooks} =
+mkResponse ContractResponse{newState, hooks, logs} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
+        , C.logs     = logs
         }
 
 encodeRequest ::

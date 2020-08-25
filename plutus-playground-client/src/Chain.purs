@@ -9,7 +9,6 @@ import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
-import Control.Monad.Freer.Log (LogMessage(..))
 import Data.Array as Array
 import Data.Array.Extra (collapse)
 import Data.Int as Int
@@ -38,7 +37,8 @@ import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
 import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
-import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
+import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
@@ -63,7 +63,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             logs ->
               div
                 [ class_ $ ClassName "logs" ]
-                (emulatorEventPane <$> Array.reverse logs)
+                ((emulatorEventPane <<< eveEvent) <$> Array.reverse logs)
         , h2_ [ text "Trace" ]
         , code_ [ pre_ [ text emulatorTrace ] ]
         ]
@@ -79,7 +79,10 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
         ]
     ]
 
-emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
+eveEvent :: forall a. MultiAgent.EmulatorTimeEvent a -> a
+eveEvent (MultiAgent.EmulatorTimeEvent { _eteEvent }) = _eteEvent
+
+emulatorEventPane :: forall i p. EmulatorEvent' -> HTML p i
 emulatorEventPane (ChainIndexEvent _ (ReceiveBlockNotification numTransactions)) =
   div_
     [ text $ "Chain index receive block notification. " <> show numTransactions <> " transactions." ]
@@ -87,6 +90,10 @@ emulatorEventPane (ChainIndexEvent _ (ReceiveBlockNotification numTransactions))
 emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
   div_
     [ text $ "Submitting transaction: " <> show address ]
+
+emulatorEventPane (ChainIndexEvent _ (HandlingAddressChangeRequest rq _)) =
+  div_
+    [ text $ "Handling address change request: " <> show rq ]
 
 emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_

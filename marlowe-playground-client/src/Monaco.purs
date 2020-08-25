@@ -13,8 +13,8 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
-import Foreign (unsafeToForeign)
-import Foreign.Generic (class Encode, Foreign, SumEncoding(..), defaultOptions, encode, genericEncode)
+import Foreign (unsafeFromForeign, unsafeToForeign)
+import Foreign.Generic (class Decode, class Encode, Foreign, SumEncoding(..), defaultOptions, encode, genericEncode)
 import Foreign.Object (Object)
 import Foreign.Object as Object
 import Web.HTML (HTMLElement)
@@ -119,9 +119,21 @@ instance ordCompletionItemKind :: Ord CompletionItemKind where
 
 foreign import data MarkerSeverity :: Type
 
+instance encodeMarkerSeverity :: Encode MarkerSeverity where
+  encode = encode <<< unsafeToForeign
+
+instance decodeMarkerSeverity :: Decode MarkerSeverity where
+  decode = pure <<< unsafeFromForeign
+
 foreign import data TokensProvider :: Type
 
 foreign import data Uri :: Type
+
+instance encodeUri :: Encode Uri where
+  encode = encode <<< unsafeToForeign
+
+instance decodeUri :: Decode Uri where
+  decode = pure <<< unsafeFromForeign
 
 type IMarkdownString
   = { value :: String

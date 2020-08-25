@@ -39,7 +39,7 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+          (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
@@ -94,7 +94,7 @@
       tests = {
         "plutus-use-cases-test" = {
           depends = [
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
@@ -141,7 +141,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
