@@ -114,7 +114,7 @@ postHaskell baseURL sourceCode = do
     affReq =
       defaultRequest
         { method = Method.fromString "POST"
-        , url = baseURL <> "runghc"
+        , url = "/runghc"
         , headers = [ ContentType (MediaType "text/plain;charset=utf-8") ]
         , content = Just $ Affjax.string $ unwrap sourceCode
         }
