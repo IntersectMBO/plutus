@@ -13,7 +13,6 @@ import Data.Enum (toEnum, upFromIncluding)
 import Data.HTTP.Method as Method
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
@@ -42,7 +41,7 @@ import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, ajax)
-import Servant.PureScript.Settings (SPSettings_, _params)
+import Servant.PureScript.Settings (SPSettings_)
 import Simulation.State (_result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
@@ -68,9 +67,7 @@ handleAction settings Compile = do
     Nothing -> pure unit
     Just contents -> do
       assign _compilationResult Loading
-      let
-        baseURL = view (_params <<< _Newtype <<< to _.baseURL) settings
-      result <- RemoteData.fromEither <$> (runExceptT $ postHaskell baseURL $ SourceCode contents)
+      result <- RemoteData.fromEither <$> (runExceptT $ postHaskell $ SourceCode contents)
       assign _compilationResult result
       -- Update the error display.
       let
@@ -106,15 +103,14 @@ postHaskell ::
   forall m.
   MonadError AjaxError m =>
   MonadAff m =>
-  String ->
   SourceCode ->
   m (JsonEither InterpreterError (InterpreterResult RunResult))
-postHaskell baseURL sourceCode = do
+postHaskell sourceCode = do
   let
     affReq =
       defaultRequest
         { method = Method.fromString "POST"
-        , url = baseURL <> "runghc"
+        , url = "/runghc?prelude"
         , headers = [ ContentType (MediaType "text/plain;charset=utf-8") ]
         , content = Just $ Affjax.string $ unwrap sourceCode
         }
