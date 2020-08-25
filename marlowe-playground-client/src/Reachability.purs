@@ -17,11 +17,11 @@ import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, bind, discard, map, pure, unit, ($), (+), (/=), (<$>))
+import Prelude (Unit, Void, bind, discard, map, pure, unit, ($), (+), (/=), (<$>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
-import Types (ChildSlots, Message)
+import Types (ChildSlots)
 
 data ContractZipper
   = PayZip AccountId Payee Token Value ContractZipper
@@ -119,18 +119,18 @@ zipperToContractPath zipper = zipperToContractPathAux zipper Nil
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM State Action ChildSlots Message m) a ->
-  HalogenM State Action ChildSlots Message m (WebData a)
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
 checkContractForReachability ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  String ->
-  String ->
-  HalogenM State Action ChildSlots Message m (WebData Result)
-checkContractForReachability settings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) contract state))
+  Contract ->
+  S.State ->
+  HalogenM State Action ChildSlots Void m (WebData Result)
+checkContractForReachability settings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) (encodeJSON contract) (encodeJSON state)))
 
 expandSubproblem :: ContractZipper -> (ContractPath /\ Contract)
 expandSubproblem z = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)
@@ -175,14 +175,14 @@ startReachabilityAnalysis ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Contract ->
-  S.State -> HalogenM State Action ChildSlots Message m ReachabilityAnalysisData
+  S.State -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 startReachabilityAnalysis settings contract state = do
   case subproblemList of
     Cons head tail -> do
       let
         path /\ subcontract = head unit
       let
-        p =
+        progress =
           ( InProgress
               { currPath: path
               , currContract: subcontract
@@ -192,9 +192,9 @@ startReachabilityAnalysis settings contract state = do
               , numSolvedSubproblems: 0
               }
           )
-      assign _analysisState (ReachabilityAnalysis p)
-      response <- checkContractForReachability settings (encodeJSON subcontract) (encodeJSON state)
-      result <- updateWithResponse settings p response
+      assign _analysisState (ReachabilityAnalysis progress)
+      response <- checkContractForReachability settings subcontract state
+      result <- updateWithResponse settings progress response
       pure result
     Nil -> pure AllReachable
   where
@@ -205,7 +205,7 @@ updateWithResponse ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   ReachabilityAnalysisData ->
-  WebData Result -> HalogenM State Action ChildSlots Message m ReachabilityAnalysisData
+  WebData Result -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 updateWithResponse _ (InProgress _) (Failure (AjaxError err)) = pure (ReachabilityFailure "connection error")
 
 updateWithResponse _ (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
@@ -224,7 +224,7 @@ updateWithResponse settings ( InProgress
   let
     path /\ subcontract = head unit
   let
-    p =
+    progress =
       InProgress
         ( rad
             { currPath = path
@@ -233,9 +233,9 @@ updateWithResponse settings ( InProgress
             , numSolvedSubproblems = n + 1
             }
         )
-  assign _analysisState (ReachabilityAnalysis p)
-  response <- checkContractForReachability settings (encodeJSON subcontract) (encodeJSON state)
-  updateWithResponse settings p response
+  assign _analysisState (ReachabilityAnalysis progress)
+  response <- checkContractForReachability settings subcontract state
+  updateWithResponse settings progress response
 
 updateWithResponse _ rad _ = pure rad
  -- ToDo: nullify assertions

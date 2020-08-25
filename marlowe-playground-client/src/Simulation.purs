@@ -64,7 +64,7 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Reachability (startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -74,7 +74,7 @@ import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeD
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, Message, _marloweEditorSlot)
+import Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -87,7 +87,7 @@ handleAction ::
   forall m.
   MonadEffect m =>
   MonadAff m =>
-  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Message m Unit
+  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
   checkAuthStatus settings
   void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
@@ -253,13 +253,13 @@ handleAction settings AnalyseReachabilityContract = do
       newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
       assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
-getCurrentContract :: forall m. HalogenM State Action ChildSlots Message m String
+getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m String
 getCurrentContract = do
   oldContract <- use _oldContract
   currContract <- editorGetValue
   pure $ fromMaybe mempty $ oldContract <|> currContract
 
-checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
+checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
 checkAuthStatus settings = do
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getOauthStatus settings
@@ -269,7 +269,7 @@ handleGistAction ::
   forall m.
   MonadAff m =>
   MonadEffect m =>
-  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Message m Unit
+  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
 handleGistAction settings PublishGist = do
   marloweState <- use _marloweState
   void
@@ -329,11 +329,11 @@ handleGistAction settings LoadGist = do
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM State Action ChildSlots Message m) a ->
-  HalogenM State Action ChildSlots Message m (WebData a)
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
-scrollHelpPanel :: forall m. MonadEffect m => HalogenM State Action ChildSlots Message m Unit
+scrollHelpPanel :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 scrollHelpPanel =
   liftEffect do
     window <- Web.window
@@ -354,13 +354,13 @@ scrollHelpPanel =
         setScrollTop newScrollHeight sidePanel
       _, _ -> pure unit
 
-editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
+editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Void m Unit
 editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
 
-editorGetValue :: forall m. HalogenM State Action ChildSlots Message m (Maybe String)
+editorGetValue :: forall m. HalogenM State Action ChildSlots Void m (Maybe String)
 editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
 
-saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Message m Unit
+saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 saveInitialState = do
   oldContract <- editorGetValue
   modifying _oldContract
@@ -369,14 +369,14 @@ saveInitialState = do
         _ -> x
     )
 
-resetContract :: forall m. HalogenM State Action ChildSlots Message m Unit
+resetContract :: forall m. HalogenM State Action ChildSlots Void m Unit
 resetContract = do
   newContract <- editorGetValue
   assign _marloweState $ NEL.singleton (emptyMarloweState zero)
   assign _oldContract Nothing
   updateContractInState $ fromMaybe "" newContract
 
-editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Message m Unit
+editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
 editorSetMarkers markers = do
   let
     warnings = filter (\{ severity } -> isWarning severity) markers

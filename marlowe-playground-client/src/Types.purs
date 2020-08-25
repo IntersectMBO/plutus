@@ -29,8 +29,6 @@ import Wallet as Wallet
 data HQuery a
   = ChangeRoute Route a
 
-data Message
-
 data HAction
   = Init
   -- Haskell Editor

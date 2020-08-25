@@ -5,11 +5,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# OPTIONS_GHC   -Wno-orphans     #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Server
-    ( mkHandlers
-    )
+  ( mkHandlers,
+  )
 where
 
 import           API                                              (API, CheckForWarnings (CheckForWarnings),
@@ -52,22 +52,22 @@ import           System.Timeout                                   (timeout)
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime = 10 :: Second
-    r <-
-        liftIO
-        $ runExceptT
-        $ Interpreter.runHaskell maxInterpretationTime sourceCode
-    case r of
-        Right vs                        -> pure $ Right vs
-        Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
-        Left  e                         -> throwError $ err400 { errBody = BSL.pack . show $ e }
+  let maxInterpretationTime = 10 :: Second
+  r <-
+    liftIO $
+      runExceptT $
+        Interpreter.runHaskell maxInterpretationTime sourceCode
+  case r of
+    Right vs                        -> pure $ Right vs
+    Left (CompilationErrors errors) -> pure . Left $ CompilationErrors errors
+    Left e                          -> throwError $ err400 {errBody = BSL.pack . show $ e}
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow
-    case res of
-        Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
-        Right _ -> pure ()
+  res <- acceptSourceCode . SourceCode . Text.pack . BS.unpack $ escrow
+  case res of
+    Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
+    Right _ -> pure ()
 
 marloweSymbolicApi :: Proxy MarloweSymbolicAPI
 marloweSymbolicApi = Proxy
@@ -83,17 +83,19 @@ genActusContractStatic terms = pure $ show $ pretty $ genStaticContract terms
 
 analyseContract :: Text -> Text -> ClientEnv -> CheckForWarnings -> Handler MSRes.Result
 analyseContract apiKey callbackUrl marloweSymbolicClientEnv (CheckForWarnings onlyAssertions contract state) = do
-    let req = MSReq.Request "" (Text.unpack callbackUrl) onlyAssertions contract state
-    res <- liftIO $ runClientM (marloweSymbolicClient (Just "Event") (Just apiKey) req) marloweSymbolicClientEnv
-    case res of
-        Left err                          -> throwError $ err500 {errBody = BSL.pack . show $ err}
-        Right (MSRes.Response _ response) -> pure response
+  let req = MSReq.Request "" (Text.unpack callbackUrl) onlyAssertions contract state
+  res <- liftIO $ runClientM (marloweSymbolicClient (Just "Event") (Just apiKey) req) marloweSymbolicClientEnv
+  case res of
+    Left err -> do
+      liftIO $ print err
+      throwError $ err500 {errBody = BSL.pack "error analysing contract"}
+    Right (MSRes.Response _ response) -> pure response
 
-{-# ANN mkHandlers
-          ("HLint: ignore Avoid restricted function" :: String)
-        #-}
-
+{-# ANN
+  mkHandlers
+  ("HLint: ignore Avoid restricted function" :: String)
+  #-}
 mkHandlers :: (MonadLogger m, MonadIO m) => Text -> Text -> ClientEnv -> m (Server API)
 mkHandlers apiKey callbackUrl marloweSymbolicClientEnv = do
-    logInfoN "Interpreter ready"
-    pure $ (acceptSourceCode :<|> checkHealth :<|> genActusContract :<|> genActusContractStatic :<|> analyseContract apiKey callbackUrl marloweSymbolicClientEnv)
+  logInfoN "Interpreter ready"
+  pure $ (acceptSourceCode :<|> checkHealth :<|> genActusContract :<|> genActusContractStatic :<|> analyseContract apiKey callbackUrl marloweSymbolicClientEnv)

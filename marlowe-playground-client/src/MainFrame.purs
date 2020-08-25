@@ -43,7 +43,7 @@ import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>), (<$>))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>))
 import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
@@ -56,7 +56,7 @@ import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -74,7 +74,7 @@ initialState =
 mkMainFrame ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ -> Component HTML HQuery Unit Message m
+  SPSettings_ SPParams_ -> Component HTML HQuery Unit Void m
 mkMainFrame settings =
   H.mkComponent
     { initialState: const initialState
@@ -92,7 +92,7 @@ mkMainFrame settings =
 toSimulation ::
   forall m a.
   Functor m =>
-  HalogenM ST.State ST.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+  HalogenM ST.State ST.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
 toSimulation halogen = do
   currentState <- get
   let
@@ -104,7 +104,7 @@ toSimulation halogen = do
 toHaskellEditor ::
   forall m a.
   Functor m =>
-  HalogenM HE.State HE.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+  HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
 toHaskellEditor halogen = do
   currentState <- get
   let
@@ -134,7 +134,7 @@ handleRoute ::
   MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  Route -> HalogenM FrontendState HAction ChildSlots Message m Unit
+  Route -> HalogenM FrontendState HAction ChildSlots Void m Unit
 handleRoute settings { gistId: (Just gistId), subroute } = do
   toSimulation do
     Simulation.handleAction settings (ST.GistAction (SetGistUrl (unwrap gistId)))
@@ -150,7 +150,7 @@ handleQuery ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   HQuery a ->
-  HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
+  HalogenM FrontendState HAction ChildSlots Void m (Maybe a)
 handleQuery settings (ChangeRoute route next) = do
   handleRoute settings route
   pure $ Just next
@@ -160,7 +160,7 @@ handleAction ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   HAction ->
-  HalogenM FrontendState HAction ChildSlots Message m Unit
+  HalogenM FrontendState HAction ChildSlots Void m Unit
 handleAction settings Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
@@ -259,8 +259,8 @@ showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Message m) a ->
-  HalogenM FrontendState HAction ChildSlots Message m (WebData a)
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Void m) a ->
+  HalogenM FrontendState HAction ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
 ------------------------------------------------------------
