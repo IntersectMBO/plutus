@@ -34,7 +34,7 @@ import           Network.Wai.Middleware.Cors                    (cors, corsReque
 import           Network.Wai.Middleware.Gzip                    (gzip)
 import           Network.Wai.Middleware.RequestLogger           (logStdout)
 import           Servant                                        ((:<|>) ((:<|>)), (:>), Get, JSON, PlainText, Post,
-                                                                 ReqBody, serve, QueryFlag)
+                                                                 QueryFlag, ReqBody, serve)
 import           Servant.Prometheus                             (monitorEndpoints)
 import           Servant.Server                                 (Server)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
