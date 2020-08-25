@@ -29,9 +29,9 @@ import           Language.PlutusTx.Prelude        hiding (check)
 import           Ledger.Constraints
 import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
-import           Ledger                           (Address, Value)
+import           Ledger                           (Address, Value, SlotRange)
 import           Ledger.Typed.Scripts
-import           Ledger.Validation                (ValidatorCtx (..), TxInInfo (..), findOwnInput)
+import           Ledger.Validation                (ValidatorCtx (..), TxInInfo (..), TxInfo(..), findOwnInput)
 import           Ledger.Value                     (isZero)
 
 data State s = State { stateData :: s, stateValue :: Value }
@@ -41,7 +41,7 @@ data State s = State { stateData :: s, stateValue :: Value }
 -- of the transition in the context of the current transaction.
 data StateMachine s i = StateMachine {
       -- | The transition function of the state machine. 'Nothing' indicates an invalid transition from the current state.
-      smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s),
+      smTransition :: State s -> i -> SlotRange -> Maybe (TxConstraints Void Void, State s),
 
       -- | Check whether a state is the final state
       smFinal      :: s -> Bool,
@@ -56,7 +56,7 @@ data StateMachine s i = StateMachine {
 -- | A state machine that does not perform any additional checks on the
 --   'ValidatorCtx' (beyond enforcing the constraints)
 mkStateMachine
-    :: (State s -> i -> Maybe (TxConstraints Void Void, State s))
+    :: (State s -> i -> SlotRange -> Maybe (TxConstraints Void Void, State s))
     -> (s -> Bool)
     -> StateMachine s i
 mkStateMachine transition final =
@@ -87,7 +87,7 @@ mkValidator (StateMachine step isFinal check) currentState input ptx =
     let vl = txInInfoValue (findOwnInput ptx)
         checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
-        stateAndOutputsOk = case step oldState input of
+        stateAndOutputsOk = case step oldState input (txInfoValidRange (valCtxTxInfo ptx)) of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
                 | isFinal newData ->
                     traceIfFalse "Non-zero value allocated in final state" (isZero newValue)

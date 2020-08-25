@@ -30,6 +30,7 @@ import           Control.Lens
 import           Control.Monad                         (void)
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..), check)
+import           Ledger                                (SlotRange)
 import qualified Ledger.Ada                            as Ada
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Typed.Scripts                  as Scripts
@@ -40,6 +41,7 @@ import           Language.Plutus.Contract.StateMachine (OnChainState)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
+import           Wallet.API                            (defaultSlotRange)
 
 data PingPongState = Pinged | Ponged | Stopped
     deriving stock Show
@@ -75,8 +77,8 @@ instance AsContractError PingPongError where
     _ContractError = _PingPongContractError
 
 {-# INLINABLE transition #-}
-transition :: State PingPongState -> Input -> Maybe (TxConstraints Void Void, State PingPongState)
-transition State{stateData=oldData,stateValue} input = case (oldData, input) of
+transition :: State PingPongState -> Input -> SlotRange -> Maybe (TxConstraints Void Void, State PingPongState)
+transition State{stateData=oldData,stateValue} input _ = case (oldData, input) of
     (_,      Stop) -> Just (mempty, State{stateData=Stopped, stateValue=mempty})
     (Pinged, Pong) -> Just (mempty, State{stateData=Ponged, stateValue})
     (Ponged, Ping) -> Just (mempty, State{stateData=Pinged, stateValue})
@@ -122,13 +124,13 @@ run expectedState action = do
     go (Just st)
 
 runPing :: Contract PingPongSchema PingPongError ()
-runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))
+runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping defaultSlotRange))
 
 runPong :: Contract PingPongSchema PingPongError ()
-runPong = run Pinged (endpoint @"pong" >> void (SM.runStep client Pong))
+runPong = run Pinged (endpoint @"pong" >> void (SM.runStep client Pong defaultSlotRange))
 
 runStop :: Contract PingPongSchema PingPongError ()
-runStop = endpoint @"stop" >> void (SM.runStep client Stop)
+runStop = endpoint @"stop" >> void (SM.runStep client Stop defaultSlotRange)
 
 runWaitForUpdate :: Contract PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
 runWaitForUpdate = SM.waitForUpdate client

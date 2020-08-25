@@ -28,7 +28,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     ) where
 
 import           Control.Lens                          (makeClassyPrisms)
-import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
+import           Ledger                                (PubKeyHash, Slot, SlotRange, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
 import qualified Ledger.Interval                       as Interval
@@ -45,6 +45,7 @@ import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..))
 
 import qualified Language.PlutusCore.Universe          as PLC
+import           Wallet.API                            (defaultSlotRange)
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of
@@ -180,8 +181,8 @@ valuePaid :: Payment -> TxInfo -> Bool
 valuePaid (Payment vl pk _) txinfo = vl == (Validation.valuePaidTo txinfo pk)
 
 {-# INLINABLE transition #-}
-transition :: Params -> State MSState -> Input -> Maybe (TxConstraints Void Void, State MSState)
-transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) of
+transition :: Params -> State MSState -> Input -> SlotRange -> Maybe (TxConstraints Void Void, State MSState)
+transition params State{ stateData =s, stateValue=currentValue} i _ = case (s, i) of
     (Holding, ProposePayment pmt)
         | isValidProposal currentValue pmt ->
             Just ( mempty
@@ -256,13 +257,18 @@ contract params = go where
     theClient = client params
     go = endpoints >> go
     endpoints = lock `select` propose `select` cancel `select` addSignature `select` pay
-    propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
-    cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel
-    addSignature = endpoint @"add-signature" >> (pubKeyHash <$> ownPubKey) >>= SM.runStep theClient . AddSignature
+    propose = do
+        p <- endpoint @"propose-payment"
+        SM.runStep theClient (ProposePayment p) defaultSlotRange
+    cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel defaultSlotRange
+    addSignature = do
+        endpoint @"add-signature"
+        pkh <- pubKeyHash <$> ownPubKey
+        SM.runStep theClient (AddSignature pkh) defaultSlotRange
     lock = do
         value <- endpoint @"lock"
         SM.runInitialise theClient Holding value
-    pay = endpoint @"pay" >> SM.runStep theClient Pay
+    pay = endpoint @"pay" >> SM.runStep theClient Pay defaultSlotRange
 
 PlutusTx.makeIsData ''Payment
 PlutusTx.makeLift ''Payment

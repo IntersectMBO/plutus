@@ -46,6 +46,7 @@ import           Language.Plutus.Contract.StateMachine (State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
+import           Wallet.API                            (defaultSlotRange)
 
 newtype HashedString = HashedString ByteString
     deriving newtype (PlutusTx.IsData, Eq)
@@ -133,8 +134,8 @@ data GameInput =
     deriving (Show)
 
 {-# INLINABLE transition #-}
-transition :: State GameState -> GameInput -> Maybe (TxConstraints Void Void, State GameState)
-transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, input) of
+transition :: State GameState -> GameInput -> SlotRange -> Maybe (TxConstraints Void Void, State GameState)
+transition State{stateData=oldData, stateValue=oldValue} input _ = case (oldData, input) of
     (Initialised mph tn s, ForgeToken) ->
         let constraints = Constraints.mustForgeCurrency mph tn 1 in
         Just ( constraints
@@ -193,7 +194,7 @@ guess = do
     void
         $ mapError GameSMError
         $ SM.runStep client
-            (Guess guessedSecret newSecret guessArgsValueTakenOut)
+            (Guess guessedSecret newSecret guessArgsValueTakenOut) defaultSlotRange
 
 lock :: Contract GameStateMachineSchema GameError ()
 lock = do
@@ -201,7 +202,7 @@ lock = do
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
         sym = Scripts.monetaryPolicyHash scriptInstance
     _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
-    void $ mapError GameSMError $ SM.runStep client ForgeToken
+    void $ mapError GameSMError $ SM.runStep client ForgeToken defaultSlotRange
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState
