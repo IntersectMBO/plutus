@@ -92,9 +92,7 @@ which is a problem.)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni =
-    -- TODO: we probably want to store a @Some (ValueOf uni)@ here, but then we have trouble in
-    -- 'readKnownCek'. I'll reconsider the way we deal with annotations once again.
-    VCon (TermWithMem uni)
+    VCon (Some (ValueOf uni))
   | VTyAbs ExMemory TyName KindWithMem (TermWithMem uni) (CekValEnv uni)
   | VLamAbs ExMemory Name (TypeWithMem uni) (TermWithMem uni) (CekValEnv uni)
   | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (CekValue uni)
@@ -206,7 +204,9 @@ mkBuiltinApplication ex bn arity0 tys0 args0 =
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
+dischargeCekValEnv
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValEnv uni -> TermWithMem uni -> TermWithMem uni
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -217,9 +217,11 @@ dischargeCekValEnv valEnv =
 
 -- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue :: CekValue uni -> TermWithMem uni
+dischargeCekValue
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValue uni -> TermWithMem uni
 dischargeCekValue = \case
-    VCon t                                 -> t
+    VCon t                                 -> fromConstant t
     VTyAbs   ex tn k body env              -> TyAbs ex tn k (dischargeCekValEnv env body)
     VLamAbs  ex name ty body env           -> LamAbs ex name ty (dischargeCekValEnv env body)
     VIWrap   ex ty1 ty2 val                -> IWrap ex ty1 ty2 $ dischargeCekValue val
@@ -228,21 +230,22 @@ dischargeCekValue = \case
        or (b) it's needed for an error message.  When we're discharging VBuiltin
        we use arity0 to get the type and term arguments into the right sequence. -}
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CekValue uni) where
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage) =>
+            PrettyBy PrettyConfigPlc (CekValue uni) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
 type instance UniOf (CekValue uni) = uni
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
-    fromConstant = VCon . fromConstant
+instance FromConstant (CekValue uni) where
+    fromConstant = VCon
 
 instance AsConstant (CekValue uni) where
-    asConstant (VCon term) = asConstant term
-    asConstant _           = Nothing
+    asConstant (VCon val) = Just val
+    asConstant _          = Nothing
 
-instance ToExMemory (CekValue uni) where
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToExMemory (CekValue uni) where
     toExMemory = \case
-        VCon t -> termAnn t
+        VCon val -> memoryUsage val
         VTyAbs ex _ _ _ _ -> ex
         VLamAbs ex _ _ _ _ -> ex
         VIWrap ex _ _ _ -> ex
@@ -340,9 +343,9 @@ computeCek ctx env (LamAbs ex name ty body) =
     -- TODO: budget?
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx _ c@Constant{} =
+computeCek ctx _ (Constant _ val) =
     -- TODO: budget?
-    returnCek ctx (VCon c)
+    returnCek ctx (VCon val)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx env (Builtin ex bn) = do
     -- TODO: budget?
@@ -361,7 +364,9 @@ computeCek ctx env (Var _ varName) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: MonadError (ErrorWithCause e (Plain Term uni)) m
+    :: ( MonadError (ErrorWithCause e (Plain Term uni)) m
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => AReview e t -> t -> CekValue uni -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
