@@ -34,7 +34,7 @@ import           Network.Wai.Middleware.Cors                    (cors, corsReque
 import           Network.Wai.Middleware.Gzip                    (gzip)
 import           Network.Wai.Middleware.RequestLogger           (logStdout)
 import           Servant                                        ((:<|>) ((:<|>)), (:>), Get, JSON, PlainText, Post,
-                                                                 ReqBody, serve)
+                                                                 QueryFlag, ReqBody, serve)
 import           Servant.Prometheus                             (monitorEndpoints)
 import           Servant.Server                                 (Server)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
@@ -43,7 +43,7 @@ import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMe
 type API =
   "version" :> Get '[PlainText, JSON] Text
     :<|> "health" :> Get '[JSON] ()
-    :<|> "runghc" :> ReqBody '[PlainText] Text :> Post '[JSON] (Either InterpreterError (InterpreterResult String))
+    :<|> "runghc" :> QueryFlag "prelude" :> ReqBody '[PlainText] Text :> Post '[JSON] (Either InterpreterError (InterpreterResult String))
 
 server :: Server API
 server =
@@ -58,11 +58,12 @@ health = pure ()
 runghc ::
   MonadMask m =>
   MonadIO m =>
+  Bool ->
   Text ->
   m (Either InterpreterError (InterpreterResult String))
-runghc code = do
+runghc implicitPrelude code = do
   liftIO $ print code
-  runExceptT $ compile maxInterpretationTime $ SourceCode code
+  runExceptT $ compile maxInterpretationTime implicitPrelude $ SourceCode code
 
 app :: Application
 app =
