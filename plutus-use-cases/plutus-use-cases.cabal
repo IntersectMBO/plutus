@@ -152,23 +152,3 @@ benchmark plutus-use-cases-bench
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any
-
-executable contract-guessing-game
-    default-language: Haskell2010
-    main-is: Main.hs
-    hs-source-dirs: exe/game
-    build-depends:
-        plutus-contract -any,
-        plutus-use-cases -any
-    build-depends:
-        base >=4.7 && <5
-
-executable contract-crowdfunding
-    default-language: Haskell2010
-    main-is: Main.hs
-    hs-source-dirs: exe/crowdfunding
-    build-depends:
-        plutus-contract -any,
-        plutus-use-cases -any
-    build-depends:
-        base >=4.7 && <5

@@ -69,28 +69,6 @@
           ];
         hsSourceDirs = [ "src" ];
         };
-      exes = {
-        "contract-guessing-game" = {
-          depends = [
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "exe/game" ];
-          mainPath = [ "Main.hs" ];
-          };
-        "contract-crowdfunding" = {
-          depends = [
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "exe/crowdfunding" ];
-          mainPath = [ "Main.hs" ];
-          };
-        };
       tests = {
         "plutus-use-cases-test" = {
           depends = [
