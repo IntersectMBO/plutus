@@ -8,7 +8,7 @@ module Language.PlutusTx.Evaluation
     , evaluateCekTrace
     , ErrorWithCause(..)
     , EvaluationError(..)
-    , ExTally
+    , CekExTally
     , CekEvaluationException
     , Plain
     )
@@ -58,7 +58,7 @@ unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . 
 evaluateCekTrace
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Program TyName Name uni ()
-    -> ([String], ExTally, Either (CekEvaluationException uni) (Plain Term uni))
+    -> ([String], CekExTally, Either (CekEvaluationException uni) (Plain Term uni))
 evaluateCekTrace p =
     let
         (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do

@@ -11,6 +11,7 @@
 -- (wrapped in 'OtherMachineError').
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -29,9 +30,12 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudget(..)
+    , ExBudgetCategory(..)
     , ExBudgetMode(..)
     , ExRestrictingBudget(..)
     , ExTally(..)
+    , CekExBudgetState
+    , CekExTally
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
@@ -64,6 +68,7 @@ import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.Array
+import           Data.Hashable
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
@@ -151,13 +156,31 @@ type CekEvaluationExceptionCarrying term =
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
 type CekCarryingM term uni =
-    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State ExBudgetState))
+    ReaderT (CekEnv uni)
+        (ExceptT (CekEvaluationExceptionCarrying term)
+            (State CekExBudgetState))
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException uni = CekEvaluationExceptionCarrying (Plain Term uni)
 
 -- | The monad the CEK machine runs in.
 type CekM uni = CekCarryingM (Plain Term uni) uni
+data ExBudgetCategory
+    = BTyInst
+    | BApply
+    | BIWrap
+    | BUnwrap
+    | BVar
+    | BBuiltin BuiltinName
+    | BAST
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass NFData
+instance Hashable ExBudgetCategory
+instance (PrettyBy config) ExBudgetCategory where
+    prettyBy _ = viaShow
+
+type CekExBudgetState = ExBudgetState ExBudgetCategory
+type CekExTally       = ExTally       ExBudgetCategory
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -251,7 +274,10 @@ instance ToExMemory (CekValue uni) where
         VIWrap   ex _ _ _       -> ex
         VBuiltin ex _ _ _ _ _ _ -> ex
 
-instance ToExMemory term => SpendBudget (CekCarryingM term uni) term where
+instance ExBudgetBuiltin ExBudgetCategory where
+    exBudgetBuiltin = BBuiltin
+
+instance ToExMemory term => SpendBudget (CekCarryingM term uni) ExBudgetCategory term where
     builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -279,9 +305,9 @@ type Context uni = [Frame uni]
 runCekM
     :: forall a uni
      . CekEnv uni
-    -> ExBudgetState
+    -> CekExBudgetState
     -> CekM uni a
-    -> (Either (CekEvaluationException uni) a, ExBudgetState)
+    -> (Either (CekEvaluationException uni) a, CekExBudgetState)
 runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
 -- | Extend an environment with a variable name, the value the variable stands for
@@ -517,7 +543,7 @@ runCek
     -> ExBudgetMode
     -> CostModel
     -> Plain Term uni
-    -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Plain Term uni), CekExBudgetState)
 runCek means mode params term =
     runCekM (CekEnv means mode params)
             (ExBudgetState mempty mempty)
@@ -533,7 +559,7 @@ runCekCounting
     => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
-    -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Plain Term uni), CekExBudgetState)
 runCekCounting means = runCek means Counting
 
 -- | Evaluate a term using the CEK machine.

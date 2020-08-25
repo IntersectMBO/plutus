@@ -54,7 +54,7 @@ runPlcCek values = do
      let p = foldl1 applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO ([String], ExTally, (Plain Term PLC.DefaultUni))
+runPlcCekTrace :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO ([String], CekExTally, (Plain Term PLC.DefaultUni))
 runPlcCekTrace values = do
      ps <- Haskell.traverse getProgram values
      let p = foldl1 applyProgram ps
