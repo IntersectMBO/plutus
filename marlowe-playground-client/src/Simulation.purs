@@ -242,6 +242,7 @@ handleAction settings AnalyseContract = do
       response <- checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
       assign _analysisState (WarningAnalysis response)
   where
+  -- FIXME: now we need to get the client to post to lambda-env.marlowe.iohkdev.io
   checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) contract state))
 
 handleAction settings AnalyseReachabilityContract = do

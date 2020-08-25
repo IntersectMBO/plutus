@@ -96,7 +96,7 @@ resource "aws_api_gateway_method" "marlowe_symbolic_proxy" {
   resource_id   = "${aws_api_gateway_resource.marlowe_symbolic_proxy.id}"
   http_method   = "POST"
   authorization = "NONE"
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "marlowe_symbolic_lambda" {
@@ -153,14 +153,39 @@ resource "aws_api_gateway_usage_plan" "marlowe_symbolic_lambda" {
     api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
     stage  = "${aws_api_gateway_deployment.marlowe_symbolic_lambda.stage_name}"
   }
+
+  quota_settings {
+    limit  = 86400
+    offset = 0
+    period = "DAY"
+  }
 }
 
-resource "aws_api_gateway_api_key" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda_${var.env}"
+resource "aws_api_gateway_domain_name" "marlowe_symbolic_lambda" {
+  # AWS certificate wildcards can only have one level so we cannot use lambda.alpha.marlowe.iohk.io
+  # we must use lambda-alpha.marlowe.iohk.io instead
+  domain_name = "lambda-${local.marlowe_domain_name}"
+
+  regional_certificate_arn   = "${data.aws_acm_certificate.marlowe_private.arn}"
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
 }
 
-resource "aws_api_gateway_usage_plan_key" "marlowe_symbolic_lambda" {
-  key_id        = "${aws_api_gateway_api_key.marlowe_symbolic_lambda.id}"
-  key_type      = "API_KEY"
-  usage_plan_id = "${aws_api_gateway_usage_plan.marlowe_symbolic_lambda.id}"
+resource "aws_api_gateway_base_path_mapping" "marlowe_symbolic_lambda" {
+  # The path, if not specified, is `/` by default
+  api_id      = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
+  stage_name  = "${aws_api_gateway_deployment.marlowe_symbolic_lambda.stage_name}"
+  domain_name = "${aws_api_gateway_domain_name.marlowe_symbolic_lambda.domain_name}"
+}
+
+resource "aws_route53_record" "lambda" {
+  name    = "lambda-${local.marlowe_domain_name}"
+  type    = "A"
+  zone_id = "${var.marlowe_public_zone}"
+  alias {
+    name                   = "${aws_api_gateway_domain_name.marlowe_symbolic_lambda.regional_domain_name}"
+    zone_id                = "${aws_api_gateway_domain_name.marlowe_symbolic_lambda.regional_zone_id}"
+    evaluate_target_health = true
+  }
 }
