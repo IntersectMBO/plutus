@@ -25,7 +25,7 @@ import           Language.Plutus.Contract.Schema  (Input, Output)
 import           Language.Plutus.Contract.Servant (contractApp)
 import           Language.Plutus.Contract.State   (ContractRequest (..), ContractResponse (..), initialiseContract,
                                                    insertAndUpdateContract)
-import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, TraceError, execTrace)
+import           Language.Plutus.Contract.Trace   (ContractTrace, execTrace)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           System.Environment               (getArgs)
 import           Wallet.Emulator                  (Wallet (..))
@@ -59,7 +59,7 @@ runWithTraces
     :: forall s e.
        ( AppSchema s, ToJSON e, Show e )
     => Contract s e ()
-    -> [(String, (Wallet, ContractTrace s e (EmulatorAction (TraceError e)) () ()))]
+    -> [(String, (Wallet, ContractTrace s e () ()))]
     -> IO ()
 runWithTraces con traces = do
     let mp = Map.fromList traces
@@ -90,7 +90,7 @@ printTrace
        )
     => Contract s e ()
     -> Wallet
-    -> ContractTrace s e (EmulatorAction (TraceError e)) () ()
+    -> ContractTrace s e () ()
     -> IO ()
 printTrace con wllt ctr = do
     let events = Map.findWithDefault [] wllt $ execTrace con ctr

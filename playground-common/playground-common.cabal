@@ -90,7 +90,8 @@ library
         transformers -any,
         unordered-containers -any,
         wai -any,
-        wl-pprint-text -any
+        wl-pprint-text -any,
+        freer-simple -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0

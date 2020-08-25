@@ -45,7 +45,7 @@ tests = testGroup "showBlockchain"
 render
     :: forall s e a. ( Show e )
     => Contract s e a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> ContractTrace s e a ()
     -> IO ByteString
 render con trace = do
     let (result, EmulatorState{ _chainState = cs, _walletClientStates = wallets}) = runTrace con trace
