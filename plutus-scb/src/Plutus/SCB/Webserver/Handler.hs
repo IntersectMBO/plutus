@@ -128,8 +128,10 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
-    ContractSignatureResponse csContractDefinition <$> exportSchema csContractDefinition
+    ContractInstanceState {csContractDefinition} <-
+        getContractInstanceState @t contractId
+    ContractSignatureResponse csContractDefinition <$>
+        exportSchema csContractDefinition
 
 activateContract ::
        forall t effs.
@@ -176,7 +178,11 @@ invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $ InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $ EndpointInvocationResponse $ fmap (renderStrict . layoutPretty defaultLayoutOptions .  pretty) newState
+    logInfo $
+        EndpointInvocationResponse $
+        fmap
+            (renderStrict . layoutPretty defaultLayoutOptions . pretty)
+            newState
     getContractInstanceState contractId
 
 parseContractId ::
@@ -201,8 +207,8 @@ handler ::
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
              :<|> (ContractExe -> Eff effs (ContractInstanceState ContractExe))
-                   :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                                 :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
+             :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
+                           :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
 handler =
     healthcheck :<|> getFullReport :<|>
     (activateContract :<|> byContractInstanceId)
