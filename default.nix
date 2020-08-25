@@ -164,6 +164,7 @@ in rec {
         ps.playground-common
         ps.plutus-playground-server
         ps.plutus-use-cases
+        ps.marlowe
       ]);
     in pkgs.runCommand "web-ghc" { buildInputs = [pkgs.makeWrapper]; } ''
       # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
