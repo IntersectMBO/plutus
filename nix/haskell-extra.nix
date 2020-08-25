@@ -63,10 +63,10 @@
         # Invalidate and update if you change the version
         plan-sha256 = (if pkgs.hostPlatform.isLinux
           then {
-            ghc883 = "1id5cyv7924j97fb20y3pwwph91f6kxgsv9j969rb1764zq717vf";
+            ghc883 = "0jq1a2iyn394s3d2xag45d8ga32gn1i5bn5i63xd1jqllb85pcw3";
           }
           else {
-            ghc883 = "1iqwp30pxdxd811idmqjpvlzpp50mc23w238sv9glb1an2bn8hxf";
+            ghc883 = "0l812savqj4xch9afky93zfkn5wvq6mz3q09v6mxkhcpnp6gshic";
             ghc884 = "17kwki0apll74rqprzh5silbrbs9f6bq5g7c6jszxfcl5vv49cqb";
             ghc8101 = "181551n2f0syvxwjclj3jxg219rrswgy2519q04fk8ll509d98pb";
           }).${compiler-nix-name};
@@ -74,7 +74,6 @@
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
           packages.hie-bios.src = sources.hie-bios;
-          packages.ghcide.src = sources.ghcide;
         }];
       })
   hie-bios haskell-language-server ghcide;
