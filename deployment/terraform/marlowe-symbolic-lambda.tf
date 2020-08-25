@@ -57,8 +57,6 @@ resource "aws_lambda_function" "marlowe_symbolic" {
 
   runtime = "provided"
 
-  layers = ["arn:aws:lambda:${var.aws_region}:785355572843:layer:aws-haskell-runtime:2"]
-
   # The lambda zip needs to be built and placed on your local filesystem
   # TODO: This is only a temporary requirement and will be moved to the CD server soon
   filename = "${var.lambda_filename}"
@@ -111,7 +109,6 @@ resource "aws_api_gateway_integration" "marlowe_symbolic_lambda" {
   uri                     = "${aws_lambda_function.marlowe_symbolic.invoke_arn}"
 
   request_parameters = {
-    "integration.request.header.X-Amz-Invocation-Type" = "'Event'"
   }
 }
 

@@ -17,17 +17,18 @@ import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import           Servant.API                                      ((:<|>), (:>), Get, Header, JSON, NoContent, Post,
                                                                    ReqBody)
-import           Servant.API.WebSocket                            (WebSocketPending)
 
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
      :<|> "actus" :> "generate" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String
      :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] String
+     :<|> "analyse" :> ReqBody '[ JSON] CheckForWarnings :> Post '[ JSON] MSRes.Result
 
-type WSAPI = "ws" :> WebSocketPending
+data CheckForWarnings = CheckForWarnings String String String
+   deriving (Generic, ToJSON, FromJSON)
 
-type MarloweSymbolicAPI = "marlowe-analysis" :> Header "X-Amz-Invocation-Type" Text :> Header "x-api-key" Text :> ReqBody '[JSON] MSReq.Request :> Post '[JSON] NoContent
+type MarloweSymbolicAPI = "marlowe-analysis" :> Header "X-Amz-Invocation-Type" Text :> Header "x-api-key" Text :> ReqBody '[JSON] MSReq.Request :> Post '[JSON] MSRes.Response
 
 newtype RunResult = RunResult Text
    deriving stock (Show, Eq, Generic)
