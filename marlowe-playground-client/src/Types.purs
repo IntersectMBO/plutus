@@ -24,16 +24,10 @@ import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
 import Wallet as Wallet
-import WebSocket.Support as WS
-import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebSocketMessage (WS.FromSocket WebSocketResponseMessage) a
-  | ChangeRoute Route a
-
-data Message
-  = WebSocketMessage WebSocketRequestMessage
+  = ChangeRoute Route a
 
 data HAction
   = Init

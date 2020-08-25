@@ -46,14 +46,14 @@ import Servant.PureScript.Settings (SPSettings_, _params)
 import Simulation.State (_result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
+import Types (ChildSlots, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
 
 handleAction ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
-  HalogenM State Action ChildSlots Message m Unit
+  HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _activeHaskellDemo ""

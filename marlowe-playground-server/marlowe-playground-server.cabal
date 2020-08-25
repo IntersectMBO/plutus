@@ -20,7 +20,6 @@ library
         Server
         API
         Interpreter
-        WebSocket
         Marlowe.Contracts
         Marlowe.Config
     hs-source-dirs:
@@ -58,15 +57,13 @@ library
         servant-client-core -any,
         servant-purescript -any,
         servant-server -any,
-        servant-websockets -any,
         stm -any,
         temporary -any,
         text -any,
         time -any,
         time-units -any,
         transformers -any,
-        uuid -any,
-        websockets -any
+        uuid -any
 
 executable marlowe-playground-server
     main-is: Main.hs
