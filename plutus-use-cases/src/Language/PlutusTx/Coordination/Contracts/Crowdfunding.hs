@@ -54,7 +54,7 @@ import           GHC.Generics                      (Generic)
 import           IOTS                              (IotsType)
 
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace    (ContractTrace, MonadEmulator, TraceError)
+import           Language.Plutus.Contract.Trace    (ContractTrace)
 import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
@@ -255,19 +255,16 @@ scheduleCollection cmp = do
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
-startCampaign
-    :: ( MonadEmulator (TraceError ContractError) m  )
-    => ContractTrace CrowdfundingSchema ContractError m () ()
+startCampaign :: ContractTrace CrowdfundingSchema ContractError () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
         >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator (TraceError ContractError) m )
-    => Wallet
+    :: Wallet
     -> Value
-    -> ContractTrace CrowdfundingSchema ContractError m () ()
+    -> ContractTrace CrowdfundingSchema ContractError () ()
 makeContribution w v =
     Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
@@ -275,8 +272,7 @@ makeContribution w v =
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator (TraceError ContractError) m )
-    => ContractTrace CrowdfundingSchema ContractError m () ()
+    :: ContractTrace CrowdfundingSchema ContractError () ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
