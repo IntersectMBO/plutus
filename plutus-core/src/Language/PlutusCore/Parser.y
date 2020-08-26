@@ -213,12 +213,12 @@ mkBuiltinConstant
 mkBuiltinConstant tyloc tyname litloc lit  = do
     val <-
           case tyname of
-            "bool"       -> readConstant @ Bool    litloc lit
-            "bytestring" -> parseByteString tyname litloc lit
-            "char"       -> readConstant @ Char    litloc lit 
-            "integer"    -> readConstant @ Integer litloc lit 
-            "string"     -> readConstant @ String  litloc lit
-            "unit"       -> readConstant @ ()      litloc lit 
+            "bool"       -> pure $ readConstant @ Bool    litloc lit
+            "bytestring" -> pure $ parseByteString tyname litloc lit
+            "char"       -> pure $ readConstant @ Char    litloc lit 
+            "integer"    -> pure $ readConstant @ Integer litloc lit 
+            "string"     -> pure $ readConstant @ String  litloc lit
+            "unit"       -> pure $ readConstant @ ()      litloc lit 
             _            -> throwError $ UnknownBuiltinType tyloc tyname
     case val of
          Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
@@ -226,19 +226,19 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 
 readConstant
     :: forall t a uni. (Read t, uni `Includes` t)
-    => AlexPosn -> T.Text -> Parse (Maybe (Term TyName Name uni AlexPosn))
-readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t (T.unpack lit))
+    => AlexPosn -> T.Text -> Maybe (Term TyName Name uni AlexPosn)
+readConstant loc lit = fmap (mkConstant loc) $ (readMaybe @ t (T.unpack lit))
   
 
 --- Parsing bytestrings ---
 
 parseByteString
     :: DefaultUni <: uni
-    => T.Text -> AlexPosn -> T.Text -> Parse (Maybe (Term TyName Name uni AlexPosn))
+    => T.Text -> AlexPosn -> T.Text -> Maybe (Term TyName Name uni AlexPosn)
 parseByteString tyname litloc lit = do
       case T.unpack lit of
-	'#':body -> pure $ fmap (mkConstant litloc) $ asBSLiteral body
-        _        -> pure Nothing
+	'#':body -> fmap (mkConstant litloc) $ asBSLiteral body
+        _        -> Nothing
 
 -- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
 pairs :: [a] -> Maybe [(a,a)]

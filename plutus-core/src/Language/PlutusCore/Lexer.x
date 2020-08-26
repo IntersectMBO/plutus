@@ -151,11 +151,10 @@ tokens :-
     <kwd> error          { mkKeyword KwError       `andBegin` 0 }
     <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` builtin }
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
-    -- These are converted into Builtin names (possibly dynamic) in the parser
+    -- These are converted into Builtin names (possibly dynamic) in the parser.
     -- Outside this mode, all ids are parsed as Names. 
     <kwd> con            { mkKeyword KwCon         `andBegin` conargs }
-    -- ^ (con type ...): ... can be empty (for a type name) or a string of
-    -- one of the forms described in Note [Literal Constants]
+    -- ^ (con tyname) or (con tyname const)
     
     -- Various special characters
     "("                  { mkSpecial OpenParen  `andBegin` kwd }
@@ -178,7 +177,7 @@ tokens :-
     -- Things that can follow 'con': the name of a  built-in type and possibly a literal constant of that type
     <conargs>  @name              { tok (\p s -> alex $ TkBuiltinTypeId p (textOf s)) `andBegin` literalconst }
 
-    -- Literal built-in constants.
+    -- Literal built-in constants. See Note [Literal Constants].
     <literalconst> "()" | @sqs | @dqs | @chars { tok (\p s -> alex $ TkLiteralConst p (textOf s)) `andBegin` 0 }
 
 {

@@ -15,7 +15,6 @@ module Language.PlutusCore.Lexer.Type
 import           PlutusPrelude
 
 import           Language.PlutusCore.Name
--- import           Language.PlutusCore.Pretty
 
 import           Control.Monad.State
 import qualified Data.Map                 as M
