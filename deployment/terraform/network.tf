@@ -132,7 +132,7 @@ data "template_file" "bastion_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.bastion_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.bastion_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }
@@ -160,7 +160,7 @@ resource "aws_instance" "bastion" {
 
   subnet_id = "${aws_subnet.public.*.id[count.index]}"
 
-  root_block_device = {
+  root_block_device {
     volume_size = 20
   }
 
@@ -196,7 +196,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 5601
     to_port     = 5601
     protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
+    cidr_blocks = var.zerotier_subnet_cidrs
   }
 
   ## inbound riemann websocket
@@ -204,7 +204,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 5556
     to_port     = 5556
     protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
+    cidr_blocks = var.zerotier_subnet_cidrs
   }
 
   ## inbound riemann dash
@@ -212,7 +212,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 4567
     to_port     = 4567
     protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
+    cidr_blocks = var.zerotier_subnet_cidrs
   }
 
   ## inbound zerotier
@@ -220,7 +220,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 0
     to_port     = 0
     protocol    = "UDP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
+    cidr_blocks = var.zerotier_subnet_cidrs
   }
 
   ## zerotier must use some custom protocol, TCP + UDP doesn't work
@@ -236,7 +236,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   # Allow internet access to install things, we could maybe lock this down to nixpkgs somehow
@@ -264,7 +264,7 @@ resource "aws_security_group" "bastion" {
 }
 
 resource "aws_route53_zone" "plutus_private_zone" {
-  vpc = {
+  vpc {
     vpc_id = "${aws_vpc.plutus.id}"
   }
   name   = "internal.${var.env}.${var.plutus_tld}"

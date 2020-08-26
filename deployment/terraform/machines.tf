@@ -2,7 +2,7 @@ data "template_file" "playground_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.playground_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.playground_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }

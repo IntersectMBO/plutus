@@ -64,7 +64,7 @@ variable "nixops_instance_type" {
   default = "t2.large"
 }
 variable "bastion_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -77,7 +77,7 @@ variable "bastion_ssh_keys" {
 }
 
 variable "nixops_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -90,7 +90,7 @@ variable "nixops_ssh_keys" {
 }
 
 variable "playground_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -144,7 +144,7 @@ variable "aws_amis" {
   }
 }
 
-variable "20_03_amis" {
+variable "amis_20_03" {
   default = {
     "ap-east-1" = "ami-0d18fdd309cdefa86"
     "ap-northeast-1" = "ami-093d9cc49c191eb6c"
