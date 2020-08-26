@@ -75,7 +75,7 @@ We use Codec.Serialise for encoding.  This uses an itermediate type
 `Encoding` to encode things. `Encoding` is a monoid, which allows
 subobjects to be encoded and then efficiently concatenated when a
 larger object is being encoded to CBOR.  The monoid structure makes it
-tempting to use catamoprhisms to encode things, but this is
+tempting to use catamorphisms to encode things, but this is
 *dangerous*. When a list is encoded to CBOR, the start of the list is
 marked by a special token; this is then followed by the encodings of
 the individual list elements, then another token to mark the end of

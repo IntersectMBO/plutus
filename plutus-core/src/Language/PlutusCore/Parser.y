@@ -183,19 +183,30 @@ getStaticBuiltinName = \case
 
 --- Parsing built-in types and constants ---
 -- Most of this stuff will be moved into a Parsable class at some point
-  
-mkBuiltinType
-    :: DefaultUni <: uni
-    => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
-mkBuiltinType tyloc tyname = case tyname of
-  "bool"       -> pure $ mkTyBuiltin @Bool       tyloc
-  "bytestring" -> pure $ mkTyBuiltin @ByteString tyloc
-  "char"       -> pure $ mkTyBuiltin @Char       tyloc
-  "integer"    -> pure $ mkTyBuiltin @Integer    tyloc
-  "string"     -> pure $ mkTyBuiltin @String     tyloc
-  "unit"       -> pure $ mkTyBuiltin @()         tyloc
-  _ -> throwError $ UnknownBuiltinType tyloc tyname
 
+tagOfTyName :: T.Text -> Maybe Int
+tagOfTyName = \case 
+  "bool"       -> Just $ tagOf DefaultUniBool
+  "bytestring" -> Just $ tagOf DefaultUniByteString
+  "char"       -> Just $ tagOf DefaultUniChar
+  "integer"    -> Just $ tagOf DefaultUniInteger
+  "string"     -> Just $ tagOf DefaultUniString
+  "unit"       -> Just $ tagOf DefaultUniUnit
+  _ -> Nothing
+
+mkBuiltinType
+  :: (DefaultUni <: uni, Closed uni)
+    => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
+mkBuiltinType tyloc tyname = case tagOfTyName tyname of
+  Nothing -> throwError $ UnknownBuiltinType tyloc tyname
+  Just tag ->
+    case uniAt tag of
+          Nothing -> throwError $ UnknownBuiltinType tyloc tyname
+          Just ty -> pure $ TyBuiltin tyloc ty
+  
+
+-- FIXME: I can't see how to do this without dispatching on the type 
+-- because we're doing non-uniform things.
 mkBuiltinConstant
   :: DefaultUni <: uni
   => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni AlexPosn)

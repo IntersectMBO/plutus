@@ -59,12 +59,13 @@ of the responsibility for parsing constants out of the lexer and into the
 parser (and eventually out of the parser to parsers supplied by the types
 themselves).
 
-We allow:
+In the body of a constant we allow:
   * ()
   * Single-quoted possibly empty sequences of printable characters
   * Double-quoted possibly empty sequences of printable characters
   * Unquoted non-empty sequences of printable characters not including '(' or ')',
-    and not beginning with a single or double quote.
+    and not beginning with a single or double quote.  Spaces are allowed in the
+    body of the sequence, but are ignored at the beginning or end.
 
 "Printable" here uses Alex's definition: Unicode code points 32 to 0x10ffff.
 This includes spaces but excludes tabs amongst other things.  One can use the
@@ -84,7 +85,8 @@ is the somewhat improbable-looking (con intseq 12 4 55 -4).  Comment characters
 are also allowed, but are not treated specially.  We don't allow (con )) or (con
 tuple (1,2,3)) because it would be difficult for the lexer to decide when it
 had reached the end of the literal: consider a tuple containing a quoted string
-containing ')', for example.  -}
+containing ')', for example.
+-}
 
 {- Note [Precedence of regular expression matches]
 For reference, Section 3.2.2 of the Alex manual says "When the input stream
