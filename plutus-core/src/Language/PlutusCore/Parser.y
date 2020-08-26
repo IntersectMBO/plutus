@@ -6,41 +6,40 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
- module Language.PlutusCore.Parser ( parse
-				  , parseTm
-				  , parseTy
-				  , parseST
-				  , parseTermST
-				  , parseTypeST
-				  , parseProgram
-                                  , parseTerm
-				  , parseType
-				  , ParseError (..)
-				  ) where
-   
+module Language.PlutusCore.Parser
+    ( parse
+    , parseTm
+    , parseTy
+    , parseST
+    , parseTermST
+    , parseTypeST
+    , parseProgram
+    , parseTerm
+    , parseType
+    , ParseError(..)
+    ) where
+  
 import PlutusPrelude
 
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Core
 import Language.PlutusCore.Core.Type
 import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Constant.Dynamic
-import Language.PlutusCore.Constant.Typed
-import Language.PlutusCore.Core
-import Language.PlutusCore.Name
-import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
 import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
+import Language.PlutusCore.Name
+import Language.PlutusCore.Parsable
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Universe
 
-import           Data.Bits                 (shiftL, (.|.)) 
 import           Data.ByteString.Lazy      (ByteString)
-import qualified Data.ByteString.Lazy      as BSL (tail, pack, unpack)
-import           Data.Char                 (isHexDigit, ord)
 import qualified Data.List.NonEmpty        as NE
 import qualified Data.Map
+import           Data.Proxy
 import qualified Data.Text as T
-import Text.Read                           (readMaybe)
 import Data.Text.Prettyprint.Doc.Internal  (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
@@ -182,97 +181,50 @@ getStaticBuiltinName = \case
 
 
 --- Parsing built-in types and constants ---
--- Most of this stuff will be moved into a Parsable class at some point
 
+-- | Tags of types in the default universe.
 tagOfTyName :: T.Text -> Maybe Int
 tagOfTyName = \case 
-  "bool"       -> Just $ tagOf DefaultUniBool
-  "bytestring" -> Just $ tagOf DefaultUniByteString
-  "char"       -> Just $ tagOf DefaultUniChar
-  "integer"    -> Just $ tagOf DefaultUniInteger
-  "string"     -> Just $ tagOf DefaultUniString
-  "unit"       -> Just $ tagOf DefaultUniUnit
-  _ -> Nothing
+    "bool"       -> Just $ tagOf DefaultUniBool
+    "bytestring" -> Just $ tagOf DefaultUniByteString
+    "char"       -> Just $ tagOf DefaultUniChar
+    "integer"    -> Just $ tagOf DefaultUniInteger
+    "string"     -> Just $ tagOf DefaultUniString
+    "unit"       -> Just $ tagOf DefaultUniUnit
+    _ -> Nothing
 
-mkBuiltinType
-  :: (DefaultUni <: uni, Closed uni)
-    => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
-mkBuiltinType tyloc tyname = case tagOfTyName tyname of
-  Nothing -> throwError $ UnknownBuiltinType tyloc tyname
-  Just tag ->
-    case uniAt tag of
-          Nothing -> throwError $ UnknownBuiltinType tyloc tyname
-          Just ty -> pure $ TyBuiltin tyloc ty
+-- | Given a type name, return a type in the (default) universe.
+-- This can fail in two ways: there's not type with that name, or uniAt
+-- fails because it's been given an uknown tag.  In both cases we report
+-- an unknown built-in type.
+getTypeFromTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
+getTypeFromTyName tyloc tyname =
+    case tagOfTyName tyname >>= uniAt of
+        Nothing -> throwError $ UnknownBuiltinType tyloc tyname
+        Just ty -> pure ty
+
+-- | Convert a textual type name into a Type.  
+mkBuiltinType :: Closed uni => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
+mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> getTypeFromTyName tyloc tyname
   
-
--- FIXME: I can't see how to do this without dispatching on the type 
--- because we're doing non-uniform things.
+-- | Produce a Constant Term from a type name and a literal constant.
 mkBuiltinConstant
-  :: DefaultUni <: uni
+  :: (Closed uni, uni `Everywhere` Parsable)
   => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni AlexPosn)
 mkBuiltinConstant tyloc tyname litloc lit  = do
-    val <-
-          case tyname of
-            "bool"       -> pure $ readConstant @ Bool    litloc lit
-            "bytestring" -> pure $ parseByteString tyname litloc lit
-            "char"       -> pure $ readConstant @ Char    litloc lit 
-            "integer"    -> pure $ readConstant @ Integer litloc lit 
-            "string"     -> pure $ readConstant @ String  litloc lit
-            "unit"       -> pure $ readConstant @ ()      litloc lit 
-            _            -> throwError $ UnknownBuiltinType tyloc tyname
-    case val of
-         Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
-         Just v -> pure v
+    Some (TypeIn uni1) <- getTypeFromTyName tyloc tyname
+    case bring (Proxy @Parsable) uni1 (parseConstant lit) of
+        Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
+        Just w ->  pure $ Constant litloc (Some (ValueOf uni1 w))
 
-readConstant
-    :: forall t a uni. (Read t, uni `Includes` t)
-    => AlexPosn -> T.Text -> Maybe (Term TyName Name uni AlexPosn)
-readConstant loc lit = fmap (mkConstant loc) $ (readMaybe @ t (T.unpack lit))
-  
 
---- Parsing bytestrings ---
-
-parseByteString
-    :: DefaultUni <: uni
-    => T.Text -> AlexPosn -> T.Text -> Maybe (Term TyName Name uni AlexPosn)
-parseByteString tyname litloc lit = do
-      case T.unpack lit of
-	'#':body -> fmap (mkConstant litloc) $ asBSLiteral body
-        _        -> Nothing
-
--- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
-pairs :: [a] -> Maybe [(a,a)]
-pairs []         = Just []
-pairs (a:b:rest) = fmap ((:) (a,b)) (pairs rest)
-pairs _          = Nothing
-
-hexDigitToWord8 :: Char -> Maybe Word8
-hexDigitToWord8 c =
-    let x = ord8 c
-    in    if '0' <= c && c <= '9'  then  Just $ x - ord8 '0'
-    else  if 'a' <= c && c <= 'f'  then  Just $ x - ord8 'a' + 10
-    else  if 'A' <= c && c <= 'F'  then  Just $ x - ord8 'A' + 10
-    else  Nothing
-
-    where ord8 :: Char -> Word8
-	  ord8 = fromIntegral . Data.Char.ord
-
--- | Convert a String into a ByteString, failing if the string has odd length
--- or any of its characters are not hex digits
-asBSLiteral :: String -> Maybe ByteString
-asBSLiteral s =
-    mapM hexDigitToWord8 s >>= pairs      -- convert s into a list of pairs of Word8 values in [0..0xF]
-    <&> map (\(a,b) -> shiftL a 4 .|. b)  -- convert pairs of values in [0..0xF] to values in [0..xFF]
-    <&> BSL.pack
-     
-			      
 --- Constructing terms ---
 
 mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni a
 mkBuiltinFunction loc ident = 
-   case getStaticBuiltinName ident of 
-      Just b  -> Builtin loc $ StaticBuiltinName b
-      Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
+    case getStaticBuiltinName ident of 
+        Just b  -> Builtin loc $ StaticBuiltinName b
+        Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
 tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
 tyInst loc t (ty :| []) = TyInst loc t ty
