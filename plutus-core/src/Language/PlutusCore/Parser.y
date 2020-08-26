@@ -215,7 +215,7 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
     Some (TypeIn uni1) <- getTypeFromTyName tyloc tyname
     case bring (Proxy @Parsable) uni1 (parseConstant lit) of
         Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
-        Just w ->  pure $ Constant litloc (Some (ValueOf uni1 w))
+        Just w  -> pure $ Constant litloc (Some (ValueOf uni1 w))
 
 
 --- Constructing terms ---

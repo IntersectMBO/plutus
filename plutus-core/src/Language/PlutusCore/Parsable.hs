@@ -19,17 +19,12 @@ where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Lexer
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
-
-import           Data.Bits                     (shiftL, (.|.))
-import           Data.ByteString.Lazy          (ByteString)
-import qualified Data.ByteString.Lazy          as BSL (pack, tail, unpack)
-import           Data.Char                     (isHexDigit, ord)
-import qualified Data.Text                     as T
-import           Text.Read                     (readMaybe)
+import           Data.Bits            (shiftL, (.|.))
+import           Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy as BSL (pack)
+import           Data.Char            (ord)
+import qualified Data.Text            as T
+import           Text.Read            (readMaybe)
 
 
 class Parsable a
@@ -56,8 +51,8 @@ instance Parsable ByteString
 -- an even number of upper- or lower-case hex digits.
 parseByteStringConstant :: T.Text -> Maybe ByteString
 parseByteStringConstant lit = do
-      case T.unpack lit of
-	'#':body -> asBSLiteral body
+    case T.unpack lit of
+        '#':body -> asBSLiteral body
         _        -> Nothing
 
 -- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
@@ -75,7 +70,7 @@ hexDigitToWord8 c =
     else  Nothing
 
     where ord8 :: Char -> Word8
-	  ord8 = fromIntegral . Data.Char.ord
+          ord8 = fromIntegral . Data.Char.ord
 
 -- | Convert a String into a ByteString, failing if the string has odd length
 -- or any of its characters are not hex digits
