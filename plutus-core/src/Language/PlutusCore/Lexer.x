@@ -244,11 +244,6 @@ handle_name p str = do
 readBSL :: (Read a) => BSL.ByteString -> a
 readBSL = read . ASCII.unpack
 
--- This strips off the initial '+' from a bytestring so that we can use 'read'
--- to get an integer
-stripPlus :: BSL.ByteString -> BSL.ByteString
-stripPlus b = if BSL.head b == 43 then BSL.tail b else b
-
 alex :: a -> Alex a
 alex = pure
 
