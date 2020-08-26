@@ -1,0 +1,9 @@
+cradle:
+  cabal:
+  - path: ./src
+    component: "lib:example"
+  - path: ./app
+    component: "example:example-exe"
+  - path: ./test
+    component: "example:example-test"
+

@@ -1,7 +1,0 @@
-cradle:
-  cabal:
-  - path: ./src
-    component: "lib:plutus-contract-template"
-  - path: ./test
-    component: "plutus-contract-template:plutus-contract-template-test"
-

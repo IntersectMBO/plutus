@@ -1,23 +1,24 @@
-# This shell can be used with ghcide in vscode with the following extensions installed
-#   https://marketplace.visualstudio.com/items?itemName=DigitalAssetHoldingsLLC.ghcide
+# This shell can be used with haskell language server in vscode with the following extensions installed
+#   https://marketplace.visualstudio.com/items?itemName=haskell.haskell
 #   https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector
 # To use this file:
-#   cp hie-cabal.yaml hie.yaml
 #   Open this directory in VSCode
 #   Open commands pallet (Cmd + Shift + P) and type Select environment.
 #   Select this file.
 #   Reload when prompted to do so by the Nix Environment Selector.
-#   Open a file a haskell file in the plutus-use-cases directory.
 { sourcesOverride ? {}
 , checkMaterialization ? false
 , useCabalProject ? true
 , compiler-nix-name ? "ghc883"
+, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args)
 }@args:
+with packageSet;
 let
-  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args);
-  pyEnv = packageSet.pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
-in
-with packageSet; haskell.packages.shellFor {
+  # For Sphinx, and ad-hoc usage
+  pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+  # Called from Cabal to generate the Haskell source for the metatheory package
+  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
+in haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -34,6 +35,8 @@ with packageSet; haskell.packages.shellFor {
     pkgs.stack
 
     pyEnv
+
+    agdaWithStdlib
 
     # Deployment tools
     pkgs.terraform_0_11

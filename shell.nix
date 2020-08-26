@@ -4,6 +4,7 @@
 , compiler-nix-name ? "ghc883"
 , packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args)
 }@args:
+with packageSet;
 let
   # For Sphinx, and ad-hoc usage
   pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
