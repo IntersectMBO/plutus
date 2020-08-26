@@ -92,7 +92,7 @@ which is a problem.)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni =
-    VCon (Some (ValueOf uni))
+    VCon ExMemory (Some (ValueOf uni))
   | VTyAbs ExMemory TyName KindWithMem (TermWithMem uni) (CekValEnv uni)
   | VLamAbs ExMemory Name (TypeWithMem uni) (TermWithMem uni) (CekValEnv uni)
   | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (CekValue uni)
@@ -221,7 +221,7 @@ dischargeCekValue
     :: (Closed uni, uni `Everywhere` ExMemoryUsage)
     => CekValue uni -> TermWithMem uni
 dischargeCekValue = \case
-    VCon t                                 -> fromConstant t
+    VCon     ex val                        -> Constant ex val
     VTyAbs   ex tn k body env              -> TyAbs ex tn k (dischargeCekValEnv env body)
     VLamAbs  ex name ty body env           -> LamAbs ex name ty (dischargeCekValEnv env body)
     VIWrap   ex ty1 ty2 val                -> IWrap ex ty1 ty2 $ dischargeCekValue val
@@ -236,19 +236,19 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, uni `Everywhere` 
 
 type instance UniOf (CekValue uni) = uni
 
-instance FromConstant (CekValue uni) where
-    fromConstant = VCon
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
+    fromConstant val = VCon (memoryUsage val) val
 
 instance AsConstant (CekValue uni) where
-    asConstant (VCon val) = Just val
-    asConstant _          = Nothing
+    asConstant (VCon _ val) = Just val
+    asConstant _            = Nothing
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToExMemory (CekValue uni) where
+instance ToExMemory (CekValue uni) where
     toExMemory = \case
-        VCon val -> memoryUsage val
-        VTyAbs ex _ _ _ _ -> ex
-        VLamAbs ex _ _ _ _ -> ex
-        VIWrap ex _ _ _ -> ex
+        VCon     ex _           -> ex
+        VTyAbs   ex _ _ _ _     -> ex
+        VLamAbs  ex _ _ _ _     -> ex
+        VIWrap   ex _ _ _       -> ex
         VBuiltin ex _ _ _ _ _ _ -> ex
 
 instance ToExMemory term => SpendBudget (CekCarryingM term uni) term where
@@ -343,9 +343,9 @@ computeCek ctx env (LamAbs ex name ty body) =
     -- TODO: budget?
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx _ (Constant _ val) =
+computeCek ctx _ (Constant ex val) =
     -- TODO: budget?
-    returnCek ctx (VCon val)
+    returnCek ctx (VCon ex val)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx env (Builtin ex bn) = do
     -- TODO: budget?
