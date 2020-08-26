@@ -5,6 +5,12 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
+{- | A typeclass which provides a `parseConstant` method to convert Text strings
+into objects of the appropriate type. This allows one to define parsers for
+literal constants belonging to extensible built-in types without having to
+modify the main Plutus Core parser. We expect parseConstant . prettyConst to be
+the identity function. -}
+
 module Language.PlutusCore.Parsable
     (
      Parsable(..)
@@ -29,8 +35,10 @@ import           Text.Read                     (readMaybe)
 class Parsable a
   where
   parseConstant :: T.Text -> Maybe a
+  -- ^ Return Nothing if the string is invalid, otherwise the corresponding value of type a.
   default parseConstant :: Read a => T.Text -> Maybe a
   parseConstant = readMaybe @ a . T.unpack
+  -- ^ The default implmentation is 'read'
 
 instance Parsable Bool
 instance Parsable Char
@@ -41,8 +49,11 @@ instance Parsable ()
 instance Parsable ByteString
   where parseConstant = parseByteStringConstant
 
+
 --- Parsing bytestrings ---
 
+-- A literal bytestring consists of the '#' character followed immediately by
+-- an even number of upper- or lower-case hex digits.
 parseByteStringConstant :: T.Text -> Maybe ByteString
 parseByteStringConstant lit = do
       case T.unpack lit of
