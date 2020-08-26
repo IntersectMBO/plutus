@@ -33,9 +33,10 @@ import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
 import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 
-import           Data.Char                 (isHexDigit, ord)
+import           Data.Bits                 (shiftL, (.|.)) 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as BSL (tail, pack, unpack)
+import           Data.Char                 (isHexDigit, ord)
 import qualified Data.List.NonEmpty        as NE
 import qualified Data.Map
 import qualified Data.Text as T
@@ -87,10 +88,10 @@ import Control.Monad.State
     closeBrace    { TkSpecial $$ CloseBrace }
 
     naturalLit    { $$@TkNat{} }
-    literal       { $$@TkLiteral{} }
+    literal       { $$@TkLiteralConst{} }
     builtintypeid { $$@TkBuiltinTypeId{} }
     name          { $$@TkName{} }
-    builtinid     { $$@TkBuiltinId{} }
+    builtinfnid   { $$@TkBuiltinFnId{} }
 
 %%
 
@@ -123,9 +124,9 @@ Term : Var                                                 { $1 }
      | openParen   lam Name Type Term        closeParen    { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
      | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant (tkLoc $3) -- % = monadic action
-	                                                       (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteral $4)}
+	                                                       (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4)}
      | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
-     | openParen   builtin builtinid         closeParen    { mkBuiltinFunction $2 (tkBuiltinId $3) }
+     | openParen   builtin builtinfnid       closeParen    { mkBuiltinFunction $2 (tkBuiltinFnId $3) }
      | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
      | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
@@ -185,7 +186,7 @@ getStaticBuiltinName = \case
   
 mkBuiltinType
     :: DefaultUni <: uni
-    => AlexPosn -> String -> Parse (Type TyName uni AlexPosn)
+    => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
 mkBuiltinType tyloc tyname = case tyname of
   "bool"       -> pure $ mkTyBuiltin @Bool       tyloc
   "bytestring" -> pure $ mkTyBuiltin @ByteString tyloc
@@ -197,16 +198,11 @@ mkBuiltinType tyloc tyname = case tyname of
 
 mkBuiltinConstant
   :: DefaultUni <: uni
-  => AlexPosn -> String -> AlexPosn -> String -> Parse (Term TyName Name uni AlexPosn)
+  => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni AlexPosn)
 mkBuiltinConstant tyloc tyname litloc lit  = do
     val <-
           case tyname of
-            "bool"       -> case lit of
-                              "true"  -> pure $ Just $ mkConstant litloc True
-                              "True"  -> pure $ Just $ mkConstant litloc True
-                              "false" -> pure $ Just $ mkConstant litloc False
-                              "False" -> pure $ Just $ mkConstant litloc False
-                              _       -> pure Nothing
+            "bool"       -> readConstant @ Bool    litloc lit
             "bytestring" -> parseByteString tyname litloc lit
             "char"       -> readConstant @ Char    litloc lit 
             "integer"    -> readConstant @ Integer litloc lit 
@@ -219,17 +215,17 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 
 readConstant
     :: forall t a uni. (Read t, uni `Includes` t)
-    => AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
-readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t lit)
+    => AlexPosn -> T.Text -> Parse (Maybe (Term TyName Name uni AlexPosn))
+readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t (T.unpack lit))
   
 
 --- Parsing bytestrings ---
 
 parseByteString
     :: DefaultUni <: uni
-    => String -> AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
+    => T.Text -> AlexPosn -> T.Text -> Parse (Maybe (Term TyName Name uni AlexPosn))
 parseByteString tyname litloc lit = do
-      case lit of
+      case T.unpack lit of
 	'#':body -> pure $ fmap (mkConstant litloc) $ asBSLiteral body
         _        -> pure Nothing
 
@@ -254,8 +250,8 @@ hexDigitToWord8 c =
 -- or any of its characters are not hex digits
 asBSLiteral :: String -> Maybe ByteString
 asBSLiteral s =
-    mapM hexDigitToWord8 s >>= pairs  -- convert s into a list of pairs of Word8 values in [0..15]
-    <&> map (\(a,b) -> 16*a + b)      -- convert pairs of values in [0..15] to values in [0..255]
+    mapM hexDigitToWord8 s >>= pairs      -- convert s into a list of pairs of Word8 values in [0..0xF]
+    <&> map (\(a,b) -> shiftL a 4 .|. b)  -- convert pairs of values in [0..0xF] to values in [0..xFF]
     <&> BSL.pack
      
 			      

@@ -61,9 +61,9 @@ throwingEither r e = case e of
 data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
-    | UnknownBuiltinType ann String
-    | UnknownBuiltinFunction ann String
-    | InvalidBuiltinConstant ann String String
+    | UnknownBuiltinType ann T.Text
+    | UnknownBuiltinFunction ann T.Text
+    | InvalidBuiltinConstant ann T.Text T.Text
     deriving (Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 

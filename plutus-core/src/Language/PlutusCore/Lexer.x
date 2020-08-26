@@ -33,61 +33,67 @@ import           Language.Haskell.TH.Syntax (Lift)
 import           Text.Read (readMaybe)
 
 {- Note [Keywords]
-   This version of the lexer relaxes the syntax so that keywords (con,
-   lam, ...) and built in names can be re-used as variable names.  The
-   Plutus compiler produces code with such names: for example, the
-   builtin `addInteger` is always called via a variable of the same
-   name which is bound to a lambda wrapping an invocation of the
-   actual builtin.  To achieve this, we use alex's "start codes" which
-   allow you to put the lexer into modes in which only certain actions
-   are valid.  In the PLC grammar, keywords like `abs`, `con` and so
-   on can only occur after a `(`, so when we see one of these we put
-   the lexer into a special mode where these are interpreted as
-   keywords and converted into elements of the LexKeyword type; having
-   done this, we return to the initial lexer state, denoted by 0,
-   where we can use keywords as variable names. A similar strategy is
-   used for built in type names. -}
+This version of the lexer relaxes the syntax so that keywords (con,
+lam, ...) and built in names can be re-used as variable names.  The
+Plutus compiler produces code with such names: for example, the
+builtin `addInteger` is always called via a variable of the same
+name which is bound to a lambda wrapping an invocation of the
+actual builtin.  To achieve this, we use alex's "start codes" which
+allow you to put the lexer into modes in which only certain actions
+are valid.  In the PLC grammar, keywords like `abs`, `con` and so
+on can only occur after a `(`, so when we see one of these we put
+the lexer into a special mode where these are interpreted as
+keywords and converted into elements of the LexKeyword type; having
+done this, we return to the initial lexer state, denoted by 0,
+where we can use keywords as variable names. A similar strategy is
+used for built in type names.
+-}
 
 {- Note [Literal Constants]
-   For literal constants, we accept certain types of character sequences that are
-   then passed to user-defined parsers which convert them to built-in constants.
-   Literal constants have to specify the type of the constant, so we have (con
-   integer 9), (con string "Hello"), and so on.  This allows us to use the same
-   literal syntax for different types (eg, integer, short, etc) and shift most
-   of the responsibility for parsing constants out of the lexer and into the
-   parser (and eventually out of the parser to parsers supplied by the types
-   themselves).
+For literal constants, we accept certain types of character sequences that are
+then passed to user-defined parsers which convert them to built-in constants.
+Literal constants have to specify the type of the constant, so we have (con
+integer 9), (con string "Hello"), and so on.  This allows us to use the same
+literal syntax for different types (eg, integer, short, etc) and shift most
+of the responsibility for parsing constants out of the lexer and into the
+parser (and eventually out of the parser to parsers supplied by the types
+themselves).
 
-   We allow:
-    * ()
-    * Single-quoted printable characters
-    * Double-quoted sequences of printable characters
-    * Unquoted sequences of printable characters not including '(' and ')'
+We allow:
+  * ()
+  * Single-quoted possibly empty sequences of printable characters
+  * Double-quoted possibly empty sequences of printable characters
+  * Unquoted non-empty sequences of printable characters not including '(' or ')',
+    and not beginning with a single or double quote.
 
-  "Printable" here uses Alex's definition: Unicode code points 32 to 0x10ffff.
-  This includes spaces but excludes tabs amongst other things.  One can
-  use the usual escape sequences though, as long as the type-specific parser
-  deals with them.
+"Printable" here uses Alex's definition: Unicode code points 32 to 0x10ffff.
+This includes spaces but excludes tabs amongst other things.  One can use the
+usual escape sequences though, as long as the type-specific parser deals with
+them.
 
-  These allow us to parse all of the standard types.  We just return
-  all of the characters in a TkLiteral token, not attempting to do things
-  like stripping off quotes or interpreting escape sequences: it's the
-  responsibility of the parser for the relevant type to do these things.
-  Note that 'read' will often do the right thing.
+These allow us to parse all of the standard types.  We just return all of the
+characters in a TkLiteralConst token, not attempting to do things like stripping
+off quotes or interpreting escape sequences: it's the responsibility of the
+parser for the relevant type to do these things.  Note that 'read' will often do
+the right thing.
 
-  The final item above even allows the possiblity of parsing complex types such
-  as tuples and lists as long as parentheses are not involved.  For example,
-  (con tuple <1, 2.3, "yes">) and (con intlist [1, 2, -7]) are accepted by the
-  lexer, as is (con intseq 12 4 55 -4).  The final example looks strange, but
-  the (imaginary) "intseq" parser would receive the string "12 4 55 -4" as a
-  single token.  We can't allow (con )) or (con tuple (1,2,3)) because it
-  would be difficult for the lexer to decide when it had reached the end
-  of the literal (consider a tuple containing a quoted string containing ')',
-  for example).
+The final item above even allows the possiblity of parsing complex types such as
+tuples and lists as long as parentheses are not involved.  For example, (con
+tuple <1,2.3,"yes">) and (con intlist [1, 2, -7]) are accepted by the lexer, as
+is the somewhat improbable-looking (con intseq 12 4 55 -4).  Comment characters
+are also allowed, but are not treated specially.  We don't allow (con )) or (con
+tuple (1,2,3)) because it would be difficult for the lexer to decide when it
+had reached the end of the literal: consider a tuple containing a quoted string
+containing ')', for example.  -}
 
+{- Note [Precedence of regular expression matches]
+For reference, Section 3.2.2 of the Alex manual says "When the input stream
+matches more than one rule, the rule which matches the longest prefix of the
+input stream wins. If there are still several rules which match an equal
+number of characters, then the rule which appears earliest in the file wins."
 -}
-}
 
+}
 %wrapper "monadUserState-bytestring"
 
 -- $ = character set macro
@@ -103,17 +109,26 @@ $upper = [A-Z]
 
 @builtinid  = [$lower $upper][$lower $upper $digit \_ \']*
 
-@special = \\\\ | \\\"
+-- Regular expressions for literal constants
 
-@quotedstring = \" ($printable)* \"
-@quotedchar   = ' ($printable)* ' -- Allow multiple characters so we can handle escape sequences
-@charseq      =  ( $printable # [ \( \) ] )+
--- @charseq = ~[ ' \" ] ( $printable # [ \( \) ] )+
--- ^ Don't match single or double quotes or whitespace at the start.
--- This doesn't work.  I wonder why?
--- Without $white, preceding whitespace is included
--- ... except that now we're trimming leading whitespace in stringOf
+-- A single quoted string, allowing escaped characters including \'.
+-- This says "Single quotes enclosing a sequence of either (a) printable 
+-- characters excluding ' and \ , or (b) a blackslash followed by 
+-- any printable character (single quote included)"
+@sqs   = '  ( ($printable # ['\\])  | (\\$printable) )* '
 
+-- A double quoted string, allowing escaped characters including \".  Similar to @sqs
+@dqs   = \" ( ($printable # [\"\\]) | (\\$printable) )* \"
+
+-- A sequence of printable characters not containing '(' or ')' such that the
+-- first character is not a space or a single or double quote.  If there are any
+-- further characters then they must comprise a sequence of printable characters
+-- possibly including spaces, followed by a non-space character.  If there are
+-- any leading or trailing spaces they will be consumed by the $white+ token
+-- below.
+$nonparen = $printable # [\(\)]
+@chars = ($nonparen # ['\"$white]) ($nonparen* ($nonparen # $white))?
+ 
 tokens :-
 
     $white+                  ;
@@ -132,26 +147,14 @@ tokens :-
     <kwd> iwrap          { mkKeyword KwIWrap       `andBegin` 0 }
     <kwd> unwrap         { mkKeyword KwUnwrap      `andBegin` 0 }
     <kwd> error          { mkKeyword KwError       `andBegin` 0 }
-    <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` bin }
+    <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` builtin }
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
     -- These are converted into Builtin names (possibly dynamic) in the parser
     -- Outside this mode, all ids are parsed as Names. 
     <kwd> con            { mkKeyword KwCon         `andBegin` conargs }
-    -- (con type ...): ... can be "()" or or a single or double-quoted string containing spaces,
-    -- or any sequence of non-whitespace characters apart from `(` and `)`.  Comment characters
-    -- are also allowed, but not treated specially.
+    -- ^ (con type ...): ... can be empty (for a type name) or a string of
+    -- one of the forms described in Note [Literal Constants]
     
-    <conargs>  @name { tok (\p s -> alex $ TkBuiltinTypeId p (stringOf s)) `andBegin` literalconst }
-
-
-    -- Maybe we should also do this in the parser, but there's some
-    -- ambiguity because literal constants are also parsed here (they
-    -- have no start code, so can appear in any context).  There's a
-    -- danger that if we save an id here and later parse it into a
-    -- builtin type name, it'd actually be a builtin constant.  That
-    -- can't happen yet, but could if someone adds `nil` or something.
-
-
     -- Various special characters
     "("                  { mkSpecial OpenParen  `andBegin` kwd }
     ")"                  { mkSpecial CloseParen `andBegin` 0}
@@ -161,21 +164,20 @@ tokens :-
     "{"                  { mkSpecial OpenBrace }
     "}"                  { mkSpecial CloseBrace }
 
-
     -- Natural literal, used in version numbers
     <0> @nat                      { tok (\p s -> alex $ TkNat p (readBSL s)) }
     
     -- Identifiers
     <0> @name                     { tok (\p s -> handle_name p (textOf s)) }
 
-    -- Literal built-in constants
-    <literalconst> "()"               { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  @quotedchar       { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  @quotedstring     { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  @charseq          { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
---    <0>  ")"               { mkSpecial CloseParen `andBegin` 0 }
-    
-    <bin> @builtinid                  { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
+    -- Names of built-in functions
+    <builtin> @builtinid          { tok (\p s -> alex $ TkBuiltinFnId p (textOf s)) `andBegin` 0 }
+
+    -- Things that can follow 'con': the name of a  built-in type and possibly a literal constant of that type
+    <conargs>  @name              { tok (\p s -> alex $ TkBuiltinTypeId p (textOf s)) `andBegin` literalconst }
+
+    -- Literal built-in constants.
+    <literalconst> "()" | @sqs | @dqs | @chars { tok (\p s -> alex $ TkLiteralConst p (textOf s)) `andBegin` 0 }
 
 {
 
@@ -192,12 +194,6 @@ chr8 = Data.Char.chr . fromIntegral
 
 textOf :: BSL.ByteString -> T.Text
 textOf = T.decodeUtf8 . BSL.toStrict
-
-stringOf :: BSL.ByteString -> String
---stringOf = T.unpack . T.decodeUtf8 . BSL.toStrict
-stringOf = dropWhile isSpace . T.unpack . T.decodeUtf8 . BSL.toStrict
--- FIXME: do this with the tokens
-   
 
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments

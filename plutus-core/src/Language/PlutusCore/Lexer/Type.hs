@@ -55,12 +55,12 @@ data Token ann
               , tkName       :: T.Text  -- String??
               , tkIdentifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
               }
-    | TkBuiltinId      { tkLoc :: ann, tkBuiltinId :: T.Text }  -- String ??
-    | TkBuiltinTypeId  { tkLoc :: ann, tkBuiltinTypeId :: String }
-    | TkLiteral        { tkLoc :: ann, tkLiteral :: String }
-    | TkNat            { tkLoc :: ann, tkNat :: Natural }
-    | TkKeyword        { tkLoc :: ann, tkKeyword :: Keyword }
-    | TkSpecial        { tkLoc :: ann, tkSpecial :: Special }
+    | TkBuiltinFnId    { tkLoc :: ann, tkBuiltinFnId   :: T.Text }
+    | TkBuiltinTypeId  { tkLoc :: ann, tkBuiltinTypeId :: T.Text }
+    | TkLiteralConst   { tkLoc :: ann, tkLiteralConst  :: T.Text }
+    | TkNat            { tkLoc :: ann, tkNat           :: Natural }
+    | TkKeyword        { tkLoc :: ann, tkKeyword       :: Keyword }
+    | TkSpecial        { tkLoc :: ann, tkSpecial       :: Special }
     | EOF              { tkLoc :: ann }
     deriving (Show, Eq, Generic, NFData)
 
@@ -90,9 +90,9 @@ instance Pretty Keyword where
 instance Pretty (Token ann) where
     pretty (TkName _ n _)            = pretty n
     pretty (TkNat _ n)               = pretty n
-    pretty (TkBuiltinId _ ident)     = pretty ident
+    pretty (TkBuiltinFnId _ ident)   = pretty ident
     pretty (TkBuiltinTypeId _ ident) = pretty ident
-    pretty (TkLiteral _ lit)         = pretty lit
+    pretty (TkLiteralConst _ lit)    = pretty lit
     pretty (TkKeyword _ kw)          = pretty kw
     pretty (TkSpecial _ s)           = pretty s
     pretty EOF{}                     = mempty
