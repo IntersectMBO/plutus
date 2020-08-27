@@ -1,6 +1,6 @@
 { plutus ? builtins.fetchTarball {
     name = "plutus";
-    url = https://github.com/input-output-hk/plutus/archive/1cd792bd2055510e68572ded07a6c8e24ac0cbb5.tar.gz;
-    sha256 = "170w5z1b7q782gwzdvrsmxpswm1q4nf9qj1sif77l9xbj4ai80fl";
+    url = https://github.com/input-output-hk/plutus/archive/9e8f3a894558ec212dac3d5286f473a2ebd49481.tar.gz;
+    sha256 = "0jivkkns58akh8ffrlnn4vmdwrpr7jhd37qax0k2s0yg67s0c4i7";
   }
 }: import (plutus + "/use-case-shell.nix") {}
