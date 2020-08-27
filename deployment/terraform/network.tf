@@ -55,7 +55,7 @@ resource "aws_route" "zerotier" {
 # Elastic IPs
 resource "aws_eip" "nat" {
   vpc        = true
-  depends_on = ["aws_internet_gateway.plutus"]
+  depends_on = [aws_internet_gateway.plutus]
   count      = "${length(var.azs)}"
 
   tags = {
@@ -70,7 +70,7 @@ resource "aws_nat_gateway" "plutus" {
   count         = "${length(var.azs)}"
   allocation_id = "${aws_eip.nat.*.id[count.index]}"
   subnet_id     = "${aws_subnet.public.*.id[count.index]}"
-  depends_on    = ["aws_internet_gateway.plutus"]
+  depends_on    = [aws_internet_gateway.plutus]
 
   tags = {
     Name        = "${var.project}_${var.env}_${var.azs[count.index]}"

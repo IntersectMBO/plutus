@@ -55,7 +55,7 @@ resource "aws_api_gateway_deployment" "marlowe_symbolic_lambda" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.marlowe_symbolic_lambda.id
-  stage_name  = "${var.env}"
+  stage_name  = var.env
 }
 
 resource "aws_lambda_permission" "marlowe_symbolic_lambda_api_gw" {

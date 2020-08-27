@@ -259,6 +259,16 @@ in rec {
       };
   });
 
+  terraform-vars = pkgs.writeTextFile {
+    name ="terraform-vars"; 
+    destination = "/generated.tf.json"; 
+    text = (builtins.toJSON {
+      locals = {
+        marlowe_client = ''${marlowe-playground.client}'';
+      };
+    });
+  };
+
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
   plutus-scb = pkgs.recurseIntoAttrs (rec {
