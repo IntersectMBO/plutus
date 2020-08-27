@@ -43,13 +43,14 @@ and actions (i.e. /Choices/) are passed as
 
 module Language.Marlowe.Semantics where
 
+import           Control.Applicative        ((<*>), (<|>))
 import           Control.Newtype.Generics   (Newtype)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.Scientific            (Scientific, floatingOrInteger)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
-import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
@@ -57,7 +58,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.Prelude  hiding ((<>))
+import           Language.PlutusTx.Prelude  hiding ((<$>), (<*>), (<>))
 import           Language.PlutusTx.Ratio    (Ratio, denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
@@ -65,6 +66,7 @@ import           Ledger.Scripts             (Datum (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
+import           Prelude                    ((<$>))
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
@@ -925,67 +927,64 @@ customOptions = defaultOptions
                 , sumEncoding = TaggedObject { tagFieldName = "tag", contentsFieldName = "contents" }
                 }
 
-
 instance FromJSON Party where
-    parseJSON = withObject "Party" $ \v -> do
-        tag <- v .: "tag"
-        case tag of
-            JSON.String "PK"   -> do
-                pk <- v .: "contents"
-                v <- JSON.decodeByteString pk
-                return $ PK (PubKeyHash (fromStrict v))
-            JSON.String "Role" -> do
-                JSON.String r <- v .: "contents"
-                return (Role (Val.TokenName (fromStrict (encodeUtf8 r))))
-            _ -> fail "Can't parse Party"
-
+  parseJSON = withObject "Party" (\v ->
+        (PK . PubKeyHash . fromStrict <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
+    <|> (Role . Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "role_token"))
+                                 )
 instance ToJSON Party where
     toJSON (PK pkh) = object
-        [ "tag" .= JSON.String "PK"
-        , "contents" .= JSON.String (JSON.encodeByteString (toStrict (getPubKeyHash pkh)))
-        ]
+        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ toStrict $ getPubKeyHash pkh) ]
     toJSON (Role (Val.TokenName name)) = object
-        [ "tag" .= JSON.String "Role"
-        , "contents" .= JSON.String (decodeUtf8 (toStrict name))
-        ]
+        [ "role_token" .= (JSON.String $ decodeUtf8 $ toStrict name) ]
 
 
-instance FromJSON AccountId where parseJSON = genericParseJSON customOptions
-instance ToJSON AccountId where toJSON = genericToJSON customOptions
+getInteger :: Scientific -> Parser Integer
+getInteger x = case (floatingOrInteger x :: Either Double Integer) of
+                 Right a -> return a
+                 Left _  -> fail "Account number is not an integer"
+
+withInteger :: JSON.Value -> Parser Integer
+withInteger = withScientific "" getInteger
+
+instance FromJSON AccountId where
+  parseJSON = withObject "AccountId" (\v ->
+       AccountId <$> (withInteger =<< (v .: "account_number"))
+                 <*> (parseJSON =<< (v .: "account_owner"))
+                                     )
+
+instance ToJSON AccountId where
+  toJSON (AccountId num party) = object [ "account_number" .= num
+                                        , "account_owner" .= party
+                                        ]
 
 
 instance FromJSON ChoiceId where
-    parseJSON = withArray "ChoiceId" $ \arr ->
-        withText "ChoiceName" (\name -> do
-            party <- parseJSON (arr ! 1)
-            return $ ChoiceId (fromStrict (encodeUtf8 name)) party) (arr ! 0)
+  parseJSON = withObject "ChoiceId" (\v ->
+       ChoiceId <$> (fromStrict . encodeUtf8 <$> (v .: "choice_name"))
+                <*> (parseJSON =<< (v .: "choice_owner"))
+                                    )
 
 instance ToJSON ChoiceId where
-    toJSON (ChoiceId x acc) = JSON.Array $ fromList
-        [ JSON.String (decodeUtf8 (toStrict x))
-        , toJSON acc
-        ]
+  toJSON (ChoiceId name party) = object [ "choice_name" .= name
+                                        , "choice_owner" .= party
+                                        ]
 
 
 instance FromJSON Token where
-    parseJSON (JSON.String "ada") = return $ Token "" ""
-    parseJSON v = withObject "Token" (\tk -> do
-        curr <- tk .: "currency"
-        curr <- parseJSON curr
-        tok <- tk .: "token"
-        tok <- parseJSON tok
-        return $ Token curr tok) v
+  parseJSON = withObject "Token" (\v ->
+       Token <$> (CurrencySymbol . fromStrict <$> (JSON.decodeByteString =<< (v .: "currency_symbol")))
+             <*> (Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "token_name"))
+                                 )
 
 instance ToJSON Token where
-    toJSON (Token "" "") = JSON.String "ada"
-    toJSON (Token cur tok) = JSON.object
-        [ ("currency", toJSON cur)
-        , ("token", toJSON tok)
-        ]
-
+  toJSON (Token currSym tokName) = object
+      [ "currency_symbol" .= (JSON.String $ JSON.encodeByteString $ toStrict $ unCurrencySymbol currSym)
+      , "token_name" .= (JSON.String $ decodeUtf8 $ toStrict $ unTokenName tokName)
+      ]
 
 instance FromJSON ValueId where
-    parseJSON = withText "ValueID" $ return . ValueId . fromStrict . encodeUtf8
+    parseJSON = withText "ValueId" $ return . ValueId . fromStrict . encodeUtf8
 instance ToJSON ValueId where
     toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
 
