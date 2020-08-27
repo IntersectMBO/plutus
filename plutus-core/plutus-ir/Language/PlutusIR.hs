@@ -42,6 +42,7 @@ import           Language.PlutusCore.Core         (UniOf)
 import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Name         as PLC
 import qualified Language.PlutusCore.Pretty       as PLC
+import           Language.PlutusCore.Universe     (gshow)
 
 import           Control.Lens                     hiding (Strict)
 
@@ -334,12 +335,16 @@ instance ( PLC.PrettyClassicBy configName tyname
         TyAbs _ tn k t -> parens' ("abs" </> vsep' [prettyBy config tn, prettyBy config k, prettyBy config t])
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply _ t1 t2 -> brackets' (vsep' [prettyBy config t1, prettyBy config t2])
-        Constant _ c -> parens' ("con" </> pretty c)
+        Constant _ c -> parens' ("con" </> prettyTypeOf c </> pretty c)
         Builtin _ bi -> parens' ("builtin" </> pretty bi)
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
         IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
+
+        where prettyTypeOf :: PLC.GShow t => PLC.Some (PLC.ValueOf t) -> Doc ann
+              prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ gshow uni
+
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name

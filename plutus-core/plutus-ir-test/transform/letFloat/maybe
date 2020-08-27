@@ -1,7 +1,7 @@
 (lam x (con integer)
 (let
   (nonrec)
-  (termbind (strict) (vardecl j (con integer)) [(builtin addInteger) (con 3) x])
+  (termbind (strict) (vardecl j (con integer)) [(builtin addInteger) (con integer 3) x])
   (datatypebind
     (datatype
       (tyvardecl Maybe (fun (type) (type)))

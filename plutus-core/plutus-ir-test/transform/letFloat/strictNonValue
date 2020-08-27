@@ -10,7 +10,7 @@
     )
     y)
   )
-  (con 1)
+  (con integer 1)
 )
 -- this test is to make sure that `y` will not be floated outside `x`.
 -- `y` may not depend on `x`, but the effects of `y-rhs` cannot be moved

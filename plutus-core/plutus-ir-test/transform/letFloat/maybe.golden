@@ -12,7 +12,9 @@
       )
     )
     (termbind
-      (strict) (vardecl j (con integer)) [ [ (builtin addInteger) (con 3) ] x ]
+      (strict)
+      (vardecl j (con integer))
+      [ [ (builtin addInteger) (con integer 3) ] x ]
     )
     [ { Just (all a (type) (fun a a)) } (abs a (type) (lam x a x)) ]
   )

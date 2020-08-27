@@ -8,10 +8,12 @@
       (con integer)
       (let
         (rec)
-        (termbind (strict) (vardecl nonvalue (con integer)) [ value (con 3) ])
+        (termbind
+          (strict) (vardecl nonvalue (con integer)) [ value (con integer 3) ]
+        )
         x
       )
     )
   )
-  (con 3)
+  (con integer 3)
 )

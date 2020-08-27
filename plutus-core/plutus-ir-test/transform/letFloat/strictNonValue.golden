@@ -9,5 +9,5 @@
       y
     )
   )
-  (con 1)
+  (con integer 1)
 )

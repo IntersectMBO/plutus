@@ -7,7 +7,7 @@
       (con integer)
       (let
         (nonrec)
-        (termbind (strict) (vardecl i2 (con integer)) (con 3))
+        (termbind (strict) (vardecl i2 (con integer)) (con integer 3))
         (let
           (rec)
           (termbind
@@ -19,22 +19,23 @@
           (termbind
             (strict)
             (vardecl c (con integer))
-            [ [ (builtin addInteger) (con 1) ] i2 ]
+            [ [ (builtin addInteger) (con integer 1) ] i2 ]
           )
           (let
             (nonrec)
             (termbind
               (strict)
               (vardecl i1 (con integer))
-              [ [ (builtin addInteger) k ] (con 3) ]
+              [ [ (builtin addInteger) k ] (con integer 3) ]
             )
             [
-              [ (builtin addInteger) (con 5) ] [ [ (builtin addInteger) j ] i2 ]
+              [ (builtin addInteger) (con integer 5) ]
+              [ [ (builtin addInteger) j ] i2 ]
             ]
           )
         )
       )
     )
-    (con 1)
+    (con integer 1)
   ]
 )

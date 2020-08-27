@@ -9,6 +9,6 @@
            )
       )
       )
- (con 3)
+ (con integer 3)
  )
 -- nothing is movable, floating transformation should be id
