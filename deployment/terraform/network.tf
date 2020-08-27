@@ -247,5 +247,5 @@ locals {
 
 resource "local_file" "network" {
   content  = "${jsonencode(local.network)}"
-  filename = "${var.nixops_root}/network.json"
+  filename = "${pathexpand(var.nixops_root)}/network.json"
 }

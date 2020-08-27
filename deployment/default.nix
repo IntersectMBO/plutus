@@ -20,7 +20,6 @@ let
       destination = "/generated.tf.json";
       text = (builtins.toJSON {
         locals = {
-          env = "${env}";
           marlowe_client = "${marlowe-playground.client}";
         };
       });
@@ -30,11 +29,13 @@ let
     writeTextFile {
       name = "terraform-vars";
       destination = "/${env}.tfvars";
-      text = if pkgs.stdenv.isDarwin then
+      text = ''
+      env="${env}"
+      '' + (if pkgs.stdenv.isDarwin then
         ""
       else
         ''
-          symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"'';
+          symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"'');
     };
 
   runTerraform = env:
@@ -55,10 +56,32 @@ let
 
   deploy = env:
     writeShellScript "deploy" ''
+      set -e
+      tmp_dir=$(mktemp -d)
+      echo "using tmp_dir $tmp_dir"
+
+      ln -s ${./terraform}/* $tmp_dir
+
+      # in case we have some tfvars around in ./terraform
+      rm $tmp_dir/*.tfvars | true
+
+      ln -s ${terraform-locals env}/* $tmp_dir
+      ln -s ${terraform-vars env}/* $tmp_dir
+      cd $tmp_dir
+
       echo "apply terraform"
-      ${runTerraform env} -auto-approve
+      ${terraform}/bin/terraform init
+      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform apply -var-file=${env}.tfvars
+      api_id=$(${terraform}/bin/terraform output rest_api_id)
+      region=$(${terraform}/bin/terraform output region)
+
       echo "sync with S3"
       ${syncS3 env}
+
+      echo "deploy api"
+      ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $api_id --stage-name ${env}
+
       echo "done"
     '';
 

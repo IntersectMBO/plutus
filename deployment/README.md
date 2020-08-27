@@ -21,6 +21,8 @@ If you are using OSX then you cannot build the lambdas locally, therefore if you
 
 If you have not setup AWS authentication but you have enabled MFA then you can run `$(nix-build -A deployment.david.getCreds)` before you run any other command to setup temporary credentials that are valid for 24 hours.
 
+The scripts produce files for use with nixops (until we get rid of the legacy infra) and so you should provide the location where you want these files to go by setting another terraform variable, e.g. `export TF_VAR_nixops_root=$(pwd)/deployment/nixops`.
+
 The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
 
 * `deployment.env.runTerraform` will run only the terraform apply command

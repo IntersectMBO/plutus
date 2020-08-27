@@ -6,6 +6,7 @@ resource "aws_api_gateway_rest_api" "marlowe_symbolic_lambda" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+  binary_media_types = ["image/x-icon", "font/woff2", "font/ttf"]
 }
 
 resource "aws_api_gateway_resource" "marlowe_symbolic_proxy" {
@@ -111,4 +112,12 @@ resource "aws_route53_record" "lambda" {
     zone_id                = "${aws_api_gateway_domain_name.marlowe_symbolic_lambda.regional_zone_id}"
     evaluate_target_health = true
   }
+}
+
+output "rest_api_id" {
+  value = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
+}
+
+output "region" {
+  value = "${var.aws_region}"
 }
