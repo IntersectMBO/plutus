@@ -194,9 +194,8 @@ tagOfTyName = \case
     _ -> Nothing
 
 -- | Given a type name, return a type in the (default) universe.
--- This can fail in two ways: there's not type with that name, or uniAt
--- fails because it's been given an uknown tag.  In both cases we report
--- an unknown built-in type.
+-- This can fail in two ways: there's no type with that name, or uniAt fails because 
+-- it's been given an unknown tag.  In both cases we report an unknown built-in type.
 getTypeFromTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
 getTypeFromTyName tyloc tyname =
     case tagOfTyName tyname >>= uniAt of
