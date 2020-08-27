@@ -213,7 +213,7 @@ version = lexeme $ do
 
 constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
 constant =
-    (reservedWord "integer" >> PLC.someValue <$> integer) <|> (reservedWord "bytestring" >> PLC.someValue <$> bytestring)
+    (PLC.someValue <$> integer) <|> (PLC.someValue <$> bytestring)
 
 recursivity :: Parser Recursivity
 recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
