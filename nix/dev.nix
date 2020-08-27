@@ -7,7 +7,9 @@ pkgs.recurseIntoAttrs (rec {
     stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
     hlint = haskell.extraPackages.hlint.components.exes.hlint;
     haskell-language-server = haskell.extraPackages.haskell-language-server.components.exes.haskell-language-server;
+    haskell-language-server-wrapper = haskell.extraPackages.haskell-language-server.components.exes.haskell-language-server-wrapper;
     hie-bios = haskell.extraPackages.hie-bios.components.exes.hie-bios;
+    ghcide = haskell.extraPackages.ghcide.components.exes.ghcide;
     purty = haskell.extraPackages.purty.components.exes.purty;
     purs = easyPS.purs;
     spago = easyPS.spago;

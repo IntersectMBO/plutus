@@ -27,7 +27,7 @@ let
   inherit (pkgs) lib;
   localLib = import ./lib.nix;
 
-  sources = import ./nix/sources.nix;
+  sources = (import ./nix/sources.nix) // sourcesOverride;
 
   iohkNix = import sources.iohk-nix {
     inherit system config;
@@ -103,7 +103,9 @@ in rec {
     muslPackages = muslProject.hsPkgs;
 
     # Extra Haskell packages which we use but aren't part of the main project definition.
-    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit index-state checkMaterialization; };
+    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix {
+      inherit index-state checkMaterialization sources;
+    };
   };
 
   tests = import ./nix/tests/default.nix {
@@ -338,6 +340,43 @@ in rec {
         Cmd = ["bash"];
       };
     };
+
+    # WIP to make a VS Code devcontainer that can be used for working on plutus code
+    #   docker load < $(nix-build --system x86_64-linux -A docker.devcontainer --arg enableLibraryProfiling false)
+    # In VS Code install:
+    #   https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+    # Open the plutus-use-cases folder VS Code (it contains a .devcontainer configuration).
+    devcontainer =
+      let shell = haskell.packages.shellFor ({
+          packages = ps: with ps; [ plutus-use-cases ];
+        });
+      in pkgs.dockerTools.buildImage {
+        name = "plutus-devcontainer";
+        tag = "latest";
+        fromImage = (import sources.docker-nixpkgs).devcontainer;
+        contents = [
+          shell.ghc
+          dev.packages.haskell-language-server
+          dev.packages.haskell-language-server-wrapper
+          dev.packages.ghcide
+          dev.packages.hie-bios
+          dev.packages.cabal-install
+          pkgs.binutils-unwrapped
+          pkgs.which
+        ];
+        extraCommands = "mkdir -m 0777 tmp";
+        config = {
+          Env = [
+          "ENV=/nix/var/nix/profiles/default/etc/profile.d/nix.sh"
+          "GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
+          "LD_LIBRARY_PATH=/nix/var/nix/profiles/default/lib"
+          "PAGER=less"
+          "PATH=/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          "SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
+          "NIX_GHC_LIBDIR=${shell.ghc}/${shell.configFiles.libDir}"
+          ];
+        };
+      };
   };
 
   agdaPackages =

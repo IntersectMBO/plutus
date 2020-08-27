@@ -72,6 +72,21 @@ cradle:
   - path: ./metatheory/test
     config: { cradle: { cabal: { component: "metatheory:metatheory-test" } } }
 
+  - path: ./plutus-use-cases/src
+    config: { cradle: { cabal: { component: "lib:plutus-use-cases" } } }
+  - path: ./plutus-use-cases/test
+    config: { cradle: { cabal: { component: "plutus-use-cases:plutus-use-cases-test" } } }
+
+  - path: ./marlowe/src
+    config: { cradle: { cabal: { component: "lib:marlowe" } } }
+  - path: ./marlowe/test
+    config: { cradle: { cabal: { component: "marlowe:marlowe-test" } } }
+
+  - path: ./marlowe-actus/src
+    config: { cradle: { cabal: { component: "lib:marlowe-actus" } } }
+  - path: ./marlowe-actus/test
+    config: { cradle: { cabal: { component: "marlowe:marlowe-actus-test" } } }
+
   - path: ./web-ghc/src
     config: { cradle: { cabal: { component: "lib:web-ghc" } } }
   - path: ./web-ghc/src

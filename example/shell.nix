@@ -1,22 +1,6 @@
-{ nixpkgs ? <nixpkgs> }:
-let
-  pkgs = import (builtins.fetchTarball {
-    name = "nixos-20.03-2020-05-09";
-    url = https://github.com/nixos/nixpkgs/archive/d6c1b566b770cf4cf0c6d4a693da6bdf28c2c3b0.tar.gz;
-    sha256 = "00vm9shmpywx9dzaj0c7vap1ldimdsr7lw2n8p70qza87nmp9dai";
-  }){};
-  runtimeGhc = pkgs.haskell.packages.ghc883.ghcWithPackages( ps: with ps; [ zlib ]);
-in
-with pkgs; mkShell {
-  buildInputs = [
-    runtimeGhc
-    cabal-install
-    stack
-    wget
-    curl
-    binutils
-    git
-    vim
-    openssl.dev
-  ];
-}
+{ plutus ? builtins.fetchTarball {
+    name = "plutus";
+    url = https://github.com/input-output-hk/plutus/archive/c586f76c926b03f9b374ce4c17b81ed4486eccf2.tar.gz;
+    sha256 = "175bzm4crinrhszh9mc247l0dnwlb2g20xjy7j91g4rl15pdvirn";
+  }
+}: import (plutus + "/use-case-shell.nix") {}

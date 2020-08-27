@@ -26,6 +26,7 @@ auto
 .ghc.environment*
 tags
 dist-newstyle
+dist-hie
 dist
 cabal-dev
 .cabal-sandbox/
@@ -83,4 +84,5 @@ plutus-scb/plutus-scb.yaml
 *.db
 *.db-shm
 *.db-wal
-hie.yaml
+/hie.yaml
+/dist-hie/

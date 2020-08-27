@@ -1,4 +1,28 @@
 {
+    "cabal": {
+        "branch": "master",
+        "description": "Official upstream development repository for Cabal and cabal-install",
+        "homepage": "https://haskell.org/cabal",
+        "owner": "haskell",
+        "repo": "cabal",
+        "rev": "0d0f9e9f5e5ea677a102c6622f412ce314991e3e",
+        "sha256": "1rnn6ypvl69l4ffwi97mf05a1dsdvgskqjx2kjliaz2yf3ya539h",
+        "type": "tarball",
+        "url": "https://github.com/haskell/cabal/archive/0d0f9e9f5e5ea677a102c6622f412ce314991e3e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "docker-nixpkgs": {
+        "branch": "master",
+        "description": "docker images from nixpkgs [maintainer=@zimbatm]",
+        "homepage": "https://hub.docker.com/u/nixpkgs",
+        "owner": "nix-community",
+        "repo": "docker-nixpkgs",
+        "rev": "53440b208ed438d762a81825a60bab182e7550cc",
+        "sha256": "1qrcijbl21h16qxnpsgfbx3kzvpd5zwvzz48dp4lsra6h80q33ma",
+        "type": "tarball",
+        "url": "https://github.com/nix-community/docker-nixpkgs/archive/53440b208ed438d762a81825a60bab182e7550cc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "easy-purescript-nix": {
         "branch": "master",
         "builtin": false,
@@ -17,22 +41,34 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "978716ab80c0daa464ea45e677a06a7afe221259",
-        "sha256": "0wmc246wak0b3a32pvhyhdiwwbw0mdz2p0nxdn800hladsvfd7nk",
+        "rev": "7b6f278674df2685be1fac74246acb9ac5edb9a4",
+        "sha256": "0azziq9hy8n3vf763d7j05qcwab6cwcqpxyd2i0rrdwcdmc73js1",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/978716ab80c0daa464ea45e677a06a7afe221259.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/7b6f278674df2685be1fac74246acb9ac5edb9a4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
-        "branch": "master",
+        "branch": "hkm/unboxed-tuple",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "fa25a679bcaf46393dd9b1a8a1b5634236f9591c",
-        "sha256": "16nwyw6ls7il11iy1wbxp72q7pyxss5j2bsx1g4ch5ng450cgdki",
+        "rev": "4beeee0d287b612bd65df694327f5dcb3d8983dd",
+        "sha256": "1vrysjf98kx284lsg5s0sc7csqd59fnnv57h2cg9c81pnidgk1z0",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/fa25a679bcaf46393dd9b1a8a1b5634236f9591c.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/4beeee0d287b612bd65df694327f5dcb3d8983dd.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "hie-bios": {
+        "branch": "hkm/hie-project-file-6.1",
+        "description": null,
+        "homepage": null,
+        "owner": "hamishmack",
+        "repo": "hie-bios",
+        "rev": "295eeacaa5c64e00607adbee09cc3646f83bdafa",
+        "sha256": "132mx753rpmpc0kx75by8y5x5xqldpgrsrq8r7i6wgslq2iyjmdq",
+        "type": "tarball",
+        "url": "https://github.com/hamishmack/hie-bios/archive/295eeacaa5c64e00607adbee09cc3646f83bdafa.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -42,10 +78,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "24ddc8f531f320c9e2394d205d0df39857222901",
-        "sha256": "0x6zyh18c96a2kkchfmany475d8rb8qkmg1bd7y8xk6fb2vpad62",
+        "rev": "a3eae81cbae000bbfdc2bc1880528512747a3a9c",
+        "sha256": "1jairn2vp43z36j0b1fi2nmnfpadff217dqv5bjjxm5v099g0gsw",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/24ddc8f531f320c9e2394d205d0df39857222901.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/a3eae81cbae000bbfdc2bc1880528512747a3a9c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nix-gitignore": {

@@ -1,0 +1,4 @@
+packages: .
+
+package example
+  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip

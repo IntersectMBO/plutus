@@ -4,7 +4,7 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ pkgs, index-state, checkMaterialization }:
+{ pkgs, index-state, checkMaterialization, sources }:
 let compiler-nix-name = "ghc883";
 in {
   Agda = pkgs.haskell-nix.hackage-package {
@@ -60,29 +60,29 @@ in {
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "10zw1zvs2bbdyh2mg01vm8wz6n65m2qkvz1va9hzhj8ch00nvpbh";
   };
-  inherit (
-    let hspkgs = pkgs.haskell-nix.cabalProject {
+  inherit (pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
+          name = "haskell-language-server";
           owner = "haskell";
           repo = "haskell-language-server";
-          rev = "2186df00a9414c640fba1ae2acc3d9aa21ab6e4c";
-          sha256 = "0qh41jbf1a697l8wf48zmfs6vf08gijb0w42h26nvimcgc5dkh9a";
+          rev = "15f870f89a18ca3e7991193f8c996ac6b4e17b26";
+          sha256 = "14r6s1yw4h8b6jc4v04zk7hinpw23vn8jfk6sbbq7798nw891k7g";
           fetchSubmodules = true;
         };
-        lookupSha256 = { location, tag, ... } : {
-          "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
-          "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
-          }."${location}"."${tag}";
+        sha256map = {
+          "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
+        };
         inherit compiler-nix-name index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "0a6c4lhnlm2lkic91ips0gb3hqlp3fk2aa01nsa8dhz9l8zg63da";
+        plan-sha256 = if pkgs.hostPlatform.isLinux
+          then "0jq1a2iyn394s3d2xag45d8ga32gn1i5bn5i63xd1jqllb85pcw3"
+          else "0l812savqj4xch9afky93zfkn5wvq6mz3q09v6mxkhcpnp6gshic";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
+          packages.hie-bios.src = sources.hie-bios;
         }];
-      };
-    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
-  hie-bios haskell-language-server;
+      }) hie-bios haskell-language-server ghcide;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {

@@ -1,3 +1,11 @@
+# This shell can be used with haskell language server in vscode with the following extensions installed
+#   https://marketplace.visualstudio.com/items?itemName=haskell.haskell
+#   https://marketplace.visualstudio.com/items?itemName=arrterian.nix-env-selector
+# To use this file:
+#   Open this directory in VSCode
+#   Open commands pallet (Cmd + Shift + P) and type Select environment.
+#   Select this file.
+#   Reload when prompted to do so by the Nix Environment Selector.
 { packageSet ? import ./default.nix { rev = "in-nix-shell"; }
 }:
 with packageSet;
@@ -49,4 +57,5 @@ in haskell.packages.shellFor {
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
   ]);
+  packages = ps: with ps; [ plutus-use-cases ];
 }
