@@ -47,11 +47,10 @@ import           Language.Plutus.Contract.StateMachine.OnChain (State (..), Stat
                                                                 StateMachineInstance (..))
 import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
 import qualified Language.PlutusTx                             as PlutusTx
-import           Ledger                                        (SlotRange, Value)
+import           Ledger                                        (Value)
 import qualified Ledger
 import           Ledger.AddressMap                             (UtxoMap)
-import           Ledger.Constraints                            (ScriptLookups, TxConstraints (..), mustPayToTheScript,
-                                                                mustValidateIn)
+import           Ledger.Constraints                            (ScriptLookups, TxConstraints (..), mustPayToTheScript)
 import           Ledger.Constraints.OffChain                   (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain                   as Constraints
 import           Ledger.Constraints.TxConstraints              (InputConstraint (..), OutputConstraint (..))
@@ -191,12 +190,11 @@ runGuardedStep ::
     )
     => StateMachineClient state input              -- ^ The state machine
     -> input                                       -- ^ The input to apply to the state machine
-    -> SlotRange                                   -- ^ The slot range this step is validated
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract schema e (Either a state)
-runGuardedStep smc input range guard = mapError (review _SMContractError) $ do
+runGuardedStep smc input guard = mapError (review _SMContractError) $ do
     let StateMachineInstance{stateMachine} = scInstance smc
-    (newConstraints, State{stateData=os}, State{stateData=ns, stateValue=v}, inp, lookups) <- mkStep smc input range
+    (newConstraints, State{stateData=os}, State{stateData=ns, stateValue=v}, inp, lookups) <- mkStep smc input
     pk <- ownPubKey
     let lookups' = lookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
         txConstraints =
@@ -227,11 +225,9 @@ runStep ::
     -- ^ The state machine
     -> input
     -- ^ The input to apply to the state machine
-    -> SlotRange
-    -- ^ The slot range this step is validated
     -> Contract schema e state
-runStep smc input range =
-    either absurd id <$> runGuardedStep smc input range (\_ _ _ -> Nothing)
+runStep smc input =
+    either absurd id <$> runGuardedStep smc input (\_ _ _ -> Nothing)
 
 -- | Initialise a state machine
 runInitialise ::
@@ -267,19 +263,17 @@ mkStep ::
     )
     => StateMachineClient state input
     -> input
-    -> SlotRange
     -> Contract schema e (StateMachineTypedTx state input)
-mkStep client@StateMachineClient{scInstance} input range = do
+mkStep client@StateMachineClient{scInstance} input = do
     let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
     (onChainState, utxo) <- getOnChainState client
     let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
         oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut}
 
-    case smTransition oldState input range of
+    case smTransition oldState input of
         Just (newConstraints, newState)  ->
             let lookups =
                     Constraints.scriptInstanceLookups validatorInstance
                     <> Constraints.unspentOutputs utxo
-                inputConstraint = InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }
-            in pure (newConstraints <> mustValidateIn range, oldState, newState, inputConstraint, lookups)
+            in pure (newConstraints, oldState, newState, InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }, lookups)
         Nothing -> throwing _InvalidTransition (currentState, input)

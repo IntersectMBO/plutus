@@ -49,7 +49,7 @@ import           Language.Plutus.Contract.Util                         (loopM)
 import qualified Language.PlutusTx                                     as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger                                                (Address, Datum (..), PubKey, Slot (..),
-                                                                        SlotRange, Validator, ValidatorHash, pubKeyHash)
+                                                                        Validator, ValidatorHash, pubKeyHash)
 import qualified Ledger
 import qualified Ledger.Constraints                                    as Constraints
 import           Ledger.Constraints.TxConstraints                      (TxConstraints)
@@ -72,7 +72,6 @@ import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account 
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
 
 import qualified Prelude                                               as Haskell
-import           Wallet.API                                            (defaultSlotRange)
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
@@ -334,8 +333,8 @@ verifyOracleOffChain Future{ftPriceOracle} sm =
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
 {-# INLINABLE transition #-}
-transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> SlotRange -> Maybe (TxConstraints Void Void, State FutureState)
-transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s, stateValue=currentValue} i _ =
+transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> Maybe (TxConstraints Void Void, State FutureState)
+transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s, stateValue=currentValue} i =
     case (s, i) of
         (Running accounts, AdjustMargin role topUp) ->
             Just ( mempty
@@ -504,7 +503,7 @@ settleFuture
     -> Contract s e ()
 settleFuture client = mapError (review _FutureError) $ do
     ov <- endpoint @"settle-future"
-    void $ SM.runStep client (Settle ov) defaultSlotRange
+    void $ SM.runStep client (Settle ov)
 
 -- | The @"settle-early"@ endpoint. Given an oracle value with the current spot
 --   price, this endpoint creates the final transaction that distributes the
@@ -521,7 +520,7 @@ settleEarly
     -> Contract s e ()
 settleEarly client = do
     ov <- endpoint @"settle-early"
-    void $ SM.runStep client (SettleEarly ov) defaultSlotRange
+    void $ SM.runStep client (SettleEarly ov)
 
 -- | The @"increase-margin"@ endpoint. Increses the margin of one of
 --   the roles by an amount.
@@ -538,7 +537,7 @@ increaseMargin
     -> Contract s e ()
 increaseMargin client = do
     (value, role) <- endpoint @"increase-margin"
-    void $ SM.runStep client (AdjustMargin role value) defaultSlotRange
+    void $ SM.runStep client (AdjustMargin role value)
 
 -- | The @"join-future"@ endpoint. Join a future contract by paying the initial
 --   margin to the escrow that initialises the contract.
