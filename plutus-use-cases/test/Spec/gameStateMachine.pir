@@ -1415,7 +1415,7 @@
                                 arg
                                 (con bytestring)
                                 [
-                                  [ Constr (con 0) ]
+                                  [ Constr (con integer 0) ]
                                   [
                                     { build Data }
                                     (abs
@@ -1453,7 +1453,7 @@
                               arg
                               (con bytestring)
                               [
-                                [ Constr (con 1) ]
+                                [ Constr (con integer 1) ]
                                 [
                                   { build Data }
                                   (abs
@@ -3212,7 +3212,7 @@
                           )
                         )
                         (termbind
-                          (strict) (vardecl contract (con integer)) (con 1)
+                          (strict) (vardecl contract (con integer)) (con integer 1)
                         )
                         (termbind
                           (strict)
@@ -3982,7 +3982,7 @@
                         (termbind
                           (strict)
                           (vardecl scheckOwnOutputConstraint (con string))
-                          (con "Output constraint")
+                          (con string "Output constraint")
                         )
                         (termbind
                           (strict)
@@ -4051,7 +4051,7 @@
                                                       Bool_match
                                                       [
                                                         [ equalsInteger ds ]
-                                                        (con 0)
+                                                        (con integer 0)
                                                       ]
                                                     ]
                                                     (fun Unit a)
@@ -4065,7 +4065,7 @@
                                                     [ { bad_name a } xs ]
                                                     [
                                                       [ subtractInteger ds ]
-                                                      (con 1)
+                                                      (con integer 1)
                                                     ]
                                                   ]
                                                 )
@@ -4972,7 +4972,7 @@
                             (termbind
                               (strict)
                               (vardecl scheckValidatorCtx (con string))
-                              (con "checkValidatorCtx failed")
+                              (con string "checkValidatorCtx failed")
                             )
                             (termbind
                               (nonstrict)
@@ -8821,7 +8821,7 @@
                                                           ]
                                                           (con integer)
                                                         }
-                                                        (con 0)
+                                                        (con integer 0)
                                                       ]
                                                       (lam
                                                         ds
@@ -8914,7 +8914,7 @@
                                                       ]
                                                       (con integer)
                                                     }
-                                                    (con 0)
+                                                    (con integer 0)
                                                   ]
                                                   (lam
                                                     ds

@@ -11,6 +11,6 @@
         (vardecl Mono (fun (con integer) MyMonoData))
       )
     )
-    [ Mono (con 1) ]
+    [ Mono (con integer 1) ]
   )
 )

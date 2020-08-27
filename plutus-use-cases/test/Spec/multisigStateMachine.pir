@@ -1611,7 +1611,7 @@
                                         arg
                                         b
                                         [
-                                          [ Constr (con 0) ]
+                                          [ Constr (con integer 0) ]
                                           [
                                             { build Data }
                                             (abs
@@ -2460,7 +2460,7 @@
                                                                     equalsInteger
                                                                     i
                                                                   ]
-                                                                  (con 0)
+                                                                  (con integer 0)
                                                                 ]
                                                               ]
                                                               (fun Unit [Maybe MSState])
@@ -2875,7 +2875,7 @@
                                       arg
                                       (con integer)
                                       [
-                                        [ Constr (con 0) ]
+                                        [ Constr (con integer 0) ]
                                         [
                                           { build Data }
                                           (abs
@@ -2925,7 +2925,7 @@
                                           thunk
                                           Unit
                                           [
-                                            [ Constr (con 1) ]
+                                            [ Constr (con integer 1) ]
                                             [
                                               { build Data }
                                               (abs
@@ -2980,7 +2980,7 @@
                                   (lam
                                     thunk
                                     Unit
-                                    [ [ Constr (con 0) ] { Nil Data } ]
+                                    [ [ Constr (con integer 0) ] { Nil Data } ]
                                   )
                                 ]
                                 Unit
@@ -3399,7 +3399,7 @@
                           (termbind
                             (strict)
                             (vardecl scheckOwnOutputConstraint (con string))
-                            (con "Output constraint")
+                            (con string "Output constraint")
                           )
                           (termbind
                             (strict)
@@ -3472,7 +3472,7 @@
                                                         Bool_match
                                                         [
                                                           [ equalsInteger ds ]
-                                                          (con 0)
+                                                          (con integer 0)
                                                         ]
                                                       ]
                                                       (fun Unit a)
@@ -3486,7 +3486,7 @@
                                                       [ { bad_name a } xs ]
                                                       [
                                                         [ subtractInteger ds ]
-                                                        (con 1)
+                                                        (con integer 1)
                                                       ]
                                                     ]
                                                   )
@@ -5328,7 +5328,7 @@
                                 (termbind
                                   (strict)
                                   (vardecl scheckValidatorCtx (con string))
-                                  (con "checkValidatorCtx failed")
+                                  (con string "checkValidatorCtx failed")
                                 )
                                 (termbind
                                   (nonstrict)
@@ -9310,7 +9310,7 @@
                                                               ]
                                                               (con integer)
                                                             }
-                                                            (con 0)
+                                                            (con integer 0)
                                                           ]
                                                           (lam
                                                             ds
@@ -9406,7 +9406,7 @@
                                                           ]
                                                           (con integer)
                                                         }
-                                                        (con 0)
+                                                        (con integer 0)
                                                       ]
                                                       (lam
                                                         ds
@@ -13823,12 +13823,12 @@
                                                     acc
                                                     (con integer)
                                                     [
-                                                      [ addInteger acc ] (con 1)
+                                                      [ addInteger acc ] (con integer 1)
                                                     ]
                                                   )
                                                 )
                                               ]
-                                              (con 0)
+                                              (con integer 0)
                                             ]
                                           )
                                         )

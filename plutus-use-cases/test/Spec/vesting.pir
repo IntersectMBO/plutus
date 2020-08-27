@@ -246,7 +246,7 @@
                                       {
                                         [
                                           Bool_match
-                                          [ [ equalsInteger ds ] (con 0) ]
+                                          [ [ equalsInteger ds ] (con integer 0) ]
                                         ]
                                         (fun Unit a)
                                       }
@@ -257,7 +257,7 @@
                                       Unit
                                       [
                                         [ { bad_name a } xs ]
-                                        [ [ subtractInteger ds ] (con 1) ]
+                                        [ [ subtractInteger ds ] (con integer 1) ]
                                       ]
                                     )
                                   ]

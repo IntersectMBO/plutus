@@ -2084,7 +2084,7 @@
                       )
                     )
                   )
-                  (termbind (strict) (vardecl unitDatum (con integer)) (con 0))
+                  (termbind (strict) (vardecl unitDatum (con integer)) (con integer 0))
                   (termbind
                     (nonstrict)
                     (vardecl unitDatum Data)
@@ -2235,7 +2235,7 @@
                     )
                   )
                   (termbind
-                    (strict) (vardecl fIsDataFutureAction (con integer)) (con 0)
+                    (strict) (vardecl fIsDataFutureAction (con integer)) (con integer 0)
                   )
                   (termbind
                     (strict)
@@ -3232,7 +3232,7 @@
                                         arg
                                         b
                                         [
-                                          [ Constr (con 0) ]
+                                          [ Constr (con integer 0) ]
                                           [
                                             { build Data }
                                             (abs
@@ -3910,7 +3910,7 @@
                       (termbind
                         (strict)
                         (vardecl scheckHashConstraints (con string))
-                        (con "DecodingError")
+                        (con string "DecodingError")
                       )
                       (termbind
                         (strict)
