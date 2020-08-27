@@ -18,7 +18,7 @@ module Language.PlutusCore.Parser
     , parseType
     , ParseError(..)
     ) where
-  
+
 import PlutusPrelude
 
 import Language.PlutusCore.Constant.Dynamic
@@ -133,7 +133,7 @@ Kind : parens(type) { Type $1 }
 
 
 -- Haskell helper code
-{    
+{
 --- The Parse monad ---
 
 type Parse = ExceptT (ParseError AlexPosn) Alex
@@ -175,7 +175,7 @@ getStaticBuiltinName = \case
 
 -- | Tags of types in the default universe.
 tagOfTyName :: T.Text -> Maybe Int
-tagOfTyName = \case 
+tagOfTyName = \case
     "bool"       -> Just $ tagOf DefaultUniBool
     "bytestring" -> Just $ tagOf DefaultUniByteString
     "char"       -> Just $ tagOf DefaultUniChar
@@ -185,7 +185,7 @@ tagOfTyName = \case
     _ -> Nothing
 
 -- | Given a type name, return a type in the (default) universe.
--- This can fail in two ways: there's no type with that name, or uniAt fails because 
+-- This can fail in two ways: there's no type with that name, or uniAt fails because
 -- it's been given an unknown tag.  In both cases we report an unknown built-in type.
 getTypeFromTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
 getTypeFromTyName tyloc tyname =
@@ -193,10 +193,10 @@ getTypeFromTyName tyloc tyname =
         Nothing -> throwError $ UnknownBuiltinType tyloc tyname
         Just ty -> pure ty
 
--- | Convert a textual type name into a Type.  
+-- | Convert a textual type name into a Type.
 mkBuiltinType :: Closed uni => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
 mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> getTypeFromTyName tyloc tyname
-  
+
 -- | Produce a Constant Term from a type name and a literal constant.
 mkBuiltinConstant
   :: (Closed uni, uni `Everywhere` Parsable)
@@ -211,8 +211,8 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 --- Constructing terms ---
 
 mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni a
-mkBuiltinFunction loc ident = 
-    case getStaticBuiltinName ident of 
+mkBuiltinFunction loc ident =
+    case getStaticBuiltinName ident of
         Just b  -> Builtin loc $ StaticBuiltinName b
         Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
@@ -230,7 +230,7 @@ app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 
 --- Running the parser ---
-			      
+
 parseST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
 

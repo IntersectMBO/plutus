@@ -34,20 +34,18 @@ import           Language.Haskell.TH.Syntax (Lift)
 import           Text.Read (readMaybe)
 
 {- Note [Keywords]
-This version of the lexer relaxes the syntax so that keywords (con,
-lam, ...) and built in names can be re-used as variable names.  The
-Plutus compiler produces code with such names: for example, the
-builtin `addInteger` is always called via a variable of the same
-name which is bound to a lambda wrapping an invocation of the
-actual builtin.  To achieve this, we use alex's "start codes" which
-allow you to put the lexer into modes in which only certain actions
-are valid.  In the PLC grammar, keywords like `abs`, `con` and so
-on can only occur after a `(`, so when we see one of these we put
-the lexer into a special mode where these are interpreted as
-keywords and converted into elements of the LexKeyword type; having
-done this, we return to the initial lexer state, denoted by 0,
-where we can use keywords as variable names. A similar strategy is
-used for built in type names.
+This version of the lexer relaxes the syntax so that keywords (con, lam, ...)
+and built in names can be re-used as variable names.  The Plutus compiler
+produces code with such names: for example, the builtin `addInteger` is always
+called via a variable of the same name which is bound to a lambda wrapping an
+invocation of the actual builtin.  To achieve this, we use alex's "start codes"
+which allow you to put the lexer into modes in which only certain actions are
+valid.  In the PLC grammar, keywords like `abs`, `con` and so on can only occur
+after a `(`, so when we see one of these we put the lexer into a special mode
+where these are interpreted as keywords and converted into elements of the
+LexKeyword type; having done this, we return to the initial lexer state, denoted
+by 0, where we can use keywords as variable names. A similar strategy is used
+for built in type names.
 -}
 
 {- Note [Literal Constants]
@@ -115,8 +113,8 @@ $upper = [A-Z]
 -- Regular expressions for literal constants
 
 -- A single quoted string, allowing escaped characters including \'.
--- This says "Single quotes enclosing a sequence of either (a) printable 
--- characters excluding ' and \ , or (b) a blackslash followed by 
+-- This says "Single quotes enclosing a sequence of either (a) printable
+-- characters excluding ' and \ , or (b) a blackslash followed by
 -- any printable character (single quote included)"
 @sqs   = '  ( ($printable # ['\\])  | (\\$printable) )* '
 
@@ -131,7 +129,7 @@ $upper = [A-Z]
 -- below.
 $nonparen = $printable # [\(\)]
 @chars = ($nonparen # ['\"$white]) ($nonparen* ($nonparen # $white))?
- 
+
 tokens :-
 
     $white+                  ;
@@ -140,7 +138,7 @@ tokens :-
 
     -- Keywords: we only expect these after '('; elsewhere they can be
     -- used freely as identifiers: see Note [Keywords].
-    <kwd> abs            { mkKeyword KwAbs         `andBegin` 0 } 
+    <kwd> abs            { mkKeyword KwAbs         `andBegin` 0 }
     <kwd> lam            { mkKeyword KwLam         `andBegin` 0 }
     <kwd> ifix           { mkKeyword KwIFix        `andBegin` 0 }
     <kwd> fun            { mkKeyword KwFun         `andBegin` 0 }
@@ -153,10 +151,10 @@ tokens :-
     <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` builtin }
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
     -- These are converted into Builtin names (possibly dynamic) in the parser.
-    -- Outside this mode, all ids are parsed as Names. 
+    -- Outside this mode, all ids are parsed as Names.
     <kwd> con            { mkKeyword KwCon         `andBegin` conargs }
     -- ^ (con tyname) or (con tyname const)
-    
+
     -- Various special characters
     "("                  { mkSpecial OpenParen  `andBegin` kwd }
     ")"                  { mkSpecial CloseParen `andBegin` 0}
@@ -168,7 +166,7 @@ tokens :-
 
     -- Natural literal, used in version numbers
     <0> @nat                      { tok (\p s -> alex $ TkNat p (readBSL s)) }
-    
+
     -- Identifiers
     <0> @name                     { tok (\p s -> handle_name p (textOf s)) }
 
