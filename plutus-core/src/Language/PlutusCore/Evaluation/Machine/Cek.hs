@@ -340,7 +340,11 @@ computeCek ctx env (LamAbs ex name ty body) =
     -- TODO: budget?
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx _ c@Constant{} =
+computeCek ctx _ c@(Constant ex val) = do
+    when (ex /= memoryUsage val) . error $ concat
+        [ "Expected memory consumption: " ++ show ex
+        , "\nActual one: " ++ show (memoryUsage val)
+        ]
     -- TODO: budget?
     returnCek ctx (VCon c)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
