@@ -53,15 +53,6 @@ import Control.Monad.State
 %error { parseError }
 %monad { Parse } { (>>=) } { pure }
 %lexer { lift alexMonadScan >>= } { EOF _ }
-%nonassoc integer
-%nonassoc float
-%nonassoc bytestring
-%nonassoc string
-%nonassoc iwrap
-%nonassoc unwrap
-%nonassoc lam
-%nonassoc con
-%nonassoc bi
 
 %token
 
