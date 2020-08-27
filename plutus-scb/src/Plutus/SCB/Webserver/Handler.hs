@@ -25,7 +25,6 @@ import           Control.Monad.Freer.Error                       (Error, throwEr
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
 import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import qualified Data.Aeson                                      as JSON
-import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
@@ -34,7 +33,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Ledger                                          (PubKeyHash, pubKeyHash)
+import           Ledger                                          (pubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
@@ -86,16 +85,10 @@ getChainReport = do
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
     let wallets = Wallet <$> [1 .. 10]
-        walletMap :: Map PubKeyHash Wallet
-        walletMap =
-            foldMap
-                (\wallet ->
-                     Map.singleton (pubKeyHash $ walletPubKey wallet) wallet)
-                wallets
     relatedMetadata <-
         mconcat <$>
         traverse
-            (Metadata.getProperties . Metadata.toSubject . walletPubKey)
+            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
             wallets
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
@@ -103,7 +96,6 @@ getChainReport = do
             { transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex
             , annotatedBlockchain
-            , walletMap
             , relatedMetadata
             }
 

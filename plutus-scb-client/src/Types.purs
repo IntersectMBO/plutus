@@ -214,6 +214,7 @@ instance arbitraryView :: Arbitrary View where
 instance showView :: Show View where
   show = genericShow
 
+------------------------------------------------------------
 toPropertyKey :: PropertyDescription -> PropertyKey
 toPropertyKey (Preimage _ _) = PropertyKey "preimage"
 
@@ -222,3 +223,15 @@ toPropertyKey (Name _ _) = PropertyKey "name"
 toPropertyKey (Description _ _) = PropertyKey "description"
 
 toPropertyKey (Other name _ _) = PropertyKey name
+
+_getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
+_getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
+
+_propertyName :: Getter' Metadata.Property (Maybe String)
+_propertyName =
+  Metadata.propertyDescription
+    <<< to
+        ( case _ of
+            Metadata.Name name _ -> Just name
+            _ -> Nothing
+        )

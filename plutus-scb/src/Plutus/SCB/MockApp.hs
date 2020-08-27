@@ -50,6 +50,7 @@ import           Data.Foldable                         (toList, traverse_)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
 import           Data.OpenUnion                        ((:++:))
+import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
@@ -90,6 +91,7 @@ data MockAppLog =
     | MockAppContractTest ContractTestMsg
     | MockAppNodeFollower NodeFollowerLogMsg
     | MockAppMultiAgent SCBMultiAgentMsg
+    | MockAppMetadata Text
 
 instance Pretty MockAppLog where
     pretty = \case
@@ -97,6 +99,7 @@ instance Pretty MockAppLog where
         MockAppContractTest e -> pretty e
         MockAppNodeFollower e -> pretty e
         MockAppMultiAgent e -> pretty e
+        MockAppMetadata e -> pretty e
 
 makeLenses 'TestState
 makeClassyPrisms ''MockAppLog

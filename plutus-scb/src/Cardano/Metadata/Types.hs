@@ -13,14 +13,18 @@ import           Control.Lens              (makeLenses)
 import           Control.Monad.Freer.TH    (makeEffect)
 import           Data.Aeson                (FromJSON, ToJSON, toJSON, withText)
 import qualified Data.Aeson                as JSON
+import           Data.Aeson.Extras         (encodeByteString)
+import qualified Data.ByteString.Lazy      as BSL
 import           Data.List.NonEmpty        (NonEmpty)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import           Data.Text.Extras          (tshow)
+import           Data.Text.Prettyprint.Doc (Pretty (..), parens, (<+>))
 import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
 import           GHC.Generics              (Generic)
-import           Ledger.Crypto             (PubKey, Signature)
+import           Ledger.Crypto             (PubKey, PubKeyHash, Signature, getPubKey, getPubKeyHash)
 import           LedgerBytes               (LedgerBytes)
+import qualified LedgerBytes
 import           Servant.API               (FromHttpApiData, ToHttpApiData)
 import           Servant.Client            (BaseUrl)
 
@@ -37,6 +41,22 @@ newtype Subject =
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToJSON, FromJSON, FromHttpApiData, ToHttpApiData, Pretty)
 
+class ToSubject a where
+    toSubject :: a -> Subject
+
+instance ToSubject BSL.ByteString where
+    toSubject x = Subject $ encodeByteString $ BSL.toStrict x
+
+instance ToSubject LedgerBytes where
+    toSubject = toSubject . LedgerBytes.bytes
+
+instance ToSubject PubKey where
+    toSubject = toSubject . getPubKey
+
+instance ToSubject PubKeyHash where
+    toSubject = toSubject . getPubKeyHash
+
+------------------------------------------------------------
 newtype PropertyKey =
     PropertyKey Text
     deriving (Show, Eq, Ord, Generic)
@@ -101,3 +121,22 @@ data MetadataEffect r where
     GetProperty :: Subject -> PropertyKey -> MetadataEffect Property
 
 makeEffect ''MetadataEffect
+
+------------------------------------------------------------
+data MetadataError
+    = SubjectNotFound Subject
+    | PropertyNotFound Subject PropertyKey
+    deriving (Show, Eq, Generic)
+    deriving anyclass (ToJSON,FromJSON)
+
+data MetadataLogMessage
+    = FetchingSubject Subject
+    | FetchingProperty Subject PropertyKey
+
+instance Pretty MetadataLogMessage where
+    pretty =
+        \case
+            FetchingSubject subject -> "Fetching subject:" <+> pretty subject
+            FetchingProperty subject propertyKey ->
+                "Fetching property:" <+>
+                pretty subject <> "/" <> pretty propertyKey

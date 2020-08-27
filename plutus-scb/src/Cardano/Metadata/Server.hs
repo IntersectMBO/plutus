@@ -1,42 +1,40 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Cardano.Metadata.Server
     ( main
+    , fetchSubject
+    , fetchById
+    , handleMetadata
     ) where
 
 import           Cardano.Metadata.API            (API)
-import           Cardano.Metadata.Types          (AnnotatedSignature (AnnotatedSignature), HashFunction (SHA256),
-                                                  MetadataConfig (MetadataConfig), Property (Property),
-                                                  PropertyDescription (Name, Other, Preimage), PropertyKey,
-                                                  Subject (Subject), mdBaseUrl, toId, _propertySubject)
+import           Cardano.Metadata.Types
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Monad.Except            (ExceptT (ExceptT), withExceptT)
-import           Control.Monad.Freer             (Eff, Member, runM)
+import           Control.Monad.Freer             (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Error       (Error, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo, runStderrLog)
+import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo)
+import           Control.Monad.Freer.Log         (handleLogTrace)
 import           Control.Monad.IO.Class          (liftIO)
 import           Data.Aeson                      ((.=))
 import qualified Data.Aeson                      as JSON
-import           Data.Aeson.Extras               (encodeByteString)
 import           Data.ByteString                 (ByteString)
-import qualified Data.ByteString.Lazy            as BSL
 import qualified Data.ByteString.Lazy.Char8      as BSL8
 import           Data.Function                   ((&))
 import           Data.List                       (find)
 import           Data.List.NonEmpty              (NonEmpty ((:|)))
 import           Data.Proxy                      (Proxy (Proxy))
-import           Data.Text                       (Text)
 import           Data.Text.Encoding              (encodeUtf8)
-import           Ledger.Crypto                   (PrivateKey, PubKey, PubKeyHash, getPubKey, getPubKeyHash, pubKeyHash,
-                                                  sign)
+import           Ledger.Crypto                   (PrivateKey, PubKey, getPubKey, pubKeyHash, sign)
 import           LedgerBytes                     (LedgerBytes)
-import qualified LedgerBytes
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.SCB.App                  (App)
 import           Plutus.SCB.SCBLogMsg            (ContractExeLogMsg (StartingMetadataServer))
@@ -47,12 +45,7 @@ import           Servant.API                     ((:<|>) ((:<|>)))
 import           Servant.Client                  (baseUrlPort)
 import           Wallet.Emulator.Wallet          (Wallet (Wallet), walletPrivKey, walletPubKey)
 
-data MetadataServerError
-    = SubjectNotFound Subject
-    | PropertyNotFound Subject PropertyKey
-    deriving (Show, Eq)
-
-toServerError :: MetadataServerError -> ServerError
+toServerError :: MetadataError -> ServerError
 toServerError (SubjectNotFound subject) =
     err404 {errBody = BSL8.pack $ "Subject not found: " <> show subject}
 toServerError (PropertyNotFound subject propertyKey) =
@@ -63,40 +56,46 @@ toServerError (PropertyNotFound subject propertyKey) =
         }
 
 fetchSubject ::
-       (Member (LogMsg Text) effs, Member (Error MetadataServerError) effs)
+       ( Member (LogMsg MetadataLogMessage) effs
+       , Member (Error MetadataError) effs
+       )
     => Subject
     -> Eff effs [Property]
 fetchSubject subject = do
-    logInfo $ "Fetching subject: " <> tshow subject
+    logInfo $ FetchingSubject subject
     let matches = filter (\v -> _propertySubject v == subject) testDatabase
     case matches of
         [] -> throwError $ SubjectNotFound subject
         _  -> pure matches
 
 fetchById ::
-       (Member (LogMsg Text) effs, Member (Error MetadataServerError) effs)
+       ( Member (LogMsg MetadataLogMessage) effs
+       , Member (Error MetadataError) effs
+       )
     => Subject
     -> PropertyKey
     -> Eff effs Property
 fetchById subject propertyKey = do
-    logInfo $
-        "Fetching property: " <> tshow subject <> ", " <> tshow propertyKey
+    logInfo $ FetchingProperty subject propertyKey
     let match = find (\v -> toId v == (subject, propertyKey)) testDatabase
     case match of
         Nothing     -> throwError $ PropertyNotFound subject propertyKey
         Just result -> pure result
 
 handler ::
-       (Member (LogMsg Text) effs, Member (Error MetadataServerError) effs)
+       ( Member (LogMsg MetadataLogMessage) effs
+       , Member (Error MetadataError) effs
+       )
     => Subject
     -> Eff effs [Property]
        :<|> (PropertyKey -> Eff effs Property)
 handler subject = fetchSubject subject :<|> fetchById subject
 
-asHandler :: Eff '[ LogMsg Text, Error MetadataServerError, IO] a -> Handler a
+asHandler ::
+       Eff '[ LogMsg MetadataLogMessage, Error MetadataError, IO] a -> Handler a
 asHandler =
     Handler .
-    withExceptT toServerError . ExceptT . runM . runError . runStderrLog
+    withExceptT toServerError . ExceptT . runM . runError . handleLogTrace
 
 app :: Application
 app = serve api apiServer
@@ -164,28 +163,25 @@ testDatabase =
   where
     propertiesForWalletId :: Integer -> [Property]
     propertiesForWalletId index =
-        let wallet = Wallet index
+        let name = ("Wallet #" <> tshow index)
+            wallet = Wallet index
             public = walletPubKey wallet
             private = walletPrivKey wallet
             publicHash = pubKeyHash public
-            name = ("Wallet #" <> tshow index)
             signatures =
                 AnnotatedSignature public (sign (encodeUtf8 name) private) :| []
          in [ Property (toSubject public) (Name name signatures)
             , Property (toSubject publicHash) (Name name signatures)
             ]
 
-class ToSubject a where
-    toSubject :: a -> Subject
-
-instance ToSubject BSL.ByteString where
-    toSubject x = Subject $ encodeByteString $ BSL.toStrict x
-
-instance ToSubject LedgerBytes where
-    toSubject = toSubject . LedgerBytes.bytes
-
-instance ToSubject PubKey where
-    toSubject = toSubject . getPubKey
-
-instance ToSubject PubKeyHash where
-    toSubject = toSubject . getPubKeyHash
+handleMetadata ::
+       forall effs a.
+       ( Member (LogMsg MetadataLogMessage) effs
+       , Member (Error MetadataError) effs
+       )
+    => Eff (MetadataEffect ': effs) a
+    -> Eff effs a
+handleMetadata =
+    interpret $ \case
+        GetProperties subject -> fetchSubject subject
+        GetProperty subject propertyKey -> fetchById subject propertyKey

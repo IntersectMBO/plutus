@@ -18,13 +18,12 @@ import           Data.Text.Prettyprint.Doc     (Pretty, pretty, viaShow, (<+>))
 import           Data.UUID                     (UUID)
 import           GHC.Generics                  (Generic)
 import           IOTS                          (Tagged (Tagged))
-import           Ledger                        (PubKeyHash, Tx, TxId)
+import           Ledger                        (Tx, TxId)
 import           Ledger.Index                  (UtxoIndex)
 import           Playground.Types              (FunctionSchema)
 import           Plutus.SCB.Events             (ChainEvent, ContractInstanceState)
 import           Plutus.SCB.Types              (ContractExe)
 import           Schema                        (FormSchema)
-import           Wallet.Emulator.Wallet        (Wallet)
 import           Wallet.Rollup.Types           (AnnotatedTx)
 
 data ContractReport t =
@@ -40,7 +39,7 @@ data ChainReport t =
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
         , annotatedBlockchain :: [[AnnotatedTx]]
-        , walletMap           :: Map PubKeyHash Wallet
+        , relatedMetadata     :: [Metadata.Property]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

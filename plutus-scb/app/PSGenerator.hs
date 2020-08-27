@@ -13,8 +13,8 @@ module PSGenerator
     ( generate
     ) where
 
-import           Cardano.Metadata.Types                            (AnnotatedSignature,PropertyKey, HashFunction, Property,
-                                                                    PropertyDescription, Subject)
+import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction, Property,
+                                                                    PropertyDescription, PropertyKey, Subject)
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Control.Monad                                     (void)

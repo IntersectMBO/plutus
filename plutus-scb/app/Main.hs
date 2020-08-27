@@ -5,12 +5,10 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -27,8 +25,6 @@ import           Cardano.BM.Plugin                               (loadPlugin)
 import           Cardano.BM.Setup                                (setupTrace_)
 import qualified Cardano.ChainIndex.Server                       as ChainIndex
 import qualified Cardano.Metadata.Server                         as Metadata
-import qualified Cardano.Metadata.Types                          as Metadata
-import qualified Cardano.Metadata.Types                          as MetadataEffect
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
@@ -68,13 +64,11 @@ import           Options.Applicative                             (CommandFields,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
 import           Plutus.SCB.App                                  (AppBackend, monadLoggerTracer, runApp)
-import           Plutus.SCB.SCBLogMsg                            (ContractExeLogMsg (..), SCBLogMsg)
-
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..))
-import           Plutus.SCB.SCBLogMsg                            (AppMsg (..))
+import           Plutus.SCB.SCBLogMsg                            (AppMsg (..), ContractExeLogMsg (..), SCBLogMsg)
 import           Plutus.SCB.Types                                (Config (Config), ContractExe (..),
                                                                   RequestProcessingConfig (..), SCBError,
                                                                   chainIndexConfig, metadataServerConfig,
@@ -443,7 +437,7 @@ runCliCommand _ _ _ _ ReportInstalledContracts = do
 runCliCommand _ _ _ _ ReportActiveContracts = do
     logInfo ActiveContractsMsg
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
-    traverse_ (\(e, s) -> (logInfo $ ContractInstance e (Set.toList s))) instances
+    traverse_ (\(e, s) -> logInfo $ ContractInstance e (Set.toList s)) instances
 runCliCommand _ _ _ _ ReportTxHistory = do
     logInfo TransactionHistoryMsg
     traverse_ (logInfo . TxHistoryItem) =<< Core.txHistory @ContractExe

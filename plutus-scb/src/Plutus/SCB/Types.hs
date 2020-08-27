@@ -57,6 +57,7 @@ data SCBError
     | WalletClientError ClientError
     | NodeClientError ClientError
     | MetadataClientError ClientError
+    | MetadataError Metadata.MetadataError
     | SigningProcessError ClientError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
@@ -75,6 +76,7 @@ instance Pretty SCBError where
         WalletClientError e -> "Wallet client error:" <+> viaShow e
         NodeClientError e -> "Node client error:" <+> viaShow e
         MetadataClientError e -> "Metadata client error:" <+> viaShow e
+        MetadataError e -> "Metadata error:" <+> viaShow e
         SigningProcessError e -> "Signing process error:" <+> viaShow e
         ChainIndexError e -> "Chain index error:" <+> viaShow e
         WalletError e -> "Wallet error:" <+> pretty e

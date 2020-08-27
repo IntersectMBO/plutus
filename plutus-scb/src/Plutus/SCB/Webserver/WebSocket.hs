@@ -43,6 +43,7 @@ import           Wallet.Effects                 (ChainIndexEffect)
 ------------------------------------------------------------
 chainReportThread ::
        ( Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Member DelayEffect effs
        , Member WebSocketEffect effs
        )

@@ -26,12 +26,14 @@ module Plutus.SCB.Effects.MultiAgent(
     , handleMultiAgent
     ) where
 
+import           Cardano.Metadata.Server          (handleMetadata)
+import           Cardano.Metadata.Types           (MetadataEffect, MetadataLogMessage)
 import           Control.Lens                     (AReview, Lens', Prism', anon, at, below, makeClassyPrisms,
                                                    makeLenses, (&))
 import           Control.Monad.Freer              (Eff, Members, type (~>), interpret, subsume)
-import           Control.Monad.Freer.Error        (Error)
+import           Control.Monad.Freer.Error        (Error, handleError, throwError)
 import           Control.Monad.Freer.Extra.Log    (LogMsg)
-import           Control.Monad.Freer.Extras       (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
+import           Control.Monad.Freer.Extras       (handleZoomedState, handleZoomedWriter, raiseEnd16, raiseEnd9)
 import           Control.Monad.Freer.Log          (LogLevel (..), LogMessage, LogObserve, handleLogWriter,
                                                    handleObserveLog, logMessage)
 import qualified Control.Monad.Freer.Log          as Log
@@ -107,6 +109,7 @@ data SCBMultiAgentMsg =
     EmulatorMsg EmulatorEvent
     | ContractMsg ContractTestMsg
     | NodeFollowerMsg NodeFollowerLogMsg
+    | MetadataLog MetadataLogMessage
     | ChainIndexServerLog ChainIndexServerMsg
     | ContractInstanceLog (ContractInstanceMsg TestContracts)
     | CoreLog (CoreMsg TestContracts)
@@ -116,6 +119,7 @@ instance Pretty SCBMultiAgentMsg where
         EmulatorMsg m -> pretty m
         ContractMsg m -> pretty m
         NodeFollowerMsg m -> pretty m
+        MetadataLog m -> pretty m
         ChainIndexServerLog m -> pretty m
         ContractInstanceLog m -> pretty m
         CoreLog m -> pretty m
@@ -125,6 +129,7 @@ makeClassyPrisms ''SCBMultiAgentMsg
 type SCBClientEffects =
     '[WalletEffect
     , ContractEffect TestContracts
+    , MetadataEffect
     , NodeClientEffect
     , ChainIndexEffect
     , SigningProcessEffect
@@ -135,17 +140,20 @@ type SCBClientEffects =
     , Error SCBError
     , LogMsg (ContractInstanceMsg TestContracts)
     , LogMsg (CoreMsg TestContracts)
+    , LogMsg MetadataLogMessage
     , LogObserve (LogMessage T.Text)
     , LogMsg T.Text
     ]
 
 type SCBControlEffects =
     '[ChainIndexControlEffect
+    , MetadataEffect
     , NodeFollowerEffect
     , NodeClientControlEffect
     , SigningProcessControlEffect
     , State CI.AppState
     , LogMsg ChainIndexServerMsg
+    , LogMsg MetadataLogMessage
     , LogMsg T.Text
     ]
 
@@ -171,12 +179,14 @@ makeEffect ''MultiAgentSCBEffect
 handleMultiAgent
     :: forall effs. Members MultiAgentEffs effs
     => Eff (MultiAgentSCBEffect ': effs) ~> Eff effs
-handleMultiAgent = interpret $ \case
+handleMultiAgent = interpret $ \effect -> do
+  emulatorTime <- Chain.getCurrentSlot
+  let
+      timed :: forall e. Prism' (EmulatorTimeEvent e) e
+      timed = emulatorTimeEvent emulatorTime
+  case effect of
     AgentAction wallet action -> do
-        emulatorTime <- Chain.getCurrentSlot
         let
-            timed :: forall e. Prism' (EmulatorTimeEvent e) e
-            timed = emulatorTimeEvent emulatorTime
             p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
             p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
@@ -189,10 +199,13 @@ handleMultiAgent = interpret $ \case
             p5 = _singleton . below _ContractInstanceLog
             p6 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage (CoreMsg TestContracts))
             p6 = _singleton . below _CoreLog
+            p7 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage MetadataLogMessage)
+            p7 = _singleton . below _MetadataLog
         action
-            & raiseEnd14
+            & raiseEnd16
             & Wallet.handleWallet
             & handleContractTest
+            & handleMetadata
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex
             & SP.handleSigningProcess
@@ -203,6 +216,7 @@ handleMultiAgent = interpret $ \case
             & subsume
             & interpret (handleLogWriter p5)
             & interpret (handleLogWriter p6)
+            & interpret (handleLogWriter p7)
             & handleObserveLog
             & interpret (handleLogWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
@@ -213,11 +227,9 @@ handleMultiAgent = interpret $ \case
             & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
             & interpret (handleZoomedState (agentState wallet . agentEventState))
-    AgentControlAction wallet action ->do
-        emulatorTime <- Chain.getCurrentSlot
+            & flip handleError (throwError  . MetadataError)
+    AgentControlAction wallet action -> do
         let
-            timed :: forall e. Prism' (EmulatorTimeEvent e) e
-            timed = emulatorTimeEvent emulatorTime
             p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
             p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
@@ -228,14 +240,18 @@ handleMultiAgent = interpret $ \case
             p4 = _singleton . below (_EmulatorMsg . timed . walletEvent wallet . Wallet._GenericLog)
             p5 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
             p5 = _singleton . below _ChainIndexServerLog
+            p6 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage MetadataLogMessage)
+            p6 = _singleton . below _MetadataLog
         action
-            & raiseEnd7
+            & raiseEnd9
             & ChainIndex.handleChainIndexControl
+            & handleMetadata
             & NF.handleNodeFollower
             & NC.handleNodeControl
             & SP.handleSigningProcessControl
             & interpret (handleZoomedState (agentState wallet . chainIndexState))
             & interpret (handleLogWriter p5)
+            & interpret (handleLogWriter p6)
             & interpret (handleLogWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
             & interpret (handleZoomedWriter p1)
@@ -244,3 +260,4 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (agentState wallet . chainIndexState . CI.indexState))
             & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
+            & flip handleError (throwError  . MetadataError)
