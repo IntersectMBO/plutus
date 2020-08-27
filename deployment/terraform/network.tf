@@ -44,14 +44,6 @@ resource "aws_route" "public" {
   gateway_id             = "${aws_internet_gateway.plutus.id}"
 }
 
-# Zerotier Route
-# This needs to point to the machine you are using to route traffic through
-resource "aws_route" "zerotier" {
-  route_table_id         = "${aws_vpc.plutus.main_route_table_id}"
-  destination_cidr_block = "${var.zerotier_subnet_cidrs[0]}"
-  instance_id            = "${aws_instance.bastion.*.id[0]}"
-}
-
 # Elastic IPs
 resource "aws_eip" "nat" {
   vpc        = true
@@ -141,8 +133,8 @@ data "template_file" "bastion_user_data" {
   template = "${file("${path.module}/templates/bastion_configuration.nix")}"
 
   vars = {
-    ssh_keys      = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", data.template_file.bastion_ssh_keys.*.rendered))}"
-    network_id    = "${var.zerotier_network_id}"
+    ssh_keys   = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", data.template_file.bastion_ssh_keys.*.rendered))}"
+    network_id = "canbeanything"
   }
 }
 
@@ -191,38 +183,7 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ## inbound kibana
-  ingress {
-    from_port   = 5601
-    to_port     = 5601
-    protocol    = "TCP"
-    cidr_blocks = var.zerotier_subnet_cidrs
-  }
-
-  ## inbound riemann websocket
-  ingress {
-    from_port   = 5556
-    to_port     = 5556
-    protocol    = "TCP"
-    cidr_blocks = var.zerotier_subnet_cidrs
-  }
-
-  ## inbound riemann dash
-  ingress {
-    from_port   = 4567
-    to_port     = 4567
-    protocol    = "TCP"
-    cidr_blocks = var.zerotier_subnet_cidrs
-  }
-
-  ## inbound zerotier
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "UDP"
-    cidr_blocks = var.zerotier_subnet_cidrs
-  }
-
+  ## FIXME: We are not using zerotier now, I think we can remove this
   ## zerotier must use some custom protocol, TCP + UDP doesn't work
   # Currently asking zerotier if I can lock this down further
   egress {

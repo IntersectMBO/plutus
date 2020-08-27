@@ -8,9 +8,13 @@ variable "project" {
 
 variable "env" {}
 
-variable "nixops_root" {}
+variable "nixops_root" {
+  default = "../nixops"
+}
 
-variable "ssh_config_root" {}
+variable "ssh_config_root" {
+  default = "~/.ssh"
+}
 
 variable "plutus_tld" {
   default = "plutus.iohkdev.io"
@@ -170,11 +174,5 @@ variable "azs" {
   default = ["a", "b"]
 }
 
-variable "zerotier_network_id" {}
-
-variable "zerotier_subnet_cidrs" {
-  default = []
-}
-
-variable "lambda_filename" {
+variable "symbolic_lambda_file" {
 }

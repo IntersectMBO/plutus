@@ -3,7 +3,6 @@
 resource "aws_s3_bucket" "marlowe_playground" {
   bucket = "marlowe-playground-website"
   acl    = "public-read"
-  # policy = file("policy.json")
 
   website {
     index_document = "index.html"
@@ -54,15 +53,6 @@ resource "aws_iam_role" "s3_proxy_role" {
 EOF
 }
 
-# resource "aws_s3_bucket_object" "marlowe_playground" {
-#   for_each = fileset(local.marlowe_client, "*")
-#   bucket = "marlowe-playground-website"
-#   key = each.value
-#   source = "${local.marlowe_client}/${each.value}"
-#   etag   = filemd5("${local.marlowe_client}/${each.value}")
-#   depends_on   = [aws_s3_bucket.marlowe_playground]
-# }
-
 resource "aws_api_gateway_resource" "website_item_resource" {
   rest_api_id = aws_api_gateway_rest_api.marlowe_symbolic_lambda.id
   parent_id   = aws_api_gateway_rest_api.marlowe_symbolic_lambda.root_resource_id
@@ -102,10 +92,6 @@ resource "aws_api_gateway_method_response" "marlowe_item_get_method" {
   http_method = aws_api_gateway_method.marlowe_item_get_method.http_method
   status_code = "200"
 
-  response_models = {
-    # "application/json" = "Empty"
-  }
-
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = true
     "method.response.header.Access-Control-Allow-Methods" = true
@@ -122,10 +108,6 @@ resource "aws_api_gateway_integration_response" "marlowe_item_get_method" {
   http_method = aws_api_gateway_method.marlowe_item_get_method.http_method
 
   status_code = aws_api_gateway_method_response.marlowe_item_get_method.status_code
-
-  response_templates = {
-    # "application/json" = ""
-  }
 
   response_parameters = {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"

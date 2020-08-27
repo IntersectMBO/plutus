@@ -259,15 +259,9 @@ in rec {
       };
   });
 
-  terraform-vars = pkgs.writeTextFile {
-    name ="terraform-vars"; 
-    destination = "/generated.tf.json"; 
-    text = (builtins.toJSON {
-      locals = {
-        marlowe_client = ''${marlowe-playground.client}'';
-      };
-    });
-  };
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda; };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
@@ -368,8 +362,6 @@ in rec {
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
-
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }

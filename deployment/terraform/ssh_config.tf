@@ -98,5 +98,5 @@ data "template_file" "ssh_config" {
 
 resource "local_file" "ssh_config" {
   content  = "${data.template_file.ssh_config.rendered}"
-  filename = "${var.ssh_config_root}/config.d/${var.project}.conf"
+  filename = "${pathexpand(var.ssh_config_root)}/config.d/${var.project}.conf"
 }
