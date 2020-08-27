@@ -534,30 +534,30 @@ caseToInput (Case h _:t) c v
 -- Input is passed as a combination and function from input list to transaction input and
 -- input list for convenience. The list of 4-uples is passed through because it is used
 -- to recursively call executeAndInterpret (co-recursive funtion).
-computeAndContinue :: ([Input] -> TransactionInput) -> [Input] -> State -> Contract
+computeAndContinue :: MarloweFFI -> ([Input] -> TransactionInput) -> [Input] -> State -> Contract
                    -> [(Integer, Integer, Integer, Integer)]
                    -> [([TransactionInput], [TransactionWarning])]
-computeAndContinue transaction inps sta cont t =
-  case computeTransaction (transaction inps) sta cont of
-    Error TEUselessTransaction -> executeAndInterpret sta t cont
+computeAndContinue ffi transaction inps sta cont t =
+  case computeTransaction ffi (transaction inps) sta cont of
+    Error TEUselessTransaction -> executeAndInterpret ffi sta t cont
     TransactionOutput { txOutWarnings = war
                       , txOutState = newSta
                       , txOutContract = newCont}
                           -> ([transaction inps], war)
-                             :executeAndInterpret newSta t newCont
+                             :executeAndInterpret ffi newSta t newCont
 
 -- Takes a list of 4-uples (and state and contract) and interprets it as a list of
 -- transactions and also computes the resulting list of warnings.
-executeAndInterpret :: State -> [(Integer, Integer, Integer, Integer)] -> Contract
+executeAndInterpret :: MarloweFFI -> State -> [(Integer, Integer, Integer, Integer)] -> Contract
                     -> [([TransactionInput], [TransactionWarning])]
-executeAndInterpret _ [] _ = []
-executeAndInterpret sta ((l, h, v, b):t) cont
-  | b == 0 = computeAndContinue transaction [] sta cont t
+executeAndInterpret _ _ [] _ = []
+executeAndInterpret ffi sta ((l, h, v, b):t) cont
+  | b == 0 = computeAndContinue ffi transaction [] sta cont t
   | otherwise =
-       case reduceContractUntilQuiescent env sta cont of
+       case reduceContractUntilQuiescent ffi env sta cont of
          ContractQuiescent _ _ _ tempCont ->
            case tempCont of
-             When cases _ _ -> computeAndContinue transaction
+             When cases _ _ -> computeAndContinue ffi transaction
                                   [caseToInput cases b v] sta cont t
              _ -> error "Cannot interpret result"
          _ -> error "Error reducing contract when interpreting result"
@@ -569,39 +569,39 @@ executeAndInterpret sta ((l, h, v, b):t) cont
 
 -- It wraps executeAndInterpret so that it takes an optional State, and also
 -- combines the results of executeAndInterpret in one single tuple.
-interpretResult :: [(Integer, Integer, Integer, Integer)] -> Contract -> Maybe State
+interpretResult :: MarloweFFI -> [(Integer, Integer, Integer, Integer)] -> Contract -> Maybe State
                 -> (Slot, [TransactionInput], [TransactionWarning])
-interpretResult [] _ _ = error "Empty result"
-interpretResult t@((l, _, _, _):_) c maybeState = (Slot l, tin, twa)
+interpretResult _ [] _ _ = error "Empty result"
+interpretResult ffi t@((l, _, _, _):_) c maybeState = (Slot l, tin, twa)
    where (tin, twa) = foldl' (\(accInp, accWarn) (elemInp, elemWarn) ->
                                  (accInp ++ elemInp, accWarn ++ elemWarn)) ([], []) $
-                             executeAndInterpret initialState t c
+                             executeAndInterpret ffi initialState t c
          initialState = case maybeState of
                           Nothing -> emptyState (Slot l)
                           Just x  -> x
 
 -- It interprets the counter example found by SBV (SMTModel), given the contract,
 -- and initial state (optional), and the list of variables used.
-extractCounterExample :: SMTModel -> Contract -> Maybe State -> [String]
+extractCounterExample :: MarloweFFI -> SMTModel -> Contract -> Maybe State -> [String]
                       -> (Slot, [TransactionInput], [TransactionWarning])
-extractCounterExample smtModel cont maybeState maps = interpretedResult
+extractCounterExample ffi smtModel cont maybeState maps = interpretedResult
   where assocs = map (\(a, b) -> (a, fromCV b :: Integer)) $ modelAssocs smtModel
         counterExample = groupResult maps (M.fromList assocs)
-        interpretedResult = interpretResult (reverse counterExample) cont maybeState
+        interpretedResult = interpretResult ffi (reverse counterExample) cont maybeState
 
 -- Wrapper function that carries the static analysis and interprets the result.
 -- It generates variables, runs SBV, and it interprets the result in Marlow terms.
-warningsTraceCustom :: Bool
+warningsTraceCustom :: MarloweFFI -> Bool
               -> Contract
               -> Maybe State
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-warningsTraceCustom onlyAssertions con maybeState =
+warningsTraceCustom ffi onlyAssertions con maybeState =
     do thmRes@(ThmResult result) <- satCommand
        return (case result of
                  Unsatisfiable _ _ -> Right Nothing
                  Satisfiable _ smtModel ->
-                    Right (Just (extractCounterExample smtModel con maybeState params))
+                    Right (Just (extractCounterExample ffi smtModel con maybeState params))
                  _ -> Left thmRes)
   where maxActs = 1 + countWhens con
         params = generateLabels maxActs
@@ -611,23 +611,23 @@ warningsTraceCustom onlyAssertions con maybeState =
         satCommand = proveWith z3 property
 
 -- Like warningsTraceCustom but checks all warnings (including assertions)
-warningsTraceWithState :: Contract
+warningsTraceWithState :: MarloweFFI -> Contract
               -> Maybe State
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-warningsTraceWithState = warningsTraceCustom False
+warningsTraceWithState ffi = warningsTraceCustom ffi False
 
 -- Like warningsTraceCustom but only checks assertions.
-onlyAssertionsWithState :: Contract
+onlyAssertionsWithState :: MarloweFFI -> Contract
               -> Maybe State
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-onlyAssertionsWithState = warningsTraceCustom True
+onlyAssertionsWithState ffi = warningsTraceCustom ffi True
 
 -- Like warningsTraceWithState but without initialState.
-warningsTrace :: Contract
+warningsTrace :: MarloweFFI -> Contract
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-warningsTrace con = warningsTraceWithState con Nothing
+warningsTrace ffi con = warningsTraceWithState ffi con Nothing
 
 

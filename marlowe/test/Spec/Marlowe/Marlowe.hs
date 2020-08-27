@@ -17,6 +17,8 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
+import           Language.Marlowe.Client (asdf, asdff)
+import           Ledger                                (pubKeyHash)
 import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
 
@@ -35,6 +37,7 @@ import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
 
 import qualified Language.PlutusTx.Prelude             as P
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (adaValueOf)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
@@ -182,18 +185,20 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = scriptHash $ defaultScriptInstance (params "11")
+    let hash2 = scriptHash $ defaultScriptInstance (params "22")
+    let hash3 = scriptHash $ defaultScriptInstance (params "22")
+    assertEqual "Nope" 42 $ evalValue asdff (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close (Call 0)
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
+
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = validatorScript $ defaultScriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
+    assertBool ("Validator is too large " <> show vsize) (vsize < 1200000)
 
 
 checkEqValue :: Property
@@ -209,9 +214,14 @@ checkEqValue = property $ do
             .&&. (if a P.== b && b P.== c then a P.== c else True) -- transitive
 
 
+{-# INLINABLE dummyFFI #-}
+dummyFFI :: State -> Integer
+dummyFFI _ = 42
+
+
 doubleNegation :: Property
 doubleNegation = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
     forAll valueGen $ \a -> eval (NegValue (NegValue a)) === eval a
 
 
@@ -222,7 +232,7 @@ valuesFormAbelianGroup = property $ do
             b <- valueGen
             c <- valueGen
             return (a, b, c)
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
     forAll gen $ \(a, b, c) ->
         -- associativity of addition
         eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c)) .&&.
@@ -238,7 +248,7 @@ valuesFormAbelianGroup = property $ do
 
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
     -- test half-even rounding
     let gen = do
             n <- amount
@@ -251,14 +261,14 @@ scaleRoundingTest = property $ do
 
 scaleMulTest :: Property
 scaleMulTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
     forAll valueGen $ \a ->
         eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
 
 
 mulTest :: Property
 mulTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
     forAll valueGen $ \a ->
         eval (MulValue (Constant 0) a) === 0
 
@@ -277,7 +287,7 @@ mulAnalysisTest = do
         alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
         contract = If (muliply `ValueGE` Constant 10000) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
-    result <- warningsTrace contract
+    result <- warningsTrace undefined contract
     --print result
     assertBool "Analysis ok" $ isRight result
 
@@ -334,7 +344,7 @@ interpretContractString contractStr = interpret contractStr (as :: Contract)
 
 noFalsePositivesForContract :: Contract -> Property
 noFalsePositivesForContract cont =
-  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
+  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace undefined cont)
                                    (\exc -> return $ Left (Left (exc :: SomeException)))
                       return (case res of
                                 Left err -> counterexample (show err) False
@@ -363,7 +373,7 @@ prop_noFalsePositives = forAllShrink contractGen shrinkContract noFalsePositives
 
 sameAsOldImplementation :: Contract -> Property
 sameAsOldImplementation cont =
-  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
+  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace undefined cont)
                                    (\exc -> return $ Left (Left (exc :: SomeException)))
                       res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
                                     (\exc -> return $ Left (Left (exc :: SomeException)))

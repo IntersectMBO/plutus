@@ -57,6 +57,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.List
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Language.PlutusTx.Ratio    (Ratio, denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
@@ -88,13 +89,9 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 {-# INLINABLE applyInput #-}
 {-# INLINABLE convertReduceWarnings #-}
 {-# INLINABLE applyAllInputs #-}
-{-# INLINABLE validateInputWitness #-}
-{-# INLINABLE validateInputs #-}
 {-# INLINABLE computeTransaction #-}
 {-# INLINABLE contractLifespanUpperBound #-}
 {-# INLINABLE totalBalance #-}
-{-# INLINABLE validatePayments #-}
-{-# INLINABLE marloweValidator #-}
 
 -- * Aliaces
 
@@ -160,6 +157,22 @@ newtype ValueId = ValueId ByteString
   deriving anyclass (Newtype)
 
 
+data CallType = Plutus deriving Show
+
+data Fun = FunInfo
+    { funType :: CallType
+    , funRangeBounds :: [Bound]
+    , funName :: ByteString
+    , function :: MarloweFFI
+    }
+
+instance Show Fun where
+    show _ = "Fun"
+
+-- type MarloweFFI = String -> Maybe (State -> Integer)
+type MarloweFFI = Map Integer (State -> Integer)
+-- newtype FunRegistry = Funs (Map ByteString Fun) deriving Show
+
 {-| Values include some quantities that change with time,
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
     and any choices that have already been made.
@@ -178,6 +191,7 @@ data Value a = AvailableMoney AccountId Token
            | SlotIntervalEnd
            | UseValue ValueId
            | Cond a (Value a) (Value a)
+           | Call Integer
   deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -274,8 +288,9 @@ data State = State { accounts    :: Accounts
 
 {-| Execution environment. Contains a slot interval of a transaction.
 -}
-newtype Environment = Environment { slotInterval :: SlotInterval }
-  deriving stock (Show,P.Eq,P.Ord)
+data Environment = Environment
+    { slotInterval :: SlotInterval
+    } deriving (Show)
 
 
 {-| Input for a Marlowe contract. Correspond to expected 'Action's.
@@ -464,9 +479,9 @@ fixInterval interval state =
 {-|
   Evaluates @Value@ given current @State@ and @Environment@
 -}
-evalValue :: Environment -> State -> Value Observation -> Integer
-evalValue env state value = let
-    eval = evalValue env state
+evalValue :: MarloweFFI -> Environment -> State -> Contract -> Value Observation -> Integer
+evalValue ffi env state contract value = let
+    eval = evalValue ffi env state contract
     in case value of
         AvailableMoney accId token -> moneyInAccount accId token (accounts state)
         Constant integer     -> integer
@@ -488,7 +503,10 @@ evalValue env state value = let
             case Map.lookup valId (boundValues state) of
                 Just x  -> x
                 Nothing -> 0
-        Cond cond thn els    -> if evalObservation env state cond then eval thn else eval els
+        Cond cond thn els    -> if evalObservation ffi env state contract cond then eval thn else eval els
+        Call funName         -> case Map.lookup funName ffi of
+                                    Just f -> f state
+                                    Nothing -> 0
   where
     abs :: Integer -> Integer
     abs a = if a >= 0 then a else negate a
@@ -501,10 +519,10 @@ evalValue env state value = let
 
 
 -- | Evaluate 'Observation' to 'Bool'.
-evalObservation :: Environment -> State -> Observation -> Bool
-evalObservation env state obs = let
-    evalObs = evalObservation env state
-    evalVal = evalValue env state
+evalObservation :: MarloweFFI -> Environment -> State -> Contract -> Observation -> Bool
+evalObservation ffi env state contract obs = let
+    evalObs = evalObservation ffi env state contract
+    evalVal = evalValue ffi env state contract
     in case obs of
         AndObs lhs rhs          -> evalObs lhs && evalObs rhs
         OrObs lhs rhs           -> evalObs lhs || evalObs rhs
@@ -564,8 +582,8 @@ giveMoney payee (Token cur tok) amount accounts = case payee of
 
 
 -- | Carry a step of the contract with no inputs
-reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
-reduceContractStep env state contract = case contract of
+reduceContractStep :: MarloweFFI -> Environment -> State -> Contract -> ReduceStepResult
+reduceContractStep ffi env state contract = case contract of
 
     Close -> case refundOne (accounts state) of
         Just ((party, money), newAccounts) -> let
@@ -574,7 +592,7 @@ reduceContractStep env state contract = case contract of
         Nothing -> NotReduced
 
     Pay accId payee tok val cont -> let
-        amountToPay = evalValue env state val
+        amountToPay = evalValue ffi env state contract val
         in  if amountToPay <= 0
             then let
                 warning = ReduceNonPositivePay accId payee tok amountToPay
@@ -592,7 +610,7 @@ reduceContractStep env state contract = case contract of
                 in Reduced warning payment newState cont
 
     If obs cont1 cont2 -> let
-        cont = if evalObservation env state obs then cont1 else cont2
+        cont = if evalObservation ffi env state contract obs then cont1 else cont2
         in Reduced ReduceNoWarning ReduceNoPayment state cont
 
     When _ timeout cont -> let
@@ -606,7 +624,7 @@ reduceContractStep env state contract = case contract of
         else AmbiguousSlotIntervalReductionError
 
     Let valId val cont -> let
-        evaluatedValue = evalValue env state val
+        evaluatedValue = evalValue ffi env state contract val
         boundVals = boundValues state
         newState = state { boundValues = Map.insert valId evaluatedValue boundVals }
         warn = case Map.lookup valId boundVals of
@@ -615,18 +633,18 @@ reduceContractStep env state contract = case contract of
         in Reduced warn ReduceNoPayment newState cont
 
     Assert obs cont -> let
-        warning = if evalObservation env state obs
+        warning = if evalObservation ffi env state contract obs
                   then ReduceNoWarning
                   else ReduceAssertionFailed
         in Reduced warning ReduceNoPayment state cont
 
 -- | Reduce a contract until it cannot be reduced more
-reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
-reduceContractUntilQuiescent env state contract = let
+reduceContractUntilQuiescent :: MarloweFFI -> Environment -> State -> Contract -> ReduceResult
+reduceContractUntilQuiescent ffi env state contract = let
     reductionLoop
       :: Environment -> State -> Contract -> [ReduceWarning] -> [Payment] -> ReduceResult
     reductionLoop env state contract warnings payments =
-        case reduceContractStep env state contract of
+        case reduceContractStep ffi env state contract of
             Reduced warning effect newState cont -> let
                 newWarnings = if warning == ReduceNoWarning then warnings
                               else warning : warnings
@@ -642,35 +660,35 @@ reduceContractUntilQuiescent env state contract = let
 
 
 -- | Apply a single Input to the contract (assumes the contract is reduced)
-applyCases :: Environment -> State -> Input -> [Case Contract] -> ApplyResult
-applyCases env state input cases = case (input, cases) of
+applyCases :: MarloweFFI -> Environment -> State -> Contract -> Input -> [Case Contract] -> ApplyResult
+applyCases ffi env state contract input cases = case (input, cases) of
     (IDeposit accId1 party1 tok1 amount,
         Case (Deposit accId2 party2 tok2 val) cont : rest) ->
         if accId1 == accId2 && party1 == party2 && tok1 == tok2
-                && amount == evalValue env state val
+                && amount == evalValue ffi env state contract val
         then let
             warning = if amount > 0 then ApplyNoWarning
                       else ApplyNonPositiveDeposit party2 accId2 tok2 amount
             newAccounts = addMoneyToAccount accId1 tok1 amount (accounts state)
             newState = state { accounts = newAccounts }
             in Applied warning newState cont
-        else applyCases env state input rest
+        else applyCases ffi env state contract input rest
     (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) ->
         if choId1 == choId2 && inBounds choice bounds
         then let
             newState = state { choices = Map.insert choId1 choice (choices state) }
             in Applied ApplyNoWarning newState cont
-        else applyCases env state input rest
+        else applyCases ffi env state contract input rest
     (INotify, Case (Notify obs) cont : _)
-        | evalObservation env state obs -> Applied ApplyNoWarning state cont
-    (_, _ : rest) -> applyCases env state input rest
+        | evalObservation ffi env state contract obs -> Applied ApplyNoWarning state cont
+    (_, _ : rest) -> applyCases ffi env state contract input rest
     (_, []) -> ApplyNoMatchError
 
 
 -- | Apply a single @Input@ to a current contract
-applyInput :: Environment -> State -> Input -> Contract -> ApplyResult
-applyInput env state input (When cases _ _) = applyCases env state input cases
-applyInput _ _ _ _                          = ApplyNoMatchError
+applyInput :: MarloweFFI -> Environment -> State -> Input -> Contract -> ApplyResult
+applyInput ffi env state input contract@(When cases _ _) = applyCases ffi env state contract input cases
+applyInput _ _ _ _ _                          = ApplyNoMatchError
 
 
 -- | Propagate 'ReduceWarning' to 'TransactionWarning'
@@ -689,8 +707,8 @@ convertReduceWarnings = foldr (\warn acc -> case warn of
 
 
 -- | Apply a list of Inputs to the contract
-applyAllInputs :: Environment -> State -> Contract -> [Input] -> ApplyAllResult
-applyAllInputs env state contract inputs = let
+applyAllInputs :: MarloweFFI -> Environment -> State -> Contract -> [Input] -> ApplyAllResult
+applyAllInputs ffi env state contract inputs = let
     applyAllLoop
         :: Environment
         -> State
@@ -700,7 +718,7 @@ applyAllInputs env state contract inputs = let
         -> [Payment]
         -> ApplyAllResult
     applyAllLoop env state contract inputs warnings payments =
-        case reduceContractUntilQuiescent env state contract of
+        case reduceContractUntilQuiescent ffi env state contract of
             RRAmbiguousSlotIntervalError -> ApplyAllAmbiguousSlotIntervalError
             ContractQuiescent reduceWarns pays curState cont -> case inputs of
                 [] -> ApplyAllSuccess
@@ -708,7 +726,7 @@ applyAllInputs env state contract inputs = let
                     (payments ++ pays)
                     curState
                     cont
-                (input : rest) -> case applyInput env curState input cont of
+                (input : rest) -> case applyInput ffi env curState input cont of
                     Applied applyWarn newState cont ->
                         applyAllLoop
                             env
@@ -748,11 +766,11 @@ validateInputs MarloweParams{..} ctx =
 
 
 -- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@
-computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
-computeTransaction tx state contract = let
+computeTransaction :: MarloweFFI -> TransactionInput -> State -> Contract -> TransactionOutput
+computeTransaction ffi tx state contract = let
     inputs = txInputs tx
     in case fixInterval (txInterval tx) state of
-        IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
+        IntervalTrimmed env fixState -> case applyAllInputs ffi env fixState contract inputs of
             ApplyAllSuccess warnings payments newState cont ->
                     if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
@@ -784,133 +802,11 @@ totalBalance accounts = foldMap
     (Map.toList accounts)
 
 
-validatePayments :: MarloweParams -> ValidatorCtx -> [Payment] -> Bool
-validatePayments MarloweParams{..} ctx txOutPayments = all checkValidPayment listOfPayments
-  where
-    collect :: Map Party Money -> TxOut -> Map Party Money
-    collect outputs TxOut{txOutAddress=PubKeyAddress pubKeyHash, txOutValue} =
-        let
-            party = PK pubKeyHash
-            curValue = fromMaybe zero (Map.lookup party outputs)
-            newValue = txOutValue + curValue
-        in Map.insert party newValue outputs
-    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript datumHash}
-        | validatorHash == rolePayoutValidatorHash =
-                case findDatum datumHash (valCtxTxInfo ctx) of
-                    Just (Datum dv) ->
-                        case PlutusTx.fromData dv of
-                            Just (currency, role) | currency == rolesCurrency -> let
-                                party = Role role
-                                curValue = fromMaybe zero (Map.lookup party outputs)
-                                newValue = txOutValue + curValue
-                                in Map.insert party newValue outputs
-                            _ -> outputs
-                    Nothing -> outputs
-    collect outputs _ = outputs
-
-    collectPayments :: Map Party Money -> Payment -> Map Party Money
-    collectPayments payments (Payment party money) = let
-        newValue = money + fromMaybe zero (Map.lookup party payments)
-        in Map.insert party newValue payments
-
-    outputs :: Map Party Money
-    outputs = foldl collect mempty (txInfoOutputs (valCtxTxInfo ctx))
-
-    payments :: Map Party Money
-    payments = foldl collectPayments mempty txOutPayments
-
-    listOfPayments :: [(Party, Money)]
-    listOfPayments = Map.toList payments
-
-    checkValidPayment :: (Party, Money) -> Bool
-    checkValidPayment (party, expectedPayment) =
-        case Map.lookup party outputs of
-            Just value -> value `Val.geq` expectedPayment
-            Nothing    -> False
-
-
 {-|
     Check that all accounts have positive balance.
  -}
 validateBalances :: State -> Bool
 validateBalances State{..} = all (\(_, balance) -> balance > 0) (Map.toList accounts)
-
-
-{-| Ensure that 'ValidatorCtx' contains expected payments.   -}
-validateTxOutputs :: MarloweParams -> ValidatorCtx -> TransactionOutput -> Bool
-validateTxOutputs params ctx expectedTxOutputs = case expectedTxOutputs of
-    TransactionOutput {txOutPayments, txOutState, txOutContract} ->
-        case txOutContract of
-            -- if it's a last transaction, don't expect any continuation,
-            -- everything is payed out.
-            Close -> validatePayments params ctx txOutPayments
-            -- otherwise check the continuation
-            _     -> validateContinuation txOutPayments txOutState txOutContract
-    Error _ -> traceError "Error"
-  where
-    validateContinuation txOutPayments txOutState txOutContract =
-        case getContinuingOutputs ctx of
-            [TxOut
-                { txOutType = (PayToScript dsh)
-                , txOutValue = scriptOutputValue
-                }] | Just (Datum ds) <- findDatum dsh (valCtxTxInfo ctx) ->
-
-                case PlutusTx.fromData ds of
-                    Just expected -> let
-                        validContract = txOutState == marloweState expected
-                            && txOutContract == marloweContract expected
-                        outputBalance = totalBalance (accounts txOutState)
-                        outputBalanceOk = scriptOutputValue == outputBalance
-                        in  outputBalanceOk
-                            && validContract
-                            && validatePayments params ctx txOutPayments
-                    _ -> False
-            _ -> False
-
-{-|
-    Marlowe Interpreter Validator generator.
--}
-marloweValidator
-  :: MarloweParams -> MarloweData -> [Input] -> ValidatorCtx -> Bool
-marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
-    {-  We require Marlowe Tx to have both lower bound and upper bounds in 'SlotRange'.
-        All are inclusive.
-    -}
-    (minSlot, maxSlot) = case txInfoValidRange valCtxTxInfo of
-        Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
-        _ -> traceError "Tx valid slot must have lower bound and upper bounds"
-
-    positiveBalances = validateBalances marloweState ||
-        traceError "Invalid contract state. There exists an account with non positive balance"
-
-    {-  We do not check that a transaction contains exact input payments.
-        We only require an evidence from a party, e.g. a signature for PubKey party,
-        or a spend of a 'party role' token.
-        This gives huge flexibility by allowing parties to provide multiple
-        inputs (either other contracts or P2PKH).
-        Then, we check scriptOutput to be correct.
-     -}
-    validInputs = validateInputs marloweParams ctx inputs
-
-    TxInInfo _ _ scriptInValue = findOwnInput ctx
-
-    -- total balance of all accounts in State
-    -- accounts must be positive, and we checked it above
-    inputBalance = totalBalance (accounts marloweState)
-
-    -- ensure that a contract TxOut has what it suppose to have
-    balancesOk = inputBalance == scriptInValue
-
-    preconditionsOk = positiveBalances && validInputs && balancesOk
-
-    slotInterval = (minSlot, maxSlot)
-    txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
-    expectedTxOutputs = computeTransaction txInput marloweState marloweContract
-
-    outputOk = validateTxOutputs marloweParams ctx expectedTxOutputs
-
-    in preconditionsOk && outputOk
-
 
 
 -- Typeclass instances
@@ -1195,5 +1091,8 @@ makeLift ''TransactionWarning
 makeLift ''TransactionError
 makeLift ''TransactionOutput
 makeLift ''MarloweData
+-- makeLift ''FunRegistry
+makeLift ''CallType
+-- makeLift ''Fun
 makeIsData ''MarloweData
 makeLift ''MarloweParams
