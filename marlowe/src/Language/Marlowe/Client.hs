@@ -44,6 +44,8 @@ import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Tx                       (TypedScriptTxOut (..))
 import qualified Ledger.Value                          as Val
 
+type MarloweInput = (SlotRange, [Input])
+
 type MarloweSchema =
     BlockchainActions
         .\/ Endpoint "create" (MarloweParams, Marlowe.Contract)
@@ -51,13 +53,13 @@ type MarloweSchema =
         .\/ Endpoint "wait" MarloweParams
 
 data MarloweError =
-    StateMachineError (SM.SMContractError MarloweData [Input])
+    StateMachineError (SM.SMContractError MarloweData MarloweInput)
     | OtherContractError ContractError
   deriving (Show)
 
 makeClassyPrisms ''MarloweError
 
-instance AsSMContractError MarloweError MarloweData [Input] where
+instance AsSMContractError MarloweError MarloweData MarloweInput where
     _SMContractError = _StateMachineError
 
 instance AsContractError MarloweError where
@@ -65,7 +67,7 @@ instance AsContractError MarloweError where
 
 
 marlowePlutusContract :: forall e. (AsContractError e
-    , AsSMContractError e MarloweData [Input]
+    , AsSMContractError e MarloweData MarloweInput
     )
     => Contract MarloweSchema e ()
 marlowePlutusContract = do
@@ -98,7 +100,7 @@ marlowePlutusContract = do
 {-| Create a Marlowe contract.
     Uses wallet public key to generate a unique script address.
  -}
-createContract :: (AsContractError e, AsSMContractError e MarloweData [Input])
+createContract :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
     => MarloweParams
     -> Marlowe.Contract
     -> Contract MarloweSchema e ()
@@ -116,7 +118,7 @@ createContract params contract = do
     void $ SM.runInitialise theClient marloweData payValue
 
 
-applyInputs :: (AsContractError e, AsSMContractError e MarloweData [Input])
+applyInputs :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
     => MarloweParams
     -> [Input]
     -> Contract MarloweSchema e MarloweData
@@ -126,7 +128,7 @@ applyInputs params inputs = do
     let slotRange = interval (Slot $ slot - 1)  (Slot $ slot + 10)
     -- traceM $ "slotRange: " <> show slotRange
     let theClient = mkMarloweClient params
-    dat <- SM.runStep theClient inputs slotRange
+    dat <- SM.runStep theClient (slotRange, inputs)
     -- traceM $ "[applyInputs] After runStep " <> show (marloweContract dat) <> " ==> " <>  show (isFinal dat)
     return dat
 
@@ -157,10 +159,9 @@ defaultMarloweParams = marloweParams adaSymbol
 mkMarloweStateMachineTransition
     :: MarloweParams
     -> SM.State MarloweData
-    -> [Input]
-    -> SlotRange
+    -> MarloweInput
     -> Maybe (TxConstraints Void Void, SM.State MarloweData)
-mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue} inputs range = do
+mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue} (range, inputs) = do
     let interval = case range of
             Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
             _ -> P.traceError "Tx valid slot must have lower bound and upper bounds"
@@ -265,22 +266,22 @@ mkMarloweValidatorCode params =
     $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
 
-type MarloweStateMachine = StateMachine MarloweData [Input]
+type MarloweStateMachine = StateMachine MarloweData MarloweInput
 
 scriptInstance :: MarloweParams -> Scripts.ScriptInstance MarloweStateMachine
 scriptInstance params = Scripts.validator @MarloweStateMachine
     (mkMarloweValidatorCode params)
     $$(PlutusTx.compile [|| wrap ||])
     where
-        wrap = Scripts.wrapValidator @MarloweData @[Input]
+        wrap = Scripts.wrapValidator @MarloweData @MarloweInput
 
 
-mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData [Input]
+mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
 mkMachineInstance params =
     SM.StateMachineInstance
     (SM.mkStateMachine (mkMarloweStateMachineTransition params) isFinal)
     (scriptInstance params)
 
 
-mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData [Input]
+mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
 mkMarloweClient params = SM.mkStateMachineClient (mkMachineInstance params)
