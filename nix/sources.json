@@ -1,16 +1,4 @@
 {
-    "cabal": {
-        "branch": "master",
-        "description": "Official upstream development repository for Cabal and cabal-install",
-        "homepage": "https://haskell.org/cabal",
-        "owner": "haskell",
-        "repo": "cabal",
-        "rev": "0d0f9e9f5e5ea677a102c6622f412ce314991e3e",
-        "sha256": "1rnn6ypvl69l4ffwi97mf05a1dsdvgskqjx2kjliaz2yf3ya539h",
-        "type": "tarball",
-        "url": "https://github.com/haskell/cabal/archive/0d0f9e9f5e5ea677a102c6622f412ce314991e3e.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "docker-nixpkgs": {
         "branch": "master",
         "description": "docker images from nixpkgs [maintainer=@zimbatm]",
@@ -57,18 +45,6 @@
         "sha256": "1vrysjf98kx284lsg5s0sc7csqd59fnnv57h2cg9c81pnidgk1z0",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/haskell.nix/archive/4beeee0d287b612bd65df694327f5dcb3d8983dd.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
-    "hie-bios": {
-        "branch": "hkm/hie-project-file-6.1",
-        "description": null,
-        "homepage": null,
-        "owner": "hamishmack",
-        "repo": "hie-bios",
-        "rev": "295eeacaa5c64e00607adbee09cc3646f83bdafa",
-        "sha256": "132mx753rpmpc0kx75by8y5x5xqldpgrsrq8r7i6wgslq2iyjmdq",
-        "type": "tarball",
-        "url": "https://github.com/hamishmack/hie-bios/archive/295eeacaa5c64e00607adbee09cc3646f83bdafa.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {

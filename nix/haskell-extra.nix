@@ -80,7 +80,6 @@ in {
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
-          packages.hie-bios.src = sources.hie-bios;
         }];
       }) hie-bios haskell-language-server ghcide;
   purty =
