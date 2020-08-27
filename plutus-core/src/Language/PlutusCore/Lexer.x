@@ -1,12 +1,13 @@
 {
-    {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-    {-# LANGUAGE OverloadedStrings     #-}
-    {-# LANGUAGE DeriveAnyClass        #-}
-    {-# LANGUAGE OverloadedStrings     #-}
-    {-# LANGUAGE FlexibleInstances     #-}
-    {-# LANGUAGE DeriveAnyClass        #-}
-    {-# LANGUAGE OverloadedStrings     #-}
-    {-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Language.PlutusCore.Lexer ( alexMonadScan
                                  , runAlexST'
