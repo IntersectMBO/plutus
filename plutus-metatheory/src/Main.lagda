@@ -123,7 +123,7 @@ postulate
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
-{-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT (-1) ty) #-}
+{-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT 0 ty) #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# COMPILE GHC parse = first (const ParseError) . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
@@ -159,8 +159,7 @@ parsePLC plc = do
   prog ← deBruijnify namedprog
   scopeCheckTm {0}{Z} (shifter 0 Z (convP prog))
   -- ^ TODO: this should have an interface that guarantees that the
-  -- shifter is run and probably does something sensibe withe the
-  -- program wrapper
+  -- shifter is run
 
 typeCheckPLC : ScopedTm Z → Either Error (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
 typeCheckPLC t = inferType _ t
@@ -322,8 +321,8 @@ open import Type.BetaNormal
 -- a Haskell interface to the type normalizer:
 normalizeType : Type → Maybe Type
 normalizeType ty = do
-  ty       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
-  (_ ,, n) ← liftSum (inferKind ∅ ty)
+  ty'       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  (_ ,, n) ← liftSum (inferKind ∅ ty')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}

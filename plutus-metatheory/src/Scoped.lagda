@@ -170,6 +170,7 @@ unshifterTy w (A · B) = unshifterTy w A · unshifterTy w B
 unshifterTy w (con c) = con c
 unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
 
+open import Relation.Binary.PropositionalEquality
 
 unshifter : ∀{n} → Weirdℕ n → RawTm → RawTm
 unshifter w (` x) = ` (suc (lookupWTm' x w))
@@ -346,7 +347,6 @@ extricateScope (unwrap t) = unwrap (extricateScope t)
 -- UGLY PRINTING
 
 \begin{code}
-{-
 open import Data.String
 
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
@@ -354,12 +354,10 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-{-
 uglyTermCon : TermCon → String
 uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
--}
 
 postulate showNat : ℕ → String
 
@@ -377,16 +375,15 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (builtin b As ts) =
-  "(builtin " ++
+ugly (builtin b X As ts) = "builtin" -- FIX ME
+{-  "(builtin " ++
   uglyBuiltin b ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
-  ++ ")"
+  ++ ")" -}
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
--}
 \end{code}
