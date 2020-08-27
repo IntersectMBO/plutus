@@ -10,7 +10,7 @@ in {
   Agda = pkgs.haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1";
-    plan-sha256 = "0gvvhwjcwmq8avcqz8azv8db2171qvigkam3i9bgr6z13xk995ha";
+    plan-sha256 = "1axkvv3xb9rym60pbizymdxxyya57sf3s43lqhwhxidqx9jdblsp";
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -44,7 +44,7 @@ in {
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "06j2m7jvqfw65cn717kgflh49a0n1jkra4iw841z5ryh2y7y48pr";
+    plan-sha256 = "199mp9d177whk3jbl7j41rqwfj7zqw7z214p9xfl7v2k4x3xm7gm";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
@@ -58,7 +58,7 @@ in {
     version = "2.2.11";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "10zw1zvs2bbdyh2mg01vm8wz6n65m2qkvz1va9hzhj8ch00nvpbh";
+    plan-sha256 = "0mw6w1b79hww4m5r8wncgbyw03p34mmmm66rl8wglq3ynjxfxh77";
   };
   inherit (pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
