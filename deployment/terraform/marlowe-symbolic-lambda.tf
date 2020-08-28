@@ -15,7 +15,7 @@ resource "aws_security_group" "marlowe_symbolic_lambda" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   tags = {
@@ -59,8 +59,8 @@ resource "aws_lambda_function" "marlowe_symbolic" {
 
   # The lambda zip needs to be built and placed on your local filesystem
   # TODO: This is only a temporary requirement and will be moved to the CD server soon
-  filename = "${var.lambda_filename}"
-  source_code_hash = "${base64sha256(file(var.lambda_filename))}"
+  filename = "${var.symbolic_lambda_file}"
+  source_code_hash = filebase64sha256(var.symbolic_lambda_file)
   
   memory_size = 3008
   timeout = 120
@@ -72,95 +72,4 @@ resource "aws_lambda_function" "marlowe_symbolic" {
       PATH = "/usr/local/bin:/usr/bin/:/bin:/opt/bin:."
     }
   }
-}
-
-
-## API Gateway
-
-resource "aws_api_gateway_rest_api" "marlowe_symbolic_lambda" {
-  name        = "marlowe_symbolic_lambda_${var.env}"
-  description = "API Gateway for the Marlowe Symbolic Lambda"
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
-}
-
-resource "aws_api_gateway_resource" "marlowe_symbolic_proxy" {
-  rest_api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  parent_id   = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.root_resource_id}"
-  path_part   = "marlowe-analysis"
-}
-
-resource "aws_api_gateway_method" "marlowe_symbolic_proxy" {
-  rest_api_id   = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  resource_id   = "${aws_api_gateway_resource.marlowe_symbolic_proxy.id}"
-  http_method   = "POST"
-  authorization = "NONE"
-  api_key_required = true
-}
-
-resource "aws_api_gateway_integration" "marlowe_symbolic_lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  resource_id = "${aws_api_gateway_method.marlowe_symbolic_proxy.resource_id}"
-  http_method = "${aws_api_gateway_method.marlowe_symbolic_proxy.http_method}"
-
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = "${aws_lambda_function.marlowe_symbolic.invoke_arn}"
-
-  request_parameters = {
-  }
-}
-
-resource "aws_api_gateway_method_response" "marlowe_symbolic_lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  resource_id = "${aws_api_gateway_resource.marlowe_symbolic_proxy.id}"
-  http_method = "${aws_api_gateway_method.marlowe_symbolic_proxy.http_method}"
-  status_code = "200"
-}
-
-resource "aws_api_gateway_integration_response" "marlowe_symbolic_lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  resource_id = "${aws_api_gateway_resource.marlowe_symbolic_proxy.id}"
-  http_method = "${aws_api_gateway_method.marlowe_symbolic_proxy.http_method}"
-  status_code = "${aws_api_gateway_method_response.marlowe_symbolic_lambda.status_code}"
-}
-
-resource "aws_api_gateway_deployment" "marlowe_symbolic_lambda" {
-  depends_on = [
-    "aws_api_gateway_integration.marlowe_symbolic_lambda",
-  ]
-
-  rest_api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-  stage_name  = "${var.env}"
-}
-
-resource "aws_lambda_permission" "marlowe_symbolic_lambda_api_gw" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.marlowe_symbolic.function_name}"
-  principal     = "apigateway.amazonaws.com"
-
-  # The "/*/*" portion grants access from any method on any resource
-  # within the API Gateway REST API.
-  source_arn = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.execution_arn}/*/*"
-}
-
-resource "aws_api_gateway_usage_plan" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda_${var.env}"
-
-  api_stages {
-    api_id = "${aws_api_gateway_rest_api.marlowe_symbolic_lambda.id}"
-    stage  = "${aws_api_gateway_deployment.marlowe_symbolic_lambda.stage_name}"
-  }
-}
-
-resource "aws_api_gateway_api_key" "marlowe_symbolic_lambda" {
-  name = "marlowe_symbolic_lambda_${var.env}"
-}
-
-resource "aws_api_gateway_usage_plan_key" "marlowe_symbolic_lambda" {
-  key_id        = "${aws_api_gateway_api_key.marlowe_symbolic_lambda.id}"
-  key_type      = "API_KEY"
-  usage_plan_id = "${aws_api_gateway_usage_plan.marlowe_symbolic_lambda.id}"
 }

@@ -44,18 +44,10 @@ resource "aws_route" "public" {
   gateway_id             = "${aws_internet_gateway.plutus.id}"
 }
 
-# Zerotier Route
-# This needs to point to the machine you are using to route traffic through
-resource "aws_route" "zerotier" {
-  route_table_id         = "${aws_vpc.plutus.main_route_table_id}"
-  destination_cidr_block = "${var.zerotier_subnet_cidrs[0]}"
-  instance_id            = "${aws_instance.bastion.*.id[0]}"
-}
-
 # Elastic IPs
 resource "aws_eip" "nat" {
   vpc        = true
-  depends_on = ["aws_internet_gateway.plutus"]
+  depends_on = [aws_internet_gateway.plutus]
   count      = "${length(var.azs)}"
 
   tags = {
@@ -70,7 +62,7 @@ resource "aws_nat_gateway" "plutus" {
   count         = "${length(var.azs)}"
   allocation_id = "${aws_eip.nat.*.id[count.index]}"
   subnet_id     = "${aws_subnet.public.*.id[count.index]}"
-  depends_on    = ["aws_internet_gateway.plutus"]
+  depends_on    = [aws_internet_gateway.plutus]
 
   tags = {
     Name        = "${var.project}_${var.env}_${var.azs[count.index]}"
@@ -132,7 +124,7 @@ data "template_file" "bastion_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.bastion_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.bastion_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }
@@ -141,8 +133,8 @@ data "template_file" "bastion_user_data" {
   template = "${file("${path.module}/templates/bastion_configuration.nix")}"
 
   vars = {
-    ssh_keys      = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", data.template_file.bastion_ssh_keys.*.rendered))}"
-    network_id    = "${var.zerotier_network_id}"
+    ssh_keys   = "${join(" ", formatlist("\"command=\\\"echo 'this host is for forwarding only'\\\",no-X11-forwarding,no-user-rc %s\"", data.template_file.bastion_ssh_keys.*.rendered))}"
+    network_id = "canbeanything"
   }
 }
 
@@ -160,7 +152,7 @@ resource "aws_instance" "bastion" {
 
   subnet_id = "${aws_subnet.public.*.id[count.index]}"
 
-  root_block_device = {
+  root_block_device {
     volume_size = 20
   }
 
@@ -191,38 +183,7 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ## inbound kibana
-  ingress {
-    from_port   = 5601
-    to_port     = 5601
-    protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
-  }
-
-  ## inbound riemann websocket
-  ingress {
-    from_port   = 5556
-    to_port     = 5556
-    protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
-  }
-
-  ## inbound riemann dash
-  ingress {
-    from_port   = 4567
-    to_port     = 4567
-    protocol    = "TCP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
-  }
-
-  ## inbound zerotier
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "UDP"
-    cidr_blocks = ["${var.zerotier_subnet_cidrs}"]
-  }
-
+  ## FIXME: We are not using zerotier now, I think we can remove this
   ## zerotier must use some custom protocol, TCP + UDP doesn't work
   # Currently asking zerotier if I can lock this down further
   egress {
@@ -236,7 +197,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   # Allow internet access to install things, we could maybe lock this down to nixpkgs somehow
@@ -264,7 +225,7 @@ resource "aws_security_group" "bastion" {
 }
 
 resource "aws_route53_zone" "plutus_private_zone" {
-  vpc = {
+  vpc {
     vpc_id = "${aws_vpc.plutus.id}"
   }
   name   = "internal.${var.env}.${var.plutus_tld}"
@@ -286,5 +247,5 @@ locals {
 
 resource "local_file" "network" {
   content  = "${jsonencode(local.network)}"
-  filename = "${var.nixops_root}/network.json"
+  filename = "${pathexpand(var.nixops_root)}/network.json"
 }

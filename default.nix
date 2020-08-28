@@ -259,6 +259,10 @@ in rec {
       };
   });
 
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda; };
+
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
   plutus-scb = pkgs.recurseIntoAttrs (rec {
@@ -358,8 +362,6 @@ in rec {
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
-
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }
