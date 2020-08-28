@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation, prop_jsonLoops
     )
 where
 
@@ -449,4 +449,9 @@ runManuallySameAsOldImplementation :: Property
 runManuallySameAsOldImplementation =
   forAllShrink contractGen shrinkContract sameAsOldImplementation
 
+jsonLoops :: Contract -> Property
+jsonLoops cont = decode (encode cont) === Just cont
+
+prop_jsonLoops :: Property
+prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
 
