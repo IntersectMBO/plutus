@@ -5,7 +5,7 @@ let
   terraform = (callPackage ./terraform.nix { }).terraform_0_12;
 
   getCreds = pkgs.writeShellScript "getcreds" ''
-    if [[ $1 == "" || $2 == "" ]]; then
+    if [[ $# -ne 2 ]]; then
       echo "Please call the script with your AWS account username followed by the MFA code"
       exit 1
     fi
