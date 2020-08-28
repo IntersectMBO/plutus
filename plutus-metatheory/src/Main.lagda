@@ -281,12 +281,12 @@ main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) = do
   inj₂ s ← evalInput m i
     where
-    inj₁ e → putStrLn "Evaluation failed" >> exitFailure
+    inj₁ e → putStrLn (reportError e) >> exitFailure
   putStrLn s >> exitSuccess
 main' (TypeCheck (TCOpts i))    = do
   inj₂ s ← tcInput i
     where
-    inj₁ e → putStrLn "Type checking failed" >> exitFailure
+    inj₁ e → putStrLn (reportError e) >> exitFailure
   putStrLn s >> exitSuccess
 
 main : IO ⊤

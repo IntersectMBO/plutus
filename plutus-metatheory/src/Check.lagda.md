@@ -156,10 +156,15 @@ meqNfTy (Π {K = K} A) (Π {K = K'} A') = do
 meqNfTy (con c) (con c')  = do
   refl ← meqTyCon c c'
   return refl
+meqNfTy (μ {K = K} A B) (μ {K = K'} A' B') = do
+ refl ← meqKind K K'
+ p ← meqNfTy A A'
+ q ← meqNfTy B B'
+ return (cong₂ μ p q)
 meqNfTy (ne n)  (ne n')   = do
   p ← meqNeTy n n'
   return (cong ne p)
-meqNfTy n      n'          = inj₁ typeEqError
+meqNfTy _ _ = inj₁ typeEqError
 
 meqNeTy (` α) (` α')      = do
   refl ← meqTyVar α α'
@@ -169,7 +174,7 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   p ← meqNeTy A A'
   q ← meqNfTy B B'
   return (cong₂ _·_ p q)
-meqNeTy n  n'  = inj₁ typeEqError
+meqNeTy _  _  = inj₁ typeEqError
 
 open import Type.BetaNormal.Equality
 
@@ -259,9 +264,7 @@ inferType Γ (wrap A B L)  = do
   --v why is this eta expanded in the spec?
   p ← meqNfTy (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) X
   return
-    (μ A B
-    ,,
-    wrap A B (conv⊢ refl (sym p) L))
+    (μ A B ,, wrap A B (conv⊢ refl (sym p) L))
 inferType Γ (unwrap L)        = do
   μ A B ,, L ← inferType Γ L
     where _ → inj₁ unwrapError

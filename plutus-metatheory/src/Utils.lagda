@@ -124,6 +124,25 @@ data Error : Set where
   scopeError : Error
   gasError : Error
 
+open import Data.String
+
+reportError : Error → String
+reportError typeError = "typeError"
+reportError kindEqError = "kindEqError" 
+reportError notTypeError = "notTypeError"
+reportError notFunction = "notFunctionError"
+reportError notPiError = "notPiError"
+reportError notPat = "notPat error"
+reportError nameError = "nameError"
+reportError typeEqError = "typeEqError"
+reportError typeVarEqError = "typeVarEqError"
+reportError tyConError = "tyConError"
+reportError builtinError = "builtinError"
+reportError unwrapError = "unwrapError"
+reportError parseError = "parseError"
+reportError scopeError = "scopeError"
+reportError gasError = "gasError"
+
 -- the haskell version of Error is defined in Raw
 {-# FOREIGN GHC import Raw #-}
 
