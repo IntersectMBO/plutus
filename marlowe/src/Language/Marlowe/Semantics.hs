@@ -1010,6 +1010,13 @@ instance FromJSON (Value Observation) where
                                   <*> (parseJSON =<< (v .: "times"))
               Just divi -> Scale <$> ((%) <$> (getInteger =<< (v .: "times")) <*> getInteger divi)
                                  <*> (parseJSON =<< (v .: "multiply")))
+    <|> (ChoiceValue <$> (parseJSON =<< (v .: "value_of_choice")))
+    <|> (UseValue <$> (parseJSON =<< (v .: "use_value")))
+    <|> (Cond <$> (parseJSON =<< (v .: "if"))
+              <*> (parseJSON =<< (v .: "then"))
+              <*> (parseJSON =<< (v .: "else")))
+  parseJSON (String "slot_interval_start") = return SlotIntervalStart
+  parseJSON (String "slot_interval_end") = return SlotIntervalEnd
   parseJSON _ = fail "Value must be either an object or an integer"
 instance ToJSON (Value Observation) where
   toJSON (AvailableMoney accountId token) = object
