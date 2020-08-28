@@ -126,13 +126,13 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap1 : ∀{Φ Γ K}
+  wrap : ∀{Φ Γ K}
    → (A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
    → (B : Φ ⊢Nf⋆ K)
    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
    → Γ ⊢ μ A B
 
-  unwrap1 : ∀{Φ Γ K}
+  unwrap : ∀{Φ Γ K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → Γ ⊢ μ A B

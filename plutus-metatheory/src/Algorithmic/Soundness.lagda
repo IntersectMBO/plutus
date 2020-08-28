@@ -78,18 +78,14 @@ lem[]'' A B = trans≡β
 \end{code}
 
 \begin{code}
-lemμ''' : ∀{Φ Φ' K}(p : Φ ≡ Φ')(pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(arg : Φ ⊢Nf⋆ K) →
-  substEq (_⊢⋆ (K ⇒ *) ⇒ K ⇒ *) p (embNf pat) ·
-  (μ1 · substEq (_⊢⋆ (K ⇒ *) ⇒ K ⇒ *) p (embNf pat))
-  · substEq (_⊢⋆ K) p (embNf arg)
-  ≡β
-  substEq (_⊢⋆ *) p
-  (embNf
-   ((eval (embNf pat) (idEnv Φ) ·V
-     inj₁
-     (μ1 · reify (eval (embNf pat) (idEnv Φ))))
-    ·V eval (embNf arg) (idEnv Φ)))
-lemμ''' refl pat arg = soundness (embNf pat · (μ1 · embNf pat) · embNf arg)
+lemμ''' : ∀{Φ Φ' K}(p : Φ ≡ Φ')(A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(B : Φ ⊢Nf⋆ K) →
+  embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B ≡β
+  embNf
+    (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+lemμ''' p A B = trans≡β
+  (soundness (embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B))
+  (≡2β (cong (λ X → embNf (nf (embNf A · ƛ (μ X (` Z)) · embNf B)))
+             (sym (ren-embNf S A))))
 \end{code}
 
 \begin{code}
@@ -208,12 +204,12 @@ emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
 emb (Alg.Λ {B = B} t) = Dec.Λ (emb t)
 emb (Alg._·⋆_ {B = B} t A) =
     Dec.conv (lem[]'' A B) (emb t Dec.·⋆ embNf A)
-emb (Alg.wrap1 pat arg t) = Dec.wrap1
-  (embNf pat)
-  (embNf arg)
-  (Dec.conv (sym≡β (lemμ''' refl pat arg)) (emb t))
-emb (Alg.unwrap1 {pat = pat}{arg} t) =
-  Dec.conv (lemμ''' refl pat arg) (Dec.unwrap1 (emb t))
+emb (Alg.wrap A B t) = Dec.wrap
+  (embNf A)
+  (embNf B)
+  (Dec.conv (sym≡β (lemμ''' refl A B)) (emb t))
+emb (Alg.unwrap {A = A}{B} t) =
+  Dec.conv (lemμ''' refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
 emb (Alg.builtin bn σ tel) = let
   Δ  ,, As  ,, C  = SSig.SIG bn
