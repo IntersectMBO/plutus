@@ -50,6 +50,7 @@ import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import           Data.Scientific            (Scientific, floatingOrInteger)
+import           Data.Text                  (pack)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
@@ -989,9 +990,61 @@ instance ToJSON ValueId where
     toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
 
 
-instance FromJSON (Value Observation) where parseJSON = genericParseJSON customOptions
-instance ToJSON (Value Observation) where toJSON = genericToJSON customOptions
-
+instance FromJSON (Value Observation) where
+  parseJSON (Number n) = Constant <$> getInteger n
+  parseJSON (Object v) =
+        (AvailableMoney <$> (parseJSON =<< (v .: "in_account"))
+                        <*> (parseJSON =<< (v .: "amount_of_token")))
+    <|> (NegValue <$> (parseJSON =<< (v .: "negate")))
+    <|> (AddValue <$> (parseJSON =<< (v .: "add"))
+                  <*> (parseJSON =<< (v .: "and")))
+    <|> (SubValue <$> (parseJSON =<< (v .: "value"))
+                  <*> (parseJSON =<< (v .: "minus")))
+    <|> (do maybeDiv <- v .:? "divide_by"
+            case maybeDiv :: Maybe Scientific of
+              Nothing -> MulValue <$> (parseJSON =<< (v .: "multiply"))
+                                  <*> (parseJSON =<< (v .: "times"))
+              Just divi -> Scale <$> ((%) <$> (getInteger =<< (v .: "times")) <*> getInteger divi)
+                                 <*> (parseJSON =<< (v .: "multiply")))
+  parseJSON _ = fail "Value must be either an object or an integer"
+instance ToJSON (Value Observation) where
+  toJSON (AvailableMoney accountId token) = object
+      [ "amount_of_token" .= token
+      , "in_account" .= accountId
+      ]
+  toJSON (Constant x) = toJSON x
+  toJSON (NegValue x) = object
+      [ "negate" .= x ]
+  toJSON (AddValue lhs rhs) = object
+      [ "add" .= lhs
+      , "and" .= rhs
+      ]
+  toJSON (SubValue lhs rhs) = object
+      [ "value" .= lhs
+      , "minus" .= rhs
+      ]
+  toJSON (MulValue lhs rhs) = object
+      [ "multiply" .= lhs
+      , "times" .= rhs
+      ]
+  toJSON (Scale rat v) = object
+      [ "multiply" .= v
+      , "times" .= num
+      , "divide_by" .= den
+      ]
+    where num = numerator rat
+          den = denominator rat
+  toJSON (ChoiceValue choiceId) = object
+      [ "value_of_choice" .= choiceId ]
+  toJSON SlotIntervalStart = JSON.String $ pack "slot_interval_start"
+  toJSON SlotIntervalEnd = JSON.String $ pack "slot_interval_end"
+  toJSON (UseValue valueId) = object
+      [ "use_value" .= valueId ]
+  toJSON (Cond obs tv ev) = object
+      [ "if" .= obs
+      , "then" .= tv
+      , "else" .= ev
+      ]
 
 instance FromJSON Observation where parseJSON = genericParseJSON customOptions
 instance ToJSON Observation where toJSON = genericToJSON customOptions
