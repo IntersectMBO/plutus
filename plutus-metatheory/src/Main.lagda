@@ -327,4 +327,12 @@ normalizeType ty = do
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
 
+-- Haskell interface to type checker:
+inferType∅ : Term → Maybe Type
+inferType∅ t = do
+  t' ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  ty ,, _ ← liftSum (inferType ∅ t')
+  return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ ty))))
+
+{-# COMPILE GHC inferType∅ as inferTypeAgda #-}
 \end{code}

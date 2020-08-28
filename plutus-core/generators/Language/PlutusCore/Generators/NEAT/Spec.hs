@@ -20,6 +20,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , TestFail (..)
   , testCaseGen
   , tynames
+  , names
   , throwCtrex
   , Ctrex (..)
   ) where
