@@ -8,6 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StrictData                 #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -32,10 +33,11 @@ module Plutus.SCB.MockApp
     , blockchainNewestFirst
     ) where
 
+import           Cardano.Node.Types                    (NodeFollowerState)
 import qualified Cardano.Node.Types                    as NodeServer
 import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
-import           Control.Monad.Freer                   (Eff, Member, interpret, runM, subsume)
+import           Control.Monad.Freer                   (Eff, Member, type (~>), interpret, runM)
 import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extra.Log         (LogMsg)
 import           Control.Monad.Freer.Extra.State       (use)
@@ -47,11 +49,12 @@ import           Control.Monad.IO.Class                (MonadIO (..))
 import           Data.Foldable                         (toList, traverse_)
 import           Data.Map                              (Map)
 import qualified Data.Map                              as Map
+import           Data.OpenUnion                        ((:++:))
 import qualified Data.Text                             as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import qualified Language.Plutus.Contract.Trace        as Trace
-import           Ledger                                (Address, Blockchain)
+import           Ledger                                (Address, Blockchain, Slot)
 import qualified Ledger
 import qualified Ledger.AddressMap                     as AM
 import           Plutus.SCB.Command                    ()
@@ -67,8 +70,8 @@ import qualified Cardano.ChainIndex.Server             as ChainIndex
 import qualified Cardano.ChainIndex.Types              as ChainIndex
 import           Cardano.Node.Follower                 (NodeFollowerLogMsg)
 import           Wallet.API                            (WalletAPIError)
-import           Wallet.Emulator.Chain                 (ChainControlEffect, ChainEffect, ChainEvent, handleChain,
-                                                        handleControlChain)
+import           Wallet.Emulator.Chain                 (ChainControlEffect, ChainEffect, ChainEvent, ChainState,
+                                                        handleChain, handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex            (ChainIndexEvent)
 import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, emulatorTimeEvent, _singleton)
@@ -113,9 +116,6 @@ type MockAppEffects =
     '[ MultiAgentSCBEffect
      , ChainControlEffect
      , ChainEffect
-     , State TestState
-     , Error SCBError
-     , IO
      ]
 
 data MockAppReport =
@@ -142,7 +142,24 @@ instance Pretty MockAppReport where
         , vsep (pretty <$> marFinalChainIndexEvents)
         ]
 
-runScenario :: Eff MockAppEffects a -> IO a
+runScenario ::
+  Eff '[ MultiAgentSCBEffect
+       , ChainControlEffect
+       , ChainEffect
+       , LogMsg ContractTestMsg
+       , LogMsg NodeFollowerLogMsg
+       , Writer [LogMessage SCBMultiAgentMsg]
+       , Writer [ChainEvent]
+       , Writer [LogMessage MockAppLog]
+       , State NodeFollowerState
+       , State ChainState
+       , State (Map Wallet AgentState)
+       , Error WalletAPIError
+       , Error SCBError
+       , State TestState
+       , UUIDEffect
+       , IO] a
+  -> IO a
 runScenario action = do
     (result, finalState) <- runMockApp initialTestState $ do
                 void Wallet.Emulator.Chain.processBlock
@@ -161,61 +178,92 @@ runScenario action = do
             error $ show err
         Right value -> pure value
 
-runMockApp ::
-       TestState -> Eff MockAppEffects a -> IO (Either SCBError a, TestState)
+runMockApp :: TestState
+    -> Eff (MockAppEffects
+            :++: '[LogMsg ContractTestMsg, LogMsg NodeFollowerLogMsg]
+            :++: '[Writer [LogMessage SCBMultiAgentMsg], Writer [ChainEvent], Writer [LogMessage MockAppLog]]
+            :++: '[State NodeFollowerState, State ChainState, State (Map Wallet AgentState)]
+            :++: '[Error WalletAPIError]
+            :++: '[Error SCBError, State TestState, UUIDEffect, IO]
+           ) a
+    -> IO (Either SCBError a, TestState)
 runMockApp state action =
-    let emulatorTime = view (nodeState .  NodeServer.chainState . Wallet.Emulator.Chain.currentSlot) state in
-    runM
-    $ handleUUIDEffect
-    $ runState state
+  action
+    & handleTopLevelEffects
+    & handleLogMessages
+    & handleWriters emulatorTime
+    & handleStates
+    & handleErrors
+    & handleFinalEffects state
+  where
+    emulatorTime = view (nodeState .  NodeServer.chainState . Wallet.Emulator.Chain.currentSlot) state
 
-    -- error handlers
-    $ runError
-    $ flip handleError (throwError . WalletError)
+handleFinalEffects :: TestState
+    -> Eff '[Error SCBError, State TestState, UUIDEffect, IO] a
+    -> IO (Either SCBError a, TestState)
+handleFinalEffects state action =
+  action
+    & runError
+    & runState state
+    & handleUUIDEffect
+    & runM
 
-    -- state handlers
-    $ interpret (handleZoomedState agentStates)
-    $ interpret (handleZoomedState (nodeState . NodeServer.chainState))
-    $ interpret (handleZoomedState (nodeState . NodeServer.followerState))
+handleTopLevelEffects ::
+       ( Member (State (Map Wallet AgentState)) effs
+       , Member (State ChainState) effs
+       , Member (State NodeFollowerState) effs
+       , Member (Error WalletAPIError) effs
+       , Member (Error SCBError) effs
+       , Member (Writer [ChainEvent]) effs
+       , Member (Writer [LogMessage SCBMultiAgentMsg]) effs
+       , Member UUIDEffect effs
+       , Member (LogMsg ContractTestMsg) effs
+       , Member (LogMsg NodeFollowerLogMsg) effs
+       )
+    => Eff (MultiAgentSCBEffect ': ChainControlEffect ': ChainEffect ': effs) ~> Eff effs
+handleTopLevelEffects action =
+  action
+    & SCB.MultiAgent.handleMultiAgent
+    & handleControlChain
+    & handleChain
 
-    -- writers
-    $ interpret (writeIntoState emulatorEventLog)
-    $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[Wallet.Emulator.Chain.ChainEvent] (below (logMessage Info . _MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
-    $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage SCBMultiAgentMsg] (below (below _MockAppMultiAgent)))
+handleLogMessages ::
+       Member (Writer [LogMessage MockAppLog]) effs
+    => Eff (LogMsg ContractTestMsg ': LogMsg NodeFollowerLogMsg ': effs)
+    ~> Eff effs
+handleLogMessages action =
+  action
+    & interpret (handleLogWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
+    & interpret (handleLogWriter @NodeFollowerLogMsg @[LogMessage MockAppLog] (_singleton . below _MockAppNodeFollower))
 
-    -- log messages
-    $ interpret (handleLogWriter @NodeFollowerLogMsg @[LogMessage MockAppLog] (_singleton . below _MockAppNodeFollower))
-    $ interpret (handleLogWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
+handleWriters ::
+       Member (State TestState) effs
+    => Slot
+    -> Eff (Writer [LogMessage SCBMultiAgentMsg] ': Writer [ChainEvent] ': Writer [LogMessage MockAppLog] ': effs)
+    ~> Eff effs
+handleWriters emulatorTime action =
+  action
+    & interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage SCBMultiAgentMsg] (below (below _MockAppMultiAgent)))
+    & interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[Wallet.Emulator.Chain.ChainEvent] (below (logMessage Info . _MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
+    & interpret (writeIntoState emulatorEventLog)
 
-    -- handlers for 'MockAppEffects'
-    $ subsume
-    $ subsume
-    $ subsume
-    $ handleChain
-    $ handleControlChain
-    $ SCB.MultiAgent.handleMultiAgent
-    $ raiseEnd6
-        -- interpret the 'MockAppEffects' using
-        -- the following list of effects
-        @'[ LogMsg ContractTestMsg
-          , LogMsg NodeFollowerLogMsg
-          , Writer [LogMessage SCBMultiAgentMsg]
-          , Writer [Wallet.Emulator.Chain.ChainEvent]
-          , Writer [LogMessage MockAppLog]
+handleStates ::
+       Member (State TestState) effs
+    => Eff (State NodeFollowerState ': State ChainState ': State (Map Wallet AgentState) ': effs)
+    ~> Eff effs
+handleStates action =
+  action
+    & interpret (handleZoomedState (nodeState . NodeServer.followerState))
+    & interpret (handleZoomedState (nodeState . NodeServer.chainState))
+    & interpret (handleZoomedState agentStates)
 
-          , State _
-          , State _
-          , State (Map Wallet AgentState)
-
-          , Error WalletAPIError
-          , Error SCBError
-
-          , State TestState
-
-          , UUIDEffect
-          , IO
-          ]
-        action
+handleErrors ::
+       Member (Error SCBError) effs
+    => Eff (Error WalletAPIError ': effs)
+    ~> Eff effs
+handleErrors action =
+  action
+    & flip handleError (throwError . WalletError)
 
 -- | Synchronise the agent's view of the blockchain with the node.
 sync ::
