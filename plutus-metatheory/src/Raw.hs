@@ -103,7 +103,7 @@ unconvT :: Int -> RType -> Type TyDeBruijn DefaultUni ()
 unconvT i (RTyVar x)        =
   --TyVar () (TyDeBruijn (DeBruijn (T.pack (show (i,x))) (Index (naturalFromInteger x))))
   TyVar () (TyDeBruijn (DeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
-  
+
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
   TyForall () (TyDeBruijn (varTy (i+1))) (unconvK k) (unconvT (i+1) t)
