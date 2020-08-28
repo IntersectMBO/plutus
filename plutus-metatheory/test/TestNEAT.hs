@@ -44,7 +44,7 @@ allTests genOpts = testGroup "NEAT"
       prop_kindInferSame
   ]
 
-
+-- check that Agda agrees that the given type is correct
 prop_checkKindSound :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
 prop_checkKindSound k tyG = do
    ty <- withExceptT GenError $ convertClosedType tynames k tyG
@@ -54,6 +54,7 @@ prop_checkKindSound k tyG = do
        Just _  -> return ()
        Nothing -> throwError ()
 
+-- check that the Agda type normalizer doesn't mangle the kind
 prop_normalizePreservesKind :: Kind ()
                             -> ClosedTypeG
                             -> ExceptT TestFail Quote ()
@@ -69,7 +70,7 @@ prop_normalizePreservesKind k tyG = do
       Just _  -> return ()
       Nothing -> throwError ()
 
--- the agda implementation throws names away, so I guess we need to compare deBruijn terms
+-- compare the NEAT type normalizer against the Agda normalizer
 prop_normalizeTypeSound :: Kind ()
                         -> ClosedTypeG
                         -> ExceptT TestFail Quote ()
@@ -81,22 +82,26 @@ prop_normalizeTypeSound k tyG = do
     Nothing  -> throwError ()
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
-  unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $ throwError (AgdaErrorP ()) -- FIXME
+  unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $
+    throwCtrex (CtrexNormalizeConvertCommuteTypes k ty (() <$ ty1) ty2)
 
-
+-- compare the production type normalizer against the Agda type normalizer
 prop_normalizeTypeSame :: Kind ()
                         -> ClosedTypeG
                         -> ExceptT TestFail Quote ()
 prop_normalizeTypeSame k tyG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just tyN -> return tyN
-    Nothing  -> throwError ()
+  tyN1 <- withExceptT AgdaErrorP $
+    case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+      Just tyN -> return tyN
+      Nothing  -> throwError ()
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   ty2 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
-  unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $ throwError (AgdaErrorP ()) -- FIXME
+  unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $
+    throwCtrex (CtrexNormalizeConvertCommuteTypes k ty (() <$ ty1) ty2)
 
+-- compare the production kind inference against the Agda 
 prop_kindInferSame :: Kind ()
                    -> ClosedTypeG
                    -> ExceptT TestFail Quote ()

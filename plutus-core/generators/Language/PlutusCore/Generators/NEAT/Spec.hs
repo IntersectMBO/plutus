@@ -20,6 +20,8 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , TestFail (..)
   , testCaseGen
   , tynames
+  , throwCtrex
+  , Ctrex (..)
   ) where
 
 import           Language.PlutusCore
@@ -129,7 +131,6 @@ prop_normalizeConvertCommuteTypes k tyG = do
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
   unless (ty1 == ty2) $ throwCtrex (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2)
-
 
 -- |Property: normal types cannot reduce
 prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT TestFail Quote ()
