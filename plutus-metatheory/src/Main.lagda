@@ -321,8 +321,8 @@ open import Type.BetaNormal
 -- a Haskell interface to the type normalizer:
 normalizeType : Type → Maybe Type
 normalizeType ty = do
-  ty'       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
-  (_ ,, n) ← liftSum (inferKind ∅ ty')
+  ty'    ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  _ ,, n ← liftSum (inferKind ∅ ty')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
@@ -335,4 +335,16 @@ inferType∅ t = do
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ ty))))
 
 {-# COMPILE GHC inferType∅ as inferTypeAgda #-}
+
+checkType : Type → Term → Maybe ⊤
+checkType ty t = do
+  ty'       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  k ,, tyN  ← liftSum (inferKind ∅ ty')
+  t'        ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  tyN' ,, _ ← liftSum (inferType ∅ t')
+  refl      ← liftSum (meqKind k *)
+  refl      ← liftSum (meqNfTy tyN tyN')
+  return _
+
+{-# COMPILE GHC checkType as checkTypeAgda #-}
 \end{code}

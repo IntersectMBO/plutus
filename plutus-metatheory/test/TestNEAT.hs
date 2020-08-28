@@ -10,7 +10,7 @@ import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                        (checkKindAgda, inferKindAgda, normalizeTypeAgda, inferTypeAgda)
+import           MAlonzo.Code.Main                        (checkKindAgda, inferKindAgda, normalizeTypeAgda, inferTypeAgda, checkTypeAgda)
 import           MAlonzo.Code.Scoped                      (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -42,6 +42,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type ())
       prop_kindInferSame
+  , testCaseGen "typeInfer"
+      genOpts
+      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_typeinfer
   , testCaseGen "typeCheck"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
@@ -119,12 +123,24 @@ prop_kindInferSame k tyG = do
   unless (unconvK (unDeBruijnifyK k') == k'') $ throwError (AgdaErrorP ()) -- FIXME
 
 -- try to typecheck a term
+prop_typeinfer :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typeinfer (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  withExceptT AgdaErrorP $
+    case inferTypeAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just _  -> return ()
+      Nothing -> throwError ()
+   
+-- try to typecheck a term
 prop_typecheck :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typecheck (k , tyG) tmG = do
-   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-   withExceptT AgdaErrorP $
-     case inferTypeAgda (AlexPn 0 0 0 <$ tmDB) of
-       Just _  -> return ()
-       Nothing -> throwError ()
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  withExceptT AgdaErrorP $
+    case checkTypeAgda (AlexPn 0 0 0 <$ tyDB) (AlexPn 0 0 0 <$ tmDB) of
+      Just _  -> return ()
+      Nothing -> throwError ()
    
