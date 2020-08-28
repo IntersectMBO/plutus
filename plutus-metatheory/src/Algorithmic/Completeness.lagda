@@ -37,15 +37,11 @@ lemΠ B = cong Π (sym (substNf-lemma' B))
 
 open import Type.BetaNBE.Soundness
 
-lemXX : ∀{Φ K}(A :  Φ ⊢⋆ _)(B : Φ ⊢⋆ K) →
+stability-μ : ∀{Φ K}(A :  Φ ⊢⋆ _)(B : Φ ⊢⋆ K) →
   nf (A · ƛ (μ (weaken A) (` Z)) · B)
   ≡
-  nf
-    (embNf (nf A) · ƛ (μ (embNf (weakenNf (nf A))) (` Z)) ·
-     embNf (nf B))
-lemXX {Φ} A B = completeness
-  {s = A · ƛ (μ (weaken A) (` Z)) · B}
-  {embNf (nf A) · ƛ (μ (embNf (weakenNf (nf A))) (` Z)) · embNf (nf B)}
+  nf (embNf (nf A) · ƛ (μ (embNf (weakenNf (nf A))) (` Z)) · embNf (nf B))
+stability-μ A B = completeness
   (·≡β
     (·≡β
       (soundness A)
@@ -276,10 +272,10 @@ nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
 nfType (Syn.wrap A B t) = Norm.wrap
   (nf A)
   (nf B)
-  (Norm.conv⊢ refl (lemXX A B) (nfType t))
+  (Norm.conv⊢ refl (stability-μ A B) (nfType t))
 nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   refl
-  (sym (lemXX A B))
+  (sym (stability-μ A B))
   (Norm.unwrap (nfType t))
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
 nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)

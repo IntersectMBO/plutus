@@ -347,12 +347,12 @@ same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
     (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A)))) 
 same {Γ = Γ} (D.wrap A B t) = trans
   (same t)
-  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemXX A B) (nfType t)))
+  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (stability-μ A B) (nfType t)))
 same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
   (same t)
   (cong
     (subst _⊢ (lenLemma Γ))
-    (lem-erase' (sym (lemXX A B)) (unwrap (nfType t)))) 
+    (lem-erase' (sym (stability-μ A B)) (unwrap (nfType t)))) 
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))

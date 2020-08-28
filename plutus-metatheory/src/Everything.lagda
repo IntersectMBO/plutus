@@ -59,9 +59,6 @@ import Algorithmic.CEKD
 import Algorithmic.CEKC
 import Algorithmic.CEKV
 
---import AlgorithmicRed.Term
---import AlgorithmicRed.Term.RenamingSubstitution
-
 -- Untyped terms, reduction and evaluation
 
 import Untyped

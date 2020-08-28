@@ -34,23 +34,9 @@ import Builtin.Signature
 
 \begin{code}
 embCtx : ∀{Φ} → Alg.Ctx Φ → Dec.Ctx Φ
---embCtx∥ : ∀ Γ → Alg.∥ Γ ∥ ≡ Dec.∥ embCtx Γ ∥
-
 embCtx Alg.∅       = Dec.∅
 embCtx (Γ Alg.,⋆ K) = embCtx Γ Dec.,⋆ K
 embCtx (Γ Alg., A)  = embCtx Γ Dec., embNf A
-\end{code}
-
-\begin{code}
-{-
-lemT' : ∀{Γ Γ' J K}(A :  Γ ⊢Nf⋆ K)
- → (p : Γ ≡ Γ')
- → (q : Γ ,⋆ J ≡ Γ' ,⋆ J)
-  → weaken (substEq (_⊢⋆ K) p (embNf A))
-    ≡
-    substEq (_⊢⋆ K) q (embNf (renNf S A))
-lemT' A refl refl = sym (ren-embNf S A)
--}
 \end{code}
 
 \begin{code}
@@ -64,9 +50,9 @@ embVar (Alg.T {A = A} α) =
 \end{code}
 
 \begin{code}
-lem[]'' : ∀{Γ K}(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
+emb[] : ∀{Γ K}(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
   (embNf B [ embNf A ]) ≡β embNf (B [ A ]Nf)
-lem[]'' A B = trans≡β
+emb[] A B = trans≡β
   (soundness (embNf B [ embNf A ]))
   (≡2β (cong embNf
     (trans
@@ -78,11 +64,11 @@ lem[]'' A B = trans≡β
 \end{code}
 
 \begin{code}
-lemμ''' : ∀{Φ Φ' K}(p : Φ ≡ Φ')(A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(B : Φ ⊢Nf⋆ K) →
+soundness-μ : ∀{Φ Φ' K}(p : Φ ≡ Φ')(A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(B : Φ ⊢Nf⋆ K) →
   embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B ≡β
   embNf
     (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
-lemμ''' p A B = trans≡β
+soundness-μ p A B = trans≡β
   (soundness (embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B))
   (≡2β (cong (λ X → embNf (nf (embNf A · ƛ (μ X (` Z)) · embNf B)))
              (sym (ren-embNf S A))))
@@ -203,13 +189,13 @@ emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
 emb (Alg.Λ {B = B} t) = Dec.Λ (emb t)
 emb (Alg._·⋆_ {B = B} t A) =
-    Dec.conv (lem[]'' A B) (emb t Dec.·⋆ embNf A)
+    Dec.conv (emb[] A B) (emb t Dec.·⋆ embNf A)
 emb (Alg.wrap A B t) = Dec.wrap
   (embNf A)
   (embNf B)
-  (Dec.conv (sym≡β (lemμ''' refl A B)) (emb t))
+  (Dec.conv (sym≡β (soundness-μ refl A B)) (emb t))
 emb (Alg.unwrap {A = A}{B} t) =
-  Dec.conv (lemμ''' refl A B) (Dec.unwrap (emb t))
+  Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
 emb (Alg.builtin bn σ tel) = let
   Δ  ,, As  ,, C  = SSig.SIG bn
