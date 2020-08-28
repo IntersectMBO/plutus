@@ -1,6 +1,6 @@
 (let
   (nonrec)
-  (termbind (strict) (vardecl i (con integer)) (con 3))
+  (termbind (strict) (vardecl i (con integer)) (con integer 3))
   [
     (lam
       x
@@ -10,11 +10,11 @@
         (termbind
           (strict)
           (vardecl j (con integer))
-          [ [ (builtin addInteger) i ] (con 1) ]
+          [ [ (builtin addInteger) i ] (con integer 1) ]
         )
         j
       )
     )
-    (con 4)
+    (con integer 4)
   ]
 )

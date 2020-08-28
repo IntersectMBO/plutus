@@ -152,7 +152,9 @@
           [
             [
               { allDirect (con integer) }
-              (lam ds (con integer) [ [ greaterThanInteger ds ] (con 5) ])
+              (lam
+                ds (con integer) [ [ greaterThanInteger ds ] (con integer 5) ]
+              )
             ]
             [
               { build (con integer) }
@@ -162,7 +164,8 @@
                 (lam
                   c
                   (fun (con integer) (fun a a))
-                  (lam n a [ [ c (con 7) ] [ [ c (con 6) ] n ] ])
+                  (lam n a [ [ c (con integer 7) ] [ [ c (con integer 6) ] n ] ]
+                  )
                 )
               )
             ]

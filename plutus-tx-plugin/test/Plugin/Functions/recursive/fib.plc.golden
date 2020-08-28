@@ -56,10 +56,10 @@
             [
               [
                 {
-                  [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
                   (fun Unit (con integer))
                 }
-                (lam thunk Unit (con 0))
+                (lam thunk Unit (con integer 0))
               ]
               (lam
                 thunk
@@ -68,17 +68,20 @@
                   [
                     [
                       {
-                        [ Bool_match [ [ equalsInteger n ] (con 1) ] ]
+                        [ Bool_match [ [ equalsInteger n ] (con integer 1) ] ]
                         (fun Unit (con integer))
                       }
-                      (lam thunk Unit (con 1))
+                      (lam thunk Unit (con integer 1))
                     ]
                     (lam
                       thunk
                       Unit
                       [
-                        [ addInteger [ fib [ [ subtractInteger n ] (con 1) ] ] ]
-                        [ fib [ [ subtractInteger n ] (con 2) ] ]
+                        [
+                          addInteger
+                          [ fib [ [ subtractInteger n ] (con integer 1) ] ]
+                        ]
+                        [ fib [ [ subtractInteger n ] (con integer 2) ] ]
                       ]
                     )
                   ]

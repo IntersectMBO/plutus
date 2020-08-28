@@ -1016,7 +1016,8 @@
                                                                                         i
                                                                                       ]
                                                                                       (con
-                                                                                        0
+                                                                                        integer
+                                                                                          0
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -1611,7 +1612,7 @@
                                         arg
                                         b
                                         [
-                                          [ Constr (con 0) ]
+                                          [ Constr (con integer 0) ]
                                           [
                                             { build Data }
                                             (abs
@@ -1999,7 +2000,8 @@
                                                                                                   i
                                                                                                 ]
                                                                                                 (con
-                                                                                                  0
+                                                                                                  integer
+                                                                                                    0
                                                                                                 )
                                                                                               ]
                                                                                             ]
@@ -2460,7 +2462,8 @@
                                                                     equalsInteger
                                                                     i
                                                                   ]
-                                                                  (con 0)
+                                                                  (con integer 0
+                                                                  )
                                                                 ]
                                                               ]
                                                               (fun Unit [Maybe MSState])
@@ -2552,7 +2555,8 @@
                                                                                         i
                                                                                       ]
                                                                                       (con
-                                                                                        1
+                                                                                        integer
+                                                                                          1
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -2875,7 +2879,7 @@
                                       arg
                                       (con integer)
                                       [
-                                        [ Constr (con 0) ]
+                                        [ Constr (con integer 0) ]
                                         [
                                           { build Data }
                                           (abs
@@ -2925,7 +2929,7 @@
                                           thunk
                                           Unit
                                           [
-                                            [ Constr (con 1) ]
+                                            [ Constr (con integer 1) ]
                                             [
                                               { build Data }
                                               (abs
@@ -2980,7 +2984,7 @@
                                   (lam
                                     thunk
                                     Unit
-                                    [ [ Constr (con 0) ] { Nil Data } ]
+                                    [ [ Constr (con integer 0) ] { Nil Data } ]
                                   )
                                 ]
                                 Unit
@@ -3399,7 +3403,7 @@
                           (termbind
                             (strict)
                             (vardecl scheckOwnOutputConstraint (con string))
-                            (con "Output constraint")
+                            (con string "Output constraint")
                           )
                           (termbind
                             (strict)
@@ -3472,7 +3476,7 @@
                                                         Bool_match
                                                         [
                                                           [ equalsInteger ds ]
-                                                          (con 0)
+                                                          (con integer 0)
                                                         ]
                                                       ]
                                                       (fun Unit a)
@@ -3486,7 +3490,7 @@
                                                       [ { bad_name a } xs ]
                                                       [
                                                         [ subtractInteger ds ]
-                                                        (con 1)
+                                                        (con integer 1)
                                                       ]
                                                     ]
                                                   )
@@ -4879,7 +4883,8 @@
                                                                                                         [
                                                                                                           f
                                                                                                           (con
-                                                                                                            0
+                                                                                                            integer
+                                                                                                              0
                                                                                                           )
                                                                                                         ]
                                                                                                         b
@@ -4963,7 +4968,8 @@
                                                                                                       a
                                                                                                     ]
                                                                                                     (con
-                                                                                                      0
+                                                                                                      integer
+                                                                                                        0
                                                                                                     )
                                                                                                   ]
                                                                                                 ]
@@ -5328,7 +5334,7 @@
                                 (termbind
                                   (strict)
                                   (vardecl scheckValidatorCtx (con string))
-                                  (con "checkValidatorCtx failed")
+                                  (con string "checkValidatorCtx failed")
                                 )
                                 (termbind
                                   (nonstrict)
@@ -5616,7 +5622,8 @@
                                                                                       [
                                                                                         trace
                                                                                         (con
-                                                                                          "Input constraint"
+                                                                                          string
+                                                                                            "Input constraint"
                                                                                         )
                                                                                       ]
                                                                                     ]
@@ -9310,7 +9317,7 @@
                                                               ]
                                                               (con integer)
                                                             }
-                                                            (con 0)
+                                                            (con integer 0)
                                                           ]
                                                           (lam
                                                             ds
@@ -9406,7 +9413,7 @@
                                                           ]
                                                           (con integer)
                                                         }
-                                                        (con 0)
+                                                        (con integer 0)
                                                       ]
                                                       (lam
                                                         ds
@@ -9829,7 +9836,8 @@
                                                                                                         [
                                                                                                           f
                                                                                                           (con
-                                                                                                            0
+                                                                                                            integer
+                                                                                                              0
                                                                                                           )
                                                                                                         ]
                                                                                                         b
@@ -9861,7 +9869,8 @@
                                                                                                       a
                                                                                                     ]
                                                                                                     (con
-                                                                                                      0
+                                                                                                      integer
+                                                                                                        0
                                                                                                     )
                                                                                                   ]
                                                                                                 )
@@ -10334,7 +10343,8 @@
                                                                                                             [
                                                                                                               trace
                                                                                                               (con
-                                                                                                                "Missing signature"
+                                                                                                                string
+                                                                                                                  "Missing signature"
                                                                                                               )
                                                                                                             ]
                                                                                                           ]
@@ -10460,7 +10470,8 @@
                                                                                           [
                                                                                             trace
                                                                                             (con
-                                                                                              "Value forged not OK"
+                                                                                              string
+                                                                                                "Value forged not OK"
                                                                                             )
                                                                                           ]
                                                                                         ]
@@ -10506,7 +10517,8 @@
                                                                                     [
                                                                                       trace
                                                                                       (con
-                                                                                        "MustHashDatum"
+                                                                                        string
+                                                                                          "MustHashDatum"
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -10686,7 +10698,8 @@
                                                                                                       [
                                                                                                         trace
                                                                                                         (con
-                                                                                                          "Missing datum"
+                                                                                                          string
+                                                                                                            "Missing datum"
                                                                                                         )
                                                                                                       ]
                                                                                                     ]
@@ -11015,7 +11028,8 @@
                                                                                                           [
                                                                                                             trace
                                                                                                             (con
-                                                                                                              "MustPayToOtherScript"
+                                                                                                              string
+                                                                                                                "MustPayToOtherScript"
                                                                                                             )
                                                                                                           ]
                                                                                                         ]
@@ -11096,7 +11110,8 @@
                                                                                 [
                                                                                   trace
                                                                                   (con
-                                                                                    "MustPayToPubKey"
+                                                                                    string
+                                                                                      "MustPayToPubKey"
                                                                                   )
                                                                                 ]
                                                                               ]
@@ -11135,7 +11150,8 @@
                                                                           [
                                                                             trace
                                                                             (con
-                                                                              "Public key output not spent"
+                                                                              string
+                                                                                "Public key output not spent"
                                                                             )
                                                                           ]
                                                                         ]
@@ -11287,7 +11303,8 @@
                                                                             [
                                                                               trace
                                                                               (con
-                                                                                "Script output not spent"
+                                                                                string
+                                                                                  "Script output not spent"
                                                                               )
                                                                             ]
                                                                           ]
@@ -11350,7 +11367,8 @@
                                                                         [
                                                                           trace
                                                                           (con
-                                                                            "Spent value not OK"
+                                                                            string
+                                                                              "Spent value not OK"
                                                                           )
                                                                         ]
                                                                       ]
@@ -11460,7 +11478,8 @@
                                                                                                     [
                                                                                                       trace
                                                                                                       (con
-                                                                                                        "Wrong validation interval"
+                                                                                                        string
+                                                                                                          "Wrong validation interval"
                                                                                                       )
                                                                                                     ]
                                                                                                   ]
@@ -12100,7 +12119,8 @@
                                                                                 [
                                                                                   trace
                                                                                   (con
-                                                                                    "Output constraint"
+                                                                                    string
+                                                                                      "Output constraint"
                                                                                   )
                                                                                 ]
                                                                               ]
@@ -12203,7 +12223,8 @@
                                                                         [
                                                                           trace
                                                                           (con
-                                                                            "checkValidatorCtx failed"
+                                                                            string
+                                                                              "checkValidatorCtx failed"
                                                                           )
                                                                         ]
                                                                       ]
@@ -12598,7 +12619,8 @@
                                                                                                     [
                                                                                                       equalsInteger
                                                                                                       (con
-                                                                                                        0
+                                                                                                        integer
+                                                                                                          0
                                                                                                       )
                                                                                                     ]
                                                                                                     x
@@ -12977,7 +12999,8 @@
                                                                                                                                 [
                                                                                                                                   trace
                                                                                                                                   (con
-                                                                                                                                    "State transition invalid - constraints not satisfied by ValidatorCtx"
+                                                                                                                                    string
+                                                                                                                                      "State transition invalid - constraints not satisfied by ValidatorCtx"
                                                                                                                                   )
                                                                                                                                 ]
                                                                                                                               ]
@@ -13012,7 +13035,8 @@
                                                                                                                 [
                                                                                                                   trace
                                                                                                                   (con
-                                                                                                                    "Non-zero value allocated in final state"
+                                                                                                                    string
+                                                                                                                      "Non-zero value allocated in final state"
                                                                                                                   )
                                                                                                                 ]
                                                                                                               ]
@@ -13152,7 +13176,8 @@
                                                                                                               [
                                                                                                                 trace
                                                                                                                 (con
-                                                                                                                  "State transition invalid - constraints not satisfied by ValidatorCtx"
+                                                                                                                  string
+                                                                                                                    "State transition invalid - constraints not satisfied by ValidatorCtx"
                                                                                                                 )
                                                                                                               ]
                                                                                                             ]
@@ -13194,7 +13219,8 @@
                                                                                   [
                                                                                     trace
                                                                                     (con
-                                                                                      "State transition invalid - input is not a valid transition at the current state"
+                                                                                      string
+                                                                                        "State transition invalid - input is not a valid transition at the current state"
                                                                                     )
                                                                                   ]
                                                                                 ]
@@ -13225,7 +13251,8 @@
                                                                           [
                                                                             trace
                                                                             (con
-                                                                              "State transition invalid - checks failed"
+                                                                              string
+                                                                                "State transition invalid - checks failed"
                                                                             )
                                                                           ]
                                                                         ]
@@ -13363,7 +13390,7 @@
                                           (vardecl
                                             fAdditiveGroupValue (con integer)
                                           )
-                                          (con -1)
+                                          (con integer -1)
                                         )
                                         (termbind
                                           (strict)
@@ -13823,12 +13850,13 @@
                                                     acc
                                                     (con integer)
                                                     [
-                                                      [ addInteger acc ] (con 1)
+                                                      [ addInteger acc ]
+                                                      (con integer 1)
                                                     ]
                                                   )
                                                 )
                                               ]
-                                              (con 0)
+                                              (con integer 0)
                                             ]
                                           )
                                         )

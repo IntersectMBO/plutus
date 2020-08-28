@@ -90,7 +90,7 @@
           [
             [
               { { mapDirect (con integer) } (con integer) }
-              [ addInteger (con 1) ]
+              [ addInteger (con integer 1) ]
             ]
             [
               { build (con integer) }
@@ -100,7 +100,8 @@
                 (lam
                   c
                   (fun (con integer) (fun a a))
-                  (lam n a [ [ c (con 0) ] [ [ c (con 1) ] n ] ])
+                  (lam n a [ [ c (con integer 0) ] [ [ c (con integer 1) ] n ] ]
+                  )
                 )
               )
             ]

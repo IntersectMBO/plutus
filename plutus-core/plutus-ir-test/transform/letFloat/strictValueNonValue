@@ -3,13 +3,13 @@
      (lam x (con integer)
           (let (rec)
                (termbind (strict) (vardecl nonvalue (con integer))
-                  [value (con 3)]
+                  [value (con integer 3)]
                )
                x
            )
       )
       )
- (con 3)
+ (con integer 3)
  )
 -- similar to strictNonValue3 `nonvalue` is immovable, but value is movable.
 -- this is to test that nonvalue will be included in the rhstable[value]

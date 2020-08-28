@@ -39,8 +39,11 @@
     (termbind
       (strict)
       (vardecl wild Bool)
-      [ [ equalsInteger [ [ divideInteger (con 1) ] (con 0) ] ] (con 0) ]
+      [
+        [ equalsInteger [ [ divideInteger (con integer 1) ] (con integer 0) ] ]
+        (con integer 0)
+      ]
     )
-    (con 1)
+    (con integer 1)
   )
 )

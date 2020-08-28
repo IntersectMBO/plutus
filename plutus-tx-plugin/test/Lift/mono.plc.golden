@@ -19,7 +19,7 @@
                     (lam
                       match_Plugin_Data_Spec_MyMonoData_i0
                       (fun Plugin_Data_Spec_MyMonoData_i5 (all out_Plugin_Data_Spec_MyMonoData_i0 (type) (fun (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoData_i1)) (fun (fun (con integer) out_Plugin_Data_Spec_MyMonoData_i1) (fun (fun (con integer) out_Plugin_Data_Spec_MyMonoData_i1) out_Plugin_Data_Spec_MyMonoData_i1)))))
-                      [ Plugin_Data_Spec_Mono2_i3 (con 2) ]
+                      [ Plugin_Data_Spec_Mono2_i3 (con integer 2) ]
                     )
                   )
                 )

@@ -145,6 +145,7 @@
           "Language/PlutusCore/Generators/Internal/TypeEvalCheck"
           "Language/PlutusCore/Generators/Internal/TypedBuiltinGen"
           "Language/PlutusCore/Generators/Internal/Utils"
+          "Language/PlutusCore/Parsable"
           "Language/PlutusIR/Analysis/Dependencies"
           "Language/PlutusIR/Analysis/Usages"
           "Language/PlutusIR/Compiler/Error"
