@@ -49,6 +49,7 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import qualified Data.Foldable              as F
 import           Data.Scientific            (Scientific, floatingOrInteger)
 import           Data.Text                  (pack)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
@@ -928,6 +929,7 @@ customOptions = defaultOptions
                 , sumEncoding = TaggedObject { tagFieldName = "tag", contentsFieldName = "contents" }
                 }
 
+
 instance FromJSON Party where
   parseJSON = withObject "Party" (\v ->
         (PK . PubKeyHash . fromStrict <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
@@ -948,11 +950,13 @@ getInteger x = case (floatingOrInteger x :: Either Double Integer) of
 withInteger :: JSON.Value -> Parser Integer
 withInteger = withScientific "" getInteger
 
+
 instance FromJSON AccountId where
   parseJSON = withObject "AccountId" (\v ->
        AccountId <$> (withInteger =<< (v .: "account_number"))
                  <*> (parseJSON =<< (v .: "account_owner"))
                                      )
+
 
 instance ToJSON AccountId where
   toJSON (AccountId num party) = object [ "account_number" .= num
@@ -1046,28 +1050,179 @@ instance ToJSON (Value Observation) where
       , "else" .= ev
       ]
 
-instance FromJSON Observation where parseJSON = genericParseJSON customOptions
-instance ToJSON Observation where toJSON = genericToJSON customOptions
+
+instance FromJSON Observation where
+  parseJSON (Bool True) = return TrueObs
+  parseJSON (Bool False) = return FalseObs
+  parseJSON (Object v) =
+        (AndObs <$> (parseJSON =<< (v .: "both"))
+                <*> (parseJSON =<< (v .: "and")))
+    <|> (OrObs <$> (parseJSON =<< (v .: "either"))
+               <*> (parseJSON =<< (v .: "or")))
+    <|> (NotObs <$> (parseJSON =<< (v .: "not")))
+    <|> (ChoseSomething <$> (parseJSON =<< (v .: "chose_something_for")))
+    <|> (ValueGE <$> (parseJSON =<< (v .: "value"))
+                 <*> (parseJSON =<< (v .: "ge_than")))
+    <|> (ValueGT <$> (parseJSON =<< (v .: "value"))
+                 <*> (parseJSON =<< (v .: "gt")))
+    <|> (ValueLT <$> (parseJSON =<< (v .: "value"))
+                 <*> (parseJSON =<< (v .: "lt")))
+    <|> (ValueLE <$> (parseJSON =<< (v .: "value"))
+                 <*> (parseJSON =<< (v .: "le_than")))
+    <|> (ValueEQ <$> (parseJSON =<< (v .: "value"))
+                 <*> (parseJSON =<< (v .: "equal_to")))
+  parseJSON _ = fail "Observation must be either an object or a boolean"
+
+instance ToJSON Observation where
+  toJSON (AndObs lhs rhs) = object
+      [ "both" .= lhs
+      , "and" .= rhs
+      ]
+  toJSON (OrObs lhs rhs) = object
+      [ "either" .= lhs
+      , "or" .= rhs
+      ]
+  toJSON (NotObs v) = object
+      [ "not" .= v ]
+  toJSON (ChoseSomething choiceId) = object
+      [ "chose_something_for" .= choiceId ]
+  toJSON (ValueGE lhs rhs) = object
+      [ "value" .= lhs
+      , "ge_than" .= rhs
+      ]
+  toJSON (ValueGT lhs rhs) = object
+      [ "value" .= lhs
+      , "gt" .= rhs
+      ]
+  toJSON (ValueLT lhs rhs) = object
+      [ "value" .= lhs
+      , "lt" .= rhs
+      ]
+  toJSON (ValueLE lhs rhs) = object
+      [ "value" .= lhs
+      , "le_than" .= rhs
+      ]
+  toJSON (ValueEQ lhs rhs) = object
+      [ "value" .= lhs
+      , "equal_to" .= rhs
+      ]
+  toJSON TrueObs = toJSON True
+  toJSON FalseObs = toJSON False
 
 
-instance FromJSON Bound where parseJSON = genericParseJSON customOptions
-instance ToJSON Bound where toJSON = genericToJSON customOptions
+instance FromJSON Bound where
+  parseJSON = withObject "Bound" (\v ->
+       Bound <$> (parseJSON =<< (v .: "from"))
+             <*> (parseJSON =<< (v .: "to"))
+                                 )
+instance ToJSON Bound where
+  toJSON (Bound from to) = object
+      [ "from" .= from
+      , "to" .= to
+      ]
 
 
-instance FromJSON Action where parseJSON = genericParseJSON customOptions
-instance ToJSON Action where toJSON = genericToJSON customOptions
+instance FromJSON Action where
+  parseJSON = withObject "Action" (\v ->
+       (Deposit <$> (parseJSON =<< (v .: "into_account"))
+                <*> (parseJSON =<< (v .: "party"))
+                <*> (parseJSON =<< (v .: "of_token"))
+                <*> (parseJSON =<< (v .: "deposits")))
+   <|> (Choice <$> (parseJSON =<< (v .: "for_choice"))
+               <*> ((v .: "choose_between") >>=
+                    withArray "Bound list" (\bl ->
+                      mapM parseJSON (F.toList bl)
+                                            )))
+   <|> (Notify <$> (parseJSON =<< (v .: "notify_if")))
+                                  )
+instance ToJSON Action where
+  toJSON (Deposit accountId party token val) = object
+      [ "into_account" .= accountId
+      , "party" .= party
+      , "of_token" .= token
+      , "deposits" .= val
+      ]
+  toJSON (Choice choiceId bounds) = object
+      [ "for_choice" .= choiceId
+      , "choose_between" .= toJSONList (map toJSON bounds)
+      ]
+  toJSON (Notify obs) = object
+      [ "notify_if" .= obs ]
 
 
-instance FromJSON Payee where parseJSON = genericParseJSON customOptions
-instance ToJSON Payee where toJSON = genericToJSON customOptions
+instance FromJSON Payee where
+  parseJSON v = (Account <$> parseJSON v)
+            <|> (Party <$> parseJSON v)
+
+instance ToJSON Payee where
+  toJSON (Account acc) = toJSON acc
+  toJSON (Party party) = toJSON party
 
 
-instance FromJSON a => FromJSON (Case a) where parseJSON = genericParseJSON customOptions
-instance ToJSON a => ToJSON (Case a) where toJSON = genericToJSON customOptions
+instance FromJSON a => FromJSON (Case a) where
+  parseJSON = withObject "Case" (\v ->
+       Case <$> (parseJSON =<< (v .: "case"))
+            <*> (parseJSON =<< (v .: "then"))
+                                )
+instance ToJSON a => ToJSON (Case a) where
+  toJSON (Case act cont) = object
+      [ "case" .= act
+      , "then" .= cont
+      ]
 
 
-instance FromJSON Contract where parseJSON = genericParseJSON customOptions
-instance ToJSON Contract where toJSON = genericToJSON customOptions
+instance FromJSON Contract where
+  parseJSON (String "close") = return Close
+  parseJSON (Object v) =
+        (Pay <$> (parseJSON =<< (v .: "from_account"))
+             <*> (parseJSON =<< (v .: "to"))
+             <*> (parseJSON =<< (v .: "token"))
+             <*> (parseJSON =<< (v .: "pay"))
+             <*> (parseJSON =<< (v .: "then")))
+    <|> (If <$> (parseJSON =<< (v .: "if"))
+            <*> (parseJSON =<< (v .: "then"))
+            <*> (parseJSON =<< (v .: "else")))
+    <|> (When <$> ((v .: "when") >>=
+                   withArray "Case list" (\cl ->
+                     mapM parseJSON (F.toList cl)
+                                          ))
+              <*> (parseJSON =<< (v .: "timeout"))
+              <*> (parseJSON =<< (v .: "timeout_continuation")))
+    <|> (Let <$> (parseJSON =<< (v .: "let"))
+             <*> (parseJSON =<< (v .: "be"))
+             <*> (parseJSON =<< (v .: "then")))
+    <|> (Assert <$> (parseJSON =<< (v .: "assert"))
+                <*> (parseJSON =<< (v .: "then")))
+  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+
+instance ToJSON Contract where
+  toJSON Close = JSON.String $ pack "close"
+  toJSON (Pay accountId payee token value contract) = object
+      [ "from_account" .= accountId
+      , "to" .= payee
+      , "token" .= token
+      , "pay" .= value
+      , "then" .= contract
+      ]
+  toJSON (If obs cont1 cont2) = object
+      [ "if" .= obs
+      , "then" .= cont1
+      , "else" .= cont2
+      ]
+  toJSON (When caseList timeout cont) = object
+      [ "when" .= toJSONList (map toJSON caseList)
+      , "timeout" .= timeout
+      , "timeout_continuation" .= cont
+      ]
+  toJSON (Let valId value cont) = object
+      [ "let" .= valId
+      , "be" .= value
+      , "then" .= cont
+      ]
+  toJSON (Assert obs cont) = object
+      [ "assert" .= obs
+      , "then" .= cont
+      ]
 
 
 instance Eq Party where
