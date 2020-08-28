@@ -971,7 +971,7 @@ instance FromJSON ChoiceId where
                                     )
 
 instance ToJSON ChoiceId where
-  toJSON (ChoiceId name party) = object [ "choice_name" .= name
+  toJSON (ChoiceId name party) = object [ "choice_name" .= (JSON.String $ decodeUtf8 $ toStrict name)
                                         , "choice_owner" .= party
                                         ]
 
@@ -1186,7 +1186,7 @@ instance FromJSON Contract where
                    withArray "Case list" (\cl ->
                      mapM parseJSON (F.toList cl)
                                           ))
-              <*> (parseJSON =<< (v .: "timeout"))
+              <*> (Slot <$> (parseJSON =<< (v .: "timeout")))
               <*> (parseJSON =<< (v .: "timeout_continuation")))
     <|> (Let <$> (parseJSON =<< (v .: "let"))
              <*> (parseJSON =<< (v .: "be"))
@@ -1211,7 +1211,7 @@ instance ToJSON Contract where
       ]
   toJSON (When caseList timeout cont) = object
       [ "when" .= toJSONList (map toJSON caseList)
-      , "timeout" .= timeout
+      , "timeout" .= getSlot timeout
       , "timeout_continuation" .= cont
       ]
   toJSON (Let valId value cont) = object
@@ -1404,3 +1404,4 @@ makeLift ''TransactionOutput
 makeLift ''MarloweData
 makeIsData ''MarloweData
 makeLift ''MarloweParams
+
