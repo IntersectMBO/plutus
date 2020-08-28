@@ -94,13 +94,13 @@ inferKind Φ (A · B) = do
   refl ← meqKind K K'
   return (J ,, nf (embNf A · embNf B))
 inferKind Φ (con tc)     = return (* ,, con tc)
-inferKind Φ (μ pat arg) = do
-  (K ⇒ *) ⇒ K' ⇒ * ,, pat ← inferKind Φ pat
+inferKind Φ (μ A B) = do
+  (K ⇒ *) ⇒ K' ⇒ * ,, A ← inferKind Φ A
     where _ → inj₁ notPat
-  K'' ,, arg ← inferKind Φ arg
+  K'' ,, B ← inferKind Φ B
   refl ← meqKind K K'
   refl ← meqKind K' K''
-  return (* ,, ne (μ1 · pat · arg))
+  return (* ,, μ A B)
 inferKind Φ missing = inj₁ typeError
 
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
@@ -169,7 +169,6 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   p ← meqNeTy A A'
   q ← meqNfTy B B'
   return (cong₂ _·_ p q)
-meqNeTy μ1 μ1 = return refl
 meqNeTy n  n'  = inj₁ typeEqError
 
 open import Type.BetaNormal.Equality
@@ -250,22 +249,22 @@ inferType Γ (error A)         = do
     where _ → inj₁ notTypeError
   return (A ,, error A)
 inferType Γ (builtin bn p As ts) = inferTypeBuiltin bn As ts
-inferType Γ (wrap pat arg L)  = do
-  (K ⇒ *) ⇒ K' ⇒ * ,, pat ← inferKind _ pat
+inferType Γ (wrap A B L)  = do
+  (K ⇒ *) ⇒ K' ⇒ * ,, A ← inferKind _ A
     where _ → inj₁ notPat
-  K'' ,, arg ← inferKind _ arg
+  K'' ,, B ← inferKind _ B
   refl ← meqKind K K'
   refl ← meqKind K' K''
   X ,, L ← inferType Γ L
   --v why is this eta expanded in the spec?
-  p ← meqNfTy (nf (embNf pat · (μ1 · embNf pat) · embNf arg)) X
+  p ← meqNfTy (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) X
   return
-    (ne (μ1 · pat · arg)
+    (μ A B
     ,,
-    wrap1 pat arg (conv⊢ refl (sym p) L))
+    wrap A B (conv⊢ refl (sym p) L))
 inferType Γ (unwrap L)        = do
-  ne (μ1 · pat · arg) ,, L ← inferType Γ L
+  μ A B ,, L ← inferType Γ L
     where _ → inj₁ unwrapError
   --v why is this eta expanded in the spec?
-  return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L)
+  return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L)
 ```

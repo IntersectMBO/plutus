@@ -70,15 +70,12 @@ extendVTel (B ∷ Bs) σ (t ∷ ts) (v ,, vs) t' v' refl =
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → Frame B A
-  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
-    → Frame (B [ A ]Nf) (Π B)
+  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K) → Frame (B [ A ]Nf) (Π B)
 
-  wrap-   : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (ne (μ1 · pat · arg))
-            (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-            (ne (μ1 · pat · arg))
+  wrap-   : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+  unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
 
   builtin- : ∀(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -108,8 +105,8 @@ closeFrame : ∀{T H} → Frame T H → ∅ ⊢ H → ∅ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
 closeFrame (-·⋆ A)         t = _·⋆_ t A
-closeFrame wrap-           t = wrap1 _ _ t
-closeFrame unwrap-         t = unwrap1 t
+closeFrame wrap-           t = wrap _ _ t
+closeFrame unwrap-         t = unwrap t
 closeFrame (builtin- b σ As ts vts A As' p ts') t =
   builtin b σ (reconstTel As As' σ ts t (sym p) ts' )
 
@@ -139,8 +136,8 @@ step (s ▻ ƛ L)                    = s ◅ V-ƛ L
 step (s ▻ (L · M))                = (s , -· M) ▻ L
 step (s ▻ Λ L)                    = s ◅ V-Λ L
 step (s ▻ (L ·⋆ A))               = (s , -·⋆ A) ▻ L
-step (s ▻ wrap1 pat arg L)        = (s , wrap-) ▻ L
-step (s ▻ unwrap1 L)              = (s , unwrap-) ▻ L
+step (s ▻ wrap A B L)             = (s , wrap-) ▻ L
+step (s ▻ unwrap L)               = (s , unwrap-) ▻ L
 step (s ▻ con cn)                 = s ◅ V-con cn
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
