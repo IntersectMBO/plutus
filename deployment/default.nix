@@ -5,13 +5,18 @@ let
   terraform = (callPackage ./terraform.nix { }).terraform_0_12;
 
   getCreds = pkgs.writeShellScript "getcreds" ''
+    if [[ $1 == "" || $2 == "" ]]; then
+      echo "Please call the script with your AWS account username followed by the MFA code"
+      exit 1
+    fi
     export AWS_PROFILE=dev-mantis
     unset AWS_SESSION_TOKEN
     unset AWS_SECRET_ACCESS_KEY
     unset AWS_ACCESS_KEY_ID
 
-    ${awscli}/bin/aws sts get-session-token --serial-number arn:aws:iam::454236594309:mfa/david.smith --output text --duration-seconds 86400 --token-code $1 \
-            | awk '{printf("export AWS_ACCESS_KEY_ID=\"%s\"\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
+    result=$(${awscli}/bin/aws sts get-session-token --serial-number arn:aws:iam::454236594309:mfa/$1 --output text --duration-seconds 86400 --token-code $2 \
+            | awk '{printf("export AWS_ACCESS_KEY_ID=\"%s\"\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}')
+    eval $result
       '';
 
   terraform-locals = env:
