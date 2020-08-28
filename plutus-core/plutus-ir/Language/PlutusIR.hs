@@ -42,7 +42,6 @@ import           Language.PlutusCore.Core         (UniOf)
 import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Name         as PLC
 import qualified Language.PlutusCore.Pretty       as PLC
-import           Language.PlutusCore.Universe     (gshow)
 
 import           Control.Lens                     hiding (Strict)
 
@@ -343,7 +342,7 @@ instance ( PLC.PrettyClassicBy configName tyname
         Unwrap _ t -> parens' ("unwrap" </> prettyBy config t)
 
         where prettyTypeOf :: PLC.GShow t => PLC.Some (PLC.ValueOf t) -> Doc ann
-              prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ gshow uni
+              prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.TypeIn uni
 
 
 instance ( PLC.PrettyClassicBy configName tyname

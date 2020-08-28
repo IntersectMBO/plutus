@@ -32,7 +32,7 @@ class Parsable a
   parseConstant :: T.Text -> Maybe a
   -- ^ Return Nothing if the string is invalid, otherwise the corresponding value of type a.
   default parseConstant :: Read a => T.Text -> Maybe a
-  parseConstant = readMaybe @ a . T.unpack
+  parseConstant = readMaybe . T.unpack
   -- ^ The default implmentation is 'read'
 
 instance Parsable Bool
@@ -58,7 +58,7 @@ parseByteStringConstant lit = do
 -- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
 pairs :: [a] -> Maybe [(a,a)]
 pairs []         = Just []
-pairs (a:b:rest) = fmap ((:) (a,b)) (pairs rest)
+pairs (a:b:rest) = ((a,b):) <$> pairs rest
 pairs _          = Nothing
 
 hexDigitToWord8 :: Char -> Maybe Word8

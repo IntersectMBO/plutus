@@ -66,7 +66,7 @@ instance
         prettyName = prettyBy config
 
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ gshow uni
+        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
 
 
 instance PrettyClassicBy configName (Term tyname name uni a) =>

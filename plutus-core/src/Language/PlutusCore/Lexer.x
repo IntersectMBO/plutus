@@ -33,20 +33,17 @@ import qualified Data.ByteString.Lazy.Char8 as ASCII
 import           Language.Haskell.TH.Syntax (Lift)
 import           Text.Read (readMaybe)
 
-{- Note [Keywords]
-This version of the lexer relaxes the syntax so that keywords (con, lam, ...)
-and built in names can be re-used as variable names.  The Plutus compiler
-produces code with such names: for example, the builtin `addInteger` is always
-called via a variable of the same name which is bound to a lambda wrapping an
-invocation of the actual builtin.  To achieve this, we use alex's "start codes"
-which allow you to put the lexer into modes in which only certain actions are
-valid.  In the PLC grammar, keywords like `abs`, `con` and so on can only occur
-after a `(`, so when we see one of these we put the lexer into a special mode
-where these are interpreted as keywords and converted into elements of the
-LexKeyword type; having done this, we return to the initial lexer state, denoted
-by 0, where we can use keywords as variable names. A similar strategy is used
-for built in type names.
--}
+{- Note [Keywords] This version of the lexer relaxes the syntax so that keywords
+(con, lam, ...) and built-in names can be re-used as variable names, reducing
+the risk of textual source code being unparsable due to illegal names (produced
+by a compiler, for example). To achieve this, we use Alex's "start codes" which
+allow you to put the lexer into modes in which only certain actions are valid.
+In the PLC grammar, keywords like `abs`, `con` and so on can only occur after a
+`(`, so when we see one of these we put the lexer into a special mode where
+these are interpreted as keywords and converted into elements of the LexKeyword
+type; having done this, we return to the initial lexer state, denoted by 0,
+where we can use keywords as variable names. A similar strategy is used for
+built in type names.  -}
 
 {- Note [Literal Constants]
 For literal constants, we accept certain types of character sequences that are
