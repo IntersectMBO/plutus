@@ -1,7 +1,7 @@
 # Static website
 
 resource "aws_s3_bucket" "marlowe_playground" {
-  bucket = "marlowe-playground-website"
+  bucket = "marlowe-playground-website-${var.env}"
   acl    = "public-read"
 
   website {
@@ -25,7 +25,7 @@ resource "aws_s3_bucket_policy" "marlowe_playground_website" {
                 "s3:GetObject"
             ],
             "Resource": [
-                "arn:aws:s3:::marlowe-playground-website/*"
+                "arn:aws:s3:::marlowe-playground-website-${var.env}/*"
             ]
         }
     ]
@@ -70,7 +70,7 @@ resource "aws_api_gateway_integration" "marlowe_root_get_method" {
   type                    = "AWS"
   integration_http_method = "GET"
   credentials             = "${aws_iam_role.s3_proxy_role.arn}"
-  uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website/${var.env}/index.html"
+  uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/index.html"
 }
 
 resource "aws_api_gateway_method_response" "marlowe_root_get_method" {
@@ -129,7 +129,7 @@ resource "aws_api_gateway_integration" "marlowe_item_get_method" {
   type                    = "AWS"
   integration_http_method = "GET"
   credentials             = "${aws_iam_role.s3_proxy_role.arn}"
-  uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website/${var.env}/{item}"
+  uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/{item}"
 
   request_parameters = {
     "integration.request.path.item"   = "method.request.path.item"

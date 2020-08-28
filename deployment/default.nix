@@ -24,18 +24,17 @@ let
       name = "terraform-locals";
       destination = "/generated.tf.json";
       text = (builtins.toJSON {
-        locals = {
-          marlowe_client = "${marlowe-playground.client}";
-        };
+        locals = { marlowe_client = "${marlowe-playground.client}"; };
       });
     };
 
-  terraform-vars = env:
+  terraform-vars = env: region:
     writeTextFile {
       name = "terraform-vars";
       destination = "/${env}.tfvars";
       text = ''
-      env="${env}"
+        env="${env}"
+        aws_region="${region}"
       '' + (if pkgs.stdenv.isDarwin then
         ""
       else
@@ -43,12 +42,12 @@ let
           symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"'');
     };
 
-  runTerraform = env:
+  runTerraform = env: region:
     writeShellScript "terraform" ''
       tmp_dir=$(mktemp -d)
       ln -s ${./terraform}/* $tmp_dir
       ln -s ${terraform-locals env}/* $tmp_dir
-      ln -s ${terraform-vars env}/* $tmp_dir
+      ln -s ${terraform-vars env region}/* $tmp_dir
       cd $tmp_dir
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
@@ -57,9 +56,9 @@ let
 
   syncS3 = env:
     writeShellScript "syncs3"
-    "${awscli}/bin/aws s3 sync ${marlowe-playground.client} s3://marlowe-playground-website/${env}";
+    "${awscli}/bin/aws s3 sync ${marlowe-playground.client} s3://marlowe-playground-website-${env}/";
 
-  deploy = env:
+  deploy = env: region:
     writeShellScript "deploy" ''
       set -e
       tmp_dir=$(mktemp -d)
@@ -71,7 +70,7 @@ let
       rm $tmp_dir/*.tfvars | true
 
       ln -s ${terraform-locals env}/* $tmp_dir
-      ln -s ${terraform-vars env}/* $tmp_dir
+      ln -s ${terraform-vars env region}/* $tmp_dir
       cd $tmp_dir
 
       echo "apply terraform"
@@ -90,12 +89,15 @@ let
       echo "done"
     '';
 
-  mkEnv = env: {
+  mkEnv = env: region: {
     inherit getCreds terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
-    runTerraform = (runTerraform env);
-    deploy = (deploy env);
+    runTerraform = (runTerraform env region);
+    deploy = (deploy env region);
   };
 
-  envs = { david = mkEnv "david"; };
+  envs = {
+    david = mkEnv "david" "eu-west-1";
+    alpha = mkEnv "alpha" "eu-west-2";
+  };
 in envs
