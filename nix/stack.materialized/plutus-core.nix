@@ -91,6 +91,7 @@
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           ];
         build-tools = [
@@ -228,6 +229,7 @@
           "Language/PlutusIR/Transform/Rename"
           "Language/PlutusIR/Transform/NonStrict"
           "Language/PlutusIR/Transform/LetFloat"
+          "Language/PlutusIR/Transform/Inline"
           "Language/UntypedPlutusCore"
           "PlutusPrelude"
           "Common"

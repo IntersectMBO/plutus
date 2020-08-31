@@ -136,13 +136,6 @@
             )
           )
         )
-        (termbind
-          (strict)
-          (vardecl
-            addInteger (fun (con integer) (fun (con integer) (con integer)))
-          )
-          (builtin addInteger)
-        )
         (let
           (rec)
           (termbind
@@ -211,7 +204,9 @@
                       ds
                       a
                       (lam
-                        acc (con integer) [ [ addInteger acc ] (con integer 1) ]
+                        acc
+                        (con integer)
+                        [ [ (builtin addInteger) acc ] (con integer 1) ]
                       )
                     )
                   ]
