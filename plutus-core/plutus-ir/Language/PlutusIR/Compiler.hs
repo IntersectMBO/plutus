@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Language.PlutusIR.Compiler (
     compileTerm,
     compileToReadable,
@@ -25,6 +26,7 @@ import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
+import qualified Language.PlutusIR.Transform.Inline          as Inline
 import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
 import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import           Language.PlutusIR.Transform.Rename          ()
@@ -37,11 +39,9 @@ import           Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni a => Term TyName Name uni b -> m (Term TyName Name uni b)
-simplifyTerm = runIfOpts deadCode
-    where
-        deadCode t = do
-            means <- asks _ccBuiltinMeanings
-            pure $ DeadCode.removeDeadBindings means t
+simplifyTerm = runIfOpts $ \t -> do
+    means <- asks _ccBuiltinMeanings
+    pure $ Inline.inline means $ DeadCode.removeDeadBindings means t
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
