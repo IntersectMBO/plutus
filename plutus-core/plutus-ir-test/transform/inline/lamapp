@@ -1,1 +1,1 @@
-[ (lam y (con integer) y) (con 1) ]
+[ (lam y (con integer) y) (con integer 1) ]
