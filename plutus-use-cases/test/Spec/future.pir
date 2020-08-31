@@ -1702,7 +1702,7 @@
                         [(lam a (type) a) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                         [
                           [ [ unionWith (builtin addInteger) ] ds ]
-                          [ [ fAdditiveGroupValue_cscale (con -1) ] ds ]
+                          [ [ fAdditiveGroupValue_cscale (con integer -1) ] ds ]
                         ]
                       )
                     )
@@ -3488,7 +3488,8 @@
                                                                                     i
                                                                                   ]
                                                                                   (con
-                                                                                    0
+                                                                                    integer
+                                                                                      0
                                                                                   )
                                                                                 ]
                                                                               ]
@@ -3879,7 +3880,7 @@
                       (termbind
                         (nonstrict)
                         (vardecl scheckHashConstraints Unit)
-                        [ trace (con "DecodingError") ]
+                        [ trace (con string "DecodingError") ]
                       )
                       (termbind
                         (strict)

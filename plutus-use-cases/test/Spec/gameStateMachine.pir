@@ -3161,7 +3161,12 @@
                               [(lam a (type) a) [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]]
                               [
                                 [ [ unionWith (builtin addInteger) ] ds ]
-                                [ [ fAdditiveGroupValue_cscale (con -1) ] ds ]
+                                [
+                                  [
+                                    fAdditiveGroupValue_cscale (con integer -1)
+                                  ]
+                                  ds
+                                ]
                               ]
                             )
                           )
@@ -3218,7 +3223,7 @@
                                             }
                                             tn
                                           ]
-                                          (con 1)
+                                          (con integer 1)
                                         ]
                                       ]
                                       {
@@ -3941,7 +3946,7 @@
                         (termbind
                           (nonstrict)
                           (vardecl scheckOwnOutputConstraint Unit)
-                          [ trace (con "Output constraint") ]
+                          [ trace (con string "Output constraint") ]
                         )
                         (termbind
                           (strict)
@@ -4907,7 +4912,10 @@
                                   {
                                     [
                                       Unit_match
-                                      [ trace (con string "checkValidatorCtx failed") ]
+                                      [
+                                        trace
+                                        (con string "checkValidatorCtx failed")
+                                      ]
                                     ]
                                     (fun Unit Bool)
                                   }
@@ -10931,8 +10939,8 @@
                                                                           [
                                                                             trace
                                                                             (con
-									      string
-                                                                               "Output constraint"
+                                                                              string
+                                                                                "Output constraint"
                                                                             )
                                                                           ]
                                                                         ]

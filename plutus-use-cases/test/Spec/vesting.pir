@@ -115,7 +115,10 @@
                                   Unit
                                   [
                                     [ { bad_name a } xs ]
-                                    [ [ (builtin subtractInteger) ds ] (con integer 1) ]
+                                    [
+                                      [ (builtin subtractInteger) ds ]
+                                      (con integer 1)
+                                    ]
                                   ]
                                 )
                               ]
@@ -1212,7 +1215,8 @@
                                                                                       [
                                                                                         f
                                                                                         (con
-                                                                                          0
+                                                                                          integer
+                                                                                            0
                                                                                         )
                                                                                       ]
                                                                                       b
@@ -1244,7 +1248,8 @@
                                                                                     a
                                                                                   ]
                                                                                   (con
-                                                                                    0
+                                                                                    integer
+                                                                                      0
                                                                                   )
                                                                                 ]
                                                                               )
@@ -2264,7 +2269,10 @@
                                   [
                                     [ [ unionWith (builtin addInteger) ] ww ]
                                     [
-                                      [ fAdditiveGroupValue_cscale (con integer -1) ]
+                                      [
+                                        fAdditiveGroupValue_cscale
+                                        (con integer -1)
+                                      ]
                                       [
                                         {
                                           [ { Interval_match (con integer) } w ]

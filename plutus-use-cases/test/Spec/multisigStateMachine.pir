@@ -3464,18 +3464,13 @@
                                                     [
                                                       [ { bad_name a } xs ]
                                                       [
-<<<<<<< HEAD
-                                                        [ subtractInteger ds ]
-                                                        (con integer 1)
-=======
                                                         [
                                                           (builtin
                                                             subtractInteger
                                                           )
                                                           ds
                                                         ]
-                                                        (con 1)
->>>>>>> SCP-818: add a very simple inliner to plutus-ir
+                                                        (con integer 1)
                                                       ]
                                                     ]
                                                   )
@@ -5302,7 +5297,9 @@
                                           Unit_match
                                           [
                                             trace
-                                            (con string "checkValidatorCtx failed")
+                                            (con
+                                              string "checkValidatorCtx failed"
+                                            )
                                           ]
                                         ]
                                         (fun Unit Bool)
@@ -11729,7 +11726,7 @@
                                                                                 trace
                                                                                 (con
                                                                                   string
-										    "Output constraint"
+                                                                                    "Output constraint"
                                                                                 )
                                                                               ]
                                                                             ]
@@ -12996,24 +12993,6 @@
                                         (termbind
                                           (strict)
                                           (vardecl
-<<<<<<< HEAD
-                                            fAdditiveGroupValue (con integer)
-                                          )
-                                          (con integer -1)
-                                        )
-                                        (termbind
-                                          (strict)
-                                          (vardecl
-                                            multiplyInteger
-                                            (fun (con integer) (fun (con integer) (con integer)))
-                                          )
-                                          (builtin multiplyInteger)
-                                        )
-                                        (termbind
-                                          (strict)
-                                          (vardecl
-=======
->>>>>>> SCP-818: add a very simple inliner to plutus-ir
                                             fAdditiveGroupValue_cscale
                                             (fun (con integer) (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]))
                                           )
@@ -13258,7 +13237,7 @@
                                                 [
                                                   [
                                                     fAdditiveGroupValue_cscale
-                                                    (con -1)
+                                                    (con integer -1)
                                                   ]
                                                   ds
                                                 ]
@@ -13469,15 +13448,10 @@
                                                     acc
                                                     (con integer)
                                                     [
-<<<<<<< HEAD
-                                                      [ addInteger acc ]
-                                                      (con integer 1)
-=======
                                                       [
                                                         (builtin addInteger) acc
                                                       ]
-                                                      (con 1)
->>>>>>> SCP-818: add a very simple inliner to plutus-ir
+                                                      (con integer 1)
                                                     ]
                                                   )
                                                 )
