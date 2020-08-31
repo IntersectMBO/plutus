@@ -56,3 +56,5 @@ instance PrettyConst Bool
 instance PrettyConst Char
 instance PrettyConst Integer
 instance PrettyConst String
+-- ^ This instance for String quotes control characters (which is what we want)
+-- but also Unicode characters (\8704 and so on).  That may not be ideal.

@@ -1,5 +1,5 @@
-Type mismatch at 2:4 in term
-  '(con 0)'.
+Type mismatch at line 2, column 4 in term
+  '(con integer 0)'.
 Expected type
   '(ifix * *)',
 found type

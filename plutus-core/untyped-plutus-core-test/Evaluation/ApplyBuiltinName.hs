@@ -45,7 +45,7 @@ newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
 
-instance SpendBudget AppM (Term Name DefaultUni ()) where
+instance SpendBudget AppM () (Term Name DefaultUni ()) where
     spendBudget _ _ = pure ()
     builtinCostParams = pure defaultCostModel
 

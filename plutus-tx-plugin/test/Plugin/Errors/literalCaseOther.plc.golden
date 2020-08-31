@@ -111,7 +111,8 @@
                                                                                                 (con char)
                                                                                               }
                                                                                               (con
-                                                                                                'a'
+                                                                                                char
+                                                                                                  'a'
                                                                                               )
                                                                                             ]
                                                                                             [
@@ -121,7 +122,8 @@
                                                                                                   (con char)
                                                                                                 }
                                                                                                 (con
-                                                                                                  'b'
+                                                                                                  char
+                                                                                                    'b'
                                                                                                 )
                                                                                               ]
                                                                                               [
@@ -131,7 +133,8 @@
                                                                                                     (con char)
                                                                                                   }
                                                                                                   (con
-                                                                                                    'c'
+                                                                                                    char
+                                                                                                      'c'
                                                                                                   )
                                                                                                 ]
                                                                                                 {

@@ -1,7 +1,9 @@
 (program
   (let
     (nonrec)
-    (termbind (strict) (vardecl emptyByteString (con bytestring)) (con #))
+    (termbind
+      (strict) (vardecl emptyByteString (con bytestring)) (con bytestring #)
+    )
     (termbind
       (strict)
       (vardecl monoId (fun (con bytestring) (con bytestring)))

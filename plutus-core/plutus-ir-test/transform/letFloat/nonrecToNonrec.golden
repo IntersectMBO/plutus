@@ -13,5 +13,5 @@
       i
     )
   )
-  (con 3)
+  (con integer 3)
 )

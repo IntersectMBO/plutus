@@ -246,7 +246,9 @@
                                       {
                                         [
                                           Bool_match
-                                          [ [ equalsInteger ds ] (con 0) ]
+                                          [
+                                            [ equalsInteger ds ] (con integer 0)
+                                          ]
                                         ]
                                         (fun Unit a)
                                       }
@@ -257,7 +259,9 @@
                                       Unit
                                       [
                                         [ { bad_name a } xs ]
-                                        [ [ subtractInteger ds ] (con 1) ]
+                                        [
+                                          [ subtractInteger ds ] (con integer 1)
+                                        ]
                                       ]
                                     )
                                   ]
@@ -1394,7 +1398,8 @@
                                                                                           [
                                                                                             f
                                                                                             (con
-                                                                                              0
+                                                                                              integer
+                                                                                                0
                                                                                             )
                                                                                           ]
                                                                                           b
@@ -1426,7 +1431,8 @@
                                                                                         a
                                                                                       ]
                                                                                       (con
-                                                                                        0
+                                                                                        integer
+                                                                                          0
                                                                                       )
                                                                                     ]
                                                                                   )
@@ -1688,7 +1694,8 @@
                                                                                               [
                                                                                                 f
                                                                                                 (con
-                                                                                                  0
+                                                                                                  integer
+                                                                                                    0
                                                                                                 )
                                                                                               ]
                                                                                               b
@@ -1772,7 +1779,8 @@
                                                                                             a
                                                                                           ]
                                                                                           (con
-                                                                                            0
+                                                                                            integer
+                                                                                              0
                                                                                           )
                                                                                         ]
                                                                                       ]
@@ -2035,7 +2043,7 @@
                           (termbind
                             (strict)
                             (vardecl fAdditiveGroupValue (con integer))
-                            (con -1)
+                            (con integer -1)
                           )
                           (termbind
                             (strict)

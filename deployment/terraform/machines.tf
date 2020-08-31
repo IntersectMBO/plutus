@@ -2,7 +2,7 @@ data "template_file" "playground_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.playground_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.playground_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }
@@ -81,10 +81,10 @@ locals {
 
 resource "local_file" "bastion_machines" {
   content  = "${jsonencode(local.bastionMachines)}"
-  filename = "${var.nixops_root}/bastion_machines.json"
+  filename = "${pathexpand(var.nixops_root)}/bastion_machines.json"
 }
 
 resource "local_file" "machines" {
   content  = "${jsonencode(local.machines)}"
-  filename = "${var.nixops_root}/machines.json"
+  filename = "${pathexpand(var.nixops_root)}/machines.json"
 }

@@ -17,7 +17,7 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                              (RunResult)
+import           API                                              (CheckForWarnings, RunResult)
 import qualified API
 import qualified Auth
 import           Control.Applicative                              ((<|>))
@@ -56,7 +56,6 @@ import           Servant.PureScript                               (HasBridge, Se
 import qualified Swap
 import           System.Directory                                 (createDirectoryIfMissing)
 import           System.FilePath                                  ((</>))
-import           WebSocket                                        (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
 
 
@@ -108,6 +107,7 @@ myTypes =
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
+    , mkSumType (Proxy @CheckForWarnings)
     , mkSumType (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
@@ -129,8 +129,6 @@ myTypes =
     , mkSumType (Proxy @CT.Assertion)
     , mkSumType (Proxy @CT.Assertions)
     , mkSumType (Proxy @CT.AssertionContext)
-    , (genericShow <*> mkSumType) (Proxy @WebSocketRequestMessage)
-    , (genericShow <*> mkSumType) (Proxy @WebSocketResponseMessage)
     ]
 
 mySettings :: Settings

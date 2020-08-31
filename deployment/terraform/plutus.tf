@@ -7,7 +7,7 @@ resource "aws_security_group" "playground" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ## inbound (world): http
@@ -15,35 +15,35 @@ resource "aws_security_group" "playground" {
     from_port   = 9100
     to_port     = 9100
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ingress {
     from_port   = 9091
     to_port     = 9091
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ingress {
     from_port   = 9113
     to_port     = 9113
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ## outgoing: all
@@ -64,7 +64,7 @@ resource "aws_security_group" "playground" {
 data "template_file" "playground_user_data" {
   template = "${file("${path.module}/templates/default_configuration.nix")}"
 
-  vars {
+  vars = {
     root_ssh_keys      = "${join(" ", formatlist("\"%s\"", data.template_file.nixops_ssh_keys.*.rendered))}"
   }
 }
@@ -81,11 +81,11 @@ resource "aws_instance" "playground_a" {
     "${aws_security_group.playground.id}",
   ]
 
-  root_block_device = {
+  root_block_device {
     volume_size = "40"
   }
 
-  tags {
+  tags = {
     Name        = "${var.project}_${var.env}_playground_a"
     Project     = "${var.project}"
     Environment = "${var.env}"
@@ -112,11 +112,11 @@ resource "aws_instance" "playground_b" {
     "${aws_security_group.playground.id}",
   ]
 
-  root_block_device = {
+  root_block_device {
     volume_size = "40"
   }
 
-  tags {
+  tags = {
     Name        = "${var.project}_${var.env}_playground_b"
     Project     = "${var.project}"
     Environment = "${var.env}"

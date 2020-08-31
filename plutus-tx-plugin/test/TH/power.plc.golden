@@ -16,7 +16,7 @@
         (termbind
           (nonstrict)
           (vardecl y (con integer))
-          [ [ multiplyInteger ds ] (con 1) ]
+          [ [ multiplyInteger ds ] (con integer 1) ]
         )
         (termbind
           (nonstrict) (vardecl y (con integer)) [ [ multiplyInteger y ] y ]

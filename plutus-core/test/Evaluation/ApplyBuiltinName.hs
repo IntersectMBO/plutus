@@ -38,7 +38,7 @@ type TestEvaluationException uni =
 
 type TestM uni = Either (TestEvaluationException uni)
 
-instance SpendBudget (TestM uni) (Term TyName Name uni ()) where
+instance SpendBudget (TestM uni) () (Term TyName Name uni ()) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 

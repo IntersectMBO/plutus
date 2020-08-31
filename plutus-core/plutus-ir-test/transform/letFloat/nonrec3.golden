@@ -6,7 +6,7 @@
     (termbind
       (strict)
       (vardecl i (con integer))
-      [ (lam y (con integer) [ [ (builtin addInteger) y ] x ]) (con 1) ]
+      [ (lam y (con integer) [ [ (builtin addInteger) y ] x ]) (con integer 1) ]
     )
     i
   )

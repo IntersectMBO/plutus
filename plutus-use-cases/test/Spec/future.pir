@@ -304,7 +304,9 @@
               )
             )
             (termbind
-              (strict) (vardecl fAdditiveGroupValue (con integer)) (con -1)
+              (strict)
+              (vardecl fAdditiveGroupValue (con integer))
+              (con integer -1)
             )
             (termbind
               (strict)
@@ -1619,7 +1621,8 @@
                                                                                       [
                                                                                         f
                                                                                         (con
-                                                                                          0
+                                                                                          integer
+                                                                                            0
                                                                                         )
                                                                                       ]
                                                                                       b
@@ -1651,7 +1654,8 @@
                                                                                     a
                                                                                   ]
                                                                                   (con
-                                                                                    0
+                                                                                    integer
+                                                                                      0
                                                                                   )
                                                                                 ]
                                                                               )
@@ -2084,7 +2088,9 @@
                       )
                     )
                   )
-                  (termbind (strict) (vardecl unitDatum (con integer)) (con 0))
+                  (termbind
+                    (strict) (vardecl unitDatum (con integer)) (con integer 0)
+                  )
                   (termbind
                     (nonstrict)
                     (vardecl unitDatum Data)
@@ -2235,7 +2241,9 @@
                     )
                   )
                   (termbind
-                    (strict) (vardecl fIsDataFutureAction (con integer)) (con 0)
+                    (strict)
+                    (vardecl fIsDataFutureAction (con integer))
+                    (con integer 0)
                   )
                   (termbind
                     (strict)
@@ -2653,7 +2661,8 @@
                                                                                         i
                                                                                       ]
                                                                                       (con
-                                                                                        0
+                                                                                        integer
+                                                                                          0
                                                                                       )
                                                                                     ]
                                                                                   ]
@@ -3232,7 +3241,7 @@
                                         arg
                                         b
                                         [
-                                          [ Constr (con 0) ]
+                                          [ Constr (con integer 0) ]
                                           [
                                             { build Data }
                                             (abs
@@ -3910,7 +3919,7 @@
                       (termbind
                         (strict)
                         (vardecl scheckHashConstraints (con string))
-                        (con "DecodingError")
+                        (con string "DecodingError")
                       )
                       (termbind
                         (strict)
@@ -4595,7 +4604,8 @@
                                                                                               [
                                                                                                 f
                                                                                                 (con
-                                                                                                  0
+                                                                                                  integer
+                                                                                                    0
                                                                                                 )
                                                                                               ]
                                                                                               b
@@ -4679,7 +4689,8 @@
                                                                                             a
                                                                                           ]
                                                                                           (con
-                                                                                            0
+                                                                                            integer
+                                                                                              0
                                                                                           )
                                                                                         ]
                                                                                       ]
@@ -4867,7 +4878,8 @@
                                                                                   [
                                                                                     equalsInteger
                                                                                     (con
-                                                                                      0
+                                                                                      integer
+                                                                                        0
                                                                                     )
                                                                                   ]
                                                                                   x

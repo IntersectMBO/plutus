@@ -54,7 +54,6 @@
           "App"
           "Marlowe/Symbolic/Types/Request"
           "Marlowe/Symbolic/Types/Response"
-          "Marlowe/Symbolic/Types/API"
           ];
         hsSourceDirs = [ "src" ];
         };

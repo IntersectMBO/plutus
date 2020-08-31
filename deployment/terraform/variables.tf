@@ -1,5 +1,4 @@
 variable "aws_region" {
-  default = "eu-west-1"
 }
 
 variable "project" {
@@ -8,9 +7,13 @@ variable "project" {
 
 variable "env" {}
 
-variable "nixops_root" {}
+variable "nixops_root" {
+  default = "../nixops"
+}
 
-variable "ssh_config_root" {}
+variable "ssh_config_root" {
+  default = "~/.ssh"
+}
 
 variable "plutus_tld" {
   default = "plutus.iohkdev.io"
@@ -64,7 +67,7 @@ variable "nixops_instance_type" {
   default = "t2.large"
 }
 variable "bastion_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -77,7 +80,7 @@ variable "bastion_ssh_keys" {
 }
 
 variable "nixops_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -90,7 +93,7 @@ variable "nixops_ssh_keys" {
 }
 
 variable "playground_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
@@ -144,7 +147,7 @@ variable "aws_amis" {
   }
 }
 
-variable "20_03_amis" {
+variable "amis_20_03" {
   default = {
     "ap-east-1" = "ami-0d18fdd309cdefa86"
     "ap-northeast-1" = "ami-093d9cc49c191eb6c"
@@ -170,11 +173,5 @@ variable "azs" {
   default = ["a", "b"]
 }
 
-variable "zerotier_network_id" {}
-
-variable "zerotier_subnet_cidrs" {
-  default = []
-}
-
-variable "lambda_filename" {
+variable "symbolic_lambda_file" {
 }

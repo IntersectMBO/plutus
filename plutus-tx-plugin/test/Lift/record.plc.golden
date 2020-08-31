@@ -11,7 +11,10 @@
             (lam
               match_Plugin_Data_Spec_MyMonoRecord_i0
               (fun Plugin_Data_Spec_MyMonoRecord_i3 (all out_Plugin_Data_Spec_MyMonoRecord_i0 (type) (fun (fun (con integer) (fun (con integer) out_Plugin_Data_Spec_MyMonoRecord_i1)) out_Plugin_Data_Spec_MyMonoRecord_i1)))
-              [ [ Plugin_Data_Spec_MyMonoRecord_i2 (con 1) ] (con 2) ]
+              [
+                [ Plugin_Data_Spec_MyMonoRecord_i2 (con integer 1) ]
+                (con integer 2)
+              ]
             )
           )
         )

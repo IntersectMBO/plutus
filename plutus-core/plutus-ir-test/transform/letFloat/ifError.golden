@@ -16,12 +16,16 @@
           )
         )
       ]
-      (lam z (con integer) (con 1))
+      (lam z (con integer) (con integer 1))
     ]
   )
   (abs
     a
     (type)
-    (lam x (fun (con integer) a) (lam y (fun (con integer) a) [ y (con 0) ]))
+    (lam
+      x
+      (fun (con integer) a)
+      (lam y (fun (con integer) a) [ y (con integer 0) ])
+    )
   )
 ]

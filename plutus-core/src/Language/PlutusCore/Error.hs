@@ -61,8 +61,16 @@ throwingEither r e = case e of
 data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
-    deriving (Show, Eq, Generic, NFData)
+    | UnknownBuiltinType ann T.Text
+    | UnknownBuiltinFunction ann T.Text
+    | InvalidBuiltinConstant ann T.Text T.Text
+    deriving (Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
+
+instance Pretty ann => Show (ParseError ann)
+    where
+      show = show . pretty
+
 
 data UniqueError ann
     = MultiplyDefined Unique ann ann
@@ -135,8 +143,11 @@ asInternalError doc =
     "Please report this as a bug."
 
 instance Pretty ann => Pretty (ParseError ann) where
-    pretty (LexErr s)     = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
+    pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
+    pretty (Unexpected t)                   = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
+    pretty (UnknownBuiltinType loc s)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction loc s)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (InvalidBuiltinConstant loc c s) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
