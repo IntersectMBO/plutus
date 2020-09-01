@@ -28,12 +28,15 @@ module.exports = {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
-        https: true,
+        https: false,
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'
             },
             "/runghc": {
+                target: 'http://localhost:8080'
+            },
+            "/marlowe-analysis": {
                 target: 'http://localhost:8080'
             }
         }

@@ -14,11 +14,3 @@ data Result = Valid
   deriving (Generic)
 instance FromJSON Result
 instance ToJSON Result
-
-data Response = Response
-  { uuid   :: String
-  , result :: Result
-  } deriving (Generic)
-instance FromJSON Response
-instance ToJSON Response
-

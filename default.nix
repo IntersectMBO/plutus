@@ -260,8 +260,10 @@ in rec {
   });
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+  
+  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
 
-  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda; };
+  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda marlowe-playground-lambda; };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 

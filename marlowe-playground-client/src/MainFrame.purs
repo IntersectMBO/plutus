@@ -1,6 +1,5 @@
 module MainFrame (mkMainFrame) where
 
-import API (_RunResult)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
@@ -193,7 +192,6 @@ handleAction s (HaskellAction action) = do
               <<< _Right
               <<< _InterpreterResult
               <<< _result
-              <<< _RunResult
           )
       let
         contract = case mContract of
@@ -296,8 +294,8 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
     Left e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
     Right parsedTerms -> do
       result <- case flavour of
-        ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postActusGenerate parsedTerms)
-        ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
+        ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postApiActusGenerate parsedTerms)
+        ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postApiActusGeneratestatic parsedTerms)
       case result of
         Success contractAST -> do
           selectView Simulation

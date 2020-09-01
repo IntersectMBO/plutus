@@ -1,7 +1,6 @@
 module HaskellEditor.Types where
 
 import Prelude
-import API (RunResult)
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Either (Either)
@@ -39,7 +38,7 @@ instance actionIsEvent :: IsEvent Action where
 type State
   = { activeDemo :: String
     , keybindings :: KeyBindings
-    , compilationResult :: WebData (Either InterpreterError (InterpreterResult RunResult))
+    , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
     }
 
@@ -49,7 +48,7 @@ _activeHaskellDemo = prop (SProxy :: SProxy "activeDemo")
 _haskellEditorKeybindings :: Lens' State KeyBindings
 _haskellEditorKeybindings = prop (SProxy :: SProxy "keybindings")
 
-_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult RunResult)))
+_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult String)))
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
 _showBottomPanel :: Lens' State Boolean

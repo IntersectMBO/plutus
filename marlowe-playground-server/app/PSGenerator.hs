@@ -17,7 +17,6 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                              (CheckForWarnings, RunResult)
 import qualified API
 import qualified Auth
 import           Control.Applicative                              ((<|>))
@@ -45,11 +44,12 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import qualified Option
 import qualified PSGenerator.Common
-import           Servant                                          ((:<|>))
+import           Servant                                          ((:<|>), (:>))
 import           Servant.PureScript                               (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                    defaultSettings, languageBridge,
                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
@@ -70,6 +70,17 @@ contractBridge = do
     typeModule ^== "Language.Marlowe.Semantics"
     psContract
 
+psState :: MonadReader BridgeData m => m PSType
+psState =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "State" <$>
+    psTypeParameters
+
+stateBridge :: BridgePart
+stateBridge = do
+    typeName ^== "State"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psState
+
 doubleBridge :: BridgePart
 doubleBridge = typeName ^== "Double" >> return psNumber
 
@@ -86,6 +97,7 @@ myBridge =
     doubleBridge <|>
     dayBridge <|>
     contractBridge <|>
+    stateBridge <|>
     defaultBridge
 
 data MyBridge
@@ -101,14 +113,11 @@ myTypes =
     PSGenerator.Common.ledgerTypes <>
     PSGenerator.Common.walletTypes <>
     PSGenerator.Common.playgroundTypes <>
-    [ mkSumType (Proxy @RunResult)
-    , mkSumType (Proxy @SourceCode)
+    [ mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
-    , mkSumType (Proxy @CheckForWarnings)
-    , mkSumType (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
     , mkSumType (Proxy @CT.ContractTerms)
@@ -164,12 +173,14 @@ writeUsecases outputDir = do
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
+type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API
+
 generate :: FilePath -> IO ()
 generate outputDir = do
-    writeAPIModuleWithSettings
-        mySettings
-        outputDir
-        myBridgeProxy
-        (Proxy @(API.API :<|> Auth.FrontendAPI))
-    writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
-    writeUsecases outputDir
+  writeAPIModuleWithSettings
+    mySettings
+    outputDir
+    myBridgeProxy
+    (Proxy @Web)
+  writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
+  writeUsecases outputDir

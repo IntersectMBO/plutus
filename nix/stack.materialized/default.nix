@@ -5,7 +5,7 @@
         "lazy-search" = (((hackage.lazy-search)."0.1.2.0").revisions).default;
         "size-based" = (((hackage.size-based)."0.1.2.0").revisions).default;
         "testing-feat" = (((hackage.testing-feat)."1.1.0.0").revisions).default;
-        "aws-lambda-haskell-runtime" = (((hackage.aws-lambda-haskell-runtime)."3.0.0").revisions).default;
+        "aws-lambda-haskell-runtime" = (((hackage.aws-lambda-haskell-runtime)."3.0.3").revisions).default;
         "binary-instances" = (((hackage.binary-instances)."1.0.0.1").revisions).default;
         "composition-prelude" = (((hackage.composition-prelude)."2.0.2.1").revisions).default;
         "constraints-extras" = (((hackage.constraints-extras)."0.3.0.2").revisions).default;
@@ -46,6 +46,7 @@
         "nonempty-containers" = (((hackage.nonempty-containers)."0.3.3.0").revisions).default;
         "Stream" = (((hackage.Stream)."0.4.7.2").revisions)."ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53";
         "lazysmallcheck" = (((hackage.lazysmallcheck)."0.6").revisions)."dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc";
+        "aws-lambda-haskell-runtime-wai" = (((hackage.aws-lambda-haskell-runtime-wai)."1.0.2").revisions)."5ce655247461b562c8048011ddc022130135a03417def8203aad92366cc979ab";
         "time-out" = (((hackage.time-out)."0.2").revisions)."b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2";
         "time-interval" = (((hackage.time-interval)."0.1.1").revisions)."7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8";
         "time-units" = (((hackage.time-units)."1.0.0").revisions)."27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1";

@@ -34,6 +34,7 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
@@ -46,7 +47,7 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           ];
         buildable = true;
-        modules = [ "Interpreter" ];
+        modules = [ "Interpreter" "Webghc/Server" ];
         hsSourceDirs = [ "src" ];
         };
       exes = {

@@ -24,7 +24,7 @@ import Types (HQuery(..))
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
   where
-  SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
+  SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/" }
 
   jsonOptions = defaultOptions { unwrapSingleConstructors = true }
 

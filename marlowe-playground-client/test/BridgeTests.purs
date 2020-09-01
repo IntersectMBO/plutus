@@ -3,7 +3,6 @@ module BridgeTests
   ) where
 
 import Prelude
-import API (RunResult)
 import Control.Monad.Except (runExcept)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
@@ -33,7 +32,7 @@ all =
 jsonHandling :: TestSuite
 jsonHandling = do
   test "Json handling" do
-    response1 :: F RunResult <- decodeFile "test/evaluation_response1.json"
+    response1 :: F String <- decodeFile "test/evaluation_response1.json"
     assertRight $ runExcept response1
     error1 :: F (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
     assertRight $ runExcept error1

@@ -88,6 +88,23 @@ resource "aws_lb_listener" "redirect" {
   }
 }
 
+resource "aws_alb_listener_rule" "runghc" {
+  depends_on   = [aws_alb_target_group.webghc]
+  listener_arn = aws_lb_listener.redirect.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.webghc.id
+  }
+
+  condition {
+    path_pattern {
+      values = ["/runghc"]
+    }
+  }
+}
+
 resource "aws_alb_listener" "playground" {
   load_balancer_arn = aws_alb.plutus.arn
   port              = "443"
@@ -170,141 +187,6 @@ resource "aws_route53_record" "playground_alb" {
   }
 }
 
-# Marlowe
-resource "aws_alb_target_group" "marlowe" {
-  # ALB is taking care of SSL termination so we listen to port 80 here
-  port     = "80"
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plutus.id
-
-  health_check {
-    path = "/api/health"
-  }
-
-  stickiness {
-    type = "lb_cookie"
-  }
-}
-
-resource "aws_alb_listener_rule" "marlowe" {
-  depends_on   = [aws_alb_target_group.marlowe]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 122
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.marlowe.id
-  }
-
-  condition {
-    host_header {
-      values = [local.marlowe_domain_name]
-    }
-  }
-}
-
-resource "aws_alb_target_group_attachment" "marlowe_a" {
-  target_group_arn = aws_alb_target_group.marlowe.arn
-  target_id        = aws_instance.marlowe_a.id
-  port             = "80"
-}
-
-resource "aws_alb_target_group_attachment" "marlowe_b" {
-  target_group_arn = aws_alb_target_group.marlowe.arn
-  target_id        = aws_instance.marlowe_b.id
-  port             = "80"
-}
-
-## ALB rule for machine a
-resource "aws_alb_target_group" "marlowe_a" {
-  # ALB is taking care of SSL termination so we listen to port 80 here
-  port     = "80"
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plutus.id
-
-  health_check {
-    path = "/api/health"
-  }
-
-  stickiness {
-    type = "lb_cookie"
-  }
-}
-
-resource "aws_alb_listener_rule" "marlowe_a" {
-  depends_on   = [aws_alb_target_group.marlowe_a]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 111
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.marlowe_a.id
-  }
-
-  condition {
-    host_header {
-      values = [local.marlowe_domain_name]
-    }
-  }
-
-  condition {
-    path_pattern {
-      values = ["/machine-a/*"]
-    }
-  }
-}
-
-resource "aws_alb_target_group_attachment" "marlowe_a_a" {
-  target_group_arn = aws_alb_target_group.marlowe_a.arn
-  target_id        = aws_instance.marlowe_a.id
-  port             = "80"
-}
-
-## ALB rule for machine b
-resource "aws_alb_target_group" "marlowe_b" {
-  # ALB is taking care of SSL termination so we listen to port 80 here
-  port     = "80"
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.plutus.id
-
-  health_check {
-    path = "/api/health"
-  }
-
-  stickiness {
-    type = "lb_cookie"
-  }
-}
-
-resource "aws_alb_listener_rule" "marlowe_b" {
-  depends_on   = [aws_alb_target_group.marlowe_b]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 112
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.marlowe_b.id
-  }
-
-  condition {
-    host_header {
-      values = [local.marlowe_domain_name]
-    }
-  }
-
-  condition {
-    path_pattern {
-      values = ["/machine-b/*"]
-    }
-  }
-}
-
-resource "aws_alb_target_group_attachment" "marlowe_b_b" {
-  target_group_arn = aws_alb_target_group.marlowe_b.arn
-  target_id        = aws_instance.marlowe_b.id
-  port             = "80"
-}
-
 ## ALB rule for web-ghc
 resource "aws_alb_target_group" "webghc" {
   # ALB is taking care of SSL termination so we listen to port 80 here
@@ -348,19 +230,6 @@ resource "aws_alb_target_group_attachment" "webghc_b" {
   target_group_arn = aws_alb_target_group.webghc.arn
   target_id        = aws_instance.webghc_b.id
   port             = "80"
-}
-
-## Route 53 for Marlowe
-resource "aws_route53_record" "marlowe_alb" {
-  zone_id = var.marlowe_public_zone
-  name    = local.marlowe_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_alb.plutus.dns_name
-    zone_id                = aws_alb.plutus.zone_id
-    evaluate_target_health = true
-  }
 }
 
 # Monitoring
