@@ -5,7 +5,7 @@ import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
 open import Function
-open import Data.Sum renaming ([_,_] to case)
+open import Data.Sum
 open import Data.String
 open import Agda.Builtin.TrustMe
 open import Relation.Binary.PropositionalEquality
@@ -105,6 +105,7 @@ postulate
   convTm : Term → RawTm
   convTy : Type → RawTy
   unconvTy : RawTy → Type
+  unconvTm : RawTm → Term
   convP : Program → RawTm
   parse : ByteString → Either Error ProgramN
   parseTm : ByteString → Maybe TermN
@@ -124,6 +125,7 @@ postulate
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT 0 ty) #-}
+{-# COMPILE GHC unconvTm = \ tm -> AlexPn 0 0 0 <$ (unconv 0 0 tm) #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# COMPILE GHC parse = first (const ParseError) . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
@@ -347,4 +349,17 @@ checkType ty t = do
   return _
 
 {-# COMPILE GHC checkType as checkTypeAgda #-}
+
+runCK : Term → Maybe Term
+runCK t = do
+  t' ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  case (Scoped.CK.stepper maxsteps (ε ▻ t'))
+       (λ _ → nothing)
+       λ{ (_ ▻ _) → nothing
+        ; (_ ◅ _) → nothing
+        ; (□ {t = t''} _) → just (unconvTm (extricateScope t')) 
+        ; ◆        → nothing}
+
+{-# COMPILE GHC runCK as runCKAgda #-}
+
 \end{code}

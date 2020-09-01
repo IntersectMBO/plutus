@@ -10,7 +10,7 @@ import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                        (checkKindAgda, inferKindAgda, normalizeTypeAgda, inferTypeAgda, checkTypeAgda)
+import           MAlonzo.Code.Main                        (checkKindAgda, inferKindAgda, normalizeTypeAgda, inferTypeAgda, checkTypeAgda, runCKAgda)
 import           MAlonzo.Code.Scoped                      (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -50,6 +50,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_typecheck
+  , testCaseGen "runCK"
+      genOpts
+      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_runCK
   ]
 
 -- check that Agda agrees that the given type is correct
@@ -122,7 +126,7 @@ prop_kindInferSame k tyG = do
   k'' <- withExceptT TypeError $ inferKind defConfig (() <$ ty)
   unless (unconvK (unDeBruijnifyK k') == k'') $ throwError (AgdaErrorP ()) -- FIXME
 
--- try to typecheck a term
+-- try to infer the type of a term
 prop_typeinfer :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typeinfer (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
@@ -144,3 +148,11 @@ prop_typecheck (k , tyG) tmG = do
       Just _  -> return ()
       Nothing -> throwError ()
    
+prop_runCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_runCK (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  withExceptT AgdaErrorP $ 
+    case runCKAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just _  -> return ()
+      Nothing -> throwError ()
