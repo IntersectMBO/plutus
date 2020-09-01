@@ -19,6 +19,7 @@ open import Data.Fin
 open import Data.Product renaming (_,_ to _,,_) hiding (map)
 open import Data.Vec hiding ([_];_>>=_) hiding (map)
 open import Data.Sum
+open import Relation.Binary.PropositionalEquality hiding ([_])
 ```
 
 ```
@@ -34,30 +35,7 @@ inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
 ⊎bind (inj₁ a) f = f a
 ⊎bind (inj₂ c) f = inj₂ c
 
-{-
-open import Data.Bool using (Bool;true;false;_∧_)
 
-eqKind : Kind → Kind → Bool
-eqKind * *       = true
-eqKind * (_ ⇒ _) = false
-eqKind (_ ⇒ _) * = false
-eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
-
-open import Relation.Nullary
-open import Relation.Binary using (Decidable)
--}
-open import Relation.Binary.PropositionalEquality hiding ([_])
-{-
-eqKind' : Decidable {A = Kind} _≡_
-eqKind' * *       = yes refl
-eqKind' * (_ ⇒ _) = no λ()
-eqKind' (_ ⇒ _) * = no λ()
-eqKind' (K ⇒ J) (K' ⇒ J') with eqKind' K K'
-... | no  q = no (λ{refl → q refl})
-... | yes p with eqKind' J J'
-... | yes p' = yes (cong₂ _⇒_ p p')
-... | no  q' = no (λ{refl → q' refl})
--}
 meqKind : (K K' : Kind) → Either Error (K ≡ K')
 meqKind * *       = return refl
 meqKind * (_ ⇒ _) = inj₁ kindEqError

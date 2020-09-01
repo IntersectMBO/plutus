@@ -131,7 +131,7 @@ prop_normalizeConvertCommuteTypes k tyG = do
 
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
-  unless (ty1 == ty2) $ throwCtrex (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2)
+  unless (ty1 == ty2) $ throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
 
 -- |Property: normal types cannot reduce
 prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT TestFail Quote ()
@@ -164,6 +164,8 @@ testCaseGen name GenOptions{..} t prop =
 --       - we encounter an error while running the Agda terms;
 --       - we found a counter-example.
 
+-- james: Isn't everything except an error in the generator a counterexample?
+
 data TestFail
   = GenError GenError
   | TypeError (TypeError DefaultUni ())
@@ -174,13 +176,44 @@ data TestFail
 data Ctrex
   = CtrexNormalizeConvertCommuteTypes
     (Kind ())
-    (Type TyName DefaultUni ())
+    ClosedTypeG
     (Type TyName DefaultUni ())
     (Type TyName DefaultUni ())
   | CtrexNormalTypesCannotReduce
     (Kind ())
     ClosedTypeG
-
+-- james v
+  | CtrexKindCheckFail
+    (Kind ())
+    ClosedTypeG
+  | CtrexKindPreservationFail
+    (Kind ())
+    ClosedTypeG
+  | CtrexKindMismatch
+    (Kind ())
+    ClosedTypeG
+    (Kind ())
+    (Kind ())
+  | CtrexTypeNormalizationFail
+    (Kind ())
+    ClosedTypeG
+  | CtrexTypeNormalizationMismatch
+    (Kind ())
+    ClosedTypeG
+    (Type TyName DefaultUni ())
+    (Type TyName DefaultUni ())
+  | CtrexTypeCheckFail
+    ClosedTypeG
+    ClosedTermG
+  | CtrexTermEvaluationFail
+    ClosedTypeG
+    ClosedTermG
+  | CtrexTermEvaluationMismatch
+    ClosedTypeG
+    ClosedTermG
+    (Term TyName Name DefaultUni ())
+    (Term TyName Name DefaultUni ())
+  
 instance Show TestFail where
   show (TypeError e)  = show e
   show (GenError e)   = show e
@@ -189,8 +222,8 @@ instance Show TestFail where
   show (FVErrorP e)   = show e -- FIXME
 
 instance Show Ctrex where
-  show (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2) =
-    printf tpl (show (pretty ty)) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
+  show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
+    printf tpl (show tyG) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
     where
       tpl = unlines
             [ "Counterexample found: %s :: %s"
@@ -203,6 +236,50 @@ instance Show Ctrex where
     where
       tpl = "Counterexample found: normal type %s of kind %s can reduce."
 
+  show (CtrexKindCheckFail k tyG) =
+    printf tpl (show tyG) (show (pretty k))
+    where
+      tpl = "Counterexample found: %s :: %s"
+  show (CtrexKindPreservationFail k tyG) =
+    printf tpl (show tyG) (show (pretty k))
+    where
+      tpl = "Counterexample found: %s :: %s"
+  show (CtrexKindMismatch k tyG k' k'') =
+    printf tpl (show (pretty k)) (show tyG) (show (pretty k')) (show (pretty k''))
+      where
+      tpl = unlines
+            [ "Counterexample found: %s :: %s"
+            , "- inferer1 gives %s"
+            , "- inferer2 gives %s"
+            ]
+  show (CtrexTypeNormalizationFail k tyG) =
+    printf tpl (show tyG) (show (pretty k))
+    where
+      tpl = "Counterexample found: %s :: %s"
+  show (CtrexTypeNormalizationMismatch k tyG ty1 ty2) =
+    printf tpl (show tyG) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
+    where
+      tpl = unlines
+            [ "Counterexample found: %s :: %s"
+            , "- normalizer1 gives %s"
+            , "- normalizer2 gives %s"
+            ]
+  show (CtrexTypeCheckFail tyG tmG) =
+    printf tpl (show tmG) (show tyG)
+    where
+      tpl = "Counterexample found: %s :: %s"
+  show (CtrexTermEvaluationFail tyG tmG) =
+    printf tpl (show tmG) (show tyG)
+    where
+      tpl = "Counterexample found: %s :: %s"
+  show (CtrexTermEvaluationMismatch tyG tmG tm1 tm2) =
+    printf tpl (show tmG) (show tyG) (show (pretty tm1)) (show (pretty tm2))
+    where
+      tpl = unlines
+            [ "Counterexample found: %s :: %s"
+            , "- evaluator1 gives %s"
+            , "- evaluator2 gives %s"
+            ]
 
 -- |Throw a counter-example.
 throwCtrex :: Ctrex -> ExceptT TestFail Quote ()

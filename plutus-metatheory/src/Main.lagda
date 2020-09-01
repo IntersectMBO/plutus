@@ -343,23 +343,39 @@ checkType ty t = do
   ty'       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
   k ,, tyN  ← liftSum (inferKind ∅ ty')
   t'        ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
-  tyN' ,, _ ← liftSum (inferType ∅ t')
+  tyN' ,, tmC ← liftSum (inferType ∅ t')
   refl      ← liftSum (meqKind k *)
   refl      ← liftSum (meqNfTy tyN tyN')
   return _
-
+  
 {-# COMPILE GHC checkType as checkTypeAgda #-}
 
+-- Haskell interface to (untypechecked CK)
 runCK : Term → Maybe Term
 runCK t = do
-  t' ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
-  case (Scoped.CK.stepper maxsteps (ε ▻ t'))
+  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  case (Scoped.CK.stepper maxsteps (ε ▻ tDB))
        (λ _ → nothing)
        λ{ (_ ▻ _) → nothing
         ; (_ ◅ _) → nothing
-        ; (□ {t = t''} _) → just (unconvTm (extricateScope t')) 
-        ; ◆        → nothing}
+        ; (□ {t = tV} _) → just (unconvTm (unshifter Z (extricateScope tV)))
+        ; ◆ → nothing}
 
 {-# COMPILE GHC runCK as runCKAgda #-}
+
+-- Haskell interface to (typechecked CK)
+runTCK : Term → Maybe Term
+runTCK t = do
+  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  _ ,, tC ← liftSum (inferType ∅ tDB)
+  case (Algorithmic.CK.stepper maxsteps (ε ▻ tC))
+       (λ _ → nothing)
+       λ{ (_ ▻ _) → nothing
+        ; (_ ◅ _) → nothing
+        ; (□ {t = tV} _) → just (unconvTm (unshifter Z (extricateScope (extricate tV))))
+        ; (◆ _) → nothing}
+  
+{-# COMPILE GHC runTCK as runTCKAgda #-}
+
 
 \end{code}
