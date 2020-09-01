@@ -10,7 +10,8 @@ import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                        (checkKindAgda, inferKindAgda, normalizeTypeAgda, inferTypeAgda, checkTypeAgda, runCKAgda, runTCKAgda)
+import           MAlonzo.Code.Main                        (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                                           normalizeTypeAgda, runCKAgda, runTCKAgda)
 import           MAlonzo.Code.Scoped                      (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -121,7 +122,7 @@ prop_normalizeTypeSame k tyG = do
   unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $
     throwCtrex (CtrexTypeNormalizationMismatch k tyG (() <$ ty1) ty2)
 
--- compare the production kind inference against the Agda 
+-- compare the production kind inference against the Agda
 prop_kindInferSame :: Kind ()
                    -> ClosedTypeG
                    -> ExceptT TestFail Quote ()
@@ -143,7 +144,7 @@ prop_typeinfer (k , tyG) tmG = do
     case inferTypeAgda (AlexPn 0 0 0 <$ tmDB) of
       Just _  -> return ()
       Nothing -> throwError (CtrexTypeCheckFail tyG tmG)
-   
+
 -- try to typecheck a term
 prop_typecheck :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typecheck (k , tyG) tmG = do
@@ -154,7 +155,7 @@ prop_typecheck (k , tyG) tmG = do
   case checkTypeAgda (AlexPn 0 0 0 <$ tyDB) (AlexPn 0 0 0 <$ tmDB) of
     Just _  -> return ()
     Nothing -> throwCtrex (CtrexTypeCheckFail tyG tmG)
-   
+
 prop_runCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_runCK (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
@@ -175,14 +176,14 @@ prop_run_CK_vs_TCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail 
 prop_run_CK_vs_TCK (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmCK <- withExceptT Ctrex $ 
+  tmCK <- withExceptT Ctrex $
     case runCKAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmCK  -> return tmCK
-      Nothing -> throwError (CtrexTermEvaluationFail tyG tmG) 
-  tmTCK <- withExceptT AgdaErrorP $ 
+      Just tmCK -> return tmCK
+      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmTCK <- withExceptT AgdaErrorP $
     case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmTCK  -> return tmTCK
-      Nothing -> throwError ()
+      Just tmTCK -> return tmTCK
+      Nothing    -> throwError ()
   tmCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   tmTCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
   unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCKN) (() <$ tmTCKN))

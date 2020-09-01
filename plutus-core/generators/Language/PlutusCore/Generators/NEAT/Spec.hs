@@ -213,7 +213,7 @@ data Ctrex
     ClosedTermG
     (Term TyName Name DefaultUni ())
     (Term TyName Name DefaultUni ())
-  
+
 instance Show TestFail where
   show (TypeError e)  = show e
   show (GenError e)   = show e
