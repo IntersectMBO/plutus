@@ -1,10 +1,8 @@
 module Marlowe.Semantics where
 
 import Prelude
-import Prelude
 import Control.Monad.Except (mapExcept, runExcept)
 import Data.Array (catMaybes)
-import Data.Bifunctor (bimap, lmap, rmap)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, any, foldl, minimum)
@@ -15,7 +13,7 @@ import Data.Integral (class Integral)
 import Data.Lens (Lens', over, to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.List (List(..), fromFoldable, null, reverse, (:))
+import Data.List (List(..), fromFoldable, reverse, (:))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -24,14 +22,11 @@ import Data.Num (class Num)
 import Data.Ord (abs, signum)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
-import Foreign (F, readString, Foreign)
+import Foreign (F, readString)
 import Foreign.Class (class Encode, class Decode, encode, decode)
-import Foreign.Generic (genericEncode, genericDecode)
+import Foreign.Generic (genericDecode, genericEncode)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
-import Foreign.Index (readProp)
-import Foreign.Object (Object)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
 
 type PubKey
@@ -48,7 +43,8 @@ derive instance eqParty :: Eq Party
 derive instance ordParty :: Ord Party
 
 instance encodeJsonParty :: Encode Party where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (PK pubKey) = encode { pk_hash: pubKey }
+  encode (Role tokName) = encode { role_token: tokName }
 
 instance decodeJsonParty :: Decode Party where
   decode a = genericDecode aesonCompatibleOptions a
@@ -79,8 +75,11 @@ data Token
   = Token CurrencySymbol TokenName
 
 instance encodeJsonToken :: Encode Token where
-  encode (Token "" "") = encode "ada"
-  encode (Token cur tok) = encode { currency: { unCurrencySymbol: cur }, token: { unTokenName: tok } }
+  encode (Token cur tok) =
+    encode
+      { currency_symbol: cur
+      , token_name: tok
+      }
 
 type TokenJson
   = { currency :: { unCurrencySymbol :: String }, token :: { unTokenName :: String } }
@@ -157,7 +156,7 @@ newtype Slot
   = Slot BigInteger
 
 instance encodeJsonSlot :: Encode Slot where
-  encode (Slot n) = encode { getSlot: n }
+  encode (Slot n) = encode n
 
 type SlotJson
   = { getSlot :: BigInteger }
@@ -236,7 +235,11 @@ derive instance eqAccountId :: Eq AccountId
 derive instance ordAccountId :: Ord AccountId
 
 instance encodeJsonAccountId :: Encode AccountId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (AccountId amount party) =
+    encode
+      { account_number: amount
+      , account_owner: party
+      }
 
 instance decodeJsonAccountId :: Decode AccountId where
   decode a = genericDecode aesonCompatibleOptions a
@@ -261,7 +264,11 @@ derive instance eqChoiceId :: Eq ChoiceId
 derive instance ordChoiceId :: Ord ChoiceId
 
 instance encodeJsonChoiceId :: Encode ChoiceId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (ChoiceId name owner) =
+    encode
+      { choice_name: name
+      , choice_owner: owner
+      }
 
 instance decodeJsonChoiceId :: Decode ChoiceId where
   decode a = genericDecode aesonCompatibleOptions a
@@ -291,7 +298,7 @@ derive instance eqValueId :: Eq ValueId
 derive instance ordValueId :: Ord ValueId
 
 instance encodeJsonValueId :: Encode ValueId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (ValueId a) = encode a
 
 instance decodeJsonValueId :: Decode ValueId where
   decode a = genericDecode aesonCompatibleOptions a
@@ -353,7 +360,53 @@ derive instance eqValue :: Eq Value
 derive instance ordValue :: Ord Value
 
 instance encodeJsonValue :: Encode Value where
-  encode a = genericEncode defaultOptions a
+  encode (AvailableMoney accId tok) =
+    encode
+      { amount_of_token: tok
+      , in_account: accId
+      }
+  encode (Constant val) = encode val
+  encode (NegValue val) =
+    encode
+      { negate: val
+      }
+  encode (AddValue lhs rhs) =
+    encode
+      { add: lhs
+      , and: rhs
+      }
+  encode (SubValue lhs rhs) =
+    encode
+      { value: lhs
+      , minus: rhs
+      }
+  encode (MulValue lhs rhs) =
+    encode
+      { multiply: lhs
+      , times: rhs
+      }
+  encode (Scale (Rational num den) val) =
+    encode
+      { multiply: num
+      , times: den
+      , by: val
+      }
+  encode (ChoiceValue choiceId) =
+    encode
+      { value_of_choice: choiceId
+      }
+  encode SlotIntervalStart = encode "slot_interval_start"
+  encode SlotIntervalEnd = encode "slot_interval_end"
+  encode (UseValue valueId) =
+    encode
+      { use_value: valueId
+      }
+  encode (Cond cond thenValue elseValue) =
+    encode
+      { if: cond
+      , then: thenValue
+      , else: elseValue
+      }
 
 instance decodeJsonValue :: Decode Value where
   decode a = genericDecode defaultOptions a
@@ -388,7 +441,51 @@ derive instance eqObservation :: Eq Observation
 derive instance ordObservation :: Ord Observation
 
 instance encodeJsonObservation :: Encode Observation where
-  encode a = genericEncode defaultOptions a
+  encode (AndObs lhs rhs) =
+    encode
+      { both: lhs
+      , and: rhs
+      }
+  encode (OrObs lhs rhs) =
+    encode
+      { either: lhs
+      , or: rhs
+      }
+  encode (NotObs obs) =
+    encode
+      { not: obs
+      }
+  encode (ChoseSomething choiceId) =
+    encode
+      { chose_something_for: choiceId
+      }
+  encode (ValueGE lhs rhs) =
+    encode
+      { value: lhs
+      , ge_than: rhs
+      }
+  encode (ValueGT lhs rhs) =
+    encode
+      { value: lhs
+      , gt: rhs
+      }
+  encode (ValueLT lhs rhs) =
+    encode
+      { value: lhs
+      , lt: rhs
+      }
+  encode (ValueLE lhs rhs) =
+    encode
+      { value: lhs
+      , le_than: rhs
+      }
+  encode (ValueEQ lhs rhs) =
+    encode
+      { value: lhs
+      , equal_to: rhs
+      }
+  encode TrueObs = encode true
+  encode FalseObs = encode false
 
 instance decodeJsonObservation :: Decode Observation where
   decode a = genericDecode defaultOptions a
@@ -446,7 +543,11 @@ derive instance eqBound :: Eq Bound
 derive instance orBound :: Ord Bound
 
 instance encodeJsonBound :: Encode Bound where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (Bound fromSlot toSlot) =
+    encode
+      { from: fromSlot
+      , to: toSlot
+      }
 
 instance decodeJsonBound :: Decode Bound where
   decode a = genericDecode aesonCompatibleOptions a
@@ -473,7 +574,22 @@ derive instance eqAction :: Eq Action
 derive instance ordAction :: Ord Action
 
 instance encodeJsonAction :: Encode Action where
-  encode a = genericEncode defaultOptions a
+  encode (Deposit accountId party token value) =
+    encode
+      { party: party
+      , deposits: value
+      , of_token: token
+      , into_account: accountId
+      }
+  encode (Choice choiceId boundArray) =
+    encode
+      { choose_between: boundArray
+      , for_choice: choiceId
+      }
+  encode (Notify obs) =
+    encode
+      { notify_if: obs
+      }
 
 instance decodeJsonAction :: Decode Action where
   decode a = genericDecode defaultOptions a
@@ -500,7 +616,8 @@ derive instance eqPayee :: Eq Payee
 derive instance ordPayee :: Ord Payee
 
 instance encodeJsonPayee :: Encode Payee where
-  encode a = genericEncode defaultOptions a
+  encode (Account accountId) = encode accountId
+  encode (Party party) = encode party
 
 instance decodeJsonPayee :: Decode Payee where
   decode a = genericDecode defaultOptions a
@@ -525,7 +642,11 @@ derive instance eqCase :: Eq Case
 derive instance ordCase :: Ord Case
 
 instance encodeJsonCase :: Encode Case where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (Case action cont) =
+    encode
+      { case: action
+      , then: cont
+      }
 
 instance decodeJsonCase :: Decode Case where
   decode a = genericDecode aesonCompatibleOptions a
@@ -555,7 +676,38 @@ derive instance eqContract :: Eq Contract
 derive instance ordContract :: Ord Contract
 
 instance encodeJsonContract :: Encode Contract where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode Close = encode "close"
+  encode (Pay accId payee token val cont) =
+    encode
+      { pay: val
+      , token: token
+      , from_account: accId
+      , to: payee
+      , then: cont
+      }
+  encode (If obs contTrue contFalse) =
+    encode
+      { if: obs
+      , then: contTrue
+      , else: contFalse
+      }
+  encode (When cases timeout cont) =
+    encode
+      { when: cases
+      , timeout: timeout
+      , timeout_continuation: cont
+      }
+  encode (Let valId val cont) =
+    encode
+      { let: valId
+      , be: val
+      , then: cont
+      }
+  encode (Assert obs cont) =
+    encode
+      { assert: obs
+      , then: cont
+      }
 
 instance decodeJsonContract :: Decode Contract where
   decode a = genericDecode aesonCompatibleOptions a
