@@ -165,6 +165,7 @@ type CekEvaluationException uni = CekEvaluationExceptionCarrying (Plain Term uni
 
 -- | The monad the CEK machine runs in.
 type CekM uni = CekCarryingM (Plain Term uni) uni
+
 data ExBudgetCategory
     = BTyInst
     | BApply

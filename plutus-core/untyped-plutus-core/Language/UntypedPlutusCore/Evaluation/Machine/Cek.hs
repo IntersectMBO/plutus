@@ -11,6 +11,7 @@
 -- (wrapped in 'OtherMachineError').
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -22,16 +23,19 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Language.PlutusCore.Evaluation.Machine.Cek
+module Language.UntypedPlutusCore.Evaluation.Machine.Cek
     ( CekValue(..)
     , CekEvaluationException
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudget(..)
+    , ExBudgetCategory(..)
     , ExBudgetMode(..)
     , ExRestrictingBudget(..)
     , ExTally(..)
+    , CekExBudgetState
+    , CekExTally
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
@@ -45,9 +49,9 @@ where
 import           PlutusPrelude
 
 import           Language.UntypedPlutusCore.Core
+import           Language.UntypedPlutusCore.Subst
 
 import           Language.PlutusCore.Constant
--- import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
@@ -55,7 +59,6 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 
 import           Control.Lens                                       (AReview)
@@ -66,6 +69,7 @@ import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.Array
+import           Data.Hashable
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
@@ -97,7 +101,7 @@ which is a problem.)
 data CekValue uni =
     -- TODO: we probably want to store a @Some (ValueOf uni)@ here, but then we have trouble in
     -- 'readKnownCek'. I'll reconsider the way we deal with annotations once again.
-    VCon (TermWithMem uni)
+    VCon ExMemory (Some (ValueOf uni))
   | VDelay ExMemory (TermWithMem uni) (CekValEnv uni)
   | VLamAbs ExMemory Name (TermWithMem uni) (CekValEnv uni)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
@@ -152,13 +156,27 @@ type CekEvaluationExceptionCarrying term =
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
 type CekCarryingM term uni =
-    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State ExBudgetState))
+    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State CekExBudgetState))
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException uni = CekEvaluationExceptionCarrying (Term Name uni ())
 
 -- | The monad the CEK machine runs in.
 type CekM uni = CekCarryingM (Term Name uni ()) uni
+data ExBudgetCategory
+    = BForce
+    | BApply
+    | BVar
+    | BBuiltin BuiltinName
+    | BAST
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass NFData
+instance Hashable ExBudgetCategory
+instance (PrettyBy config) ExBudgetCategory where
+    prettyBy _ = viaShow
+
+type CekExBudgetState = ExBudgetState ExBudgetCategory
+type CekExTally       = ExTally       ExBudgetCategory
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -211,20 +229,24 @@ mkBuiltinApplication ex bn arity0 tys0 args0 =
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
-dischargeCekValEnv valEnv = undefined
---     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
---     -- this to terms which have no free variables remaining, at which point we won't call this
---     -- substitution function any more and so we will terminate.
---     termSubstFreeNames $ \name -> do
---         val <- lookupName name valEnv
---         Just $ dischargeCekValue val
+dischargeCekValEnv
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValEnv uni -> TermWithMem uni -> TermWithMem uni
+dischargeCekValEnv valEnv =
+    -- We recursively discharge the environments of Cek values, but we will gradually end up doing
+    -- this to terms which have no free variables remaining, at which point we won't call this
+    -- substitution function any more and so we will terminate.
+    termSubstFreeNames $ \name -> do
+        val <- lookupName name valEnv
+        Just $ dischargeCekValue val
 
 -- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue :: CekValue uni -> TermWithMem uni
+dischargeCekValue
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValue uni -> TermWithMem uni
 dischargeCekValue = \case
-    VCon t                                 -> t
+    VCon     ex val                        -> Constant ex val
     VDelay   ex body env                   -> Delay ex (dischargeCekValEnv env body)
     VLamAbs  ex name body env              -> LamAbs ex name (dischargeCekValEnv env body)
     VBuiltin ex bn arity0 _ tyargs args  _ -> mkBuiltinApplication ex bn arity0 tyargs (fmap dischargeCekValue args)
@@ -232,26 +254,30 @@ dischargeCekValue = \case
        or (b) it's needed for an error message.  When we're discharging VBuiltin
        we use arity0 to get the type and term arguments into the right sequence. -}
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CekValue uni) where
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage) =>
+            PrettyBy PrettyConfigPlc (CekValue uni) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
 type instance UniOf (CekValue uni) = uni
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
-    fromConstant = VCon . fromConstant
+    fromConstant val = VCon (memoryUsage val) val
 
 instance AsConstant (CekValue uni) where
-    asConstant (VCon term) = asConstant term
-    asConstant _           = Nothing
+    asConstant (VCon _ val) = Just val
+    asConstant _            = Nothing
 
 instance ToExMemory (CekValue uni) where
     toExMemory = \case
-        VCon t -> termAnn t
-        VDelay ex _ _ -> ex
-        VLamAbs ex _ _ _ -> ex
+        VCon     ex _           -> ex
+        VDelay   ex _ _         -> ex
+        VLamAbs  ex _ _ _       -> ex
         VBuiltin ex _ _ _ _ _ _ -> ex
 
-instance ToExMemory term => SpendBudget (CekCarryingM term uni) term where
+instance ExBudgetBuiltin ExBudgetCategory where
+    exBudgetBuiltin = BBuiltin
+
+instance ToExMemory term => SpendBudget (CekCarryingM term uni) ExBudgetCategory term where
     builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -277,9 +303,9 @@ type Context uni = [Frame uni]
 runCekM
     :: forall a uni
      . CekEnv uni
-    -> ExBudgetState
+    -> CekExBudgetState
     -> CekM uni a
-    -> (Either (CekEvaluationException uni) a, ExBudgetState)
+    -> (Either (CekEvaluationException uni) a, CekExBudgetState)
 runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
 -- | Extend an environment with a variable name, the value the variable stands for
@@ -318,7 +344,7 @@ computeCek
     => Context uni -> CekValEnv uni -> TermWithMem uni -> CekM uni (Term Name uni ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Force _ body) = do
-    spendBudget BTyInst (ExBudget 1 1) -- TODO
+    spendBudget BForce (ExBudget 1 1) -- TODO
     computeCek (FrameForce : ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek ctx env (Apply _ fun arg) = do
@@ -333,9 +359,8 @@ computeCek ctx env (LamAbs ex name body) =
     -- TODO: budget?
     returnCek ctx (VLamAbs ex name body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx _ c@Constant{} =
-    -- TODO: budget?
-    returnCek ctx (VCon c)
+computeCek ctx _ (Constant ex val) =
+    returnCek ctx (VCon ex val)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx env (Builtin ex bn) = do
     -- TODO: budget?
@@ -353,7 +378,9 @@ computeCek ctx env (Var _ varName) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: MonadError (ErrorWithCause e (Term Name uni ())) m
+    :: ( MonadError (ErrorWithCause e (Term Name uni ())) m
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => AReview e t -> t -> CekValue uni -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
@@ -496,7 +523,7 @@ runCek
     -> ExBudgetMode
     -> CostModel
     -> Term Name uni ()
-    -> (Either (CekEvaluationException uni) (Term Name uni ()), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Term Name uni ()), CekExBudgetState)
 runCek means mode params term =
     runCekM (CekEnv means mode params)
             (ExBudgetState mempty mempty)
@@ -512,7 +539,7 @@ runCekCounting
     => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Term Name uni ()
-    -> (Either (CekEvaluationException uni) (Term Name uni ()), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Term Name uni ()), CekExBudgetState)
 runCekCounting means = runCek means Counting
 
 -- | Evaluate a term using the CEK machine.

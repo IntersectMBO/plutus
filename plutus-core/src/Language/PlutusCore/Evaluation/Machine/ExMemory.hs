@@ -104,14 +104,16 @@ class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
-deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
+deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
+    (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
-  instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
-    ExMemoryUsage (Term TyName Name uni ann)
+deriving via (GenericExMemoryUsage (Term tyname name uni ann)) instance
+    ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
+    , Closed uni, uni `Everywhere` ExMemoryUsage
+    ) => ExMemoryUsage (Term tyname name uni ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique

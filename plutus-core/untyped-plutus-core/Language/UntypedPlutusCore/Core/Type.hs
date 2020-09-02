@@ -1,5 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
@@ -59,6 +61,11 @@ instance ToExMemory (Term name uni ()) where
 
 instance ToExMemory (Term name uni ExMemory) where
     toExMemory = termAnn
+
+deriving via GenericExMemoryUsage (Term name uni ann) instance
+    ( ExMemoryUsage name, ExMemoryUsage ann
+    , Closed uni, uni `Everywhere` ExMemoryUsage
+    ) => ExMemoryUsage (Term name uni ann)
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni ann -> ann

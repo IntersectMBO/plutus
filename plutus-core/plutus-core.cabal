@@ -115,6 +115,7 @@ library
         Language.PlutusIR.Transform.LetFloat
 
         Language.UntypedPlutusCore
+        Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
         PlutusPrelude
         Common
@@ -188,6 +189,7 @@ library
         Language.UntypedPlutusCore.Core.Instance
         Language.UntypedPlutusCore.Core.Instance.Eq
         Language.UntypedPlutusCore.Core.Type
+        Language.UntypedPlutusCore.Subst
 
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
