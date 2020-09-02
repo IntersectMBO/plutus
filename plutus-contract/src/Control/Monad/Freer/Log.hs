@@ -300,7 +300,7 @@ handleObserve getCurrent handleObs =
     . raiseUnder @effs @(LogObserve v) @(State (ObsState v s))
     where
         -- empty the stack of partial observations at the very end.
-        handleFinalState :: forall a. Eff effs (a, (ObsState v s)) -> Eff effs a
+        handleFinalState :: forall a. Eff effs (a, ObsState v s) -> Eff effs a
         handleFinalState action = do
             (result, finalState) <- action
             _ <- handleObserveAfter Nothing finalState 0
