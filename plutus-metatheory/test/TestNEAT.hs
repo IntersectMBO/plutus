@@ -59,12 +59,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_runTCK
-{-
   , testCaseGen "runCK_vs_TCK"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_run_CK_vs_TCK
--}
   ]
 
 -- check that Agda agrees that the given type is correct
@@ -119,7 +117,7 @@ prop_normalizeTypeSame k tyG = do
       Nothing  -> throwError (CtrexTypeNormalizationFail k tyG)
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   ty2 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
-  unless (ty1 == (AlexPn 0 0 0 <$ ty2)) $
+  unless ((() <$ ty1) == ty2) $
     throwCtrex (CtrexTypeNormalizationMismatch k tyG (() <$ ty1) ty2)
 
 -- compare the production kind inference against the Agda
@@ -186,4 +184,4 @@ prop_run_CK_vs_TCK (k , tyG) tmG = do
       Nothing    -> throwError ()
   tmCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   tmTCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
-  unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCKN) (() <$ tmTCKN))
+  unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCK) (() <$tmTCK))

@@ -128,41 +128,55 @@ lookupWTy (suc x) Z = nothing
 lookupWTy (suc x) (S w) = lookupWTy x w
 lookupWTy (suc x) (T w) = fmap suc (lookupWTy x w)
 
+
 lookupWTm' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTm' i Z = i
+lookupWTm' zero (S w) = 1
+lookupWTm' (suc i) (S w) = suc (lookupWTm' i w)
+lookupWTm' i (T w) = suc (lookupWTm' i w)
+{-
 lookupWTm' x (S m) = lookupWTm' x m
 lookupWTm' x (T m) = lookupWTm' (suc x) m
-lookupWTm' x Z     = x
+lookupWTm' x Z     = suc x
+-}
 
 lookupWTy' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTy' i Z = i
+lookupWTy' i (S w) = suc (lookupWTy' i w)
+lookupWTy' (suc i) (T w) = suc (lookupWTy' i w)
+lookupWTy' 0 (T w) = 1
+
+{-
 lookupWTy' x (S m) = lookupWTy' (suc x) m
 lookupWTy' x (T m) = lookupWTy' x m
-lookupWTy' x Z     = x
+lookupWTy' x Z     = suc x
+-}
 
 -- these are renamings
-shifterTy : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTy → RawTy
-shifterTy m w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
-shifterTy m w (A ⇒ B) = shifterTy m w A ⇒ shifterTy m w B
-shifterTy m w (Π K A) = Π K (shifterTy (suc m) (T w) A)
-shifterTy m w (ƛ K A) = ƛ K (shifterTy (suc m) (T w) A)
-shifterTy m w (A · B) = shifterTy m w A · shifterTy m w B
-shifterTy m w (con c) = con c
-shifterTy m w (μ A B) = μ (shifterTy m w A) (shifterTy m w B)
+shifterTy : ∀{n}(w : Weirdℕ n) → RawTy → RawTy
+shifterTy w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
+shifterTy w (A ⇒ B) = shifterTy w A ⇒ shifterTy w B
+shifterTy w (Π K A) = Π K (shifterTy (T w) A)
+shifterTy w (ƛ K A) = ƛ K (shifterTy (T w) A)
+shifterTy w (A · B) = shifterTy w A · shifterTy w B
+shifterTy w (con c) = con c
+shifterTy w (μ A B) = μ (shifterTy w A) (shifterTy w B)
 
-shifter : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTm → RawTm
-shifter m w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
-shifter m w (Λ K t) = Λ K (shifter (suc m) (T w) t)
-shifter m w (t ·⋆ A) = shifter m w t ·⋆ shifterTy m w A
-shifter m w (ƛ A t) = ƛ (shifterTy (suc m) (S w) A) (shifter (suc m) (S w) t) 
-shifter m w (t · u) = shifter m w t · shifter m w u
-shifter m w (con c) = con c
-shifter m w (error A) = error (shifterTy m w A)
-shifter m w (builtin b) = builtin b
-shifter m w (wrap pat arg t) =
-  wrap (shifterTy m w pat) (shifterTy m w arg) (shifter m w t)
-shifter m w (unwrap t) = unwrap (shifter m w t)
+shifter : ∀{n}(w : Weirdℕ n) → RawTm → RawTm
+shifter w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
+shifter w (Λ K t) = Λ K (shifter (T w) t)
+shifter w (t ·⋆ A) = shifter w t ·⋆ shifterTy w A
+shifter w (ƛ A t) = ƛ (shifterTy (S w) A) (shifter (S w) t) 
+shifter w (t · u) = shifter w t · shifter w u
+shifter w (con c) = con c
+shifter w (error A) = error (shifterTy w A)
+shifter w (builtin b) = builtin b
+shifter w (wrap pat arg t) =
+  wrap (shifterTy w pat) (shifterTy w arg) (shifter w t)
+shifter w (unwrap t) = unwrap (shifter w t)
 
 unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
-unshifterTy w (` x) = ` (suc (lookupWTy' x w))
+unshifterTy w (` x) = ` (lookupWTy' x w)
 unshifterTy w (A ⇒ B) = unshifterTy w A ⇒ unshifterTy w B
 unshifterTy w (Π K A) = Π K (unshifterTy (T w) A)
 unshifterTy w (ƛ K A) = ƛ K (unshifterTy (T w) A)
@@ -173,8 +187,9 @@ unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
 open import Relation.Binary.PropositionalEquality
 
 unshifter : ∀{n} → Weirdℕ n → RawTm → RawTm
-unshifter w (` x) = ` (suc (lookupWTm' x w))
+unshifter w (` x) = ` (lookupWTm' x w)
 unshifter w (Λ K t) = Λ K (unshifter (T w) t)
+
 unshifter w (t ·⋆ A) = unshifter w t ·⋆ unshifterTy w A
 unshifter w (ƛ A t) = ƛ (unshifterTy (S w) A) (unshifter (S w) t)
 unshifter w (t · u) = unshifter w t · unshifter w u

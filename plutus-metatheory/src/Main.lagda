@@ -125,7 +125,7 @@ postulate
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT 0 ty) #-}
-{-# COMPILE GHC unconvTm = \ tm -> AlexPn 0 0 0 <$ (unconv 0 0 tm) #-}
+{-# COMPILE GHC unconvTm = \ tm -> AlexPn 0 0 0 <$ (unconv 0 tm) #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# COMPILE GHC parse = first (const ParseError) . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
@@ -147,8 +147,8 @@ postulate
   prettyPrintTy : RawTy → String
 
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
-{-# COMPILE GHC prettyPrintTm = display @T.Text . unconv (-1) (-1) #-}
-{-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT (-1) #-}
+{-# COMPILE GHC prettyPrintTm = display @T.Text . unconv 0 #-}
+{-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
 
 data EvalMode : Set where
   U L TCK CK TCEKC TCEKV : EvalMode
@@ -159,7 +159,7 @@ parsePLC : ByteString → Either Error (ScopedTm Z)
 parsePLC plc = do
   namedprog ← parse plc
   prog ← deBruijnify namedprog
-  scopeCheckTm {0}{Z} (shifter 0 Z (convP prog))
+  scopeCheckTm {0}{Z} (shifter Z (convP prog))
   -- ^ TODO: this should have an interface that guarantees that the
   -- shifter is run
 
@@ -171,35 +171,49 @@ maxsteps = 10000000000
 executePLC : EvalMode → ScopedTm Z → Either Error String
 executePLC U t = inj₁ gasError
 executePLC L t with S.run t maxsteps
-... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (extricateScope t'))
+... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (unshifter Z (extricateScope t')))
 ... | t' ,, p ,, inj₁ nothing  = inj₁ gasError
 ... | t' ,, p ,, inj₂ e        = inj₂ "ERROR"
 executePLC CK t = do
   □ {t = t} v ← Scoped.CK.stepper maxsteps (ε ▻ t)
     where ◆  → inj₂ "ERROR"
           _  → inj₁ gasError
-  return (prettyPrintTm (extricateScope t))
+  return (prettyPrintTm (unshifter Z (extricateScope t)))
 executePLC TCK t = do
   (A ,, t) ← typeCheckPLC t
   □ {t = t} v ← Algorithmic.CK.stepper maxsteps (ε ▻ t)
     where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
-  return (prettyPrintTm (extricateScope (extricate t)))
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
 executePLC TCEKC t = do
   (A ,, t) ← typeCheckPLC t
   □ (_ ,, _ ,, V ,, ρ) ← Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
-  return (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ))))))
 executePLC TCEKV t = do
   (A ,, t) ← typeCheckPLC t
   □ V ← Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
-  return (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
 evalByteString : EvalMode → ByteString → Either Error String
 evalByteString m b = do
+{-
+namedprog ← parse b
+  prog ← deBruijnify namedprog
+  let shiftedprog = shifter Z (convP prog)
+  scopedprog ← scopeCheckTm {0}{Z} shiftedprog
+  let extricatedprog = extricateScope scopedprog
+  let unshiftedprog = unshifter Z extricatedprog
+  return ("orginal: " ++ rawPrinter (convP prog) ++ "\n" ++
+          "shifted: " ++ rawPrinter shiftedprog ++ "\n" ++
+          "instrinsically scoped: " ++ Scoped.ugly scopedprog ++ "\n" ++
+          "extricated: " ++ rawPrinter extricatedprog ++ "\n" ++
+          "unshifted: " ++ rawPrinter unshiftedprog ++ "\n" ++
+          "unconved: " ++ prettyPrintTm unshiftedprog ++ "\n")
+-}
   t ← parsePLC b
   executePLC m t
 
@@ -207,7 +221,15 @@ typeCheckByteString : ByteString → Either Error String
 typeCheckByteString b = do
   t ← parsePLC b
   (A ,, _) ← typeCheckPLC t
-  return (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
+{-  
+  let extricatedtype = extricateScopeTy (extricateNf⋆ A)
+  let unshiftedtype = unshifterTy Z extricatedtype
+  return ("original: " ++ "???" ++ "\n" ++
+          "extricated: " ++ rawTyPrinter extricatedtype ++ "\n" ++
+          "unshifted: " ++ rawTyPrinter unshiftedtype ++ "\n" ++
+          "unconved: " ++ prettyPrintTy unshiftedtype ++ "\n")
+-}        
+  return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
@@ -221,6 +243,15 @@ alphaTm plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
 alphaTm plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTm as alphaTm #-}
+
+blah : ByteString → ByteString → String
+blah plc1 plc2 with parseTm plc1 | parseTm plc2
+blah plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
+blah plc1 plc2 | just plc1' | just plc2' | just plc1'' | just plc2'' = rawPrinter (convTm plc1'') ++ " || " ++ rawPrinter (convTm plc2'')
+blah plc1 plc2 | just plc1' | just plc2' | _ | _ = "deBruijnifying failed"
+blah plc1 plc2 | _ | _ = "parsing failed"
+
+{-# COMPILE GHC blah as blah #-}
 
 printTy : ByteString → String
 printTy b with parseTy b
@@ -301,7 +332,7 @@ liftSum (inj₁ e) = nothing
 -- a Haskell interface to the kindchecker:
 checkKind : Type → Kind → Maybe ⊤
 checkKind ty k = do
-  ty        ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  ty        ← liftSum (scopeCheckTy (shifterTy Z (convTy ty)))
   (k' ,, _) ← liftSum (inferKind ∅ ty)
   _         ← liftSum (meqKind k k')
   return tt
@@ -312,7 +343,7 @@ checkKind ty k = do
 -- a Haskell interface to kind inference:
 inferKind∅ : Type → Maybe Kind
 inferKind∅ ty = do
-  ty       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  ty       ← liftSum (scopeCheckTy (shifterTy Z (convTy ty)))
   (k ,, _) ← liftSum (inferKind ∅ ty)
   return k
 
@@ -323,7 +354,7 @@ open import Type.BetaNormal
 -- a Haskell interface to the type normalizer:
 normalizeType : Type → Maybe Type
 normalizeType ty = do
-  ty'    ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  ty'    ← liftSum (scopeCheckTy (shifterTy Z (convTy ty)))
   _ ,, n ← liftSum (inferKind ∅ ty')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
@@ -332,7 +363,7 @@ normalizeType ty = do
 -- Haskell interface to type checker:
 inferType∅ : Term → Maybe Type
 inferType∅ t = do
-  t' ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  t' ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   ty ,, _ ← liftSum (inferType ∅ t')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ ty))))
 
@@ -340,9 +371,9 @@ inferType∅ t = do
 
 checkType : Type → Term → Maybe ⊤
 checkType ty t = do
-  ty'       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
+  ty'       ← liftSum (scopeCheckTy (shifterTy Z (convTy ty)))
   k ,, tyN  ← liftSum (inferKind ∅ ty')
-  t'        ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  t'        ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   tyN' ,, tmC ← liftSum (inferType ∅ t')
   refl      ← liftSum (meqKind k *)
   refl      ← liftSum (meqNfTy tyN tyN')
@@ -353,7 +384,7 @@ checkType ty t = do
 -- Haskell interface to (untypechecked CK)
 runCK : Term → Maybe Term
 runCK t = do
-  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   case (Scoped.CK.stepper maxsteps (ε ▻ tDB))
        (λ _ → nothing)
        λ{ (_ ▻ _) → nothing
@@ -366,7 +397,7 @@ runCK t = do
 -- Haskell interface to (typechecked CK)
 runTCK : Term → Maybe Term
 runTCK t = do
-  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter 0 Z (convTm t)))
+  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   _ ,, tC ← liftSum (inferType ∅ tDB)
   case (Algorithmic.CK.stepper maxsteps (ε ▻ tC))
        (λ _ → nothing)
@@ -376,6 +407,4 @@ runTCK t = do
         ; (◆ _) → nothing}
   
 {-# COMPILE GHC runTCK as runTCKAgda #-}
-
-
 \end{code}

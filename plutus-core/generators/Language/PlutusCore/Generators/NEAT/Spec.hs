@@ -211,8 +211,8 @@ data Ctrex
   | CtrexTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    (Term TyName Name DefaultUni ())
-    (Term TyName Name DefaultUni ())
+    (Term TyDeBruijn DeBruijn DefaultUni ())
+    (Term TyDeBruijn DeBruijn DefaultUni ())
 
 instance Show TestFail where
   show (TypeError e)  = show e
