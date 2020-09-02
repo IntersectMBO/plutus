@@ -224,7 +224,7 @@ handleLogIgnore = interpret $ \case
     LMessage _ -> pure ()
 
 -- | Write the log to stdout using 'Debug.Trace.trace'
-handleLogTrace :: Eff (LogMsg String ': effs) ~> Eff effs
+handleLogTrace :: Pretty a => Eff (LogMsg a ': effs) ~> Eff effs
 handleLogTrace = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
 
