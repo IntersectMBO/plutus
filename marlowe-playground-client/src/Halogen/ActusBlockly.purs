@@ -16,10 +16,12 @@ import Data.Symbol (SProxy(..))
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
-import Halogen.HTML (HTML, button, div, text)
+import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, id_, ref)
+import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
+import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Marlowe.ActusBlockly (buildGenerator)
+import Halogen.HTML.Core (AttrName(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 
 type BlocklyState
@@ -59,7 +61,7 @@ type DSL m a
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)" }
     , render
     , eval:
       H.mkEval
@@ -128,19 +130,39 @@ blocklyRef = RefLabel "blockly"
 
 render :: forall p. BlocklyState -> HTML p BlocklyAction
 render state =
-  div []
-    [ div
-        [ ref blocklyRef
-        , id_ "actusBlocklyWorkspace"
-        , classes [ ClassName "actus-blockly-workspace", ClassName "container-fluid" ]
-        ]
+  div [] 
+    [ section [ classes [ panelSubHeader, aHorizontal ] ]
+      [ div [ classes [ panelSubHeaderMain, aHorizontal ]]
         [ toCodeButton "Generate reactive contract"
-        , text "  "
         , toStaticCodeButton "Generate static contract"
-        , text "  (Labs is an experimental feature)"
         , errorMessage state.errorMessage
         ]
+      ]
+    , div [ classes [ ClassName "code-panel" ]]
+      [ div
+          [ ref blocklyRef
+          , id_ "actusBlocklyWorkspace"
+          , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
+          ]
+          []
+      , shiny
+      ]
     ]
+
+shiny ::
+  forall p.
+  HTML p BlocklyAction
+shiny =
+    aside [ classes [ sidebarComposer, expanded false] ]
+      [ div [attr (AttrName "style") "height: 100%;"] [ 
+        iframe 
+        [
+          src "http://localhost:8081"
+        , attr (AttrName "frameborder") "0"
+        , attr (AttrName "scrolling") "no"
+        , attr (AttrName "style") "position: relative; height: 100%; width: 100%;"
+        ]
+      ]] 
 
 toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
@@ -153,6 +175,7 @@ toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
+    , attr (AttrName "style") "margin-left:5px; margin-right:5px"
     ]
     [ text key ]
 
