@@ -1,7 +1,6 @@
 module Marlowe.Semantics where
 
 import Prelude
-
 import Control.Alt ((<|>))
 import Data.Array (catMaybes)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
@@ -48,8 +47,9 @@ instance encodeJsonParty :: Encode Party where
   encode (Role tokName) = encode { role_token: tokName }
 
 instance decodeJsonParty :: Decode Party where
-  decode a = (PK <$> (decode =<< readProp "pk_hash" a))
-         <|> (Role <$> (decode =<< readProp "role_token" a))
+  decode a =
+    (PK <$> (decode =<< readProp "pk_hash" a))
+      <|> (Role <$> (decode =<< readProp "role_token" a))
 
 instance showParty :: Show Party where
   show = genericShow
@@ -87,8 +87,10 @@ type TokenJson
   = { currency :: { unCurrencySymbol :: String }, token :: { unTokenName :: String } }
 
 instance decodeJsonToken :: Decode Token where
-  decode a = (Token <$> (decode =<< readProp "currency_symbol" a)
-                    <*> (decode =<< readProp "token_name" a))
+  decode a =
+    ( Token <$> (decode =<< readProp "currency_symbol" a)
+        <*> (decode =<< readProp "token_name" a)
+    )
 
 derive instance genericToken :: Generic Token _
 
@@ -237,8 +239,10 @@ instance encodeJsonAccountId :: Encode AccountId where
       }
 
 instance decodeJsonAccountId :: Decode AccountId where
-  decode a = (AccountId <$> (decode =<< readProp "account_number" a)
-                        <*> (decode =<< readProp "account_owner" a))
+  decode a =
+    ( AccountId <$> (decode =<< readProp "account_number" a)
+        <*> (decode =<< readProp "account_owner" a)
+    )
 
 instance showAccountId :: Show AccountId where
   show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
@@ -267,8 +271,10 @@ instance encodeJsonChoiceId :: Encode ChoiceId where
       }
 
 instance decodeJsonChoiceId :: Decode ChoiceId where
-  decode a = (ChoiceId <$> (decode =<< readProp "choice_name" a)
-                       <*> (decode =<< readProp "choice_owner" a))
+  decode a =
+    ( ChoiceId <$> (decode =<< readProp "choice_name" a)
+        <*> (decode =<< readProp "choice_owner" a)
+    )
 
 instance showChoiceId :: Show ChoiceId where
   show (ChoiceId name owner) = "(ChoiceId " <> show name <> " " <> show owner <> ")"
@@ -406,29 +412,41 @@ instance encodeJsonValue :: Encode Value where
       }
 
 instance decodeJsonValue :: Decode Value where
-  decode a = (ifM ((\x -> x == "slot_interval_start") <$> decode a)
-                  (pure SlotIntervalStart)
-                  (fail (ForeignError "Not \"slot_interval_start\" string")))
-         <|> (ifM ((\x -> x == "slot_interval_end") <$> decode a)
-                  (pure SlotIntervalEnd)
-                  (fail (ForeignError "Not \"slot_interval_end\" string")))
-         <|> (Constant <$> decode a)
-         <|> (NegValue <$> (decode =<< readProp "negate" a))
-         <|> (AddValue <$> (decode =<< readProp "add" a)
-                       <*> (decode =<< readProp "and" a))
-         <|> (SubValue <$> (decode =<< readProp "value" a)
-                       <*> (decode =<< readProp "minus" a))
-         <|> (if (hasProperty "divided_by" a)
-              then (Scale <$> (Rational <$> (decode =<< readProp "times" a)
-                                        <*> (decode =<< readProp "divided_by" a))
-                          <*> (decode =<< readProp "multiply" a))
-              else (MulValue <$> (decode =<< readProp "multiply" a)
-                             <*> (decode =<< readProp "times" a)))
-         <|> (ChoiceValue <$> (decode =<< readProp "value_of_choice" a))
-         <|> (UseValue <$> (decode =<< readProp "use_value" a))
-         <|> (Cond <$> (decode =<< readProp "if" a)
-                   <*> (decode =<< readProp "then" a)
-                   <*> (decode =<< readProp "else" a))
+  decode a =
+    ( ifM ((\x -> x == "slot_interval_start") <$> decode a)
+        (pure SlotIntervalStart)
+        (fail (ForeignError "Not \"slot_interval_start\" string"))
+    )
+      <|> ( ifM ((\x -> x == "slot_interval_end") <$> decode a)
+            (pure SlotIntervalEnd)
+            (fail (ForeignError "Not \"slot_interval_end\" string"))
+        )
+      <|> (Constant <$> decode a)
+      <|> (NegValue <$> (decode =<< readProp "negate" a))
+      <|> ( AddValue <$> (decode =<< readProp "add" a)
+            <*> (decode =<< readProp "and" a)
+        )
+      <|> ( SubValue <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "minus" a)
+        )
+      <|> ( if (hasProperty "divided_by" a) then
+            ( Scale
+                <$> ( Rational <$> (decode =<< readProp "times" a)
+                      <*> (decode =<< readProp "divided_by" a)
+                  )
+                <*> (decode =<< readProp "multiply" a)
+            )
+          else
+            ( MulValue <$> (decode =<< readProp "multiply" a)
+                <*> (decode =<< readProp "times" a)
+            )
+        )
+      <|> (ChoiceValue <$> (decode =<< readProp "value_of_choice" a))
+      <|> (UseValue <$> (decode =<< readProp "use_value" a))
+      <|> ( Cond <$> (decode =<< readProp "if" a)
+            <*> (decode =<< readProp "then" a)
+            <*> (decode =<< readProp "else" a)
+        )
 
 instance showValue :: Show Value where
   show v = genericShow v
