@@ -176,7 +176,6 @@ guessingGameTest =
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
               syncAll
-              syncAll
               void Chain.processBlock
               assertTxCounts
                 "A correct guess creates a third transaction."

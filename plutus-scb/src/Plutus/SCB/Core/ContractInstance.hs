@@ -43,7 +43,7 @@ import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Log                         (LogMessage, LogObserve, mapLog, surroundInfo)
 import           Data.Aeson                                      (ToJSON (..))
 import qualified Data.Aeson                                      as JSON
-import           Data.Foldable                                   (traverse_)
+import           Data.Foldable                                   (for_, traverse_)
 import qualified Data.Map                                        as Map
 import           Data.Maybe                                      (mapMaybe)
 import           Data.Semigroup                                  (Last (..))
@@ -385,12 +385,13 @@ respondtoRequests ::
     -> Eff effs ()
 respondtoRequests (MaxIterations mi) handler = do
     contractStates <- runGlobalQuery (Query.contractState @t)
-    let state = fmap (hooks . csCurrentState) contractStates
-    ifor_ state $ \instanceId requests ->
+    let instances = Map.keys contractStates
+    for_ instances $ \instanceId ->
         let go j
              | j >= mi = do
                  logWarn @(ContractInstanceMsg t) $ MaxIterationsExceeded instanceId (MaxIterations mi)
              | otherwise = do
+                 requests <- hooks . csCurrentState <$> lookupContractState @t instanceId
                  logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
                  events <- runRequestHandler @t handler instanceId requests
                  when (not $ null events) (go $ succ j)
