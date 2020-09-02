@@ -96,7 +96,7 @@ in rec {
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
-      // { inherit (packages) plc-agda; };
+      // { inherit (packages) plutus-metatheory; };
 
     muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit agdaPackages checkMaterialization; };
     # All the packages defined by our project, built for musl
@@ -164,6 +164,7 @@ in rec {
         ps.playground-common
         ps.plutus-playground-server
         ps.plutus-use-cases
+        ps.marlowe
       ]);
     in pkgs.runCommand "web-ghc" { buildInputs = [pkgs.makeWrapper]; } ''
       # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -257,6 +258,10 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
       };
   });
+
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda; };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
@@ -357,8 +362,6 @@ in rec {
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
-
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }

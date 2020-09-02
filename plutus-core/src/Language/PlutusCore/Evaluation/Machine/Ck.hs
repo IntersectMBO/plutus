@@ -120,7 +120,7 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
-instance SpendBudget (CkM uni) (CkValue uni) where
+instance SpendBudget (CkM uni) () (CkValue uni) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 

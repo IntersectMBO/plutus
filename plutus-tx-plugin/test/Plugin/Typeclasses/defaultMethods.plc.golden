@@ -56,7 +56,7 @@
     (termbind
       (strict)
       (vardecl fDefaultMethodsInteger_cmethod (fun (con integer) (con integer)))
-      (lam a (con integer) [ [ addInteger a ] (con 1) ])
+      (lam a (con integer) [ [ addInteger a ] (con integer 1) ])
     )
     (termbind
       (nonstrict)

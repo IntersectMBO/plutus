@@ -19,10 +19,7 @@ import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Types (HQuery(..), Message(..))
-import WebSocket (WebSocketRequestMessage, WebSocketResponseMessage)
-import WebSocket.Support (WebSocketManager)
-import WebSocket.Support as WS
+import Types (HQuery(..))
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -43,21 +40,6 @@ main = do
   runHalogenAff do
     body <- awaitBody
     driver <- runUI mainFrame unit body
-    --
-    wsManager :: WebSocketManager WebSocketResponseMessage WebSocketRequestMessage <- WS.mkWebSocketManager
-    void
-      $ forkAff
-      $ WS.runWebSocketManager
-          (WS.URI "/api/ws")
-          (\msg -> void $ driver.query $ ReceiveWebSocketMessage msg unit)
-          wsManager
-    driver.subscribe
-      $ consumer
-      $ case _ of
-          (WebSocketMessage msg) -> do
-            WS.managerWriteOutbound wsManager $ WS.SendMessage msg
-            pure Nothing
-    --
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
           when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)

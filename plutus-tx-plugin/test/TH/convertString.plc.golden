@@ -1,1 +1,1 @@
-(con "test")
+(con string "test")

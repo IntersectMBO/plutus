@@ -28,7 +28,6 @@ import           Data.Text                                      (Text)
 import qualified Data.Text                                      as Text
 import           Git                                            (gitRev)
 import           Marlowe.Config                                 (_apiKey, _callbackUrl, _symbolicUrl)
-import qualified Marlowe.Symbolic.Types.API                     as MS
 import           Network.HTTP.Client                            (newManager)
 import           Network.HTTP.Client.TLS                        (tlsManagerSettings)
 import           Network.HTTP.Types                             (Method)
@@ -54,7 +53,7 @@ instance GenerateList NoContent (Method -> Req NoContent) where
 
 type Web
    = "version" :> Get '[ PlainText, JSON] Text
-     :<|> "api" :> ((MA.API :<|> MS.API :<|> MA.WSAPI) :<|> Auth.API)
+     :<|> "api" :> (MA.API :<|> Auth.API)
      :<|> Raw
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
@@ -68,7 +67,7 @@ liftedAuthServer githubEndpoints config =
       Handler . runStderrLoggingT . flip runReaderT (githubEndpoints, config)
 
 server ::
-     Server (MA.API :<|> MS.API :<|> MA.WSAPI) -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web
+     Server MA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Server Web
 server handlers _staticDir githubEndpoints Config {..} =
   version :<|> (handlers :<|> liftedAuthServer githubEndpoints _authConfig) :<|>
   serveDirectoryFileServer _staticDir
@@ -77,7 +76,7 @@ version :: Applicative m => m Text
 version = pure gitRev
 
 app ::
-     Server (MA.API :<|> MS.API :<|> MA.WSAPI) -> FilePath -> Auth.GithubEndpoints -> Config -> Application
+     Server MA.API -> FilePath -> Auth.GithubEndpoints -> Config -> Application
 app handlers _staticDir githubEndpoints config =
   gzip def . logStdout . cors (const $ Just policy) . serve (Proxy @Web) $
   server handlers _staticDir githubEndpoints config

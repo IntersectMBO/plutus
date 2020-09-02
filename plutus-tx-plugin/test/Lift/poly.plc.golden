@@ -21,9 +21,9 @@
                         { Plugin_Data_Spec_Poly1_i3 (con integer) }
                         (con integer)
                       }
-                      (con 1)
+                      (con integer 1)
                     ]
-                    (con 2)
+                    (con integer 2)
                   ]
                 )
               )

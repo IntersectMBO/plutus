@@ -8,4 +8,4 @@
                                    (termbind (strict) (vardecl j (con integer)) r)
                                    j))
                     i))
-      (con 3))
+      (con integer 3))

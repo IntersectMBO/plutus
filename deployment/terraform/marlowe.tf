@@ -7,7 +7,7 @@ resource "aws_security_group" "marlowe" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ## inbound (world): http
@@ -16,28 +16,28 @@ resource "aws_security_group" "marlowe" {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ingress {
     from_port   = 9100
     to_port     = 9100
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ingress {
     from_port   = 9091
     to_port     = 9091
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ingress {
     from_port   = 9113
     to_port     = 9113
     protocol    = "TCP"
-    cidr_blocks = ["${var.private_subnet_cidrs}"]
+    cidr_blocks = var.private_subnet_cidrs
   }
 
   ## outgoing: all
@@ -58,7 +58,7 @@ resource "aws_security_group" "marlowe" {
 data "template_file" "marlowe_user_data" {
   template = "${file("${path.module}/templates/default_configuration.nix")}"
 
-  vars {
+  vars = {
     root_ssh_keys      = "${join(" ", formatlist("\"%s\"", data.template_file.nixops_ssh_keys.*.rendered))}"
   }
 }
@@ -74,11 +74,11 @@ resource "aws_instance" "marlowe_a" {
     "${aws_security_group.marlowe.id}",
   ]
 
-  root_block_device = {
+  root_block_device {
     volume_size = "20"
   }
 
-  tags {
+  tags = {
     Name        = "${var.project}_${var.env}_marlowe_a"
     Project     = "${var.project}"
     Environment = "${var.env}"
@@ -104,11 +104,11 @@ resource "aws_instance" "marlowe_b" {
     "${aws_security_group.marlowe.id}",
   ]
 
-  root_block_device = {
+  root_block_device {
     volume_size = "20"
   }
 
-  tags {
+  tags = {
     Name        = "${var.project}_${var.env}_marlowe_b"
     Project     = "${var.project}"
     Environment = "${var.env}"

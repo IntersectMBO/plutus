@@ -343,11 +343,11 @@ let
 
     "foreign-generic" = pkgs.stdenv.mkDerivation {
         name = "foreign-generic";
-        version = "fd7f49f47061f708021064e17bb11b193ab389a3";
+        version = "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-foreign-generic";
-          rev = "fd7f49f47061f708021064e17bb11b193ab389a3";
-          sha256 = "066n4a590k1k2nfn3vrbnllpwc1hpbwn6aqnaafrnxnvwdas7hpv";
+          rev = "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c";
+          sha256 = "1jc097yqj7dw7iix8y6bw3zjrw6xkq2ml0xa1g6ydnhlad2p36m2";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -1015,11 +1015,11 @@ let
 
     "servant-support" = pkgs.stdenv.mkDerivation {
         name = "servant-support";
-        version = "v10.0.0";
+        version = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-servant-support";
-          rev = "54cd333b87f74225d855c8f7d2d1bf1801856830";
-          sha256 = "19zp7yzxaf5mbja18c56gr5rmyxjhzh0xdih705r8bxmdhgn5d9m";
+          rev = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
+          sha256 = "1c6y84y0b8mxgjgnvv6cpx3j205xbkgzjydn05fxl15knnxs2g4f";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

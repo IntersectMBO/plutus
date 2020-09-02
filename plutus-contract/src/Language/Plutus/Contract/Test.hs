@@ -150,13 +150,13 @@ checkPredicate
     => String
     -> Contract s e a
     -> TracePredicate s (TraceError e) a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> ContractTrace s e a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
         case runTrace con action of
             (Left err, _) ->
-                HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
+                HUnit.assertFailure $ "ContractTrace failed. " ++ show err
             (Right ((), st), ms) -> do
                 let dt = ContractTraceResult ms st
                     (result, testOutputs) = runWriter $ unPredF predicate (defaultDist, dt)

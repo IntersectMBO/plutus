@@ -210,10 +210,12 @@
                     (lam
                       ds
                       a
-                      (lam acc (con integer) [ [ addInteger acc ] (con 1) ])
+                      (lam
+                        acc (con integer) [ [ addInteger acc ] (con integer 1) ]
+                      )
                     )
                   ]
-                  (con 0)
+                  (con integer 0)
                 ]
               )
             )
@@ -546,7 +548,10 @@
                                   {
                                     [
                                       Unit_match
-                                      [ trace (con "not enough signatures") ]
+                                      [
+                                        trace
+                                        (con string "not enough signatures")
+                                      ]
                                     ]
                                     (fun Unit Bool)
                                   }

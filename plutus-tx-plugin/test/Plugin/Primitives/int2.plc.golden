@@ -1,1 +1,1 @@
-(program (con 2))
+(program (con integer 2))

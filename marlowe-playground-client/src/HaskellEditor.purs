@@ -1,22 +1,27 @@
 module HaskellEditor where
 
 import Prelude hiding (div)
-import API (_RunResult)
-import Control.Monad.Except (runExceptT)
-import Control.Monad.Reader (runReaderT)
+import API (RunResult, _RunResult)
+import Affjax (defaultRequest)
+import Affjax.RequestBody as Affjax
+import Affjax.RequestHeader (RequestHeader(..))
+import Control.Monad.Except (class MonadError, runExceptT)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
+import Data.HTTP.Method as Method
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.MediaType (MediaType(..))
 import Data.Newtype (unwrap)
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
+import Foreign.Generic (decode)
 import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
@@ -24,30 +29,30 @@ import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, s
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (monacoComponent)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import Halogen.Monaco (monacoComponent)
 import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), SourceCode(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
-import Marlowe as Server
 import Monaco (IMarkerData, markerSeverity)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Network.RemoteData as RemoteData
+import Servant.PureScript.Ajax (AjaxError, ajax)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.State (_result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
+import Types (ChildSlots, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
 
 handleAction ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
-  HalogenM State Action ChildSlots Message m Unit
+  HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _activeHaskellDemo ""
@@ -62,7 +67,7 @@ handleAction settings Compile = do
     Nothing -> pure unit
     Just contents -> do
       assign _compilationResult Loading
-      result <- RemoteData.fromEither <$> (runExceptT $ flip runReaderT settings $ (Server.postContractHaskell $ SourceCode contents))
+      result <- RemoteData.fromEither <$> (runExceptT $ postHaskell $ SourceCode contents)
       assign _compilationResult result
       -- Update the error display.
       let
@@ -93,6 +98,24 @@ handleAction _ SendResultToBlockly = do
         source = view (_InterpreterResult <<< _result <<< _RunResult) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
+
+postHaskell ::
+  forall m.
+  MonadError AjaxError m =>
+  MonadAff m =>
+  SourceCode ->
+  m (JsonEither InterpreterError (InterpreterResult RunResult))
+postHaskell sourceCode = do
+  let
+    affReq =
+      defaultRequest
+        { method = Method.fromString "POST"
+        , url = "/runghc?prelude"
+        , headers = [ ContentType (MediaType "text/plain;charset=utf-8") ]
+        , content = Just $ Affjax.string $ unwrap sourceCode
+        }
+  r <- ajax decode affReq
+  pure r.body
 
 toMarkers :: InterpreterError -> Array IMarkerData
 toMarkers (TimeoutError _) = []

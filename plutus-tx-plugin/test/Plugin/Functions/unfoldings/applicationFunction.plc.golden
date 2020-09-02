@@ -14,9 +14,9 @@
     [
       [
         { { myDollar (con integer) } (con integer) }
-        (lam x (con integer) [ [ addInteger (con 1) ] x ])
+        (lam x (con integer) [ [ addInteger (con integer 1) ] x ])
       ]
-      (con 1)
+      (con integer 1)
     ]
   )
 )

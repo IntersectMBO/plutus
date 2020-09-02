@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -121,7 +122,7 @@ data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode Format Timing
-data PrintMode = Classic | Debug deriving (Show, Read)
+data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 data PrintOptions = PrintOptions Input PrintMode
 data PlcToCborOptions = PlcToCborOptions Input Output
 data CborToPlcOptions = CborToPlcOptions Input Output PrintMode
@@ -182,7 +183,8 @@ printMode = option auto
   <> metavar "MODE"
   <> value Classic
   <> showDefault
-  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+  <> help ("Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
+        ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> printMode
@@ -308,14 +310,19 @@ runEval (EvalOptions inp mode fmt printtime) = do
 
 ---------------- Parse and print a PLC source file ----------------
 
+getPrintMethod :: PLC.PrettyPlc a => PrintMode -> (a -> Doc ann)
+getPrintMethod = \case
+      Classic       -> PLC.prettyPlcClassicDef
+      Debug         -> PLC.prettyPlcClassicDebug
+      Readable      -> PLC.prettyPlcReadableDef
+      ReadableDebug -> PLC.prettyPlcReadableDebug
+
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-  let printMethod = case mode of
-            Classic -> PLC.prettyPlcClassicDef
-            Debug   -> PLC.prettyPlcClassicDebug
+  let
   in do
     p <- parsePlcFile inp
-    print . printMethod $ p
+    print . (getPrintMethod mode) $ p
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -334,9 +341,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
   plc <- loadPlcFromCborFile inp
-  let printMethod = case mode of
-                      Classic -> PLC.prettyPlcClassicDef
-                      Debug   -> PLC.prettyPlcClassicDebug
+  let printMethod = getPrintMethod mode
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
     StdOutput       -> print . printMethod $ plc

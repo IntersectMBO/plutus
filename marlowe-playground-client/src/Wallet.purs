@@ -1122,7 +1122,8 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
     [ classes [ aHorizontal, ClassName "flex-wrap", ClassName "choice-row" ] ]
     ( [ div []
           [ p [ class_ (ClassName "choice-input") ]
-              [ spanText "Choice "
+              [ b_ [ spanText (show choiceOwner) ]
+              , spanText " make choice "
               , b_ [ spanText (show choiceName <> ":") ]
               , br_
               , spanText "Choose value "

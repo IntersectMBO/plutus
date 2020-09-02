@@ -34,6 +34,6 @@
         )
       )
     )
-    [ [ { WStrictPattern (con integer) } (con 1) ] (con 2) ]
+    [ [ { WStrictPattern (con integer) } (con integer 1) ] (con integer 2) ]
   )
 )

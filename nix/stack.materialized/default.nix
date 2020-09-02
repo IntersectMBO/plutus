@@ -5,7 +5,7 @@
         "lazy-search" = (((hackage.lazy-search)."0.1.2.0").revisions).default;
         "size-based" = (((hackage.size-based)."0.1.2.0").revisions).default;
         "testing-feat" = (((hackage.testing-feat)."1.1.0.0").revisions).default;
-        "aws-lambda-haskell-runtime" = (((hackage.aws-lambda-haskell-runtime)."2.0.4").revisions).default;
+        "aws-lambda-haskell-runtime" = (((hackage.aws-lambda-haskell-runtime)."3.0.0").revisions).default;
         "binary-instances" = (((hackage.binary-instances)."1.0.0.1").revisions).default;
         "composition-prelude" = (((hackage.composition-prelude)."2.0.2.1").revisions).default;
         "constraints-extras" = (((hackage.constraints-extras)."0.3.0.2").revisions).default;
@@ -49,7 +49,7 @@
         marlowe = ./marlowe.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
         marlowe-actus = ./marlowe-actus.nix;
-        plc-agda = ./plc-agda.nix;
+        plutus-metatheory = ./plutus-metatheory.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
         plutus-book = ./plutus-book.nix;

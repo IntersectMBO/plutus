@@ -373,13 +373,13 @@ beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey w
   Nothing -> showPubKeyHash pubKey
   Just (Wallet { getWallet: n }) ->
     span_
-      [ showPubKeyHash pubKey
-      , br_
-      , small_
+      [ span_
           [ text "Wallet"
           , nbsp
           , text $ show n
           ]
+      , br_
+      , small_ [ showPubKeyHash pubKey ]
       ]
 
 beneficialOwnerView _ (OwnedByScript a) =

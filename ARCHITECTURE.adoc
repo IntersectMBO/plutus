@@ -12,6 +12,7 @@ work through those in conceptual order.
 
 Plutus Core is the language that actually goes on the blockchain. Consequently
 this is the absolute core of the codebase, and everything depends on it.
+It also includes the Plutus IR intermediary language.
 
 include::plutus-core/ARCHITECTURE.adoc[]
 
@@ -21,8 +22,6 @@ Plutus Tx is how we refer to the subset of Haskell which we compile into Plutus
 Core. This is how users actually write Plutus contracts: they write Haskell
 programs, part of which is compiled into Plutus Core. The rest of the program
 can then use this compiled code when submitting transactions.
-
-include::plutus-ir/ARCHITECTURE.adoc[]
 
 include::plutus-tx/ARCHITECTURE.adoc[]
 
@@ -73,6 +72,8 @@ include::marlowe/ARCHITECTURE.adoc[]
 
 include::marlowe-symbolic/ARCHITECTURE.adoc[]
 
+include::marlowe-actus/ARCHITECTURE.adoc[]
+
 == Playgrounds
 
 The Plutus/Marlowe Playgrounds are our web-based environment for developing and
@@ -95,7 +96,7 @@ include::web-common/ARCHITECTURE.adoc[]
 
 include::deployment/ARCHITECTURE.adoc[]
 
-include::deployment/ARCHITECTURE.adoc[]
+include::deployment-server/ARCHITECTURE.adoc[]
 
 == Smart Contract Backend
 
@@ -111,7 +112,7 @@ include::plutus-book/ARCHITECTURE.adoc[]
 
 include::example/ARCHITECTURE.adoc[]
 
-include::docs/ARCHITECTURE.adoc[]
+include::notes/ARCHITECTURE.adoc[]
 
 == Specification and design
 
@@ -119,7 +120,7 @@ We have done a fair amount of work in specifying and formalizing parts of our
 system. At the moment all of this work also lives in the Plutus repository, and
 we even have some basic testing of the Haskell implementation against the Agda formalization.
 
-include::metatheory/ARCHITECTURE.adoc[]
+include::plutus-metatheory/ARCHITECTURE.adoc[]
 
 include::papers/ARCHITECTURE.adoc[]
 
@@ -130,5 +131,3 @@ include::extended-utxo-spec/ARCHITECTURE.adoc[]
 == Build tooling
 
 include::nix/ARCHITECTURE.adoc[]
-
-include::pkgs/ARCHITECTURE.adoc[]

@@ -7,11 +7,11 @@
      (termbind
       (nonstrict)
       (vardecl y (con integer))
-      (con 1)
+      (con integer 1)
      )
      y)
    ]
   )
-  (con 1)
+  (con integer 1)
 )
 -- this test is to make sure that `y` can still float around but only inside/under `x`. see the similar strictNonValue

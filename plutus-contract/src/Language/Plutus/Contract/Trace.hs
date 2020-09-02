@@ -16,9 +16,9 @@
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
 module Language.Plutus.Contract.Trace
-    ( ContractTraceState
-    , ContractTrace
-    , EmulatorAction
+    ( ContractTrace
+    , ContractTraceEffs
+    , ContractTraceState
     , TraceError(..)
     , AsTraceError(..)
     , WalletState(..)
@@ -35,7 +35,7 @@ module Language.Plutus.Contract.Trace
     , evalTrace
     , execTrace
     , setSigningProcess
-    -- * Constructing 'MonadEmulator' actions
+    -- * Constructing 'ContractTrace' actions
     , SlotNotifications(..)
     , runWallet
     , getHooks
@@ -60,8 +60,7 @@ module Language.Plutus.Contract.Trace
     , defaultHandleBlockchainEventsOptions
     , handleBlockchainEvents
     , handleBlockchainEventsOptions
-    -- * Running 'MonadEmulator' actions
-    , MonadEmulator
+    -- * Running 'ContractTrace' actions
     , InitialDistribution
     , withInitialDistribution
     , defaultDist
@@ -76,10 +75,11 @@ module Language.Plutus.Contract.Trace
 import           Control.Arrow                                     ((>>>), (>>^))
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
-import           Control.Monad.Except
-import qualified Control.Monad.Freer                               as Eff
-import           Control.Monad.Reader                              ()
-import           Control.Monad.State                               (MonadState, StateT, runStateT)
+import           Control.Monad                                     (guard, replicateM_, unless, void)
+import           Control.Monad.Freer
+import           Control.Monad.Freer.Error                         (Error, throwError)
+import qualified Control.Monad.Freer.Extras                        as Eff
+import           Control.Monad.Freer.State                         (State, gets, runState)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
@@ -124,8 +124,7 @@ import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Value                                      (Value)
 
 import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
-import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
-                                                                    Wallet)
+import           Wallet.Emulator                                   (EmulatorState, Wallet)
 import qualified Wallet.Emulator                                   as EM
 import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects)
 import qualified Wallet.Emulator.MultiAgent                        as EM
@@ -143,7 +142,13 @@ data TraceError e =
 
 type InitialDistribution = Map Wallet Value
 
-type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
+type ContractTraceEffs s e a =
+    '[ State (ContractTraceState s (TraceError e) a)
+     , Error (TraceError e)
+     , State EmulatorState
+     ]
+
+type ContractTrace s e a = Eff (ContractTraceEffs s e a)
 
 data WalletState s e a =
     WalletState
@@ -210,22 +215,20 @@ initState wllts con = ContractTraceState wallets con where
     respond to.
 -}
 addEvent ::
-    forall l s e m a.
-    ( MonadEmulator (TraceError e) m
-    , KnownSymbol l
-    )
+    forall l s e a.
+    ( KnownSymbol l )
     => Wallet
     -> Event s
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 addEvent wallet event = do
     let filterReq Request{rqID, itID, rqRequest=Handlers v} = do
             _ <- trial' v (Label @l)
             Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
-    hks <- mapMaybe filterReq <$> getHooks wallet >>= \case
-            [] -> throwError $ HookError $ "No hooks found for " <> tshow (Label @l)
+    hks <- mapMaybe filterReq <$> getHooks @s @e @a wallet >>= \case
+            [] -> throwError @(TraceError e) $ HookError $ "No hooks found for " <> tshow (Label @l)
             [x] -> pure x
-            _ -> throwError $ HookError $ "More than one hook found for " <> tshow (Label @l)
-    addResponse wallet hks
+            _ -> throwError @(TraceError e) $ HookError $ "More than one hook found for " <> tshow (Label @l)
+    addResponse @s @e @a wallet hks
 
 {-| A variant of 'addEvent' that takes the name of the endpoint as a value
     instead of a type argument. This is useful for the playground where we
@@ -238,36 +241,33 @@ addEvent wallet event = do
 
 -}
 addNamedEvent ::
-    forall s e m a.
-    ( MonadEmulator (TraceError e) m
-    , V.Forall (Output s) V.Unconstrained1 -- TODO: remove
+    forall s e a.
+    ( V.Forall (Output s) V.Unconstrained1 -- TODO: remove
     )
     => String -- endpoint name
     -> Wallet
     -> Event s
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 addNamedEvent endpointName wallet event = do
     let filterReq Request{rqID, itID, rqRequest=Handlers v} = do
             guard $
                 (V.eraseWithLabels @V.Unconstrained1 (const ()) v)
                     == (endpointName, ())
             Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
-    hks <- mapMaybe filterReq <$> getHooks wallet >>= \case
-            [] -> throwError $ HookError $ "No hooks found for " <> Text.pack endpointName
+    hks <- mapMaybe filterReq <$> getHooks @s @e @a wallet >>= \case
+            [] -> throwError @(TraceError e) $ HookError $ "No hooks found for " <> Text.pack endpointName
             [x] -> pure x
-            _ -> throwError $ HookError $ "More than one hook found for " <> Text.pack endpointName
-    addResponse wallet hks
+            _ -> throwError @(TraceError e) $ HookError $ "More than one hook found for " <> Text.pack endpointName
+    addResponse @s @e @a wallet hks
 
 
 -- | Add a 'Response' to the wallet's trace
 addResponse
-    :: forall s e m a.
-       ( MonadState (ContractTraceState s e a) m
-       )
-    => Wallet
+    :: forall s e a.
+    Wallet
     -> Response (Event s)
-    -> m ()
-addResponse w e = do
+    -> ContractTrace s e a ()
+addResponse w e = Eff.monadStateToState @(ContractTraceState s (TraceError e) a) $ do
     con <- use ctsContract
     let go st =
             let theState = fromMaybe (emptyWalletState con) st
@@ -276,13 +276,11 @@ addResponse w e = do
 
 -- | Get the hooks that a contract is currently waiting for
 getHooks
-    :: forall s e m a.
-       ( Monad m
-       )
-    => Wallet
-    -> ContractTrace s e m a [Request (Handlers s)]
+    :: forall s e a.
+    Wallet
+    -> ContractTrace s e a [Request (Handlers s)]
 getHooks w =
-    foldMap walletHandlers . Map.lookup w <$> use ctsWalletStates
+    foldMap walletHandlers . Map.lookup w <$> gets @(ContractTraceState s (TraceError e) a) (view ctsWalletStates)
 
 data ContractTraceResult s e a =
     ContractTraceResult
@@ -296,20 +294,19 @@ makeLenses ''ContractTraceResult
 
 -- | Set the wallet's 'SigningProcess' to a new value.
 setSigningProcess
-    :: forall s e m a.
-       ( MonadEmulator (TraceError e) m )
-    => Wallet
+    :: forall s e a.
+    Wallet
     -> SigningProcess
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 setSigningProcess wallet signingProcess =
-    void $ lift $ runWalletControl wallet (EM.setSigningProcess signingProcess)
+    void $ runWalletControl wallet (EM.setSigningProcess signingProcess)
 
 -- | Run a trace in the emulator and return the
 --   final events for each wallet.
 execTrace
     :: forall s e a.
     Contract s e a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> Eff (ContractTraceEffs s e a) ()
     -> Map Wallet [Response (Event s)]
 execTrace con action =
     let (e, _) = runTrace con action
@@ -320,7 +317,7 @@ execTrace con action =
 --   result
 runTrace ::
     Contract s e a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> Eff (ContractTraceEffs s e a) ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTrace = runTraceWithDistribution defaultDist
 
@@ -329,7 +326,7 @@ evalTrace ::
     forall s e a.
     Show e
     => Contract s e a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> Eff (ContractTraceEffs s e a) ()
     -> Wallet
     -> Either String a
 evalTrace contract trace wllt = do
@@ -344,59 +341,60 @@ evalTrace contract trace wllt = do
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
 runTraceWithDistribution ::
+    forall s e a.
     InitialDistribution
     -> Contract s e a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> Eff (ContractTraceEffs s e a) ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
-runTraceWithDistribution dist con action =
-  let con' = mapError TContractError con in
-  withInitialDistribution dist (runStateT action (initState (Map.keys dist) con'))
+runTraceWithDistribution dist con =
+    let con' = mapError TContractError con in
+    withInitialDistribution @(TraceError e) dist
+        . runState (initState (Map.keys dist) con')
+--   let con' = mapError TContractError con in
+--   withInitialDistribution dist (runState (initState (Map.keys dist) con') action)
 
 -- | Run an 'EmulatorAction' on a blockchain with the given initial distribution
 --   of funds to wallets.
 withInitialDistribution ::
+    forall e a.
        EM.AsAssertionError e
     => InitialDistribution
-    -> EmulatorAction e a
+    -> Eff [Error e, State EmulatorState] a
     -> (Either e a, EmulatorState)
 withInitialDistribution dist action =
     let s = EM.emulatorStateInitialDist (Map.mapKeys EM.walletPubKey dist)
         -- make sure the wallets know about the initial transaction
         notifyInitial = void (EM.addBlocksAndNotify (Map.keys dist) 1)
-     in EM.runEmulator s (EM.processEmulated notifyInitial >> action)
+     in EM.runEmulator s (EM.processEmulated @e notifyInitial >> action)
 
 -- | Run a wallet action in the context of the given wallet, notify the wallets,
 --   and return the list of new transactions
-runWallet
-    :: ( MonadEmulator (TraceError e) m )
-    => Wallet
-    -> Eff.Eff EM.EmulatedWalletEffects a
-    -> m a
-runWallet w = EM.processEmulated . EM.walletAction w
+runWallet :: forall s e a b.
+    Wallet
+    -> Eff EM.EmulatedWalletEffects b
+    -> ContractTrace s e a b
+runWallet w = EM.processEmulated @(TraceError e) . EM.walletAction w
 
-runWalletControl
-    :: ( MonadEmulator (TraceError e) m )
-    => Wallet
-    -> Eff.Eff EM.EmulatedWalletControlEffects a
-    -> m a
-runWalletControl w = EM.processEmulated . EM.walletControlAction w
+runWalletControl :: forall s e a b.
+    Wallet
+    -> Eff EM.EmulatedWalletControlEffects b
+    -> ContractTrace s e a b
+runWalletControl w = EM.processEmulated @(TraceError e). EM.walletControlAction w
 
 -- | Call the endpoint on the contract
 callEndpoint
-    :: forall l ep s e m a.
-       ( MonadEmulator (TraceError e) m
-       , HasEndpoint l ep s
-       )
+    :: forall l ep s e a.
+    ( HasEndpoint l ep s )
     => Wallet
     -> ep
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 callEndpoint wallet ep = do
     -- check if the endpoint is active and throw an error if it isn't
-    hks <- getHooks wallet
+    hks <- getHooks @s @e @a wallet
     unless (any (Endpoint.isActive @l) $ fmap rqRequest hks) $
-        throwError $ HookError $ "Endpoint " <> tshow (Label @l) <> " not active on " <> tshow wallet
+        throwError @(TraceError e) $ HookError $ "Endpoint " <> tshow (Label @l) <> " not active on " <> tshow wallet
 
-    void $ respondToRequest wallet $ RequestHandler $ \req -> do
+    void $ respondToRequest @s @e @a wallet $ RequestHandler $ \req -> do
         guard (Endpoint.isActive @l req)
         pure $ Endpoint.event @l ep
 
@@ -404,29 +402,25 @@ callEndpoint wallet ep = do
 --   and maybe respond to them. Returns the response that was provided to the
 --   contract, if any.
 respondToRequest ::
-    forall s e m a.
-    ( MonadEmulator (TraceError e) m
-    )
-    => Wallet
+    forall s e a.
+    Wallet
     -- ^ The wallet
     -> RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
     -- ^ How to respond to the requests.
-    -> ContractTrace s e m a (Maybe (Response (Event s)))
+    -> ContractTrace s e a (Maybe (Response (Event s)))
 respondToRequest wallet f = do
-    hks <- getHooks wallet
-    (response :: Maybe (Response (Event s))) <- lift $ runWallet wallet $ tryHandler (wrapHandler f) hks
-    traverse_ (addResponse wallet) response
+    hks <- getHooks @s @e @a wallet
+    (response :: Maybe (Response (Event s))) <- runWallet @s @e @a wallet $ tryHandler (wrapHandler f) hks
+    traverse_ (addResponse @s @e @a wallet) response
     pure response
 
 -- | Get the addresses that are of interest to the wallet's contract instance
-interestingAddresses
-    :: ( MonadEmulator (TraceError e) m
-       , HasWatchAddress s
-       )
+interestingAddresses :: forall s e a.
+    ( HasWatchAddress s )
     => Wallet
-    -> ContractTrace s e m a [Address]
+    -> ContractTrace s e a [Address]
 interestingAddresses wllt =
-    mapMaybe (WatchAddress.watchedAddress . rqRequest) <$> getHooks wllt
+    mapMaybe (WatchAddress.watchedAddress . rqRequest) <$> getHooks @s @e @a wllt
 
 handleSlotNotifications ::
     ( HasAwaitSlot s
@@ -440,13 +434,11 @@ handleSlotNotifications =
 -- | Check whether the wallet's contract instance is waiting to be notified
 --   of a slot, and send the notification.
 notifySlot
-    :: forall s e m a.
-       ( MonadEmulator (TraceError e) m
-       , HasAwaitSlot s
-       )
+    :: forall s e a.
+    ( HasAwaitSlot s )
     => Wallet
-    -> ContractTrace s e m a ()
-notifySlot wallet = void $ respondToRequest wallet handleSlotNotifications
+    -> ContractTrace s e a ()
+notifySlot wallet = void $ respondToRequest @s @e @a wallet handleSlotNotifications
 
 -- | Whether to update the internal slot counter of a wallet (that is, the wallet's notion
 --   of the current time)
@@ -460,53 +452,46 @@ defaultSlotNotifications :: SlotNotifications
 defaultSlotNotifications = SendSlotNotifications
 
 -- | Add a number of empty blocks to the blockchain.
-addBlocks'
-    :: ( MonadEmulator (TraceError e) m
-       , AwaitSlot.HasAwaitSlot s
-       )
+addBlocks' :: forall s e a.
+    ( AwaitSlot.HasAwaitSlot s )
     => SlotNotifications -- ^ Whether to notify all wallets after each block.
     -> Integer -- ^ How many blocks to add.
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 addBlocks' n i = do
     let notify = case n of
-            SendSlotNotifications     -> traverse_ notifySlot allWallets
+            SendSlotNotifications     -> traverse_ (notifySlot @s @e @a) allWallets
             DontSendSlotNotifications -> pure ()
 
     replicateM_ (fromIntegral i) $ do
-        void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets 1)
+        void $ EM.processEmulated @(TraceError e) (EM.addBlocksAndNotify allWallets 1)
         notify
 
 -- | Add a number of empty blocks to the blockchain, updating each wallet's
 --   slot after each block
-addBlocks
-    :: ( MonadEmulator (TraceError e) m
-       , AwaitSlot.HasAwaitSlot s
-       )
+addBlocks :: forall s e a.
+    ( AwaitSlot.HasAwaitSlot s )
     => Integer -- ^ How many blocks to add.
-    -> ContractTrace s e m a ()
-addBlocks = addBlocks' SendSlotNotifications
+    -> ContractTrace s e a ()
+addBlocks = addBlocks' @s @e @a SendSlotNotifications
 
 -- | Add blocks until the given slot has been reached.
-addBlocksUntil
-    :: ( MonadEmulator (TraceError e) m
-       , AwaitSlot.HasAwaitSlot s
-       )
+addBlocksUntil :: forall s e a.
+    ( AwaitSlot.HasAwaitSlot s )
     => Slot
-    -> ContractTrace s e m a ()
-addBlocksUntil = addBlocksUntil' SendSlotNotifications
+    -> ContractTrace s e a ()
+addBlocksUntil = addBlocksUntil' @s @e @a SendSlotNotifications
 
 -- | Add blocks until the given slot has been reached.
-addBlocksUntil'
-    :: ( MonadEmulator (TraceError e) m
-       , AwaitSlot.HasAwaitSlot s
-       )
+addBlocksUntil' :: forall s e a.
+    ( AwaitSlot.HasAwaitSlot s
+    )
     => SlotNotifications
     -> Slot
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 addBlocksUntil' n sl = do
-    currentSlot <- lift $ use (EM.chainState . EM.currentSlot)
+    currentSlot <- gets (view $ EM.chainState . EM.currentSlot)
     let Slot missing = sl - currentSlot
-    addBlocks' n (max 0 missing)
+    addBlocks' @s @e @a n (max 0 missing)
 
 -- | Options for 'handleBlockchainEvents'
 data HandleBlockchainEventsOptions =
@@ -524,25 +509,25 @@ defaultHandleBlockchainEventsOptions =
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if there are unhandled events after 'defaultMaxIterations'.
-handleBlockchainEvents
-    :: ( MonadEmulator (TraceError e) m
-       , HasUtxoAt s
-       , HasWatchAddress s
-       , HasWriteTx s
-       , HasOwnPubKey s
-       , HasTxConfirmation s
-       , HasAwaitSlot s
-       )
+handleBlockchainEvents :: forall s e a.
+    ( HasUtxoAt s
+    , HasWatchAddress s
+    , HasWriteTx s
+    , HasOwnPubKey s
+    , HasTxConfirmation s
+    , HasAwaitSlot s
+    )
     => Wallet
-    -> ContractTrace s e m a ()
-handleBlockchainEvents = handleBlockchainEventsOptions defaultHandleBlockchainEventsOptions
+    -> ContractTrace s e a ()
+handleBlockchainEvents =
+    handleBlockchainEventsOptions @s @e @a
+    defaultHandleBlockchainEventsOptions
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if the given number of iterations is exceeded
 handleBlockchainEventsOptions ::
-    forall s e m a.
-    ( MonadEmulator (TraceError e) m
-    , HasUtxoAt s
+    forall s e a.
+    ( HasUtxoAt s
     , HasWatchAddress s
     , HasWriteTx s
     , HasOwnPubKey s
@@ -551,16 +536,16 @@ handleBlockchainEventsOptions ::
     )
     => HandleBlockchainEventsOptions
     -> Wallet
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 handleBlockchainEventsOptions o wallet = go 0 where
     HandleBlockchainEventsOptions{maxIterations=MaxIterations i,slotNotifications} = o
     handler = case slotNotifications of
                 DontSendSlotNotifications -> handleBlockchainQueries @s
                 SendSlotNotifications     ->
                     handleBlockchainQueries <> handleSlotNotifications
-    go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded wallet (MaxIterations i)))
+    go j | j >= i    = throwError @(TraceError e) (HandleBlockchainEventsMaxIterationsExceeded wallet (MaxIterations i))
          | otherwise = do
-             rsp <- respondToRequest wallet handler
+             rsp <- respondToRequest @s @e @a wallet handler
              case rsp of
                  Nothing -> pure ()
                  Just _  -> go (j + 1)
@@ -631,30 +616,27 @@ handleOwnPubKeyQueries =
     >>^ OwnPubKey.event
 
 -- | Notify the wallet of all interesting addresses
-notifyInterestingAddresses
-    :: ( MonadEmulator (TraceError e) m
-       , HasWatchAddress s
-       )
+notifyInterestingAddresses :: forall s e a.
+    ( HasWatchAddress s )
     => Wallet
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 notifyInterestingAddresses wllt =
-    void $ interestingAddresses wllt >>= lift . runWallet wllt . traverse_ Wallet.startWatching
+    void $ interestingAddresses @s @e @a wllt >>= runWallet @s @e @a wllt . traverse_ Wallet.startWatching
 
 -- | Transfer some funds from one wallet to another. This represents a "user
 --   action" that runs independently of any contract, just interacting directly
 --   with the wallet.
-payToWallet
-    :: ( MonadEmulator (TraceError e) m )
-    => Wallet
+payToWallet :: forall s e a.
+    Wallet
     -- ^ The sender
     -> Wallet
     -- ^ The recipient
     -> Value
     -- ^ The amount to be transferred
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 payToWallet source target amount =
     let payment = payToPublicKey_ defaultSlotRange amount (EM.walletPubKey target)
-     in void $ lift (runWallet source payment)
+     in void $ runWallet source payment
 
 -- | The wallets used in mockchain simulations by default. There are
 --   ten wallets because the emulator comes with ten private keys.

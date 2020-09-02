@@ -3,13 +3,14 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Playground.Interpreter.Util
     ( stage
     ) where
 
 import           Control.Lens                                    (view)
-import           Control.Monad.Except                            (throwError)
+import           Control.Monad.Freer.Error                       (throwError)
 import           Control.Monad.Freer.Log                         (logMessageContent)
 import           Data.Aeson                                      (FromJSON, eitherDecode)
 import qualified Data.Aeson                                      as JSON
@@ -30,7 +31,7 @@ import           Language.Plutus.Contract                        (Contract, Cont
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, getEndpointDescription)
 import           Language.Plutus.Contract.Schema                 (Event, Input, Output)
 import           Language.Plutus.Contract.Test                   (renderTraceContext)
-import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceState,
+import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceEffs, ContractTraceState,
                                                                   TraceError (TContractError), addBlocks,
                                                                   addBlocksUntil, addNamedEvent, handleBlockchainEvents,
                                                                   payToWallet, runTraceWithDistribution)
@@ -50,7 +51,6 @@ import           Playground.Types                                (ContractCall (
                                                                   resultBlockchain, resultRollup, sender,
                                                                   simulatorWalletBalance, simulatorWalletWallet, slot,
                                                                   walletKeys)
-import           Wallet.Emulator                                 (MonadEmulator)
 import           Wallet.Emulator.Chain                           (ChainState (ChainState), _chainNewestFirst, _index,
                                                                   _txPool)
 import           Wallet.Emulator.NodeClient                      (NodeClientState, clientIndex)
@@ -162,40 +162,39 @@ stage endpoints programJson simulatorWalletsJson = do
                 endpoints
                 (buildSimulation allWallets (expressionToTrace <$> simulation))
     case final of
-        Left err              -> throwError . OtherError . show $ err
+        Left err              -> Left . OtherError . show $ err
         Right (_, traceState) -> analyzeEmulatorState traceState emulatorState
 
 buildSimulation ::
-       (MonadEmulator (TraceError e) m, HasBlockchainActions s)
+       (HasBlockchainActions s)
     => [Wallet]
-    -> [ContractTrace s e m a ()]
-    -> ContractTrace s e m a ()
+    -> [ContractTrace s e a ()]
+    -> ContractTrace s e a ()
 buildSimulation allWallets =
     sequence_ . afterEach (traverse_ triggerEvents allWallets)
   where
     afterEach a = foldMap (\x -> [x, a])
 
-triggerEvents ::
-       (MonadEmulator (TraceError e) m, HasBlockchainActions s)
+triggerEvents :: forall s e a.
+    ( HasBlockchainActions s )
     => Wallet
-    -> ContractTrace s e m a ()
+    -> ContractTrace s e a ()
 triggerEvents w = do
-    handleBlockchainEvents w
+    handleBlockchainEvents @s @e @a w
 
 toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
 toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
 
-expressionToTrace ::
+expressionToTrace :: forall s a.
        ( ContractRow s
        , HasAwaitSlot s
-       , MonadEmulator (TraceError Text) m
        , Forall (Input s) FromJSON
        , Forall (Output s) Unconstrained1
        )
     => Expression
-    -> ContractTrace s Text m a ()
-expressionToTrace AddBlocks {blocks} = addBlocks (fromIntegral blocks)
-expressionToTrace AddBlocksUntil {slot} = addBlocksUntil slot
+    -> ContractTrace s Text a ()
+expressionToTrace AddBlocks {blocks} = addBlocks @s @Text @a (fromIntegral blocks)
+expressionToTrace AddBlocksUntil {slot} = addBlocksUntil @s @Text @a slot
 expressionToTrace PayToWallet {sender, recipient, amount} =
     payToWallet sender recipient amount
 expressionToTrace CallEndpoint { caller
@@ -210,7 +209,7 @@ expressionToTrace CallEndpoint { caller
             Just string ->
                 case JSON.eitherDecode string of
                     Left errs ->
-                        throwError . TContractError $
+                        throwError @(TraceError Text) @(ContractTraceEffs s Text a) . TContractError $
                         "Error extracting JSON from arguments. Expected an array of JSON strings. " <>
                         Text.pack (show errs)
                     Right argument -> do
@@ -221,14 +220,14 @@ expressionToTrace CallEndpoint { caller
                                       , JSON.String (Text.pack (getEndpointDescription endpointDescription)))
                                     , ("value", JSON.object [("unEndpointValue", argument)])
                                     ]
-                        addNamedEvent (getEndpointDescription endpointDescription) caller event
+                        addNamedEvent @s @Text @a (getEndpointDescription endpointDescription) caller event
             Nothing -> throwError . TContractError $ "Expected a String, but got: " <> Text.pack (show rawArgument)
 
 decodePayload ::
-       (MonadEmulator (TraceError Text) m, FromJSON r)
+       (FromJSON r)
     => EndpointDescription
     -> JSON.Value
-    -> ContractTrace s Text m a r
+    -> ContractTrace s Text a r
 decodePayload endpointDescription value =
     case JSON.fromJSON value of
         JSON.Error err ->
