@@ -27,6 +27,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
@@ -100,9 +101,11 @@ prop_normalizeConvertCommuteTerms (k, tyG) tmG = do
 
   -- Check if the converted term, when normalized, still has the same type:
 
-  -- Check if normalization for generated terms is sound:
+  tmV <- withExceptT EvalP $ liftEither $ evaluateCk mempty tm
+  withExceptT TypeError $ checkType defConfig () tmV (Normalized ty)
 
-  return ()
+  -- Check if normalization for generated terms is sound:
+  -- james: I think this should be done in plutus-metatheory
 
 -- |Property: the following diagram commutes for well-kinded types...
 --
@@ -171,6 +174,7 @@ data TestFail
   | TypeError (TypeError DefaultUni ())
   | AgdaErrorP () -- FIXME
   | FVErrorP FreeVariableError -- FIXME
+  | EvalP (CkEvaluationException DefaultUni)
   | Ctrex Ctrex
 
 data Ctrex
@@ -220,6 +224,7 @@ instance Show TestFail where
   show (Ctrex e)      = show e
   show (AgdaErrorP e) = show e -- FIXME
   show (FVErrorP e)   = show e -- FIXME
+  show (EvalP e)      = show e -- FIXME
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =

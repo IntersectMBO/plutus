@@ -1,4 +1,4 @@
-module Main where
+ module Main where
 
 import           Control.Monad.Except
 import           Data.Coolean
@@ -169,6 +169,10 @@ prop_runTCK (k , tyG) tmG = do
   case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
     Just _  -> return ()
     Nothing -> throwCtrex (CtrexTermEvaluationFail tyG tmG)
+
+prop_run_plc_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_run_plc_CK (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG  
 
 prop_run_CK_vs_TCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_CK_vs_TCK (k , tyG) tmG = do
