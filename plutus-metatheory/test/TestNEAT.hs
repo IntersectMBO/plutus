@@ -12,7 +12,7 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, runCKAgda, runTCKAgda)
+                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCKAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -60,6 +60,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_runTCK
+  , testCaseGen "runL_vs_TCK"
+      genOpts
+      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_run_L_vs_CK
   , testCaseGen "runCK_vs_TCK"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
@@ -186,6 +190,16 @@ prop_run_plcCK_vs_CK (k , tyG) tmG = do
       Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   unless (tmPlcCK == (() <$ tmCKN)) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmPlcCK (() <$ tmCKN))
+
+prop_run_L_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_run_L_vs_CK (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  tmCK <- withExceptT Ctrex $
+    case runLAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just tmCK -> return tmCK
+      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+  return ()
 
 prop_run_CK_vs_TCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_CK_vs_TCK (k , tyG) tmG = do

@@ -381,6 +381,21 @@ checkType ty t = do
   
 {-# COMPILE GHC checkType as checkTypeAgda #-}
 
+-- Haskell interface to (typechecked and proven correct) reduction
+
+import Algorithmic.Evaluation as L
+
+runL : Term → Maybe Term
+runL t = do
+  tDB ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
+  _ ,, tC ← liftSum (inferType ∅ tDB)
+  case (L.stepper tC maxsteps)
+       (λ _ → nothing)
+       λ{ (error _) → nothing -- FIXME
+        ; tV → just (unconvTm (unshifter Z (extricateScope (extricate tV))))}
+
+{-# COMPILE GHC runL as runLAgda #-}
+
 -- Haskell interface to (untypechecked CK)
 runCK : Term → Maybe Term
 runCK t = do
@@ -390,7 +405,7 @@ runCK t = do
        λ{ (_ ▻ _) → nothing
         ; (_ ◅ _) → nothing
         ; (□ {t = tV} _) → just (unconvTm (unshifter Z (extricateScope tV)))
-        ; ◆ → nothing} -- is the success of failure?
+        ; ◆ → nothing} -- FIXME
 
 {-# COMPILE GHC runCK as runCKAgda #-}
 
