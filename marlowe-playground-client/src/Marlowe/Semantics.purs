@@ -618,7 +618,10 @@ instance encodeJsonBound :: Encode Bound where
       }
 
 instance decodeJsonBound :: Decode Bound where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( Bound <$> (decode =<< readProp "from" a)
+        <*> (decode =<< readProp "to" a)
+    )
 
 instance showBound :: Show Bound where
   show = genericShow
@@ -660,7 +663,16 @@ instance encodeJsonAction :: Encode Action where
       }
 
 instance decodeJsonAction :: Decode Action where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    ( Deposit <$> (decode =<< readProp "into_account" a)
+        <*> (decode =<< readProp "party" a)
+        <*> (decode =<< readProp "of_token" a)
+        <*> (decode =<< readProp "deposits" a)
+    )
+      <|> ( Choice <$> (decode =<< readProp "for_choice" a)
+            <*> (decode =<< readProp "choose_between" a)
+        )
+      <|> (Notify <$> (decode =<< readProp "notify_if" a))
 
 instance showAction :: Show Action where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
@@ -688,7 +700,9 @@ instance encodeJsonPayee :: Encode Payee where
   encode (Party party) = encode party
 
 instance decodeJsonPayee :: Decode Payee where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    (Account <$> decode a)
+      <|> (Party <$> decode a)
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -717,7 +731,10 @@ instance encodeJsonCase :: Encode Case where
       }
 
 instance decodeJsonCase :: Decode Case where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( Case <$> (decode =<< readProp "case" a)
+        <*> (decode =<< readProp "then" a)
+    )
 
 instance showCase :: Show Case where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
@@ -778,7 +795,32 @@ instance encodeJsonContract :: Encode Contract where
       }
 
 instance decodeJsonContract :: Decode Contract where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( ifM ((\x -> x == "close") <$> decode a)
+        (pure Close)
+        (fail (ForeignError "Not \"close\" string"))
+    )
+      <|> ( Pay <$> (decode =<< readProp "from_account" a)
+            <*> (decode =<< readProp "to" a)
+            <*> (decode =<< readProp "token" a)
+            <*> (decode =<< readProp "pay" a)
+            <*> (decode =<< readProp "then" a)
+        )
+      <|> ( If <$> (decode =<< readProp "if" a)
+            <*> (decode =<< readProp "then" a)
+            <*> (decode =<< readProp "else" a)
+        )
+      <|> ( When <$> (decode =<< readProp "when" a)
+            <*> (decode =<< readProp "timeout" a)
+            <*> (decode =<< readProp "timeout_continuation" a)
+        )
+      <|> ( Let <$> (decode =<< readProp "let" a)
+            <*> (decode =<< readProp "be" a)
+            <*> (decode =<< readProp "then" a)
+        )
+      <|> ( Assert <$> (decode =<< readProp "assert" a)
+            <*> (decode =<< readProp "then" a)
+        )
 
 instance showContract :: Show Contract where
   show v = genericShow v
