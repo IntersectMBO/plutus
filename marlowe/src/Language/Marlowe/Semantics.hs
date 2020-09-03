@@ -274,8 +274,6 @@ data State = State { accounts    :: Accounts
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
   deriving stock (Show,Generic)
-  deriving anyclass (FromJSON, ToJSON)
-
 
 {-| Execution environment. Contains a slot interval of a transaction.
 -}
@@ -930,19 +928,6 @@ customOptions = defaultOptions
                 , sumEncoding = TaggedObject { tagFieldName = "tag", contentsFieldName = "contents" }
                 }
 
-
-instance FromJSON Party where
-  parseJSON = withObject "Party" (\v ->
-        (PK . PubKeyHash . fromStrict <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
-    <|> (Role . Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "role_token"))
-                                 )
-instance ToJSON Party where
-    toJSON (PK pkh) = object
-        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ toStrict $ getPubKeyHash pkh) ]
-    toJSON (Role (Val.TokenName name)) = object
-        [ "role_token" .= (JSON.String $ decodeUtf8 $ toStrict name) ]
-
-
 -- getInteger :: Scientific -> Parser Integer
 -- getInteger x = case (floatingOrInteger x :: Either Double Integer) of
 --                  Right a -> return a
@@ -958,6 +943,49 @@ getInteger x = case readMaybe (unpack x) of
 
 withInteger :: JSON.Value -> Parser Integer
 withInteger = withText "Integer" getInteger
+
+mapParser :: (Parser b -> Parser c) -> Parser (Map a b) -> Parser (Map a c)
+mapParser f p = do x <- p
+                   let (k, v) = unzip (Map.toList x)
+                   Map.fromList . zip k <$> mapM (f . return) v
+
+parserAdaptor :: Parser String -> Parser Integer
+parserAdaptor p = do x <- p
+                     case readMaybe x of
+                       Just y  -> return y
+                       Nothing -> fail "Not an integer"
+
+valueIntegerOfString :: Parser (Map a String) -> Parser (Map a Integer)
+valueIntegerOfString = mapParser parserAdaptor
+
+instance FromJSON State where
+  parseJSON = withObject "State" (\v ->
+         State <$> ((valueIntegerOfString . parseJSON) =<< (v .: "accounts"))
+               <*> ((valueIntegerOfString . parseJSON) =<< (v .: "choices"))
+               <*> ((valueIntegerOfString . parseJSON) =<< (v .: "boundValues"))
+               <*> (Slot <$> (withInteger =<< (v .: "minSlot")))
+                                 )
+
+instance ToJSON State where
+  toJSON State { accounts = a
+               , choices = c
+               , boundValues = bv
+               , minSlot = Slot ms } = object
+        [ "accounts" .= fmap show a
+        , "choices" .= fmap show c
+        , "boundValues" .= fmap show bv
+        , "minSlot" .= show ms ]
+
+instance FromJSON Party where
+  parseJSON = withObject "Party" (\v ->
+        (PK . PubKeyHash . fromStrict <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
+    <|> (Role . Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "role_token"))
+                                 )
+instance ToJSON Party where
+    toJSON (PK pkh) = object
+        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ toStrict $ getPubKeyHash pkh) ]
+    toJSON (Role (Val.TokenName name)) = object
+        [ "role_token" .= (JSON.String $ decodeUtf8 $ toStrict name) ]
 
 instance FromJSON AccountId where
   parseJSON = withObject "AccountId" (\v ->
