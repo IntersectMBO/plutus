@@ -3,6 +3,7 @@
 import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore.Generators.NEAT.Type
@@ -63,6 +64,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_run_CK_vs_TCK
+  , testCaseGen "run_plcCK_vs_CK"
+      genOpts
+      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_run_plcCK_vs_CK
   ]
 
 -- check that Agda agrees that the given type is correct
@@ -170,9 +175,17 @@ prop_runTCK (k , tyG) tmG = do
     Just _  -> return ()
     Nothing -> throwCtrex (CtrexTermEvaluationFail tyG tmG)
 
-prop_run_plc_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_plc_CK (k , tyG) tmG = do
+prop_run_plcCK_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_run_plcCK_vs_CK (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG  
+  tmPlcCK <- withExceptT EvalP $ liftEither $ evaluateCk mempty tm
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  tmCK <- withExceptT Ctrex $
+    case runCKAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just tmCK -> return tmCK
+      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
+  unless (tmPlcCK == (() <$ tmCKN)) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmPlcCK (() <$ tmCKN))
 
 prop_run_CK_vs_TCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_CK_vs_TCK (k , tyG) tmG = do
@@ -188,4 +201,4 @@ prop_run_CK_vs_TCK (k , tyG) tmG = do
       Nothing    -> throwError ()
   tmCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   tmTCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
-  unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCK) (() <$tmTCK))
+  unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCKN) (() <$tmTCKN))

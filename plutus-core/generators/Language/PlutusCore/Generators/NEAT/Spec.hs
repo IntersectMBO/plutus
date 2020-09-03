@@ -28,6 +28,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
@@ -215,8 +216,8 @@ data Ctrex
   | CtrexTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    (Term TyDeBruijn DeBruijn DefaultUni ())
-    (Term TyDeBruijn DeBruijn DefaultUni ())
+    (Term TyName Name DefaultUni ())
+    (Term TyName Name DefaultUni ())
 
 instance Show TestFail where
   show (TypeError e)  = show e

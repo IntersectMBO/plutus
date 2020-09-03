@@ -390,7 +390,7 @@ runCK t = do
        λ{ (_ ▻ _) → nothing
         ; (_ ◅ _) → nothing
         ; (□ {t = tV} _) → just (unconvTm (unshifter Z (extricateScope tV)))
-        ; ◆ → nothing}
+        ; ◆ → nothing} -- is the success of failure?
 
 {-# COMPILE GHC runCK as runCKAgda #-}
 
