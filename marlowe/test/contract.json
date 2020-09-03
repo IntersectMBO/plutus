@@ -108,9 +108,9 @@
                  }
                },
                "equal_to": {
-                 "times": "10",
-                 "multiply": "1",
-                 "divided_by": "100"
+                 "times": "1",
+                 "multiply": "100",
+                 "divided_by": "10"
                }
              },
              "either": {

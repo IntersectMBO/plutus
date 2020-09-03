@@ -390,9 +390,9 @@ instance encodeJsonValue :: Encode Value where
       }
   encode (Scale (Rational num den) val) =
     encode
-      { multiply: num
-      , times: den
-      , divided_by: val
+      { multiply: val
+      , times: num
+      , divided_by: den
       }
   encode (ChoiceValue choiceId) =
     encode
