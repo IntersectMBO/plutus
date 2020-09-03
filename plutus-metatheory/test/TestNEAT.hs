@@ -3,20 +3,20 @@
 import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
-import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                        (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                           normalizeTypeAgda, runCKAgda, runTCKAgda)
-import           MAlonzo.Code.Scoped                      (deBruijnifyK, unDeBruijnifyK)
+import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                                            normalizeTypeAgda, runCKAgda, runTCKAgda)
+import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
-import           Raw                                      hiding (TypeError, tynames)
+import           Raw                                       hiding (TypeError, tynames)
 
 
 main :: IO ()
@@ -177,7 +177,7 @@ prop_runTCK (k , tyG) tmG = do
 
 prop_run_plcCK_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_plcCK_vs_CK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG  
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmPlcCK <- withExceptT EvalP $ liftEither $ evaluateCk mempty tm
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
   tmCK <- withExceptT Ctrex $
