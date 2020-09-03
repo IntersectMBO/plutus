@@ -39,12 +39,14 @@ import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Prelude (Ordering(..), const, eq, pure, show, ($), (<$>), (<<<), (<>))
-import Wallet.Emulator.Wallet (Wallet(..))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
-chainView :: forall p. State -> Map PubKeyHash Wallet -> AnnotatedBlockchain -> HTML p Action
-chainView state walletKeys annotatedBlockchain =
+type NamingFn
+  = PubKeyHash -> Maybe String
+
+chainView :: forall p. NamingFn -> State -> AnnotatedBlockchain -> HTML p Action
+chainView namingFn state annotatedBlockchain =
   div
     [ classes
         ( [ ClassName "chain" ]
@@ -64,7 +66,7 @@ chainView state walletKeys annotatedBlockchain =
         [ classes [ row, ClassName "blocks" ] ]
         (chainSlotView state <$> Array.reverse (unwrap annotatedBlockchain))
     , div [ class_ $ ClassName "detail" ]
-        [ detailView state walletKeys annotatedBlockchain ]
+        [ detailView namingFn state annotatedBlockchain ]
     ]
 
 slotClass :: ClassName
@@ -99,20 +101,20 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
   where
   isActive = has (_chainFocus <<< _Just <<< filtered (eq txId)) state
 
-detailView :: forall p. State -> Map PubKeyHash Wallet -> AnnotatedBlockchain -> HTML p Action
-detailView state@{ chainFocus: Just focussedTxId } walletKeys annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
-  Just annotatedTx -> transactionDetailView walletKeys annotatedBlockchain annotatedTx
+detailView :: forall p. NamingFn -> State -> AnnotatedBlockchain -> HTML p Action
+detailView namingFn state@{ chainFocus: Just focussedTxId } annotatedBlockchain = case preview (_findTx focussedTxId) annotatedBlockchain of
+  Just annotatedTx -> transactionDetailView namingFn annotatedBlockchain annotatedTx
   Nothing -> empty
 
-detailView state@{ chainFocus: Nothing } _ _ = empty
+detailView _ state@{ chainFocus: Nothing } _ = empty
 
-transactionDetailView :: forall p. Map PubKeyHash Wallet -> AnnotatedBlockchain -> AnnotatedTx -> HTML p Action
-transactionDetailView walletKeys annotatedBlockchain annotatedTx =
+transactionDetailView :: forall p. NamingFn -> AnnotatedBlockchain -> AnnotatedTx -> HTML p Action
+transactionDetailView namingFn annotatedBlockchain annotatedTx =
   div_
     [ row_
         [ col3_
             [ h2_ [ text "Inputs" ]
-            , div_ (dereferencedInputView walletKeys annotatedBlockchain <$> (view _dereferencedInputs annotatedTx))
+            , div_ (dereferencedInputView namingFn annotatedBlockchain <$> (view _dereferencedInputs annotatedTx))
             ]
         , col6_
             [ h2_ [ text "Transaction" ]
@@ -140,12 +142,12 @@ transactionDetailView walletKeys annotatedBlockchain annotatedTx =
         , col3_
             [ h2_ [ text "Outputs" ]
             , feeView (view (_tx <<< _txFee) annotatedTx)
-            , div_ (mapWithIndex (outputView walletKeys (view _txIdOf annotatedTx) annotatedBlockchain) (view (_tx <<< _txOutputs) annotatedTx))
+            , div_ (mapWithIndex (outputView namingFn (view _txIdOf annotatedTx) annotatedBlockchain) (view (_tx <<< _txOutputs) annotatedTx))
             ]
         ]
     , balancesTable
+        namingFn
         (view _sequenceId annotatedTx)
-        walletKeys
         (view (_balances <<< _JsonMap) annotatedTx)
     ]
 
@@ -184,8 +186,8 @@ forgeView txForge =
         ]
     ]
 
-balancesTable :: forall p. SequenceId -> Map PubKeyHash Wallet -> Map BeneficialOwner Value -> HTML p Action
-balancesTable sequenceId walletKeys balances =
+balancesTable :: forall p. NamingFn -> SequenceId -> Map BeneficialOwner Value -> HTML p Action
+balancesTable namingFn sequenceId balances =
   div []
     [ h2_
         [ text "Balances Carried Forward"
@@ -233,7 +235,7 @@ balancesTable sequenceId walletKeys balances =
                 ( \owner ->
                     [ tr [ class_ $ beneficialOwnerClass owner ]
                         ( th_
-                            [ beneficialOwnerView walletKeys owner ]
+                            [ beneficialOwnerView namingFn owner ]
                             : foldMapWithIndex
                                 ( \currency ->
                                     foldMap
@@ -298,9 +300,9 @@ txIdView (TxId { getTxId: str }) =
             ]
         )
 
-dereferencedInputView :: forall p. Map PubKeyHash Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p Action
-dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
-  txOutOfView true walletKeys refersTo
+dereferencedInputView :: forall p. NamingFn -> AnnotatedBlockchain -> DereferencedInput -> HTML p Action
+dereferencedInputView namingFn annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
+  txOutOfView namingFn true refersTo
     $ case originatingTx of
         Just tx ->
           Just
@@ -317,7 +319,7 @@ dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { origin
   originatingTx :: Maybe AnnotatedTx
   originatingTx = preview (_findTx txId) annotatedBlockchain
 
-dereferencedInputView walletKeys annotatedBlockchain (InputNotFound txKey) =
+dereferencedInputView namingFn annotatedBlockchain (InputNotFound txKey) =
   div
     [ classes [ card, entryClass, notFoundClass ] ]
     [ div [ classes [ cardHeader, textTruncate ] ]
@@ -329,9 +331,9 @@ dereferencedInputView walletKeys annotatedBlockchain (InputNotFound txKey) =
         ]
     ]
 
-outputView :: forall p. Map PubKeyHash Wallet -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p Action
-outputView walletKeys txId annotatedBlockchain outputIndex txOut =
-  txOutOfView false walletKeys txOut
+outputView :: forall p. NamingFn -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p Action
+outputView namingFn txId annotatedBlockchain outputIndex txOut =
+  txOutOfView namingFn false txOut
     $ case consumedInTx of
         Just linkedTx ->
           Just
@@ -346,13 +348,13 @@ outputView walletKeys txId annotatedBlockchain outputIndex txOut =
   consumedInTx :: Maybe AnnotatedTx
   consumedInTx = findConsumptionPoint outputIndex txId annotatedBlockchain
 
-txOutOfView :: forall p. Boolean -> Map PubKeyHash Wallet -> TxOut -> Maybe (HTML p Action) -> HTML p Action
-txOutOfView showArrow walletKeys txOut@(TxOut { txOutAddress, txOutType, txOutValue }) mFooter =
+txOutOfView :: forall p. NamingFn -> Boolean -> TxOut -> Maybe (HTML p Action) -> HTML p Action
+txOutOfView namingFn showArrow txOut@(TxOut { txOutAddress, txOutType, txOutValue }) mFooter =
   div
     [ classes [ card, entryClass, beneficialOwnerClass beneficialOwner ] ]
     [ div [ classes [ cardHeader, textTruncate ] ]
         [ if showArrow then triangleRight else empty
-        , beneficialOwnerView walletKeys beneficialOwner
+        , beneficialOwnerView namingFn beneficialOwner
         ]
     , cardBody_
         [ valueView txOutValue ]
@@ -368,18 +370,14 @@ beneficialOwnerClass (OwnedByPubKey _) = ClassName "wallet"
 
 beneficialOwnerClass (OwnedByScript _) = ClassName "script"
 
-beneficialOwnerView :: forall p. Map PubKeyHash Wallet -> BeneficialOwner -> HTML p Action
-beneficialOwnerView walletKeys (OwnedByPubKey pubKey) = case Map.lookup pubKey walletKeys of
-  Nothing -> showPubKeyHash pubKey
-  Just (Wallet { getWallet: n }) ->
+beneficialOwnerView :: forall p. NamingFn -> BeneficialOwner -> HTML p Action
+beneficialOwnerView namingFn (OwnedByPubKey pubKeyHash) = case namingFn pubKeyHash of
+  Nothing -> showPubKeyHash pubKeyHash
+  Just name ->
     span_
-      [ span_
-          [ text "Wallet"
-          , nbsp
-          , text $ show n
-          ]
+      [ span_ [ text name ]
       , br_
-      , small_ [ showPubKeyHash pubKey ]
+      , small_ [ showPubKeyHash pubKeyHash ]
       ]
 
 beneficialOwnerView _ (OwnedByScript a) =

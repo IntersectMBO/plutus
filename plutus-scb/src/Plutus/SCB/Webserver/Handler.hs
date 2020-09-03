@@ -18,12 +18,13 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
+import           Cardano.Metadata.Types                          (MetadataEffect)
+import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
 import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import qualified Data.Aeson                                      as JSON
-import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
@@ -32,9 +33,8 @@ import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Ledger                                          (PubKeyHash, pubKeyHash)
+import           Ledger                                          (pubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
-import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
@@ -76,7 +76,7 @@ getContractReport = do
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall t effs. Member ChainIndexEffect effs
+       forall t effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
     => Eff effs (ChainReport t)
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
@@ -84,20 +84,19 @@ getChainReport = do
                       , chainOverviewUnspentTxsById
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
-    let walletMap :: Map PubKeyHash Wallet
-        walletMap =
-            foldMap
-                (\index ->
-                     let wallet = Wallet index
-                      in Map.singleton (pubKeyHash $ walletPubKey wallet) wallet)
-                [1 .. 10]
+    let wallets = Wallet <$> [1 .. 10]
+    relatedMetadata <-
+        mconcat <$>
+        traverse
+            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
+            wallets
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport
             { transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex
             , annotatedBlockchain
-            , walletMap
+            , relatedMetadata
             }
 
 getEvents ::
@@ -110,6 +109,7 @@ getFullReport ::
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Ord t
        )
     => Eff effs (FullReport t)
@@ -197,6 +197,7 @@ handler ::
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Member UUIDEffect effs
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs

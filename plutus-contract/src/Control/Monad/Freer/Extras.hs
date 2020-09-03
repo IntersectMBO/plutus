@@ -102,6 +102,16 @@ weakenEnd14 u = case decomp u of
     Left u' -> weaken $ weakenEnd13 u'
     Right t -> inj t
 
+weakenEnd15 :: forall effs a b c d e f g h i j k l m n o. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': effs)
+weakenEnd15 u = case decomp u of
+    Left u' -> weaken $ weakenEnd14 u'
+    Right t -> inj t
+
+weakenEnd16 :: forall effs a b c d e f g h i j k l m n o p. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': effs)
+weakenEnd16 u = case decomp u of
+    Left u' -> weaken $ weakenEnd15 u'
+    Right t -> inj t
+
 weakenUnder :: forall effs a b . Union (a ': effs) ~> Union (a ': b ': effs)
 weakenUnder u = case decomp u of
     Left u' -> weaken $ weaken u'
@@ -195,6 +205,18 @@ raiseEnd14 = loop where
     loop = \case
         Val a -> pure a
         E u q -> E (weakenEnd14 u) (tsingleton $ qComp q loop)
+
+raiseEnd15 :: forall effs a b c d e f g h i j k l m n o. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': effs)
+raiseEnd15 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd15 u) (tsingleton $ qComp q loop)
+
+raiseEnd16 :: forall effs a b c d e f g h i j k l m n o p. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': effs)
+raiseEnd16 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd16 u) (tsingleton $ qComp q loop)
 
 raiseUnder :: forall effs a b . Eff (a ': effs) ~> Eff (a ': b ': effs)
 raiseUnder = loop where

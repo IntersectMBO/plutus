@@ -12,7 +12,7 @@ import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
 import Data.Int as Int
-import Data.Lens (_2, preview, toListOf, traversed, view)
+import Data.Lens (_2, preview, to, toListOf, traversed, view)
 import Data.Lens.Index (ix)
 import Data.List (List)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -50,11 +50,7 @@ evaluationPane ::
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ ChainAction
-        <$> chainView
-            state
-            (AssocMap.toDataMap (AssocMap.Map walletKeys))
-            (wrap resultRollup)
+    [ ChainAction <$> chainView namingFn state (wrap resultRollup)
     , br_
     , div_
         [ h2_ [ text "Logs" ]
@@ -78,6 +74,8 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             (Just <<< HandleBalancesChartMessage)
         ]
     ]
+  where
+  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet #" <> show n)) (AssocMap.Map walletKeys)
 
 eveEvent :: forall a. MultiAgent.EmulatorTimeEvent a -> a
 eveEvent (MultiAgent.EmulatorTimeEvent { _eteEvent }) = _eteEvent

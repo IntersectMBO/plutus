@@ -7,6 +7,7 @@ module MainFrame
 
 import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
+import Cardano.Metadata.Types (Property(..), PropertyDescription, PropertyKey, Subject)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
@@ -17,10 +18,12 @@ import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter, find)
 import Data.Either (Either(..))
+import Data.Foldable (foldr)
 import Data.Lens (_1, _2, assign, modifying, to, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Extra (peruse, toSetOf)
 import Data.Lens.Index (ix)
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
@@ -37,7 +40,7 @@ import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, runHalogenApp)
+import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
@@ -52,7 +55,7 @@ import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage, _webSocketStatus, fromWebData)
+import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
 import Validation (_argument)
 import View as View
 import WebSocket.Support (FromSocket)
@@ -72,6 +75,7 @@ initialState =
     , contractStates: Map.empty
     , webSocketMessage: Stream.NotAsked
     , webSocketStatus: WebSocketClosed Nothing
+    , metadata: mempty
     }
 
 ------------------------------------------------------------
@@ -110,25 +114,36 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
 handleMessageFromSocket ::
   forall m.
   MonadState State m =>
+  MonadApp m =>
   FromSocket StreamToClient -> m Unit
 handleMessageFromSocket WS.WebSocketOpen = do
   assign _webSocketStatus WebSocketOpen
 
-handleMessageFromSocket (WS.ReceiveMessage (Right (NewChainReport report))) = assign _chainReport (Success report)
-
-handleMessageFromSocket (WS.ReceiveMessage (Right (NewContractReport report))) = do
-  assign _contractSignatures (Stream.Success (view _crAvailableContracts report))
-  traverse_ updateFormsForContractInstance
-    (view _crActiveContractStates report)
-
-handleMessageFromSocket (WS.ReceiveMessage (Right (NewChainEvents events))) = assign _events (Success events)
-
-handleMessageFromSocket (WS.ReceiveMessage (Right (ErrorResponse err))) = assign _webSocketMessage $ Stream.Failure $ ServerError err
+handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = case msg of
+  NewChainReport report -> assign _chainReport (Success report)
+  NewContractReport report -> do
+    assign _contractSignatures (Stream.Success (view _crAvailableContracts report))
+    traverse_ updateFormsForContractInstance
+      (view _crActiveContractStates report)
+  NewChainEvents events -> assign _events (Success events)
+  ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
+  FetchedProperty property -> do
+    log $ "Websocket fetch property: " <> show property
+    modifying _metadata (upsertProperty property)
+  FetchedProperties properties -> do
+    traverse_ (\p -> log $ "Websocket fetch properties: " <> show p) properties
+    modifying _metadata (\m -> foldr upsertProperty m properties)
+  Pong -> log "Websocket heartbeat"
 
 handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessage $ Stream.Failure $ DecodingError err
 
 handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
   assign _webSocketStatus (WebSocketClosed (Just closeEvent))
+
+upsertProperty :: Property -> Map Subject (Map PropertyKey PropertyDescription) -> Map Subject (Map PropertyKey PropertyDescription)
+upsertProperty (Property { _propertySubject, _propertyDescription }) =
+  Map.insertWith append _propertySubject
+    $ Map.singleton (toPropertyKey _propertyDescription) _propertyDescription
 
 handleAction ::
   forall m.
@@ -139,7 +154,8 @@ handleAction ::
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
-handleAction (ChangeView view) = assign _currentView view
+handleAction (ChangeView view) = do
+  assign _currentView view
 
 handleAction (ActivateContract contract) = do
   modifying _contractSignatures Stream.refreshing

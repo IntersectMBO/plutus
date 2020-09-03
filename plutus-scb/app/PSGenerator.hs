@@ -13,6 +13,8 @@ module PSGenerator
     ( generate
     ) where
 
+import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction, Property,
+                                                                    PropertyDescription, PropertyKey, Subject)
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Control.Monad                                     (void)
@@ -132,6 +134,14 @@ myTypes =
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @LogLevel)
+
+    -- Metadata types
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Subject)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Property)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PropertyDescription)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedSignature)
     ]
 
 mySettings :: Settings

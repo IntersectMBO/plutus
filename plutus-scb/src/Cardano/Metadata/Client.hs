@@ -13,13 +13,12 @@ import           Cardano.Metadata.Types    (MetadataEffect (GetProperties, GetPr
 import           Control.Monad.Freer       (Eff, LastMember, Member, type (~>), interpret, sendM)
 import           Control.Monad.Freer.Error (Error, throwError)
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
-import qualified Data.Aeson                as JSON
 import           Data.Proxy                (Proxy (Proxy))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Servant.Extra             (left, right)
 
 getProperties :: Subject -> ClientM [Property]
-getProperty :: Subject -> PropertyKey -> ClientM JSON.Value
+getProperty :: Subject -> PropertyKey -> ClientM Property
 (getProperties, getProperty) = (_getProperties, _getProperty)
   where
     _getProperties = left . api

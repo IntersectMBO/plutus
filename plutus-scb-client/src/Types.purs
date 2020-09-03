@@ -1,6 +1,8 @@
 module Types where
 
 import Prelude
+import Cardano.Metadata.Types (PropertyDescription(..), PropertyKey(..))
+import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Clipboard as Clipboard
 import Control.Monad.Gen as Gen
@@ -98,6 +100,7 @@ newtype State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData StreamToClient
   , webSocketStatus :: WebSocketStatus
+  , metadata :: Map Metadata.Subject (Map PropertyKey PropertyDescription)
   }
 
 type EndpointForm
@@ -126,6 +129,12 @@ _chainState = _Newtype <<< prop (SProxy :: SProxy "chainState")
 
 _contractStates :: Lens' State ContractStates
 _contractStates = _Newtype <<< prop (SProxy :: SProxy "contractStates")
+
+_metadata ::
+  Lens' State
+    ( Map Metadata.Subject (Map PropertyKey PropertyDescription)
+    )
+_metadata = _Newtype <<< prop (SProxy :: SProxy "metadata")
 
 _annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
@@ -204,3 +213,25 @@ instance arbitraryView :: Arbitrary View where
 
 instance showView :: Show View where
   show = genericShow
+
+------------------------------------------------------------
+toPropertyKey :: PropertyDescription -> PropertyKey
+toPropertyKey (Preimage _ _) = PropertyKey "preimage"
+
+toPropertyKey (Name _ _) = PropertyKey "name"
+
+toPropertyKey (Description _ _) = PropertyKey "description"
+
+toPropertyKey (Other name _ _) = PropertyKey name
+
+_getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
+_getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
+
+_propertyName :: Getter' Metadata.Property (Maybe String)
+_propertyName =
+  Metadata.propertyDescription
+    <<< to
+        ( case _ of
+            Metadata.Name name _ -> Just name
+            _ -> Nothing
+        )

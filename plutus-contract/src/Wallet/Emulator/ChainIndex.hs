@@ -56,7 +56,7 @@ data ChainIndexEvent =
 instance Pretty ChainIndexEvent where
     pretty = \case
         AddressStartWatching addr  -> "StartWatching:" <+> pretty addr
-        ReceiveBlockNotification i -> "ReceiveBlockNotification:" <+> pretty i <+> " transactions."
+        ReceiveBlockNotification i -> "ReceiveBlockNotification:" <+> pretty i <+> "transactions."
         HandlingAddressChangeRequest req itms ->
             let prettyItem ChainIndexItem{ciSlot, ciTxId} = pretty ciSlot <+> pretty ciTxId
             in hang 2 $ vsep
