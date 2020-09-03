@@ -28,7 +28,6 @@ module Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
