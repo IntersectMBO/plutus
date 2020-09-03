@@ -525,7 +525,38 @@ instance encodeJsonObservation :: Encode Observation where
   encode FalseObs = encode false
 
 instance decodeJsonObservation :: Decode Observation where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    ( ifM (decode a)
+        (pure TrueObs)
+        (fail (ForeignError "Not a boolean"))
+    )
+      <|> ( ifM (not <$> decode a)
+            (pure FalseObs)
+            (fail (ForeignError "Not a boolean"))
+        )
+      <|> ( AndObs <$> (decode =<< readProp "both" a)
+            <*> (decode =<< readProp "and" a)
+        )
+      <|> ( OrObs <$> (decode =<< readProp "either" a)
+            <*> (decode =<< readProp "or" a)
+        )
+      <|> (NotObs <$> (decode =<< readProp "not" a))
+      <|> (ChoseSomething <$> decode a)
+      <|> ( ValueGE <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "ge_than" a)
+        )
+      <|> ( ValueGT <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "gt" a)
+        )
+      <|> ( ValueLT <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "lt" a)
+        )
+      <|> ( ValueLE <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "le_than" a)
+        )
+      <|> ( ValueEQ <$> (decode =<< readProp "value" a)
+            <*> (decode =<< readProp "equal_to" a)
+        )
 
 instance showObservation :: Show Observation where
   show o = genericShow o
