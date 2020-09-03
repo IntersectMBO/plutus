@@ -12,8 +12,8 @@ import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
 import Data.Int as Int
-import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
-import Data.Lens.At (at)
+import Data.Lens (_2, preview, toListOf, traversed, view)
+import Data.Lens.Index (ix)
 import Data.List (List)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
@@ -132,10 +132,8 @@ extractAmount (Tuple currencySymbol tokenName) =
   preview
     ( _simulatorWalletBalance
         <<< _value
-        <<< at currencySymbol
-        <<< _Just
-        <<< at tokenName
-        <<< _Just
+        <<< ix currencySymbol
+        <<< ix tokenName
     )
 
 balancesToChartistData :: Array SimulatorWallet -> ChartistData
