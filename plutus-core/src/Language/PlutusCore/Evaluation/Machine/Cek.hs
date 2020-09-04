@@ -177,7 +177,7 @@ data ExBudgetCategory
     deriving stock (Show, Eq, Generic)
     deriving anyclass NFData
 instance Hashable ExBudgetCategory
-instance (PrettyBy config) ExBudgetCategory where
+instance PrettyBy config ExBudgetCategory where
     prettyBy _ = viaShow
 
 type CekExBudgetState = ExBudgetState ExBudgetCategory

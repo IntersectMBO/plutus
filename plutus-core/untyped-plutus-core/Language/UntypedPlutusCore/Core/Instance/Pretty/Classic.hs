@@ -1,4 +1,4 @@
--- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
+-- | A "classic" (i.e. as seen in the specification) way to pretty-print Untyped Plutus Core terms.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
