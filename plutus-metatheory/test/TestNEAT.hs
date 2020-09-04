@@ -12,7 +12,7 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCKAgda)
+                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCKAgda, runTCEKVAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -72,6 +72,10 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_run_plcCK_vs_CK
+ , testCaseGen "run_TCK_vs_TCEKV"
+      genOpts
+      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_run_TCK_vs_TCEKV
   ]
 
 -- check that Agda agrees that the given type is correct
@@ -216,3 +220,20 @@ prop_run_CK_vs_TCK (k , tyG) tmG = do
   tmCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   tmTCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
   unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCKN) (() <$tmTCKN))
+
+prop_run_TCK_vs_TCEKV :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_run_TCK_vs_TCEKV (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  tmTCK <- withExceptT Ctrex $
+    case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just tmTCK -> return tmTCK
+      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmTCEKV <- withExceptT AgdaErrorP $
+    case runTCEKVAgda (AlexPn 0 0 0 <$ tmDB) of
+      Just tmTCEKV -> return tmTCEKV
+      Nothing    -> throwError ()
+  tmTCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
+  tmTCEKVN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCEKV
+  unless (tmTCKN == tmTCEKVN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmTCKN) (() <$tmTCEKVN))
+
