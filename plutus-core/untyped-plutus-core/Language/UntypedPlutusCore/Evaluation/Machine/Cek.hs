@@ -2,7 +2,6 @@
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
 -- The CEK machines handles name capture by design.
--- The type checker pass is a prerequisite.
 -- Dynamic extensions to the set of built-ins are allowed.
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
@@ -103,7 +102,7 @@ data CekValue uni =
       Arity             -- Sorts of arguments to be provided (both types and terms): *don't change this*.
       Arity             -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
       Int               -- The number of @force@s to apply to the builtin.
-                        -- We need these to construct a term if the machine is returning a stuck partial application.
+                        -- We need it to construct a term if the machine is returning a stuck partial application.
       [CekValue uni]    -- Arguments we've computed so far.
       (CekValEnv uni)   -- Initial environment, used for evaluating every argument
     deriving (Show, Eq) -- Eq is just for tests.
@@ -381,10 +380,10 @@ throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 -- | The returning phase of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
 -- from the context and uses it to decide how to proceed with the current value v.
---  'FrameForce': call instantiateEvaluate.  If v is a lambda then discard the type
---     and compute the body of v; if v is a builtin application then check that
---     it's expecting a type argument, either apply the builtin to its arguments or
---     and return the result, or extend the value with the type and call returnCek;
+--  'FrameForce': call instantiateEvaluate.  If v is a lambda then compute the body of v;
+--     if v is a builtin application then check that it's expecting a type argument,
+--     either apply the builtin to its arguments and return the result,
+--     or extend the value with @force@ and call returnCek;
 --     if v is anything else, fail.
 --  'FrameApplyArg': call applyEvaluate. If v is a lambda then discard the type
 --     and compute the body of v; if v is a builtin application then check that
@@ -427,9 +426,9 @@ machinery.  If we really care we might want to convert the CAM to use sequences
 instead of lists.
 -}
 
--- | Instantiate a term with a type and proceed.
--- In case of 'VDelay' just ignore the type; for 'VBuiltin', extend
--- the type arguments with the type, decrement the argument count,
+-- | @force@ a term and proceed.
+-- In case of 'VDelay' just ignore the type; for 'VBuiltin', increase
+-- the the number of @force@s, decrement the argument count,
 -- and proceed; otherwise, it's an error.
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
@@ -467,17 +466,17 @@ applyEvaluate
     -> CekM uni (Term Name uni ())
 applyEvaluate ctx (VLamAbs _ name body env) arg =
     computeCek ctx (extendEnv name arg env) body
-applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg = do
+applyEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) arg = do
     case arity of
       []        -> throwingDischarged _MachineError EmptyBuiltinArityMachineError val
                 -- Should be impossible: see instantiateEvaluate.
       TypeArg:_ -> throwingDischarged _MachineError UnexpectedBuiltinTermArgumentMachineError val'
-                   where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv -- reconstruct the bad application
+                   where val' = VBuiltin ex bn arity0 arity forces (args++[arg]) argEnv -- reconstruct the bad application
       TermArg:arity' -> do
           let args' = args ++ [arg]
           case arity' of
             [] -> applyBuiltinName ctx bn args' -- 'arg' was the final argument
-            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs args' argEnv  -- More arguments expected
+            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' forces args' argEnv  -- More arguments expected
 applyEvaluate _ val _ = throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
 -- | Apply a builtin to a list of CekValue arguments
