@@ -12,7 +12,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCKAgda, runTCEKVAgda)
+                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCEKVAgda,
+                                                            runTCKAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -228,11 +229,11 @@ prop_run_TCK_vs_TCEKV (k , tyG) tmG = do
   tmTCK <- withExceptT Ctrex $
     case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
       Just tmTCK -> return tmTCK
-      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
   tmTCEKV <- withExceptT AgdaErrorP $
     case runTCEKVAgda (AlexPn 0 0 0 <$ tmDB) of
       Just tmTCEKV -> return tmTCEKV
-      Nothing    -> throwError ()
+      Nothing      -> throwError ()
   tmTCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
   tmTCEKVN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCEKV
   unless (tmTCKN == tmTCEKVN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmTCKN) (() <$tmTCEKVN))
