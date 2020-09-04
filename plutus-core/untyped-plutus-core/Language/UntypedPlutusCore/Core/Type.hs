@@ -45,8 +45,6 @@ data Term name uni ann
     | Error ann
     deriving (Show, Functor, Generic)
 
--- Instances needed by the constant application machinery.
-
 type instance TPLC.UniOf (Term name uni ann) = uni
 
 instance TPLC.AsConstant (Term name uni ann) where

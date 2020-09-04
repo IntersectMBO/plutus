@@ -79,9 +79,6 @@ import           Data.Text.Prettyprint.Doc
    prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
-instance PrettyBy config (Term name uni ann) where
-    prettyBy _ _ = undefined
-
 type TermWithMem uni = Term Name uni ExMemory
 
 {- Note [Arities in VBuiltin]
