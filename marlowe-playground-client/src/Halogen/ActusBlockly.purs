@@ -20,9 +20,16 @@ import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
 import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer)
-import Marlowe.ActusBlockly (buildGenerator)
+import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
 import Halogen.HTML.Core (AttrName(..))
+import Effect (Effect)
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
+import Foreign.Generic (encodeJSON)
+
+foreign import sendContractToShiny
+  :: String
+  -> Effect Unit
+
 
 type BlocklyState
   = { actusBlocklyState :: Maybe BT.BlocklyState
@@ -50,6 +57,7 @@ data ContractFlavour
 data BlocklyAction
   = Inject String (Array BlockDefinition)
   | GetTerms ContractFlavour
+  | RunAnalysis
 
 data BlocklyMessage
   = Initialized
@@ -125,6 +133,28 @@ handleAction (GetTerms flavour) = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
+handleAction RunAnalysis = do
+  res <-
+    runExceptT do
+      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _actusBlocklyState
+      generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
+      let
+        workspace = blocklyState.workspace
+
+        rootBlockName = blocklyState.rootBlockName
+      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+      except <<< lmap (\x -> "This workspace cannot be converted to code: " <> (show x)) $ blockToCode block generator
+  case res of
+    Left e -> assign _errorMessage $ Just e
+    Right contract -> do
+      assign _errorMessage Nothing
+      case parseActusJsonCode contract of 
+        Left e -> assign _errorMessage $ Just e
+        Right c -> liftEffect $ sendContractToShiny $ encodeJSON c
+      
+  where
+  unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
@@ -135,6 +165,7 @@ render state =
       [ div [ classes [ panelSubHeaderMain, aHorizontal ]]
         [ toCodeButton "Generate reactive contract"
         , toStaticCodeButton "Generate static contract"
+        , runAnalysis
         , errorMessage state.errorMessage
         ]
       ]
@@ -158,6 +189,7 @@ shiny =
         iframe 
         [
           src "http://localhost:8081"
+        , id_ "shiny"
         , attr (AttrName "frameborder") "0"
         , attr (AttrName "scrolling") "no"
         , attr (AttrName "style") "position: relative; height: 100%; width: 100%;"
@@ -178,6 +210,14 @@ toStaticCodeButton key =
     , attr (AttrName "style") "margin-left:5px; margin-right:5px"
     ]
     [ text key ]
+
+runAnalysis :: forall p. HTML p BlocklyAction
+runAnalysis =
+  button
+    [ onClick $ const $ Just $ RunAnalysis
+    , attr (AttrName "style") "margin-right:5px"
+    ]
+    [ text "Run Analysis" ]
 
 errorMessage :: forall p i. Maybe String -> HTML p i
 errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]

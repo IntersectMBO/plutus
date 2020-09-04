@@ -31,10 +31,22 @@ r_shiny :: R s Int32
 r_shiny = do
     R.dynSEXP <$> [r| 
 library(shiny)
+library(shinyjs)
 library(plotly)
 library(purrr)
 
+jscode <- "
+shinyjs.init = function() {
+  window.addEventListener(\"message\", receiveMessage, false);
+
+  function receiveMessage(event) {
+    Shiny.onInputChange(\"contract\", event.data); 
+  }
+}"
+
 ui <- fluidPage(
+  useShinyjs(),
+  extendShinyjs(text = jscode, functions = c()),  
   headerPanel(''),
   mainPanel(
     plotlyOutput('plot')
@@ -42,31 +54,31 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+  observeEvent(input$contract, {
+    message(paste("Contract: ", input$contract))
+    x <- get_dates_hs(input$contract)
+    y <- get_cfs_hs(input$contract)
+    text <- y %>% 
+      map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
+    data <- data.frame(x=factor(x,levels=x),text,y)
+    
+    fig <- plot_ly(
+      data, name = "20", type = "waterfall",
+      x = ~x, textposition = "outside", y= ~y, text =~text,
+      connector = list(line = list(color= "rgb(63, 63, 63)"))) 
+    fig <- fig %>% layout(title = "Cashflows",
+                          xaxis = list(title = ""),
+                          yaxis = list(title = ""),
+                          autosize = TRUE)
+    
+    fig
+    output$plot <- renderPlotly(fig)
+  })
   
-  x <- get_dates_hs(contractTermsJson_hs)
-  y <- get_cfs_hs(contractTermsJson_hs)
-  text <- y %>% 
-    map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
-  data <- data.frame(x=factor(x,levels=x),text,y)
-
-  fig <- plot_ly(
-    data, name = "20", type = "waterfall",
-    x = ~x, textposition = "outside", y= ~y, text =~text,
-    connector = list(line = list(color= "rgb(63, 63, 63)"))) 
-  fig <- fig %>% layout(title = "Cashflows",
-          xaxis = list(title = ""),
-          yaxis = list(title = ""),
-          autosize = TRUE)
-
-  fig
-  output$plot <- renderPlotly(fig)
-
 }
 
-shinyApp(ui,server)
-
 # Create Shiny app ----
-message("Starting Marlowe Shiny app")
+message("Starting Marlowe Shiny app: ")
 runApp(shinyApp(ui = ui, server = server), port = 8081)
 1
     |]
