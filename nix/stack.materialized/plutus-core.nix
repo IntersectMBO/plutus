@@ -158,7 +158,12 @@
           "Language/UntypedPlutusCore/Core"
           "Language/UntypedPlutusCore/Core/Instance"
           "Language/UntypedPlutusCore/Core/Instance/Eq"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "Language/UntypedPlutusCore/Core/Type"
+          "Language/UntypedPlutusCore/Subst"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Language/PlutusCore"
@@ -229,6 +234,7 @@
           "Language/PlutusIR/Transform/NonStrict"
           "Language/PlutusIR/Transform/LetFloat"
           "Language/UntypedPlutusCore"
+          "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Lazy/Hash"
@@ -350,11 +356,12 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             ];
           buildable = true;
-          modules = [ "Evaluation/ApplyBuiltinName" ];
+          modules = [ "Evaluation/ApplyBuiltinName" "Evaluation/Machines" ];
           hsSourceDirs = [ "untyped-plutus-core-test" ];
           mainPath = [ "Spec.hs" ];
           };
