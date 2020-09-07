@@ -9,9 +9,10 @@ import Data.Int (Int32)
 import qualified Language.R as R
 import Language.R (R)
 import Language.R.QQ
-import Language.Marlowe.ACTUS.Analysis(genProjectedCashflows)
+import Language.Marlowe.ACTUS.Analysis(sampleCashflows)
 import Data.Time.Calendar(showGregorian, fromGregorian)
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
+import Language.Marlowe.ACTUS.Definitions.BusinessEvents(RiskFactors(..))
 import Language.Marlowe.ACTUS.Definitions.Schedule(CashFlow(..))
 import Data.Aeson(encode, decode)
 import Data.String (IsString (fromString))
@@ -19,12 +20,12 @@ import Data.ByteString.Lazy.Char8(unpack)
 
 get_dates :: String -> R s [String]
 get_dates ct = return $ case (decode $ fromString ct) of
-    Just ct' -> showGregorian <$> cashCalculationDay <$> genProjectedCashflows ct'
+    Just ct' -> showGregorian <$> cashCalculationDay <$> sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
     Nothing -> []
 
 get_cfs :: String -> R s [Double]
 get_cfs ct = return $ case (decode $ fromString ct) of
-    Just ct' -> amount <$> genProjectedCashflows ct'
+    Just ct' -> amount <$> sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
     Nothing -> []
 
 r_shiny :: R s Int32
