@@ -96,13 +96,13 @@ runClientNode socketPath = do
          (ChainSync and TxSubmission). -}
       app :: TQueue Block
           -> TQueue Tx
-          -> OuroborosApplication 'InitiatorApp
+          -> OuroborosApplication 'InitiatorMode
                                   LBS.ByteString IO () Void
       app outputQueue inputQueue =
         nodeApplication (chainSync outputQueue) (txSubmission inputQueue)
 
       chainSync :: TQueue Block
-                -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+                -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       chainSync outputQueue =
           InitiatorProtocolOnly $
           MuxPeer
@@ -112,7 +112,7 @@ runClientNode socketPath = do
                (chainSyncClient outputQueue))
 
       txSubmission :: TQueue Tx
-                   -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+                   -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       txSubmission inputQueue =
           InitiatorProtocolOnly $
           MuxPeer

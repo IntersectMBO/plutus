@@ -32,6 +32,7 @@ import           Ouroboros.Network.Protocol.ChainSync.Server         (ChainSyncS
                                                                       ServerStIntersect (..), ServerStNext (..))
 import qualified Ouroboros.Network.Protocol.ChainSync.Server         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Server as TxSubmission
+import           Ouroboros.Network.Protocol.LocalTxSubmission.Type   (SubmitResult (..))
 
 import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..))
 import           Ouroboros.Network.Block                             (Point (..), pointSlot)
@@ -40,6 +41,7 @@ import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
 import qualified Ouroboros.Network.Point                             as OP (Block (..))
+import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
@@ -357,19 +359,20 @@ protocolLoop socketPath internalState = withIOManager $ \iocp -> do
       (simpleSingletonVersions UnversionedProtocol
                                (NodeToNodeVersionData $ NetworkMagic 0)
                                (DictVersion nodeToNodeCodecCBORTerm)
-                               (\_peerid -> SomeResponderApplication (application internalState)))
+                               (SomeResponderApplication (application internalState)))
       nullErrorPolicies
       $ \_ serverAsync -> wait serverAsync
 
 application ::
     InternalState
- -> OuroborosApplication 'ResponderApp
+ -> OuroborosApplication 'ResponderMode
+                         addr
                          LBS.ByteString
                          IO Void ()
 application internalState@(InternalState {isState}) =
     nodeApplication chainSync txSubmission
     where
-        chainSync :: RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
+        chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
         chainSync =
              ResponderProtocolOnly $
              MuxPeer
@@ -379,7 +382,7 @@ application internalState@(InternalState {isState}) =
                    (runReader (hoistChainSync chainSyncServer)
                               internalState))
 
-        txSubmission :: RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
+        txSubmission :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()
         txSubmission =
             ResponderProtocolOnly $
             MuxPeer
@@ -426,6 +429,6 @@ txSubmissionServer state = txSubmissionState
           TxSubmission.recvMsgSubmitTx =
             \tx -> do
                 modifyMVar_ state (pure . over Chain.txPool (Chain.addTxToPool tx))
-                return (Nothing, txSubmissionState)
+                return (SubmitSuccess, txSubmissionState)
         , TxSubmission.recvMsgDone     = ()
         }

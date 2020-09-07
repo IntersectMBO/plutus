@@ -45,7 +45,7 @@ import           Servant.Prometheus                             (monitorEndpoint
 import           Servant.Server                                 (Server)
 import           Server                                         (mkHandlers)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
-import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMetricsT)
+import           System.Metrics.Prometheus.Http.Scrape          (serveMetricsT)
 import           Types                                          (Config (Config, _authConfig, _marloweConfig))
 
 instance GenerateList NoContent (Method -> Req NoContent) where
@@ -101,4 +101,4 @@ run settings _staticDir config = runRegistryT $ do
   appMonitor <- monitorEndpoints (Proxy @Web)
   logInfoN "Starting webserver."
   void . liftIO . forkIO . runSettings settings . appMonitor $ app handlers _staticDir githubEndpoints config
-  serveHttpTextMetricsT 9091 ["metrics"]
+  serveMetricsT 9091 ["metrics"]

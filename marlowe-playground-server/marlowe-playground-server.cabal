@@ -100,7 +100,7 @@ executable marlowe-playground-server
         monad-logger -any,
         mtl -any,
         plutus-ledger,
-        prometheus >=2,
+        prometheus >=2.2,
         purescript-bridge -any,
         optparse-applicative -any,
         servant-client -any,

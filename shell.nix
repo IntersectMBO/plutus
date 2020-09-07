@@ -1,8 +1,8 @@
 { sourcesOverride ? {}
 , checkMaterialization ? false
 , useCabalProject ? true
-, compiler-nix-name ? "ghc883"
-, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args)
+, compiler-nix-name ? "ghc8102"
+, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit checkMaterialization useCabalProject compiler-nix-name; } // args)
 }@args:
 with packageSet;
 let
@@ -53,4 +53,26 @@ in haskell.packages.shellFor {
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
   ]);
+  packages = ps: with ps; [
+    deployment-server
+    iots-export
+    marlowe
+    marlowe-actus
+    marlowe-playground-server
+    marlowe-symbolic
+    playground-common
+    plutus-book
+    plutus-contract
+    plutus-core
+    plutus-doc
+    plutus-ledger
+    plutus-metatheory
+    plutus-playground-server
+    plutus-scb
+    plutus-tx
+    plutus-tx-plugin
+    plutus-use-cases
+    prettyprinter-configurable
+    web-ghc
+  ];
 }

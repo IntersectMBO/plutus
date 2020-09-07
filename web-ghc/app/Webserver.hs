@@ -38,7 +38,7 @@ import           Servant                                        ((:<|>) ((:<|>))
 import           Servant.Prometheus                             (monitorEndpoints)
 import           Servant.Server                                 (Server)
 import           System.Metrics.Prometheus.Concurrent.RegistryT (runRegistryT)
-import           System.Metrics.Prometheus.Http.Scrape          (serveHttpTextMetricsT)
+import           System.Metrics.Prometheus.Http.Scrape          (serveMetricsT)
 
 type API =
   "version" :> Get '[PlainText, JSON] Text
@@ -79,4 +79,4 @@ run settings = runRegistryT $ do
   appMonitor <- monitorEndpoints (Proxy @API)
   logInfoN "Starting webserver."
   void . liftIO . forkIO . runSettings settings . appMonitor $ app
-  serveHttpTextMetricsT 9091 ["metrics"]
+  serveMetricsT 9091 ["metrics"]

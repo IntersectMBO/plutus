@@ -10,7 +10,7 @@
 , checkMaterialization
 , sources
 , useCabalProject
-, compiler-nix-name ? "ghc883"
+, compiler-nix-name
 }:
 
 let
@@ -51,7 +51,7 @@ let
       "https://github.com/shmish111/servant-purescript.git"."ece5d1dad16a5731ac22040075615803796c7c21" = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
       "https://github.com/input-output-hk/cardano-crypto.git"."2547ad1e80aeabca2899951601079408becbc92c" = "1p2kg2w02q5w1cvqzhfhqmxviy4xrzada3mmb096j2n6hfr20kri";
       "https://github.com/michaelpj/unlit.git"."9ca1112093c5ffd356fc99c7dafa080e686dd748" = "145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff";
-      "https://github.com/raduom/ouroboros-network"."af744374a05d6a5eb76713b399595131e2a24c38" = "1fljr384bkyg0lj46bkgdplp9dzwkb9dz1r6j863niyvm3q50h66";
+      "https://github.com/input-output-hk/ouroboros-network"."75153affa23a0e68e035d7bb19880fe1ae35b1d4" = "0aj6rsqp93k2079bipv2ia7m56h2xwwlcjffr7mr99cz6l9xj96i";
       "https://github.com/input-output-hk/cardano-prelude"."71ea865408f2e03e6d6832359423546699730849" = "02v9bd95vjal7yp96b59dgap2k53c2lrg9vxw6d62cxzw8n635y6";
       "https://github.com/input-output-hk/cardano-base"."5035c9ed95e9d47f050314a7d96b1b2043288f61" = "103z0009sz586f2mvnmwl2hp9n94qy0n72ik521xhq7zmfwyv3m7";
       "https://github.com/raduom/cardano-ledger-specs"."2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3" = "0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447";
@@ -101,7 +101,7 @@ let
 
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
-	    plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
+            plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
             plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
             plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
             plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
@@ -145,6 +145,8 @@ let
             plutus-tx-plugin.package.ghcOptions = "-Werror";
             plutus-doc.package.ghcOptions = "-Werror";
             plutus-use-cases.package.ghcOptions = "-Werror";
+
+            inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
           };
         }
      ];

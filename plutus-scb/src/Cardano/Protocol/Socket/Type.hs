@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -72,9 +73,9 @@ maximumMiniProtocolLimits =
 nodeApplication
   :: RunMiniProtocol appType bytes m a b
   -> RunMiniProtocol appType bytes m a b
-  -> OuroborosApplication appType bytes m a b
+  -> OuroborosApplication appType addr bytes m a b
 nodeApplication chainSync txSubmission =
-    OuroborosApplication [
+    OuroborosApplication (\_ _ -> [
       MiniProtocol {
         miniProtocolNum = MiniProtocolNum 2,
         miniProtocolLimits = maximumMiniProtocolLimits,
@@ -85,7 +86,7 @@ nodeApplication chainSync txSubmission =
         miniProtocolLimits = maximumMiniProtocolLimits,
         miniProtocolRun = txSubmission
       }
-    ]
+    ])
 
 type Offset = Integer
 

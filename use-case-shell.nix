@@ -8,9 +8,9 @@
 #   Reload when prompted to do so by the Nix Environment Selector.
 { sourcesOverride ? {}
 , checkMaterialization ? false
-, useCabalProject ? true
-, compiler-nix-name ? "ghc883"
-, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args)
+, useCabalProject ? false
+, compiler-nix-name ? "ghc8102"
+, packageSet ? import ./default.nix ({ rev = "in-nix-shell"; inherit checkMaterialization useCabalProject compiler-nix-name; } // args)
 }@args:
 with packageSet;
 let
@@ -39,7 +39,7 @@ in haskell.packages.shellFor {
     agdaWithStdlib
 
     # Deployment tools
-    pkgs.terraform_0_11
+    pkgs.terraform_0_12
     pkgs.awscli
     pkgs.aws_shell
 
@@ -62,4 +62,5 @@ in haskell.packages.shellFor {
     pkgs.rPackages.plotly # for generating R plots locally
   ]);
   packages = ps: with ps; [ plutus-use-cases ];
+  additional = ps: with ps; [ plutus-scb ];
 }

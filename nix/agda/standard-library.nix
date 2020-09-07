@@ -4,13 +4,14 @@
 
 mkDerivation rec {
   pname = "standard-library";
-  version = "1.3";
+  version = "1.4";
 
   src = fetchFromGitHub {
     repo = "agda-stdlib";
     owner = "agda";
-    rev = "v${version}";
-    sha256 = "18kl20z3bjfgx5m3nvrdj5776qmpi7jl2p12pqybsls2lf86m0d5";
+    rev = "3922be6a77cb925ac596010d882349aae1e45ff3";
+    # rev = "v${version}";
+    sha256 = "1agnax3s1v3q3z0psd4pbq3pvnhvqi9lpcgm878iaf1ch1aqnqx4";
   };
 
   nativeBuildInputs = [ (ghcWithPackages (self : [ self.filemanip ])) ];

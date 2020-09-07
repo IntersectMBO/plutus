@@ -400,6 +400,7 @@
         "sbv".flags.skiphlinttester = false;
         "either".revision = (((hackage."either")."5.0.1.1").revisions).default;
         "old-locale".revision = (((hackage."old-locale")."1.0.0.7").revisions).default;
+        "sort".revision = (((hackage."sort")."1.0.0.0").revisions).default;
         "wcwidth".revision = (((hackage."wcwidth")."0.0.2").revisions).default;
         "wcwidth".flags.split-base = true;
         "wcwidth".flags.cli = false;
@@ -411,7 +412,6 @@
         "vault".flags.useghc = true;
         "servant-foreign".revision = (((hackage."servant-foreign")."0.15.1").revisions).default;
         "mime-types".revision = (((hackage."mime-types")."0.1.0.9").revisions).default;
-        "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
         "zlib-bindings".revision = (((hackage."zlib-bindings")."0.1.1.5").revisions).default;
         "charset".revision = (((hackage."charset")."0.3.7.1").revisions).default;
         "raw-strings-qq".revision = (((hackage."raw-strings-qq")."1.1").revisions).default;
@@ -628,6 +628,7 @@
         "concurrent-output".revision = (((hackage."concurrent-output")."1.10.12").revisions).default;
         "array".revision = (((hackage."array")."0.5.4.0").revisions).default;
         "ekg".revision = (((hackage."ekg")."0.4.0.15").revisions).default;
+        "loch-th".revision = (((hackage."loch-th")."0.2.2").revisions).default;
         "path-pieces".revision = (((hackage."path-pieces")."0.2.1").revisions).default;
         "conduit-extra".revision = (((hackage."conduit-extra")."1.3.5").revisions).default;
         "erf".revision = (((hackage."erf")."2.0.0.0").revisions).default;
@@ -680,22 +681,23 @@
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
         shelley-spec-ledger = ./.plan.nix/shelley-spec-ledger.nix;
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
-        language-plutus-core = ./.plan.nix/language-plutus-core.nix;
         goblins = ./.plan.nix/goblins.nix;
         marlowe-actus = ./.plan.nix/marlowe-actus.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
+        plutus-core = ./.plan.nix/plutus-core.nix;
         iots-export = ./.plan.nix/iots-export.nix;
         byron-spec-chain = ./.plan.nix/byron-spec-chain.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
+        lobemo-backend-ekg = ./.plan.nix/lobemo-backend-ekg.nix;
         tracer-transformers = ./.plan.nix/tracer-transformers.nix;
         plutus-doc = ./.plan.nix/plutus-doc.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
         servant-purescript = ./.plan.nix/servant-purescript.nix;
-        plc-agda = ./.plan.nix/plc-agda.nix;
+        web-ghc = ./.plan.nix/web-ghc.nix;
         plutus-scb = ./.plan.nix/plutus-scb.nix;
         typed-protocols = ./.plan.nix/typed-protocols.nix;
         io-sim = ./.plan.nix/io-sim.nix;
@@ -743,12 +745,12 @@
             flags = { "development" = lib.mkOverride 900 true; };
             };
           "typed-protocols-examples" = { flags = {}; };
-          "language-plutus-core" = { flags = {}; };
           "goblins" = { flags = { "development" = lib.mkOverride 900 true; }; };
           "marlowe-actus" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
+          "plutus-core" = { flags = {}; };
           "iots-export" = { flags = {}; };
           "byron-spec-chain" = {
             flags = { "development" = lib.mkOverride 900 true; };
@@ -760,6 +762,7 @@
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "lobemo-backend-ekg" = { flags = {}; };
           "tracer-transformers" = { flags = {}; };
           "plutus-doc" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
@@ -774,7 +777,9 @@
             flags = { "development" = lib.mkOverride 900 true; };
             };
           "servant-purescript" = { flags = {}; };
-          "plc-agda" = { flags = {}; };
+          "web-ghc" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
+            };
           "plutus-scb" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
