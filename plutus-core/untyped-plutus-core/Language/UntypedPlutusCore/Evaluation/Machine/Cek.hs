@@ -377,26 +377,20 @@ throwingDischarged
     => AReview e t -> t -> CekValue uni -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
--- | The returning phase of the CEK machine.
--- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
--- from the context and uses it to decide how to proceed with the current value v.
---  'FrameForce': call forceEvaluate.  If v is a delay then compute the body of v;
---     if v is a builtin application then check that it's expecting a type argument,
---     either apply the builtin to its arguments and return the result,
---     or extend the value with @force@ and call returnCek;
---     if v is anything else, fail.
---  'FrameApplyArg': call applyEvaluate. If v is a lambda then discard the type
---     and compute the body of v; if v is a builtin application then check that
---     it's expecting a type argument, either apply the builtin to its arguments
---     and return the result, or extend the value with the type and call returnCek;
---     if v is anything else, fail.
---  'FrameApplyFun': call applyEvaluate to attempt to apply the function
---     stored in the frame to an argument.  If the function is a lambda 'lam x body'
---     then extend the environment with a binding of v to x and call computeCek on the body.
---     If the is a builtin application then check that it's expecting a term argument,
---     and if it's the final argument then apply the builtin to its arguments
---     return the result, or extend the value with the new argument and call
---     returnCek.  If v is anything else, fail.
+{- | The returning phase of the CEK machine.
+Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
+from the context and uses it to decide how to proceed with the current value v.
+
+  * 'FrameForce': call forceEvaluate
+  * 'FrameApplyArg': call 'computeCek' over the context extended with 'FrameApplyFun'
+  * 'FrameApplyFun': call applyEvaluate to attempt to apply the function
+      stored in the frame to an argument.  If the function is a lambda 'lam x ty body'
+      then extend the environment with a binding of v to x and call computeCek on the body.
+      If the is a builtin application then check that it's expecting a term argument,
+      and if it's the final argument then apply the builtin to its arguments
+      return the result, or extend the value with the new argument and call
+      returnCek.  If v is anything else, fail.
+-}
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> CekValue uni -> CekM uni (Term Name uni ())
@@ -427,9 +421,11 @@ instead of lists.
 -}
 
 -- | @force@ a term and proceed.
--- In case of 'VDelay' just ignore it; for 'VBuiltin', increase
--- the the number of @force@s, decrement the argument count,
--- and proceed; otherwise, it's an error.
+-- If v is a delay then compute the body of v;
+-- if v is a builtin application then check that it's expecting a type argument,
+-- either apply the builtin to its arguments and return the result,
+-- or extend the value with @force@ and call returnCek;
+-- if v is anything else, fail.
 forceEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> CekValue uni -> CekM uni (Term Name uni ())
@@ -451,13 +447,12 @@ forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
 forceEvaluate _ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
-
 -- | Apply a function to an argument and proceed.
--- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
--- If the function is a 'Builtin', then check whether we've got the right number of arguments.
--- If we do, then ask the constant application machinery to apply it, and proceed with
--- the result (or throw an error if something goes wrong); if we don't, then add the new
--- argument to the VBuiltin and call returnCek to look for more arguments.
+-- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
+-- to x@ and call 'computeCek' on the body.
+-- If the function is a builtin application then check that it's expecting a term argument, and if
+-- it's the final argument then apply the builtin to its arguments, return the result, or extend
+-- the value with the new argument and call 'returnCek'. If v is anything else, fail.
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni
