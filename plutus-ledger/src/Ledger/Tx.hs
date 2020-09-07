@@ -297,7 +297,7 @@ instance Pretty TxIn where
                 in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
 
 -- | The 'TxOutRef' spent by a transaction input.
-inRef :: Lens TxIn TxIn TxOutRef TxOutRef
+inRef :: Lens' TxIn TxOutRef
 inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
@@ -370,7 +370,7 @@ txOutPubKey TxOut{txOutAddress = a} = case a of
     _                 -> Nothing
 
 -- | The address of a transaction output.
-outAddress :: Lens TxOut TxOut Address Address
+outAddress :: Lens' TxOut Address
 outAddress = lens txOutAddress s where
     s tx a = tx { txOutAddress = a }
 
