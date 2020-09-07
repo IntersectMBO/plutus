@@ -2,6 +2,7 @@
   pkgs = hackage:
     {
       packages = {
+        "optional-args".revision = (((hackage."optional-args")."1.0.2").revisions).default;
         "criterion-measurement".revision = (((hackage."criterion-measurement")."0.1.2.0").revisions).default;
         "criterion-measurement".flags.fast = false;
         "optics-core".revision = (((hackage."optics-core")."0.3.0.1").revisions).default;
@@ -114,6 +115,7 @@
         "network-info".revision = (((hackage."network-info")."0.2.0.10").revisions).default;
         "asn1-parse".revision = (((hackage."asn1-parse")."0.9.5").revisions).default;
         "regex-base".revision = (((hackage."regex-base")."0.94.0.0").revisions).default;
+        "foldl".revision = (((hackage."foldl")."1.4.8").revisions).default;
         "moo".revision = (((hackage."moo")."1.2").revisions).default;
         "zlib".revision = (((hackage."zlib")."0.6.2.2").revisions).default;
         "zlib".flags.non-blocking-ffi = false;
@@ -152,6 +154,7 @@
         "clock".flags.llvm = false;
         "double-conversion".revision = (((hackage."double-conversion")."2.0.2.0").revisions).default;
         "double-conversion".flags.developer = false;
+        "system-fileio".revision = (((hackage."system-fileio")."0.3.16.4").revisions).default;
         "safe-exceptions".revision = (((hackage."safe-exceptions")."0.1.7.1").revisions).default;
         "dependent-map".revision = (((hackage."dependent-map")."0.4.0.0").revisions).default;
         "adjunctions".revision = (((hackage."adjunctions")."4.4").revisions).default;
@@ -227,6 +230,7 @@
         "conduit".revision = (((hackage."conduit")."1.3.2").revisions).default;
         "x509-store".revision = (((hackage."x509-store")."1.6.7").revisions).default;
         "constraints".revision = (((hackage."constraints")."0.12").revisions).default;
+        "turtle".revision = (((hackage."turtle")."1.5.21").revisions).default;
         "semigroups".revision = (((hackage."semigroups")."0.19.1").revisions).default;
         "semigroups".flags.bytestring = true;
         "semigroups".flags.unordered-containers = true;
@@ -347,6 +351,7 @@
         "integer-logarithms".revision = (((hackage."integer-logarithms")."1.0.3").revisions).default;
         "integer-logarithms".flags.check-bounds = false;
         "integer-logarithms".flags.integer-gmp = true;
+        "base-prelude".revision = (((hackage."base-prelude")."1.4").revisions).default;
         "semialign".revision = (((hackage."semialign")."1.1.0.1").revisions).default;
         "semialign".flags.semigroupoids = true;
         "reflection".revision = (((hackage."reflection")."2.1.6").revisions).default;
@@ -412,6 +417,7 @@
         "vault".flags.useghc = true;
         "servant-foreign".revision = (((hackage."servant-foreign")."0.15.1").revisions).default;
         "mime-types".revision = (((hackage."mime-types")."0.1.0.9").revisions).default;
+        "ieee754".revision = (((hackage."ieee754")."0.8.0").revisions).default;
         "zlib-bindings".revision = (((hackage."zlib-bindings")."0.1.1.5").revisions).default;
         "charset".revision = (((hackage."charset")."0.3.7.1").revisions).default;
         "raw-strings-qq".revision = (((hackage."raw-strings-qq")."1.1").revisions).default;
@@ -442,6 +448,7 @@
         "pointed".flags.tagged = true;
         "pointed".flags.containers = true;
         "pointed".flags.transformers = true;
+        "vector-builder".revision = (((hackage."vector-builder")."0.3.8").revisions).default;
         "optics-extra".revision = (((hackage."optics-extra")."0.3").revisions).default;
         "freer-simple".revision = (((hackage."freer-simple")."1.2.1.1").revisions).default;
         "parser-combinators".revision = (((hackage."parser-combinators")."1.2.1").revisions).default;
@@ -482,6 +489,7 @@
         "hspec".revision = (((hackage."hspec")."2.7.2").revisions).default;
         "time".revision = (((hackage."time")."1.9.3").revisions).default;
         "data-default-class".revision = (((hackage."data-default-class")."0.1.2.0").revisions).default;
+        "managed".revision = (((hackage."managed")."1.0.7").revisions).default;
         "terminfo".revision = (((hackage."terminfo")."0.4.1.4").revisions).default;
         "base16-bytestring".revision = (((hackage."base16-bytestring")."0.1.1.7").revisions).default;
         "vector-algorithms".revision = (((hackage."vector-algorithms")."0.8.0.3").revisions).default;
@@ -693,6 +701,7 @@
         lobemo-backend-ekg = ./.plan.nix/lobemo-backend-ekg.nix;
         tracer-transformers = ./.plan.nix/tracer-transformers.nix;
         plutus-doc = ./.plan.nix/plutus-doc.nix;
+        plutus-metatheory = ./.plan.nix/plutus-metatheory.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
@@ -767,6 +776,7 @@
           "plutus-doc" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
+          "plutus-metatheory" = { flags = {}; };
           "cardano-binary" = {
             flags = { "development" = lib.mkOverride 900 true; };
             };
