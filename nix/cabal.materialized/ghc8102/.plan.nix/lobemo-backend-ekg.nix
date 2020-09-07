@@ -34,12 +34,12 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."async" or (errorHandler.buildDepError "async"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."ekg" or (errorHandler.buildDepError "ekg"))
           (hsPkgs."ekg-core" or (errorHandler.buildDepError "ekg-core"))
+          (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
           (hsPkgs."snap-core" or (errorHandler.buildDepError "snap-core"))
           (hsPkgs."snap-server" or (errorHandler.buildDepError "snap-server"))

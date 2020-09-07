@@ -14,7 +14,7 @@
       identifier = { name = "iohk-monitoring"; version = "0.1.10.1"; };
       license = "Apache-2.0";
       copyright = "2018 IOHK";
-      maintainer = "";
+      maintainer = "operations@iohk.io";
       author = "Alexander Diemand, Andreas Triantafyllos";
       homepage = "";
       url = "";
@@ -49,7 +49,6 @@
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."katip" or (errorHandler.buildDepError "katip"))
-          (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."network" or (errorHandler.buildDepError "network"))
           (hsPkgs."safe" or (errorHandler.buildDepError "safe"))
@@ -64,19 +63,21 @@
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+          (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           (hsPkgs."libyaml" or (errorHandler.buildDepError "libyaml"))
           ] ++ (if system.isWindows
           then [ (hsPkgs."Win32" or (errorHandler.buildDepError "Win32")) ]
           else [ (hsPkgs."unix" or (errorHandler.buildDepError "unix")) ]);
         buildable = true;
-        modules = ([
+        modules = ((([
           "Paths_iohk_monitoring"
           "Cardano/BM/Configuration"
           "Cardano/BM/Configuration/Model"
           "Cardano/BM/Configuration/Static"
           "Cardano/BM/Counters"
           "Cardano/BM/Counters/Common"
+          "Cardano/BM/Counters/Dummy"
           "Cardano/BM/Data/Aggregated"
           "Cardano/BM/Data/AggregatedKind"
           "Cardano/BM/Data/Backend"
@@ -104,13 +105,15 @@
           "Cardano/BM/Setup"
           "Cardano/BM/Trace"
           "Cardano/BM/Tracer"
+          "Cardano/BM/IOManager"
+          "Cardano/BM/Snocket"
           ] ++ (pkgs.lib).optionals (!flags.disable-observables) [
           "Cardano/BM/Observer/Monadic"
           "Cardano/BM/Observer/STM"
-          ]) ++ (if system.isLinux
-          then [ "Cardano/BM/Counters/Linux" ]
-          else [ "Cardano/BM/Counters/Dummy" ]);
+          ]) ++ (pkgs.lib).optional (system.isLinux) "Cardano/BM/Counters/Linux") ++ (pkgs.lib).optional (system.isWindows) "Cardano/BM/Counters/Windows") ++ (pkgs.lib).optional (system.isOsx) "Cardano/BM/Counters/Darwin";
+        cSources = (pkgs.lib).optional (system.isWindows) "src/Cardano/BM/Counters/os-support-win.c" ++ (pkgs.lib).optional (system.isOsx) "src/Cardano/BM/Counters/os-support-darwin.c";
         hsSourceDirs = [ "src" ];
+        includeDirs = (pkgs.lib).optional (system.isWindows) "src/Cardano/BM/Counters/" ++ (pkgs.lib).optional (system.isOsx) "src/Cardano/BM/Counters/";
         };
       tests = {
         "tests" = {
