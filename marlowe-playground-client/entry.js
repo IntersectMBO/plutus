@@ -10,4 +10,6 @@ global.EmacsExtension = EmacsExtension;
 import { initVimMode } from 'monaco-vim';
 global.initVimMode = initVimMode;
 
+BigInt.prototype.toJSON = function() { return this.toString()  }
+
 import './src/Main.purs';

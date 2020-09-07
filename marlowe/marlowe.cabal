@@ -45,6 +45,7 @@ library
     text,
     vector,
     sbv >= 8.4,
+    scientific -any,
     wl-pprint -any,
     freer-simple -any
   default-language: Haskell2010
