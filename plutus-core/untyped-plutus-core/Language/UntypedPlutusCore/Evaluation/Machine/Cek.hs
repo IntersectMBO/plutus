@@ -380,7 +380,7 @@ throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 -- | The returning phase of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
 -- from the context and uses it to decide how to proceed with the current value v.
---  'FrameForce': call instantiateEvaluate.  If v is a lambda then compute the body of v;
+--  'FrameForce': call forceEvaluate.  If v is a lambda then compute the body of v;
 --     if v is a builtin application then check that it's expecting a type argument,
 --     either apply the builtin to its arguments and return the result,
 --     or extend the value with @force@ and call returnCek;
@@ -404,7 +404,7 @@ returnCek
 -- . ◅ V           ↦  [] V
 returnCek [] val = pure $ void $ dischargeCekValue val
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-returnCek (FrameForce : ctx) fun = instantiateEvaluate ctx fun
+returnCek (FrameForce : ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
     computeCek (FrameApplyFun fun : ctx) argVarEnv arg
@@ -430,17 +430,17 @@ instead of lists.
 -- In case of 'VDelay' just ignore the type; for 'VBuiltin', increase
 -- the the number of @force@s, decrement the argument count,
 -- and proceed; otherwise, it's an error.
-instantiateEvaluate
+forceEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> CekValue uni -> CekM uni (Term Name uni ())
-instantiateEvaluate ctx (VDelay _ body env) = computeCek ctx env body
-instantiateEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
+forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
+forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
     case arity of
       []             ->
           throwingDischarged _MachineError EmptyBuiltinArityMachineError val
       TermArg:_      ->
       {- This should be impossible if we don't have zero-arity builtins:
-         we will have found this case in an earlier call to instantiateEvaluate
+         we will have found this case in an earlier call to forceEvaluate
          or applyEvaluate and called applyBuiltinName. -}
           throwingDischarged _MachineError UnexpectedBuiltinInstantiationMachineError val'
                         where val' = VBuiltin ex bn arity0 arity (forces + 1) args argEnv -- reconstruct the bad application
@@ -448,7 +448,7 @@ instantiateEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
           case arity' of
             [] -> applyBuiltinName ctx bn args  -- Final argument is a type argument
             _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' (forces + 1) args argEnv -- More arguments expected
-instantiateEvaluate _ val =
+forceEvaluate _ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
 
@@ -469,7 +469,7 @@ applyEvaluate ctx (VLamAbs _ name body env) arg =
 applyEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) arg = do
     case arity of
       []        -> throwingDischarged _MachineError EmptyBuiltinArityMachineError val
-                -- Should be impossible: see instantiateEvaluate.
+                -- Should be impossible: see forceEvaluate.
       TypeArg:_ -> throwingDischarged _MachineError UnexpectedBuiltinTermArgumentMachineError val'
                    where val' = VBuiltin ex bn arity0 arity forces (args++[arg]) argEnv -- reconstruct the bad application
       TermArg:arity' -> do
