@@ -27,6 +27,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
@@ -73,6 +74,12 @@ tests genOpts@GenOptions{..} =
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_normalizeConvertCommuteTerms
+{- this fails as expected...
+  , testCaseGen "runCEK"
+      genOpts
+      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_Cek
+-}
   ]
 
 
@@ -101,12 +108,27 @@ prop_normalizeConvertCommuteTerms (k, tyG) tmG = do
 
   -- Check if the converted term, when normalized, still has the same type:
 
-  tmV <- withExceptT EvalP $ liftEither $ evaluateCk mempty tm
+  tmV <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
   withExceptT TypeError $ checkType defConfig () tmV (Normalized ty)
 
   -- Check if normalization for generated terms is sound:
   -- james: I think this should be done in plutus-metatheory
 
+{-
+prop_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_Cek (k, tyG) tmG = do
+
+  -- Check if the type checker for generated terms is sound:
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  withExceptT TypeError $ checkKind defConfig () ty k
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
+
+  -- Check if the converted term, when normalized, still has the same type:
+
+  tmV <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
+  withExceptT (\ (_ :: TypeError DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV)) (checkType defConfig () tmV (Normalized ty))
+-}
 -- |Property: the following diagram commutes for well-kinded types...
 --
 -- @
@@ -174,7 +196,8 @@ data TestFail
   | TypeError (TypeError DefaultUni ())
   | AgdaErrorP () -- FIXME
   | FVErrorP FreeVariableError -- FIXME
-  | EvalP (CkEvaluationException DefaultUni)
+  | CkP (CkEvaluationException DefaultUni)
+  | CekP (CekEvaluationException DefaultUni)
   | Ctrex Ctrex
 
 data Ctrex
@@ -209,6 +232,12 @@ data Ctrex
   | CtrexTypeCheckFail
     ClosedTypeG
     ClosedTermG
+
+  | CtrexTypePreservationFail
+    ClosedTypeG
+    ClosedTermG
+    (Term TyName Name DefaultUni ())
+    (Term TyName Name DefaultUni ())
   | CtrexTermEvaluationFail
     ClosedTypeG
     ClosedTermG
@@ -224,7 +253,8 @@ instance Show TestFail where
   show (Ctrex e)      = show e
   show (AgdaErrorP e) = show e -- FIXME
   show (FVErrorP e)   = show e -- FIXME
-  show (EvalP e)      = show e -- FIXME
+  show (CkP e)        = show e -- FIXME
+  show (CekP e)       = show e -- FIXME
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
@@ -284,6 +314,14 @@ instance Show Ctrex where
             [ "Counterexample found: %s :: %s"
             , "- evaluator1 gives %s"
             , "- evaluator2 gives %s"
+            ]
+  show (CtrexTypePreservationFail tyG tmG tm1 tm2) =
+    printf tpl (show tmG) (show tyG) (show (pretty tm1)) (show (pretty tm2))
+    where
+      tpl = unlines
+            [ "Counterexample found: %s :: %s"
+            , "before evaluation: %s"
+            , "after evaluation:  %s"
             ]
 
 -- |Throw a counter-example.

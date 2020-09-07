@@ -7,6 +7,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Spec
 import           Language.PlutusCore.Generators.NEAT.Type
+import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -18,7 +19,6 @@ import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBr
 
 import           Language.PlutusCore.DeBruijn
 import           Raw                                       hiding (TypeError, tynames)
-
 
 main :: IO ()
 main = defaultMain $ allTests defaultGenOptions
@@ -187,7 +187,7 @@ prop_runTCK (k , tyG) tmG = do
 prop_run_plcCK_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_plcCK_vs_CK (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmPlcCK <- withExceptT EvalP $ liftEither $ evaluateCk mempty tm
+  tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
   tmCK <- withExceptT Ctrex $
     case runCKAgda (AlexPn 0 0 0 <$ tmDB) of
@@ -238,3 +238,23 @@ prop_run_TCK_vs_TCEKV (k , tyG) tmG = do
   tmTCEKVN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCEKV
   unless (tmTCKN == tmTCEKVN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmTCKN) (() <$tmTCEKVN))
 
+type TERM = Term TyDeBruijn DeBruijn DefaultUni AlexPosn
+
+prop_run_vs :: (TERM -> Maybe TERM) -- typed evaluator 1
+            -> (TERM -> Maybe TERM) -- typed evaluator 2
+            -> (Kind (), ClosedTypeG)
+            -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_run_vs ev1 ev2 (k , tyG) tmG = do
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  tmEv1 <- withExceptT Ctrex $
+    case ev1 (AlexPn 0 0 0 <$ tmDB) of
+      Just tmEv1 -> return tmEv1
+      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmEv2 <- withExceptT Ctrex $
+    case ev2 (AlexPn 0 0 0 <$ tmDB) of
+      Just tmEv1 -> return tmEv1
+      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmEv1N  <- withExceptT FVErrorP $ unDeBruijnTerm tmEv1
+  tmEv2N <- withExceptT FVErrorP $ unDeBruijnTerm tmEv1
+  unless (tmEv1N == tmEv2N) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmEv1N) (() <$tmEv2N))
