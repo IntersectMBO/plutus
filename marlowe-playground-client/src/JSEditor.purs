@@ -26,7 +26,7 @@ import Network.RemoteData (isLoading)
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState, HAction(..), _activeJSDemo, _compilationResult, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
+import Types (ChildSlots, FrontendState, HAction(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
   forall m.
@@ -98,7 +98,7 @@ bottomPanel state =
                 , div
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "js-buttons" ])
                     ]
-                    [ button [ onClick $ const $ Just CompileJSProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+                    [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ] -- ToDo: Implement "is compiling" feedback
                     , sendResultButton state "Send To Simulator" SendResultJSToSimulator
                     -- , sendResultButton state "Send To Blockly" SendResultToBlockly
                     ]

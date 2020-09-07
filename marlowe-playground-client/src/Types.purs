@@ -18,6 +18,7 @@ import Halogen.ActusBlockly as AB
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
 import Halogen.Monaco as Monaco
+import Halogen.Monaco (KeyBindings)
 import HaskellEditor.Types as HE
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
@@ -152,9 +153,9 @@ _actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
 _jsEditorKeybindings :: Lens' FrontendState KeyBindings
 _jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
 
-
 _activeJSDemo :: Lens' FrontendState String
 _activeJSDemo = _Newtype <<< prop (SProxy :: SProxy "activeJSDemo")
+
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
 

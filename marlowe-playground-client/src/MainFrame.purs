@@ -9,6 +9,7 @@ import Data.Foldable (for_)
 import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
+import Data.Map as Map
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -26,6 +27,7 @@ import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, 
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
 import Halogen.Monaco as Monaco
+import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Query (HalogenM)
 import Halogen.Query.HalogenM (imapState, mapAction)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -38,6 +40,7 @@ import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Interpreter as JSInterpreter
+import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
@@ -58,10 +61,10 @@ import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
-import StaticData (bufferLocalStorageKey, jsBufferLocalStorageKey)
+import StaticData (jsBufferLocalStorageKey)
+import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _activeJSDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -131,6 +134,8 @@ handleSubRoute Router.Simulation = selectView Simulation
 
 handleSubRoute Router.HaskellEditor = selectView HaskellEditor
 
+handleSubRoute Router.JSEditor = selectView JSEditor
+
 handleSubRoute Router.Blockly = selectView BlocklyEditor
 
 handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
@@ -192,32 +197,6 @@ handleAction s (HaskellAction action) = do
               <<< _result
               <<< _RunResult
           )
-handleAction _ (JSHandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey text
-  assign _activeJSDemo ""
-
-handleAction _ (JSSelectEditorKeyBindings bindings) = do
-  assign _jsEditorKeybindings bindings
-  void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
-
-handleAction _ (ChangeView JSEditor) = selectJSView
-
-handleAction _ CompileJSProgram = do
-  mContents <- query _jsEditorSlot unit (Monaco.GetText identity)
-  case mContents of
-    Nothing -> pure unit
-    Just contents -> do
-      let
-        res = JSInterpreter.eval contents
-      assign _jsCompilationResult (Just res)
-
-handleAction _ (LoadJSScript key) = do
-  case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
-    Just contents -> do
-      void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
-      assign _activeJSDemo key
-
       let
         contract = case mContract of
           Just unformatted -> case parseContract unformatted of
@@ -240,21 +219,47 @@ handleAction s (SimulationAction action) = do
       mSource <- query _marloweEditorSlot unit (Monaco.GetText identity)
       for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
       selectView BlocklyEditor
-handleAction _ SendResultJSToSimulator = do
-  mContract <- use _jsCompilationResult
-  case mContract of
-    Nothing -> pure unit
-    Just (Left err) -> pure unit
-    Just (Right (JSI.InterpreterResult { result: contract })) -> do
-      void $ query _simulationSlot unit (ST.SetEditorText (show $ pretty contract) unit)
-      void $ query _simulationSlot unit (ST.ResetContract unit)
-      selectSimulationView
-
     _ -> pure unit
 
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
+
+handleAction _ (JSHandleEditorMessage (Monaco.TextChanged text)) = do
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey text
+  assign _activeJSDemo ""
+
+handleAction _ (JSSelectEditorKeyBindings bindings) = do
+  assign _jsEditorKeybindings bindings
+  void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
+
+handleAction _ CompileJSProgram = do
+  mContents <- query _jsEditorSlot unit (Monaco.GetText identity)
+  case mContents of
+    Nothing -> pure unit
+    Just contents -> do
+      let
+        res = JSInterpreter.eval contents
+      assign _jsCompilationResult (Just res)
+
+handleAction _ (LoadJSScript key) = do
+  case Map.lookup key StaticData.demoFiles of
+    Nothing -> pure unit
+    Just contents -> do
+      void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+      assign _activeJSDemo key
+
+handleAction s SendResultJSToSimulator = do
+  mContract <- use _jsCompilationResult
+  case mContract of
+    Nothing -> pure unit
+    Just (Left err) -> pure unit
+    Just (Right (JSI.InterpreterResult { result: contract })) -> do
+      void $ toSimulation
+        $ do
+            Simulation.handleAction s (ST.SetEditorText (show $ pretty contract))
+            Simulation.handleAction s ST.ResetContract
+      selectView Simulation
 
 handleAction _ (ChangeView view) = selectView view
 
@@ -296,13 +301,6 @@ showErrorDescription :: ErrorDescription -> String
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = "BadResponse"
 
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectJSView = do
-  assign _view (JSEditor)
-  void $ query _jsEditorSlot unit (Monaco.Resize unit)
-  void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-
 
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 
@@ -457,13 +455,13 @@ render settings state =
             , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]
                 [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
             -- Haskell Editor bottom panel
-            , bimap (map HaskellAction) HaskellAction bottomPanel
+            , bottomPanel
             ]
         ]
     ]
   where
   bottomPanel = case state ^. _view of
-    HaskellEditor -> HaskellEditor.bottomPanel (state ^. _haskellState)
+    HaskellEditor -> bimap (map HaskellAction) HaskellAction (HaskellEditor.bottomPanel (state ^. _haskellState))
     JSEditor -> JSEditor.bottomPanel state
     _ -> text mempty
 
