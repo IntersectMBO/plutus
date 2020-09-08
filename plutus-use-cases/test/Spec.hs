@@ -11,6 +11,7 @@ import qualified Spec.GameStateMachine
 import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
 import qualified Spec.PingPong
+import qualified Spec.Prism
 import qualified Spec.PubKey
 import qualified Spec.Rollup
 import qualified Spec.RPC
@@ -45,5 +46,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Rollup.tests,
     Spec.TokenAccount.tests,
     Spec.PingPong.tests,
-    Spec.RPC.tests
+    Spec.RPC.tests,
+    Spec.Prism.tests
     ]

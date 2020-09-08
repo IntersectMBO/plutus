@@ -78,7 +78,8 @@ data ScriptLookups a =
         -- ^ The script instance with the typed validator hash & actual compiled program
         , slOwnPubkey      :: Maybe PubKeyHash
         -- ^ The contract's public key address, used for depositing tokens etc.
-        }
+        } deriving stock (Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 instance Semigroup (ScriptLookups a) where
     l <> r =
