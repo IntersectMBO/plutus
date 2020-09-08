@@ -42,7 +42,6 @@ import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
 import qualified Ouroboros.Network.Point                             as OP (Block (..))
 import           Ouroboros.Network.Protocol.Handshake.Codec
-import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Snocket

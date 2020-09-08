@@ -16,6 +16,7 @@ import           Data.Aeson                                         (FromJSON, T
 import qualified Data.ByteArray                                     as BA
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
+import           Data.Typeable
 
 import           Cardano.Prelude                                    (NoUnexpectedThunks)
 import           GHC.Generics
@@ -24,6 +25,7 @@ import           Codec.Serialise                                    (Deserialise
 import qualified Codec.Serialise                                    as CBOR
 import           Network.TypedProtocol.Codec
 import           Ouroboros.Network.Block                            (HeaderHash, StandardHash)
+import           Ouroboros.Network.Util.ShowProxy
 import           Ouroboros.Network.Mux
 import qualified Ouroboros.Network.Protocol.ChainSync.Codec         as ChainSync
 import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
@@ -56,6 +58,12 @@ blockId = BlockId
 type instance HeaderHash Tx = TxId
 type instance HeaderHash Block = BlockId
 deriving instance StandardHash Tx
+
+-- TODO: Is this the best place for these instances?
+instance ShowProxy Char
+instance ShowProxy Tx where
+instance ShowProxy a => ShowProxy [a] where
+  showProxy _ = "[" ++ showProxy (Proxy @a) ++ "]"
 
 deriving instance StandardHash Block
 deriving newtype instance NoUnexpectedThunks TxId

@@ -72,6 +72,7 @@ import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, 
 import qualified Data.ByteArray            as BA
 import qualified Data.ByteString.Lazy      as BSL
 import           Data.Map                  (Map)
+import           Data.Typeable
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
@@ -134,7 +135,7 @@ data Tx = Tx {
     -- ^ Signatures of this transaction.
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
-    } deriving stock (Show, Eq, Generic)
+    } deriving stock (Show, Eq, Generic, Typeable)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where

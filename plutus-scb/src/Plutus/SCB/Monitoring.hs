@@ -29,6 +29,7 @@ import           Cardano.BM.Data.Output
 import           Cardano.BM.Data.Severity
 import           Cardano.BM.Data.SubTrace
 import           Cardano.BM.Data.Trace
+import           Cardano.BM.Data.Configuration  (Endpoint(..))
 import           Cardano.BM.Observer.Monadic
 import           Cardano.BM.Trace
 import           Control.Monad                  (void)
@@ -61,11 +62,13 @@ defaultConfig = do
                         , scFormat = ScText
                         , scPrivacy = ScPublic
                         , scRotation = Nothing
+                        , scMinSev = minBound
+                        , scMaxSev = maxBound
                         }]
   let observables = (Just $ ObservableTraceSelf [MonotonicClock, MemoryStats])
   CM.setSubTrace c "processAllContractOutboxes" observables
   CM.setDefaultScribes c ["StdoutSK::stdout"]
-  CM.setEKGport c 12790
+  CM.setEKGBindAddr c $ Just (Endpoint ("localhost", 12790))
   pure c
 
 -- | Load a 'CM.Configuration' from a YAML file.
