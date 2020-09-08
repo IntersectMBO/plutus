@@ -31,6 +31,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
@@ -70,17 +71,20 @@ tests genOpts@GenOptions{..} =
       genOpts
       (Type ())
       prop_normalTypesCannotReduce
-  , testCaseGen "normalization commutes with conversion from generated terms"
+  , testCaseGen "type preservation - CK"
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_normalizeConvertCommuteTerms
-{- this fails as expected...
-  , testCaseGen "runCEK"
+      prop_typePreservationCk
+  -- this fails, but we run it anyway and catch the error 
+  , testCaseGen "type preservation - CEK"
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_Cek
--}
-  ]
+      prop_typePreservationCek
+  , testCaseGen "CEK and CK produce the same output"
+      genOpts
+--      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      (Type (), TyBuiltinG TyIntegerG)
+      prop_agree_Ck_Cek  ]
 
 
 -- |Property: the following diagram commutes for well-typed terms...
@@ -97,8 +101,8 @@ tests genOpts@GenOptions{..} =
 --                  convertClosedTerm
 -- @
 --
-prop_normalizeConvertCommuteTerms :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_normalizeConvertCommuteTerms (k, tyG) tmG = do
+prop_typePreservationCk :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typePreservationCk (k, tyG) tmG = do
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
@@ -106,17 +110,14 @@ prop_normalizeConvertCommuteTerms (k, tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 
-  -- Check if the converted term, when normalized, still has the same type:
+  -- Check if the converted term, when evaluated, still has the same type:
 
   tmV <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
   withExceptT TypeError $ checkType defConfig () tmV (Normalized ty)
 
-  -- Check if normalization for generated terms is sound:
-  -- james: I think this should be done in plutus-metatheory
 
-{-
-prop_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_Cek (k, tyG) tmG = do
+prop_typePreservationCek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typePreservationCek (k, tyG) tmG = do
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
@@ -127,8 +128,26 @@ prop_Cek (k, tyG) tmG = do
   -- Check if the converted term, when normalized, still has the same type:
 
   tmV <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
-  withExceptT (\ (_ :: TypeError DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV)) (checkType defConfig () tmV (Normalized ty))
--}
+  withExceptT
+    (\ (_ :: TypeError DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV))
+    (checkType defConfig () tmV (Normalized ty))
+    `catchError` \_ -> return () -- expecting this to fail at the moment
+
+prop_agree_Ck_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_agree_Ck_Cek (k, tyG) tmG = do
+
+  -- Check if the type checker for generated terms is sound:
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  withExceptT TypeError $ checkKind defConfig () ty k
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
+
+  -- Check if the converted term, when normalized, still has the same type:
+
+  tmCek <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
+  tmCk <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
+  unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmCek tmCk)
+
 -- |Property: the following diagram commutes for well-kinded types...
 --
 -- @
