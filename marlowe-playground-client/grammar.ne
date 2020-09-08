@@ -87,7 +87,7 @@ number
     | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value) %}
 
 timeout
-   -> %number {% ([n]) => opts.mkTimeout(n.value)({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.value.toString().length}) %}
+   -> %number {% ([n]) => opts.mkTimeout(n.value)({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
     | lparen %number rparen {% ([start,n,end]) => opts.mkTimeout(n.value)({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 string
@@ -119,7 +119,7 @@ bounds
 
 bound
    -> hole {% ([hole]) => hole %}
-    | "Bound" someWS number someWS number {% ([{line, col},,bottom,,top]) => opts.mkTerm(opts.mkBound(bottom)(top))({startLineNumber: line, startColumn: col, endLineNumber: top.line, endColumn: top.col + top.value.toString().length}) %}
+    | "Bound" someWS number someWS number {% ([{line, col},,bottom,,top]) => opts.mkTerm(opts.mkBound(bottom)(top))({startLineNumber: line, startColumn: col, endLineNumber: top.line, endColumn: top.col + top.toString(10).length}) %}
     | lparen bound rparen {% ([,bound,]) => bound %}
 
 action
@@ -179,7 +179,7 @@ observation
 
 rational
     -> hole {% ([hole]) => hole %}
-    | number manyWS %ratio manyWS number {%([num,,,,denom]) => opts.mkTerm(opts.mkRational(num)(denom))({startLineNumber: num.line, startColumn: num.col, endLineNumber: denom.line, endColumn: denom.col + denom.value.toString().length}) %}
+    | number manyWS %ratio manyWS number {%([num,,,,denom]) => opts.mkTerm(opts.mkRational(num)(denom))({startLineNumber: num.line, startColumn: num.col, endLineNumber: denom.line, endColumn: denom.col + denom.toString(10).length}) %}
 
 value
    -> hole {% ([hole]) => hole %}

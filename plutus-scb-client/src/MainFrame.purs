@@ -62,7 +62,7 @@ import WebSocket.Support as WS
 import Wallet.Types (EndpointDescription)
 
 initialValue :: Value
-initialValue = adaToValue $ Lovelace { getLovelace: 0 }
+initialValue = adaToValue $ Lovelace { getLovelace: zero }
 
 initialState :: State
 initialState =

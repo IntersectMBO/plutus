@@ -233,7 +233,7 @@ instance prettyUnbalancedTx :: Pretty UnbalancedTx where
       , text ", "
       , withBasicPlural (length txOutputs) "output"
       , text ", "
-      , withBasicPlural (Map.size (unwrap txSignatures)) "signature"
+      , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
       ]
 
@@ -246,7 +246,7 @@ instance prettyTx :: Pretty Tx where
       , text ", "
       , withBasicPlural (length txOutputs) "output"
       , text ", "
-      , withBasicPlural (Map.size (unwrap txSignatures)) "signature"
+      , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
       ]
 

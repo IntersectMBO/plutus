@@ -11,6 +11,7 @@ import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Semiring (zero)
 import Data.Tuple (Tuple(Tuple))
 import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
@@ -73,7 +74,7 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
             $ let
                 knownCurrencies = evalState getKnownCurrencies state
 
-                initialValue = mkInitialValue knownCurrencies 0
+                initialValue = mkInitialValue knownCurrencies zero
               in
                 [ simulationPane
                     initialValue

@@ -80,7 +80,7 @@ data ContractCall a
           }
       -- ^ Call one of the defined endpoints of your contract.
     | AddBlocks
-          { blocks :: Int
+          { blocks :: Integer
           }
       -- ^ Add the specified number of blocks to the mockchain before continuing.
     | AddBlocksUntil

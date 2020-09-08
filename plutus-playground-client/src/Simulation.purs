@@ -10,6 +10,8 @@ import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Functor.Foldable (Fix)
 import Data.Int as Int
@@ -217,7 +219,7 @@ actionPaneBody index (PayToWallet { sender, recipient, amount }) =
             , value $ show $ view _walletId recipient
             , required true
             , placeholder "Wallet ID"
-            , onIntInput (ModifyActions <<< SetPayToWalletRecipient index <<< review _walletId)
+            , onBigIntegerInput (ModifyActions <<< SetPayToWalletRecipient index <<< review _walletId)
             ]
         ]
     , formGroup_
@@ -240,7 +242,7 @@ actionPaneBody index (AddBlocks { blocks }) =
                     , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
                     , value $ show blocks
                     , placeholder "Block Number"
-                    , onIntInput $ ModifyActions <<< SetWaitTime index
+                    , onBigIntegerInput $ ModifyActions <<< SetWaitTime index
                     ]
                 ]
             ]
@@ -261,14 +263,14 @@ actionPaneBody index (AddBlocksUntil { slot }) =
                     , classes [ formControl, ClassName $ "action-argument-0-until-slot" ]
                     , value $ show $ view _InSlot slot
                     , placeholder "Slot Number"
-                    , onIntInput $ ModifyActions <<< SetWaitUntilTime index <<< review _InSlot
+                    , onBigIntegerInput $ ModifyActions <<< SetWaitUntilTime index <<< review _InSlot
                     ]
                 ]
             ]
         ]
     ]
 
-waitTypeButtons :: forall p. Int -> Either Slot Int -> HTML p SimulationAction
+waitTypeButtons :: forall p. Int -> Either Slot BigInteger -> HTML p SimulationAction
 waitTypeButtons index wait =
   btnGroup_
     [ button
@@ -306,7 +308,7 @@ addWaitActionPane index =
             [ class_ $ ClassName "add-wait-action" ]
             [ div
                 ( [ class_ card
-                  , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction 10
+                  , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction $ BigInteger.fromInt 10
                   ]
                     <> dragTargetProperties index
                 )
@@ -443,3 +445,6 @@ showCompilationError (CompilationError { text: errors }) = pre_ [ text (String.j
 
 onIntInput :: forall i r. (Int -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onIntInput f = onValueInput $ map f <<< Int.fromString
+
+onBigIntegerInput :: forall i r. (BigInteger -> i) -> IProp ( onInput :: Event, value :: String | r ) i
+onBigIntegerInput f = onValueInput $ map f <<< BigInteger.fromString

@@ -189,7 +189,7 @@ let additions =
           ⫽ { repo =
                 "https://github.com/shmish111/purescript-foreign-generic"
             , version =
-                "4963d867034011350c69335aaa6e48c538cd781d"
+                "a2c5a0d623bb543207968110065e585d407c36d2"
             }
       , matryoshka =
           { dependencies =

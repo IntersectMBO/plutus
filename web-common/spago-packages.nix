@@ -343,11 +343,11 @@ let
 
     "foreign-generic" = pkgs.stdenv.mkDerivation {
         name = "foreign-generic";
-        version = "4963d867034011350c69335aaa6e48c538cd781d";
+        version = "bd0a108a983d26b2c0502ae5de02efdc1e5370a3";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-foreign-generic";
-          rev = "4963d867034011350c69335aaa6e48c538cd781d";
-          sha256 = "0vz74v97l27xnid99w6khkpn1kzrsixln3pc0h3yhq8zmpbdcp4g";
+          rev = "bd0a108a983d26b2c0502ae5de02efdc1e5370a3";
+          sha256 = "16ck2riih4d6qcn1khdfda42vkskid65kp4ailbj1fn1ch7vf3pj";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

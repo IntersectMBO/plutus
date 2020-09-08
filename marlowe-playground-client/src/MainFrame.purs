@@ -6,7 +6,6 @@ import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
 import Data.Foldable (for_)
-import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
@@ -194,7 +193,6 @@ handleAction s (HaskellAction action) = do
           ( _haskellState
               <<< _compilationResult
               <<< _Success
-              <<< _JsonEither
               <<< _Right
               <<< _InterpreterResult
               <<< _result

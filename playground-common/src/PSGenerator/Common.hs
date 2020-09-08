@@ -55,6 +55,9 @@ psJsonEither =
 psJsonMap :: MonadReader BridgeData m => m PSType
 psJsonMap = TypeInfo "" "Data.Json.JsonMap" "JsonMap" <$> psTypeParameters
 
+psMap :: MonadReader BridgeData m => m PSType
+psMap = TypeInfo "purescript-ordered-collections" "Data.Map" "Map" <$> psTypeParameters
+
 psUnit :: PSType
 psUnit = TypeInfo "" "Data.Unit" "Unit" []
 
@@ -80,7 +83,7 @@ mapBridge :: BridgePart
 mapBridge = do
     typeName ^== "Map"
     typeModule ^== "Data.Map.Internal"
-    psJsonMap
+    psMap
 
 aesonValueBridge :: BridgePart
 aesonValueBridge = do
@@ -123,7 +126,7 @@ containersBridge = nonEmptyBridge <|> setBridge
 integerBridge :: BridgePart
 integerBridge = do
     typeName ^== "Integer"
-    pure psInt
+    pure psBigInteger
 
 digestBridge :: BridgePart
 digestBridge = do
@@ -155,6 +158,10 @@ miscBridge =
     byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge
 
 ------------------------------------------------------------
+
+psBigInteger :: PSType
+psBigInteger = TypeInfo "purescript-foreign-generic" "Data.BigInteger" "BigInteger" []
+
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
     TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
