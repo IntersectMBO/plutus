@@ -325,7 +325,7 @@ annotations appearing in the CBOR is to coerce from `()` to
 `InvisibleUnit` and then apply `serialise` as normal.  However, this
 isn't sufficient for the ledger code. There are a number of places in
 Ledger.Scripts and elsewhere where hashes of objects (`Tx`, for
-example) are calculated by serialsing the entire object and
+example) are calculated by serialising the entire object and
 calculating a hash, and these objects can contain Scripts themselves.
 Serialisation is achieved using the Generic instance of `Serialise`,
 which will just use `encode` on everything, including unit
