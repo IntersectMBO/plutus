@@ -114,7 +114,7 @@ extra-deps:
 # source code changes, so I forked the original repository until it will
 # be properly updated to GHC-8.8.X
 - git: https://github.com/input-output-hk/iohk-monitoring-framework
-  commit: 274ba9bab092725af1323934a59630f5f98fdb15
+  commit: 5c9627b6aee487f9b7ec44981aba57a6afc659b1
   subdirs:
     - contra-tracer
     - iohk-monitoring
