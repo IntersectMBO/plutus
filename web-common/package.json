@@ -1,0 +1,12 @@
+{
+  "name": "web-common",
+  "version": "1.0.0",
+  "dependencies": {
+    "big-integer": "^1.6.48",
+    "chartist": "^0.11.0",
+    "chartist-plugin-axistitle": "^0.0.4",
+    "chartist-plugin-tooltips": "^0.0.17"
+  },
+  "resolutions": {},
+  "license": "Apache-2.0"
+}
