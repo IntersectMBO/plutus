@@ -41,18 +41,18 @@ import           Wallet.Types                              (AssertionError, Cont
                                                             NotificationError)
 
 psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
+psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
 psNonEmpty =
-    TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
+    TypeInfo "web-common" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
     psTypeParameters
 
 psMap :: MonadReader BridgeData m => m PSType
 psMap = TypeInfo "purescript-ordered-collections" "Data.Map" "Map" <$> psTypeParameters
 
 psUnit :: PSType
-psUnit = TypeInfo "" "Data.Unit" "Unit" []
+psUnit = TypeInfo "web-common" "Data.Unit" "Unit" []
 
 -- Note: Haskell has multi-section Tuples, whereas PureScript just uses nested pairs.
 psJsonTuple :: MonadReader BridgeData m => m PSType
@@ -60,11 +60,11 @@ psJsonTuple = expand <$> psTypeParameters
   where
     expand []       = psUnit
     expand [x]      = x
-    expand p@[_, _] = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" p
-    expand (x:ys)   = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" [x, expand ys]
+    expand p@[_, _] = TypeInfo "web-common" "Data.Json.JsonTuple" "JsonTuple" p
+    expand (x:ys)   = TypeInfo "web-common" "Data.Json.JsonTuple" "JsonTuple" [x, expand ys]
 
 psJsonUUID :: PSType
-psJsonUUID = TypeInfo "" "Data.Json.JsonUUID" "JsonUUID" []
+psJsonUUID = TypeInfo "web-common" "Data.Json.JsonUUID" "JsonUUID" []
 
 uuidBridge :: BridgePart
 uuidBridge = do
