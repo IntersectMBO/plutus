@@ -438,7 +438,7 @@ forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
       {- This should be impossible if we don't have zero-arity builtins:
          we will have found this case in an earlier call to forceEvaluate
          or applyEvaluate and called applyBuiltinName. -}
-          throwingDischarged _MachineError UnexpectedBuiltinInstantiationMachineError val'
+          throwingDischarged _MachineError BuiltinTermArgumentExpectedMachineError val'
                         where val' = VBuiltin ex bn arity0 arity (forces + 1) args argEnv -- reconstruct the bad application
       TypeArg:arity' ->
           case arity' of

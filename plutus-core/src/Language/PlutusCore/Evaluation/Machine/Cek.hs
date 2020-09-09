@@ -463,7 +463,7 @@ instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) 
       {- This should be impossible if we don't have zero-arity builtins:
          we will have found this case in an earlier call to instantiateEvaluate
          or applyEvaluate and called applyBuiltinName. -}
-          throwingDischarged _MachineError UnexpectedBuiltinInstantiationMachineError val'
+          throwingDischarged _MachineError BuiltinTermArgumentExpectedMachineError val'
                         where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
       TypeArg:arity' ->
           case arity' of
