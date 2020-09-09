@@ -29,19 +29,19 @@ import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                             (Enumerable (..), Options (..), ctrex')
-import           Data.Coolean                               (Cool, toCool, (!=>))
+import           Control.Search                                             (Enumerable (..), Options (..), ctrex')
+import           Data.Coolean                                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
+import qualified Data.Stream                                                as Stream
+import qualified Data.Text                                                  as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -75,14 +75,15 @@ tests genOpts@GenOptions{..} =
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_typePreservationCk
-  -- this fails, but we run it anyway and catch the error 
+  -- this fails, but we run it anyway and catch the error
   , testCaseGen "type preservation - CEK"
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_typePreservationCek
   , testCaseGen "CEK and CK produce the same output"
       genOpts
---      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+--    v  - this fails as it exposes mistreatment of type annotations by CEK
+--    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       (Type (), TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek  ]
 
