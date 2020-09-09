@@ -73,7 +73,7 @@ tynameOf (TyNameState NameState{..}) i = TyName (nameOf i)
 emptyNameState :: Stream.Stream Text.Text -> NameState Z
 emptyNameState strs = NameState { nameOf = fromZ, freshNameStrings = strs }
 
--- |Ext name state with a fresh name.
+-- |Extend name state with a fresh name.
 extNameState
   :: (MonadQuote m)
   => NameState n
@@ -90,7 +90,7 @@ extNameState NameState{..} = liftQuote $ do
 emptyTyNameState :: Stream.Stream Text.Text -> TyNameState Z
 emptyTyNameState strs = TyNameState (emptyNameState strs)
 
--- |Ext type name state with a fresh type name.
+-- |Extend type name state with a fresh type name.
 extTyNameState
   :: (MonadQuote m)
   => TyNameState n

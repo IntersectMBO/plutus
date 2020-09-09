@@ -189,7 +189,7 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 
 -- ** Converting terms
 
--- |Convert well-kinded generated types to Plutus types.
+-- |Convert (well-typed) generated terms to Plutus terms.
 --
 -- NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
 --       State monad, as the type of the `TyNameState` changes throughout the

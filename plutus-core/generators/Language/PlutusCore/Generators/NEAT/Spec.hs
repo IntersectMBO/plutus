@@ -1,8 +1,8 @@
 {-|
 Description : Property based testing for Plutus Core
 
-This file contains the machinery for property based testing of
-generated types. Generation of terms is not implemented yet.
+This file contains the tests and some associated machinery but not the
+generators.
 -}
 
 {-# LANGUAGE FlexibleInstances     #-}
@@ -126,7 +126,7 @@ prop_typePreservationCek (k, tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 
-  -- Check if the converted term, when normalized, still has the same type:
+  -- Check if the converted term, when evaluated, still has the same type:
 
   tmV <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
   withExceptT
