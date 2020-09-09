@@ -24,8 +24,8 @@ get_dates ct = return $ case (decode $ fromString ct) of
       let 
         cfs = sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
         date = showGregorian <$> cashCalculationDay <$> cfs
-        event = (++) " " <$> show <$> cashEvent <$> cfs
-      in (++) <$> date <*> event
+        event = show <$> cashEvent <$> cfs
+      in (\(d, e) -> d ++ " " ++ e) <$> (zip date event)
     Nothing -> []
 
 get_cfs :: String -> Double -> R s [Double]
@@ -74,11 +74,17 @@ server <- function(input, output, session) {
     observeEvent(toListen(), {
       if (!is.null(session$userData$contract) && !is.null(input$ipnr)) {
         tryCatch ({
-          x <- get_dates_hs(input$contract)
-          y <- get_cfs_hs(input$contract, input$ipnr)
+          x <- get_dates_hs(toString(input$contract))
+          y <- get_cfs_hs(toString(input$contract), as.double(input$ipnr))
           text <- y %>% 
             map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
+
+          message(x)
+          message(y)
+
           data <- data.frame(x=factor(x,levels=x),text,y)
+
+
           
           fig <- plot_ly(
             data, name = "20", type = "waterfall",
