@@ -48,13 +48,6 @@ psNonEmpty =
     TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
     psTypeParameters
 
-psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither =
-    TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
-
-psJsonMap :: MonadReader BridgeData m => m PSType
-psJsonMap = TypeInfo "" "Data.Json.JsonMap" "JsonMap" <$> psTypeParameters
-
 psMap :: MonadReader BridgeData m => m PSType
 psMap = TypeInfo "purescript-ordered-collections" "Data.Map" "Map" <$> psTypeParameters
 
@@ -91,11 +84,6 @@ aesonValueBridge = do
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
 
-eitherBridge :: BridgePart
-eitherBridge = do
-    typeName ^== "Either"
-    psJsonEither
-
 tupleBridge :: BridgePart
 tupleBridge = do
     doCheck haskType isTuple
@@ -103,8 +91,7 @@ tupleBridge = do
 
 aesonBridge :: BridgePart
 aesonBridge =
-    mapBridge <|> eitherBridge <|> tupleBridge <|> aesonValueBridge <|>
-    uuidBridge
+    mapBridge <|> tupleBridge <|> aesonValueBridge <|> uuidBridge
 
 ------------------------------------------------------------
 setBridge :: BridgePart

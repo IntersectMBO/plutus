@@ -33,12 +33,10 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
-import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (Traversal', _Just, _Right, assign, modifying, over, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
@@ -282,7 +280,7 @@ handleAction EvaluateActions =
         assign _evaluationResult result
         -- If we got a successful result, switch tab.
         case result of
-          Success (JsonEither (Left _)) -> pure unit
+          Success (Left _) -> pure unit
           _ -> replaceViewOnSuccess result Simulations Transactions
         pure unit
 
@@ -295,7 +293,7 @@ handleAction (LoadScript key) = do
       saveBuffer (unwrap contractDemoEditorContents)
       assign _currentView Editor
       assign _simulations $ Cursor.fromArray contractDemoSimulations
-      assign _compilationResult (Success <<< JsonEither <<< Right $ contractDemoContext)
+      assign _compilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
 
 handleAction AddSimulationSlot = do
@@ -331,7 +329,7 @@ handleAction (ChangeSimulation subaction) = do
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
-    peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+    peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
   let
     wrapper = case subaction of
       (FocusTx _) -> animate (_blockchainVisualisationState <<< _chainFocusAppearing)
@@ -351,12 +349,12 @@ handleAction CompileProgram = do
       assign _compilationResult newCompilationResult
       -- If we got a successful result, switch tab.
       case newCompilationResult of
-        Success (JsonEither (Left _)) -> pure unit
+        Success (Left _) -> pure unit
         _ -> replaceViewOnSuccess newCompilationResult Editor Simulations
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
-            Success (JsonEither (Left errors)) -> toAnnotations errors
+            Success (Left errors) -> toAnnotations errors
             _ -> []
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
@@ -401,8 +399,8 @@ handleSimulationAction initialValue (PopulateAction n event) = do
     )
     $ Schema.handleFormEvent initialValue event
 
-_details :: forall a. Traversal' (WebData (JsonEither InterpreterError (InterpreterResult a))) a
-_details = _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
+_details :: forall a. Traversal' (WebData (Either InterpreterError (InterpreterResult a))) a
+_details = _Success <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
 handleGistAction PublishGist = do

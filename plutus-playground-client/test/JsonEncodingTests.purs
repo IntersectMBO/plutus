@@ -10,7 +10,7 @@ import Cursor as Cursor
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(JsonEither))
+import Data.Foldable (product)
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Tuple (Tuple(..))
@@ -106,7 +106,7 @@ jsonHandlingTests = do
       testRoundTrip "TokenName" arbitraryTokenName
       testRoundTrip "Value" arbitraryValue
       testRoundTrip "KnownCurrency" arbitraryKnownCurrency
-      testRoundTrip "JsonEither" ((JsonEither <$> arbitraryEither arbitrary arbitrary) :: Gen (JsonEither String Int))
+      testRoundTrip "Either" (arbitraryEither arbitrary arbitrary :: Gen (Either String Int))
       testRoundTrip "JsonTuple" ((JsonTuple <$> (Tuple <$> arbitrary <*> arbitrary)) :: Gen (JsonTuple String Int))
       testRoundTrip "JsonNonEmptyList" ((JsonNonEmptyList <$> arbitrary) :: Gen (JsonNonEmptyList String))
       testRoundTrip "Cursor" ((Cursor.fromArray <$> arbitrary) :: Gen (Cursor String))

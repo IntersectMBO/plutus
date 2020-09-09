@@ -15,7 +15,6 @@ import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Functor.Foldable (Fix)
 import Data.Int as Int
-import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (preview, review, view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
@@ -49,7 +48,7 @@ simulationPane ::
   Maybe Int ->
   Signatures ->
   Cursor Simulation ->
-  WebData (JsonEither PlaygroundError EvaluationResult) ->
+  WebData (Either PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m
 simulationPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
   Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
@@ -132,7 +131,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -320,7 +319,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
+evaluateActionsPane :: forall p. WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
@@ -336,7 +335,7 @@ evaluateActionsPane evaluationResult actions =
 
   btnClass _ true = btnWarning
 
-  btnClass (Success (JsonEither (Left _))) _ = btnDanger
+  btnClass (Success (Left _)) _ = btnDanger
 
   btnClass (Success _) _ = btnSuccess
 
