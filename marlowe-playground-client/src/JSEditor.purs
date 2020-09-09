@@ -18,11 +18,9 @@ import Halogen.HTML.Properties (alt, class_, classes, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
-import Language.Javascript.Monaco as HM
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import Monaco as Monaco
-import Network.RemoteData (isLoading)
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -42,7 +40,7 @@ render state =
                   ]
               ]
           , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFilesJS))
           ]
       , div [ class_ (ClassName "editor-options") ]
           [ select

@@ -2,6 +2,7 @@ module StaticData
   ( bufferLocalStorageKey
   , jsBufferLocalStorageKey
   , demoFiles
+  , demoFilesJS
   , marloweBufferLocalStorageKey
   , marloweContract
   , marloweContracts
@@ -12,6 +13,7 @@ import Data.Map as Map
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Examples.Marlowe.Contracts (escrow, zeroCouponBond, option, swap) as ME
+import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
 import LocalStorage as LocalStorage
 
 type Label
@@ -28,6 +30,16 @@ demoFiles =
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
+    ]
+
+demoFilesJS ::
+  Map Label Contents
+demoFilesJS =
+  Map.fromFoldable
+    [ "Escrow" /\ JSE.escrow
+    , "ZeroCouponBond" /\ JSE.zeroCouponBond
+    , "CouponBondGuaranteed" /\ JSE.couponBondGuaranteed
+    , "Swap" /\ JSE.swap
     ]
 
 marloweContracts ::

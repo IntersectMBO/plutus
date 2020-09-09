@@ -243,7 +243,7 @@ handleAction _ CompileJSProgram = do
       assign _jsCompilationResult (Just res)
 
 handleAction _ (LoadJSScript key) = do
-  case Map.lookup key StaticData.demoFiles of
+  case Map.lookup key StaticData.demoFilesJS of
     Nothing -> pure unit
     Just contents -> do
       void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
