@@ -20,12 +20,17 @@ import Data.ByteString.Lazy.Char8(unpack)
 
 get_dates :: String -> R s [String]
 get_dates ct = return $ case (decode $ fromString ct) of
-    Just ct' -> showGregorian <$> cashCalculationDay <$> sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
+    Just ct' -> 
+      let 
+        cfs = sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
+        date = showGregorian <$> cashCalculationDay <$> cfs
+        event = (++) " " <$> show <$> cashEvent <$> cfs
+      in (++) <$> date <*> event
     Nothing -> []
 
-get_cfs :: String -> R s [Double]
-get_cfs ct = return $ case (decode $ fromString ct) of
-    Just ct' -> amount <$> sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
+get_cfs :: String -> Double -> R s [Double]
+get_cfs ct rrmo = return $ case (decode $ fromString ct) of
+    Just ct' -> amount <$> sampleCashflows (\_ -> RiskFactors 1.0 rrmo 1.0 0.0) ct'
     Nothing -> []
 
 r_shiny :: R s Int32
@@ -39,7 +44,7 @@ library(purrr)
 jscode <- "
 shinyjs.init = function() {
   window.addEventListener(\"message\", receiveMessage, false);
-
+  
   function receiveMessage(event) {
     Shiny.onInputChange(\"contract\", event.data); 
   }
@@ -49,33 +54,46 @@ ui <- fluidPage(
   useShinyjs(),
   extendShinyjs(text = jscode, functions = c()),  
   headerPanel(''),
+  sliderInput("ipnr", 
+              label = "Interest rate:",
+              min = 0, max = 1, value = c(0)),
   mainPanel(
     plotlyOutput('plot')
   )
 )
 
-server <- function(input, output) {
-  observeEvent(input$contract, {
-    message(paste("Contract: ", input$contract))
-    x <- get_dates_hs(input$contract)
-    y <- get_cfs_hs(input$contract)
-    text <- y %>% 
-      map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
-    data <- data.frame(x=factor(x,levels=x),text,y)
+server <- function(input, output, session) { 
+    observeEvent(input$contract, {
+      session$userData$contract = input$contract
+    })
     
-    fig <- plot_ly(
-      data, name = "20", type = "waterfall",
-      x = ~x, textposition = "outside", y= ~y, text =~text,
-      connector = list(line = list(color= "rgb(63, 63, 63)"))) 
-    fig <- fig %>% layout(title = "Cashflows",
-                          xaxis = list(title = ""),
-                          yaxis = list(title = ""),
-                          autosize = TRUE)
+    toListen <- reactive({
+      list(input$contract,input$ipnr)
+    })
     
-    fig
-    output$plot <- renderPlotly(fig)
-  })
-  
+    observeEvent(toListen(), {
+      if (!is.null(session$userData$contract) && !is.null(input$ipnr)) {
+        tryCatch ({
+          x <- get_dates_hs(input$contract)
+          y <- get_cfs_hs(input$contract, input$ipnr)
+          text <- y %>% 
+            map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
+          data <- data.frame(x=factor(x,levels=x),text,y)
+          
+          fig <- plot_ly(
+            data, name = "20", type = "waterfall",
+            x = ~x, textposition = "outside", y= ~y, text =~text,
+            connector = list(line = list(color= "rgb(63, 63, 63)"))) 
+          fig <- fig %>% layout(title = "Cashflows",
+                                xaxis = list(title = ""),
+                                yaxis = list(title = ""),
+                                autosize = TRUE)
+          
+          fig
+        })
+        output$plot <- renderPlotly(fig)
+      }
+    })
 }
 
 # Create Shiny app ----
