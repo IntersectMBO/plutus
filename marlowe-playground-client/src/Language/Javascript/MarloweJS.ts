@@ -46,7 +46,7 @@ export const token =
             return { "currency_symbol": currencySymbol,
                      "token_name": choiceOwner };
         } else {
-            throw(new Error('Public key must be base16'));
+            throw(new Error('Currency symbol must be base16'));
         };
     };
 
