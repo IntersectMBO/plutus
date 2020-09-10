@@ -554,7 +554,7 @@ executeAndInterpret _ _ [] _ = []
 executeAndInterpret ffi sta ((l, h, v, b):t) cont
   | b == 0 = computeAndContinue ffi transaction [] sta cont t
   | otherwise =
-       case reduceContractUntilQuiescent ffi env sta cont of
+       case reduceContractUntilQuiescent env sta cont of
          ContractQuiescent _ _ _ tempCont ->
            case tempCont of
              When cases _ _ -> computeAndContinue ffi transaction
@@ -562,7 +562,7 @@ executeAndInterpret ffi sta ((l, h, v, b):t) cont
              _ -> error "Cannot interpret result"
          _ -> error "Error reducing contract when interpreting result"
   where mySlotInterval = (Slot l, Slot h)
-        env = Environment { slotInterval = mySlotInterval }
+        env = Environment { slotInterval = mySlotInterval, marloweFFI = ffi }
         transaction inputs = TransactionInput { txInterval = mySlotInterval
                                               , txInputs = inputs
                                               }

@@ -53,16 +53,13 @@ import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
-import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.List
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Language.PlutusTx.Ratio    (Ratio, denominator, numerator)
-import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
-import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (Datum (..))
+import           Ledger                     (PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
@@ -290,7 +287,11 @@ data State = State { accounts    :: Accounts
 -}
 data Environment = Environment
     { slotInterval :: SlotInterval
-    } deriving (Show)
+    , marloweFFI   :: MarloweFFI
+    }
+
+instance Show Environment where
+    show _ = "Environment"
 
 
 {-| Input for a Marlowe contract. Correspond to expected 'Action's.
@@ -459,8 +460,8 @@ inBounds num = any (\(Bound l u) -> num >= l && num <= u)
 
 
 {- Checks 'interval' and trim it if necessary. -}
-fixInterval :: SlotInterval -> State -> IntervalResult
-fixInterval interval state =
+fixInterval :: SlotInterval -> MarloweFFI -> State -> IntervalResult
+fixInterval interval ffi state =
     case interval of
         (low, high)
           | high < low -> IntervalError (InvalidInterval interval)
@@ -470,7 +471,7 @@ fixInterval interval state =
             newLow = max low curMinSlot
             -- We know high is greater or equal than newLow (prove)
             curInterval = (newLow, high)
-            env = Environment { slotInterval = curInterval }
+            env = Environment { slotInterval = curInterval, marloweFFI = ffi }
             newState = state { minSlot = newLow }
             in if high < curMinSlot then IntervalError (IntervalInPastError curMinSlot interval)
             else IntervalTrimmed env newState
@@ -479,9 +480,9 @@ fixInterval interval state =
 {-|
   Evaluates @Value@ given current @State@ and @Environment@
 -}
-evalValue :: MarloweFFI -> Environment -> State -> Contract -> Value Observation -> Integer
-evalValue ffi env state contract value = let
-    eval = evalValue ffi env state contract
+evalValue :: Environment -> State -> Contract -> Value Observation -> Integer
+evalValue env state contract value = let
+    eval = evalValue env state contract
     in case value of
         AvailableMoney accId token -> moneyInAccount accId token (accounts state)
         Constant integer     -> integer
@@ -503,8 +504,8 @@ evalValue ffi env state contract value = let
             case Map.lookup valId (boundValues state) of
                 Just x  -> x
                 Nothing -> 0
-        Cond cond thn els    -> if evalObservation ffi env state contract cond then eval thn else eval els
-        Call funName         -> case Map.lookup funName ffi of
+        Cond cond thn els    -> if evalObservation env state contract cond then eval thn else eval els
+        Call funName         -> case Map.lookup funName (marloweFFI env) of
                                     Just f -> f state
                                     Nothing -> 0
   where
@@ -519,10 +520,10 @@ evalValue ffi env state contract value = let
 
 
 -- | Evaluate 'Observation' to 'Bool'.
-evalObservation :: MarloweFFI -> Environment -> State -> Contract -> Observation -> Bool
-evalObservation ffi env state contract obs = let
-    evalObs = evalObservation ffi env state contract
-    evalVal = evalValue ffi env state contract
+evalObservation :: Environment -> State -> Contract -> Observation -> Bool
+evalObservation env state contract obs = let
+    evalObs = evalObservation env state contract
+    evalVal = evalValue env state contract
     in case obs of
         AndObs lhs rhs          -> evalObs lhs && evalObs rhs
         OrObs lhs rhs           -> evalObs lhs || evalObs rhs
@@ -582,8 +583,8 @@ giveMoney payee (Token cur tok) amount accounts = case payee of
 
 
 -- | Carry a step of the contract with no inputs
-reduceContractStep :: MarloweFFI -> Environment -> State -> Contract -> ReduceStepResult
-reduceContractStep ffi env state contract = case contract of
+reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
+reduceContractStep env state contract = case contract of
 
     Close -> case refundOne (accounts state) of
         Just ((party, money), newAccounts) -> let
@@ -592,7 +593,7 @@ reduceContractStep ffi env state contract = case contract of
         Nothing -> NotReduced
 
     Pay accId payee tok val cont -> let
-        amountToPay = evalValue ffi env state contract val
+        amountToPay = evalValue env state contract val
         in  if amountToPay <= 0
             then let
                 warning = ReduceNonPositivePay accId payee tok amountToPay
@@ -610,7 +611,7 @@ reduceContractStep ffi env state contract = case contract of
                 in Reduced warning payment newState cont
 
     If obs cont1 cont2 -> let
-        cont = if evalObservation ffi env state contract obs then cont1 else cont2
+        cont = if evalObservation env state contract obs then cont1 else cont2
         in Reduced ReduceNoWarning ReduceNoPayment state cont
 
     When _ timeout cont -> let
@@ -624,7 +625,7 @@ reduceContractStep ffi env state contract = case contract of
         else AmbiguousSlotIntervalReductionError
 
     Let valId val cont -> let
-        evaluatedValue = evalValue ffi env state contract val
+        evaluatedValue = evalValue env state contract val
         boundVals = boundValues state
         newState = state { boundValues = Map.insert valId evaluatedValue boundVals }
         warn = case Map.lookup valId boundVals of
@@ -633,18 +634,19 @@ reduceContractStep ffi env state contract = case contract of
         in Reduced warn ReduceNoPayment newState cont
 
     Assert obs cont -> let
-        warning = if evalObservation ffi env state contract obs
+        warning = if evalObservation env state contract obs
                   then ReduceNoWarning
                   else ReduceAssertionFailed
         in Reduced warning ReduceNoPayment state cont
 
+
 -- | Reduce a contract until it cannot be reduced more
-reduceContractUntilQuiescent :: MarloweFFI -> Environment -> State -> Contract -> ReduceResult
-reduceContractUntilQuiescent ffi env state contract = let
+reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
+reduceContractUntilQuiescent env state contract = let
     reductionLoop
       :: Environment -> State -> Contract -> [ReduceWarning] -> [Payment] -> ReduceResult
     reductionLoop env state contract warnings payments =
-        case reduceContractStep ffi env state contract of
+        case reduceContractStep env state contract of
             Reduced warning effect newState cont -> let
                 newWarnings = if warning == ReduceNoWarning then warnings
                               else warning : warnings
@@ -660,35 +662,35 @@ reduceContractUntilQuiescent ffi env state contract = let
 
 
 -- | Apply a single Input to the contract (assumes the contract is reduced)
-applyCases :: MarloweFFI -> Environment -> State -> Contract -> Input -> [Case Contract] -> ApplyResult
-applyCases ffi env state contract input cases = case (input, cases) of
+applyCases :: Environment -> State -> Contract -> Input -> [Case Contract] -> ApplyResult
+applyCases env state contract input cases = case (input, cases) of
     (IDeposit accId1 party1 tok1 amount,
         Case (Deposit accId2 party2 tok2 val) cont : rest) ->
         if accId1 == accId2 && party1 == party2 && tok1 == tok2
-                && amount == evalValue ffi env state contract val
+                && amount == evalValue env state contract val
         then let
             warning = if amount > 0 then ApplyNoWarning
                       else ApplyNonPositiveDeposit party2 accId2 tok2 amount
             newAccounts = addMoneyToAccount accId1 tok1 amount (accounts state)
             newState = state { accounts = newAccounts }
             in Applied warning newState cont
-        else applyCases ffi env state contract input rest
+        else applyCases env state contract input rest
     (IChoice choId1 choice, Case (Choice choId2 bounds) cont : rest) ->
         if choId1 == choId2 && inBounds choice bounds
         then let
             newState = state { choices = Map.insert choId1 choice (choices state) }
             in Applied ApplyNoWarning newState cont
-        else applyCases ffi env state contract input rest
+        else applyCases env state contract input rest
     (INotify, Case (Notify obs) cont : _)
-        | evalObservation ffi env state contract obs -> Applied ApplyNoWarning state cont
-    (_, _ : rest) -> applyCases ffi env state contract input rest
+        | evalObservation env state contract obs -> Applied ApplyNoWarning state cont
+    (_, _ : rest) -> applyCases env state contract input rest
     (_, []) -> ApplyNoMatchError
 
 
 -- | Apply a single @Input@ to a current contract
-applyInput :: MarloweFFI -> Environment -> State -> Input -> Contract -> ApplyResult
-applyInput ffi env state input contract@(When cases _ _) = applyCases ffi env state contract input cases
-applyInput _ _ _ _ _                          = ApplyNoMatchError
+applyInput :: Environment -> State -> Input -> Contract -> ApplyResult
+applyInput env state input contract@(When cases _ _) = applyCases env state contract input cases
+applyInput _ _ _ _                                   = ApplyNoMatchError
 
 
 -- | Propagate 'ReduceWarning' to 'TransactionWarning'
@@ -707,8 +709,8 @@ convertReduceWarnings = foldr (\warn acc -> case warn of
 
 
 -- | Apply a list of Inputs to the contract
-applyAllInputs :: MarloweFFI -> Environment -> State -> Contract -> [Input] -> ApplyAllResult
-applyAllInputs ffi env state contract inputs = let
+applyAllInputs :: Environment -> State -> Contract -> [Input] -> ApplyAllResult
+applyAllInputs env state contract inputs = let
     applyAllLoop
         :: Environment
         -> State
@@ -718,7 +720,7 @@ applyAllInputs ffi env state contract inputs = let
         -> [Payment]
         -> ApplyAllResult
     applyAllLoop env state contract inputs warnings payments =
-        case reduceContractUntilQuiescent ffi env state contract of
+        case reduceContractUntilQuiescent env state contract of
             RRAmbiguousSlotIntervalError -> ApplyAllAmbiguousSlotIntervalError
             ContractQuiescent reduceWarns pays curState cont -> case inputs of
                 [] -> ApplyAllSuccess
@@ -726,7 +728,7 @@ applyAllInputs ffi env state contract inputs = let
                     (payments ++ pays)
                     curState
                     cont
-                (input : rest) -> case applyInput ffi env curState input cont of
+                (input : rest) -> case applyInput env curState input cont of
                     Applied applyWarn newState cont ->
                         applyAllLoop
                             env
@@ -769,8 +771,8 @@ validateInputs MarloweParams{..} ctx =
 computeTransaction :: MarloweFFI -> TransactionInput -> State -> Contract -> TransactionOutput
 computeTransaction ffi tx state contract = let
     inputs = txInputs tx
-    in case fixInterval (txInterval tx) state of
-        IntervalTrimmed env fixState -> case applyAllInputs ffi env fixState contract inputs of
+    in case fixInterval (txInterval tx) ffi state of
+        IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
             ApplyAllSuccess warnings payments newState cont ->
                     if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
@@ -1074,22 +1076,8 @@ makeLift ''Contract
 makeIsData ''Contract
 makeLift ''State
 makeIsData ''State
-makeLift ''Environment
 makeLift ''Input
 makeIsData ''Input
-makeLift ''IntervalError
-makeLift ''IntervalResult
-makeLift ''Payment
-makeLift ''ReduceEffect
-makeLift ''ReduceWarning
-makeLift ''ReduceStepResult
-makeLift ''ReduceResult
-makeLift ''ApplyWarning
-makeLift ''ApplyResult
-makeLift ''ApplyAllResult
-makeLift ''TransactionWarning
-makeLift ''TransactionError
-makeLift ''TransactionOutput
 makeLift ''MarloweData
 -- makeLift ''FunRegistry
 makeLift ''CallType

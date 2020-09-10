@@ -188,7 +188,11 @@ uniqueContractHash = do
     let hash1 = scriptHash $ defaultScriptInstance (params "11")
     let hash2 = scriptHash $ defaultScriptInstance (params "22")
     let hash3 = scriptHash $ defaultScriptInstance (params "22")
-    assertEqual "Nope" 42 $ evalValue asdff (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close (Call 0)
+    assertEqual "Nope" 42 $ evalValue
+        (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = asdff })
+        (emptyState (Slot 10))
+        Close
+        (Call 0)
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
@@ -221,7 +225,10 @@ dummyFFI _ = 42
 
 doubleNegation :: Property
 doubleNegation = property $ do
-    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     forAll valueGen $ \a -> eval (NegValue (NegValue a)) === eval a
 
 
@@ -232,7 +239,10 @@ valuesFormAbelianGroup = property $ do
             b <- valueGen
             c <- valueGen
             return (a, b, c)
-    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
+    let eval = evalValue
+                    (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                    (emptyState (Slot 10))
+                    Close
     forAll gen $ \(a, b, c) ->
         -- associativity of addition
         eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c)) .&&.
@@ -248,7 +258,10 @@ valuesFormAbelianGroup = property $ do
 
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
-    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     -- test half-even rounding
     let gen = do
             n <- amount
@@ -261,14 +274,20 @@ scaleRoundingTest = property $ do
 
 scaleMulTest :: Property
 scaleMulTest = property $ do
-    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
+    let eval = evalValue
+                    (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                    (emptyState (Slot 10))
+                    Close
     forAll valueGen $ \a ->
         eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
 
 
 mulTest :: Property
 mulTest = property $ do
-    let eval = evalValue undefined (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10)) Close
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     forAll valueGen $ \a ->
         eval (MulValue (Constant 0) a) === 0
 
