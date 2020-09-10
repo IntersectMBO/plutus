@@ -41,3 +41,9 @@ instance
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "force" <+> prettyEl term
         Error _ -> unitDocM "error"
+
+instance PrettyReadableBy configName (Term name uni a) =>
+        PrettyBy (PrettyConfigReadable configName) (Program name uni a) where
+    prettyBy = inContextM $ \(Program _ version term) ->
+        sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+            "program" <+> pretty version <+> prettyEl term

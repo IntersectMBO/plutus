@@ -14,10 +14,8 @@
 
 module Language.PlutusCore.CBOR ( encode
                                 , decode
-                                , OmitUnitAnnotations (..)
-                                , serialiseOmittingUnits
-                                , deserialiseRestoringUnits
-                                , deserialiseRestoringUnitsOrFail
+                                , encodeConstructorTag
+                                , decodeConstructorTag
                                 , DeserialiseFailure (..)
                                 ) where
 -- Codec.CBOR.DeserialiseFailure is re-exported from this module for use with deserialiseRestoringUnitsOrFail
@@ -28,13 +26,10 @@ import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
-import           PlutusPrelude
-
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import qualified Data.ByteString.Lazy           as BSL
 import           Data.Proxy
 
 {- Note [Stable encoding of PLC]
@@ -284,67 +279,3 @@ instance Serialise DeBruijn where
 instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
-
-
-{- Note [Serialising unit annotations]
-
-Serialising the unit annotation takes up space: () is converted to the
-CBOR `null` value, which is encoded as the byte 0xF6.  In typical
-examples these account for 30% or more of the bytes in a serialised
-PLC program.  We don't actually need to serialise unit annotations
-since we know where they're going to appear when we're deserialising,
-and we know what the value has to be.  The `InvisibleUnit` type below
-has instances which takes care of this for us: if we have an
-`InvisibleUnit`-annotated program `prog` then `serialise prog` will
-serialise a program omitting the annotations, and `deserialise` (with
-an appropriate type ascription) will give us back an
-`InvisibleUnit`-annotated program.
-
-We usually deal with ()-annotated ASTs, so the annotations have to be
-converted to and from `InvisibleUnit` if we wish to save space.  The
-obvious way to do this is to use `InvisibleUnit <$ ...` and
-`() <$ ...`, but these have the disadvantage that they have to traverse the
-entire AST and visit every annotation, adding an extra cost which may
-be undesirable when deserialising things on-chain.  However,
-`InvisibleUnit` has the same underlying representation as `()`, and
-we can exploit this using Data.Coerce.coerce to convert entire ASTs
-with no run-time overhead.
--}
-
-newtype InvisibleUnit = InvisibleUnit ()
-
-instance Serialise InvisibleUnit where
-    encode = mempty
-    decode = pure (InvisibleUnit ())
-
-{- Note [Serialising Scripts]
-
-At first sight, all we need to do to serialise a script without unit
-annotations appearing in the CBOR is to coerce from `()` to
-`InvisibleUnit` and then apply `serialise` as normal.  However, this
-isn't sufficient for the ledger code. There are a number of places in
-Ledger.Scripts and elsewhere where hashes of objects (`Tx`, for
-example) are calculated by serialising the entire object and
-calculating a hash, and these objects can contain Scripts themselves.
-Serialisation is achieved using the Generic instance of `Serialise`,
-which will just use `encode` on everything, including unit
-annotations.  we could overcome this by writing explicit `Serialise`
-instances for everything.  This would be more space-efficient than the
-Generic encoding, but would introduce a lot of extra code.  Instead,
-we provide a wrapper class with an instance which performs the
-coercions for us.  This is used in `Ledger.Scripts.Script` to
-derive a suitable instance of `Serialise` for scripts. -}
-
-newtype OmitUnitAnnotations uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program TyName Name uni () }
-    deriving Serialise via Program TyName Name uni InvisibleUnit
-
-{-| Convenience functions for serialisation/deserialisation without units -}
-serialiseOmittingUnits :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> BSL.ByteString
-serialiseOmittingUnits = serialise . OmitUnitAnnotations
-
-deserialiseRestoringUnits :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program TyName Name uni ()
-deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
-
-deserialiseRestoringUnitsOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
-                        BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
-deserialiseRestoringUnitsOrFail = second restoreUnitAnnotations <$> deserialiseOrFail
