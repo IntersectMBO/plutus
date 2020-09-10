@@ -1,7 +1,17 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module Language.UntypedPlutusCore.Core.Type where
+module Language.UntypedPlutusCore.Core.Type
+    ( TPLC.UniOf
+    , TPLC.StaticBuiltinName (..)
+    , TPLC.DynamicBuiltinName (..)
+    , TPLC.BuiltinName (..)
+    , Term (..)
+    , termAnn
+    , erase
+    ) where
 
 import           PlutusPrelude
 
@@ -35,8 +45,6 @@ data Term name uni ann
     | Error ann
     deriving (Show, Functor, Generic)
 
--- Instances needed by the constant application machinery.
-
 type instance TPLC.UniOf (Term name uni ann) = uni
 
 instance TPLC.AsConstant (Term name uni ann) where
@@ -51,6 +59,11 @@ instance ToExMemory (Term name uni ()) where
 
 instance ToExMemory (Term name uni ExMemory) where
     toExMemory = termAnn
+
+deriving via GenericExMemoryUsage (Term name uni ann) instance
+    ( ExMemoryUsage name, ExMemoryUsage ann
+    , Closed uni, uni `Everywhere` ExMemoryUsage
+    ) => ExMemoryUsage (Term name uni ann)
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni ann -> ann
