@@ -21,25 +21,25 @@ Events by wallet:
     - Iteration: 3
     Requests:
         4: {utxo-at:
-            ScriptAddress: 15b00591a2b41c38e2643299b773e706d895eb8d2938ddb62e482b1942a0c00c}
+            ScriptAddress: 36b23480901e0dbfe0e69b3cd31605ddffe8265848ebc3fd4af3ce3080c1d683}
       Response:
         ( 4
         , {utxo-at:
-           Utxo at ScriptAddress: 15b00591a2b41c38e2643299b773e706d895eb8d2938ddb62e482b1942a0c00c =
-             41a75e6d15503a0e28cdd13f06d801e86812d93eb67a5c2cda8514a16644171b!1: PayToScript: 49cd69a6941f191e3d14ce83834e0f2ce175318995b40380854e3201171c0baa Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
-             bfd3168dc3cace5f95ac0ad0052334a641a475155e74e23c5a37327e0e6b2aa2!1: PayToScript: 4c592448cff8d2b2ee40a509e1d5224260ef29f5b22cd920616e39cad65f466c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
-             ca63281ddcc92149602f29042b7a00ee117365352dd41ec790a0d304889f97e6!1: PayToScript: b8324180800f57f26dee2ad65990e0a762a5dab9424d32e49855abd495f7196b Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}} )
+           Utxo at ScriptAddress: 36b23480901e0dbfe0e69b3cd31605ddffe8265848ebc3fd4af3ce3080c1d683 =
+             05f91e825f4459f270530472f4fa0768a48f940c64ecb4db75f3f5b4c6c89e47!1: PayToScript: b8324180800f57f26dee2ad65990e0a762a5dab9424d32e49855abd495f7196b Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}
+             0f5220a1a71836bad78c02cd3bc956ce619da2aa997e2e758c63801356222ac5!1: PayToScript: 4c592448cff8d2b2ee40a509e1d5224260ef29f5b22cd920616e39cad65f466c Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}
+             6148fbeacdd5bdc93889d2f26eb0b074cb4eea533dcd35301b073881f5e953e0!1: PayToScript: 49cd69a6941f191e3d14ce83834e0f2ce175318995b40380854e3201171c0baa Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}} )
     - Iteration: 4
     Requests:
         5: {tx:
             Tx:
-              Tx fc8a6bb88a2fce62b1aee9e5dcea933e56a360310c3e5a6e477fa9fbd5bd5994:
+              Tx 36976c2ac45fb5f0118b13640bd2997411453a891302c92ddb23d264920dee57:
                 {inputs:
-                   - 41a75e6d15503a0e28cdd13f06d801e86812d93eb67a5c2cda8514a16644171b!1
+                   - 05f91e825f4459f270530472f4fa0768a48f940c64ecb4db75f3f5b4c6c89e47!1
                      Redeemer: <>
-                   - bfd3168dc3cace5f95ac0ad0052334a641a475155e74e23c5a37327e0e6b2aa2!1
+                   - 0f5220a1a71836bad78c02cd3bc956ce619da2aa997e2e758c63801356222ac5!1
                      Redeemer: <>
-                   - ca63281ddcc92149602f29042b7a00ee117365352dd41ec790a0d304889f97e6!1
+                   - 6148fbeacdd5bdc93889d2f26eb0b074cb4eea533dcd35301b073881f5e953e0!1
                      Redeemer: <>
                 outputs:
                 forge: Value {getValue = Map {unMap = []}}
@@ -52,7 +52,7 @@ Events by wallet:
       Response:
         ( 5
         , {tx:
-           WriteTxSuccess: b8b9c6f3f8637d167484e362b47ebd3a2eca0b8ace1f9e62bcb82325d5a8867d} )
+           WriteTxSuccess: 3fe4260dd8d7b7509fabf97fcd81d5326c1a206739477e32510e2c1fea648ba5} )
   Events for W2:
     - Iteration: 1
     Requests:
@@ -78,11 +78,11 @@ Events by wallet:
     Requests:
         3: {tx:
             Tx:
-              Tx 8d209e3ba6f92d9159c26f334034694d87818e991e23885344420ed7205c42f8:
+              Tx 4528332d7158943bbfea6d45c136852c7903ed268828b665c9279e19c1c9a08a:
                 {inputs:
                 outputs:
                   - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
-                    ScriptAddress: 15b00591a2b41c38e2643299b773e706d895eb8d2938ddb62e482b1942a0c00c
+                    ScriptAddress: 36b23480901e0dbfe0e69b3cd31605ddffe8265848ebc3fd4af3ce3080c1d683
                 forge: Value {getValue = Map {unMap = []}}
                 fee: Value {getValue = Map {unMap = []}}
                 mps:
@@ -94,7 +94,7 @@ Events by wallet:
       Response:
         ( 3
         , {tx:
-           WriteTxSuccess: ca63281ddcc92149602f29042b7a00ee117365352dd41ec790a0d304889f97e6} )
+           WriteTxSuccess: 05f91e825f4459f270530472f4fa0768a48f940c64ecb4db75f3f5b4c6c89e47} )
   Events for W3:
     - Iteration: 1
     Requests:
@@ -120,11 +120,11 @@ Events by wallet:
     Requests:
         3: {tx:
             Tx:
-              Tx 6a4c4ba705ec26c0f3daee49bbf44c7fa14452a4875fb270aaca809e28a68ab8:
+              Tx 441a05b0b7b276f0d4278002f6454571cf7f4d1eca29ca685644a61f993fea34:
                 {inputs:
                 outputs:
                   - Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}} addressed to
-                    ScriptAddress: 15b00591a2b41c38e2643299b773e706d895eb8d2938ddb62e482b1942a0c00c
+                    ScriptAddress: 36b23480901e0dbfe0e69b3cd31605ddffe8265848ebc3fd4af3ce3080c1d683
                 forge: Value {getValue = Map {unMap = []}}
                 fee: Value {getValue = Map {unMap = []}}
                 mps:
@@ -136,7 +136,7 @@ Events by wallet:
       Response:
         ( 3
         , {tx:
-           WriteTxSuccess: 41a75e6d15503a0e28cdd13f06d801e86812d93eb67a5c2cda8514a16644171b} )
+           WriteTxSuccess: 6148fbeacdd5bdc93889d2f26eb0b074cb4eea533dcd35301b073881f5e953e0} )
   Events for W4:
     - Iteration: 1
     Requests:
@@ -162,11 +162,11 @@ Events by wallet:
     Requests:
         3: {tx:
             Tx:
-              Tx 950d6a72c34042928f872d9fb55bb6b042304c9e6b82577f08f78ed4fcdb849a:
+              Tx 50cea2fa240ca16d57af7bf663f17583e735551feded8945769eb410c19ce6b1:
                 {inputs:
                 outputs:
                   - Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}} addressed to
-                    ScriptAddress: 15b00591a2b41c38e2643299b773e706d895eb8d2938ddb62e482b1942a0c00c
+                    ScriptAddress: 36b23480901e0dbfe0e69b3cd31605ddffe8265848ebc3fd4af3ce3080c1d683
                 forge: Value {getValue = Map {unMap = []}}
                 fee: Value {getValue = Map {unMap = []}}
                 mps:
@@ -178,7 +178,7 @@ Events by wallet:
       Response:
         ( 3
         , {tx:
-           WriteTxSuccess: bfd3168dc3cace5f95ac0ad0052334a641a475155e74e23c5a37327e0e6b2aa2} )
+           WriteTxSuccess: 0f5220a1a71836bad78c02cd3bc956ce619da2aa997e2e758c63801356222ac5} )
 Contract result by wallet:
     Wallet: W1
       Done
