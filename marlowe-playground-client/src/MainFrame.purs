@@ -4,19 +4,21 @@ import API (_RunResult)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Foldable (for_)
 import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
-import Data.Map as Map
 import Data.List.NonEmpty as NEL
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Time.Duration (Milliseconds(..))
+import Effect.Aff (delay)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gists (GistAction(..))
-import Halogen (Component, ComponentHTML, get, liftEffect, query)
+import Halogen (Component, ComponentHTML, get, liftEffect, query, subscribe)
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
@@ -26,16 +28,17 @@ import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hid
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
-import Halogen.Monaco as Monaco
 import Halogen.Monaco (KeyBindings(DefaultBindings))
+import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
+import Halogen.Query.EventSource (affEventSource, emit)
 import Halogen.Query.HalogenM (imapState, mapAction)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
 import HaskellEditor.Types (_compilationResult)
-import JSEditor as JSEditor
 import HaskellEditor.Types as HE
+import JSEditor as JSEditor
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
@@ -64,14 +67,14 @@ import Simulation.Types as ST
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
 initialState =
   FrontendState
     { view: Simulation
-    , jsCompilationResult: Nothing
+    , jsCompilationResult: JSNotCompiled
     , blocklyState: Nothing
     , actusBlocklyState: Nothing
     , showBottomPanel: true
@@ -238,9 +241,18 @@ handleAction _ CompileJSProgram = do
   case mContents of
     Nothing -> pure unit
     Just contents -> do
-      let
-        res = JSInterpreter.eval contents
-      assign _jsCompilationResult (Just res)
+      assign _jsCompilationResult JSCompiling
+      void $ subscribe
+        $ affEventSource
+            ( \emitter -> do
+                delay (Milliseconds 10.0) -- Small pause to allow UI to redraw
+                emit emitter (CompiledJSProgram (JSInterpreter.eval contents))
+                pure mempty
+            )
+      pure unit
+
+handleAction _ (CompiledJSProgram res) = do
+  assign _jsCompilationResult (either JSCompilationError JSCompiledSuccessfully res)
 
 handleAction _ (LoadJSScript key) = do
   case Map.lookup key StaticData.demoFilesJS of
@@ -252,9 +264,10 @@ handleAction _ (LoadJSScript key) = do
 handleAction s SendResultJSToSimulator = do
   mContract <- use _jsCompilationResult
   case mContract of
-    Nothing -> pure unit
-    Just (Left err) -> pure unit
-    Just (Right (JSI.InterpreterResult { result: contract })) -> do
+    JSNotCompiled -> pure unit
+    JSCompiling -> pure unit
+    JSCompilationError err -> pure unit
+    JSCompiledSuccessfully (JSI.InterpreterResult { result: contract }) -> do
       void $ toSimulation
         $ do
             Simulation.handleAction s (ST.SetEditorText (show $ pretty contract))

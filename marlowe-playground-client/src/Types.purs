@@ -13,12 +13,12 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Halogen (AttrName(..), ClassName)
 import Halogen as H
-import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.ActusBlockly as AB
+import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
-import Halogen.Monaco as Monaco
 import Halogen.Monaco (KeyBindings)
+import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
@@ -43,6 +43,7 @@ data HAction
   | ShowBottomPanel Boolean
   -- haskell actions
   | CompileJSProgram
+  | CompiledJSProgram (Either JS.CompilationError (JS.InterpreterResult Contract))
   | ChangeView View
   | SendResultJSToSimulator
   | LoadJSScript String
@@ -62,6 +63,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (JSSelectEditorKeyBindings _) = Just $ defaultEvent "JSSelectEditorKeyBindings"
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent CompileJSProgram = Just $ defaultEvent "CompileJSProgram"
+  toEvent (CompiledJSProgram _) = Just $ defaultEvent "CompiledJSProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (LoadJSScript script) = Just $ (defaultEvent "LoadJSScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
@@ -117,10 +119,16 @@ derive instance genericView :: Generic View _
 instance showView :: Show View where
   show = genericShow
 
+data JSCompilationState
+  = JSNotCompiled
+  | JSCompiling
+  | JSCompilationError JS.CompilationError
+  | JSCompiledSuccessfully (JS.InterpreterResult Contract)
+
 newtype FrontendState
   = FrontendState
   { view :: View
-  , jsCompilationResult :: Maybe (Either JS.CompilationError (JS.InterpreterResult Contract))
+  , jsCompilationResult :: JSCompilationState
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings
@@ -141,7 +149,7 @@ data MarloweError
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_jsCompilationResult :: Lens' FrontendState (Maybe (Either JS.CompilationError (JS.InterpreterResult Contract)))
+_jsCompilationResult :: Lens' FrontendState JSCompilationState
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
 
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)

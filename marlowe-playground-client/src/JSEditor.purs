@@ -1,7 +1,6 @@
 module JSEditor where
 
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
 import Data.Map as Map
@@ -14,7 +13,7 @@ import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (alt, class_, classes, src)
+import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
@@ -24,7 +23,7 @@ import Monaco as Monaco
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState, HAction(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
+import Types (ChildSlots, FrontendState, HAction(..), JSCompilationState(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
   forall m.
@@ -96,10 +95,14 @@ bottomPanel state =
                 , div
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "js-buttons" ])
                     ]
-                    [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ] -- ToDo: Implement "is compiling" feedback
-                    , sendResultButton state "Send To Simulator" SendResultJSToSimulator
-                    -- , sendResultButton state "Send To Blockly" SendResultToBlockly
-                    ]
+                    ( case view _jsCompilationResult state of
+                        JSCompiling -> [ button [ enabled false, classes [ ClassName "disabled" ] ] [ text "Compiling..." ] ]
+                        JSCompiledSuccessfully _ ->
+                          [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ]
+                          , button [ onClick $ const $ Just SendResultJSToSimulator ] [ text "Send To Simulator" ]
+                          ]
+                        _ -> [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ] ]
+                    )
                 ]
             ]
         , section
@@ -109,29 +112,16 @@ bottomPanel state =
         ]
     ]
 
-sendResultButton :: forall p. FrontendState -> String -> HAction -> HTML p HAction
-sendResultButton state msg action =
-  let
-    compilationResult = view _jsCompilationResult state
-  in
-    case compilationResult of
-      (Just (Right (InterpreterResult result))) ->
-        button
-          [ onClick $ const $ Just action
-          ]
-          [ text msg ]
-      _ -> text ""
-
 resultPane :: forall p. FrontendState -> Array (HTML p HAction)
 resultPane state =
   if state ^. _showBottomPanel then case view _jsCompilationResult state of
-    (Just (Right (InterpreterResult result))) ->
+    JSCompiledSuccessfully (InterpreterResult result) ->
       [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
-    (Just (Left err)) -> [ compilationErrorPane err ]
+    JSCompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "" ]
   else
     [ text "" ]
