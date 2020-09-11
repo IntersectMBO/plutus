@@ -10,7 +10,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.JS.Contracts as JSE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
@@ -83,7 +83,16 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditor
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
-  div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ analysisPanel ]
+            else
+              [ analysisPanel, collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div
         [ classes [ footerPanelBg, ClassName "flip-x" ] ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
@@ -111,6 +120,8 @@ bottomPanel state =
             (resultPane state)
         ]
     ]
+  where
+  showingBottomPanel = state ^. _showBottomPanel
 
 resultPane :: forall p. FrontendState -> Array (HTML p HAction)
 resultPane state =

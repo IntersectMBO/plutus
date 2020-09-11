@@ -253,6 +253,7 @@ handleAction _ CompileJSProgram = do
 
 handleAction _ (CompiledJSProgram res) = do
   assign _jsCompilationResult (either JSCompilationError JSCompiledSuccessfully res)
+  assign _showBottomPanel true
 
 handleAction _ (LoadJSScript key) = do
   case Map.lookup key StaticData.demoFilesJS of

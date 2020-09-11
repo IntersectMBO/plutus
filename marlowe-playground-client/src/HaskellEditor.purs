@@ -24,7 +24,7 @@ import Examples.Haskell.Contracts as HE
 import Foreign.Generic (decode)
 import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
-import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
@@ -196,7 +196,16 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ analysisPanel ]
+            else
+              [ analysisPanel, collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div
         [ classes [ footerPanelBg, ClassName "flip-x" ] ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
@@ -220,6 +229,8 @@ bottomPanel state =
             (resultPane state)
         ]
     ]
+  where
+  showingBottomPanel = state ^. _showBottomPanel
 
 sendResultButton :: forall p. State -> String -> Action -> HTML p Action
 sendResultButton state msg action =
