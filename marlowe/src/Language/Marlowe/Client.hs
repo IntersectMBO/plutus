@@ -290,7 +290,7 @@ mkMachineInstance ffi@(raw, _) params =
 
 {-# INLINABLE defaultMarloweFFI #-}
 defaultMarloweFFI :: MarloweFFI
-defaultMarloweFFI = Map.empty
+defaultMarloweFFI = MarloweFFI Map.empty
 
 
 defaultMarloweCompiledFFI :: CompiledFFI
@@ -304,16 +304,3 @@ mkMarloweClient ffi params = SM.mkStateMachineClient (mkMachineInstance ffi para
 mkDefaultMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
 mkDefaultMarloweClient params = SM.mkStateMachineClient (mkMachineInstance defaultMarloweCompiledFFI params)
 
-
-{-# INLINABLE asdff #-}
-asdff :: MarloweFFI
-asdff = Map.fromList [(0, test)]
-
-
-asdf :: CompiledFFI
-asdf = (asdff, $$(PlutusTx.compile [|| asdff ||]))
-
-
-{-# INLINABLE test #-}
-test :: State -> Integer
-test _ = 42

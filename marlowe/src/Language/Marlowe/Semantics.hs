@@ -48,6 +48,7 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.List                  (intercalate)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
@@ -154,22 +155,6 @@ newtype ValueId = ValueId ByteString
   deriving anyclass (Newtype)
 
 
-data CallType = Plutus deriving Show
-
-data Fun = FunInfo
-    { funType :: CallType
-    , funRangeBounds :: [Bound]
-    , funName :: ByteString
-    , function :: MarloweFFI
-    }
-
-instance Show Fun where
-    show _ = "Fun"
-
--- type MarloweFFI = String -> Maybe (State -> Integer)
-type MarloweFFI = Map Integer (State -> Integer)
--- newtype FunRegistry = Funs (Map ByteString Fun) deriving Show
-
 {-| Values include some quantities that change with time,
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
     and any choices that have already been made.
@@ -188,7 +173,7 @@ data Value a = AvailableMoney AccountId Token
            | SlotIntervalEnd
            | UseValue ValueId
            | Cond a (Value a) (Value a)
-           | Call Integer
+           | Call {- should be ByteString -} Integer [FFArg]
   deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -437,6 +422,46 @@ data MarloweParams = MarloweParams {
     } deriving stock (Show)
 
 
+{-| FFI stands for Foreign Function Interface.
+    This is a way to call a Plutus function from Marlowe contracts.
+
+    Marlowe Interpreter is parameterized by 'MarloweFFI' – a registry of
+    Plutus functions described by 'FFInfo' data type.
+
+    You can call a foreign function using 'Call' constructor of 'Value'.
+    A foreign function receives a @Contract@, its @State@, and a list of @FFArg@,
+    and produces an Integer result.
+
+    @
+    Let (ValueId "hash") (Call "sha256" [ArgInteger 555])
+    @
+    This code calls a Plutus function that calculates SHA256 hash of number 555.
+ -}
+
+data FFArg  = ArgValueId (ValueId)
+            | ArgParty Party
+            | ArgAccountId AccountId
+            | ArgToken Token
+            | ArgInteger Integer
+  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving anyclass (Pretty)
+
+
+data FFInfo = FFInfo
+    { ffiRangeBounds :: [Bound]
+    , ffiFunction :: State -> Contract -> [FFArg] -> Integer
+    }
+
+
+newtype MarloweFFI = MarloweFFI { unMarloweFFI :: Map Integer FFInfo }
+
+instance Show MarloweFFI where
+    show MarloweFFI{unMarloweFFI} = "MarloweFFI { " P.<> funs P.<> " }"
+      where
+        showFunInfo (name, FFInfo{ffiRangeBounds}) = show name P.<> " ∈ " P.<> show ffiRangeBounds
+        funs = intercalate ", " (P.map showFunInfo (Map.toList unMarloweFFI))
+
+
 -- | Empty State for a given minimal 'Slot'
 emptyState :: Slot -> State
 emptyState sn = State
@@ -481,9 +506,8 @@ fixInterval interval ffi state =
   Evaluates @Value@ given current @State@ and @Environment@
 -}
 evalValue :: Environment -> State -> Contract -> Value Observation -> Integer
-evalValue env state contract value = let
-    eval = evalValue env state contract
-    in case value of
+evalValue env state contract value =
+    case value of
         AvailableMoney accId token -> moneyInAccount accId token (accounts state)
         Constant integer     -> integer
         NegValue val         -> negate (eval val)
@@ -505,10 +529,16 @@ evalValue env state contract value = let
                 Just x  -> x
                 Nothing -> 0
         Cond cond thn els    -> if evalObservation env state contract cond then eval thn else eval els
-        Call funName         -> case Map.lookup funName (marloweFFI env) of
-                                    Just f -> f state
-                                    Nothing -> 0
+        Call funName args    ->
+            case Map.lookup funName (unMarloweFFI (marloweFFI env)) of
+                Just FFInfo{ffiFunction, ffiRangeBounds} -> let
+                    result = ffiFunction state contract args
+                    in if result `inBounds` ffiRangeBounds then result else 0
+                Nothing -> 0
   where
+    eval :: Value Observation -> Integer
+    eval = evalValue env state contract
+
     abs :: Integer -> Integer
     abs a = if a >= 0 then a else negate a
 
@@ -888,6 +918,10 @@ instance ToJSON ValueId where
     toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
 
 
+instance FromJSON FFArg where parseJSON = genericParseJSON customOptions
+instance ToJSON FFArg where toJSON = genericToJSON customOptions
+
+
 instance FromJSON (Value Observation) where parseJSON = genericParseJSON customOptions
 instance ToJSON (Value Observation) where toJSON = genericToJSON customOptions
 
@@ -975,6 +1009,16 @@ instance Eq ReduceEffect where
     _ == _ = False
 
 
+instance Eq FFArg where
+    {-# INLINABLE (==) #-}
+    ArgValueId val1 == ArgValueId val2 = val1 == val2
+    ArgParty val1 == ArgParty val2 = val1 == val2
+    ArgAccountId val1 == ArgAccountId val2 = val1 == val2
+    ArgToken val1 == ArgToken val2 = val1 == val2
+    ArgInteger val1 == ArgInteger val2 = val1 == val2
+    _ == _ = False
+
+
 instance Eq a => Eq (Value a) where
     {-# INLINABLE (==) #-}
     AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
@@ -990,6 +1034,7 @@ instance Eq a => Eq (Value a) where
     SlotIntervalEnd   == SlotIntervalEnd   = True
     UseValue val1 == UseValue val2 = val1 == val2
     Cond obs1 thn1 els1 == Cond obs2 thn2 els2 =  obs1 == obs2 && thn1 == thn2 && els1 == els2
+    Call funName1 args1 == Call funName2 args2 = funName1 == funName2 && args1 == args2
     _ == _ = False
 
 instance Eq Observation where
@@ -1062,6 +1107,8 @@ makeLift ''ValueId
 makeIsData ''ValueId
 makeLift ''Value
 makeIsData ''Value
+makeLift ''FFArg
+makeIsData ''FFArg
 makeLift ''Observation
 makeIsData ''Observation
 makeLift ''Bound
@@ -1079,8 +1126,5 @@ makeIsData ''State
 makeLift ''Input
 makeIsData ''Input
 makeLift ''MarloweData
--- makeLift ''FunRegistry
-makeLift ''CallType
--- makeLift ''Fun
 makeIsData ''MarloweData
 makeLift ''MarloweParams

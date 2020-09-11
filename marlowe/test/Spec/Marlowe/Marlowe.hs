@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -13,11 +14,12 @@ where
 
 import           Control.Exception                     (SomeException, catch)
 import           Data.Maybe                            (isJust)
+import qualified Data.ByteString.Lazy                                       as BSL
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
+import qualified Language.PlutusTx                     as PlutusTx
 import           Language.Marlowe.Util
-import           Language.Marlowe.Client (asdf, asdff)
 import           Ledger                                (pubKeyHash)
 import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
@@ -188,11 +190,6 @@ uniqueContractHash = do
     let hash1 = scriptHash $ defaultScriptInstance (params "11")
     let hash2 = scriptHash $ defaultScriptInstance (params "22")
     let hash3 = scriptHash $ defaultScriptInstance (params "22")
-    assertEqual "Nope" 42 $ evalValue
-        (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = asdff })
-        (emptyState (Slot 10))
-        Close
-        (Call 0)
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
@@ -202,7 +199,7 @@ validatorSize :: IO ()
 validatorSize = do
     let validator = validatorScript $ defaultScriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool ("Validator is too large " <> show vsize) (vsize < 1200000)
+    assertBool ("Validator is too large " <> show vsize) (vsize < 1400000)
 
 
 checkEqValue :: Property
@@ -309,6 +306,31 @@ mulAnalysisTest = do
     result <- warningsTrace undefined contract
     --print result
     assertBool "Analysis ok" $ isRight result
+
+
+ffiTest :: IO ()
+ffiTest = do
+    assertEqual "" 42 $ eval (emptyState (Slot 10)) Close (Call 0 [ArgInteger 42])
+    assertEqual "Should be out of bounds"  0 $ eval (emptyState (Slot 10)) Close (Call 0 [ArgInteger 41])
+  where
+    eval = evalValue (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = testFFI })
+
+
+{-# INLINABLE testFFI #-}
+testFFI :: MarloweFFI
+testFFI = MarloweFFI (AssocMap.fromList
+    [ (0, FFInfo { ffiFunction = identity, ffiRangeBounds = [Bound 42 42] })
+    ])
+
+
+testCompiledFFI :: CompiledFFI
+testCompiledFFI = (testFFI, $$(PlutusTx.compile [|| testFFI ||]))
+
+
+{-# INLINABLE identity #-}
+identity :: State -> Contract -> [FFArg] -> Integer
+identity _ _ [ArgInteger x] = x
+identity _ _ _ = 0
 
 
 pangramContractSerialization :: IO ()

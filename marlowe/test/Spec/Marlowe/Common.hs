@@ -178,6 +178,7 @@ shrinkValue value = case value of
     Cond b val1 val2 -> Constant 0 : val1 : val2 : ([Cond x val1 val2 | x <- shrinkObservation b]
                          ++ [Cond b x val2 | x <- shrinkValue val1]
                          ++ [Cond b val1 y | y <- shrinkValue val2])
+    Call _ _ -> [Constant 0]
 
 
 observationGenSized :: Int -> Gen Observation
@@ -350,6 +351,15 @@ pangramContract = let
     constant = Constant 100
     choiceId = ChoiceId "choice" alicePk
     token = Token (CurrencySymbol "aa") (TokenName "name")
+    -- TODO Uncomment when StateMachine is in master, after rebase on master
+    {- call = Call 123
+        [ ArgValueId (ValueId "x")
+        , ArgParty bobRole
+        , ArgAccountId aliceAcc
+        , ArgToken token
+        , ArgInteger 42
+        ]
+    -}
     valueExpr = AddValue constant (SubValue constant (NegValue constant))
     in When
         [ Case (Deposit aliceAcc alicePk ada valueExpr)
