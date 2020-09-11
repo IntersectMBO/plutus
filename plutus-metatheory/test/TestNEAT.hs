@@ -1,8 +1,10 @@
- module Main where
+module Main where
 
 import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
+import           Data.List
+
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Spec
@@ -13,8 +15,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCEKVAgda,
-                                                            runTCKAgda)
+                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCEKCAgda,
+                                                            runTCEKVAgda, runTCKAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -53,30 +55,14 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_typecheck
-  , testCaseGen "runCK"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_runCK
-  , testCaseGen "runTCK"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_runTCK
-  , testCaseGen "runL_vs_TCK"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_run_L_vs_CK
-  , testCaseGen "runCK_vs_TCK"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_run_CK_vs_TCK
   , testCaseGen "run_plcCK_vs_CK"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_run_plcCK_vs_CK
- , testCaseGen "run_TCK_vs_TCEKV"
+   , testCaseGen "Agda model evaluators agree"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_run_TCK_vs_TCEKV
+      (prop_runList [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda])
   ]
 
 -- check that Agda agrees that the given type is correct
@@ -194,67 +180,19 @@ prop_run_plcCK_vs_CK (k , tyG) tmG = do
       Just tmCK -> return tmCK
       Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
-  unless (tmPlcCK == (() <$ tmCKN)) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmPlcCK (() <$ tmCKN))
-
-prop_run_L_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_L_vs_CK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmCK <- withExceptT Ctrex $
-    case runLAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmCK -> return tmCK
-      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
-  return ()
-
-prop_run_CK_vs_TCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_CK_vs_TCK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmCK <- withExceptT Ctrex $
-    case runCKAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmCK -> return tmCK
-      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
-  tmTCK <- withExceptT AgdaErrorP $
-    case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmTCK -> return tmTCK
-      Nothing    -> throwError ()
-  tmCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
-  tmTCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
-  unless (tmCKN == tmTCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmCKN) (() <$tmTCKN))
-
-prop_run_TCK_vs_TCEKV :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_TCK_vs_TCEKV (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmTCK <- withExceptT Ctrex $
-    case runTCKAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmTCK -> return tmTCK
-      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
-  tmTCEKV <- withExceptT AgdaErrorP $
-    case runTCEKVAgda (AlexPn 0 0 0 <$ tmDB) of
-      Just tmTCEKV -> return tmTCEKV
-      Nothing      -> throwError ()
-  tmTCKN  <- withExceptT FVErrorP $ unDeBruijnTerm tmTCK
-  tmTCEKVN <- withExceptT FVErrorP $ unDeBruijnTerm tmTCEKV
-  unless (tmTCKN == tmTCEKVN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmTCKN) (() <$tmTCEKVN))
+  unless (tmPlcCK == (() <$ tmCKN)) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,() <$ tmCKN])
 
 type TERM = Term TyDeBruijn DeBruijn DefaultUni AlexPosn
 
-prop_run_vs :: (TERM -> Maybe TERM) -- typed evaluator 1
-            -> (TERM -> Maybe TERM) -- typed evaluator 2
+prop_runList :: [(TERM -> Maybe TERM)]
             -> (Kind (), ClosedTypeG)
             -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_vs ev1 ev2 (k , tyG) tmG = do
+prop_runList evs (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmEv1 <- withExceptT Ctrex $
-    case ev1 (AlexPn 0 0 0 <$ tmDB) of
-      Just tmEv1 -> return tmEv1
-      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
-  tmEv2 <- withExceptT Ctrex $
-    case ev2 (AlexPn 0 0 0 <$ tmDB) of
-      Just tmEv1 -> return tmEv1
-      Nothing    -> throwError (CtrexTermEvaluationFail tyG tmG)
-  tmEv1N  <- withExceptT FVErrorP $ unDeBruijnTerm tmEv1
-  tmEv2N <- withExceptT FVErrorP $ unDeBruijnTerm tmEv1
-  unless (tmEv1N == tmEv2N) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (() <$ tmEv1N) (() <$tmEv2N))
+  let tmEvsM = evs <*> [AlexPn 0 0 0 <$ tmDB]
+  tmEvs <- withExceptT Ctrex $ case sequence tmEvsM of
+    Just vs -> return vs
+    Nothing -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmEvsN <- withExceptT FVErrorP $ sequence (unDeBruijnTerm <$> tmEvs)
+  unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (map (() <$) tmEvsN))

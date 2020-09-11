@@ -85,9 +85,8 @@ tests genOpts@GenOptions{..} =
 --    v  - this fails as it exposes mistreatment of type annotations by CEK
 --    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       (Type (), TyBuiltinG TyIntegerG)
-      prop_agree_Ck_Cek  ]
-
-
+      prop_agree_Ck_Cek
+  ]
 -- |Property: the following diagram commutes for well-typed terms...
 --
 -- @
@@ -147,7 +146,7 @@ prop_agree_Ck_Cek (k, tyG) tmG = do
 
   tmCek <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
   tmCk <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
-  unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmCek tmCk)
+  unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
 --
@@ -252,7 +251,6 @@ data Ctrex
   | CtrexTypeCheckFail
     ClosedTypeG
     ClosedTermG
-
   | CtrexTypePreservationFail
     ClosedTypeG
     ClosedTermG
@@ -264,8 +262,7 @@ data Ctrex
   | CtrexTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    (Term TyName Name DefaultUni ())
-    (Term TyName Name DefaultUni ())
+    [Term TyName Name DefaultUni ()]
 
 instance Show TestFail where
   show (TypeError e)  = show e
@@ -327,14 +324,12 @@ instance Show Ctrex where
     printf tpl (show tmG) (show tyG)
     where
       tpl = "Counterexample found: %s :: %s"
-  show (CtrexTermEvaluationMismatch tyG tmG tm1 tm2) =
-    printf tpl (show tmG) (show tyG) (show (pretty tm1)) (show (pretty tm2))
+  show (CtrexTermEvaluationMismatch tyG tmG tms) =
+    printf tpl (show tmG) (show tyG) ++ results tms
     where
-      tpl = unlines
-            [ "Counterexample found: %s :: %s"
-            , "- evaluator1 gives %s"
-            , "- evaluator2 gives %s"
-            ]
+      tpl = "Counterexample found: %s :: %s\n"
+      results (t:ts) = "evaluation: " ++ show (pretty t) ++ "\n" ++ results ts
+      results []     = ""
   show (CtrexTypePreservationFail tyG tmG tm1 tm2) =
     printf tpl (show tmG) (show tyG) (show (pretty tm1)) (show (pretty tm2))
     where

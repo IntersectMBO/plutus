@@ -436,19 +436,18 @@ runTCEKV t = do
         ; (◆ _) → nothing}
   
 {-# COMPILE GHC runTCEKV as runTCEKVAgda #-}
-{-
+
 -- Haskell interface to (typechecked) CEKC
 runTCEKC : Term → Maybe Term
 runTCEKC t = do
   tDB ← liftSum (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   _ ,, tC ← liftSum (inferType ∅ tDB)
-  case (Algorithmic.CEKC.stepper maxsteps (ε ▻ tC))
+  case (Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ tC))
        (λ _ → nothing)
-       λ{ (_ ▻ _) → nothing
-        ; (_ ◅ _) → nothing
-        ; (□ {t = tV} _) → just (unconvTm (unshifter Z (extricateScope (extricate tV))))
+       λ{ (_ ; _ ▻ _) → nothing
+        ; (_ ; _ ◅ _) → nothing
+        ; (□ (_ ,, _ ,, V ,, ρ)) → just (unconvTm (unshifter Z (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ))))))
         ; (◆ _) → nothing}
   
 {-# COMPILE GHC runTCEKC as runTCEKCAgda #-}
--}
 \end{code}
