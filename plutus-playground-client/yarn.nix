@@ -5538,6 +5538,14 @@
       };
     }
     {
+      name = "uuid_validate___uuid_validate_0.0.3.tgz";
+      path = fetchurl {
+        name = "uuid_validate___uuid_validate_0.0.3.tgz";
+        url  = "https://registry.yarnpkg.com/uuid-validate/-/uuid-validate-0.0.3.tgz";
+        sha1 = "e30617f75dc742a0e4f95012a11540faf9d39ab4";
+      };
+    }
+    {
       name = "uuid___uuid_3.3.2.tgz";
       path = fetchurl {
         name = "uuid___uuid_3.3.2.tgz";
