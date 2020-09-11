@@ -28,11 +28,11 @@ import           Data.Semigroup                   (Max (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
-import           Wallet.Effects                   (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                   ChainIndexEffect (..))
+import           Wallet.Effects                   (ChainIndexEffect (..))
 import           Wallet.Emulator.ChainIndex.Index (ChainIndex, ChainIndexItem (..))
 import qualified Wallet.Emulator.ChainIndex.Index as Index
 import           Wallet.Emulator.NodeClient       (ChainClientNotification (..))
+import           Wallet.Types                     (AddressChangeRequest (..), AddressChangeResponse (..))
 
 import           Ledger.Address                   (Address)
 import           Ledger.AddressMap                (AddressMap)

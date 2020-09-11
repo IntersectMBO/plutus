@@ -84,6 +84,7 @@
           (hsPkgs."wai" or (errorHandler.buildDepError "wai"))
           (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+          (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           ];
         buildable = true;
         modules = [

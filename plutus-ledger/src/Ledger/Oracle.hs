@@ -1,9 +1,11 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -28,6 +30,7 @@ module Ledger.Oracle(
   , signObservation
   ) where
 
+import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy      as BSL
 import           GHC.Generics              (Generic)
 
@@ -87,7 +90,8 @@ data SignedMessage a = SignedMessage
     -- ^ Hash of the message
     , osmDatum       :: Datum
     }
-    deriving (Generic, Haskell.Show)
+    deriving stock (Generic, Haskell.Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 data SignedMessageCheckError =
     SignatureMismatch Signature PubKey DatumHash

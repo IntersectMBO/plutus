@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -22,6 +24,8 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     ) where
 
 import           Control.Monad                (void)
+import           Data.Aeson (ToJSON, FromJSON)
+import           GHC.Generics (Generic)
 import           Language.Plutus.Contract
 import qualified Ledger.Constraints           as Constraints
 import qualified Language.Plutus.Contract.Typed.Tx  as Tx
@@ -45,7 +49,8 @@ data MultiSig =
                 , minNumSignatures :: Integer
                 -- ^ Minimum number of signatures required to unlock
                 --   the output (should not exceed @length signatories@)
-                } deriving Show
+                } deriving stock (Show, Generic)
+                  deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeLift ''MultiSig
 

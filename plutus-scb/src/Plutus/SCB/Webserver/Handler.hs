@@ -23,7 +23,6 @@ import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
@@ -163,11 +162,9 @@ getContractInstanceState contractId = do
 invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
-       , Member (ContractEffect t) effs
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , Member (LogObserve (LogMessage Text)) effs
        , Pretty t
        )
     => EndpointDescription
@@ -203,7 +200,6 @@ handler ::
        , Member (Error SCBError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
-       , Member (LogObserve (LogMessage Text)) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
