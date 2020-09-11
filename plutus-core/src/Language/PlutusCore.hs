@@ -72,8 +72,8 @@ module Language.PlutusCore
     , normalizeTypesIn
     , normalizeTypesInProgram
     , InternalTypeError (..)
-    , TypeError (..)
     , AsTypeError (..)
+    , TypeError
     , parseTypecheck
     -- for testing
     , typecheckPipeline
@@ -153,7 +153,7 @@ fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
 printType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni AlexPosn,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -177,7 +177,7 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni AlexPosn,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
@@ -185,7 +185,7 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsTypeError e DefaultUni a,
+    :: (AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni a,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni

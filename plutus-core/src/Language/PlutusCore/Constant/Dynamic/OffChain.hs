@@ -31,7 +31,7 @@ getStringBuiltinMeanings =
 
 getStringBuiltinTypes
     :: forall uni ann e m.
-       ( AsTypeError e uni ann, MonadError e m, MonadQuote m
+       ( AsTypeError e (Term TyName Name uni ()) uni ann, MonadError e m, MonadQuote m
        , GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        )
     => ann -> m (DynamicBuiltinNameTypes uni)

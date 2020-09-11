@@ -21,6 +21,7 @@ import qualified Language.PlutusIR.Compiler        as PIR
 import qualified Language.PlutusCore               as PLC
 import qualified Language.PlutusCore.Check.Uniques as PLC
 import qualified Language.PlutusCore.Pretty        as PLC
+import qualified Language.PlutusIR                 as PIR
 
 import           Control.Lens
 import           Control.Monad.Except
@@ -74,8 +75,11 @@ instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, P
             PP.Pretty (Error uni a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1) uni2 () where
-    _TypeError = _NoContext . _PLCError . PLC._TypeError
+instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1) (PIR.Term PIR.TyName PIR.Name uni2 ()) uni2 (PIR.Provenance ()) where
+    _TypeError = _NoContext . _PIRError . PIR._TypeError
+
+instance uni1 ~ uni2 => PIR.AsTypeErrorExt (CompileError uni1) uni2 (PIR.Provenance ()) where
+    _TypeErrorExt = _NoContext . _PIRError . PIR._TypeErrorExt
 
 instance uni1 ~ uni2 => PLC.AsNormCheckError (CompileError uni1) PLC.TyName PLC.Name uni2 () where
     _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError

@@ -19,6 +19,7 @@ module Language.PlutusIR (
     typeSubtypes,
     Datatype (..),
     datatypeNameString,
+    datatypeSubtypes,
     Recursivity (..),
     Strictness (..),
     Binding (..),

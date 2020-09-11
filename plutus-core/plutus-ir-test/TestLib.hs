@@ -1,5 +1,7 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module TestLib where
 
 import           Common
@@ -11,11 +13,16 @@ import           Control.Monad.Except
 import           Control.Monad.Reader         as Reader
 
 import qualified Language.PlutusCore.DeBruijn as PLC
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.Universe as PLC
+import           Language.PlutusIR            as PIR
+import           Language.PlutusIR.Error      as PIR
 import           Language.PlutusIR.Parser     as Parser
-
+import           Language.PlutusIR.TypeCheck
 import           System.FilePath              (joinPath, (</>))
+import           Text.Megaparsec.Pos
 
 import qualified Data.Text                    as T
 import qualified Data.Text.IO                 as T
@@ -54,3 +61,19 @@ goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
 
 goldenEvalPir :: (GetProgram a PLC.DefaultUni) => Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runPlc [ast])
+
+
+goldenTypeFromPir :: forall a. (Pretty a, Typeable a)
+                  => Parser (Term TyName Name PLC.DefaultUni a) -> String -> TestNested
+goldenTypeFromPir = goldenPirM (\ast -> ppThrow $
+                                withExceptT (toException :: PIR.Error PLC.DefaultUni a -> SomeException) $ runQuoteT $ inferType defConfig ast)
+
+goldenTypeFromPirCatch :: forall a. (Pretty a, Typeable a)
+                  => Parser (Term TyName Name PLC.DefaultUni a) -> String -> TestNested
+goldenTypeFromPirCatch = goldenPirM (\ast -> ppCatch $
+                                withExceptT (toException :: PIR.Error PLC.DefaultUni a -> SomeException) $ runQuoteT $ inferType defConfig ast)
+
+
+-- TODO: perhaps move to Common.hs
+instance Pretty SourcePos where
+    pretty = pretty . sourcePosPretty
