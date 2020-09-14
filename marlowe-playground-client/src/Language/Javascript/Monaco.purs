@@ -7,7 +7,7 @@ import Halogen.Monaco (Settings)
 import Monaco (Editor, LanguageExtensionPoint(..))
 
 languageExtensionPoint :: LanguageExtensionPoint
-languageExtensionPoint = LanguageExtensionPoint { id: "javascript" }
+languageExtensionPoint = LanguageExtensionPoint { id: "typescript" }
 
 refLabel :: RefLabel
 refLabel = RefLabel "jsEditor"

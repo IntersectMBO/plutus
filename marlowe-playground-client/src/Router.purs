@@ -39,7 +39,7 @@ route =
         { "Home": noArgs
         , "Simulation": "simulation" / noArgs
         , "HaskellEditor": "haskell" / noArgs
-        , "JSEditor": "javscript" / noArgs
+        , "JSEditor": "javascript" / noArgs
         , "Blockly": "blockly" / noArgs
         , "ActusBlocklyEditor": "actus" / noArgs
         , "Wallets": "wallets" / noArgs

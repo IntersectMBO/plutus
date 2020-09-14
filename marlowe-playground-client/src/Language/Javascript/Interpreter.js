@@ -8,7 +8,8 @@ exports.eval_ = function (left, right, javascript) {
   var context = require('src/Language/Javascript/MarloweJS.ts');
   context['bigInt'] = require('big-integer');
   try {
-    let res = safeEval(javascript, context);
+    var justCode = javascript.split(/^.*\/\* === Code above this comment will be removed at compile time === \*\/$/gm).slice(1).join('');
+    let res = safeEval(justCode, context);
     return right(JSON.stringify(res));
   } catch (error) {
     return (left(error.toString()));

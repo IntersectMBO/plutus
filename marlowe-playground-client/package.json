@@ -36,6 +36,7 @@
     "nearley-webpack-loader": "https://github.com/shmish111/nearley-webpack-loader/archive/master.tar.gz",
     "node-sass": "^4.12.0",
     "purs-loader": "^3.6.0",
+    "raw-loader": "^4.0.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^6.2.1",

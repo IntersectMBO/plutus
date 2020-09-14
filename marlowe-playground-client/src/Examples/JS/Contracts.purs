@@ -58,15 +58,15 @@ const bobChosen = choiceValueBy(bob);
 /* The contract to follow when Alice and Bob disagree, or if
    Carol has to intervene after a single choice from Alice or Bob. */
 
-const arbitrate = whenM([caseM(carolRefund, close),
-                         caseM(carolPay, payM(alicesAccount, bob, ada, price, close))],
-                        bigInt(100), close);
+const arbitrate = whenM([caseM(carolRefund, closeM),
+                         caseM(carolPay, payM(alicesAccount, bob, ada, price, closeM))],
+                        bigInt(100), closeM);
 
 /* The contract to follow when Alice and Bob have made the same choice. */
 
 const agreement = ifM(valueEQ(aliceChosen, constant(bigInt(0))),
-                      payM(alicesAccount, bob, ada, price, close),
-                      close);
+                      payM(alicesAccount, bob, ada, price, closeM),
+                      closeM);
 
 /* Inner part of contract */
 
@@ -76,7 +76,7 @@ const inner = whenM([caseM(aliceChoice,
                                agreement,
                                arbitrate))],
                       bigInt(60), arbitrate))],
-                bigInt(40), close);
+                bigInt(40), closeM);
 
 /* What does the vanilla contract look like?
   - if Alice and Bob choose
@@ -87,7 +87,7 @@ const inner = whenM([caseM(aliceChoice,
 
 const contract = whenM([caseM(deposit(alicesAccount, alice, ada, price), inner)],
                        bigInt(10),
-                       close)
+                       closeM)
 
 contract
 """
@@ -103,13 +103,13 @@ whenM([caseM(
         deposit(investorAcc, investor, ada, constant(bigInt(850))),
         payM(investorAcc, issuer, ada, constant(bigInt(850)),
              whenM([ caseM(deposit(investorAcc, issuer, ada, constant(bigInt(1000))),
-                           payM(investorAcc, investor, ada, constant(bigInt(1000)), close))
+                           payM(investorAcc, investor, ada, constant(bigInt(1000)), closeM))
                    ],
                    bigInt(20),
-                   close)
+                   closeM)
             ))],
       bigInt(10),
-      close);
+      closeM);
 """
 
 couponBondGuaranteed :: String
@@ -119,28 +119,28 @@ const guarantor = role("guarantor");
 const investor = role("investor");
 const investorAcc = accountId(bigInt(0), investor);
 
-whenM([caseM(deposit(investorAcc, guarantor, ada, bigInt(1030)),
-        (whenM([caseM(deposit(investorAcc, investor, ada, bigInt(1000)),
-                payM(investorAcc, issuer, ada, bigInt(1000),
-                    (whenM([caseM(deposit( investorAcc, issuer, ada, bigInt(10)),
-                            payM(investorAcc, investor, ada, bigInt(10),
-                                payM(investorAcc, guarantor, ada, bigInt(10),
-                                    (whenM([caseM(deposit(investorAcc, issuer, ada, bigInt(10)),
-                                            payM(investorAcc, investor, ada, bigInt(10),
-                                                payM(investorAcc, guarantor, ada, bigInt(10),
-                                                    (whenM([caseM(deposit(investorAcc, issuer, ada, bigInt(1010)),
-                                                            payM(investorAcc, investor, ada, bigInt(1010),
-                                                                payM(investorAcc, guarantor, ada, bigInt(1010), close)
-                                                            ))], bigInt(20), close)
+whenM([caseM(deposit(investorAcc, guarantor, ada, constant(bigInt(1030))),
+        (whenM([caseM(deposit(investorAcc, investor, ada, constant(bigInt(1000))),
+                payM(investorAcc, issuer, ada, constant(bigInt(1000)),
+                    (whenM([caseM(deposit( investorAcc, issuer, ada, constant(bigInt(10))),
+                            payM(investorAcc, investor, ada, constant(bigInt(10)),
+                                payM(investorAcc, guarantor, ada, constant(bigInt(10)),
+                                    (whenM([caseM(deposit(investorAcc, issuer, ada, constant(bigInt(10))),
+                                            payM(investorAcc, investor, ada, constant(bigInt(10)),
+                                                payM(investorAcc, guarantor, ada, constant(bigInt(10)),
+                                                    (whenM([caseM(deposit(investorAcc, issuer, ada, constant(bigInt(1010))),
+                                                            payM(investorAcc, investor, ada, constant(bigInt(1010)),
+                                                                payM(investorAcc, guarantor, ada, constant(bigInt(1010)), closeM)
+                                                            ))], bigInt(20), closeM)
                                                     )       
                                                 )   
-                                            ))], bigInt(15), close)
+                                            ))], bigInt(15), closeM)
                                     )       
                                 )   
-                            ))], bigInt(10), close)
+                            ))], bigInt(10), closeM)
                     )       
-                ))], bigInt(5), close)
-        ))], bigInt(5), close)
+                ))], bigInt(5), closeM)
+        ))], bigInt(5), closeM)
 """
 
 swap :: String
@@ -156,11 +156,11 @@ const contract = whenM([ caseM(deposit(acc1, party1, ada, constant(bigInt(500)))
                            /* when 1st party committed, wait for 2nd */
                            whenM([caseM(deposit(acc2, party2, ada, constant(bigInt(300))),
                                        payM(acc1, party2, ada, constant(bigInt(500)),
-                                           payM(acc2, party1, ada, constant(bigInt(300)), close)))
+                                           payM(acc2, party1, ada, constant(bigInt(300)), closeM)))
                                ], date1,
                            /* if a party dosn't commit, simply Close to the owner */
-                           close))
-                       ], date1.minus(gracePeriod), close);
+                           closeM))
+                       ], date1.minus(gracePeriod), closeM);
 
 contract
 """

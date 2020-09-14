@@ -287,7 +287,7 @@ type Contract = "close"
               | { "assert": Observation,
                   "then": Contract };
 
-export const close : Contract = "close";
+export const closeM : Contract = "close";
 
 export const payM =
     function (accId : AccountId, payee : Payee, token : Token,
