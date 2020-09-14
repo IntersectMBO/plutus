@@ -70,6 +70,7 @@ initialState =
     , showBottomPanel: true
     , haskellState: HE.initialState
     , simulationState: ST.mkState
+    , showShiny: false
     }
 
 ------------------------------------------------------------

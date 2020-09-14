@@ -54,12 +54,11 @@ ui <- fluidPage(
   useShinyjs(),
   extendShinyjs(text = jscode, functions = c()),  
   headerPanel(''),
+  mainPanel(plotlyOutput('plot')),
   sliderInput("ipnr", 
               label = "Interest rate resets:",
-              min = 0, max = 1, value = c(0)),
-  mainPanel(
-    plotlyOutput('plot')
-  )
+              min = 0, max = 1, value = c(0))
+
 )
 
 server <- function(input, output, session) { 

@@ -19,7 +19,7 @@ import Halogen as H
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
-import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer)
+import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
 import Halogen.HTML.Core (AttrName(..))
 import Effect (Effect)
@@ -35,6 +35,7 @@ type BlocklyState
   = { actusBlocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
+    , showShiny :: Boolean
     }
 
 _actusBlocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
@@ -45,6 +46,9 @@ _generator = prop (SProxy :: SProxy "generator")
 
 _errorMessage :: Lens' BlocklyState (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
+
+_showShiny :: Lens' BlocklyState Boolean
+_showShiny = prop (SProxy :: SProxy "showShiny")
 
 data BlocklyQuery a
   = Resize a
@@ -69,7 +73,7 @@ type DSL m a
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)" }
+    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
     , render
     , eval:
       H.mkEval
@@ -150,7 +154,9 @@ handleAction RunAnalysis = do
       assign _errorMessage Nothing
       case parseActusJsonCode contract of 
         Left e -> assign _errorMessage $ Just e
-        Right c -> liftEffect $ sendContractToShiny $ encodeJSON c
+        Right c -> do 
+          assign _showShiny true
+          liftEffect $ sendContractToShiny $ encodeJSON c
       
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
@@ -176,15 +182,15 @@ render state =
           , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
           ]
           []
-      , shiny
+      , shiny state
       ]
     ]
 
 shiny ::
   forall p.
-  HTML p BlocklyAction
-shiny =
-    aside [ classes [ sidebarComposer, expanded false] ]
+  BlocklyState -> HTML p BlocklyAction
+shiny state =
+    aside [ classes ([ sidebarComposer, expanded false] <> if state.showShiny then [] else [hide])]
       [ div [attr (AttrName "style") "height: 100%;"] [ 
         iframe 
         [
