@@ -3,6 +3,7 @@
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
 {-# OPTIONS_GHC -w #-}
@@ -12,18 +13,23 @@ module Spec.Marlowe.Marlowe
 where
 
 import           Control.Exception                     (SomeException, catch)
+import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Maybe                            (isJust)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
+import qualified Language.PlutusTx                     as PlutusTx
+import           Ledger                                (pubKeyHash)
 import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
+import qualified Data.Map.Strict                       as Map
 import           Data.Ratio                            ((%))
+import qualified Data.Set                              as S
 import           Data.String
 
 import qualified Codec.CBOR.Write                      as Write
@@ -34,6 +40,7 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
 
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (lovelaceValueOf)
@@ -48,27 +55,46 @@ import           Test.Tasty.QuickCheck
 
 tests :: TestTree
 tests = testGroup "Marlowe"
-    [ testCase "Contracts with different creators have different hashes" uniqueContractHash
-    , testCase "Token Show instance respects HEX and Unicode" tokenShowTest
-    , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
-    , testCase "State serializes into valid JSON" stateSerialization
-    , testCase "Validator size is reasonable" validatorSize
-    , testCase "Mul analysis" mulAnalysisTest
-    , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
-    , testProperty "Value double negation" doubleNegation
-    , testProperty "Values form abelian group" valuesFormAbelianGroup
-    , testProperty "Values can be serialized to JSON" valueSerialization
-    , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
-    , testProperty "Multiply by zero" mulTest
-    , testProperty "Scale rounding" scaleRoundingTest
-    , zeroCouponBondTest
-    , trustFundTest
+    [ testGroup "Cases"
+        [ testCase "Contracts with different creators have different hashes" uniqueContractHash
+        , testCase "Token Show instance respects HEX and Unicode" tokenShowTest
+        , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
+        , testCase "State serializes into valid JSON" stateSerialization
+        , testCase "Validator size is reasonable" validatorSize
+        ]
+    , testGroup "Properties"
+        [ testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
+        , testProperty "Value double negation" doubleNegation
+        , testProperty "Values form abelian group" valuesFormAbelianGroup
+        , testProperty "Values can be serialized to JSON" valueSerialization
+        , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
+        , testProperty "Multiply by zero" mulTest
+        , testProperty "Scale rounding" scaleRoundingTest
+        ]
+    , testGroup "Contracts"
+        [ zeroCouponBondTest
+        , trustFundTest
+        ]
+    , testGroup "Static Analysis"
+        [ testCase "Close is valid" closeIsValidTest
+        , testCase "Mul analysis" mulAnalysisTest
+        , testCase "FFI Test" ffiTest
+        , testCase "Negative payment issues a warning" payNegativeGivesWarningTest
+        , testProperty "No false positives" prop_noFalsePositives
+        ]
+    , testGroup "Marlowe JSON"
+        [ testProperty "Serialise deserialise loops" prop_jsonLoops
+        ]
     ]
 
 
 alice, bob :: Wallet
 alice = Wallet 1
 bob = Wallet 2
+
+alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+aliceAcc = AccountId 0 alicePk
+bobPk = PK $ (pubKeyHash $ walletPubKey bob)
 
 
 zeroCouponBondTest :: TestTree
@@ -81,10 +107,6 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
-        aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
-
     let params = defaultMarloweParams
 
     let zeroCouponBond = When [ Case
@@ -129,10 +151,6 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     /\ walletFundsChange bob (lovelaceValueOf (256))
     ) $ do
     -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
-
     let params = defaultMarloweParams
     let chId = ChoiceId "1" alicePk
 
@@ -182,18 +200,19 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
-    let hash1 = scriptHash $ scriptInstance (params "11")
-    let hash2 = scriptHash $ scriptInstance (params "22")
-    let hash3 = scriptHash $ scriptInstance (params "22")
+    let hash1 = scriptHash $ defaultScriptInstance (params "11")
+    let hash2 = scriptHash $ defaultScriptInstance (params "22")
+    let hash3 = scriptHash $ defaultScriptInstance (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
+
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript $ scriptInstance defaultMarloweParams
+    let validator = validatorScript $ defaultScriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
+    assertBool ("Validator is too large " <> show vsize) (vsize < 1500000)
 
 
 checkEqValue :: Property
@@ -209,9 +228,17 @@ checkEqValue = property $ do
             .&&. (if a P.== b && b P.== c then a P.== c else True) -- transitive
 
 
+{-# INLINABLE dummyFFI #-}
+dummyFFI :: State -> Integer
+dummyFFI _ = 42
+
+
 doubleNegation :: Property
 doubleNegation = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     forAll valueGen $ \a -> eval (NegValue (NegValue a)) === eval a
 
 
@@ -222,7 +249,10 @@ valuesFormAbelianGroup = property $ do
             b <- valueGen
             c <- valueGen
             return (a, b, c)
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue
+                    (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                    (emptyState (Slot 10))
+                    Close
     forAll gen $ \(a, b, c) ->
         -- associativity of addition
         eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c)) .&&.
@@ -238,7 +268,10 @@ valuesFormAbelianGroup = property $ do
 
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     -- test half-even rounding
     let gen = do
             n <- amount
@@ -251,14 +284,20 @@ scaleRoundingTest = property $ do
 
 scaleMulTest :: Property
 scaleMulTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue
+                    (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                    (emptyState (Slot 10))
+                    Close
     forAll valueGen $ \a ->
         eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
 
 
 mulTest :: Property
 mulTest = property $ do
-    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    let eval = evalValue
+                (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = defaultMarloweFFI })
+                (emptyState (Slot 10))
+                Close
     forAll valueGen $ \a ->
         eval (MulValue (Constant 0) a) === 0
 
@@ -273,13 +312,43 @@ valueSerialization = property $
 
 mulAnalysisTest :: IO ()
 mulAnalysisTest = do
-    let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
-        alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk
-        contract = If (muliply `ValueGE` Constant 10000) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
-    result <- warningsTrace contract
-    --print result
-    assertBool "Analysis ok" $ isRight result
+    let muliply = MulValue (Constant 500) (Constant 500)
+        contract = If (muliply `ValueGE` Constant 10000)
+                    Close
+                    (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
+    result <- warningsTrace defaultMarloweFFIInfo contract
+    assertBool "Analysis ok" $ isContractValid result
+
+
+ffiTest :: IO ()
+ffiTest = do
+    assertEqual "" 42 $ eval (emptyState (Slot 10)) Close (Call 0 [ArgInteger 42])
+    assertEqual "Should be out of bounds"  12 $ eval (emptyState (Slot 10)) Close (Call 0 [ArgInteger 50])
+    let contract = When [Case (Deposit aliceAcc alicePk ada (Constant 41))
+                         (Pay aliceAcc (Party "bob") ada (Call 0 []) Close)] 123 Close
+    res <- warningsTrace (marloweFFIInfoFromMarloweFFI testFFI) contract
+    case res of
+        CounterExample MkCounterExample{ceFFIValues} -> assertEqual "" 42 (ceFFIValues Map.! 0)
+        _                                            -> assertFailure "Must find counterexample"
+  where
+    eval = evalValue (Environment { slotInterval = (Slot 10, Slot 1000), marloweFFI = testFFI })
+
+
+{-# INLINABLE testFFI #-}
+testFFI :: MarloweFFI
+testFFI = MarloweFFI (AssocMap.fromList
+    [ (0, (identity, FFInfo {ffiRangeBounds = [Bound 40 42], ffiOutOfBoundsValue = 12 }))
+    ])
+
+
+testCompiledFFI :: CompiledFFI
+testCompiledFFI = (testFFI, $$(PlutusTx.compile [|| testFFI ||]))
+
+
+{-# INLINABLE identity #-}
+identity :: State -> Contract -> [FFArg] -> Integer
+identity _ _ [ArgInteger x] = x
+identity _ _ _              = 0
 
 
 pangramContractSerialization :: IO ()
@@ -314,6 +383,33 @@ stateSerialization = do
                 Nothing  -> assertFailure "Nope"
         Nothing -> assertFailure "Nope"
 
+
+analyseContract :: Contract -> IO AnalysisResult
+analyseContract contract = do
+    res <- catch (warningsTrace defaultMarloweFFIInfo contract)
+        (\exc -> return $ AnalysisError (show (exc :: SomeException)))
+    return res
+
+
+closeIsValidTest :: IO ()
+closeIsValidTest = do
+    result <- analyseContract Close
+    case result of
+        ValidContract -> return ()
+        err           -> assertFailure (show err)
+
+
+payNegativeGivesWarningTest :: IO ()
+payNegativeGivesWarningTest = do
+    let contract =
+            When [Case (Deposit aliceAcc alicePk ada (Constant 10))
+                  (Pay aliceAcc (Party "bob") ada (Constant (-10)) Close)] 123 Close
+    result <- analyseContract contract
+    case result of
+        CounterExample MkCounterExample{ceWarnings=[TransactionNonPositivePay _ _ _ _]} -> return ()
+        _ -> assertFailure $ "Contract must issue TransactionNonPositivePay warning: " <> show contract
+
+
 prop_showWorksForContracts :: Property
 prop_showWorksForContracts = forAllShrink contractGen shrinkContract showWorksForContract
 
@@ -332,29 +428,31 @@ interpretContractString :: MonadInterpreter m => String -> m Contract
 interpretContractString contractStr = interpret contractStr (as :: Contract)
 
 
+hasCounterExample :: AnalysisResult -> Bool
+hasCounterExample (CounterExample _) = True
+hasCounterExample _                  = False
+
 noFalsePositivesForContract :: Contract -> Property
-noFalsePositivesForContract cont =
-  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
-                                   (\exc -> return $ Left (Left (exc :: SomeException)))
-                      return (case res of
-                                Left err -> counterexample (show err) False
-                                Right answer ->
-                                   tabulate "Has counterexample" [show (isJust answer)]
-                                   (case answer of
-                                      Nothing ->
-                                         tabulate "Is empty contract" [show (cont == Close)]
-                                                  True
-                                      Just (is, li, warns) ->
-                                         counterexample ("Trace: " ++ show (is, li)) $
-                                         tabulate "Number of warnings" [show (length warns)]
-                                                  (warns =/= []))))
+noFalsePositivesForContract cont = unsafePerformIO $ do
+    res <- analyseContract cont
+    case res of
+        AnalysisError err -> return $ counterexample err False
+        answer -> return $ tabulate "Has counterexample" [show (hasCounterExample answer)]
+                (case answer of
+                    ValidContract ->
+                        tabulate "Is empty contract" [show (cont == Close)]
+                                True
+                    CounterExample (MkCounterExample{ceInitialSlot,ceTransactionInputs,ceWarnings}) ->
+                        counterexample ("Trace: " ++ show (ceInitialSlot, ceTransactionInputs)) $
+                            tabulate "Number of warnings" [show (length ceWarnings)] (ceWarnings =/= []))
 
 
 wrapLeft :: IO (Either a b) -> IO (Either (Either c a) b)
-wrapLeft r = do tempRes <- r
-                return (case tempRes of
-                          Left x  -> Left (Right x)
-                          Right y -> Right y)
+wrapLeft r = do
+    tempRes <- r
+    return (case tempRes of
+                Left x  -> Left (Right x)
+                Right y -> Right y)
 
 
 prop_noFalsePositives :: Property
@@ -362,25 +460,19 @@ prop_noFalsePositives = forAllShrink contractGen shrinkContract noFalsePositives
 
 
 sameAsOldImplementation :: Contract -> Property
-sameAsOldImplementation cont =
-  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
-                                   (\exc -> return $ Left (Left (exc :: SomeException)))
-                      res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
-                                    (\exc -> return $ Left (Left (exc :: SomeException)))
-                      return (case (res, res2) of
-                                 (Right Nothing, Right Nothing) ->
-                                    label "No counterexample" True
-                                 (Right (Just _), Right Nothing) ->
-                                    label "Old version couldn't see counterexample" True
-                                 (Right (Just _), Right (Just _)) ->
-                                    label "Both versions found counterexample" True
-                                 (Left _, Left _) ->
-                                    label "Both solvers failed" True
-                                 (Left _, _) ->
-                                    label "Solver for new version failed" True
-                                 (_, Left _) ->
-                                    label "Solver for old version failed" True
-                                 problems -> counterexample (show problems) False))
+sameAsOldImplementation cont = unsafePerformIO $ do
+    res <- analyseContract cont
+    res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
+            (\exc -> return $ Left (Left (exc :: SomeException)))
+    let result = case (res, res2) of
+            (ValidContract, Right Nothing)     -> label "No counterexample" True
+            (CounterExample _, Right Nothing)  -> label "Old version couldn't see counterexample" True
+            (CounterExample _, Right (Just _)) -> label "Both versions found counterexample" True
+            (AnalysisError _, Left _)          -> label "Both solvers failed" True
+            (AnalysisError _, _)               -> label "Solver for new version failed" True
+            (_, Left _)                        -> label "Solver for old version failed" True
+            problems                           -> counterexample (show problems) False
+    return result
 
 
 runManuallySameAsOldImplementation :: Property
@@ -392,4 +484,3 @@ jsonLoops cont = decode (encode cont) === Just cont
 
 prop_jsonLoops :: Property
 prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
-

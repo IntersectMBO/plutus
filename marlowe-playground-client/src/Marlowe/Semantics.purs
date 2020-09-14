@@ -346,13 +346,13 @@ data Value
   | SlotIntervalEnd
   | UseValue ValueId
   | Cond Observation Value Value
+  | Call String (Array FFArg)
 
 derive instance genericValue :: Generic Value _
 
 derive instance eqValue :: Eq Value
 
-derive instance ordValue :: Ord Value
-
+-- derive instance ordValue :: Ord Value
 instance encodeJsonValue :: Encode Value where
   encode (AvailableMoney accId tok) =
     encode
@@ -401,6 +401,7 @@ instance encodeJsonValue :: Encode Value where
       , then: thenValue
       , else: elseValue
       }
+  encode (Call name args) = encode { call: name, args: args }
 
 instance decodeJsonValue :: Decode Value where
   decode a =
@@ -441,6 +442,9 @@ instance decodeJsonValue :: Decode Value where
             <*> decodeProp "then" a
             <*> decodeProp "else" a
         )
+      <|> ( Call <$> (decode =<< readProp "call" a)
+            <*> (decode =<< readProp "args" a)
+        )
 
 instance showValue :: Show Value where
   show v = genericShow v
@@ -469,8 +473,7 @@ derive instance genericObservation :: Generic Observation _
 
 derive instance eqObservation :: Eq Observation
 
-derive instance ordObservation :: Ord Observation
-
+-- derive instance ordObservation :: Ord Observation
 instance encodeJsonObservation :: Encode Observation where
   encode (AndObs lhs rhs) =
     encode
@@ -636,8 +639,7 @@ derive instance genericAction :: Generic Action _
 
 derive instance eqAction :: Eq Action
 
-derive instance ordAction :: Ord Action
-
+-- derive instance ordAction :: Ord Action
 instance encodeJsonAction :: Encode Action where
   encode (Deposit accountId party token value) =
     encode
@@ -715,8 +717,7 @@ derive instance genericCase :: Generic Case _
 
 derive instance eqCase :: Eq Case
 
-derive instance ordCase :: Ord Case
-
+-- derive instance ordCase :: Ord Case
 instance encodeJsonCase :: Encode Case where
   encode (Case action cont) =
     encode
@@ -752,8 +753,7 @@ derive instance genericContract :: Generic Contract _
 
 derive instance eqContract :: Eq Contract
 
-derive instance ordContract :: Ord Contract
-
+-- derive instance ordContract :: Ord Contract
 instance encodeJsonContract :: Encode Contract where
   encode Close = encode "close"
   encode (Pay accId payee token val cont) =
@@ -864,24 +864,25 @@ _minSlot :: Lens' State Slot
 _minSlot = _Newtype <<< prop (SProxy :: SProxy "minSlot")
 
 newtype Environment
-  = Environment { slotInterval :: SlotInterval }
+  = Environment { slotInterval :: SlotInterval, marloweFFI :: MarloweFFI }
 
 derive instance genericEnvironment :: Generic Environment _
 
 derive instance newtypeEnvironment :: Newtype Environment _
 
-derive instance eqEnvironment :: Eq Environment
-
-derive instance ordEnvironment :: Ord Environment
-
+-- derive instance eqEnvironment :: Eq Environment
+-- derive instance ordEnvironment :: Ord Environment
 instance showEnvironment :: Show Environment where
   show v = genericShow v
 
 _slotInterval :: Lens' Environment SlotInterval
 _slotInterval = _Newtype <<< prop (SProxy :: SProxy "slotInterval")
 
-makeEnvironment :: BigInteger -> BigInteger -> Environment
-makeEnvironment l h = Environment { slotInterval: SlotInterval (Slot h) (Slot l) }
+defaultMarloweFFI :: MarloweFFI
+defaultMarloweFFI = MarloweFFI Map.empty
+
+emptyEnvironment :: Environment
+emptyEnvironment = Environment { slotInterval: SlotInterval (Slot zero) (Slot zero), marloweFFI: defaultMarloweFFI }
 
 data Input
   = IDeposit AccountId Party Token BigInteger
@@ -954,10 +955,8 @@ data IntervalResult
 
 derive instance genericIntervalResult :: Generic IntervalResult _
 
-derive instance eqIntervalResult :: Eq IntervalResult
-
-derive instance ordIntervalResult :: Ord IntervalResult
-
+-- derive instance eqIntervalResult :: Eq IntervalResult
+-- derive instance ordIntervalResult :: Ord IntervalResult
 instance showIntervalResult :: Show IntervalResult where
   show v = genericShow v
 
@@ -1052,8 +1051,7 @@ derive instance genericApplyResult :: Generic ApplyResult _
 
 derive instance eqApplyResult :: Eq ApplyResult
 
-derive instance ordApplyResult :: Ord ApplyResult
-
+-- derive instance ordApplyResult :: Ord ApplyResult
 instance showApplyResult :: Show ApplyResult where
   show = genericShow
 
@@ -1233,6 +1231,71 @@ derive instance eqTransactionOutput :: Eq TransactionOutput
 instance showTransactionOutput :: Show TransactionOutput where
   show = genericShow
 
+{-| FFI stands for Foreign Function Interface.
+    This is a way to call a Plutus function from Marlowe contracts.
+
+    Marlowe Interpreter is parameterized by 'MarloweFFI' – a registry of
+    Plutus functions described by 'FFInfo' data type.
+
+    You can call a foreign function using 'Call' constructor of 'Value'.
+    A foreign function receives a @Contract@, its @State@, and a list of @FFArg@,
+    and produces an Integer result.
+
+    @
+    Let (ValueId "hash") (Call "sha256" [ArgInteger 555])
+    @
+    This code calls a Plutus function that calculates SHA256 hash of number 555.
+ -}
+data FFArg
+  = ArgValueId (ValueId)
+  | ArgParty Party
+  | ArgAccountId AccountId
+  | ArgToken Token
+  | ArgInteger BigInteger
+
+derive instance genericFFArg :: Generic FFArg _
+
+derive instance eqFFArg :: Eq FFArg
+
+instance showFFArg :: Show FFArg where
+  show = genericShow
+
+instance prettyFFArg :: Pretty FFArg where
+  pretty v = genericPretty v
+
+instance hasArgsFFArg :: Args FFArg where
+  hasArgs a = genericHasArgs a
+  hasNestedArgs a = genericHasNestedArgs a
+
+instance encodeJsonFFArg :: Encode FFArg where
+  encode = genericEncode aesonCompatibleOptions
+
+instance decodeJsonFFArg :: Decode FFArg where
+  decode = genericDecode aesonCompatibleOptions
+
+type FFIFunction
+  = State -> Contract -> Array FFArg -> BigInteger
+
+type FFInfo
+  = { ffiRangeBounds :: Array Bound
+    , ffiOutOfBoundsValue :: BigInteger
+    }
+
+newtype MarloweFFI
+  = MarloweFFI (Map String (Tuple FFIFunction FFInfo))
+
+derive instance genericMarloweFFI :: Generic MarloweFFI _
+
+instance marloweFFIShow :: Show MarloweFFI where
+  show _ = "MarloweFFI"
+
+instance prettyMarloweFFI :: Pretty MarloweFFI where
+  pretty v = text "MarloweFFI"
+
+instance hasArgsMarloweFFI :: Args MarloweFFI where
+  hasArgs a = false
+  hasNestedArgs a = false
+
 emptyState :: Slot -> State
 emptyState sn =
   State
@@ -1256,8 +1319,8 @@ boundTo (Bound _ to) = to
 
 -- Note: We use guards here because currently nested ifs break purty formatting
 --       We need to upgrade purty and purescript to fix
-fixInterval :: SlotInterval -> State -> IntervalResult
-fixInterval interval@(SlotInterval from to) (State state)
+fixInterval :: SlotInterval -> MarloweFFI -> State -> IntervalResult
+fixInterval interval@(SlotInterval from to) ffi (State state)
   | (not <<< validInterval) interval = IntervalError (InvalidInterval interval)
   | state.minSlot `above` interval = IntervalError (IntervalInPastError state.minSlot interval)
   | otherwise =
@@ -1268,7 +1331,7 @@ fixInterval interval@(SlotInterval from to) (State state)
       -- We know high is greater or equal than newLow (prove)
       currentInterval = SlotInterval newLow to
 
-      env = Environment { slotInterval: currentInterval }
+      env = Environment { slotInterval: currentInterval, marloweFFI: ffi }
 
       newState = State (state { minSlot = newLow })
     in
@@ -1276,10 +1339,10 @@ fixInterval interval@(SlotInterval from to) (State state)
 
 -- EVALUATION
 -- | Evaluate a @Value@ to Integer
-evalValue :: Environment -> State -> Value -> BigInteger
-evalValue env state value =
+evalValue :: Environment -> State -> Contract -> Value -> BigInteger
+evalValue env state contract value =
   let
-    eval = evalValue env state
+    eval = evalValue env state contract
   in
     case value of
       AvailableMoney accId token -> moneyInAccount accId token (unwrap state).accounts
@@ -1301,15 +1364,26 @@ evalValue env state value =
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env
       UseValue valId -> fromMaybe zero $ Map.lookup valId (unwrap state).boundValues
-      Cond cond thn els -> if evalObservation env state cond then eval thn else eval els
+      Cond cond thn els -> if evalObservation env state contract cond then eval thn else eval els
+      Call funName args ->
+        let
+          (MarloweFFI mapping) = (unwrap env).marloweFFI
+        in
+          case Map.lookup funName mapping of
+            Just (Tuple ffiFunction ffiInfo) ->
+              let
+                result = ffiFunction state contract args
+              in
+                if result `inBounds` ffiInfo.ffiRangeBounds then result else ffiInfo.ffiOutOfBoundsValue
+            Nothing -> fromInt 0
 
 -- | Evaluate an @Observation@ to Bool
-evalObservation :: Environment -> State -> Observation -> Boolean
-evalObservation env state obs =
+evalObservation :: Environment -> State -> Contract -> Observation -> Boolean
+evalObservation env state contract obs =
   let
-    evalObs = evalObservation env state
+    evalObs = evalObservation env state contract
 
-    evalVal = evalValue env state
+    evalVal = evalValue env state contract
   in
     case obs of
       AndObs lhs rhs -> evalObs lhs && evalObs rhs
@@ -1386,7 +1460,7 @@ reduceContractStep env state contract = case contract of
     Nothing -> NotReduced
   Pay accId payee tok val cont ->
     let
-      amountToPay = evalValue env state val
+      amountToPay = evalValue env state contract val
     in
       if amountToPay <= zero then
         let
@@ -1416,7 +1490,7 @@ reduceContractStep env state contract = case contract of
           Reduced warning payment newState cont
   If obs cont1 cont2 ->
     let
-      cont = if evalObservation env state obs then cont1 else cont2
+      cont = if evalObservation env state contract obs then cont1 else cont2
     in
       Reduced ReduceNoWarning ReduceNoPayment state cont
   When _ timeout nextContract ->
@@ -1434,7 +1508,7 @@ reduceContractStep env state contract = case contract of
           AmbiguousSlotIntervalReductionError
   Let valId val nextContract ->
     let
-      evaluatedValue = evalValue env state val
+      evaluatedValue = evalValue env state contract val
 
       newState = over _boundValues (Map.insert valId evaluatedValue) state
 
@@ -1446,7 +1520,7 @@ reduceContractStep env state contract = case contract of
   Assert obs cont ->
     let
       warning =
-        if evalObservation env state obs then
+        if evalObservation env state contract obs then
           ReduceNoWarning
         else
           ReduceAssertionFailed
@@ -1475,12 +1549,12 @@ reduceContractUntilQuiescent startEnv startState startContract =
   in
     reductionLoop startEnv startState startContract mempty mempty
 
-applyCases :: Environment -> State -> Input -> List Case -> ApplyResult
-applyCases env state input cases = case input, cases of
+applyCases :: Environment -> State -> Contract -> Input -> List Case -> ApplyResult
+applyCases env state contract input cases = case input, cases of
   IDeposit accId1 party1 tok1 amount, (Case (Deposit accId2 party2 tok2 val) cont) : rest ->
     if accId1 == accId2 && party1 == party2 && tok1 == tok2
       && amount
-      == evalValue env state val then
+      == evalValue env state contract val then
       let
         warning =
           if amount > zero then
@@ -1494,7 +1568,7 @@ applyCases env state input cases = case input, cases of
       in
         Applied warning newState cont
     else
-      applyCases env state input rest
+      applyCases env state contract input rest
   IChoice choId1 choice, (Case (Choice choId2 bounds) cont) : rest ->
     let
       newState = over _choices (Map.insert choId1 choice) state
@@ -1502,16 +1576,16 @@ applyCases env state input cases = case input, cases of
       if choId1 == choId2 && inBounds choice bounds then
         Applied ApplyNoWarning newState cont
       else
-        applyCases env state input rest
+        applyCases env state contract input rest
   INotify, (Case (Notify obs) cont) : _
-    | evalObservation env state obs -> Applied ApplyNoWarning state cont
-  _, _ : rest -> applyCases env state input rest
+    | evalObservation env state contract obs -> Applied ApplyNoWarning state cont
+  _, _ : rest -> applyCases env state contract input rest
   _, Nil -> ApplyNoMatchError
 
-applyInput :: Environment -> State -> Input -> Contract -> ApplyResult
-applyInput env state input (When cases _ _) = applyCases env state input (fromFoldable cases)
+applyInput :: Environment -> State -> Contract -> Input -> Contract -> ApplyResult
+applyInput env state contract input (When cases _ _) = applyCases env state contract input (fromFoldable cases)
 
-applyInput _ _ _ _ = ApplyNoMatchError
+applyInput _ _ _ _ _ = ApplyNoMatchError
 
 convertReduceWarnings :: List ReduceWarning -> List TransactionWarning
 convertReduceWarnings Nil = Nil
@@ -1551,7 +1625,7 @@ applyAllInputs startEnv startState startContract startInputs =
             (payments <> pays)
             curState
             cont
-        (input : rest) -> case applyInput env curState input cont of
+        (input : rest) -> case applyInput env curState contract input cont of
           Applied applyWarn newState nextContract ->
             applyAllLoop env newState nextContract rest
               ( warnings <> (convertReduceWarnings reduceWarns)
@@ -1563,12 +1637,12 @@ applyAllInputs startEnv startState startContract startInputs =
     applyAllLoop startEnv startState startContract startInputs mempty mempty
 
 -- | Try to compute outputs of a transaction give its input
-computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
-computeTransaction tx state contract =
+computeTransaction :: MarloweFFI -> TransactionInput -> State -> Contract -> TransactionOutput
+computeTransaction ffi tx state contract =
   let
     inputs = (unwrap tx).inputs
   in
-    case fixInterval (unwrap tx).interval state of
+    case fixInterval (unwrap tx).interval ffi state of
       IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
         ApplyAllSuccess warnings payments newState cont ->
           if (contract == cont) && ((contract /= Close) || (Map.isEmpty $ (unwrap state).accounts)) then
@@ -1586,9 +1660,9 @@ computeTransaction tx state contract =
 
 extractRequiredActionsWithTxs :: TransactionInput -> State -> Contract -> Tuple State (Array Action)
 extractRequiredActionsWithTxs txInput state contract
-  | TransactionOutput { txOutContract, txOutState } <- computeTransaction txInput state contract = Tuple txOutState (extractRequiredActions txOutContract)
+  | TransactionOutput { txOutContract, txOutState } <- computeTransaction defaultMarloweFFI txInput state contract = Tuple txOutState (extractRequiredActions txOutContract)
   | TransactionInput { inputs: Nil } <- txInput
-  , IntervalTrimmed env fixState <- fixInterval (unwrap txInput).interval state
+  , IntervalTrimmed env fixState <- fixInterval (unwrap txInput).interval defaultMarloweFFI state
   , (ContractQuiescent _ _ _ reducedContract) <- reduceContractUntilQuiescent env fixState contract = Tuple fixState (extractRequiredActions reducedContract)
   -- the actions remain unchanged in error cases, cases where the contract is not reduced or cases where inputs remain
   | otherwise = Tuple state (extractRequiredActions contract)

@@ -49,7 +49,7 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts, defaultMarloweFFI)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
 import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
@@ -301,7 +301,7 @@ mkComponent =
 applyTransactions :: forall m. MonadState State m => m Unit
 applyTransactions = do
   initialPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _payments)
-  modifying _loadedMarloweState (extendWith (updatePossibleActions <<< updateStateP))
+  modifying _loadedMarloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< updateStateP))
   updatedPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _payments)
   let
     newPayments = drop (Array.length initialPayments) updatedPayments
@@ -386,10 +386,10 @@ handleQuery (LoadContract contractString next) = do
   mkPartyPair defaultOwner _ party = Tuple party (defaultOwner ^. _name)
 
 updateMarloweState :: forall m. MonadState State m => (MarloweState -> MarloweState) -> m Unit
-updateMarloweState f = modifying _loadedMarloweState (extendWith (updatePossibleActions <<< f))
+updateMarloweState f = modifying _loadedMarloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< f))
 
 updateContractInState :: forall m. MonadState State m => String -> m Unit
-updateContractInState contents = modifying _currentLoadedMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+updateContractInState contents = modifying _currentLoadedMarloweState ((updatePossibleActions defaultMarloweFFI) <<< updateContractInStateP contents)
 
 handleAction ::
   forall m.
@@ -426,7 +426,7 @@ handleAction ResetAll = do
 handleAction NextSlot = do
   modifying _slot (add one)
   modifying (_contracts <<< traversed <<< _marloweState)
-    (extendWith (updatePossibleActions <<< over _slot (add one)))
+    (extendWith ((updatePossibleActions defaultMarloweFFI) <<< over _slot (add one)))
 
 handleAction ApplyTransaction = do
   assign _addInputError Nothing

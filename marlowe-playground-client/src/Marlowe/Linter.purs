@@ -47,7 +47,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, emptyEnvironment)
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
@@ -592,7 +592,11 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
       isSimp = (abs gcdv) > one
     in
       case sc of
-        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (Semantics.Scale (Semantics.Rational a b) (Semantics.Constant v))))
+        (ConstantSimp _ _ v) ->
+          let
+            evaled = evalValue emptyEnvironment (emptyState (Slot zero)) Semantics.Close (Semantics.Scale (Semantics.Rational a b) (Semantics.Constant v))
+          in
+            pure (ConstantSimp pos true evaled)
         (ValueSimp _ _ v) -> do
           if isSimp then
             pure unit

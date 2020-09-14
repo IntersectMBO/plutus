@@ -52,6 +52,10 @@ type MarloweSchema =
         .\/ Endpoint "apply-inputs" (MarloweParams, [Input])
         .\/ Endpoint "wait" MarloweParams
 
+type MarloweStateMachine = StateMachine MarloweData MarloweInput
+
+type CompiledFFI = (MarloweFFI, PlutusTx.CompiledCode PLC.DefaultUni MarloweFFI)
+
 data MarloweError =
     StateMachineError (SM.SMContractError MarloweData MarloweInput)
     | OtherContractError ContractError
@@ -79,7 +83,7 @@ marlowePlutusContract = do
         apply `select` wait
     wait = do
         params <- endpoint @"wait" @MarloweParams @MarloweSchema
-        r <- SM.waitForUpdate (mkMarloweClient params)
+        r <- SM.waitForUpdate (mkDefaultMarloweClient params)
         case r of
             Just (TypedScriptTxOut{tyTxOutData=_currentState}, _txOutRef) -> do
                 apply `select` wait
@@ -107,7 +111,7 @@ createContract params contract = do
             marloweState = emptyState slot }
 
     let payValue = adaValueOf 0
-    let theClient = mkMarloweClient params
+    let theClient = mkDefaultMarloweClient params
 
     void $ SM.runInitialise theClient marloweData payValue
 
@@ -119,7 +123,7 @@ applyInputs :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
 applyInputs params inputs = do
     (Slot slot) <- awaitSlot 1
     let slotRange = interval (Slot $ slot - 1)  (Slot $ slot + 10)
-    let theClient = mkMarloweClient params
+    let theClient = mkDefaultMarloweClient params
     dat <- SM.runStep theClient (slotRange, inputs)
     return dat
 
@@ -142,17 +146,19 @@ marloweParams rolesCurrency = MarloweParams
     , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
 
+{-# INLINABLE defaultMarloweParams #-}
 defaultMarloweParams :: MarloweParams
 defaultMarloweParams = marloweParams adaSymbol
 
 
 {-# INLINABLE mkMarloweStateMachineTransition #-}
 mkMarloweStateMachineTransition
-    :: MarloweParams
+    :: MarloweFFI
+    -> MarloweParams
     -> SM.State MarloweData
     -> MarloweInput
     -> Maybe (TxConstraints Void Void, SM.State MarloweData)
-mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue} (range, inputs) = do
+mkMarloweStateMachineTransition ffi params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue} (range, inputs) = do
     let interval = case range of
             Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
             _ -> P.traceError "Tx valid slot must have lower bound and upper bounds"
@@ -182,7 +188,7 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
             txInterval = interval,
             txInputs = inputs }
 
-    let computedResult = computeTransaction txInput marloweState marloweContract
+    let computedResult = computeTransaction ffi txInput marloweState marloweContract
     case computedResult of
         TransactionOutput {txOutPayments, txOutState, txOutContract} -> do
 
@@ -246,34 +252,50 @@ isFinal :: MarloweData -> Bool
 isFinal MarloweData{marloweContract=c} = c P.== Close
 
 
-{-# INLINABLE mkValidator #-}
-mkValidator :: MarloweParams -> Scripts.ValidatorType MarloweStateMachine
-mkValidator p = SM.mkValidator $ SM.mkStateMachine (mkMarloweStateMachineTransition p) isFinal
-
-
 mkMarloweValidatorCode
-    :: MarloweParams
+    :: CompiledFFI
+    -> MarloweParams
     -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MarloweStateMachine)
-mkMarloweValidatorCode params =
-    $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
+mkMarloweValidatorCode (_, compiled) params =
+    $$(PlutusTx.compile [|| \ ffi p -> SM.mkValidator (SM.mkStateMachine (mkMarloweStateMachineTransition ffi p) isFinal) ||])
+        `PlutusTx.applyCode` compiled `PlutusTx.applyCode` PlutusTx.liftCode params
 
 
-type MarloweStateMachine = StateMachine MarloweData MarloweInput
-
-scriptInstance :: MarloweParams -> Scripts.ScriptInstance MarloweStateMachine
-scriptInstance params = Scripts.validator @MarloweStateMachine
-    (mkMarloweValidatorCode params)
+scriptInstance :: CompiledFFI -> MarloweParams -> Scripts.ScriptInstance MarloweStateMachine
+scriptInstance ffi params = Scripts.validator @MarloweStateMachine
+    (mkMarloweValidatorCode ffi params)
     $$(PlutusTx.compile [|| wrap ||])
     where
         wrap = Scripts.wrapValidator @MarloweData @MarloweInput
 
 
-mkMachineInstance :: MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
-mkMachineInstance params =
+defaultScriptInstance :: MarloweParams -> Scripts.ScriptInstance MarloweStateMachine
+defaultScriptInstance = scriptInstance defaultMarloweCompiledFFI
+
+
+mkMachineInstance :: CompiledFFI -> MarloweParams -> SM.StateMachineInstance MarloweData MarloweInput
+mkMachineInstance ffi@(raw, _) params =
     SM.StateMachineInstance
-    (SM.mkStateMachine (mkMarloweStateMachineTransition params) isFinal)
-    (scriptInstance params)
+    (SM.mkStateMachine (mkMarloweStateMachineTransition raw params) isFinal)
+    (scriptInstance ffi params)
 
 
-mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
-mkMarloweClient params = SM.mkStateMachineClient (mkMachineInstance params)
+{-# INLINABLE defaultMarloweFFI #-}
+defaultMarloweFFI :: MarloweFFI
+defaultMarloweFFI = MarloweFFI Map.empty
+
+defaultMarloweFFIInfo :: MarloweFFIInfo
+defaultMarloweFFIInfo = MarloweFFIInfo Map.empty
+
+
+defaultMarloweCompiledFFI :: CompiledFFI
+defaultMarloweCompiledFFI = (defaultMarloweFFI, $$(PlutusTx.compile [|| defaultMarloweFFI ||]))
+
+
+mkMarloweClient :: CompiledFFI -> MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
+mkMarloweClient ffi params = SM.mkStateMachineClient (mkMachineInstance ffi params)
+
+
+mkDefaultMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
+mkDefaultMarloweClient params = SM.mkStateMachineClient (mkMachineInstance defaultMarloweCompiledFFI params)
+

@@ -28,7 +28,7 @@ import Marlowe.Holes (Holes, fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics (MarloweFFI, AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts, defaultMarloweFFI)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
 import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, (#), ($), (<<<), (==))
@@ -76,20 +76,20 @@ minimumBound bnds = case uncons (map boundFrom bnds) of
   Just { head, tail } -> foldl1 min (head :| tail)
   Nothing -> zero
 
-actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
-actionToActionInput state (Deposit accountId party token value) =
+actionToActionInput :: Contract -> State -> Action -> Tuple ActionInputId ActionInput
+actionToActionInput contract state (Deposit accountId party token value) =
   let
     minSlot = state ^. _minSlot
 
-    evalResult = evalValue env state value
+    evalResult = evalValue env state contract value
 
-    env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
+    env = Environment { slotInterval: (SlotInterval minSlot minSlot), marloweFFI: defaultMarloweFFI }
   in
     Tuple (DepositInputId accountId party token evalResult) (DepositInput accountId party token evalResult)
 
-actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
+actionToActionInput _ _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
 
-actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput
+actionToActionInput _ _ (Notify _) = Tuple NotifyInputId NotifyInput
 
 data MarloweEvent
   = InputEvent TransactionInput
@@ -239,8 +239,8 @@ updateContractInStateP text state = case parseContract text of
           (set _holes holes) state
   Left error -> (set _holes mempty) state
 
-updatePossibleActions :: MarloweState -> MarloweState
-updatePossibleActions oldState =
+updatePossibleActions :: MarloweFFI -> MarloweState -> MarloweState
+updatePossibleActions ffi oldState =
   let
     contract = fromMaybe Close (oldState ^. _contract)
 
@@ -252,11 +252,11 @@ updatePossibleActions oldState =
 
     (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
 
-    usefulActions = mapMaybe removeUseless actions
+    usefulActions = mapMaybe (removeUseless contract) actions
 
     slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
 
-    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
+    actionInputs = Map.fromFoldable $ map (actionToActionInput contract nextState) usefulActions
 
     moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
   in
@@ -264,10 +264,10 @@ updatePossibleActions oldState =
       # over _possibleActions (updateActions actionInputs)
       # set (_possibleActions <<< _moveToAction) moveTo
   where
-  removeUseless :: Action -> Maybe Action
-  removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
+  removeUseless :: Contract -> Action -> Maybe Action
+  removeUseless contract action@(Notify observation) = if evalObservation ffi oldState contract observation then Just action else Nothing
 
-  removeUseless action = Just action
+  removeUseless _ action = Just action
 
   updateActions :: Map ActionInputId ActionInput -> Parties -> Parties
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
@@ -307,7 +307,7 @@ updateStateP oldState = actState
   where
   txInput@(TransactionInput txIn) = stateToTxInput oldState
 
-  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
+  actState = case computeTransaction defaultMarloweFFI txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
     (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
       ( set _transactionError Nothing
           <<< set _transactionWarnings (fromFoldable txOutWarnings)
@@ -350,46 +350,46 @@ _currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweSt
 _currentMarloweState = _marloweState <<< _Head
 
 updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
-updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
+updateMarloweState f = modifying _marloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< f))
 
 updateContractInState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => String -> m Unit
-updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+updateContractInState contents = modifying _currentMarloweState ((updatePossibleActions defaultMarloweFFI) <<< updateContractInStateP contents)
 
 applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
-applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
+applyTransactions = modifying _marloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< updateStateP))
 
 applyInput ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   (Array Input -> Array Input) ->
   m Unit
-applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over _pendingInputs inputs)))
+applyInput inputs = modifying _marloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< updateStateP <<< (over _pendingInputs inputs)))
 
 moveToSignificantSlot ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   Slot ->
   m Unit
-moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _slot slot)))
+moveToSignificantSlot slot = modifying _marloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< updateStateP <<< (set _slot slot)))
 
 moveToSlot ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   Slot ->
   m Unit
-moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set _slot slot)))
+moveToSlot slot = modifying _marloweState (extendWith ((updatePossibleActions defaultMarloweFFI) <<< (set _slot slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
 hasHistory state = has (_marloweState <<< _Tail) state
 
-evalObservation :: MarloweState -> Observation -> Boolean
-evalObservation state observation =
+evalObservation :: MarloweFFI -> MarloweState -> Contract -> Observation -> Boolean
+evalObservation ffi state contract observation =
   let
     txInput = stateToTxInput state
   in
-    case fixInterval (unwrap txInput).interval (state ^. _state) of
-      IntervalTrimmed env state' -> S.evalObservation env state' observation
-      -- if there is an error in the state we will say that the observation is false. 
+    case fixInterval (unwrap txInput).interval ffi (state ^. _state) of
+      IntervalTrimmed env state' -> S.evalObservation env state' contract observation
+      -- if there is an error in the state we will say that the observation is false.
       -- Nothing should happen anyway because applying the input will fail later
       IntervalError _ -> false
 
