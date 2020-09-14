@@ -19,7 +19,7 @@ import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..))
-import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription(EndpointDescription))
+import Wallet.Types (EndpointDescription(EndpointDescription))
 import Prelude
 import Schema (FormSchema(..), FormArgumentF(..))
 import Test.Unit (TestSuite, Test, suite, test)

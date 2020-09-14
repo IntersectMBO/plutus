@@ -1,5 +1,7 @@
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
@@ -37,7 +39,9 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
 import           Control.Lens
 import           Control.Monad                                     (void)
 import           Control.Monad.Error.Lens
+import           Data.Aeson                                        (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc
+import           GHC.Generics                                      (Generic)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Constraints
@@ -58,7 +62,9 @@ import qualified Ledger.Value                                      as Value
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 
 newtype Account = Account { accountOwner :: (CurrencySymbol, TokenName) }
-    deriving newtype (Eq, Show)
+    deriving stock    (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
 
 instance Pretty Account where
     pretty (Account (s, t)) = pretty s <+> pretty t

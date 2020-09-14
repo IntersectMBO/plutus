@@ -40,7 +40,10 @@ library
         Language.Plutus.Contract
         Language.Plutus.Contract.Effects.AwaitSlot
         Language.Plutus.Contract.Effects.AwaitTxConfirmed
+        Language.Plutus.Contract.Effects.Instance
+        Language.Plutus.Contract.Effects.RPC
         Language.Plutus.Contract.Effects.ExposeEndpoint
+        Language.Plutus.Contract.Effects.Notify
         Language.Plutus.Contract.Effects.OwnPubKey
         Language.Plutus.Contract.Effects.UtxoAt
         Language.Plutus.Contract.Effects.WatchAddress
@@ -71,6 +74,7 @@ library
         Wallet.Emulator.Error
         Wallet.Emulator.LogMessages
         Wallet.Emulator.NodeClient
+        Wallet.Emulator.Notify
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.SigningProcess
         Wallet.Emulator.Wallet
@@ -81,6 +85,7 @@ library
         Wallet.API
         Wallet.Effects
         Wallet.Graph
+        Wallet.Types
         Control.Monad.Freer.Extras
         Control.Monad.Freer.Log
     hs-source-dirs: src
@@ -115,7 +120,9 @@ library
         prettyprinter >=1.1.0.1,
         semigroups -any,
         cryptonite >=0.25,
-        fingertree -any
+        fingertree -any,
+        uuid -any,
+        aeson-pretty -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

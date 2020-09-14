@@ -65,144 +65,111 @@
                                                                   (fun [List_i5 (con char)] AType_i16)
                                                                   [
                                                                     (lam
-                                                                      fIsStringAType_i0
-                                                                      (fun (all a_i0 (type) (fun a_i1 a_i1)) [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i17])
-                                                                      [
-                                                                        (lam
-                                                                          fromString_i0
-                                                                          (all a_i0 (type) (fun [(lam a_i0 (type) (fun [List_i9 (con char)] a_i1)) a_i1] (fun [List_i8 (con char)] a_i1)))
-                                                                          (lam
-                                                                            x_i0
-                                                                            AType_i19
+                                                                      fromString_i0
+                                                                      (all a_i0 (type) (fun [(lam a_i0 (type) (fun [List_i8 (con char)] a_i1)) a_i1] (fun [List_i7 (con char)] a_i1)))
+                                                                      (lam
+                                                                        x_i0
+                                                                        AType_i18
+                                                                        [
+                                                                          [
                                                                             [
-                                                                              [
+                                                                              {
                                                                                 [
-                                                                                  {
+                                                                                  Bool_match_i9
+                                                                                  [
                                                                                     [
-                                                                                      Bool_match_i10
+                                                                                      c_i8
+                                                                                      x_i1
+                                                                                    ]
+                                                                                    [
+                                                                                      [
+                                                                                        {
+                                                                                          fromString_i2
+                                                                                          AType_i18
+                                                                                        }
+                                                                                        cfromString_i3
+                                                                                      ]
                                                                                       [
                                                                                         [
-                                                                                          c_i9
-                                                                                          x_i1
+                                                                                          {
+                                                                                            Cons_i5
+                                                                                            (con char)
+                                                                                          }
+                                                                                          (con
+                                                                                            char
+                                                                                              'a'
+                                                                                          )
                                                                                         ]
                                                                                         [
                                                                                           [
                                                                                             {
-                                                                                              fromString_i2
-                                                                                              AType_i19
+                                                                                              Cons_i5
+                                                                                              (con char)
                                                                                             }
-                                                                                            [
-                                                                                              fIsStringAType_i3
-                                                                                              (abs
-                                                                                                a_i0
-                                                                                                (type)
-                                                                                                (lam
-                                                                                                  x_i0
-                                                                                                  a_i2
-                                                                                                  x_i1
-                                                                                                )
-                                                                                              )
-                                                                                            ]
+                                                                                            (con
+                                                                                              char
+                                                                                                'b'
+                                                                                            )
                                                                                           ]
                                                                                           [
                                                                                             [
                                                                                               {
-                                                                                                Cons_i6
+                                                                                                Cons_i5
                                                                                                 (con char)
                                                                                               }
                                                                                               (con
                                                                                                 char
-                                                                                                  'a'
+                                                                                                  'c'
                                                                                               )
                                                                                             ]
-                                                                                            [
-                                                                                              [
-                                                                                                {
-                                                                                                  Cons_i6
-                                                                                                  (con char)
-                                                                                                }
-                                                                                                (con
-                                                                                                  char
-                                                                                                    'b'
-                                                                                                )
-                                                                                              ]
-                                                                                              [
-                                                                                                [
-                                                                                                  {
-                                                                                                    Cons_i6
-                                                                                                    (con char)
-                                                                                                  }
-                                                                                                  (con
-                                                                                                    char
-                                                                                                      'c'
-                                                                                                  )
-                                                                                                ]
-                                                                                                {
-                                                                                                  Nil_i7
-                                                                                                  (con char)
-                                                                                                }
-                                                                                              ]
-                                                                                            ]
+                                                                                            {
+                                                                                              Nil_i6
+                                                                                              (con char)
+                                                                                            }
                                                                                           ]
                                                                                         ]
                                                                                       ]
                                                                                     ]
-                                                                                    (fun Unit_i16 AType_i19)
-                                                                                  }
-                                                                                  (lam
-                                                                                    thunk_i0
-                                                                                    Unit_i17
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          fromString_i3
-                                                                                          AType_i20
-                                                                                        }
-                                                                                        [
-                                                                                          fIsStringAType_i4
-                                                                                          (abs
-                                                                                            a_i0
-                                                                                            (type)
-                                                                                            (lam
-                                                                                              x_i0
-                                                                                              a_i2
-                                                                                              x_i1
-                                                                                            )
-                                                                                          )
-                                                                                        ]
-                                                                                      ]
-                                                                                      {
-                                                                                        Nil_i8
-                                                                                        (con char)
-                                                                                      }
-                                                                                    ]
-                                                                                  )
+                                                                                  ]
                                                                                 ]
-                                                                                (lam
-                                                                                  thunk_i0
-                                                                                  Unit_i17
-                                                                                  x_i2
-                                                                                )
-                                                                              ]
-                                                                              Unit_i15
+                                                                                (fun Unit_i15 AType_i18)
+                                                                              }
+                                                                              (lam
+                                                                                thunk_i0
+                                                                                Unit_i16
+                                                                                [
+                                                                                  [
+                                                                                    {
+                                                                                      fromString_i3
+                                                                                      AType_i19
+                                                                                    }
+                                                                                    cfromString_i4
+                                                                                  ]
+                                                                                  {
+                                                                                    Nil_i7
+                                                                                    (con char)
+                                                                                  }
+                                                                                ]
+                                                                              )
                                                                             ]
-                                                                          )
-                                                                        )
-                                                                        (abs
-                                                                          a_i0
-                                                                          (type)
-                                                                          (lam
-                                                                            v_i0
-                                                                            [(lam a_i0 (type) (fun [List_i9 (con char)] a_i1)) a_i2]
-                                                                            v_i1
-                                                                          )
-                                                                        )
-                                                                      ]
+                                                                            (lam
+                                                                              thunk_i0
+                                                                              Unit_i16
+                                                                              x_i2
+                                                                            )
+                                                                          ]
+                                                                          Unit_i14
+                                                                        ]
+                                                                      )
                                                                     )
-                                                                    (lam
-                                                                      arg_i0
-                                                                      (all a_i0 (type) (fun a_i1 a_i1))
-                                                                      cfromString_i2
+                                                                    (abs
+                                                                      a_i0
+                                                                      (type)
+                                                                      (lam
+                                                                        v_i0
+                                                                        [(lam a_i0 (type) (fun [List_i8 (con char)] a_i1)) a_i2]
+                                                                        v_i1
+                                                                      )
                                                                     )
                                                                   ]
                                                                 )

@@ -11,6 +11,7 @@ module Playground.Interpreter.Util
 
 import           Control.Lens                                    (view)
 import           Control.Monad.Freer.Error                       (throwError)
+import           Control.Monad.Freer.Extras                      (wrapError)
 import           Control.Monad.Freer.Log                         (logMessageContent)
 import           Data.Aeson                                      (FromJSON, eitherDecode)
 import qualified Data.Aeson                                      as JSON
@@ -32,7 +33,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescri
 import           Language.Plutus.Contract.Schema                 (Event, Input, Output)
 import           Language.Plutus.Contract.Test                   (renderTraceContext)
 import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceEffs, ContractTraceState,
-                                                                  TraceError (TContractError), addBlocks,
+                                                                  TraceError (HookError, TContractError), addBlocks,
                                                                   addBlocksUntil, addNamedEvent, handleBlockchainEvents,
                                                                   payToWallet, runTraceWithDistribution)
 import           Ledger                                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash,
@@ -220,7 +221,8 @@ expressionToTrace CallEndpoint { caller
                                       , JSON.String (Text.pack (getEndpointDescription endpointDescription)))
                                     , ("value", JSON.object [("unEndpointValue", argument)])
                                     ]
-                        addNamedEvent @s @Text @a (getEndpointDescription endpointDescription) caller event
+                        wrapError @_ @(TraceError Text) HookError
+                            $ addNamedEvent @s @Text @a (getEndpointDescription endpointDescription) caller event
             Nothing -> throwError . TContractError $ "Expected a String, but got: " <> Text.pack (show rawArgument)
 
 decodePayload ::

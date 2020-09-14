@@ -1,4 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
@@ -28,6 +31,8 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     ) where
 
 import           Control.Lens                          (makeClassyPrisms)
+import           Data.Aeson                            (FromJSON, ToJSON)
+import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
@@ -69,7 +74,8 @@ data Payment = Payment
     , paymentDeadline  :: Slot
     -- ^ Time until the required amount of signatures has to be collected.
     }
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Payment where
     {-# INLINABLE (==) #-}

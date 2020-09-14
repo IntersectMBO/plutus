@@ -28,6 +28,7 @@ import           Data.Time.Units                (Second)
 import           Data.UUID                      (UUID)
 import qualified Data.UUID                      as UUID
 import           GHC.Generics                   (Generic)
+import           Language.Plutus.Contract.Trace (EndpointError (..))
 import           Language.Plutus.Contract.Types (ContractError)
 import           Ledger                         (Block, Blockchain, Tx, TxId, txId)
 import           Ledger.Index                   as UtxoIndex
@@ -64,6 +65,7 @@ data SCBError
     | ContractCommandError Int Text
     | InvalidUUIDError  Text
     | OtherError Text
+    | EndpointCallError ContractInstanceId EndpointError
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -83,6 +85,7 @@ instance Pretty SCBError where
         ContractCommandError i t -> "Contract command error:" <+> pretty i <+> pretty t
         InvalidUUIDError t -> "Invalid UUID:" <+> pretty t
         OtherError t -> "Other error:" <+> pretty t
+        EndpointCallError i e -> "Endpoint call failed:" <+> pretty i <+> pretty e
 
 data DbConfig =
     DbConfig

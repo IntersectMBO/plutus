@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators       #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
-module Language.PlutusIR.Analysis.Dependencies (Node (..), DepGraph, runTermDeps, runTypeDeps) where
+module Language.PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
 
 import qualified Language.PlutusCore               as PLC
 import qualified Language.PlutusCore.Name          as PLC
@@ -28,7 +28,8 @@ import qualified Data.List.NonEmpty                as NE
 import           Data.Foldable
 
 type DepCtx term = (Node, PLC.DynamicBuiltinNameMeanings term)
-type DepState = Map.Map PLC.Unique Strictness
+type StrictnessMap = Map.Map PLC.Unique Strictness
+type DepState = StrictnessMap
 
 -- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
 -- node indicating the root of the graph. We need the root node because when computing the
@@ -61,8 +62,8 @@ runTermDeps
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => PLC.DynamicBuiltinNameMeanings term
     -> Term tyname name uni a
-    -> g
-runTermDeps means t = flip evalState mempty $ flip runReaderT (Root, means) $ termDeps t
+    -> (g, StrictnessMap)
+runTermDeps means t = flip runState mempty $ flip runReaderT (Root, means) $ termDeps t
 
 -- | Compute the dependency graph of a 'Type'. The 'Root' node will correspond to the type itself.
 --
@@ -192,6 +193,12 @@ termDeps = \case
         bodyGraph <- termDeps t
         pure . G.overlays . NE.toList $ bodyGraph NE.<| bGraphs
     Var _ n -> currentDependsOn [n ^. PLC.theUnique]
+    LamAbs _ n ty t -> do
+        -- Record that lambda-bound variables are strict
+        modify (Map.insert (n ^. PLC.theUnique) Strict)
+        tds <- termDeps t
+        tyds <- typeDeps ty
+        pure $ G.overlays $ [tds, tyds]
     x -> do
         tds <- traverse termDeps (x ^.. termSubterms)
         tyds <- traverse typeDeps (x ^.. termSubtypes)

@@ -64,7 +64,7 @@ data ParseError ann
     | UnknownBuiltinType ann T.Text
     | UnknownBuiltinFunction ann T.Text
     | InvalidBuiltinConstant ann T.Text T.Text
-    deriving (Eq, Generic, NFData)
+    deriving (Eq, Generic, NFData, Functor)
 makeClassyPrisms ''ParseError
 
 instance Pretty ann => Show (ParseError ann)
@@ -76,13 +76,13 @@ data UniqueError ann
     = MultiplyDefined Unique ann ann
     | IncoherentUsage Unique ann ann
     | FreeVariable Unique ann
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''UniqueError
 
 data NormCheckError tyname name uni ann
     = BadType ann (Type tyname uni ann) T.Text
     | BadTerm ann (Term tyname name uni ann) T.Text
-    deriving (Show, Generic, NFData)
+    deriving (Show, Generic, NFData, Functor)
 deriving instance
     ( HasUniques (Term tyname name uni ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
@@ -100,28 +100,28 @@ makeClassyPrisms ''UnknownDynamicBuiltinNameError
 -- | An internal error occurred during type checking.
 data InternalTypeError uni ann
     = OpenTypeOfBuiltin (Type TyName uni ()) BuiltinName
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''InternalTypeError
 
-data TypeError uni ann
+data TypeError term uni ann
     = KindMismatch ann (Type TyName uni ()) (Kind ())  (Kind ())
     | TypeMismatch ann
-        (Term TyName Name uni ())
+        term
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
     | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''TypeError
 
 data Error uni ann
     = ParseErrorE (ParseError ann)
     | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError uni ann)
+    | TypeErrorE (TypeError (Term TyName Name uni ()) uni ann)
     | NormCheckErrorE (NormCheckError TyName Name uni ann)
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
 
 instance AsParseError (Error uni ann) ann where
@@ -130,7 +130,7 @@ instance AsParseError (Error uni ann) ann where
 instance AsUniqueError (Error uni ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error uni ann) uni ann where
+instance AsTypeError (Error uni ann) (Term TyName Name uni ()) uni ann where
     _TypeError = _TypeErrorE
 
 instance (tyname ~ TyName, name ~ Name) =>
@@ -183,8 +183,8 @@ instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
             "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
-            PrettyBy PrettyConfigPlc (TypeError uni ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty term) =>
+            PrettyBy PrettyConfigPlc (TypeError term uni ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -194,7 +194,9 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
         "Type mismatch at" <+> pretty ann <>
         (if _pcpoCondensedErrors (_pcpOptions config) == CondensedErrorsYes
             then mempty
-            else " in term" <> hardline <> indent 2 (squotes (prettyBy config t)) <> ".") <>
+            -- TODO: we should use prettyBy here but the problem is
+            -- that `instance PrettyClassic PIR.Term` whereas `instance PrettyPLC PLC.Term`
+            else " in term" <> hardline <> indent 2 (squotes (pretty t)) <> ".") <>
         hardline <>
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>

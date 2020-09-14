@@ -32,7 +32,9 @@ module Wallet.API(
     startWatching,
     watchedAddresses,
     PubKey(..),
+    Payment(..),
     createPaymentWithChange,
+    emptyPayment,
     createTxAndSubmit,
     signTxAndSubmit,
     signTxAndSubmit_,
@@ -87,6 +89,7 @@ import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 import           Wallet.Effects
 import           Wallet.Emulator.Error
+import           Wallet.Types              (emptyPayment)
 
 import           Prelude                   hiding (Ordering (..))
 

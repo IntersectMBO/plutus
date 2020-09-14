@@ -6,9 +6,9 @@ module Language.PlutusIR.Compiler.Recursion where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Compiler.Definitions
-import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
+import           Language.PlutusIR.Error
 import qualified Language.PlutusIR.MkPir                    as PIR
 
 import           Control.Monad

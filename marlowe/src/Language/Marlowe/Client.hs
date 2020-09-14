@@ -35,7 +35,7 @@ import           Ledger.Scripts             (Redeemer (..), Validator, validator
 import qualified Ledger.Typed.Scripts       as Scripts
 import           Ledger.Validation
 import qualified Ledger.Value               as Val
-import           Wallet                     (WalletAPIError, createPaymentWithChange, createTxAndSubmit,
+import           Wallet                     (WalletAPIError, createPaymentWithChange, createTxAndSubmit, emptyPayment,
                                              throwOtherError)
 import           Wallet.Effects             hiding (Payment)
 import qualified Wallet.Effects             as Wallet
