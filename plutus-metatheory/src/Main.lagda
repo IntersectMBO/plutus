@@ -96,9 +96,11 @@ postulate
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 
 postulate
-  TermN : Set
-  Term : Set
+  TermN : Set -- term with names
+  TermA : Set -- term with dummy Alex positions in it
+  Term : Set -- DeBruijn term
   TypeN : Set
+  TypeA : Set
   Type : Set
   ProgramN : Set
   Program : Set
@@ -124,22 +126,24 @@ postulate
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
-{-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT 0 ty) #-}
-{-# COMPILE GHC unconvTm = \ tm -> AlexPn 0 0 0 <$ (unconv 0 tm) #-}
+{-# COMPILE GHC unconvTy = unconvT 0 #-}
+{-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# COMPILE GHC parse = first (const ParseError) . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
 {-# COMPILE GHC parseTy = either (\_ -> Nothing) Just . parseTy  #-}
 {-# COMPILE GHC deBruijnify = first (const ScopeError) . runExcept . deBruijnProgram #-}
-{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
-{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
+{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
+{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermA = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TypeA = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
 postulate
