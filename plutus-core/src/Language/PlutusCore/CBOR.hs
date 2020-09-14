@@ -71,7 +71,7 @@ See http://hackage.haskell.org/package/serialise.
 -}
 
 {- Note [Don't use catamorphims!]
-We use Codec.Serialise for encoding.  This uses an itermediate type
+We use Codec.Serialise for encoding.  This uses an intermediate type
 `Encoding` to encode things. `Encoding` is a monoid, which allows
 subobjects to be encoded and then efficiently concatenated when a
 larger object is being encoded to CBOR.  The monoid structure makes it
@@ -82,8 +82,7 @@ the individual list elements, then another token to mark the end of
 the list.  If we use a catamorphism to encode a list `l` it just
 encodes the elements and concatenates the encoded versions together
 without the markers, which is wrong: instead we should call `encode l`
-directly.  At present we aren't encoding any lists, but we should take
-care to avoid this trap just in case.
+directly.
 -}
 
 encodeConstructorTag :: Word -> Encoding
@@ -94,9 +93,9 @@ decodeConstructorTag = decodeWord
 
 -- See Note [The G, the Tag and the Auto].
 instance Closed uni => Serialise (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) = encodeConstructorTag . fromIntegral $ tagOf uni
+    encode (Some (TypeIn uni)) = encode . map (fromIntegral :: Int -> Word) $ encodeUni uni
 
-    decode = go . uniAt . fromIntegral =<< decodeConstructorTag where
+    decode = go . decodeUni . map (fromIntegral :: Word -> Int) =<< decode where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 

@@ -106,21 +106,21 @@ instance Closed DefaultUni where
         )
 
     -- See Note [Stable encoding of tags].
-    tagOf DefaultUniInteger    = 0
-    tagOf DefaultUniByteString = 1
-    tagOf DefaultUniString     = 2
-    tagOf DefaultUniChar       = 3
-    tagOf DefaultUniUnit       = 4
-    tagOf DefaultUniBool       = 5
+    encodeUni DefaultUniInteger    = [0]
+    encodeUni DefaultUniByteString = [1]
+    encodeUni DefaultUniString     = [2]
+    encodeUni DefaultUniChar       = [3]
+    encodeUni DefaultUniUnit       = [4]
+    encodeUni DefaultUniBool       = [5]
 
     -- See Note [Stable encoding of tags].
-    uniAt 0 = Just . Some $ TypeIn DefaultUniInteger
-    uniAt 1 = Just . Some $ TypeIn DefaultUniByteString
-    uniAt 2 = Just . Some $ TypeIn DefaultUniString
-    uniAt 3 = Just . Some $ TypeIn DefaultUniChar
-    uniAt 4 = Just . Some $ TypeIn DefaultUniUnit
-    uniAt 5 = Just . Some $ TypeIn DefaultUniBool
-    uniAt _ = Nothing
+    decodeUni [0] = Just . Some $ TypeIn DefaultUniInteger
+    decodeUni [1] = Just . Some $ TypeIn DefaultUniByteString
+    decodeUni [2] = Just . Some $ TypeIn DefaultUniString
+    decodeUni [3] = Just . Some $ TypeIn DefaultUniChar
+    decodeUni [4] = Just . Some $ TypeIn DefaultUniUnit
+    decodeUni [5] = Just . Some $ TypeIn DefaultUniBool
+    decodeUni _   = Nothing
 
     bring _ DefaultUniInteger    = id
     bring _ DefaultUniByteString = id
