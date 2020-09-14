@@ -55,7 +55,7 @@ ui <- fluidPage(
   extendShinyjs(text = jscode, functions = c()),  
   headerPanel(''),
   sliderInput("ipnr", 
-              label = "Interest rate:",
+              label = "Interest rate resets:",
               min = 0, max = 1, value = c(0)),
   mainPanel(
     plotlyOutput('plot')
@@ -79,6 +79,7 @@ server <- function(input, output, session) {
           text <- y %>% 
             map(function(x) if (x > 0) paste("+", toString(x), sep = "") else toString(x))
 
+          message(input$ipnr)
           message(x)
           message(y)
 

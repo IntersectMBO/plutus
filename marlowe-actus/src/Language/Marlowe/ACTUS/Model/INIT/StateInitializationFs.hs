@@ -2,25 +2,19 @@
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs where
 
 import           Data.Maybe                                                 (fromMaybe)
-import           Data.Time                                                  (Day)
 import           Language.Marlowe
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
-                                                                             ContractType (LAM, PAM), ScheduleConfig)
+                                                                             ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.MarloweCompat                       (stateInitialisation)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_PAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
-import           Language.Marlowe.ACTUS.Model.Utility.DateShift             (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
-
-
-shift :: ScheduleConfig -> Day -> ShiftedDay
-shift = applyBDCWithCfg
 
 inititializeStateFs :: ContractTerms -> Contract -> Contract
 inititializeStateFs terms@ContractTerms {..} continue =
-    let t0         = ct_SD
+    let t0                 = ct_SD
         fpSchedule         = schedule FP terms
         tfp_minus          = fromMaybe t0 $ calculationDay <$> ((\sc -> sup sc t0) =<< fpSchedule)
         tfp_plus           = fromMaybe t0 $ calculationDay <$> ((\sc -> inf sc t0) =<< fpSchedule)
