@@ -76,6 +76,7 @@ import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
+import           Data.Typeable
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
@@ -134,7 +135,7 @@ data Tx = Tx {
     -- ^ Signatures of this transaction.
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
-    } deriving stock (Show, Eq, Generic)
+    } deriving stock (Show, Eq, Generic, Typeable)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where

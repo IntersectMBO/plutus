@@ -29,7 +29,6 @@ module Language.PlutusCore
     , deriveGEq
     , (:~:) (..)
     , Lift
-    , GLift (..)
     , type (<:)
     , DefaultUni (..)
     -- * AST

@@ -11,6 +11,7 @@ import           Language.Haskell.TH as TH
 
 nestClauses :: [Con] -> TypeQ
 nestClauses [] = error "No constructors for type"
+nestClauses [NormalC _ [(_, t)]] = return t -- Special case 1-tuples
 nestClauses [NormalC _ params] =
   foldl' appT (tupleT (length params)) [return t | (_, t) <- params]
 nestClauses list = appT (appT [t| Either |]
@@ -50,8 +51,11 @@ nestFunClauses :: [Con] -> (ExpQ -> ExpQ) -> [ClauseQ]
 nestFunClauses [] f = error "No constructors for type"
 nestFunClauses [NormalC name params] f =
   [do names <- mapM (\x -> newName ('p':show x)) [1..(length params)]
+      let tup = case names of
+              [n] -> varE n -- Special-case 1-tuples
+              _   -> tupE (map varE names)
       clause [ conP name [ varP n | n <- names ] ]
-             (normalB (f (tupE (map varE names)))) []]
+             (normalB (f tup)) []]
 nestFunClauses list f = nestFunClauses fHalf (f . (\x -> [e| Left $(x) |])) ++
                         nestFunClauses sHalf (f . (\x -> [e| Right $(x) |]))
   where ll = length list
@@ -77,7 +81,10 @@ unNestFunClauses :: [Con] -> (PatQ -> PatQ) -> [ClauseQ]
 unNestFunClauses [] f = error "No constructors for type"
 unNestFunClauses [NormalC name params] f =
   [do names <- mapM (\x -> newName ('p':show x)) [1..(length params)]
-      clause [f (tupP (map varP names))]
+      let pat = case names of
+              [n] -> varP n -- Special case 1-tuples
+              _   -> tupP (map varP names)
+      clause [f pat]
              (normalB (foldl' appE (conE name) [ varE n | n <- names ])) []]
 unNestFunClauses list f = unNestFunClauses fHalf (f . (\x -> [p| Left $(x) |])) ++
                           unNestFunClauses sHalf (f . (\x -> [p| Right $(x) |]))
@@ -98,7 +105,10 @@ mkSymCaseRec func [] = error "No constructors for type"
 mkSymCaseRec func [NormalC name params] =
   do paramNames <- mapM (\x -> newName ('p':show x)) [1..(length params)]
      let ssName = mkName ('S':'S':nameBase name)
-     let wrapping = [e| (\ $(tupP $ map varP paramNames) ->
+     let pat = case paramNames of
+             [n] -> varP n -- Special case 1-tuples
+             _   -> tupP $ map varP paramNames
+     let wrapping = [e| (\ $(pat) ->
                         $(varE func)
                         $(foldl' appE (conE ssName) $ map varE paramNames)) |]
      if length params > 1
@@ -141,11 +151,10 @@ mkSymConsts tvs sName [NormalC name params] f =
      declaration <- funD nfName
        [do names <- mapM (\x -> newName ('p':show x)) [1..(length params)]
            clause [ varP n | n <- names ]
-                  (normalB (f (if length params > 1
-                               then [e| ST.tuple $(tupE (map varE names)) |]
-                               else if not (null params)
-                                    then tupE (map varE names)
-                                    else [e| literal () |]))) []]
+                  (normalB (f (case names of
+                                 (x:y:xs) -> [e| ST.tuple $(tupE (map varE names)) |]
+                                 [n]      -> varE n -- Special case 1-tuples, SBV tuple doesn't support them properly
+                                 []       -> [e| literal () |]))) []]
      return [signature, declaration]
 mkSymConsts tvs sName list f =
   do rfHalf <- mkSymConsts tvs sName fHalf (f . (\x -> [e| sLeft $(x) |]))
@@ -170,4 +179,3 @@ mkSymbolicDatatype typeName =
      symConsts <- mkSymConsts tvs sName clauses id
      return (nestedDecl:symDecl:subSymDecl:
              (nestFunc ++ unNestFunc ++ symCaseFunc ++ symConsts))
-

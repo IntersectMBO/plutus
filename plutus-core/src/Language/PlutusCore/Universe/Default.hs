@@ -69,7 +69,6 @@ data DefaultUni a where
 
 deriveGEq ''DefaultUni
 deriving instance Lift (DefaultUni a)
-instance GLift DefaultUni
 
 instance GShow DefaultUni where gshowsPrec = showsPrec
 instance Show (DefaultUni a) where
