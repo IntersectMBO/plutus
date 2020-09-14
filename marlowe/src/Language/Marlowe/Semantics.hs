@@ -287,7 +287,7 @@ data Input = IDeposit AccountId Party Token Integer
            | IChoice ChoiceId ChosenNum
            | INotify
   deriving stock (Show,P.Eq,Generic)
-  deriving anyclass (Pretty)
+  deriving anyclass (Pretty,FromJSON,ToJSON)
 
 
 {-| Slot interval errors.
@@ -421,7 +421,9 @@ data MarloweData = MarloweData {
 data MarloweParams = MarloweParams {
         rolePayoutValidatorHash :: ValidatorHash,
         rolesCurrency           :: CurrencySymbol
-    } deriving stock (Show)
+    }
+  deriving stock (Show,Generic)
+  deriving anyclass (FromJSON,ToJSON)
 
 
 -- | Empty State for a given minimal 'Slot'
