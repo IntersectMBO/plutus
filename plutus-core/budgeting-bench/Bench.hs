@@ -74,7 +74,7 @@ benchVerifySignature =
         bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 expsToBenchBS :: [Integer]
-expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..15])
+expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..20])
 
 byteStringsToBench :: Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
@@ -112,7 +112,7 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]

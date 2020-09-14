@@ -167,6 +167,12 @@ readModelMultiSizes model = (pure . uncurry ModelMultiSizes) =<< unsafeReadModel
 readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
 readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
 
+readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Integer
+readModelConstantCost model = (\(i, _i) -> pure $ ceiling i) =<< unsafeReadModelFromR "(Intercept)" model
+
+readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
+readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope ModelOrientationX) =<< unsafeReadModelFromR "x_mem" model
+
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
@@ -236,23 +242,52 @@ eqInteger cpuModelR = do
   let memModel = ModelTwoArgumentsConstantCost 1
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
 
-concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-concatenate _ = pure def
-takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-takeByteString _ = pure def
-dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-dropByteString _ = pure def
-sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA2 _ = pure def
-sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA3 _ = pure def
-verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-verifySignature _ = pure def
 eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-eqByteString _ = pure def
+eqByteString cpuModelR = do
+  cpuModel <- readModelMinSize cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+
 ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-ltByteString _ = pure def
+ltByteString cpuModelR = do
+  cpuModel <- readModelMinSize cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+
 gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-gtByteString _ = pure def
+gtByteString = ltByteString
+
+concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+concatenate cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+
+takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+takeByteString cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+dropByteString cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+
+sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+sHA2 cpuModelR = do
+  cpuModel <- readModelLinear cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+sHA3 cpuModelR = do
+  cpuModel <- readModelLinear cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
+verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifySignature cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  let memModel = def
+  pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) memModel
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse _ = pure def

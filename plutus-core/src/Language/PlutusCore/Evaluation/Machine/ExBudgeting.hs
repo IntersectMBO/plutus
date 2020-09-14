@@ -256,7 +256,7 @@ data CostingFun model = CostingFun
 
 data ModelOneArgument =
     ModelOneArgumentConstantCost Integer
-    | ModelOneArgumentAddedSizes ModelAddedSizes
+    | ModelOneArgumentLinearCost ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOneArgument", CamelToSnake)] ModelOneArgument
@@ -270,7 +270,7 @@ runCostingFunOneArgument
 
 runOneArgumentModel :: ModelOneArgument -> ExMemory -> Integer
 runOneArgumentModel (ModelOneArgumentConstantCost i) _ = i
-runOneArgumentModel (ModelOneArgumentAddedSizes (ModelAddedSizes intercept slope)) (ExMemory s) = ceiling $ (fromInteger s) * slope + intercept
+runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope _)) (ExMemory s) = ceiling $ (fromInteger s) * slope + intercept
 
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
@@ -320,6 +320,7 @@ data ModelMinSize = ModelMinSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
+-- | s * max(x, y) + I
 data ModelMaxSize = ModelMaxSize
     { modelMaxSizeIntercept :: Double
     , modelMaxSizeSlope     :: Double

@@ -1,10 +1,10 @@
-source("plutus-core/budgeting-bench/models.R")
+# source("plutus-core/budgeting-bench/models.R")
 library(plotly)
 # install.packages("plotly")
 
 options(browser="$HOME/browser.bash")
 # options(error=traceback)
-Sys.setenv(DISPLAY="localhost:11.0")
+# Sys.setenv(DISPLAY="localhost:11.0")
 
 plotRaw <- function(filtered) {
   plot_ly(filtered, x=filtered$x_mem, y=filtered$y_mem, z=filtered$Mean) %>%
@@ -23,6 +23,18 @@ plotRaw <- function(filtered) {
         )
       )
   # add_trace(type="scatter3d", mode="markers", name="measured")
+}
+
+plotRaw2d <- function(filtered) {
+  plot_ly(filtered, x=filtered$x_mem, y=filtered$Mean) %>%
+    add_trace(
+        type = "scatter"
+      , mode="markers"
+      , size=2
+      ) %>% layout(
+        xaxis=list(title=list(text="ExMemory of first argument"))
+      , yaxis=list(title=list(text="Time of operation"))
+      )
 }
 
 plotErrorModel <- function(filtered, filteredModel) {
@@ -56,10 +68,11 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "DivideInteger")
+filtered <- data %>% filter(BuiltinName == "VerifySignature")
 plotRaw(filtered)
+plotRaw2d(filtered)
 
-plotErrorModel(filtered, divideIntegerModel)
+plotErrorModel(filtered, concatenateModel)
 
 # tidy(model)
 # summary(model)
