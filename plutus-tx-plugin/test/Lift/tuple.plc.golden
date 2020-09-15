@@ -1,47 +1,30 @@
 (program 1.0.0
   [
     [
-      {
-        (abs
-          GHC_Tuple_Tuple2_i0
-          (fun (type) (fun (type) (type)))
+      (force
+        (delay
           (lam
             GHC_Tuple_Tuple2_i0
-            (all a_i0 (type) (all b_i0 (type) (fun a_i2 (fun b_i1 [[GHC_Tuple_Tuple2_i4 a_i2] b_i1]))))
             (lam
               match_GHC_Tuple_Tuple2_i0
-              (all a_i0 (type) (all b_i0 (type) (fun [[GHC_Tuple_Tuple2_i5 a_i2] b_i1] (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))))
               [
-                [
-                  { { GHC_Tuple_Tuple2_i2 (con integer) } (con integer) }
-                  (con integer 1)
-                ]
+                [ (force (force GHC_Tuple_Tuple2_i2)) (con integer 1) ]
                 (con integer 2)
               ]
             )
           )
         )
-        (lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1))))
-      }
-      (abs
-        a_i0
-        (type)
-        (abs
-          b_i0
-          (type)
+      )
+      (delay
+        (delay
           (lam
             arg_0_i0
-            a_i3
             (lam
               arg_1_i0
-              b_i3
-              (abs
-                out_GHC_Tuple_Tuple2_i0
-                (type)
+              (delay
                 (lam
                   case_GHC_Tuple_Tuple2_i0
-                  (fun a_i6 (fun b_i5 out_GHC_Tuple_Tuple2_i2))
-                  [ [ case_GHC_Tuple_Tuple2_i1 arg_0_i4 ] arg_1_i3 ]
+                  [ [ case_GHC_Tuple_Tuple2_i1 arg_0_i3 ] arg_1_i2 ]
                 )
               )
             )
@@ -49,18 +32,6 @@
         )
       )
     ]
-    (abs
-      a_i0
-      (type)
-      (abs
-        b_i0
-        (type)
-        (lam
-          x_i0
-          [[(lam a_i0 (type) (lam b_i0 (type) (all out_GHC_Tuple_Tuple2_i0 (type) (fun (fun a_i3 (fun b_i2 out_GHC_Tuple_Tuple2_i1)) out_GHC_Tuple_Tuple2_i1)))) a_i3] b_i2]
-          x_i1
-        )
-      )
-    )
+    (delay (delay (lam x_i0 x_i1)))
   ]
 )

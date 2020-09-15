@@ -209,5 +209,4 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name uni () -> Program tyname name uni () -> Program tyname name uni ()
--- TODO: some kind of version checking
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)

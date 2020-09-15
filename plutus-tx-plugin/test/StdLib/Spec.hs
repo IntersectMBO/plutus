@@ -14,6 +14,7 @@ import           Hedgehog                     (Gen, MonadGen, Property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
+import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 import           Test.Tasty                   (TestName)
@@ -34,15 +35,13 @@ import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
-{-# ANN module ("HLint: ignore"::String) #-}
-
 roundPlc :: CompiledCode PLC.DefaultUni (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
 tests =
   testNested "StdLib"
-    [ goldenEval "ratioInterop" [ getPlc roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
+    [ goldenUEval "ratioInterop" [ getPlc roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs

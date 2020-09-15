@@ -1,1 +1,1 @@
-(abs a_11 (type) (lam x_12 a_11 x_12))
+(delay (lam x_12 x_12))
