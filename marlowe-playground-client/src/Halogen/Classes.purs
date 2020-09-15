@@ -203,3 +203,6 @@ footerPanelBg = ClassName "footer-panel-bg"
 
 analysisPanel :: ClassName
 analysisPanel = ClassName "analysis-panel"
+
+collapsed :: ClassName
+collapsed = ClassName "collapsed"
