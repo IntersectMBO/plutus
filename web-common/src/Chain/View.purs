@@ -11,12 +11,12 @@ import Bootstrap.Extra (clickable)
 import Clipboard (showShortCopyLong)
 import Data.Array ((:))
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Foldable (foldMap, foldr)
 import Data.Foldable.Extra (interleave)
 import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
-import Data.Int (toNumber)
-import Data.Json.JsonMap (_JsonMap)
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Traversal', _Just, filtered, has, preview, to, view)
 import Data.Lens.Index (ix)
@@ -24,7 +24,6 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String.Extra (abbreviate)
@@ -38,7 +37,7 @@ import Ledger.Extra (humaniseInterval)
 import Ledger.Tx (TxOut(..))
 import Ledger.TxId (TxId(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Prelude (Ordering(..), const, eq, pure, show, ($), (<$>), (<<<), (<>))
+import Prelude (Ordering(..), const, eq, pure, show, zero, ($), (<$>), (<<<), (<>))
 import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
@@ -131,7 +130,7 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
                         ]
                     , div [ class_ textTruncate ]
                         [ strong_ [ text "Signatures:" ]
-                        , case Array.fromFoldable (view (_tx <<< _txSignatures <<< _JsonMap <<< to Map.keys) annotatedTx) of
+                        , case Array.fromFoldable (view (_tx <<< _txSignatures <<< to Map.keys) annotatedTx) of
                             [] -> text "None"
                             pubKeys -> ul_ (li_ <<< pure <<< showPubKey <$> pubKeys)
                         ]
@@ -142,13 +141,24 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
         , col3_
             [ h2_ [ text "Outputs" ]
             , feeView (view (_tx <<< _txFee) annotatedTx)
-            , div_ (mapWithIndex (outputView namingFn (view _txIdOf annotatedTx) annotatedBlockchain) (view (_tx <<< _txOutputs) annotatedTx))
+            , div_
+                ( mapWithIndex
+                    ( \index txout ->
+                        outputView
+                          namingFn
+                          (view _txIdOf annotatedTx)
+                          annotatedBlockchain
+                          (BigInteger.fromInt index)
+                          txout
+                    )
+                    (view (_tx <<< _txOutputs) annotatedTx)
+                )
             ]
         ]
     , balancesTable
         namingFn
         (view _sequenceId annotatedTx)
-        (view (_balances <<< _JsonMap) annotatedTx)
+        (view _balances annotatedTx)
     ]
 
 entryCardHeader :: forall i p. SequenceId -> HTML p i
@@ -241,14 +251,14 @@ balancesTable namingFn sequenceId balances =
                                     foldMap
                                       ( \token ->
                                           let
-                                            _thisBalance :: Traversal' (Map BeneficialOwner Value) Int
+                                            _thisBalance :: Traversal' (Map BeneficialOwner Value) BigInteger
                                             _thisBalance = ix owner <<< _value <<< ix currency <<< ix token
 
-                                            amount :: Maybe Int
+                                            amount :: Maybe BigInteger
                                             amount = preview _thisBalance balances
                                           in
                                             [ td [ class_ amountClass ]
-                                                [ text $ formatAmount $ fromMaybe 0 amount ]
+                                                [ text $ formatAmount $ fromMaybe zero amount ]
                                             ]
                                       )
                                 )
@@ -273,7 +283,7 @@ collectBalanceTableHeadings balances = foldr collectCurrencies Map.empty $ Map.v
   collectCurrencies :: Value -> Map CurrencySymbol (Set TokenName) -> Map CurrencySymbol (Set TokenName)
   collectCurrencies (Value { getValue: entries }) ownersBalance = foldrWithIndex collectTokenNames ownersBalance entries
 
-  collectTokenNames :: CurrencySymbol -> AssocMap.Map TokenName Int -> Map CurrencySymbol (Set TokenName) -> Map CurrencySymbol (Set TokenName)
+  collectTokenNames :: CurrencySymbol -> AssocMap.Map TokenName BigInteger -> Map CurrencySymbol (Set TokenName) -> Map CurrencySymbol (Set TokenName)
   collectTokenNames currency currencyBalances = Map.insertWith Set.union currency $ AssocMap.keys currencyBalances
 
 sequenceIdView :: forall p i. SequenceId -> HTML p i
@@ -331,7 +341,7 @@ dereferencedInputView namingFn annotatedBlockchain (InputNotFound txKey) =
         ]
     ]
 
-outputView :: forall p. NamingFn -> TxId -> AnnotatedBlockchain -> Int -> TxOut -> HTML p Action
+outputView :: forall p. NamingFn -> TxId -> AnnotatedBlockchain -> BigInteger -> TxOut -> HTML p Action
 outputView namingFn txId annotatedBlockchain outputIndex txOut =
   txOutOfView namingFn false txOut
     $ case consumedInTx of
@@ -417,7 +427,7 @@ valueView (Value { getValue: (AssocMap.Map []) }) = empty
 
 valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_ (currencyView <$> currencies))
   where
-  currencyView :: JsonTuple CurrencySymbol (AssocMap.Map TokenName Int) -> HTML p i
+  currencyView :: JsonTuple CurrencySymbol (AssocMap.Map TokenName BigInteger) -> HTML p i
   currencyView (JsonTuple (currency /\ (AssocMap.Map tokens))) =
     div_
       [ div [ class_ Bootstrap.textTruncate ]
@@ -425,7 +435,7 @@ valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_
       , div_ (tokenView <$> tokens)
       ]
 
-  tokenView :: JsonTuple TokenName Int -> HTML p i
+  tokenView :: JsonTuple TokenName BigInteger -> HTML p i
   tokenView (JsonTuple (token /\ amount)) =
     row_
       [ col_ [ showToken token ]
@@ -433,8 +443,8 @@ valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_
           [ text $ formatAmount amount ]
       ]
 
-formatAmount :: Int -> String
-formatAmount = toLocaleString <<< toNumber
+formatAmount :: BigInteger -> String
+formatAmount = BigInteger.format
 
 showCurrency :: CurrencySymbol -> String
 showCurrency (CurrencySymbol { unCurrencySymbol: "" }) = "Ada"

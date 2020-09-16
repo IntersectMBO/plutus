@@ -3,12 +3,11 @@ module Marlowe.Semantics where
 import Prelude
 import Control.Alt ((<|>))
 import Data.Array (catMaybes)
-import Data.BigInteger (BigInteger, fromInt, quot, rem)
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Foldable (class Foldable, any, foldl, minimum)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Integral (class Integral)
 import Data.Lens (Lens', over, to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -17,9 +16,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Num (class Num)
 import Data.Ord (abs, signum)
-import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Foreign (ForeignError(..), fail)
@@ -179,12 +176,6 @@ instance commutativeRingSlot :: CommutativeRing Slot
 
 derive newtype instance euclideanRingSlot :: EuclideanRing Slot
 
-derive newtype instance numSlot :: Num Slot
-
-derive newtype instance realRingSlot :: Real Slot
-
-derive newtype instance integralSlot :: Integral Slot
-
 derive newtype instance prettySlot :: Pretty Slot
 
 derive newtype instance hasArgsSlot :: Args Slot
@@ -208,17 +199,11 @@ derive instance ordAda :: Ord Ada
 
 derive newtype instance showAda :: Show Ada
 
-derive newtype instance integralAda :: Integral Ada
-
-derive newtype instance numAda :: Num Ada
-
 derive newtype instance semiringAda :: Semiring Ada
 
 derive newtype instance ringAda :: Ring Ada
 
 derive newtype instance euclideanRingAda :: EuclideanRing Ada
-
-derive newtype instance realRingAda :: Real Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
@@ -1201,9 +1186,9 @@ evalValue env state value =
         let
           nn = eval rhs * n
 
-          q = nn `quot` d
+          q = nn `div` d
 
-          r = nn `rem` d
+          r = nn `mod` d
         in
           if abs r * fromInt 2 < abs d then q else q + signum nn * signum d
       ChoiceValue choiceId -> fromMaybe zero $ Map.lookup choiceId (unwrap state).choices

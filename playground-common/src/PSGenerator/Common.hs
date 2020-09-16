@@ -41,22 +41,18 @@ import           Wallet.Types                              (AssertionError, Cont
                                                             NotificationError)
 
 psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
+psJson = TypeInfo "web-common" "Data.RawJson" "RawJson" []
 
 psNonEmpty :: MonadReader BridgeData m => m PSType
 psNonEmpty =
-    TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
+    TypeInfo "web-common" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
     psTypeParameters
 
-psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither =
-    TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
-
-psJsonMap :: MonadReader BridgeData m => m PSType
-psJsonMap = TypeInfo "" "Data.Json.JsonMap" "JsonMap" <$> psTypeParameters
+psMap :: MonadReader BridgeData m => m PSType
+psMap = TypeInfo "purescript-ordered-collections" "Data.Map" "Map" <$> psTypeParameters
 
 psUnit :: PSType
-psUnit = TypeInfo "" "Data.Unit" "Unit" []
+psUnit = TypeInfo "web-common" "Data.Unit" "Unit" []
 
 -- Note: Haskell has multi-section Tuples, whereas PureScript just uses nested pairs.
 psJsonTuple :: MonadReader BridgeData m => m PSType
@@ -64,11 +60,11 @@ psJsonTuple = expand <$> psTypeParameters
   where
     expand []       = psUnit
     expand [x]      = x
-    expand p@[_, _] = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" p
-    expand (x:ys)   = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" [x, expand ys]
+    expand p@[_, _] = TypeInfo "web-common" "Data.Json.JsonTuple" "JsonTuple" p
+    expand (x:ys)   = TypeInfo "web-common" "Data.Json.JsonTuple" "JsonTuple" [x, expand ys]
 
 psJsonUUID :: PSType
-psJsonUUID = TypeInfo "" "Data.Json.JsonUUID" "JsonUUID" []
+psJsonUUID = TypeInfo "web-common" "Data.Json.JsonUUID" "JsonUUID" []
 
 uuidBridge :: BridgePart
 uuidBridge = do
@@ -80,18 +76,13 @@ mapBridge :: BridgePart
 mapBridge = do
     typeName ^== "Map"
     typeModule ^== "Data.Map.Internal"
-    psJsonMap
+    psMap
 
 aesonValueBridge :: BridgePart
 aesonValueBridge = do
     typeName ^== "Value"
     typeModule ^== "Data.Aeson.Types.Internal"
     pure psJson
-
-eitherBridge :: BridgePart
-eitherBridge = do
-    typeName ^== "Either"
-    psJsonEither
 
 tupleBridge :: BridgePart
 tupleBridge = do
@@ -100,8 +91,7 @@ tupleBridge = do
 
 aesonBridge :: BridgePart
 aesonBridge =
-    mapBridge <|> eitherBridge <|> tupleBridge <|> aesonValueBridge <|>
-    uuidBridge
+    mapBridge <|> tupleBridge <|> aesonValueBridge <|> uuidBridge
 
 ------------------------------------------------------------
 setBridge :: BridgePart
@@ -123,7 +113,7 @@ containersBridge = nonEmptyBridge <|> setBridge
 integerBridge :: BridgePart
 integerBridge = do
     typeName ^== "Integer"
-    pure psInt
+    pure psBigInteger
 
 digestBridge :: BridgePart
 digestBridge = do
@@ -155,6 +145,10 @@ miscBridge =
     byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge
 
 ------------------------------------------------------------
+
+psBigInteger :: PSType
+psBigInteger = TypeInfo "purescript-foreign-generic" "Data.BigInteger" "BigInteger" []
+
 psAssocMap :: MonadReader BridgeData m => m PSType
 psAssocMap =
     TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>

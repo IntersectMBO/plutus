@@ -11,7 +11,6 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HTTP.Method as Method
-import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -72,7 +71,7 @@ handleAction settings Compile = do
       -- Update the error display.
       let
         markers = case result of
-          Success (JsonEither (Left errors)) -> toMarkers errors
+          Success (Left errors) -> toMarkers errors
           _ -> []
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
@@ -93,7 +92,7 @@ handleAction _ SendResultToSimulator = pure unit
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
   case mContract of
-    Success (JsonEither (Right result)) -> do
+    Success (Right result) -> do
       let
         source = view (_InterpreterResult <<< _result <<< _RunResult) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
@@ -104,7 +103,7 @@ postHaskell ::
   MonadError AjaxError m =>
   MonadAff m =>
   SourceCode ->
-  m (JsonEither InterpreterError (InterpreterResult RunResult))
+  m (Either InterpreterError (InterpreterResult RunResult))
 postHaskell sourceCode = do
   let
     affReq =
@@ -238,7 +237,7 @@ sendResultButton state msg action =
     compilationResult = view _compilationResult state
   in
     case view _compilationResult state of
-      Success (JsonEither (Right (InterpreterResult result))) ->
+      Success (Right (InterpreterResult result)) ->
         button
           [ onClick $ const $ Just action
           , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
@@ -249,7 +248,7 @@ sendResultButton state msg action =
 resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _compilationResult state of
-    Success (JsonEither (Right (InterpreterResult result))) ->
+    Success (Right (InterpreterResult result)) ->
       [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
@@ -259,8 +258,8 @@ resultPane state =
       -- ]
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") (unwrap result.result)
-    Success (JsonEither (Left (TimeoutError error))) -> [ text error ]
-    Success (JsonEither (Left (CompilationErrors errors))) -> map compilationErrorPane errors
+    Success (Left (TimeoutError error)) -> [ text error ]
+    Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "" ]
   else
     [ text "" ]

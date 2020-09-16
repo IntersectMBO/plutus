@@ -169,7 +169,7 @@ writeTestData outputDir = do
                             @TestContracts
                             (csContract currencyInstance1)
                             "Create native token"
-                            SimpleMPS {tokenName = "TestCurrency", amount = 10000}
+                            SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
                     --
                     report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-

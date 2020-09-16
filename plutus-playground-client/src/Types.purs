@@ -6,8 +6,9 @@ import Auth (AuthStatus)
 import Chain.Types as Chain
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
+import Data.BigInteger (BigInteger)
+import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
-import Data.Json.JsonEither (JsonEither)
 import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (Iso', Lens', Traversal', _Right, iso)
 import Data.Lens.Extra (peruse)
@@ -51,7 +52,7 @@ _simulatorWalletWallet = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorW
 _simulatorWalletBalance :: Lens' SimulatorWallet Value
 _simulatorWalletBalance = _SimulatorWallet <<< prop (SProxy :: SProxy "simulatorWalletBalance")
 
-_walletId :: Iso' Wallet Int
+_walletId :: Iso' Wallet BigInteger
 _walletId = _Wallet <<< iso _.getWallet { getWallet: _ }
 
 _pubKey :: Lens' PubKey String
@@ -72,7 +73,7 @@ _functionArguments = prop (SProxy :: SProxy "functionArguments")
 _blocks :: forall r a. Lens' { blocks :: a | r } a
 _blocks = prop (SProxy :: SProxy "blocks")
 
-_InSlot :: Iso' Slot Int
+_InSlot :: Iso' Slot BigInteger
 _InSlot = iso (_.getSlot <<< unwrap) (wrap <<< { getSlot: _ })
 
 _slot :: forall r a. Lens' { slot :: a | r } a
@@ -193,10 +194,10 @@ newtype State
   { currentView :: View
   , contractDemos :: Array ContractDemo
   , editorPreferences :: Editor.Preferences
-  , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))
+  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
-  , evaluationResult :: WebData (JsonEither PlaygroundError EvaluationResult)
+  , evaluationResult :: WebData (Either PlaygroundError EvaluationResult)
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
@@ -226,17 +227,17 @@ _simulationActions = _Newtype <<< prop (SProxy :: SProxy "simulationActions")
 _simulationWallets :: Lens' Simulation (Array SimulatorWallet)
 _simulationWallets = _Newtype <<< prop (SProxy :: SProxy "simulationWallets")
 
-_evaluationResult :: Lens' State (WebData (JsonEither PlaygroundError EvaluationResult))
+_evaluationResult :: Lens' State (WebData (Either PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
 
 _resultRollup :: Lens' EvaluationResult (Array (Array AnnotatedTx))
 _resultRollup = _Newtype <<< prop (SProxy :: SProxy "resultRollup")
 
-_compilationResult :: Lens' State (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
+_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _successfulCompilationResult :: Traversal' State CompilationResult
-_successfulCompilationResult = _compilationResult <<< _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
+_successfulCompilationResult = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result
 
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")

@@ -77,6 +77,7 @@ data FormSchema
     = FormSchemaUnit
     | FormSchemaBool
     | FormSchemaInt
+    | FormSchemaInteger
     | FormSchemaString
     | FormSchemaHex
       -- ^ A string that may only contain @0-9a-fA-F@
@@ -101,6 +102,7 @@ data FormArgumentF a
     = FormUnitF
     | FormBoolF Bool
     | FormIntF (Maybe Int)
+    | FormIntegerF (Maybe Integer)
     | FormStringF (Maybe String)
     | FormHexF (Maybe String)
     | FormRadioF [String] (Maybe String)
@@ -125,7 +127,8 @@ formArgumentToJson = cata algebra
     algebra FormUnitF = justJSON ()
     algebra (FormBoolF v) = justJSON v
     algebra (FormIntF v) = justJSON v
-    algebra (FormStringF v) = justJSON v
+    algebra (FormIntegerF v) = justJSON v
+    algebra (FormStringF v) = justJSON (show v)
     algebra (FormHexF v) = justJSON v
     algebra (FormRadioF _ v) = justJSON v
     algebra (FormArrayF _ v) = justJSON v
@@ -213,10 +216,10 @@ instance ToArgument Int where
     toArgument = Fix . FormIntF . Just
 
 instance ToSchema Integer where
-    toSchema = FormSchemaInt
+    toSchema = FormSchemaInteger
 
 instance ToArgument Integer where
-    toArgument = Fix . FormIntF . Just . fromIntegral
+    toArgument = Fix . FormIntegerF . Just
 
 instance ToSchema Text where
     toSchema = FormSchemaString

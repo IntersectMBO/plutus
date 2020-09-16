@@ -2,6 +2,8 @@ module Schema.TypesTests
   ( all
   ) where
 
+import Prelude
+import Data.BigInteger as BigInteger
 import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
@@ -19,15 +21,14 @@ import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..))
-import Wallet.Types (EndpointDescription(EndpointDescription))
-import Prelude
 import Schema (FormSchema(..), FormArgumentF(..))
+import Schema.Types (FormArgument, formArgumentToJson, mkInitialValue, toArgument)
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
-import Schema.Types (FormArgument, formArgumentToJson, mkInitialValue, toArgument)
 import Validation (ValidationError(..), validate, withPath)
 import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Types (EndpointDescription(..))
 
 all :: TestSuite
 all =
@@ -40,8 +41,9 @@ all =
 validateTests :: TestSuite
 validateTests = do
   test "No validation errors" do
-    isValid $ AddBlocks { blocks: 1 }
+    isValid $ AddBlocks { blocks: one }
     isValid $ makeTestAction $ Fix $ FormIntF (Just 5)
+    isValid $ makeTestAction $ Fix $ FormIntegerF (Just (BigInteger.fromInt 5))
     isValid $ makeTestAction $ Fix $ FormStringF (Just "TEST")
     isValid $ makeTestAction $ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF (Just 6))
     isValid $ makeTestAction $ Fix $ FormArrayF FormSchemaInt []
@@ -50,6 +52,7 @@ validateTests = do
   test "Validation errors" do
     equal [ withPath [] Unsupported ] $ validate (makeTestAction $ Fix $ FormUnsupportedF "Test case.")
     equal [ withPath [] Required ] $ validate (makeTestAction $ Fix $ FormIntF Nothing)
+    equal [ withPath [] Required ] $ validate (makeTestAction $ Fix $ FormIntegerF Nothing)
     equal [ withPath [] Required ] $ validate (makeTestAction $ Fix $ FormStringF Nothing)
     equal
       [ withPath [ "_1" ] Required
@@ -91,7 +94,7 @@ toArgumentTests = do
           { getValue:
             AssocMap.fromTuples
               [ ( Tuple (CurrencySymbol { unCurrencySymbol: "12345" })
-                    (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
+                    (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
                 )
               ]
           }
@@ -108,7 +111,7 @@ makeTestAction :: FormArgument -> ContractCall FormArgument
 makeTestAction argument =
   CallEndpoint
     { caller:
-      Wallet { getWallet: 1 }
+      Wallet { getWallet: one }
     , argumentValues:
       FunctionSchema
         { endpointDescription: EndpointDescription { getEndpointDescription: "test" }
@@ -129,6 +132,13 @@ formArgumentToJsonTests = do
       equalJson
         (Just (encodeJSON 5))
         (formArgumentToJson (Fix $ FormIntF (Just 5)))
+    test "BigIntegers" do
+      equalJson
+        Nothing
+        (formArgumentToJson (Fix $ FormIntegerF Nothing))
+      equalJson
+        (Just (encodeJSON (BigInteger.fromInt 5)))
+        (formArgumentToJson (Fix $ FormIntegerF (Just (BigInteger.fromInt 5))))
     test "Strings" do
       equalJson
         Nothing
@@ -169,7 +179,7 @@ formArgumentToJsonTests = do
                     [ [ encode $ FO.singleton "unCurrencySymbol" ""
                       , encode
                           [ [ encode $ FO.singleton "unTokenName" ""
-                            , encode 4
+                            , encode (BigInteger.fromInt 4)
                             ]
                           ]
                       ]
@@ -180,7 +190,7 @@ formArgumentToJsonTests = do
         ( formArgumentToJson
             ( Fix
                 $ FormValueF
-                    (Value { getValue: AssocMap.fromTuples [ CurrencySymbol { unCurrencySymbol: "" } /\ AssocMap.fromTuples [ TokenName { unTokenName: "" } /\ 4 ] ] })
+                    (Value { getValue: AssocMap.fromTuples [ CurrencySymbol { unCurrencySymbol: "" } /\ AssocMap.fromTuples [ TokenName { unTokenName: "" } /\ BigInteger.fromInt 4 ] ] })
             )
         )
     test "Objects" do
@@ -211,11 +221,11 @@ mkInitialValueTests =
         ( Value
             { getValue:
               AssocMap.fromTuples
-                [ ada /\ AssocMap.fromTuples [ adaToken /\ 10 ]
+                [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 10 ]
                 , currencies
                     /\ AssocMap.fromTuples
-                        [ usdToken /\ 10
-                        , eurToken /\ 10
+                        [ usdToken /\ BigInteger.fromInt 10
+                        , eurToken /\ BigInteger.fromInt 10
                         ]
                 ]
             }
@@ -224,7 +234,7 @@ mkInitialValueTests =
             [ KnownCurrency { hash: "", friendlyName: "Ada", knownTokens: (JsonNonEmptyList (pure (TokenName { unTokenName: "" }))) }
             , KnownCurrency { hash: "Currency", friendlyName: "Currencies", knownTokens: JsonNonEmptyList (NonEmptyList ((TokenName { unTokenName: "USDToken" }) :| (Cons (TokenName { unTokenName: "EURToken" }) Nil))) }
             ]
-            10
+            (BigInteger.fromInt 10)
         )
 
 ada :: CurrencySymbol
