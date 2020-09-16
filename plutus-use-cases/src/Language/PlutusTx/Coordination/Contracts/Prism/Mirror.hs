@@ -66,14 +66,11 @@ createTokens ::
     -> Contract s MirrorError ()
 createTokens authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
-    let authorityPk = Credential.unCredentialAuthority authority
-        policy = Credential.policy authority
-        credential = Credential{credAuthority=authority,credName=coTokenName}
-        lookups = Constraints.monetaryPolicy policy
-        theToken = Credential.token credential
+    let lookups = Constraints.monetaryPolicy (Credential.policy authority)
+        theToken = Credential.token Credential{credAuthority=authority,credName=coTokenName}
         constraints =
             Constraints.mustForgeValue theToken
-            <> Constraints.mustBeSignedBy authorityPk
+            <> Constraints.mustBeSignedBy (Credential.unCredentialAuthority authority)
     _ <- mapError CreateTokenTxError $ do
             tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
             awaitTxConfirmed (txId tx)
