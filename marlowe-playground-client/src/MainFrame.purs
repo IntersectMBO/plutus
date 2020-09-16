@@ -12,8 +12,6 @@ import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Time.Duration (Milliseconds(..))
-import Effect.Aff (delay)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gists (GistAction(..))
@@ -234,16 +232,15 @@ handleAction _ (JSSelectEditorKeyBindings bindings) = do
   void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction _ CompileJSProgram = do
-  mContents <- query _jsEditorSlot unit (Monaco.GetText identity)
-  case mContents of
+  maybeModel <- query _jsEditorSlot unit (Monaco.GetModel identity)
+  case maybeModel of
     Nothing -> pure unit
-    Just contents -> do
+    Just model -> do
       assign _jsCompilationResult JSCompiling
       void $ subscribe
         $ affEventSource
             ( \emitter -> do
-                delay (Milliseconds 10.0) -- Small pause to allow UI to redraw
-                res <- JSI.eval contents
+                res <- JSI.eval model
                 emit emitter (CompiledJSProgram res)
                 pure mempty
             )

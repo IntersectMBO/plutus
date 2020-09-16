@@ -67,6 +67,7 @@ type State
 data Query a
   = SetText String a
   | GetText (String -> a)
+  | GetModel (Monaco.ITextModel -> a)
   | SetPosition IPosition a
   | Resize a
   | SetTheme String a
@@ -185,6 +186,11 @@ handleQuery (GetText f) = do
     let
       s = Monaco.getValue model
     pure $ f s
+
+handleQuery (GetModel f) = do
+  withEditor \editor -> do
+    m <- liftEffect $ Monaco.getModel editor
+    pure $ f m
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do
