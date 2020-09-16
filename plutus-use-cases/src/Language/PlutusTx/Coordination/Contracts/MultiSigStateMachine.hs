@@ -31,6 +31,7 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     ) where
 
 import           Control.Lens                          (makeClassyPrisms)
+import           Control.Monad                         (forever)
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
@@ -258,9 +259,8 @@ contract ::
     )
     => Params
     -> Contract MultiSigSchema e ()
-contract params = go where
+contract params = forever endpoints where
     theClient = client params
-    go = endpoints >> go
     endpoints = lock `select` propose `select` cancel `select` addSignature `select` pay
     propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel

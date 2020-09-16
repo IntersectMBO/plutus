@@ -16,7 +16,9 @@
 module Language.Plutus.Contract.Effects.RPC(
     RPC(..)
     , RPCClient
+    , HasRPCClient
     , RPCServer
+    , HasRPCServer
     , RPCParams(..)
     , RPCCallError(..)
     , RPCRespondError(..)
@@ -77,7 +79,9 @@ class (ToFromJSON (RPCRequest r), ToFromJSON (RPCResponse r) , ToFromJSON (RPCEr
         type RPCResponseEndpoint r :: Symbol
 
 type RPCClient r = Endpoint (RPCResponseEndpoint r) (Either (RPCError r) (RPCResponse r))
+type HasRPCClient r s = HasEndpoint (RPCResponseEndpoint r) (Either (RPCError r) (RPCResponse r)) s
 type RPCServer r = Endpoint (RPCRequestEndpoint r) (RPCParams (RPCRequest r))
+type HasRPCServer r s = HasEndpoint (RPCRequestEndpoint r) (RPCParams (RPCRequest r)) s
 
 callRPC :: forall r s.
     ( HasOwnId s

@@ -48,6 +48,7 @@
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
@@ -63,6 +64,13 @@
           "Language/PlutusTx/Coordination/Contracts/MultiSig"
           "Language/PlutusTx/Coordination/Contracts/MultiSigStateMachine"
           "Language/PlutusTx/Coordination/Contracts/PingPong"
+          "Language/PlutusTx/Coordination/Contracts/Prism"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Credential"
+          "Language/PlutusTx/Coordination/Contracts/Prism/CredentialManager"
+          "Language/PlutusTx/Coordination/Contracts/Prism/STO"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Mirror"
+          "Language/PlutusTx/Coordination/Contracts/Prism/StateMachine"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Unlock"
           "Language/PlutusTx/Coordination/Contracts/PubKey"
           "Language/PlutusTx/Coordination/Contracts/RPC"
           "Language/PlutusTx/Coordination/Contracts/Vesting"
@@ -107,6 +115,7 @@
             "Spec/MultiSigStateMachine"
             "Spec/PingPong"
             "Spec/PubKey"
+            "Spec/Prism"
             "Spec/Rollup"
             "Spec/RPC"
             "Spec/TokenAccount"
