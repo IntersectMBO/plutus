@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
-{- Note [Credential STO]
+{-
 
 This module defines an STO that allocates coins to anyone who
 

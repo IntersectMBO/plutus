@@ -70,7 +70,7 @@
           "Language/PlutusTx/Coordination/Contracts/Prism/STO"
           "Language/PlutusTx/Coordination/Contracts/Prism/Mirror"
           "Language/PlutusTx/Coordination/Contracts/Prism/StateMachine"
-          "Language/PlutusTx/Coordination/Contracts/Prism/Withdraw"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Unlock"
           "Language/PlutusTx/Coordination/Contracts/PubKey"
           "Language/PlutusTx/Coordination/Contracts/RPC"
           "Language/PlutusTx/Coordination/Contracts/Vesting"

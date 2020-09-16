@@ -18,6 +18,7 @@ module Language.PlutusTx.Coordination.Contracts.Prism.Mirror(
     ) where
 
 import           Control.Monad                                               (void)
+import           Control.Monad                                               (forever)
 import           Data.Aeson                                                  (FromJSON, ToJSON)
 import           GHC.Generics                                                (Generic)
 import           Language.Plutus.Contract
@@ -55,8 +56,7 @@ mirror ::
     => Contract s MirrorError ()
 mirror = do
     authority <- mapError SetupError $ CredentialAuthority . pubKeyHash <$> ownPubKey
-    let go = (createTokens authority `select` revokeToken authority) >> go
-    go
+    forever $ (createTokens authority `select` revokeToken authority)
 
 createTokens ::
     ( HasEndpoint "issue" CredentialOwnerReference s
