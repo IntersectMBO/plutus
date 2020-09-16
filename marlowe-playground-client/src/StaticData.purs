@@ -35,7 +35,7 @@ demoFiles =
 
 addHeader :: Contents -> Contents
 addHeader c =
-  """import * as bigInt from 'big-integer';
+  """import { BigNumber as bigInt } from 'bignumber';
 import { role, accountId, choiceId, token, ada, valueId, availableMoney, constant, 
          negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart, 
          slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE, 

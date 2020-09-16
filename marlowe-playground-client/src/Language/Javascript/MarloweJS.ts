@@ -1,4 +1,4 @@
-import bigInt = require("big-integer")
+import bignumber = require("bignumber")
 
 type Party = { "pk_hash" : string }
            | { "role_token" : string };
@@ -22,7 +22,7 @@ type AccountId = { "account_number" : string,
                    "account_owner" : Party };
 
 export const accountId =
-    function (accountNumber : bigInt.BigInteger, accountOwner : Party) : AccountId {
+    function (accountNumber : bignumber.BigNumber, accountOwner : Party) : AccountId {
         return { "account_number": accountNumber.toString(),
                  "account_owner": accountOwner };
     };
@@ -88,7 +88,7 @@ export const availableMoney =
     };
 
 export const constant =
-    function (number : bigInt.BigInteger) : Value {
+    function (number : bignumber.BigNumber) : Value {
         return number.toString();
     };
 
@@ -116,8 +116,8 @@ export const mulValue =
     };
 
 export const scale =
-    function (num : bigInt.BigInteger, den : bigInt.BigInteger, val : Value) : Value {
-        if (den.leq(bigInt.zero)) {
+    function (num : bignumber.BigNumber, den : bignumber.BigNumber, val : Value) : Value {
+        if (den.leq(bignumber.zero)) {
             throw(new Error("Denominator in scale must be strictly positve"));
         } else {
             return { "multiply": val,
@@ -225,7 +225,7 @@ type Bound = { "from": String,
                "to": String };
 
 export const bound =
-    function (boundMin : bigInt.BigInteger, boundMax : bigInt.BigInteger) : Bound {
+    function (boundMin : bignumber.BigNumber, boundMax : bignumber.BigNumber) : Bound {
         return { "from": boundMin.toString(),
                  "to": boundMax.toString() };
     };
@@ -307,7 +307,7 @@ export const ifM =
     };
 
 export const whenM =
-    function (cases : Case[], timeout : bigInt.BigInteger, timeoutCont : Contract) : Contract {
+    function (cases : Case[], timeout : bignumber.BigNumber, timeoutCont : Contract) : Contract {
         return { "when": cases,
                  "timeout": timeout.toString(),
                  "timeout_continuation": timeoutCont };
