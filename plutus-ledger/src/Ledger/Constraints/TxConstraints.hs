@@ -126,8 +126,7 @@ data TxConstraints i o =
 instance Bifunctor TxConstraints where
     bimap f g txc =
         txc
-            { txConstraints = txConstraints txc
-            , txOwnInputs = Haskell.fmap (Haskell.fmap f) (txOwnInputs txc)
+            { txOwnInputs = Haskell.fmap (Haskell.fmap f) (txOwnInputs txc)
             , txOwnOutputs = Haskell.fmap (Haskell.fmap g) (txOwnOutputs txc)
             }
 

@@ -4,13 +4,15 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE TypeOperators      #-}
--- | The Atala mirror application that initialises the state machine
+-- | The Atala Mirror application that initialises the state machine
 module Language.PlutusTx.Coordination.Contracts.Prism.Mirror(
     MirrorSchema
+    , CredentialOwnerReference(..)
     , MirrorError(..)
     , mirror
     ) where
@@ -29,15 +31,26 @@ import           Ledger.Crypto                                               (Pu
 import qualified Ledger.Typed.Scripts                                        as Scripts
 import           Ledger.Value                                                (TokenName)
 
+-- | Reference to a credential tied to a specific owner (public key address).
+--   From this, and the public key of the Mirror instance, we can compute the
+--   address of the state machine script that locks the token for the owner.
+data CredentialOwnerReference =
+    CredentialOwnerReference
+        { coTokenName :: TokenName
+        , coOwner     :: PubKeyHash
+        }
+    deriving stock (Generic, Eq, Show, Ord)
+    deriving anyclass (ToJSON, FromJSON)
+
 type MirrorSchema =
     BlockchainActions
-        .\/ Endpoint "issue" (TokenName, PubKeyHash) -- lock a single token in a state machine tied to the client address
-        .\/ Endpoint "revoke" (TokenName, PubKeyHash) -- revoke a token from a state machine
+        .\/ Endpoint "issue" CredentialOwnerReference -- lock a single credential token in a state machine tied to the credential token owner
+        .\/ Endpoint "revoke" CredentialOwnerReference -- revoke a credential token token from its owner by calling 'Revoke' on the state machine instance
 
 mirror ::
     ( HasBlockchainActions s
-    , HasEndpoint "revoke" (TokenName, PubKeyHash) s
-    , HasEndpoint "issue" (TokenName, PubKeyHash) s
+    , HasEndpoint "revoke" CredentialOwnerReference s
+    , HasEndpoint "issue" CredentialOwnerReference s
     )
     => Contract s MirrorError ()
 mirror = do
@@ -46,35 +59,36 @@ mirror = do
     go
 
 createTokens ::
-    ( HasEndpoint "issue" (TokenName, PubKeyHash) s
+    ( HasEndpoint "issue" CredentialOwnerReference s
     , HasBlockchainActions s
     )
     => CredentialAuthority
     -> Contract s MirrorError ()
 createTokens authority = do
-    (tokenName, credentialOwner) <- mapError IssueEndpointError $ endpoint @"issue"
+    CredentialOwnerReference{coTokenName, coOwner} <- mapError IssueEndpointError $ endpoint @"issue"
     let authorityPk = Credential.unCredentialAuthority authority
         policy = Credential.policy authority
-        credential = Credential{credAuthority=authority,credName=tokenName}
+        credential = Credential{credAuthority=authority,credName=coTokenName}
         lookups = Constraints.monetaryPolicy policy
         theToken = Credential.token credential
         constraints =
             Constraints.mustForgeValue theToken
             <> Constraints.mustBeSignedBy authorityPk
-    _ <- mapError CreateTokenTxError
-            $ (submitTxConstraintsWith @Scripts.Any lookups constraints >>= awaitTxConfirmed . txId)
-    let stateMachine = StateMachine.mkMachineClient authority credentialOwner tokenName
+    _ <- mapError CreateTokenTxError $ do
+            tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
+            awaitTxConfirmed (txId tx)
+    let stateMachine = StateMachine.mkMachineClient authority coOwner coTokenName
     void $ mapError StateMachineError $ runInitialise stateMachine Active theToken
 
 revokeToken ::
     ( HasBlockchainActions s
-    , HasEndpoint "revoke" (TokenName, PubKeyHash) s
+    , HasEndpoint "revoke" CredentialOwnerReference s
     )
     => CredentialAuthority
     -> Contract s MirrorError ()
 revokeToken authority = do
-    (tokenName, credentialOwner) <- mapError RevokeEndpointError $ endpoint @"revoke"
-    let stateMachine = StateMachine.mkMachineClient authority credentialOwner tokenName
+    CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
+    let stateMachine = StateMachine.mkMachineClient authority coOwner coTokenName
     void $ mapError StateMachineError $ runStep stateMachine RevokeCredential
 
 ---

@@ -24,6 +24,7 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , address
   , accountToken
   , payTx
+  , redeemTx
   -- * Endpoints
   , TokenAccountSchema
   , HasTokenAccountSchema
@@ -91,7 +92,8 @@ type HasTokenAccountSchema s =
 data TokenAccountError =
     TAContractError ContractError
     | TACurrencyError Currency.CurrencyError
-    deriving Show
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''TokenAccountError
 
@@ -165,24 +167,24 @@ pay
 pay inst = mapError (review _TAContractError) . submitTxConstraints inst . payTx
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
-redeemTx
-    :: ( HasUtxoAt s
-       , AsTokenAccountError e
-       )
+redeemTx :: forall s e.
+    ( HasUtxoAt s
+    , AsTokenAccountError e
+    )
     => Account
     -> PubKeyHash
-    -> Contract s e UnbalancedTx
+    -> Contract s e (TxConstraints () (), ScriptLookups TokenAccount)
 redeemTx account pk = mapError (review _TAContractError) $ do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
-    let tx = TypedTx.collectFromScript utxos ()
+    let constraints = TypedTx.collectFromScript utxos ()
                 <> Constraints.mustPayToPubKey pk (accountToken account)
         lookups = Constraints.scriptInstanceLookups inst
                 <> Constraints.unspentOutputs utxos
     -- TODO. Replace 'PubKey' with a more general 'Address' type of output?
     --       Or perhaps add a field 'requiredTokens' to 'LedgerTxConstraints' and let the
     --       balancing mechanism take care of providing the token.
-    either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups tx)
+    pure (constraints, lookups)
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
@@ -195,7 +197,10 @@ redeem
   -> Account
   -- ^ The token account
   -> Contract s e Tx
-redeem pk account = mapError (review _TokenAccountError) $ redeemTx account pk >>= submitUnbalancedTx
+redeem pk account = mapError (review _TokenAccountError) $ do
+    (constraints, lookups) <- redeemTx account pk
+    tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups constraints)
+    submitUnbalancedTx tx
 
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@

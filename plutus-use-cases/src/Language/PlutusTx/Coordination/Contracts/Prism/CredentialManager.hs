@@ -22,7 +22,7 @@ import           GHC.Generics                                                (Ge
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Effects.RPC
 import           Language.Plutus.Contract.StateMachine                       (SMContractError, StateMachine,
-                                                                              StateMachineTypedTxContext (..), mkStep)
+                                                                              StateMachineTransition (..), mkStep)
 import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine (IDAction (PresentCredential), IDState,
                                                                               UserCredential (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.StateMachine as StateMachine
@@ -43,7 +43,7 @@ type CredentialManagerSchema =
     BlockchainActions
         .\/ RPCServer CredentialManager
 
--- | The Plutus application that manages keeps track of user credentials.
+-- | The Plutus application that keeps track of user credentials.
 credentialManager :: forall s.
     ( HasBlockchainActions s
     , HasRPCServer CredentialManager s
@@ -58,8 +58,7 @@ credentialManager =
 -- | Error that occurs when running the 'credential-token-req' RPC call.
 --   This needs to be handled by the client.
 data CredentialManagerClientError =
-    RunGuardedStepError
-    | StateMachineError (SMContractError IDState IDAction)
+    StateMachineError (SMContractError IDState IDAction)
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -70,7 +69,8 @@ data CredentialManagerError =
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Server side implementation of the 'CredentialManager' RPC. This simply calls the 'PresentCredential'
---   step on the state machine instance.
+--   step on the state machine instance and returns the constraints needed to construct a transaction
+--   that presents the token.
 presentToken :: forall s.
     ( HasBlockchainActions s
     )
@@ -78,7 +78,7 @@ presentToken :: forall s.
     -> Contract s CredentialManagerClientError (TxConstraints IDAction IDState, ScriptLookups (StateMachine IDState IDAction))
 presentToken userCredential = do
     let theClient = StateMachine.machineClient (StateMachine.scriptInstance userCredential) userCredential
-    StateMachineTypedTxContext{smtConstraints=cons, smtLookups=lookups} <-
+    StateMachineTransition{smtConstraints=cons, smtLookups=lookups} <-
         mapError StateMachineError
         $ mkStep theClient PresentCredential
     pure (cons, lookups)

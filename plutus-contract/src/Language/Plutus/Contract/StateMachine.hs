@@ -33,7 +33,7 @@ module Language.Plutus.Contract.StateMachine(
     , getOnChainState
     , waitForUpdate
     -- * Lower-level API
-    , StateMachineTypedTxContext(..)
+    , StateMachineTransition(..)
     , mkStep
     -- * Re-exports
     , Void
@@ -202,7 +202,7 @@ runGuardedStep ::
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract schema e (Either a state)
 runGuardedStep smc input guard = mapError (review _SMContractError) $ do
-    StateMachineTypedTxContext{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups} <- mkStep smc input
+    StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups} <- mkStep smc input
     pk <- ownPubKey
     let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups smtConstraints)
@@ -255,16 +255,18 @@ runInitialise StateMachineClient{scInstance} initialState initialValue = mapErro
     submitTxConfirmed utx
     pure initialState
 
-
 -- | Constraints & lookups needed to transition a state machine instance
-data StateMachineTypedTxContext state input =
-    StateMachineTypedTxContext
+data StateMachineTransition state input =
+    StateMachineTransition
         { smtConstraints :: TxConstraints (Scripts.RedeemerType (StateMachine state input)) (Scripts.DatumType (StateMachine state input))
         , smtOldState    :: State state
         , smtNewState    :: State state
         , smtLookups     :: ScriptLookups (StateMachine state input)
         }
 
+-- | Given a state machine client and an input to apply to
+--   the client's state machine instance, compute the 'StateMachineTransition'
+--   that can produce an actual transaction performing the transition
 mkStep ::
     forall e state schema input.
     ( AsSMContractError e state input
@@ -273,7 +275,7 @@ mkStep ::
     )
     => StateMachineClient state input
     -> input
-    -> Contract schema e (StateMachineTypedTxContext state input)
+    -> Contract schema e (StateMachineTransition state input)
 mkStep client@StateMachineClient{scInstance} input = do
     let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
     (onChainState, utxo) <- getOnChainState client
@@ -291,7 +293,7 @@ mkStep client@StateMachineClient{scInstance} input = do
                         then []
                         else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState }]
             in pure
-                StateMachineTypedTxContext
+                StateMachineTransition
                     { smtConstraints =
                         newConstraints
                             { txOwnInputs = inputConstraints

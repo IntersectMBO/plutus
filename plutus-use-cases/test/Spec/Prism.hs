@@ -41,9 +41,9 @@ credential =
         , credAuthority = CredentialAuthority (pubKeyHash $ walletPubKey mirror)
         }
 
-withdrawal :: Withdrawal
-withdrawal =
-    Withdrawal
+stoSubscriber :: STOSubscriber
+stoSubscriber =
+    STOSubscriber
         { wCredential = credential
         , wSTOIssuer = pubKeyHash $ walletPubKey issuer
         , wSTOTokenName = sto
@@ -66,13 +66,13 @@ tests = testGroup "PRISM"
         /\ walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
         /\ walletFundsChange user (Ada.lovelaceValueOf (negate numTokens) <> STO.coins stoData numTokens)
         )
-        (callEndpoint @"role" user Withdraw
+        (callEndpoint @"role" user UnlockSTO
         >> callEndpoint @"role" mirror Mirror
         >> callEndpoint @"role" credentialManager CredMan
         >> handleAll
 
         -- issue a KYC credential to a user
-        >> callEndpoint @"issue" mirror (kyc, pubKeyHash (walletPubKey user))
+        >> callEndpoint @"issue" mirror CredentialOwnerReference{coTokenName=kyc, coOwner=pubKeyHash (walletPubKey user)}
         >> handleBlockchainEvents mirror
         >> addBlocks 1
         >> handleAll
@@ -80,7 +80,7 @@ tests = testGroup "PRISM"
         >> handleAll
 
         -- participate in STO presenting the token
-        >> callEndpoint @"withdraw" user withdrawal
+        >> callEndpoint @"sto" user stoSubscriber
         >> handleBlockchainEvents user
         >> callEndpoint @"credential manager" user (walletInstanceId credentialManager)
         >> handleBlockchainEvents user
