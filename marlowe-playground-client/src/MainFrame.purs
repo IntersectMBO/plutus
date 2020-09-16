@@ -41,7 +41,6 @@ import JSEditor as JSEditor
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
-import Language.Javascript.Interpreter as JSInterpreter
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
@@ -244,7 +243,8 @@ handleAction _ CompileJSProgram = do
         $ affEventSource
             ( \emitter -> do
                 delay (Milliseconds 10.0) -- Small pause to allow UI to redraw
-                emit emitter (CompiledJSProgram (JSInterpreter.eval contents))
+                res <- JSI.eval contents
+                emit emitter (CompiledJSProgram res)
                 pure mempty
             )
       pure unit
