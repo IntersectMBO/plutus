@@ -56,7 +56,7 @@ compareTyName (TyName n) (TyName n') = compareName n n'
 
 compareTerm
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
-    => Term TyName Name uni a -> Term TyName Name uni a -> Bool
+    => Term TyName Name uni fun a -> Term TyName Name uni fun a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
@@ -84,11 +84,11 @@ compareType _ _                                       = False
 
 compareProgram
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
-    => Program TyName Name uni a -> Program TyName Name uni a -> Bool
+    => Program TyName Name uni fun a -> Program TyName Name uni fun a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni () a } deriving Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
@@ -127,14 +127,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni ()) a) -> Property
+propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni () ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
         backward
-            :: Except FreeVariableError (Term TyDeBruijn DeBruijn DefaultUni a)
-            -> Except FreeVariableError (Term TyName Name DefaultUni a)
+            :: Except FreeVariableError (Term TyDeBruijn DeBruijn DefaultUni () a)
+            -> Except FreeVariableError (Term TyName Name DefaultUni () a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -173,7 +173,7 @@ testCaseCount name act = testCaseInfo name $
   liftM (\i -> show i ++ " types generated") act
 
 
-type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
+type TestFunction a = BSL.ByteString -> Either (Error DefaultUni () a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -187,7 +187,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (Error DefaultUni () AlexPosn) T.Text
 evalFile contents =
     second displayPlcDef $
         unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
@@ -222,7 +222,7 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
-        term0, term1 :: Term TyName Name DefaultUni ()
+        term0, term1 :: Term TyName Name DefaultUni () ()
 
         -- [(lam x a x) x]
         term0 = Apply () lamX varX

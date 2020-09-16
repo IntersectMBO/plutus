@@ -36,7 +36,7 @@ import           Control.Monad
 -- | 'id' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-idFun :: TermLike term TyName Name uni => term ()
+idFun :: TermLike term TyName Name uni fun => term ()
 idFun = runQuote $ do
     a <- freshTyName "a"
     x <- freshName "x"
@@ -48,7 +48,7 @@ idFun = runQuote $ do
 -- | 'const' as a PLC term.
 --
 -- > /\(A B :: *) -> \(x : A) (y : B) -> x
-const :: TermLike term TyName Name uni => term ()
+const :: TermLike term TyName Name uni fun => term ()
 const = runQuote $ do
     a <- freshTyName "a"
     b <- freshTyName "b"
@@ -64,7 +64,7 @@ const = runQuote $ do
 -- | '($)' as a PLC term.
 --
 -- > /\(A B :: *) -> \(f : A -> B) (x : A) -> f x
-applyFun :: TermLike term TyName Name uni => term ()
+applyFun :: TermLike term TyName Name uni fun => term ()
 applyFun = runQuote $ do
     a <- freshTyName "a"
     b <- freshTyName "b"
@@ -80,7 +80,7 @@ applyFun = runQuote $ do
 -- | @Self@ as a PLC type.
 --
 -- > fix \(self :: * -> *) (a :: *) -> self a -> a
-selfData :: RecursiveType uni ()
+selfData :: RecursiveType uni fun ()
 selfData = runQuote $ do
     self <- freshTyName "self"
     a    <- freshTyName "a"
@@ -91,7 +91,7 @@ selfData = runQuote $ do
 -- | @unroll@ as a PLC term.
 --
 -- > /\(a :: *) -> \(s : self a) -> unwrap s s
-unroll :: TermLike term TyName Name uni => term ()
+unroll :: TermLike term TyName Name uni fun => term ()
 unroll = runQuote $ do
     let self = _recursiveType selfData
     a <- freshTyName "a"
@@ -108,10 +108,10 @@ unroll = runQuote $ do
 -- >    unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) \(x : a) -> f (unroll {a -> b} s) x)
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
-fix :: TermLike term TyName Name uni => term ()
+fix :: TermLike term TyName Name uni fun => term ()
 fix = fst fixAndType
 
-fixAndType :: TermLike term TyName Name uni => (term (), Type TyName uni ())
+fixAndType :: TermLike term TyName Name uni fun => (term (), Type TyName uni ())
 fixAndType = runQuote $ do
     let RecursiveType self wrapSelf = selfData
     a <- freshTyName "a"
@@ -167,10 +167,10 @@ natTransId f = do
 -- >     forall (F :: * -> *) .
 -- >     ((F ~> Id) -> (F ~> Id)) ->
 -- >     ((F ~> F) -> (F ~> Id))
-fixBy :: TermLike term TyName Name uni => term ()
+fixBy :: TermLike term TyName Name uni fun => term ()
 fixBy = fst fixByAndType
 
-fixByAndType :: TermLike term TyName Name uni => (term (), Type TyName uni ())
+fixByAndType :: TermLike term TyName Name uni fun => (term (), Type TyName uni ())
 fixByAndType = runQuote $ do
     f <- freshTyName "F"
 
@@ -248,10 +248,10 @@ fixByAndType = runQuote $ do
 -- >         (An -> Bn) ->
 -- >         Q) ->
 -- >     (forall R :: * . ((A1 -> B1) -> ... (An -> Bn) -> R) -> R)
-fixN :: TermLike term TyName Name uni => Integer -> term () -> term ()
+fixN :: TermLike term TyName Name uni fun => Integer -> term () -> term ()
 fixN n fixByTerm = fst (fixNAndType n fixByTerm)
 
-fixNAndType :: TermLike term TyName Name uni => Integer -> term () -> (term (), Type TyName uni ())
+fixNAndType :: TermLike term TyName Name uni fun => Integer -> term () -> (term (), Type TyName uni ())
 fixNAndType n fixByTerm = runQuote $ do
     -- the list of pairs of A and B types
     asbs <- replicateM (fromIntegral n) $ do
@@ -335,8 +335,8 @@ fixNAndType n fixByTerm = runQuote $ do
 
 -- | Get the fixed-point of a single recursive function.
 getSingleFixOf
-    :: (TermLike term TyName Name uni)
-    => ann -> term ann -> FunctionDef term TyName Name uni ann -> term ann
+    :: (TermLike term TyName Name uni fun)
+    => ann -> term ann -> FunctionDef term TyName Name uni fun ann -> term ann
 getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod)} =
     let instantiatedFix = mkIterInst ann fix1 [dom, cod]
         abstractedBody = mkIterLamAbs [functionDefVarDecl fun] $ _functionDefTerm fun
@@ -353,8 +353,8 @@ getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod
 -- >             /\(q :: *) -> \(choose : (a1 -> b1) -> ... -> (an -> bn) -> q) ->
 -- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
 getMutualFixOf
-    :: (TermLike term TyName Name uni)
-    => ann -> term ann -> [FunctionDef term TyName Name uni ann] -> Quote (Tuple term uni ann)
+    :: (TermLike term TyName Name uni fun)
+    => ann -> term ann -> [FunctionDef term TyName Name uni fun ann] -> Quote (Tuple term uni ann)
 getMutualFixOf ann fixn funs = do
     let funTys = map functionDefToType funs
 

@@ -25,7 +25,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
-stdLib :: PlcFolderContents DefaultUni
+stdLib :: PlcFolderContents DefaultUni ()
 stdLib =
     FolderContents
       [ treeFolderContents "StdLib"

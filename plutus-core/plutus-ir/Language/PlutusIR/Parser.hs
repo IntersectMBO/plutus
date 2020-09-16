@@ -260,27 +260,27 @@ typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
-varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni SourcePos)
+varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni () SourcePos)
 varDecl = inParens $ VarDecl <$> reservedWord "vardecl" <*> var <*> typ
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyVar <*> kind
 
-datatype :: Parser (Datatype TyName Name PLC.DefaultUni SourcePos)
+datatype :: Parser (Datatype TyName Name PLC.DefaultUni () SourcePos)
 datatype = inParens $ Datatype <$> reservedWord "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
     <*> var
     <*> many varDecl
 
-binding :: Parser (Binding TyName Name PLC.DefaultUni SourcePos)
+binding :: Parser (Binding TyName Name PLC.DefaultUni () SourcePos)
 binding =  inParens $
     (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
     <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
     <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
-type Parametric = forall term. PIR.TermLike term TyName Name PLC.DefaultUni => Parser (term SourcePos) -> Parser (term SourcePos)
+type Parametric = forall term. PIR.TermLike term TyName Name PLC.DefaultUni () => Parser (term SourcePos) -> Parser (term SourcePos)
 
 absTerm :: Parametric
 absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> tm
@@ -303,7 +303,7 @@ unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
 errorTerm :: Parametric
 errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
-letTerm :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
+letTerm :: Parser (Term TyName Name PLC.DefaultUni () SourcePos)
 letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric
@@ -319,15 +319,15 @@ term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     <|> inBrackets (appTerm self)
     where self = term' other
 
-term :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
+term :: Parser (Term TyName Name PLC.DefaultUni () SourcePos)
 term = term' letTerm
 
-plcTerm :: Parser (PLC.Term TyName Name PLC.DefaultUni SourcePos)
+plcTerm :: Parser (PLC.Term TyName Name PLC.DefaultUni () SourcePos)
 plcTerm = term' empty
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
-program :: Parser (Program TyName Name PLC.DefaultUni SourcePos)
+program :: Parser (Program TyName Name PLC.DefaultUni () SourcePos)
 program = whitespace >> do
     prog <- inParens $ do
         p <- reservedWord "program"
@@ -336,7 +336,7 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
-plcProgram :: Parser (PLC.Program TyName Name PLC.DefaultUni SourcePos)
+plcProgram :: Parser (PLC.Program TyName Name PLC.DefaultUni () SourcePos)
 plcProgram = whitespace >> do
     prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
     notFollowedBy anySingle

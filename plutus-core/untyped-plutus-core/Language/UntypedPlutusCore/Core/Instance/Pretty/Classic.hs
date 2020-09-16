@@ -22,7 +22,7 @@ import           Language.PlutusCore.Universe
 import           Data.Text.Prettyprint.Doc.Custom
 
 instance (PrettyClassicBy configName name, GShow uni, Closed uni, uni `Everywhere` PrettyConst) =>
-            PrettyBy (PrettyConfigClassic configName) (Term name uni a) where
+            PrettyBy (PrettyConfigClassic configName) (Term name uni fun a) where
     prettyBy config = go where
         go (Constant _ val)     = parens' $ "con" </> pretty val  -- NB: actually calls prettyConst
         go (Builtin _ bi)       = parens' $ "builtin" </> pretty bi

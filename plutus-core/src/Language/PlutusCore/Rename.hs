@@ -42,11 +42,11 @@ instance HasUniques (Type tyname uni ann) => Rename (Type tyname uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
 
-instance HasUniques (Term tyname name uni ann) => Rename (Term tyname name uni ann) where
+instance HasUniques (Term tyname name uni fun ann) => Rename (Term tyname name uni fun ann) where
     -- See Note [Marking].
     rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
-instance HasUniques (Program tyname name uni ann) => Rename (Program tyname name uni ann) where
+instance HasUniques (Program tyname name uni fun ann) => Rename (Program tyname name uni fun ann) where
     -- See Note [Marking].
     rename = through markNonFreshProgram >=> runRenameT . renameProgramM
 

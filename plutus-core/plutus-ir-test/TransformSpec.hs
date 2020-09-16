@@ -41,7 +41,7 @@ nonStrict = testNested "nonStrict"
 letFloat :: TestNested
 
 letFloat =
-    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
     in testNested "letFloat"
     $ map (goldenPir (LetFloat.floatTerm means . runQuote . PLC.rename) term)
   [ "letInLet"

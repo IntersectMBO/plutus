@@ -136,10 +136,10 @@ class ToExMemory term where
     -- return something arbitrary just to fit such a term into the builtin application machinery.
     toExMemory :: term -> ExMemory
 
-instance ToExMemory (Term TyName Name uni ()) where
+instance ToExMemory (Term TyName Name uni fun ()) where
     toExMemory _ = 0
 
-instance ToExMemory (Term TyName Name uni ExMemory) where
+instance ToExMemory (Term TyName Name uni fun ExMemory) where
     toExMemory = termAnn
 
 -- | A class for injecting a 'BuiltinName' into an @exBudgetCat@.

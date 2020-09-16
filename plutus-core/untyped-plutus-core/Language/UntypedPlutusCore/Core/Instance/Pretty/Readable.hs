@@ -24,7 +24,7 @@ import           Data.Text.Prettyprint.Doc
 instance
         ( PrettyReadableBy configName name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => PrettyBy (PrettyConfigReadable configName) (Term name uni a) where
+        ) => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ val -> unitDocM $ pretty val
         Builtin _ bi -> unitDocM $ pretty bi

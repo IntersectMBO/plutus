@@ -54,9 +54,9 @@ import           Text.Printf
  -}
 
 
-type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
-type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn
-type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
+type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () ()
+type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () PLC.AlexPosn
+type PlcParserError = PLC.Error PLC.DefaultUni () PLC.AlexPosn
 
 
 ---------------- Option parsers ----------------
@@ -278,7 +278,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
     types <- PLC.getStringBuiltinTypes ()
     PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni ()) -> do
+       Left (e :: PLC.Error PLC.DefaultUni () ()) -> do
            putStrLn $ PLC.displayPlcDef e
            exitFailure
        Right ty -> do
@@ -292,8 +292,8 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt printtime) = do
   prog <- getProg inp fmt
   let evalFn = case mode of
-                 CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
-                 CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
+                 CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni ()))
+                 CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni ())) PLC.defaultCostModel
       body = void . PLC.toTerm $ prog
       _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
   start <- getCPUTime
@@ -352,7 +352,7 @@ runCborToPlc (CborToPlcOptions inp outp mode) = do
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
 data TermExample = TermExample
     (PLC.Type PLC.TyName PLC.DefaultUni ())
-    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
@@ -366,14 +366,14 @@ prettyExample (SomeTypeExample (TypeExample _ ty))   = PLC.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
     PLC.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
+toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
-        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.displayPlcDef err
-        Right vTy                                 -> PLC.unNormalized vTy
+        Left (err :: PLC.Error PLC.DefaultUni () ()) -> error $ PLC.displayPlcDef err
+        Right vTy                                    -> PLC.unNormalized vTy
 
-getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())]
+getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())]
 getInteresting =
     sequence $ PLC.fromInterestingTermGens $ \name gen -> do
         PLC.TermOf term _ <- PLC.getSampleTermValue gen

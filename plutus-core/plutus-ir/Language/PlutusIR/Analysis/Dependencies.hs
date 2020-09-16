@@ -60,7 +60,7 @@ runTermDeps
     :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
+    -> Term tyname name uni fun a
     -> g
 runTermDeps means t = flip evalState mempty $ flip runReaderT (Root, means) $ termDeps t
 
@@ -119,7 +119,7 @@ reference to the newly bound variable alongside the binding, but only in the cas
 bindingDeps
     :: (DepGraph g, MonadReader (DepCtx term) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => Binding tyname name uni a
+    => Binding tyname name uni fun a
     -> m g
 bindingDeps b = case b of
     TermBind _ strictness d@(VarDecl _ n _) rhs -> do
@@ -153,7 +153,7 @@ bindingDeps b = case b of
 
 bindingStrictness
     :: (MonadState DepState m, PLC.HasUnique name PLC.TermUnique)
-    => Binding tyname name uni a
+    => Binding tyname name uni fun a
     -> m ()
 bindingStrictness b = case b of
     TermBind _ strictness (VarDecl _ n _) _ -> modify (Map.insert (n ^. PLC.theUnique) strictness)
@@ -165,7 +165,7 @@ bindingStrictness b = case b of
 
 varDeclDeps
     :: (DepGraph g, MonadReader (DepCtx term) m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-    => VarDecl tyname name uni a
+    => VarDecl tyname name uni fun a
     -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
@@ -181,7 +181,7 @@ tyVarDeclDeps _ = pure G.empty
 termDeps
     :: (DepGraph g, MonadReader (DepCtx term) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => Term tyname name uni a
+    => Term tyname name uni fun a
     -> m g
 termDeps = \case
     Let _ _ bs t -> do

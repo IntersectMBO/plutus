@@ -25,12 +25,12 @@ import           Test.Tasty.HUnit
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
-    :: ( KnownType (Term TyName Name DefaultUni ()) a
-       , KnownType (Term TyName Name DefaultUni ()) b
+    :: ( KnownType (Term TyName Name DefaultUni () ()) a
+       , KnownType (Term TyName Name DefaultUni () ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnown @(Term TyName Name DefaultUni ()) x
+    xTerm <- makeKnown @(Term TyName Name DefaultUni () ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek mempty xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
@@ -38,11 +38,11 @@ readMakeHetero x = do
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
-readMake :: KnownType (Term TyName Name DefaultUni ()) a => a -> EvaluationResult a
+readMake :: KnownType (Term TyName Name DefaultUni () ()) a => a -> EvaluationResult a
 readMake = readMakeHetero
 
 dynamicBuiltinRoundtrip
-    :: (KnownType (Term TyName Name DefaultUni ()) a, Show a, Eq a)
+    :: (KnownType (Term TyName Name DefaultUni () ()) a, Show a, Eq a)
     => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX

@@ -73,8 +73,8 @@ typeSchemeResult (TypeSchemeAll _ _ schK) = typeSchemeResult $ schK Proxy
 
 -- | Get the 'Denotation' of a variable.
 denoteVariable
-    :: KnownType (Term TyName Name uni ()) res
-    => Name -> res -> Denotation (Term TyName Name uni ()) Name res
+    :: KnownType (Term TyName Name uni fun ()) res
+    => Name -> res -> Denotation (Term TyName Name uni fun ()) Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
 -- | Get the 'Denotation' of a 'TypedStaticBuiltinName'.
@@ -99,20 +99,20 @@ insertDenotation denotation (DenotationContext vs) = DenotationContext $
 
 -- | Insert a variable into a 'DenotationContext'.
 insertVariable
-    :: (GShow uni, KnownType (Term TyName Name uni ()) a)
+    :: (GShow uni, KnownType (Term TyName Name uni fun ()) a)
     => Name
     -> a
-    -> DenotationContext (Term TyName Name uni ())
-    -> DenotationContext (Term TyName Name uni ())
+    -> DenotationContext (Term TyName Name uni fun ())
+    -> DenotationContext (Term TyName Name uni fun ())
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
 insertTypedStaticBuiltinName
     :: GShow uni
-    => TypedStaticBuiltinName (Term TyName Name uni ()) args res
+    => TypedStaticBuiltinName (Term TyName Name uni fun ()) args res
     -> FoldArgs args res
-    -> DenotationContext (Term TyName Name uni ())
-    -> DenotationContext (Term TyName Name uni ())
+    -> DenotationContext (Term TyName Name uni fun ())
+    -> DenotationContext (Term TyName Name uni fun ())
 insertTypedStaticBuiltinName tbn@(TypedStaticBuiltinName _ scheme) meta =
     case typeSchemeResult scheme of
         AsKnownType ->
@@ -123,7 +123,7 @@ insertTypedStaticBuiltinName tbn@(TypedStaticBuiltinName _ scheme) meta =
 -- | A 'DenotationContext' that consists of 'TypedStaticBuiltinName's.
 typedBuiltinNames
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => DenotationContext (Term TyName Name uni ())
+    => DenotationContext (Term TyName Name uni fun ())
 typedBuiltinNames
     = insertTypedStaticBuiltinName typedAddInteger           (+)
     . insertTypedStaticBuiltinName typedSubtractInteger      (-)

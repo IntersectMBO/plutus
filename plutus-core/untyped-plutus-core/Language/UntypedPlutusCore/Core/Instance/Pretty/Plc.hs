@@ -14,6 +14,6 @@ import           Language.UntypedPlutusCore.Core.Type
 
 import           Language.PlutusCore.Pretty.Plc
 
-deriving via PrettyAny (Term name uni ann)
-    instance DefaultPrettyPlcStrategy (Term name uni ann) =>
-        PrettyBy PrettyConfigPlc (Term name uni ann)
+deriving via PrettyAny (Term name uni fun ann)
+    instance DefaultPrettyPlcStrategy (Term name uni fun ann) =>
+        PrettyBy PrettyConfigPlc (Term name uni fun ann)

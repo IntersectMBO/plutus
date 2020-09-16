@@ -27,12 +27,12 @@ instance
         ( PrettyClassic tyname
         , PrettyClassic name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => Pretty (Term tyname name uni ann) where
+        ) => Pretty (Term tyname name uni fun ann) where
     pretty = prettyClassicDef
 
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => Pretty (Program tyname name uni ann) where
+        ) => Pretty (Program tyname name uni fun ann) where
     pretty = prettyClassicDef

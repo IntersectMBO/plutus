@@ -33,7 +33,7 @@ tests = testGroup "checks"
 
 data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
 
-checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni a -> m ()
+checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkTermUniques = Uniques.checkTerm (\case FreeVariable{} -> False; _ -> True)
 
 shadowed :: TestTree
@@ -87,7 +87,7 @@ propRenameCheck = property $ do
     annotateShow $ ShowPretty renamed
     Hedgehog.evalExceptT $ checkUniques renamed
         where
-            checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name uni a -> m ()
+            checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name uni fun a -> m ()
             -- the renamer will fix incoherency between *bound* variables, but it ignores free variables, so
             -- we can still get incoherent usage errors, ignore them for now
             checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
@@ -171,5 +171,5 @@ normalTypesCheck = runQuote $ do
         , testCase "builtin" $ isRight (checkNormal (staticBuiltinNameAsTerm AddInteger)) @? "Normalization"
       ]
         where
-            checkNormal :: Term TyName Name DefaultUni () -> Either (Normal.NormCheckError TyName Name DefaultUni ()) ()
+            checkNormal :: Term TyName Name DefaultUni () () -> Either (Normal.NormCheckError TyName Name DefaultUni () ()) ()
             checkNormal = Normal.checkTerm

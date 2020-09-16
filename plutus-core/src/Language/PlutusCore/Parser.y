@@ -200,7 +200,7 @@ mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> getTypeFromTyName tyloc tyname
 -- | Produce a Constant Term from a type name and a literal constant.
 mkBuiltinConstant
   :: (Closed uni, uni `Everywhere` Parsable)
-  => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni AlexPosn)
+  => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni fun AlexPosn)
 mkBuiltinConstant tyloc tyname litloc lit  = do
     Some (TypeIn uni1) <- getTypeFromTyName tyloc tyname
     case bring (Proxy @Parsable) uni1 (parseConstant lit) of
@@ -210,13 +210,13 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 
 --- Constructing terms ---
 
-mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni a
+mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni fun a
 mkBuiltinFunction loc ident =
     case getStaticBuiltinName ident of
         Just b  -> Builtin loc $ StaticBuiltinName b
         Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
-tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
+tyInst :: a -> Term tyname name uni fun a -> NonEmpty (Type tyname uni a) -> Term tyname name uni fun a
 tyInst loc t (ty :| []) = TyInst loc t ty
 tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
 
@@ -224,17 +224,17 @@ tyApps :: a -> Type tyname uni a -> NonEmpty (Type tyname uni a) -> Type tyname 
 tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
 tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
 
-app :: a -> Term tyname name uni a -> NonEmpty (Term tyname name uni a) -> Term tyname name uni a
+app :: a -> Term tyname name uni fun a -> NonEmpty (Term tyname name uni fun a) -> Term tyname name uni fun a
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
 
 --- Running the parser ---
 
-parseST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni AlexPosn)
+parseST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni fun AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
 
-parseTermST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Term TyName Name DefaultUni AlexPosn)
+parseTermST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Term TyName Name DefaultUni fun AlexPosn)
 parseTermST str = runAlexST' str (runExceptT parsePlutusCoreTerm) >>= liftEither
 
 parseTypeST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Type TyName DefaultUni AlexPosn)
@@ -252,12 +252,12 @@ mapParseRun run = do
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 
 -- of handling any parse errors.
-parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni fun AlexPosn)
 parseProgram str = mapParseRun (parseST str)
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni fun AlexPosn)
 parseTerm str = mapParseRun (parseTermST str)
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
@@ -267,10 +267,10 @@ parseType str = mapParseRun (parseTypeST str)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
-parse :: ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
+parse :: ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni fun AlexPosn)
 parse str = fmap fst $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
-parseTm :: ByteString -> Either (ParseError AlexPosn) (Term TyName Name DefaultUni AlexPosn)
+parseTm :: ByteString -> Either (ParseError AlexPosn) (Term TyName Name DefaultUni fun AlexPosn)
 parseTm str = fmap fst $ runExcept $ runStateT (parseTermST str) emptyIdentifierState
 
 parseTy :: ByteString -> Either (ParseError AlexPosn) (Type TyName DefaultUni AlexPosn)

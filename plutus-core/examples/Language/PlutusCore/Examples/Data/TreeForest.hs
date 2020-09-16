@@ -129,7 +129,7 @@ asForest = runQuote $ do
             , forestTag
             ]
 
-treeForestData :: RecursiveType uni ()
+treeForestData :: RecursiveType uni fun ()
 treeForestData = runQuote $ do
     treeForest <- freshTyName "treeForest"
     a          <- freshTyName "a"
@@ -150,13 +150,13 @@ treeForestData = runQuote $ do
         [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
         body
 
-treeData :: RecursiveType uni ()
+treeData :: RecursiveType uni fun ()
 treeData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
-forestData :: RecursiveType uni ()
+forestData :: RecursiveType uni fun ()
 forestData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         forest = TyApp () asForest treeForest
@@ -166,7 +166,7 @@ forestData = runQuote $ do
 --
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
-treeNode :: Term TyName Name uni ()
+treeNode :: Term TyName Name uni fun ()
 treeNode = runQuote $ normalizeTypesIn =<< do
     let RecursiveType _      wrapTree = treeData
         RecursiveType forest _        = forestData
@@ -194,7 +194,7 @@ treeNode = runQuote $ normalizeTypesIn =<< do
 --
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
-forestNil :: Term TyName Name uni ()
+forestNil :: Term TyName Name uni fun ()
 forestNil = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
@@ -218,7 +218,7 @@ forestNil = runQuote $ normalizeTypesIn =<< do
 --
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
-forestCons :: Term TyName Name uni ()
+forestCons :: Term TyName Name uni fun ()
 forestCons = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData

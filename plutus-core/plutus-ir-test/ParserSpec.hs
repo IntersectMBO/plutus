@@ -23,7 +23,7 @@ import qualified Hedgehog.Range                   as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni SourcePos }
+newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni () SourcePos }
 instance Show PrettyProg where
     show = display . prog
 

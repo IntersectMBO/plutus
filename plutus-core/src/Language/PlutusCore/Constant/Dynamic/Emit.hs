@@ -44,27 +44,27 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
-newtype EmitHandler uni r = EmitHandler
+newtype EmitHandler uni fun r = EmitHandler
     { unEmitHandler
-        :: DynamicBuiltinNameMeanings (WithMemory Term uni) -> Plain Term uni -> IO r
+        :: DynamicBuiltinNameMeanings (WithMemory Term uni fun) -> Plain Term uni fun -> IO r
     }
 
 feedEmitHandler
-    :: DynamicBuiltinNameMeanings (WithMemory Term uni)
-    -> Plain Term uni
-    -> EmitHandler uni r
+    :: DynamicBuiltinNameMeanings (WithMemory Term uni fun)
+    -> Plain Term uni fun
+    -> EmitHandler uni fun r
     -> IO r
 feedEmitHandler means term (EmitHandler handler) = handler means term
 
-withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term uni fun m r -> (EmitHandler uni fun (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: ( KnownType (WithMemory Term uni) a, GShow uni, GEq uni, uni `Includes` ()
+    :: ( KnownType (WithMemory Term uni fun) a, GShow uni, GEq uni, uni `Includes` ()
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => (Plain Term uni -> EmitHandler uni r1 -> IO r2)
-    -> EmitHandler uni r1
+    => (Plain Term uni fun -> EmitHandler uni fun r1 -> IO r2)
+    -> EmitHandler uni fun r1
     -> IO ([a], r2)
 withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
@@ -75,12 +75,12 @@ withEmitTerm cont (EmitHandler handler) =
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: ( KnownType (WithMemory Term uni) a, GShow uni, GEq uni, uni `Includes` ()
+    :: ( KnownType (WithMemory Term uni fun) a, GShow uni, GEq uni, uni `Includes` ()
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => AnEvaluator Term uni m b
-    -> DynamicBuiltinNameMeanings (WithMemory Term uni)
-    -> (Term TyName Name uni () -> Term TyName Name uni ())
+    => AnEvaluator Term uni fun m b
+    -> DynamicBuiltinNameMeanings (WithMemory Term uni fun)
+    -> (Term TyName Name uni fun () -> Term TyName Name uni fun ())
     -> IO ([a], m b)
 withEmitEvaluateBy eval means inst =
     withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst

@@ -53,12 +53,12 @@ which yields the same results as doing a right-associative fold.
 data LetKind = RecTerms | NonRecTerms | Types
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
-compileLets :: Compiling m e uni a => LetKind -> PIRTerm uni a -> m (PIRTerm uni a)
+compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
 compileLets kind t = getEnclosing >>= \p ->
     -- See Note [Extra definitions while compiling let-bindings]
     runDefT p $ transformMOf termSubterms (compileLet kind) t
 
-compileLet :: Compiling m e uni a => LetKind -> PIRTerm uni a -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
+compileLet :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
             -- See Note [Right-associative compilation of let-bindings for linear scoping]
@@ -67,11 +67,11 @@ compileLet kind = \case
     x -> pure x
 
 compileRecBindings
-    :: Compiling m e uni a
+    :: Compiling m e uni fun a
     => LetKind
-    -> PIRTerm uni a
-    -> NE.NonEmpty (Binding TyName Name uni (Provenance a))
-    -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
+    -> PIRTerm uni fun a
+    -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a))
+    -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileRecBindings kind body bs =
   case grouped of
     singleGroup :| [] ->
@@ -91,11 +91,11 @@ compileRecBindings kind body bs =
         grouped  = NE.groupWith1 (\case { TermBind {} -> 1 ::Int ; TypeBind {} -> 2; _ -> 3 }) bs
 
 compileRecTermBindings
-    :: Compiling m e uni a
+    :: Compiling m e uni fun a
     => LetKind
-    -> PIRTerm uni a
-    -> NE.NonEmpty (Binding TyName Name uni (Provenance a))
-    -> DefT SharedName uni (Provenance a) m (PIRTerm uni a)
+    -> PIRTerm uni fun a
+    -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a))
+    -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
         TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
@@ -103,7 +103,7 @@ compileRecTermBindings RecTerms body bs = do
     compileRecTerms body binds
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileRecDataBindings :: Compiling m e uni a => LetKind -> PIRTerm uni a -> NE.NonEmpty (Binding TyName Name uni (Provenance a)) -> m (PIRTerm uni a)
+compileRecDataBindings :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a)) -> m (PIRTerm uni fun a)
 compileRecDataBindings Types body bs = do
     binds <- forM bs $ \case
         DatatypeBind _ d -> pure d
@@ -111,7 +111,7 @@ compileRecDataBindings Types body bs = do
     compileRecDatatypes body binds
 compileRecDataBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileNonRecBinding :: Compiling m e uni a => LetKind -> PIRTerm uni a -> Binding TyName Name uni (Provenance a) -> m (PIRTerm uni a)
+compileNonRecBinding :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> Binding TyName Name uni fun (Provenance a) -> m (PIRTerm uni fun a)
 compileNonRecBinding NonRecTerms body (TermBind x Strict d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
    PIR.mkImmediateLamAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $

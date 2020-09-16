@@ -8,10 +8,10 @@ import           Language.PlutusCore.Error
 
 import           Data.Either
 
-isTermValue :: Term tyname name uni ann -> Bool
+isTermValue :: Term tyname name uni fun ann -> Bool
 isTermValue = isRight . termValue
 
-termValue :: Term tyname name uni ann -> Either (NormCheckError tyname name uni ann) ()
+termValue :: Term tyname name uni fun ann -> Either (NormCheckError tyname name uni fun ann) ()
 termValue (IWrap _ _ _ term) = termValue term
 termValue LamAbs {}          = pure ()
 termValue TyAbs {}           = pure ()

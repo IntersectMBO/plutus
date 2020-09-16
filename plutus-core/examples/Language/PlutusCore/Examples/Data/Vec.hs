@@ -134,7 +134,7 @@ churchVec = runQuote $ do
 -- >     /\(a :: *) ->
 -- >         /\(r :: natK -> *) -> \(f : all (p :: natK). a -> r p -> r (succT p)) (z : r zeroT) ->
 -- >             z
-churchNil :: Term TyName Name uni ()
+churchNil :: Term TyName Name uni fun ()
 churchNil = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
@@ -154,7 +154,7 @@ churchNil = runQuote $ do
 -- >     /\(a :: *) (n :: natK) -> \(x : a) (xs : churchVec a n) ->
 -- >         /\(r :: natK -> *) -> \(f : all (p :: natK). a -> r p -> r (succT p)) (z : r zeroT) ->
 -- >             f {n} x (xs {r} f z)
-churchCons :: Term TyName Name uni ()
+churchCons :: Term TyName Name uni fun ()
 churchCons = runQuote $ do
     a <- freshTyName "a"
     n <- freshTyName "n"
@@ -189,7 +189,7 @@ churchCons = runQuote $ do
 -- >                 {\(p :: natK) -> r (plusT p m)}
 -- >                 (/\(p :: natK) -> f {plusT p m})
 -- >                 (ys {r} f z)
-churchConcat :: Term TyName Name uni ()
+churchConcat :: Term TyName Name uni fun ()
 churchConcat = runQuote $ do
     a <- freshTyName "a"
     n <- freshTyName "n"
@@ -263,7 +263,7 @@ scottVec = runQuote $ do
 -- >             (/\(r :: natK -> *) ->
 -- >                 \(f : all (p :: natK). a -> scottVec a p -> r (succT p)) (z : r zeroT) ->
 -- >                     z)
-scottNil :: Term TyName Name uni ()
+scottNil :: Term TyName Name uni fun ()
 scottNil = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
@@ -286,7 +286,7 @@ scottNil = runQuote $ do
 -- >             (/\(r :: natK -> *) ->
 -- >                 \(f : all (p :: natK). a -> scottVec a p -> r (succT p)) (z : r zeroT) ->
 -- >                     f {n} x xs)
-scottCons :: Term TyName Name uni ()
+scottCons :: Term TyName Name uni fun ()
 scottCons = runQuote $ do
     a <- freshTyName "a"
     n <- freshTyName "n"
@@ -319,7 +319,7 @@ scottCons = runQuote $ do
 -- >             {\(p :: natK) -> p (\(z :: *) -> a) unit}
 -- >             (/\(p :: natK) (x : a) (xs' : scottVec a p) -> x)
 -- >             unitval
-scottHead :: uni `Includes` () => Term TyName Name uni ()
+scottHead :: uni `Includes` () => Term TyName Name uni fun ()
 scottHead = runQuote $ do
     a <- freshTyName "a"
     n <- freshTyName "n"
@@ -358,7 +358,7 @@ scottHead = runQuote $ do
 -- >                     x + scottHead {integer} {p} (coe ys))
 -- >             (\(coe : scottVec Integer n -> scottVec integer zero) -> 0)
 -- >             (/\(xs' :: scottVec Integer n) -> xs')
-scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni ()
+scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni fun ()
 scottSumHeadsOr0 = runQuote $ do
     n <- freshTyName "n"
     p <- freshTyName "p"

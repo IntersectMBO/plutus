@@ -167,13 +167,13 @@ deBruijnTy = flip runReaderT (Levels 0 BM.empty) . deBruijnTyM
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnTerm
     :: MonadError FreeVariableError m
-    => Term TyName Name uni ann -> m (Term TyDeBruijn DeBruijn uni ann)
+    => Term TyName Name uni fun ann -> m (Term TyDeBruijn DeBruijn uni fun ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnProgram
     :: MonadError FreeVariableError m
-    => Program TyName Name uni ann -> m (Program TyDeBruijn DeBruijn uni ann)
+    => Program TyName Name uni fun ann -> m (Program TyDeBruijn DeBruijn uni fun ann)
 deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
 {- Note [De Bruijn conversion and recursion schemes]
@@ -204,8 +204,8 @@ deBruijnTyM = \case
 
 deBruijnTermM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Term TyName Name uni ann
-    -> m (Term TyDeBruijn DeBruijn uni ann)
+    => Term TyName Name uni fun ann
+    -> m (Term TyDeBruijn DeBruijn uni fun ann)
 deBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> nameToDeBruijn n
@@ -235,13 +235,13 @@ unDeBruijnTy = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTyM
 -- | Convert a 'Term' with 'TyDeBruijn's and 'DeBruijn's into a 'Term' with 'TyName's and 'Name's.
 unDeBruijnTerm
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Term TyDeBruijn DeBruijn uni ann -> m (Term TyName Name uni ann)
+    => Term TyDeBruijn DeBruijn uni fun ann -> m (Term TyName Name uni fun ann)
 unDeBruijnTerm = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTermM
 
 -- | Convert a 'Program' with 'TyDeBruijn's and 'DeBruijn's into a 'Program' with 'TyName's and 'Name's.
 unDeBruijnProgram
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Program TyDeBruijn DeBruijn uni ann -> m (Program TyName Name uni ann)
+    => Program TyDeBruijn DeBruijn uni fun ann -> m (Program TyName Name uni fun ann)
 unDeBruijnProgram (Program ann ver term) = Program ann ver <$> unDeBruijnTerm term
 
 unDeBruijnTyM
@@ -267,8 +267,8 @@ unDeBruijnTyM = \case
 
 unDeBruijnTermM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Term TyDeBruijn DeBruijn uni ann
-    -> m (Term TyName Name uni ann)
+    => Term TyDeBruijn DeBruijn uni fun ann
+    -> m (Term TyName Name uni fun ann)
 unDeBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> deBruijnToName n

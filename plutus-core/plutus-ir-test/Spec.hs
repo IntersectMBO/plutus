@@ -41,8 +41,9 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["plutus-ir-test"] tests
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni
-         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Typeable uni, Pretty a, Typeable a, Ord a
-         ) => GetProgram (Term TyName Name uni a) uni where
+         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Typeable uni, Typeable fun
+         , Pretty a, Typeable a, Ord a
+         ) => GetProgram (Term TyName Name uni fun a) uni fun where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 
 instance Pretty SourcePos where
@@ -58,8 +59,8 @@ asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 compileAndMaybeTypecheck
     :: (PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni, Ord a)
     => Bool
-    -> Term TyName Name uni a
-    -> Except (Error uni (Provenance a)) (PLC.Term TyName Name uni (Provenance a))
+    -> Term TyName Name uni fun a
+    -> Except (Error uni fun (Provenance a)) (PLC.Term TyName Name uni fun (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT defaultCompilationCtx $ runQuoteT $ do
     compiled <- compileTerm pir
     when doTypecheck $ void $ PLC.inferType PLC.defConfig compiled
@@ -115,7 +116,7 @@ serialization = testNested "serialization"
     , "serializeListMatch"
     ]
 
-roundTripPirTerm :: Term TyName Name PLC.DefaultUni a -> Term TyName Name PLC.DefaultUni ()
+roundTripPirTerm :: Term TyName Name PLC.DefaultUni () a -> Term TyName Name PLC.DefaultUni () ()
 roundTripPirTerm = deserialise . serialise . void
 
 errors :: TestNested

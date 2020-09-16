@@ -22,9 +22,9 @@ import           Control.Monad.Except
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
-    :: (MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni)
-    => (DynamicBuiltinNameMeanings (CekValue uni) -> CostModel -> Term TyName Name uni () -> a)
-    -> DynamicBuiltinNameMeanings (CekValue uni) -> Term TyName Name uni () -> m a
+    :: (MonadError (Error uni fun ()) m, GShow uni, GEq uni, DefaultUni <: uni)
+    => (DynamicBuiltinNameMeanings (CekValue uni fun) -> CostModel -> Term TyName Name uni fun () -> a)
+    -> DynamicBuiltinNameMeanings (CekValue uni fun) -> Term TyName Name uni fun () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
     types <- dynamicBuiltinNameMeaningsToTypes () meanings
     _ <- inferType (TypeCheckConfig types) term
@@ -34,21 +34,21 @@ typecheckAnd action meanings term = runQuoteT $ do
 
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckEvaluateCek
-    :: ( MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni
+    :: ( MonadError (Error uni fun ()) m, GShow uni, GEq uni, DefaultUni <: uni
        , Closed uni, uni `Everywhere` ExMemoryUsage
-       , uni `Everywhere` PrettyConst, Typeable uni
+       , uni `Everywhere` PrettyConst, Typeable uni, Typeable fun
        )
-    => DynamicBuiltinNameMeanings (CekValue uni)
-    -> Term TyName Name uni ()
-    -> m (EvaluationResult (Term TyName Name uni ()))
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
+    -> Term TyName Name uni fun ()
+    -> m (EvaluationResult (Term TyName Name uni fun ()))
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
-    :: ( MonadError (Error uni ()) m, KnownType (Term TyName Name uni ()) a
+    :: ( MonadError (Error uni fun ()) m, KnownType (Term TyName Name uni fun ()) a
        , GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (CekValue uni)
-    -> Term TyName Name uni ()
-    -> m (Either (CekEvaluationException uni) a)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
+    -> Term TyName Name uni fun ()
+    -> m (Either (CekEvaluationException uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

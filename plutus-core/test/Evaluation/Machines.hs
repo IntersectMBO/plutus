@@ -35,7 +35,7 @@ import           Test.Tasty.HUnit
 testMachine
     :: (uni ~ DefaultUni, Pretty internal, PrettyPlc termErr)
     => String
-    -> (Plain Term uni -> Either (EvaluationException internal user termErr) (Plain Term uni))
+    -> (Plain Term uni () -> Either (EvaluationException internal user termErr) (Plain Term uni ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->
@@ -59,14 +59,14 @@ test_memory =
         $  stdLib
         <> examples
 
-testBudget :: TestName -> (Plain Term DefaultUni) -> TestNested
+testBudget :: TestName -> (Plain Term DefaultUni ()) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
         prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostModel term)
 
-bunchOfFibs :: PlcFolderContents DefaultUni
+bunchOfFibs :: PlcFolderContents DefaultUni ()
 bunchOfFibs =
     let
         fibFile i = plcTermFile (show i) (naiveFib i)
@@ -82,7 +82,7 @@ test_budget =
                                  testBudget
         $ examples <> bunchOfFibs
 
-testCounting :: TestName -> (Plain Term DefaultUni) -> TestNested
+testCounting :: TestName -> (Plain Term DefaultUni ()) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name

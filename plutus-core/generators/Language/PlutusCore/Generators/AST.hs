@@ -101,7 +101,7 @@ genType = simpleRecursive nonRecursive recursive where
     recursive = [funGen, applyGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
-genTerm :: AstGen (Term TyName Name DefaultUni ())
+genTerm :: AstGen (Term TyName Name DefaultUni () ())
 genTerm = simpleRecursive nonRecursive recursive where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
@@ -114,7 +114,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltinName, errorGen]
 
-genProgram :: AstGen (Program TyName Name DefaultUni ())
+genProgram :: AstGen (Program TyName Name DefaultUni () ())
 genProgram = Program () <$> genVersion <*> genTerm
 
 {- Note [Name mangling]
@@ -139,18 +139,18 @@ subset1 s
 substAllNames
     :: Monad m
     => (Name -> m (Maybe Name))
-    -> Term TyName Name DefaultUni ()
-    -> m (Term TyName Name DefaultUni ())
+    -> Term TyName Name DefaultUni () ()
+    -> m (Term TyName Name DefaultUni () ())
 substAllNames ren =
     termSubstNamesM (fmap (fmap $ Var ()) . ren) >=>
     termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName)
 
 -- See Note [ScopeHandling].
-allTermNames :: Term TyName Name DefaultUni () -> Set Name
+allTermNames :: Term TyName Name DefaultUni () () -> Set Name
 allTermNames term = vTerm term <> Set.map coerce (tvTerm term)
 
 -- See Note [Name mangling]
-mangleNames :: Term TyName Name DefaultUni () -> AstGen (Maybe (Term TyName Name DefaultUni ()))
+mangleNames :: Term TyName Name DefaultUni () () -> AstGen (Maybe (Term TyName Name DefaultUni () ()))
 mangleNames term = do
     let names = allTermNames term
     mayNamesMangle <- subset1 names

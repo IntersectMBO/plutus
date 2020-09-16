@@ -102,16 +102,16 @@ data BuiltinName
     | DynBuiltinName DynamicBuiltinName
     deriving (Show, Generic, NFData, Lift, Hashable, Eq)
 
-data Term tyname name uni ann
+data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
-    | TyAbs ann tyname (Kind ann) (Term tyname name uni ann)
-    | LamAbs ann name (Type tyname uni ann) (Term tyname name uni ann)
-    | Apply ann (Term tyname name uni ann) (Term tyname name uni ann)
+    | TyAbs ann tyname (Kind ann) (Term tyname name uni fun ann)
+    | LamAbs ann name (Type tyname uni ann) (Term tyname name uni fun ann)
+    | Apply ann (Term tyname name uni fun ann) (Term tyname name uni fun ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
     | Builtin ann BuiltinName
-    | TyInst ann (Term tyname name uni ann) (Type tyname uni ann)
-    | Unwrap ann (Term tyname name uni ann)
-    | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)
+    | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann)
+    | Unwrap ann (Term tyname name uni fun ann)
+    | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
@@ -121,13 +121,13 @@ data Version ann
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program tyname name uni ann = Program ann (Version ann) (Term tyname name uni ann)
+data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | Extract the universe from a type.
 type family UniOf a :: * -> *
 
-type instance UniOf (Term tyname name uni ann) = uni
+type instance UniOf (Term tyname name uni fun ann) = uni
 
 newtype Normalized a = Normalized
     { unNormalized :: a
@@ -139,10 +139,10 @@ newtype Normalized a = Normalized
 type family HasUniques a :: Constraint
 type instance HasUniques (Kind ann) = ()
 type instance HasUniques (Type tyname uni ann) = HasUnique tyname TypeUnique
-type instance HasUniques (Term tyname name uni ann)
+type instance HasUniques (Term tyname name uni fun ann)
     = (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-type instance HasUniques (Program tyname name uni ann) = HasUniques
-    (Term tyname name uni ann)
+type instance HasUniques (Program tyname name uni fun ann) = HasUniques
+    (Term tyname name uni fun ann)
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
@@ -154,7 +154,7 @@ allStaticBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
 
-toTerm :: Program tyname name uni ann -> Term tyname name uni ann
+toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
 toTerm (Program _ _ term) = term
 
 typeAnn :: Type tyname uni ann -> ann
@@ -166,7 +166,7 @@ typeAnn (TyBuiltin ann _   ) = ann
 typeAnn (TyLam ann _ _ _   ) = ann
 typeAnn (TyApp ann _ _     ) = ann
 
-termAnn :: Term tyname name uni ann -> ann
+termAnn :: Term tyname name uni fun ann -> ann
 termAnn (Var ann _       ) = ann
 termAnn (TyAbs ann _ _ _ ) = ann
 termAnn (Apply ann _ _   ) = ann

@@ -44,7 +44,7 @@ dynamicCharToStringDefinition
 dynamicCharToStringDefinition =
     DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning
 
-dynamicCharToString :: Term tyname name uni ()
+dynamicCharToString :: Term tyname name uni fun ()
 dynamicCharToString = dynamicBuiltinNameAsTerm dynamicCharToStringName
 
 dynamicAppendName :: DynamicBuiltinName
@@ -65,7 +65,7 @@ dynamicAppendDefinition
 dynamicAppendDefinition =
     DynamicBuiltinNameDefinition dynamicAppendName dynamicAppendMeaning
 
-dynamicAppend :: Term tyname name uni ()
+dynamicAppend :: Term tyname name uni fun ()
 dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 
 dynamicTraceName :: DynamicBuiltinName

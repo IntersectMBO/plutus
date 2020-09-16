@@ -76,7 +76,7 @@ import           Data.Text.Prettyprint.Doc
    prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
-type TermWithMem uni = Term Name uni ExMemory
+type TermWithMem uni fun = Term Name uni fun ExMemory
 
 {- Note [Arities in VBuiltin]
 The VBuiltin value below contains two copies of the arity (list of
@@ -92,10 +92,10 @@ which is a problem.)
 -}
 
 -- 'Values' for the modified CEK machine.
-data CekValue uni =
+data CekValue uni fun =
     VCon ExMemory (Some (ValueOf uni))
-  | VDelay ExMemory (TermWithMem uni) (CekValEnv uni)
-  | VLamAbs ExMemory Name (TermWithMem uni) (CekValEnv uni)
+  | VDelay ExMemory (TermWithMem uni fun) (CekValEnv uni fun)
+  | VLamAbs ExMemory Name (TermWithMem uni fun) (CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
       ExMemory
       BuiltinName
@@ -103,15 +103,15 @@ data CekValue uni =
       Arity             -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
       Int               -- The number of @force@s to apply to the builtin.
                         -- We need it to construct a term if the machine is returning a stuck partial application.
-      [CekValue uni]    -- Arguments we've computed so far.
-      (CekValEnv uni)   -- Initial environment, used for evaluating every argument
+      [CekValue uni fun]    -- Arguments we've computed so far.
+      (CekValEnv uni fun)   -- Initial environment, used for evaluating every argument
     deriving (Show, Eq) -- Eq is just for tests.
 
-type CekValEnv uni = UniqueMap TermUnique (CekValue uni)
+type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
 -- | The environment the CEK machine runs in.
-data CekEnv uni = CekEnv
-    { cekEnvMeans             :: DynamicBuiltinNameMeanings (CekValue uni)
+data CekEnv uni fun = CekEnv
+    { cekEnvMeans             :: DynamicBuiltinNameMeanings (CekValue uni fun)
     , cekEnvBudgetMode        :: ExBudgetMode
     , cekEnvBuiltinCostParams :: CostModel
     }
@@ -147,14 +147,14 @@ type CekEvaluationExceptionCarrying term =
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
-type CekCarryingM term uni =
-    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State CekExBudgetState))
+type CekCarryingM term uni fun =
+    ReaderT (CekEnv uni fun) (ExceptT (CekEvaluationExceptionCarrying term) (State CekExBudgetState))
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni = CekEvaluationExceptionCarrying (Term Name uni ())
+type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ())
 
 -- | The monad the CEK machine runs in.
-type CekM uni = CekCarryingM (Term Name uni ()) uni
+type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
 
 data ExBudgetCategory
     = BForce
@@ -176,7 +176,7 @@ instance Pretty CekUserError where
         group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
-arityOf :: BuiltinName -> CekM uni Arity
+arityOf :: BuiltinName -> CekM uni fun Arity
 arityOf (StaticBuiltinName name) =
     pure $ builtinNameArities ! name
 arityOf (DynBuiltinName name) = do
@@ -201,7 +201,7 @@ arityOf (DynBuiltinName name) = do
    division by zero; the term is discarded in that case anyway (see
    Note [Ignoring context in UserEvaluationError] in Exception.hs)
 -}
-mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> Int -> [TermWithMem uni] -> TermWithMem uni
+mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> Int -> [TermWithMem uni fun] -> TermWithMem uni fun
 mkBuiltinApplication ex bn arity0 forces0 args0 =
   go arity0 forces0 args0 (Builtin ex bn)
     where go arity forces args term =
@@ -224,7 +224,7 @@ mkBuiltinApplication ex bn arity0 forces0 args0 =
 -- Mutually recursive with dischargeCekVal.
 dischargeCekValEnv
     :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValEnv uni -> TermWithMem uni -> TermWithMem uni
+    => CekValEnv uni fun -> TermWithMem uni fun -> TermWithMem uni fun
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -237,7 +237,7 @@ dischargeCekValEnv valEnv =
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
 dischargeCekValue
     :: (Closed uni, uni `Everywhere` ExMemoryUsage)
-    => CekValue uni -> TermWithMem uni
+    => CekValue uni fun -> TermWithMem uni fun
 dischargeCekValue = \case
     VCon     ex val                        -> Constant ex val
     VDelay   ex body env                   -> Delay ex (dischargeCekValEnv env body)
@@ -248,19 +248,19 @@ dischargeCekValue = \case
        we use arity0 to get the type and term arguments into the right sequence. -}
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage) =>
-            PrettyBy PrettyConfigPlc (CekValue uni) where
+            PrettyBy PrettyConfigPlc (CekValue uni fun) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
-type instance UniOf (CekValue uni) = uni
+type instance UniOf (CekValue uni fun) = uni
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni fun) where
     fromConstant val = VCon (memoryUsage val) val
 
-instance AsConstant (CekValue uni) where
+instance AsConstant (CekValue uni fun) where
     asConstant (VCon _ val) = Just val
     asConstant _            = Nothing
 
-instance ToExMemory (CekValue uni) where
+instance ToExMemory (CekValue uni fun) where
     toExMemory = \case
         VCon     ex _           -> ex
         VDelay   ex _ _         -> ex
@@ -270,7 +270,7 @@ instance ToExMemory (CekValue uni) where
 instance ExBudgetBuiltin ExBudgetCategory where
     exBudgetBuiltin = BBuiltin
 
-instance ToExMemory term => SpendBudget (CekCarryingM term uni) ExBudgetCategory term where
+instance ToExMemory term => SpendBudget (CekCarryingM term uni fun) ExBudgetCategory term where
     builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -285,29 +285,29 @@ instance ToExMemory term => SpendBudget (CekCarryingM term uni) ExBudgetCategory
                         (UserEvaluationError $ CekOutOfExError resb newBudget)
                         Nothing  -- No value available for error
 
-data Frame uni
-    = FrameApplyFun (CekValue uni)                     -- ^ @[V _]@
-    | FrameApplyArg (CekValEnv uni) (TermWithMem uni)  -- ^ @[_ N]@
-    | FrameForce                                       -- ^ @(force _)@
+data Frame uni fun
+    = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@
+    | FrameApplyArg (CekValEnv uni fun) (TermWithMem uni fun)  -- ^ @[_ N]@
+    | FrameForce                                               -- ^ @(force _)@
     deriving (Show)
 
-type Context uni = [Frame uni]
+type Context uni fun = [Frame uni fun]
 
 runCekM
-    :: forall a uni
-     . CekEnv uni
+    :: forall a uni fun
+     . CekEnv uni fun
     -> CekExBudgetState
-    -> CekM uni a
-    -> (Either (CekEvaluationException uni) a, CekExBudgetState)
+    -> CekM uni fun a
+    -> (Either (CekEvaluationException uni fun) a, CekExBudgetState)
 runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendEnv :: Name -> CekValue uni -> CekValEnv uni -> CekValEnv uni
+extendEnv :: Name -> CekValue uni fun -> CekValEnv uni fun -> CekValEnv uni fun
 extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekValEnv uni -> CekM uni (CekValue uni)
+lookupVarName :: Name -> CekValEnv uni fun -> CekM uni fun (CekValue uni fun)
 lookupVarName varName varEnv = do
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -316,7 +316,7 @@ lookupVarName varName varEnv = do
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName
-    :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning (CekValue uni))
+    :: DynamicBuiltinName -> CekM uni fun (DynamicBuiltinNameMeaning (CekValue uni fun))
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks cekEnvMeans
     case Map.lookup dynName means of
@@ -334,7 +334,7 @@ lookupDynamicBuiltinName dynName = do
 
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> CekValEnv uni -> TermWithMem uni -> CekM uni (Term Name uni ())
+    => Context uni fun -> CekValEnv uni fun -> TermWithMem uni fun -> CekM uni fun (Term Name uni fun ())
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx env (Force _ body) = do
     spendBudget BForce (ExBudget 1 1) -- TODO
@@ -371,10 +371,10 @@ computeCek ctx env (Var _ varName) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: ( MonadError (ErrorWithCause e (Term Name uni ())) m
+    :: ( MonadError (ErrorWithCause e (Term Name uni fun ())) m
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => AReview e t -> t -> CekValue uni -> m x
+    => AReview e t -> t -> CekValue uni fun -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
 {- | The returning phase of the CEK machine.
@@ -393,7 +393,7 @@ from the context and uses it to decide how to proceed with the current value v.
 -}
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> CekValue uni -> CekM uni (Term Name uni ())
+    => Context uni fun -> CekValue uni fun -> CekM uni fun (Term Name uni fun ())
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
 returnCek [] val = pure $ void $ dischargeCekValue val
@@ -428,7 +428,7 @@ instead of lists.
 -- if v is anything else, fail.
 forceEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> CekValue uni -> CekM uni (Term Name uni ())
+    => Context uni fun -> CekValue uni fun -> CekM uni fun (Term Name uni fun ())
 forceEvaluate ctx (VDelay _ body env) = computeCek ctx env body
 forceEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) =
     case arity of
@@ -455,10 +455,10 @@ forceEvaluate _ val =
 -- the value with the new argument and call 'returnCek'. If v is anything else, fail.
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni
-    -> CekValue uni   -- lhs of application
-    -> CekValue uni   -- rhs of application
-    -> CekM uni (Term Name uni ())
+    => Context uni fun
+    -> CekValue uni fun   -- lhs of application
+    -> CekValue uni fun   -- rhs of application
+    -> CekM uni fun (Term Name uni fun ())
 applyEvaluate ctx (VLamAbs _ name body env) arg =
     computeCek ctx (extendEnv name arg env) body
 applyEvaluate ctx val@(VBuiltin ex bn arity0 arity forces args argEnv) arg = do
@@ -477,10 +477,10 @@ applyEvaluate _ val _ = throwingDischarged _MachineError NonFunctionalApplicatio
 -- | Apply a builtin to a list of CekValue arguments
 applyBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni
+    => Context uni fun
     -> BuiltinName
-    -> [CekValue uni]
-    -> CekM uni (Term Name uni ())
+    -> [CekValue uni fun]
+    -> CekM uni fun (Term Name uni fun ())
 applyBuiltinName ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
@@ -505,11 +505,11 @@ applyBuiltinName ctx bn args = do
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
     -> ExBudgetMode
     -> CostModel
-    -> Term Name uni ()
-    -> (Either (CekEvaluationException uni) (Term Name uni ()), CekExBudgetState)
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState)
 runCek means mode params term =
     runCekM (CekEnv means mode params)
             (ExBudgetState mempty mempty)
@@ -522,19 +522,19 @@ runCek means mode params term =
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
     -> CostModel
-    -> Term Name uni ()
-    -> (Either (CekEvaluationException uni) (Term Name uni ()), CekExBudgetState)
+    -> Term Name uni fun ()
+    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState)
 runCekCounting means = runCek means Counting
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
     -> CostModel
-    -> Term Name uni ()
-    -> Either (CekEvaluationException uni) (Term Name uni ())
+    -> Term Name uni fun ()
+    -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCek means params = fst . runCekCounting means params
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
@@ -543,21 +543,21 @@ unsafeEvaluateCek
        , Closed uni
        , uni `Everywhere` ExMemoryUsage
        , uni `Everywhere` PrettyConst
-       , Typeable uni
+       , Typeable uni, Typeable fun
        )
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
     -> CostModel
-    -> Term Name uni ()
-    -> EvaluationResult (Term Name uni ())
+    -> Term Name uni fun ()
+    -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , KnownType (Term Name uni ()) a
+       , KnownType (Term Name uni fun ()) a
        )
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
     -> CostModel
-    -> Term Name uni ()
-    -> Either (CekEvaluationException uni) a
+    -> Term Name uni fun ()
+    -> Either (CekEvaluationException uni fun) a
 readKnownCek means params = evaluateCek means params >=> readKnown

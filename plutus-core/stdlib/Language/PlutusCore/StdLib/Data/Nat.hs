@@ -28,7 +28,7 @@ import           Language.PlutusCore.StdLib.Type
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-natData :: RecursiveType uni ()
+natData :: RecursiveType uni fun ()
 natData = runQuote $ do
     nat <- freshTyName "nat"
     r   <- freshTyName "r"
@@ -44,7 +44,7 @@ natTy = _recursiveType natData
 -- |  '0' as a PLC term.
 --
 -- > wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
-zero :: TermLike term TyName Name uni => term ()
+zero :: TermLike term TyName Name uni fun => term ()
 zero = runQuote $ do
     let RecursiveType nat wrapNat = natData
     r <- freshTyName "r"
@@ -60,7 +60,7 @@ zero = runQuote $ do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
-succ :: TermLike term TyName Name uni => term ()
+succ :: TermLike term TyName Name uni fun => term ()
 succ = runQuote $ do
     let RecursiveType nat wrapNat = natData
     n <- freshName "n"
@@ -81,7 +81,7 @@ succ = runQuote $ do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
-foldrNat :: TermLike term TyName Name uni => term ()
+foldrNat :: TermLike term TyName Name uni fun => term ()
 foldrNat = runQuote $ do
     let nat = _recursiveType natData
     r   <- freshTyName "r"
@@ -108,7 +108,7 @@ foldrNat = runQuote $ do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
-foldNat :: TermLike term TyName Name uni => term ()
+foldNat :: TermLike term TyName Name uni fun => term ()
 foldNat = runQuote $ do
     let nat = _recursiveType natData
     r   <- freshTyName "r"
@@ -134,7 +134,7 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
+natToInteger :: (TermLike term TyName Name uni fun, uni `Includes` Integer) => term ()
 natToInteger = runQuote $ do
     let addInteger = staticBuiltinNameAsTerm AddInteger
     return $

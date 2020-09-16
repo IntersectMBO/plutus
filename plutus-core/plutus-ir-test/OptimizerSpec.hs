@@ -19,7 +19,7 @@ optimizer = testNested "optimizer" [
 
 deadCode :: TestNested
 deadCode =
-    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
     in testNested "deadCode"
     $ map (goldenPir (removeDeadBindings means) term)
     [ "typeLet"

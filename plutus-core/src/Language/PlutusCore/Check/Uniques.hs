@@ -23,7 +23,7 @@ checkProgram
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Program tyname name uni ann
+    -> Program tyname name uni fun ann
     -> m ()
 checkProgram p (Program _ _ t) = checkTerm p t
 
@@ -34,7 +34,7 @@ checkTerm
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Term tyname name uni ann
+    -> Term tyname name uni fun ann
     -> m ()
 checkTerm p t = do
     (_, errs) <- runTermDefs t

@@ -21,7 +21,7 @@ import           Language.PlutusCore.Examples.Data.TreeForest
 import           Language.PlutusCore.Examples.Data.Vec
 
 -- | All examples exported as a single value.
-examples :: PlcFolderContents DefaultUni
+examples :: PlcFolderContents DefaultUni ()
 examples =
     FolderContents
       [ treeFolderContents "Examples"

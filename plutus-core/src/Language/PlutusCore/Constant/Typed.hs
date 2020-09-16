@@ -245,15 +245,15 @@ class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
-instance AsConstant (Term TyName Name uni ann) where
+instance AsConstant (Term TyName Name uni fun ann) where
     asConstant (Constant _ val) = Just val
     asConstant _                = Nothing
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
-            FromConstant (Term tyname name uni ExMemory) where
+            FromConstant (Term tyname name uni fun ExMemory) where
     fromConstant value = Constant (memoryUsage value) value
 
-instance FromConstant (Term tyname name uni ()) where
+instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.

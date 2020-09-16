@@ -30,10 +30,10 @@ getStringBuiltinMeanings =
        insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 getStringBuiltinTypes
-    :: forall uni ann e m.
-       ( AsTypeError e uni ann, MonadError e m, MonadQuote m
+    :: forall uni fun ann e m.
+       ( AsTypeError e uni fun ann, MonadError e m, MonadQuote m
        , GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        )
     => ann -> m (DynamicBuiltinNameTypes uni)
 getStringBuiltinTypes ann =
-       dynamicBuiltinNameMeaningsToTypes ann $ getStringBuiltinMeanings @(Term TyName Name uni ())
+       dynamicBuiltinNameMeaningsToTypes ann $ getStringBuiltinMeanings @(Term TyName Name uni fun ())

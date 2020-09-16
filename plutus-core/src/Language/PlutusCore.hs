@@ -137,7 +137,7 @@ import qualified Data.Text                                 as T
 fileType :: FilePath -> IO T.Text
 fileType = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni () AlexPosn -> T.Text
         prettyErr = displayPlcDef
 
 -- | Given a file, display
@@ -146,14 +146,14 @@ fileType = fmap (either prettyErr id . printType) . BSL.readFile
 fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni () AlexPosn -> T.Text
         prettyErr = displayBy cfg
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e DefaultUni () AlexPosn,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -169,7 +169,7 @@ parseScoped
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
-    -> m (Program TyName Name DefaultUni AlexPosn)
+    -> m (Program TyName Name DefaultUni () AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
@@ -177,7 +177,7 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e DefaultUni () AlexPosn,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
@@ -185,17 +185,17 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsTypeError e DefaultUni a,
+    :: (AsTypeError e DefaultUni () a,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni
-    -> Program TyName Name DefaultUni a
+    -> Program TyName Name DefaultUni () a
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram
 
 parseProgramDef
     :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m)
-    => BSL.ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+    => BSL.ByteString -> m (Program TyName Name DefaultUni () AlexPosn)
 parseProgramDef = parseProgram
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)
@@ -209,6 +209,6 @@ format
 format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
-applyProgram :: Program tyname name uni () -> Program tyname name uni () -> Program tyname name uni ()
+applyProgram :: Program tyname name uni fun () -> Program tyname name uni fun () -> Program tyname name uni fun ()
 -- TODO: some kind of version checking
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)

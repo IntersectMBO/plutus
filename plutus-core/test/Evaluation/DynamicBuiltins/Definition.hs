@@ -50,7 +50,7 @@ dynamicFactorialDefinition
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
-dynamicFactorial :: Term tyname name uni ()
+dynamicFactorial :: Term tyname name uni fun ()
 dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
 
 -- | Check that the dynamic factorial defined above computes to the same thing as
@@ -59,7 +59,7 @@ test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
-            ten = mkConstant @Integer @DefaultUni () 10
+            ten = mkConstant @Integer @DefaultUni @() () 10
             lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial ten
             rhs = typecheckEvaluateCek mempty $ Apply () factorial ten
         assertBool "type checks" $ isRight lhs
@@ -79,7 +79,7 @@ dynamicConstDefinition :: DynamicBuiltinNameDefinition term
 dynamicConstDefinition =
     DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
 
-dynamicConst :: Term tyname name uni ()
+dynamicConst :: Term tyname name uni fun ()
 dynamicConst = dynamicBuiltinNameAsTerm dynamicConstName
 
 -- | Check that the dynamic const defined above computes to the same thing as
@@ -112,7 +112,7 @@ dynamicIdDefinition :: DynamicBuiltinNameDefinition term
 dynamicIdDefinition =
     DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
 
-dynamicId :: Term tyname name uni ()
+dynamicId :: Term tyname name uni fun ()
 dynamicId = dynamicBuiltinNameAsTerm dynamicIdName
 
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
@@ -121,8 +121,8 @@ test_dynamicId :: TestTree
 test_dynamicId =
     testCase "dynamicId" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicIdDefinition mempty
-            zer = mkConstant @Integer @DefaultUni () 0
-            one = mkConstant @Integer @DefaultUni () 1
+            zer = mkConstant @Integer @DefaultUni @() () 0
+            one = mkConstant @Integer @DefaultUni @() () 1
             integer = mkTyBuiltin @Integer ()
             -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
@@ -147,7 +147,7 @@ dynamicIdFIntegerName = DynamicBuiltinName "idFInteger"
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdFIntegerMeaning @DefaultUni
 -- (all (f :: * -> *). f integer -> f integer)
 dynamicIdFIntegerMeaning
-    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (CekValue uni)
+    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (CekValue uni fun)
 dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
@@ -155,11 +155,11 @@ dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBud
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
 dynamicIdFIntegerDefinition
-    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (CekValue uni)
+    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (CekValue uni fun)
 dynamicIdFIntegerDefinition =
     DynamicBuiltinNameDefinition dynamicIdFIntegerName dynamicIdFIntegerMeaning
 
-dynamicIdFInteger :: Term tyname name uni ()
+dynamicIdFInteger :: Term tyname name uni fun ()
 dynamicIdFInteger = dynamicBuiltinNameAsTerm dynamicIdFIntegerName
 
 -- | Test that a polymorphic built-in function can have a higher-kinded type variable in its
@@ -168,9 +168,9 @@ test_dynamicIdFInteger :: TestTree
 test_dynamicIdFInteger =
     testCase "dynamicIdFInteger" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicIdFIntegerDefinition mempty
-            one = mkConstant @Integer @DefaultUni () 1
-            ten = mkConstant @Integer @DefaultUni () 10
-            res = mkConstant @Integer @DefaultUni () 55
+            one = mkConstant @Integer @DefaultUni @() () 1
+            ten = mkConstant @Integer @DefaultUni @() () 10
+            res = mkConstant @Integer @DefaultUni @() () 55
             -- sum (idFInteger {list} (enumFromTo 1 10))
             term
                 = Apply () Plc.sum
@@ -190,18 +190,18 @@ dynamicIdListName = DynamicBuiltinName "idList"
 -- >>> import Language.PlutusCore.Pretty
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdListMeaning @DefaultUni
 -- (all (a :: *). (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a -> (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a)
-dynamicIdListMeaning :: DynamicBuiltinNameMeaning (CekValue uni)
+dynamicIdListMeaning :: DynamicBuiltinNameMeaning (CekValue uni fun)
 dynamicIdListMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \(_ :: Proxy a) ->
             let ty = Proxy @(Opaque _ (ListRep a))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
-dynamicIdListDefinition :: DynamicBuiltinNameDefinition (CekValue uni)
+dynamicIdListDefinition :: DynamicBuiltinNameDefinition (CekValue uni fun)
 dynamicIdListDefinition =
     DynamicBuiltinNameDefinition dynamicIdListName dynamicIdListMeaning
 
-dynamicIdList :: Term tyname name uni ()
+dynamicIdList :: Term tyname name uni fun ()
 dynamicIdList = dynamicBuiltinNameAsTerm dynamicIdListName
 
 -- | Test that opaque terms with custom types are allowed.
@@ -209,9 +209,9 @@ test_dynamicIdList :: TestTree
 test_dynamicIdList =
     testCase "dynamicIdList" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicIdListDefinition mempty
-            one = mkConstant @Integer @DefaultUni () 1
-            ten = mkConstant @Integer @DefaultUni () 10
-            res = mkConstant @Integer @DefaultUni () 55
+            one = mkConstant @Integer @DefaultUni @() () 1
+            ten = mkConstant @Integer @DefaultUni @() () 10
+            res = mkConstant @Integer @DefaultUni @() () 55
             integer = mkTyBuiltin @Integer ()
             -- sum (idList {integer} (enumFromTo 1 10))
             term
@@ -259,18 +259,18 @@ argument when it's a function, for another example).
 -- >>> import Language.PlutusCore.Pretty
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdRank2Meaning @DefaultUni
 -- (all (f :: * -> *). (all (a :: *). f a) -> (all (a :: *). f a))
-dynamicIdRank2Meaning :: DynamicBuiltinNameMeaning (CekValue uni)
+dynamicIdRank2Meaning :: DynamicBuiltinNameMeaning (CekValue uni fun)
 dynamicIdRank2Meaning = DynamicBuiltinNameMeaning sch id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
             let ty = Proxy @(Opaque _ (TyForallStarRep "a" 1 (TyAppRep f (Opaque _ (TyVarRep "a" 1)))))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
-dynamicIdRank2Definition :: DynamicBuiltinNameDefinition (CekValue uni)
+dynamicIdRank2Definition :: DynamicBuiltinNameDefinition (CekValue uni fun)
 dynamicIdRank2Definition =
     DynamicBuiltinNameDefinition dynamicIdRank2Name dynamicIdRank2Meaning
 
-dynamicIdRank2 :: Term tyname name uni ()
+dynamicIdRank2 :: Term tyname name uni fun ()
 dynamicIdRank2 = dynamicBuiltinNameAsTerm dynamicIdRank2Name
 
 -- | Test that opaque terms with higher-rank types are allowed.
@@ -278,7 +278,7 @@ test_dynamicIdRank2 :: TestTree
 test_dynamicIdRank2 =
     testCase "dynamicIdRank2" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicIdRank2Definition mempty
-            res = mkConstant @Integer @DefaultUni () 0
+            res = mkConstant @Integer @DefaultUni @() () 0
             integer = mkTyBuiltin @Integer ()
             -- sum (idRank2 {list} nil {integer})
             term

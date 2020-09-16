@@ -31,61 +31,61 @@ makeLenses ''CompilationOpts
 defaultCompilationOpts :: CompilationOpts
 defaultCompilationOpts = CompilationOpts True
 
-data CompilationCtx uni a = CompilationCtx {
+data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts        :: CompilationOpts
-    , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni ())
+    , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni fun ())
     , _ccEnclosing :: Provenance a
     }
 
 makeLenses ''CompilationCtx
 
-defaultCompilationCtx :: CompilationCtx uni a
+defaultCompilationCtx :: CompilationCtx uni fun a
 defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance
 
-getEnclosing :: MonadReader (CompilationCtx uni a) m => m (Provenance a)
+getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
 
-withEnclosing :: MonadReader (CompilationCtx uni a) m => (Provenance a -> Provenance a) -> m b -> m b
+withEnclosing :: MonadReader (CompilationCtx uni fun a) m => (Provenance a -> Provenance a) -> m b -> m b
 withEnclosing f = local (over ccEnclosing f)
 
-runIfOpts :: MonadReader (CompilationCtx uni a) m => (b -> m b) -> (b -> m b)
+runIfOpts :: MonadReader (CompilationCtx uni fun a) m => (b -> m b) -> (b -> m b)
 runIfOpts pass arg = do
     doOpt <- view (ccOpts . coOptimize)
     if doOpt then pass arg else pure arg
 
-type PLCTerm uni a = PLC.Term PLC.TyName PLC.Name uni (Provenance a)
+type PLCTerm uni fun a = PLC.Term PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCType uni a = PLC.Type PLC.TyName uni (Provenance a)
 
 -- | A possibly recursive type.
-data PLCRecType uni a
+data PLCRecType uni fun a
     = PlainType (PLCType uni a)
-    | RecursiveType (Types.RecursiveType uni (Provenance a))
+    | RecursiveType (Types.RecursiveType uni fun (Provenance a))
 
 -- | Get the actual type inside a 'PLCRecType'.
-getType :: PLCRecType uni a -> PLCType uni a
+getType :: PLCRecType uni fun a -> PLCType uni a
 getType r = case r of
     PlainType t                                                -> t
     RecursiveType Types.RecursiveType {Types._recursiveType=t} -> t
 
 -- | Wrap a term appropriately for a possibly recursive type.
-wrap :: Provenance a -> PLCRecType uni a -> [PLCType uni a] -> PIRTerm uni a -> PIRTerm uni a
+wrap :: Provenance a -> PLCRecType uni fun a -> [PLCType uni a] -> PIRTerm uni fun a -> PIRTerm uni fun a
 wrap p r tvs t = case r of
     PlainType _                                                      -> t
     RecursiveType Types.RecursiveType {Types._recursiveWrap=wrapper} -> setProvenance p $ wrapper tvs t
 
 -- | Unwrap a term appropriately for a possibly recursive type.
-unwrap :: Provenance a -> PLCRecType uni a -> PIRTerm uni a -> PIRTerm uni a
+unwrap :: Provenance a -> PLCRecType uni fun a -> PIRTerm uni fun a -> PIRTerm uni fun a
 unwrap p r t = case r of
     PlainType _                          -> t
     RecursiveType Types.RecursiveType {} -> PIR.Unwrap p t
 
-type PIRTerm uni a = PIR.Term PIR.TyName PIR.Name uni (Provenance a)
+type PIRTerm uni fun a = PIR.Term PIR.TyName PIR.Name uni fun (Provenance a)
 type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 
-type Compiling m e uni a =
+type Compiling m e uni fun a =
     ( Monad m
-    , MonadReader (CompilationCtx uni a) m
-    , AsError e uni (Provenance a)
+    , MonadReader (CompilationCtx uni fun a) m
+    , AsError e uni fun (Provenance a)
     , MonadError e m
     , MonadQuote m
     , Ord a
@@ -93,7 +93,7 @@ type Compiling m e uni a =
     , PLC.DefaultUni PLC.<: uni
     )
 
-type TermDef tyname name uni a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni a)
+type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)
 
 -- | We generate some shared definitions compilation, this datatype
 -- defines the "keys" for those definitions.

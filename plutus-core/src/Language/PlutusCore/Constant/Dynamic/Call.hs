@@ -36,5 +36,5 @@ dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
-dynamicCall :: DynamicBuiltinName -> Term tyname name uni ()
+dynamicCall :: DynamicBuiltinName -> Term tyname name uni fun ()
 dynamicCall = dynamicBuiltinNameAsTerm

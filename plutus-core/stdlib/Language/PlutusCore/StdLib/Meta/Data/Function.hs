@@ -10,7 +10,7 @@ import           Language.PlutusCore.Quote
 -- | 'const' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> t
-constPartial :: TermLike term TyName Name uni => term () -> term ()
+constPartial :: TermLike term TyName Name uni fun => term () -> term ()
 constPartial t = runQuote $ do
     a <- freshTyName "a"
     x <- freshName "x"

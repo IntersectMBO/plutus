@@ -30,8 +30,8 @@ removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
-    -> Term tyname name uni a
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
 removeDeadBindings means t =
     let tRen = PLC.runQuote $ PLC.rename t
     in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness means tRen)
@@ -42,7 +42,7 @@ calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
+    -> Term tyname name uni fun a
     -> Liveness
 calculateLiveness means t =
     let
@@ -58,7 +58,7 @@ live n =
 
 liveBinding
     :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Binding tyname name uni a
+    => Binding tyname name uni fun a
     -> m Bool
 liveBinding =
     let
@@ -72,8 +72,8 @@ liveBinding =
 
 processTerm
     :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
-    -> m (Term tyname name uni a)
+    => Term tyname name uni fun a
+    -> m (Term tyname name uni fun a)
 processTerm = \case
     -- throw away dead bindings
     Let x r bs t -> mkLet x r <$> filterM liveBinding (NE.toList bs) <*> pure t

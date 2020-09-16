@@ -18,9 +18,9 @@ purely = coerce
 -- | Applicatively substitute *free* names using the given function.
 termSubstFreeNamesA
     :: (Applicative f, HasUnique name TermUnique)
-    => (name -> f (Maybe (Term name uni ann)))
-    -> Term name uni ann
-    -> f (Term name uni ann)
+    => (name -> f (Maybe (Term name uni fun ann)))
+    -> Term name uni fun ann
+    -> f (Term name uni fun ann)
 termSubstFreeNamesA f = go Set.empty where
     go bvs var@(Var _ name)           =
         if (name ^. unique) `member` bvs
@@ -37,7 +37,7 @@ termSubstFreeNamesA f = go Set.empty where
 -- | Substitute *free* names using the given function.
 termSubstFreeNames
     :: HasUnique name TermUnique
-    => (name -> Maybe (Term name uni ann))
-    -> Term name uni ann
-    -> Term name uni ann
+    => (name -> Maybe (Term name uni fun ann))
+    -> Term name uni fun ann
+    -> Term name uni fun ann
 termSubstFreeNames = purely termSubstFreeNamesA

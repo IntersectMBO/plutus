@@ -26,7 +26,7 @@ unit = runQuote $ do
 -- | '()' as a PLC term.
 --
 -- > /\(A :: *) -> \(x : A) -> x
-unitval :: TermLike term TyName Name uni => term ()
+unitval :: TermLike term TyName Name uni fun => term ()
 unitval = runQuote $ do
     a <- freshTyName "a"
     x <- freshName "x"

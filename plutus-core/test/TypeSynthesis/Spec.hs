@@ -20,12 +20,12 @@ import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-kindcheck :: MonadError (Error uni ()) m => Type TyName uni () -> m (Type TyName uni ())
+kindcheck :: MonadError (Error uni () ()) m => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
     _ <- runQuoteT $ inferKind defConfig ty
     return ty
 
-typecheck :: (uni ~ DefaultUni, MonadError (Error uni ()) m) => Term TyName Name uni () -> m ()
+typecheck :: (MonadError (Error DefaultUni () ()) m) => Term TyName Name DefaultUni () () -> m ()
 typecheck term = do
     _ <- runQuoteT $ inferType defConfig term
     return ()
@@ -37,13 +37,13 @@ assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
+assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
+assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () () -> Assertion
 assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left  _  -> return ()
@@ -60,7 +60,7 @@ test_typecheckAvailable =
 -- | Self-application. An example of ill-typed term.
 --
 -- > /\ (A :: *) -> \(x : A) -> x x
-selfApply :: Term TyName Name uni ()
+selfApply :: Term TyName Name uni fun ()
 selfApply = runQuote $ do
     a <- freshTyName "a"
     x <- freshName "x"

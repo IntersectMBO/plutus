@@ -36,15 +36,16 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 testMachine
-    :: (uni ~ DefaultUni, Pretty internal, PrettyPlc termErr)
+    :: (Pretty internal, PrettyPlc termErr)
     => String
-    -> (Term Name uni () -> Either (EvaluationException internal user termErr) (Term Name uni ()))
+    -> (Term Name DefaultUni () () ->
+            Either (EvaluationException internal user termErr) (Term Name DefaultUni () ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnown @(Plc.Term TyName Name DefaultUni ()) val
+            let resExp = erase <$> makeKnown @(Plc.Term TyName Name DefaultUni () ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
@@ -66,14 +67,14 @@ test_memory =
         $  stdLib
         <> examples
 
-testBudget :: TestName -> Term Name DefaultUni () -> TestNested
+testBudget :: TestName -> Term Name DefaultUni () () -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
         prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostModel term)
 
-bunchOfFibs :: PlcFolderContents DefaultUni
+bunchOfFibs :: PlcFolderContents DefaultUni ()
 bunchOfFibs =
     let
         fibFile i = plcTermFile (show i) (naiveFib i)
@@ -89,7 +90,7 @@ test_budget =
                                  (\name -> testBudget name . erase)
         $ examples <> bunchOfFibs
 
-testCounting :: TestName -> Term Name DefaultUni () -> TestNested
+testCounting :: TestName -> Term Name DefaultUni () () -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name

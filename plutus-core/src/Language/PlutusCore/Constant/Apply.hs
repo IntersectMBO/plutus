@@ -268,6 +268,6 @@ builtinNameArities :: Array StaticBuiltinName Arity
 builtinNameArities =
     listArray (minBound, maxBound) $
         [minBound..maxBound] <&> \name ->
-            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni () ()) name $
                 \(TypedStaticBuiltinName _ sch) -> getArity sch
 {-# NOINLINE builtinNameArities #-}  -- Just in case.

@@ -15,12 +15,12 @@ import           Data.Proxy
 import qualified Data.Map as Map
 
 -- | An argument taken by a builtin: could be a term of a type.
-data Arg tyname name uni a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni a)
+data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
 
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
-data BuiltinApp tyname name uni a = BuiltinApp PLC.BuiltinName [Arg tyname name uni a]
+data BuiltinApp tyname name uni fun a = BuiltinApp PLC.BuiltinName [Arg tyname name uni fun a]
 
-saturatesScheme ::  [Arg tyname name uni a] -> TypeScheme term args res -> Maybe Bool
+saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
 saturatesScheme _ TypeSchemeResult{} = Just True
 -- Consume one argument
@@ -35,10 +35,10 @@ saturatesScheme (TermArg _ : _) TypeSchemeAll{}   = Nothing
 
 -- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
-    :: forall tyname name uni a term
+    :: forall tyname name uni fun a term
     . (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => DynamicBuiltinNameMeanings term
-    -> BuiltinApp tyname name uni a
+    -> BuiltinApp tyname name uni fun a
     -> Maybe Bool
 isSaturated (DynamicBuiltinNameMeanings means) (BuiltinApp b args) = case b of
     PLC.StaticBuiltinName bn -> withTypedStaticBuiltinName @uni @term bn $ \(TypedStaticBuiltinName _ sch) -> saturatesScheme args sch
@@ -47,7 +47,7 @@ isSaturated (DynamicBuiltinNameMeanings means) (BuiltinApp b args) = case b of
         Nothing -> Nothing
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
-asBuiltinApp :: Term tyname name uni a -> Maybe (BuiltinApp tyname name uni a)
+asBuiltinApp :: Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)
 asBuiltinApp = go []
     where
         go argsSoFar = \case
@@ -69,7 +69,7 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- it includes things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
     :: (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => DynamicBuiltinNameMeanings term -> (name -> Strictness) -> Term tyname name uni a -> Bool
+    => DynamicBuiltinNameMeanings term -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
 isPure means varStrictness = go
     where
         go = \case

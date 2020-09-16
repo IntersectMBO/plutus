@@ -36,7 +36,7 @@ import           Control.Monad
 import           Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
-simplifyTerm :: Compiling m e uni a => Term TyName Name uni b -> m (Term TyName Name uni b)
+simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 simplifyTerm = runIfOpts deadCode
     where
         deadCode t = do
@@ -45,7 +45,7 @@ simplifyTerm = runIfOpts deadCode
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
-floatTerm :: (Compiling m e uni a, Semigroup b) => Term TyName Name uni b -> m (Term TyName Name uni b)
+floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 floatTerm = runIfOpts letFloat
     where
         letFloat t = do
@@ -55,8 +55,8 @@ floatTerm = runIfOpts letFloat
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
-compileToReadable :: Compiling m e uni a
-                  => Term TyName Name uni a -> m (Term TyName Name uni (Provenance a))
+compileToReadable :: Compiling m e uni fun a
+                  => Term TyName Name uni fun a -> m (Term TyName Name uni fun (Provenance a))
 compileToReadable =
     (pure . original)
     >=> simplifyTerm
@@ -68,7 +68,7 @@ compileToReadable =
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
 -- Note: the result *does* have globally unique names.
-compileReadableToPlc :: Compiling m e uni a => Term TyName Name uni (Provenance a) -> m (PLCTerm uni a)
+compileReadableToPlc :: Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (PLCTerm uni fun a)
 compileReadableToPlc =
     NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
@@ -81,5 +81,5 @@ compileReadableToPlc =
 
 
 --- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m e uni a => Term TyName Name uni a -> m (PLCTerm uni a)
+compileTerm :: Compiling m e uni fun a => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
 compileTerm = compileToReadable >=> compileReadableToPlc

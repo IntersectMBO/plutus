@@ -79,15 +79,15 @@ data UniqueError ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''UniqueError
 
-data NormCheckError tyname name uni ann
+data NormCheckError tyname name uni fun ann
     = BadType ann (Type tyname uni ann) T.Text
-    | BadTerm ann (Term tyname name uni ann) T.Text
+    | BadTerm ann (Term tyname name uni fun ann) T.Text
     deriving (Show, Generic, NFData)
 deriving instance
-    ( HasUniques (Term tyname name uni ann)
+    ( HasUniques (Term tyname name uni fun ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
     , Eq ann
-    ) => Eq (NormCheckError tyname name uni ann)
+    ) => Eq (NormCheckError tyname name uni fun ann)
 makeClassyPrisms ''NormCheckError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
@@ -103,10 +103,10 @@ data InternalTypeError uni ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''InternalTypeError
 
-data TypeError uni ann
+data TypeError uni fun ann
     = KindMismatch ann (Type TyName uni ()) (Kind ())  (Kind ())
     | TypeMismatch ann
-        (Term TyName Name uni ())
+        (Term TyName Name uni fun ())
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
@@ -116,25 +116,25 @@ data TypeError uni ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
-data Error uni ann
+data Error uni fun ann
     = ParseErrorE (ParseError ann)
     | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError uni ann)
-    | NormCheckErrorE (NormCheckError TyName Name uni ann)
+    | TypeErrorE (TypeError uni fun ann)
+    | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''Error
 
-instance AsParseError (Error uni ann) ann where
+instance AsParseError (Error uni fun ann) ann where
     _ParseError = _ParseErrorE
 
-instance AsUniqueError (Error uni ann) ann where
+instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error uni ann) uni ann where
+instance AsTypeError (Error uni fun ann) uni fun ann where
     _TypeError = _TypeErrorE
 
 instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error uni ann) tyname name uni ann where
+            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
     _NormCheckError = _NormCheckErrorE
 
 asInternalError :: Doc ann -> Doc ann
@@ -161,8 +161,8 @@ instance Pretty ann => Pretty (UniqueError ann) where
 
 instance ( Pretty ann
          , PrettyBy config (Type tyname uni ann)
-         , PrettyBy config (Term tyname name uni ann)
-         ) => PrettyBy config (NormCheckError tyname name uni ann) where
+         , PrettyBy config (Term tyname name uni fun ann)
+         ) => PrettyBy config (NormCheckError tyname name uni fun ann) where
     prettyBy config (BadType ann ty expct) =
         "Malformed type at" <+> pretty ann <>
         ". Type" <+>  squotes (prettyBy config ty) <+>
@@ -184,7 +184,7 @@ instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
             "built-in is open"
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
-            PrettyBy PrettyConfigPlc (TypeError uni ann) where
+            PrettyBy PrettyConfigPlc (TypeError uni fun ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -211,7 +211,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
         ":" <+> pretty err
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
-            PrettyBy PrettyConfigPlc (Error uni ann) where
+            PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e

@@ -34,7 +34,7 @@ sum = runQuote $ do
 -- | 'Left' as a PLC term.
 --
 -- > /\(a b :: *) -> \(x : a) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> f x
-left :: TermLike term TyName Name uni => term ()
+left :: TermLike term TyName Name uni fun => term ()
 left = runQuote $ do
     a <- freshTyName "a"
     b <- freshTyName "b"
@@ -55,7 +55,7 @@ left = runQuote $ do
 -- | 'Right' as a PLC term.
 --
 -- > /\(a b :: *) -> \(y : b) -> /\(r :: *) -> \(f : a -> r) -> (g : b -> r) -> g y
-right :: TermLike term TyName Name uni => term ()
+right :: TermLike term TyName Name uni fun => term ()
 right = runQuote $ do
     a <- freshTyName "a"
     b <- freshTyName "b"

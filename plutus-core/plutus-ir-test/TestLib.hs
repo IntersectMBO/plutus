@@ -42,15 +42,15 @@ ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
-goldenPlcFromPir :: GetProgram a PLC.DefaultUni => Parser a -> String -> TestNested
+goldenPlcFromPir :: GetProgram a PLC.DefaultUni () => Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- getProgram ast
                                 withExceptT toException $ PLC.deBruijnProgram p)
 
-goldenPlcFromPirCatch :: GetProgram a PLC.DefaultUni => Parser a -> String -> TestNested
+goldenPlcFromPirCatch :: GetProgram a PLC.DefaultUni () => Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- getProgram ast
                                            withExceptT toException $ PLC.deBruijnProgram p)
 
-goldenEvalPir :: (GetProgram a PLC.DefaultUni) => Parser a -> String -> TestNested
+goldenEvalPir :: (GetProgram a PLC.DefaultUni ()) => Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runPlc [ast])

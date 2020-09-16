@@ -31,28 +31,28 @@ import           Test.Tasty.Hedgehog
 -- 'Language.PlutusCore.Generators.Internal.Entity.genIterAppValue'.
 genArgsRes
     :: Generatable uni
-    => TypeScheme (Term Name uni ()) as res -> FoldArgs as res -> Gen ([Term Name uni ()], res)
+    => TypeScheme (Term Name uni fun ()) as res -> FoldArgs as res -> Gen ([Term Name uni fun ()], res)
 genArgsRes (TypeSchemeResult _)     y = return ([], y)
 genArgsRes (TypeSchemeArrow _ schB) f = do
     TermOf v x <- genTypedBuiltinDef AsKnownType
     first (v :) <$> genArgsRes schB (f x)
 genArgsRes (TypeSchemeAll _ _ schK) f = genArgsRes (schK Proxy) f
 
-type AppErr = EvaluationException () () (Term Name DefaultUni ())
+type AppErr = EvaluationException () () (Term Name DefaultUni () ())
 
 -- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
 
-instance SpendBudget AppM () (Term Name DefaultUni ()) where
+instance SpendBudget AppM () (Term Name DefaultUni () ()) where
     spendBudget _ _ = pure ()
     builtinCostParams = pure defaultCostModel
 
 -- | This shows that the builtin application machinery accepts untyped terms.
 prop_applyStaticBuiltinName
-    :: (uni ~ DefaultUni, KnownType (Term Name uni ()) res)
-    => TypedStaticBuiltinName (Term Name uni ()) args res
+    :: (KnownType (Term Name DefaultUni () ()) res)
+    => TypedStaticBuiltinName (Term Name DefaultUni () ()) args res
        -- ^ A (typed) builtin name to apply.
     -> FoldArgs args res
        -- ^ The semantics of the builtin name. E.g. the semantics of

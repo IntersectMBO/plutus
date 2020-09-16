@@ -33,12 +33,12 @@ import           Test.Tasty.Hedgehog
 -- A monad to keep `applyStaticBuiltinName` happy.
 -- We can't use CekM or CkM because their exception types don't match Term.
 
-type TestEvaluationException uni =
-    EvaluationException () () (Term TyName Name uni ())
+type TestEvaluationException uni fun =
+    EvaluationException () () (Term TyName Name uni fun ())
 
-type TestM uni = Either (TestEvaluationException uni)
+type TestM uni fun = Either (TestEvaluationException uni fun)
 
-instance SpendBudget (TestM uni) () (Term TyName Name uni ()) where
+instance SpendBudget (TestM uni fun) () (Term TyName Name uni fun ()) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 
@@ -52,8 +52,8 @@ instance SpendBudget (TestM uni) () (Term TyName Name uni ()) where
 -- we check that the results of the two computations match. We also check that each
 -- underapplication on the PLC side is a stuck application.
 prop_applyStaticBuiltinName
-    :: (uni ~ DefaultUni, KnownType (Plain Term uni) r, PrettyConst r)
-    => TypedStaticBuiltinName (Plain Term uni) as r
+    :: (KnownType (Plain Term DefaultUni ()) r, PrettyConst r)
+    => TypedStaticBuiltinName (Plain Term DefaultUni ()) as r
        -- ^ A (typed) builtin name to apply.
     -> FoldArgs as r
        -- ^ The semantics of the builtin name. E.g. the semantics of
@@ -64,7 +64,7 @@ prop_applyStaticBuiltinName tbn op = property $ do
         getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
-        app = applyStaticBuiltinName @(TestM DefaultUni) name
+        app = applyStaticBuiltinName @(TestM DefaultUni ()) name
 --    traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
 --    app spine === Right (evaluationConstAppResult $ makeKnown y)
     app spine === Right (makeKnown y)

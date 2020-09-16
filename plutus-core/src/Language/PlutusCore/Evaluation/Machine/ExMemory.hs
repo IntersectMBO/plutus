@@ -49,10 +49,10 @@ abstractly specifiable. It's an implementation detail.
 
 -}
 
-type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
+type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
 -- | Caches Memory usage for builtin costing
 -- | NOT the amount of memory it cost to calculate this value.
-type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
+type WithMemory f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -110,10 +110,10 @@ deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinNa
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Term tyname name uni ann)) instance
+deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
     , Closed uni, uni `Everywhere` ExMemoryUsage
-    ) => ExMemoryUsage (Term tyname name uni ann)
+    ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
