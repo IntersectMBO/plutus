@@ -7,7 +7,7 @@ exports.eval_ = function (left, right, model) {
   // here we can pass in our library for constructing contracts
   var monaco = global.monaco;
   var context = require('src/Language/Javascript/MarloweJS.ts');
-  context['bignumber'] = require('bignumber');
+  context['bignumber'] = require('bignumber.js');
   return monaco.languages.typescript.getTypeScriptWorker()
           .then(function(worker) {
               return (worker(model.uri)
