@@ -285,7 +285,7 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc args) shown
             -- this will actually terminate compilation
             else failCompilation shown
-        Right (pirP, _, uplcP) -> do
+        Right (pirP, uplcP) -> do
             bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
             bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise uplcP
 
@@ -301,7 +301,7 @@ runCompiler
     :: forall uni m . (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
-    -> m (PIRProgram uni, PLCProgram uni, UPLCProgram uni)
+    -> m (PIRProgram uni, UPLCProgram uni)
 runCompiler opts expr = do
     -- trick here to take out the concrete plc.error
     tcConfigConcrete <-
@@ -336,4 +336,4 @@ runCompiler opts expr = do
         liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) tcConcrete
 
     let uplcP = UPLC.eraseProgram plcP
-    pure (pirP, plcP, uplcP)
+    pure (pirP, uplcP)

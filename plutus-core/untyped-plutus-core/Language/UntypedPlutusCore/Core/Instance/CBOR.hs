@@ -9,7 +9,6 @@ module Language.UntypedPlutusCore.Core.Instance.CBOR where
 import           Language.UntypedPlutusCore.Core.Type
 
 import           Language.PlutusCore.CBOR
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Codec.Serialise
@@ -99,16 +98,16 @@ we provide a wrapper class with an instance which performs the
 coercions for us.  This is used in `Ledger.Scripts.Script` to
 derive a suitable instance of `Serialise` for scripts. -}
 
-newtype OmitUnitAnnotations uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program Name uni () }
-    deriving Serialise via Program Name uni InvisibleUnit
+newtype OmitUnitAnnotations name uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program name uni () }
+    deriving Serialise via Program name uni InvisibleUnit
 
 {-| Convenience functions for serialisation/deserialisation without units -}
-serialiseOmittingUnits :: (Closed uni, uni `Everywhere` Serialise) => Program Name uni () -> BSL.ByteString
+serialiseOmittingUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise) => Program name uni () -> BSL.ByteString
 serialiseOmittingUnits = serialise . OmitUnitAnnotations
 
-deserialiseRestoringUnits :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program Name uni ()
+deserialiseRestoringUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise) => BSL.ByteString -> Program name uni ()
 deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
 
-deserialiseRestoringUnitsOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
-                        BSL.ByteString -> Either DeserialiseFailure (Program Name uni ())
+deserialiseRestoringUnitsOrFail :: (Closed uni, Serialise name, uni `Everywhere` Serialise) =>
+                        BSL.ByteString -> Either DeserialiseFailure (Program name uni ())
 deserialiseRestoringUnitsOrFail bs = restoreUnitAnnotations <$> deserialiseOrFail bs
