@@ -219,7 +219,7 @@ library
         containers -any,
         cryptonite -any,
         dependent-map -any,
-        dependent-sum -any,
+        dependent-sum <0.7,
         dependent-sum-template -any,
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
