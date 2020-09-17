@@ -35,7 +35,7 @@ stringBuiltins
     :: ( GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (CekValue uni)
+    => DynamicBuiltinNameMeanings (CekValue uni fun)
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
@@ -43,15 +43,15 @@ stringBuiltins =
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Program Name uni () -> Either (CekEvaluationException uni) (Term Name uni ())
+    => Program Name uni fun () -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCek (Program _ _ t) = UPLC.evaluateCek stringBuiltins PLC.defaultCostModel t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` PrettyConst
+       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
        )
-    => Program Name uni () -> EvaluationResult (Term Name uni ())
+    => Program Name uni fun () -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel t
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
@@ -60,8 +60,8 @@ unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCek stringBuiltins PLC.de
 -- returning the trace output.
 evaluateCekTrace
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Program Name uni ()
-    -> ([String], CekExTally, Either (CekEvaluationException uni) (Term Name uni ()))
+    => Program Name uni fun ()
+    -> ([String], CekExTally, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
     let
         (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do
