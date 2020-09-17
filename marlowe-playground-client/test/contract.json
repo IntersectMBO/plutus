@@ -25,18 +25,18 @@
                "account_owner": {
                  "pk_hash": "deadbeef"
                },
-               "account_number": "0"
+               "account_number": 0
              }
            },
            "let": "x",
            "be": {
              "and": {
-               "value": "100",
+               "value": 100,
                "minus": {
-                 "negate": "100"
+                 "negate": 100
                }
              },
-             "add": "100"
+             "add": 100
            }
          },
          "case": {
@@ -51,16 +51,16 @@
              "account_owner": {
                "pk_hash": "deadbeef"
              },
-             "account_number": "0"
+             "account_number": 0
            },
            "deposits": {
              "and": {
-               "value": "100",
+               "value": 100,
                "minus": {
-                 "negate": "100"
+                 "negate": 100
                }
              },
-             "add": "100"
+             "add": 100
            }
          }
        },
@@ -75,7 +75,7 @@
                "account_owner": {
                  "pk_hash": "deadbeef"
                },
-               "account_number": "0"
+               "account_number": 0
              },
              "then": "close",
              "pay": {
@@ -83,7 +83,7 @@
                  "account_owner": {
                    "pk_hash": "deadbeef"
                  },
-                 "account_number": "0"
+                 "account_number": 0
                },
                "amount_of_token": {
                  "token_name": "name",
@@ -94,7 +94,7 @@
                "account_owner": {
                  "pk_hash": "deadbeef"
                },
-               "account_number": "0"
+               "account_number": 0
              }
            },
            "if": {
@@ -108,9 +108,9 @@
                  }
                },
                "equal_to": {
-                 "times": "1",
-                 "multiply": "100",
-                 "divided_by": "10"
+                 "times": 1,
+                 "multiply": 100,
+                 "divided_by": 10
                }
              },
              "either": {
@@ -133,8 +133,8 @@
            },
            "choose_between": [
              {
-               "to": "1",
-               "from": "0"
+               "to": 1,
+               "from": 0
              }
            ]
          }
@@ -153,7 +153,7 @@
        }
      ],
      "timeout_continuation": "close",
-     "timeout": "100"
+     "timeout": 100
    },
    "assert": true
  }

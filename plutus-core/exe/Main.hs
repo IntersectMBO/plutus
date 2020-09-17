@@ -9,7 +9,6 @@
 module Main (main) where
 
 import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
@@ -23,6 +22,7 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as P
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
+import           Codec.Serialise
 import           Control.DeepSeq                                            (rnf)
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
@@ -250,7 +250,7 @@ getCborInput (FileInput file) = BSL.readFile file
 loadPlcFromCborFile :: Input -> IO PlainProgram
 loadPlcFromCborFile inp = do
   p <- getCborInput inp -- The type is constrained in the Right case below.
-  case deserialiseRestoringUnitsOrFail p of  -- See Note [Annotation Types]
+  case deserialiseOrFail p of
     Left (DeserialiseFailure offset msg) ->
         do
           putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
@@ -330,7 +330,7 @@ runPrint (PrintOptions inp mode) =
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
   p <- parsePlcFile inp
-  let cbor = serialiseOmittingUnits (() <$ p) -- Change annotations to (): see Note [Annotation types].
+  let cbor = serialise (() <$ p) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor *> putStrLn ""

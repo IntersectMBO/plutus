@@ -26,5 +26,5 @@ mkLet
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 mkLet x r bs t =  case NE.nonEmpty bs of
-  Nothing  -> t;
+  Nothing  -> t
   Just bs' -> Let x r bs' t

@@ -103,6 +103,7 @@ library
         Language.PlutusIR.Compiler
         Language.PlutusIR.Compiler.Names
         Language.PlutusIR.Compiler.Definitions
+        Language.PlutusIR.Error
         Language.PlutusIR.Generators.AST
         Language.PlutusIR.Parser
         Language.PlutusIR.MkPir
@@ -113,8 +114,11 @@ library
         Language.PlutusIR.Transform.Rename
         Language.PlutusIR.Transform.NonStrict
         Language.PlutusIR.Transform.LetFloat
+        Language.PlutusIR.Transform.Inline
+        Language.PlutusIR.TypeCheck
 
         Language.UntypedPlutusCore
+        Language.UntypedPlutusCore.DeBruijn
         Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
         PlutusPrelude
@@ -146,6 +150,7 @@ library
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.DeBruijn.Internal
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Eq
         Language.PlutusCore.Mark
@@ -177,13 +182,14 @@ library
 
         Language.PlutusIR.Analysis.Dependencies
         Language.PlutusIR.Analysis.Usages
-        Language.PlutusIR.Compiler.Error
         Language.PlutusIR.Compiler.Let
         Language.PlutusIR.Compiler.Datatype
         Language.PlutusIR.Compiler.Provenance
         Language.PlutusIR.Compiler.Recursion
         Language.PlutusIR.Compiler.Types
         Language.PlutusIR.Compiler.Lower
+        Language.PlutusIR.Normalize
+        Language.PlutusIR.TypeCheck.Internal
 
         Language.UntypedPlutusCore.Core
         Language.UntypedPlutusCore.Core.Instance
@@ -192,7 +198,9 @@ library
         Language.UntypedPlutusCore.Core.Instance.Pretty.Classic
         Language.UntypedPlutusCore.Core.Instance.Pretty.Plc
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
+        Language.UntypedPlutusCore.Core.Instance.CBOR
         Language.UntypedPlutusCore.Core.Type
+        Language.UntypedPlutusCore.Size
         Language.UntypedPlutusCore.Subst
 
         Data.Aeson.THReader
@@ -211,7 +219,7 @@ library
         containers -any,
         cryptonite -any,
         dependent-map -any,
-        dependent-sum -any,
+        dependent-sum <0.7,
         dependent-sum-template -any,
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
@@ -249,6 +257,7 @@ library
         data-default -any,
         data-default-class -any,
         transformers -any,
+        witherable -any,
         Stream -any
 
 executable plutus-core-generate-evaluation-test
@@ -317,6 +326,7 @@ test-suite plutus-ir-test
         OptimizerSpec
         TransformSpec
         ParserSpec
+        TypeSpec
         TestLib
     build-depends:
         base >=4.9 && <5,
@@ -324,6 +334,7 @@ test-suite plutus-ir-test
         filepath -any,
         text -any,
         plutus-core -any,
+        lens -any,
         mtl -any,
         mmorph -any,
         prettyprinter -any,

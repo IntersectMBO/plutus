@@ -19,7 +19,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -38,7 +38,16 @@ import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div ([ classes [ ClassName "simulation-bottom-panel" ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ ClassName "simulation-bottom-panel" ]
+            else
+              [ ClassName "simulation-bottom-panel", collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
         [ div [ class_ flexTen ]
             [ div [ classes [ footerPanelBg, active ] ]
@@ -94,6 +103,8 @@ bottomPanel state =
   hasRuntimeWarnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings <<< to Array.null <<< to not)
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
+
+  showingBottomPanel = state ^. _showBottomPanel
 
 isStaticLoading :: AnalysisState -> Boolean
 isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData

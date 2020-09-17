@@ -24,7 +24,7 @@ data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation erro
                deriving (Typeable)
 makeClassyPrisms ''Error
 
-instance PLC.AsTypeError (Error uni fun a) uni fun a where
+instance PLC.AsTypeError (Error uni fun a) (PLC.Term PLC.TyName PLC.Name uni fun ()) uni a where
     _TypeError = _PLCError . PLC._TypeError
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a) =>

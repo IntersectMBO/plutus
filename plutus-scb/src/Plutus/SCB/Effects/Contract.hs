@@ -85,3 +85,5 @@ contractMessageToPayload = EventPayload . fmap go where
         NextTxAtResponse tx -> ("address", JSON.toJSON tx)
         WriteTxResponse r -> ("tx", JSON.toJSON r)
         UserEndpointResponse (EndpointDescription n) r -> (n, JSON.toJSON r)
+        OwnInstanceResponse r -> ("own-instance-id", JSON.toJSON r)
+        NotificationResponse r -> ("notify", JSON.toJSON r)

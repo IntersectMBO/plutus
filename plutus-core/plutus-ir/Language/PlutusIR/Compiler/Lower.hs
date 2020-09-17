@@ -4,8 +4,8 @@
 module Language.PlutusIR.Compiler.Lower where
 
 import           Language.PlutusIR
-import           Language.PlutusIR.Compiler.Error
 import           Language.PlutusIR.Compiler.Types
+import           Language.PlutusIR.Error
 
 import qualified Language.PlutusCore              as PLC
 

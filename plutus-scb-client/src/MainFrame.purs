@@ -36,7 +36,6 @@ import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
@@ -60,9 +59,10 @@ import Validation (_argument)
 import View as View
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
+import Wallet.Types (EndpointDescription)
 
 initialValue :: Value
-initialValue = adaToValue $ Lovelace { getLovelace: 0 }
+initialValue = adaToValue $ Lovelace { getLovelace: zero }
 
 initialState :: State
 initialState =

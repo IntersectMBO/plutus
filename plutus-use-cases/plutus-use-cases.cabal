@@ -37,7 +37,15 @@ library
         Language.PlutusTx.Coordination.Contracts.MultiSig
         Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
         Language.PlutusTx.Coordination.Contracts.PingPong
+        Language.PlutusTx.Coordination.Contracts.Prism
+        Language.PlutusTx.Coordination.Contracts.Prism.Credential
+        Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager
+        Language.PlutusTx.Coordination.Contracts.Prism.STO
+        Language.PlutusTx.Coordination.Contracts.Prism.Mirror
+        Language.PlutusTx.Coordination.Contracts.Prism.StateMachine
+        Language.PlutusTx.Coordination.Contracts.Prism.Unlock
         Language.PlutusTx.Coordination.Contracts.PubKey
+        Language.PlutusTx.Coordination.Contracts.RPC
         Language.PlutusTx.Coordination.Contracts.Vesting
         Language.PlutusTx.Coordination.Contracts.Swap
     hs-source-dirs: src
@@ -66,7 +74,8 @@ library
         template-haskell -any,
         lens -any,
         text -any,
-        prettyprinter -any
+        prettyprinter -any,
+        hashable -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -91,7 +100,9 @@ test-suite plutus-use-cases-test
         Spec.MultiSigStateMachine
         Spec.PingPong
         Spec.PubKey
+        Spec.Prism
         Spec.Rollup
+        Spec.RPC
         Spec.TokenAccount
         Spec.Vesting
     default-language: Haskell2010
@@ -119,7 +130,8 @@ test-suite plutus-use-cases-test
         tasty-golden -any,
         text -any,
         lens -any,
-        mtl -any
+        mtl -any,
+        row-types -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

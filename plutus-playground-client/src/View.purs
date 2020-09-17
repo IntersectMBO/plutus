@@ -6,11 +6,11 @@ import Bootstrap (alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5,
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Semiring (zero)
 import Data.Tuple (Tuple(Tuple))
 import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
@@ -50,7 +50,7 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
             ]
         , viewContainer currentView Editor
             let
-              compilationResult = unwrap <$> view _compilationResult state
+              compilationResult = view _compilationResult state
             in
               [ row_
                   [ div
@@ -73,7 +73,7 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
             $ let
                 knownCurrencies = evalState getKnownCurrencies state
 
-                initialValue = mkInitialValue knownCurrencies 0
+                initialValue = mkInitialValue knownCurrencies zero
               in
                 [ simulationPane
                     initialValue
@@ -81,7 +81,6 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
                     ( view
                         ( _compilationResult
                             <<< _Success
-                            <<< _JsonEither
                             <<< _Right
                             <<< _Newtype
                             <<< _result
@@ -93,13 +92,13 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
                     Failure error -> ajaxErrorPane error
-                    Success (JsonEither (Left error)) -> actionsErrorPane error
+                    Success (Left error) -> actionsErrorPane error
                     _ -> empty
                 ]
         , viewContainer currentView Transactions
             $ case view _evaluationResult state of
-                Success (JsonEither (Right evaluation)) -> [ evaluationPane blockchainVisualisationState evaluation ]
-                Success (JsonEither (Left error)) ->
+                Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
+                Success (Left error) ->
                   [ text "Your simulation has errors. Click the "
                   , strong_ [ text "Simulation" ]
                   , text " tab above to fix them and recompile."

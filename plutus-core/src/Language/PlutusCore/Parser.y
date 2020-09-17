@@ -174,35 +174,35 @@ getStaticBuiltinName = \case
 --- Parsing built-in types and constants ---
 
 -- | Tags of types in the default universe.
-tagOfTyName :: T.Text -> Maybe Int
-tagOfTyName = \case
-    "bool"       -> Just $ tagOf DefaultUniBool
-    "bytestring" -> Just $ tagOf DefaultUniByteString
-    "char"       -> Just $ tagOf DefaultUniChar
-    "integer"    -> Just $ tagOf DefaultUniInteger
-    "string"     -> Just $ tagOf DefaultUniString
-    "unit"       -> Just $ tagOf DefaultUniUnit
+encodeTyName :: T.Text -> Maybe [Int]
+encodeTyName = \case
+    "bool"       -> Just $ encodeUni DefaultUniBool
+    "bytestring" -> Just $ encodeUni DefaultUniByteString
+    "char"       -> Just $ encodeUni DefaultUniChar
+    "integer"    -> Just $ encodeUni DefaultUniInteger
+    "string"     -> Just $ encodeUni DefaultUniString
+    "unit"       -> Just $ encodeUni DefaultUniUnit
     _ -> Nothing
 
 -- | Given a type name, return a type in the (default) universe.
--- This can fail in two ways: there's no type with that name, or uniAt fails because
+-- This can fail in two ways: there's no type with that name, or decodeUni fails because
 -- it's been given an unknown tag.  In both cases we report an unknown built-in type.
-getTypeFromTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
-getTypeFromTyName tyloc tyname =
-    case tagOfTyName tyname >>= uniAt of
+decodeTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
+decodeTyName tyloc tyname =
+    case encodeTyName tyname >>= decodeUni of
         Nothing -> throwError $ UnknownBuiltinType tyloc tyname
         Just ty -> pure ty
 
 -- | Convert a textual type name into a Type.
 mkBuiltinType :: Closed uni => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
-mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> getTypeFromTyName tyloc tyname
+mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> decodeTyName tyloc tyname
 
 -- | Produce a Constant Term from a type name and a literal constant.
 mkBuiltinConstant
   :: (Closed uni, uni `Everywhere` Parsable)
   => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni fun AlexPosn)
 mkBuiltinConstant tyloc tyname litloc lit  = do
-    Some (TypeIn uni1) <- getTypeFromTyName tyloc tyname
+    Some (TypeIn uni1) <- decodeTyName tyloc tyname
     case bring (Proxy @Parsable) uni1 (parseConstant lit) of
         Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
         Just w  -> pure $ Constant litloc (Some (ValueOf uni1 w))

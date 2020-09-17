@@ -21,7 +21,7 @@ import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
-import           Ouroboros.Network.Protocol.Handshake.Type
+import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
@@ -81,7 +81,7 @@ runClientNode socketPath = do
             UnversionedProtocol
             (NodeToNodeVersionData $ NetworkMagic 0)
             (DictVersion nodeToNodeCodecCBORTerm)
-            (const (app outputQueue inputQueue)))
+            (app outputQueue inputQueue))
           Nothing
           (localAddressFromPath socketPath)
     pure ClientHandler {
@@ -96,13 +96,13 @@ runClientNode socketPath = do
          (ChainSync and TxSubmission). -}
       app :: TQueue Block
           -> TQueue Tx
-          -> OuroborosApplication 'InitiatorApp
+          -> OuroborosApplication 'InitiatorMode addr
                                   LBS.ByteString IO () Void
       app outputQueue inputQueue =
         nodeApplication (chainSync outputQueue) (txSubmission inputQueue)
 
       chainSync :: TQueue Block
-                -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+                -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       chainSync outputQueue =
           InitiatorProtocolOnly $
           MuxPeer
@@ -112,7 +112,7 @@ runClientNode socketPath = do
                (chainSyncClient outputQueue))
 
       txSubmission :: TQueue Tx
-                   -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+                   -> RunMiniProtocol 'InitiatorMode LBS.ByteString IO () Void
       txSubmission inputQueue =
           InitiatorProtocolOnly $
           MuxPeer

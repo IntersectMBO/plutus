@@ -15,7 +15,7 @@ module Text.Pretty
   ) where
 
 import Prelude
-import Data.BigInt (BigInt)
+import Data.BigInteger (BigInteger)
 import Data.Foldable (any, intercalate)
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments, Product(..), Sum(..), from)
 import Data.String.Extra (repeat)
@@ -62,6 +62,9 @@ class Pretty a where
   pretty :: a -> Doc
 
 instance prettyString :: Pretty String where
+  pretty = text <<< show
+
+instance prettyBigInteger :: Pretty BigInteger where
   pretty = text <<< show
 
 instance prettyNoArguments :: Pretty NoArguments where
@@ -111,7 +114,7 @@ instance hasArgsString :: Args String where
   hasArgs _ = false
   hasNestedArgs _ = false
 
-instance hasArgsBigInteger :: Args BigInt where
+instance hasArgsBigInteger :: Args BigInteger where
   hasArgs _ = false
   hasNestedArgs _ = false
 

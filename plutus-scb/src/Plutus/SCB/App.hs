@@ -16,64 +16,65 @@
 
 module Plutus.SCB.App where
 
-import qualified Cardano.BM.Configuration.Model   as CM
-import           Cardano.BM.Trace                 (Trace)
-import           Cardano.ChainIndex.Client        (handleChainIndexClient)
-import qualified Cardano.ChainIndex.Types         as ChainIndex
-import           Cardano.Metadata.Client          (handleMetadataClient)
-import           Cardano.Metadata.Types           as Metadata
-import           Cardano.Node.Client              (handleNodeClientClient, handleNodeFollowerClient,
-                                                   handleRandomTxClient)
-import           Cardano.Node.Follower            (NodeFollowerEffect)
-import           Cardano.Node.RandomTx            (GenRandomTx)
-import qualified Cardano.Node.Server              as NodeServer
-import qualified Cardano.SigningProcess.Client    as SigningProcessClient
-import qualified Cardano.SigningProcess.Server    as SigningProcess
-import qualified Cardano.Wallet.Client            as WalletClient
-import qualified Cardano.Wallet.Server            as WalletServer
-import           Control.Monad.Catch              (MonadCatch)
+import qualified Cardano.BM.Configuration.Model     as CM
+import           Cardano.BM.Trace                   (Trace)
+import           Cardano.ChainIndex.Client          (handleChainIndexClient)
+import qualified Cardano.ChainIndex.Types           as ChainIndex
+import           Cardano.Metadata.Client            (handleMetadataClient)
+import           Cardano.Metadata.Types             as Metadata
+import           Cardano.Node.Client                (handleNodeClientClient, handleNodeFollowerClient,
+                                                     handleRandomTxClient)
+import           Cardano.Node.Follower              (NodeFollowerEffect)
+import           Cardano.Node.RandomTx              (GenRandomTx)
+import qualified Cardano.Node.Server                as NodeServer
+import qualified Cardano.SigningProcess.Client      as SigningProcessClient
+import qualified Cardano.SigningProcess.Server      as SigningProcess
+import qualified Cardano.Wallet.Client              as WalletClient
+import qualified Cardano.Wallet.Server              as WalletServer
+import           Control.Monad.Catch                (MonadCatch)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo)
-import           Control.Monad.Freer.Log          (LogMessage, LogObserve)
-import qualified Control.Monad.Freer.Log          as Log
-import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
-import           Control.Monad.Freer.WebSocket    (WebSocketEffect, handleWebSocket)
-import           Control.Monad.Freer.Writer       (Writer)
-import           Control.Monad.IO.Class           (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift          (MonadUnliftIO)
-import           Control.Monad.Logger             (MonadLogger)
-import           Control.Tracer                   (natTracer)
-import           Data.Aeson                       (FromJSON, eitherDecode)
-import qualified Data.Aeson.Encode.Pretty         as JSON
-import           Data.Bifunctor                   (Bifunctor (..))
-import qualified Data.ByteString.Lazy.Char8       as BSL8
-import           Data.Functor.Contravariant       (Contravariant (..))
-import qualified Data.Text                        as Text
-import           Database.Persist.Sqlite          (runSqlPool)
-import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
-import           Network.HTTP.Client              (defaultManagerSettings, newManager)
-import           Plutus.SCB.Core                  (Connection (Connection),
-                                                   ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
-import           Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
-import           Plutus.SCB.Effects.Contract      (ContractEffect (..))
-import           Plutus.SCB.Effects.EventLog      (EventLogEffect (..), handleEventLogSql)
-import           Plutus.SCB.Effects.UUID          (UUIDEffect, handleUUIDEffect)
-import           Plutus.SCB.Events                (ChainEvent)
-import           Plutus.SCB.MonadLoggerBridge     (TraceLoggerT (..))
-import           Plutus.SCB.Monitoring            (handleLogMsgTraceMap, handleObserveTrace)
-import           Plutus.SCB.ParseStringifiedJSON  (UnStringifyJSONLog)
-import           Plutus.SCB.SCBLogMsg             (ContractExeLogMsg (..), SCBLogMsg (..))
-import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
-                                                   dbConfig, metadataServerConfig, nodeServerConfig,
-                                                   signingProcessConfig, walletServerConfig)
-import           Plutus.SCB.Webserver.Types       (WebSocketLogMsg)
-import           Servant.Client                   (ClientEnv, ClientError, mkClientEnv)
-import           System.Exit                      (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                   (readProcessWithExitCode)
-import           Wallet.API                       (WalletAPIError)
-import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect, SigningProcessEffect,
-                                                   WalletEffect)
+import           Control.Monad.Freer.Error          (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extra.Log      (LogMsg, handleWriterLog, logDebug, logInfo)
+import           Control.Monad.Freer.Log            (LogMessage, LogObserve)
+import qualified Control.Monad.Freer.Log            as Log
+import           Control.Monad.Freer.Reader         (Reader, asks, runReader)
+import           Control.Monad.Freer.WebSocket      (WebSocketEffect, handleWebSocket)
+import           Control.Monad.Freer.Writer         (Writer)
+import           Control.Monad.IO.Class             (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift            (MonadUnliftIO)
+import           Control.Monad.Logger               (MonadLogger)
+import           Control.Tracer                     (natTracer)
+import           Data.Aeson                         (FromJSON, eitherDecode)
+import qualified Data.Aeson.Encode.Pretty           as JSON
+import           Data.Bifunctor                     (Bifunctor (..))
+import qualified Data.ByteString.Lazy.Char8         as BSL8
+import           Data.Functor.Contravariant         (Contravariant (..))
+import qualified Data.Text                          as Text
+import           Database.Persist.Sqlite            (runSqlPool)
+import           Eventful.Store.Sqlite              (initializeSqliteEventStore)
+import           Network.HTTP.Client                (defaultManagerSettings, newManager)
+import           Plutus.SCB.Core                    (Connection (Connection),
+                                                     ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
+import           Plutus.SCB.Core.ContractInstance   (ContractInstanceMsg)
+import           Plutus.SCB.Effects.Contract        (ContractEffect (..))
+import           Plutus.SCB.Effects.ContractRuntime (ContractRuntimeMsg, handleContractRuntime)
+import           Plutus.SCB.Effects.EventLog        (EventLogEffect (..), handleEventLogSql)
+import           Plutus.SCB.Effects.UUID            (UUIDEffect, handleUUIDEffect)
+import           Plutus.SCB.Events                  (ChainEvent)
+import           Plutus.SCB.MonadLoggerBridge       (TraceLoggerT (..))
+import           Plutus.SCB.Monitoring              (handleLogMsgTraceMap, handleObserveTrace)
+import           Plutus.SCB.ParseStringifiedJSON    (UnStringifyJSONLog)
+import           Plutus.SCB.SCBLogMsg               (ContractExeLogMsg (..), SCBLogMsg (..))
+import           Plutus.SCB.Types                   (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
+                                                     dbConfig, metadataServerConfig, nodeServerConfig,
+                                                     signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Webserver.Types         (WebSocketLogMsg)
+import           Servant.Client                     (ClientEnv, ClientError, mkClientEnv)
+import           System.Exit                        (ExitCode (ExitFailure, ExitSuccess))
+import           System.Process                     (readProcessWithExitCode)
+import           Wallet.API                         (WalletAPIError)
+import           Wallet.Effects                     (ChainIndexEffect, ContractRuntimeEffect, NodeClientEffect,
+                                                     SigningProcessEffect, WalletEffect)
 import qualified Wallet.Emulator.Wallet
 
 
@@ -90,6 +91,7 @@ data Env =
 
 type AppBackend m =
         '[ GenRandomTx
+         , ContractRuntimeEffect
          , NodeFollowerEffect
          , Error ClientError
          , WalletEffect
@@ -111,6 +113,7 @@ type AppBackend m =
          , Writer [Wallet.Emulator.Wallet.WalletEvent]
          , LogMsg Wallet.Emulator.Wallet.WalletEvent
          , LogMsg ContractExeLogMsg
+         , LogMsg ContractRuntimeMsg
          , LogMsg (ContractInstanceMsg ContractExe)
          , LogMsg WebSocketLogMsg
          , LogMsg UnStringifyJSONLog
@@ -175,6 +178,7 @@ runAppBackend trace loggingConfig config action = do
             flip handleError (throwError . WalletError) .
             WalletClient.handleWalletClient walletClientEnv
 
+
     runM
         . runReader env
         . runReader config
@@ -184,6 +188,7 @@ runAppBackend trace loggingConfig config action = do
         . handleLogMsgTraceMap SUnstringifyJSON trace
         . handleLogMsgTraceMap SWebsocketMsg trace
         . handleLogMsgTraceMap SContractInstanceMsg trace
+        . handleLogMsgTraceMap SContractRuntimeMsg trace
         . handleLogMsgTraceMap SContractExeLogMsg trace
         . handleLogMsgTraceMap SWalletEvent trace
         . handleWriterLog (\_ -> Log.Info)
@@ -198,6 +203,7 @@ runAppBackend trace loggingConfig config action = do
         . handleNodeClient
         . handleWallet
         . handleNodeFollower
+        . interpret (handleContractRuntime @ContractExe)
         $ handleRandomTxClient nodeClientEnv action
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a

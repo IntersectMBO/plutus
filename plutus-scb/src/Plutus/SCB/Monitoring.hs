@@ -22,6 +22,7 @@ module Plutus.SCB.Monitoring(
 import           Cardano.BM.Configuration       (setup)
 import qualified Cardano.BM.Configuration.Model as CM
 import           Cardano.BM.Data.BackendKind
+import           Cardano.BM.Data.Configuration  (Endpoint (..))
 import           Cardano.BM.Data.Counter
 import           Cardano.BM.Data.LogItem
 import           Cardano.BM.Data.Observable     (ObservableInstance (..))
@@ -61,11 +62,13 @@ defaultConfig = do
                         , scFormat = ScText
                         , scPrivacy = ScPublic
                         , scRotation = Nothing
+                        , scMinSev = minBound
+                        , scMaxSev = maxBound
                         }]
   let observables = (Just $ ObservableTraceSelf [MonotonicClock, MemoryStats])
   CM.setSubTrace c "processAllContractOutboxes" observables
   CM.setDefaultScribes c ["StdoutSK::stdout"]
-  CM.setEKGport c 12790
+  CM.setEKGBindAddr c $ Just (Endpoint ("localhost", 12790))
   pure c
 
 -- | Load a 'CM.Configuration' from a YAML file.

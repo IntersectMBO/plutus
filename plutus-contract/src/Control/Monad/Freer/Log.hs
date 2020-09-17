@@ -27,6 +27,7 @@ module Control.Monad.Freer.Log(
     , logError
     -- ** Handlers
     , mapLog
+    , mapMLog
     , handleWriterLog
     , handleLogIgnore
     , handleLogTrace
@@ -183,6 +184,17 @@ mapLog ::
     -> Eff effs c
 mapLog f = interpret $ \case
     LMessage msg -> send $ LMessage (fmap f msg)
+
+-- | Re-interpret a logging effect by mapping the
+--   log messages. Can use other effects.
+mapMLog ::
+    forall a b effs.
+    Member (LogMsg b) effs
+    => (a -> Eff effs b)
+    -> LogMsg a
+    ~> Eff effs
+mapMLog f = \case
+    LMessage msg -> traverse f msg >>= send . LMessage
 
 -- | Pretty-print the log messages
 renderLogMessages ::

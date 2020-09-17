@@ -91,6 +91,7 @@
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           ];
         build-tools = [
@@ -119,6 +120,7 @@
           "Language/PlutusCore/Constant/Function"
           "Language/PlutusCore/Constant/Name"
           "Language/PlutusCore/Constant/Typed"
+          "Language/PlutusCore/DeBruijn/Internal"
           "Language/PlutusCore/Lexer/Type"
           "Language/PlutusCore/Eq"
           "Language/PlutusCore/Mark"
@@ -148,13 +150,14 @@
           "Language/PlutusCore/Parsable"
           "Language/PlutusIR/Analysis/Dependencies"
           "Language/PlutusIR/Analysis/Usages"
-          "Language/PlutusIR/Compiler/Error"
           "Language/PlutusIR/Compiler/Let"
           "Language/PlutusIR/Compiler/Datatype"
           "Language/PlutusIR/Compiler/Provenance"
           "Language/PlutusIR/Compiler/Recursion"
           "Language/PlutusIR/Compiler/Types"
           "Language/PlutusIR/Compiler/Lower"
+          "Language/PlutusIR/Normalize"
+          "Language/PlutusIR/TypeCheck/Internal"
           "Language/UntypedPlutusCore/Core"
           "Language/UntypedPlutusCore/Core/Instance"
           "Language/UntypedPlutusCore/Core/Instance/Eq"
@@ -162,7 +165,9 @@
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
+          "Language/UntypedPlutusCore/Core/Instance/CBOR"
           "Language/UntypedPlutusCore/Core/Type"
+          "Language/UntypedPlutusCore/Size"
           "Language/UntypedPlutusCore/Subst"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
@@ -223,6 +228,7 @@
           "Language/PlutusIR/Compiler"
           "Language/PlutusIR/Compiler/Names"
           "Language/PlutusIR/Compiler/Definitions"
+          "Language/PlutusIR/Error"
           "Language/PlutusIR/Generators/AST"
           "Language/PlutusIR/Parser"
           "Language/PlutusIR/MkPir"
@@ -233,7 +239,10 @@
           "Language/PlutusIR/Transform/Rename"
           "Language/PlutusIR/Transform/NonStrict"
           "Language/PlutusIR/Transform/LetFloat"
+          "Language/PlutusIR/Transform/Inline"
+          "Language/PlutusIR/TypeCheck"
           "Language/UntypedPlutusCore"
+          "Language/UntypedPlutusCore/DeBruijn"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "PlutusPrelude"
           "Common"
@@ -336,6 +345,7 @@
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -345,7 +355,13 @@
             (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
-          modules = [ "OptimizerSpec" "TransformSpec" "ParserSpec" "TestLib" ];
+          modules = [
+            "OptimizerSpec"
+            "TransformSpec"
+            "ParserSpec"
+            "TypeSpec"
+            "TestLib"
+            ];
           hsSourceDirs = [ "plutus-ir-test" ];
           mainPath = [ "Spec.hs" ];
           };

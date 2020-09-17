@@ -412,7 +412,7 @@ p2Term means pir fd =
              AM.gmap (\case Variable u -> Just u;
                             -- we remove Root because we do not care about it
                             Root -> Nothing)
-             $ runTermDeps means pir
+             $ fst $ runTermDeps means pir
 
   -- | the dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique

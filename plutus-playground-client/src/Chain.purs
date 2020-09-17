@@ -11,7 +11,8 @@ import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toC
 import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
-import Data.Int as Int
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Lens (_2, preview, to, toListOf, traversed, view)
 import Data.Lens.Index (ix)
 import Data.List (List)
@@ -101,6 +102,10 @@ emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
+emulatorEventPane (NotificationEvent notificationEvent) =
+  div_
+    [ text $ "Notification event:" <> show notificationEvent ]
+
 emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
@@ -125,7 +130,7 @@ emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
 formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
-extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
+extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe BigInteger
 extractAmount (Tuple currencySymbol tokenName) =
   preview
     ( _simulatorWalletBalance
@@ -146,10 +151,10 @@ balancesToChartistData wallets = toChartistData $ toChartistItem <$> wallets
   toChartistPoint :: SimulatorWallet -> Tuple CurrencySymbol TokenName -> ChartistPoint
   toChartistPoint wallet key =
     { meta: view (_2 <<< _tokenName) key
-    , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
+    , value: BigInteger.toNumber $ fromMaybe zero $ extractAmount key wallet
     }
 
-  allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
+  allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName BigInteger))
   allValues =
     toListOf
       ( traversed

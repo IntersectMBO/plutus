@@ -12,10 +12,12 @@ import qualified Language.PlutusCore                         as PLC
 import qualified Language.PlutusCore.Constant.Dynamic        as PLC
 
 import           Language.PlutusIR.Parser
+import qualified Language.PlutusIR.Transform.Inline          as Inline
 import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
 import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import           Language.PlutusIR.Transform.Rename          ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
+
 import           Text.Megaparsec.Pos
 
 transform :: TestNested
@@ -23,6 +25,7 @@ transform = testNested "transform" [
     thunkRecursions
     , nonStrict
     , letFloat
+    , inline
     ]
 
 thunkRecursions :: TestNested
@@ -39,7 +42,6 @@ nonStrict = testNested "nonStrict"
     ]
 
 letFloat :: TestNested
-
 letFloat =
     let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
     in testNested "letFloat"
@@ -78,3 +80,16 @@ instance Semigroup SourcePos where
 
 instance Monoid SourcePos where
   mempty = initialPos ""
+
+inline :: TestNested
+inline =
+    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
+    in testNested "inline"
+    $ map (goldenPir (Inline.inline means . runQuote . PLC.rename) term)
+    [ "var"
+    , "builtin"
+    , "constant"
+    , "transitive"
+    -- We don't do beta reduction, but we could
+    , "lamapp"
+    ]

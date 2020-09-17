@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
@@ -9,8 +11,10 @@ module Language.UntypedPlutusCore.Core.Type
     , TPLC.DynamicBuiltinName (..)
     , TPLC.BuiltinName (..)
     , Term (..)
+    , Program (..)
     , termAnn
     , erase
+    , eraseProgram
     ) where
 
 import           PlutusPrelude
@@ -43,7 +47,13 @@ data Term name uni fun ann
     | Delay ann (Term name uni fun ann)
     | Force ann (Term name uni fun ann)
     | Error ann
-    deriving (Show, Functor, Generic)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
+
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
+data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
@@ -88,3 +98,7 @@ erase (TPLC.TyInst ann term _)      = Force ann (erase term)
 erase (TPLC.Unwrap _ term)          = erase term
 erase (TPLC.IWrap _ _ _ term)       = erase term
 erase (TPLC.Error ann _)            = Error ann
+
+-- | Erase a Typed Plutus Core Program to its untyped counterpart.
+eraseProgram :: TPLC.Program tyname name uni fun ann -> Program name uni fun ann
+eraseProgram (TPLC.Program a v t) = Program a v $ erase t

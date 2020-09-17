@@ -9,7 +9,6 @@ import Control.Monad.Gen as Gen
 import Data.Bifunctor (lmap)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
 import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -22,7 +21,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
@@ -32,7 +31,7 @@ import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events (ChainEvent)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
+import Plutus.SCB.Events.Contract (ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
@@ -40,6 +39,7 @@ import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck (class Arbitrary)
 import Wallet.Rollup.Types (AnnotatedTx)
+import Wallet.Types (ContractInstanceId, EndpointDescription)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
@@ -139,7 +139,7 @@ _metadata = _Newtype <<< prop (SProxy :: SProxy "metadata")
 _annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
-_transactionMap :: forall t. Lens' (ChainReport t) (JsonMap TxId Tx)
+_transactionMap :: forall t. Lens' (ChainReport t) (Map TxId Tx)
 _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 
 _webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
