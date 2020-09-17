@@ -14,7 +14,7 @@ import           Control.Monad.Freer.TH    (makeEffect)
 import           Data.Aeson                (FromJSON, ToJSON, toJSON, withText)
 import qualified Data.Aeson                as JSON
 import           Data.Aeson.Extras         (encodeByteString)
-import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.ByteString           as BS
 import           Data.List.NonEmpty        (NonEmpty)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
@@ -43,8 +43,8 @@ newtype Subject =
 class ToSubject a where
     toSubject :: a -> Subject
 
-instance ToSubject BSL.ByteString where
-    toSubject x = Subject $ encodeByteString $ BSL.toStrict x
+instance ToSubject BS.ByteString where
+    toSubject x = Subject $ encodeByteString x
 
 instance ToSubject LedgerBytes where
     toSubject = toSubject . LedgerBytes.bytes

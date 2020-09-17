@@ -7,7 +7,6 @@
 module StdLib.Spec where
 
 import           Common
-import qualified Data.ByteString.Lazy         as BSL
 import           Data.Ratio                   ((%))
 import           GHC.Real                     (reduce)
 import           Hedgehog                     (Gen, MonadGen, Property)
@@ -104,7 +103,7 @@ eqData = Hedgehog.property $ do
 genData :: MonadGen m => m Data
 genData =
     let genInteger = Gen.integral (Range.linear (-10000) 100000)
-        genBytes   = fmap BSL.fromStrict (Gen.bytes (Range.linear 0 1000))
+        genBytes   = Gen.bytes (Range.linear 0 1000)
         genList    = Gen.list (Range.linear 0 10)
     in Gen.recursive
             Gen.choice

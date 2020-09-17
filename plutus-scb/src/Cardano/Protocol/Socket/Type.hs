@@ -13,6 +13,7 @@ import           Codec.Serialise.Class                              (Serialise)
 import           Crypto.Hash                                        (SHA256, hash)
 import           Data.Aeson                                         (FromJSON, ToJSON)
 import qualified Data.ByteArray                                     as BA
+import qualified Data.ByteString                                    as BS
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
 import           Data.Typeable
@@ -38,7 +39,7 @@ import           LedgerBytes                                        (LedgerBytes
 type Tip = Block
 
 -- | The node protocols require a block header type.
-newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
+newtype BlockId = BlockId { getBlockId :: BS.ByteString }
   deriving (Eq, Ord, Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise, NoUnexpectedThunks)
@@ -47,7 +48,6 @@ newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
 -- | A hash of the block's contents.
 blockId :: Block -> BlockId
 blockId = BlockId
-        . BSL.fromStrict
         . BA.convert
         . hash @_ @SHA256
         . BSL.toStrict

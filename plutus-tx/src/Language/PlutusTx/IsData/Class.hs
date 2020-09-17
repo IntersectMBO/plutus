@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.IsData.Class where
 
-import           Data.ByteString.Lazy          as BSL
+import           Data.ByteString               as BS
 
 import           Prelude                       (Integer, Maybe (..))
 

@@ -68,9 +68,9 @@ postulate
   getContents : IO ByteString
   readFile : String → IO ByteString
 
-{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
-{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
-{-# COMPILE GHC getContents = BSL.getContents #-}
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# COMPILE GHC readFile = \ s -> BS.readFile (T.unpack s) #-}
+{-# COMPILE GHC getContents = BS.getContents #-}
 
 -- System.Exit stuff
 

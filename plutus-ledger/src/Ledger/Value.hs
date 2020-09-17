@@ -48,7 +48,6 @@ import           Codec.Serialise.Class            (Serialise)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
-import qualified Data.ByteString.Lazy             as BSL
 import           Data.Hashable                    (Hashable)
 import           Data.String                      (IsString (fromString))
 import           Data.Text                        (Text)
@@ -80,7 +79,7 @@ instance ToJSON CurrencySymbol where
       [ ( "unCurrencySymbol"
         , JSON.String .
           JSON.encodeByteString .
-          BSL.toStrict . unCurrencySymbol $
+          unCurrencySymbol $
           currencySymbol)
       ]
 
@@ -89,7 +88,7 @@ instance FromJSON CurrencySymbol where
     JSON.withObject "CurrencySymbol" $ \object -> do
       raw <- object .: "unCurrencySymbol"
       bytes <- JSON.decodeByteString raw
-      Haskell.pure . CurrencySymbol . BSL.fromStrict $ bytes
+      Haskell.pure $ CurrencySymbol bytes
 
 makeLift ''CurrencySymbol
 
@@ -119,10 +118,10 @@ instance IsString TokenName where
   fromString = fromText . Text.pack
 
 fromText :: Text -> TokenName
-fromText = TokenName . BSL.fromStrict . E.encodeUtf8
+fromText = TokenName . E.encodeUtf8
 
 toText :: TokenName -> Text
-toText = E.decodeUtf8 . BSL.toStrict . unTokenName
+toText = E.decodeUtf8 . unTokenName
 
 toString :: TokenName -> String
 toString = Text.unpack . toText

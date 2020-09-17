@@ -22,8 +22,8 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.ByteString.Lazy.Hash                                  as Hash
+import qualified Data.ByteString                                            as BS
+import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Coerce
 import           Hedgehog                                                   hiding (Var)
 import           Test.Tasty
@@ -137,7 +137,7 @@ test_typedConcatenate
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyStaticBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
+    $ prop_applyStaticBuiltinName typedTakeByteString (coerce BS.take . integerToInt)
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
@@ -152,7 +152,7 @@ test_typedSHA3
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyStaticBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
+    $ prop_applyStaticBuiltinName typedDropByteString (coerce BS.drop . integerToInt)
 
 test_typedEqByteString :: TestTree
 test_typedEqByteString

@@ -31,8 +31,7 @@ module Ledger.Crypto(
     ) where
 
 import qualified Codec.CBOR.Write           as Write
-import           Codec.Serialise.Class      (Serialise)
-import           Codec.Serialise.Class      (encode)
+import           Codec.Serialise.Class      (Serialise, encode)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
@@ -44,7 +43,6 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Lazy       as BSL
 import           Data.Hashable              (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
@@ -76,7 +74,7 @@ instance FromJSONKey PubKey where
   fromJSONKey = FromJSONKeyValue (genericParseJSON JSON.defaultOptions)
 
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
-newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BSL.ByteString }
+newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
@@ -86,7 +84,7 @@ makeLift ''PubKeyHash
 
 -- | Compute the hash of a public key.
 pubKeyHash :: PubKey -> PubKeyHash
-pubKeyHash pk = PubKeyHash $ BSL.fromStrict $ BA.convert h' where
+pubKeyHash pk = PubKeyHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ Write.toStrictByteString e
     h' :: Digest SHA256 = hash h
     e = encode pk
@@ -119,7 +117,7 @@ instance ToJSON Signature where
       [ ( "getSignature"
         , JSON.String .
           JSON.encodeByteString .
-          BSL.toStrict . getSignature $
+          getSignature $
           signature)
       ]
 
@@ -128,37 +126,37 @@ instance FromJSON Signature where
     JSON.withObject "Signature" $ \object -> do
       raw <- object .: "getSignature"
       bytes <- JSON.decodeByteString raw
-      pure . Signature . BSL.fromStrict $ bytes
+      pure . Signature $ bytes
 
 makeLift ''Signature
 
 -- | Check whether the given 'Signature' was signed by the private key corresponding to the given public key.
 signedBy :: Signature -> PubKey -> TxId -> Bool
 signedBy (Signature s) (PubKey k) txId =
-    let k' = ED25519.publicKey $ BSL.toStrict $ KB.getLedgerBytes k
-        s' = ED25519.signature $ BSL.toStrict s
-    in throwCryptoError $ ED25519.verify <$> k' <*> pure (BSL.toStrict $ getTxId txId) <*> s' -- TODO: is this what we want
+    let k' = ED25519.publicKey $ KB.getLedgerBytes k
+        s' = ED25519.signature s
+    in throwCryptoError $ ED25519.verify <$> k' <*> pure (getTxId txId) <*> s' -- TODO: is this what we want
 
 -- | Sign the hash of a transaction using a private key.
 signTx :: TxId -> PrivateKey -> Signature
-signTx (TxId txId) = sign $ BSL.toStrict txId
+signTx (TxId txId) = sign txId
 
 -- | Sign a message using a private key.
 sign :: BA.ByteArrayAccess a => a -> PrivateKey -> Signature
 sign  msg (PrivateKey privKey) =
-    let k  = ED25519.secretKey $ BSL.toStrict $ KB.getLedgerBytes privKey
+    let k  = ED25519.secretKey $ KB.getLedgerBytes privKey
         pk = ED25519.toPublic <$> k
         salt :: BS.ByteString
         salt = "" -- TODO: do we need better salt?
-        convert = Signature . BSL.pack . BA.unpack
+        convert = Signature . BS.pack . BA.unpack
     in throwCryptoError $ fmap convert (ED25519.sign <$> k <*> pure salt <*> pk <*> pure msg)
 
-fromHex :: BSL.ByteString -> PrivateKey
+fromHex :: BS.ByteString -> PrivateKey
 fromHex = PrivateKey . KB.fromHex
 
 toPublicKey :: PrivateKey -> PubKey
-toPublicKey = PubKey . KB.fromBytes . BSL.pack . BA.unpack . ED25519.toPublic . f . KB.bytes . getPrivateKey where
-    f = throwCryptoError . ED25519.secretKey . BSL.toStrict
+toPublicKey = PubKey . KB.fromBytes . BS.pack . BA.unpack . ED25519.toPublic . f . KB.bytes . getPrivateKey where
+    f = throwCryptoError . ED25519.secretKey
 
 -- $privateKeys
 -- 'privateKey1', 'privateKey2', ... 'privateKey10' are ten predefined 'PrivateKey' values.

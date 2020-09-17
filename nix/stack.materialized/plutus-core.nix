@@ -246,7 +246,7 @@
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "PlutusPrelude"
           "Common"
-          "Data/ByteString/Lazy/Hash"
+          "Data/ByteString/Hash"
           "PlcTestUtils"
           "Crypto"
           "Data/Text/Prettyprint/Doc/Custom"

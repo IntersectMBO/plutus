@@ -48,7 +48,6 @@ import           Control.Newtype.Generics   (Newtype)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
-import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import qualified Data.Foldable              as F
 --import           Data.Scientific            (Scientific, floatingOrInteger)
 import           Data.Text                  (Text, pack, unpack)
@@ -980,14 +979,14 @@ instance ToJSON State where
 
 instance FromJSON Party where
   parseJSON = withObject "Party" (\v ->
-        (PK . PubKeyHash . fromStrict <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
-    <|> (Role . Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "role_token"))
+        (PK . PubKeyHash <$> (JSON.decodeByteString =<< (v .: "pk_hash")))
+    <|> (Role . Val.TokenName . encodeUtf8 <$> (v .: "role_token"))
                                  )
 instance ToJSON Party where
     toJSON (PK pkh) = object
-        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ toStrict $ getPubKeyHash pkh) ]
+        [ "pk_hash" .= (JSON.String $ JSON.encodeByteString $ getPubKeyHash pkh) ]
     toJSON (Role (Val.TokenName name)) = object
-        [ "role_token" .= (JSON.String $ decodeUtf8 $ toStrict name) ]
+        [ "role_token" .= (JSON.String $ decodeUtf8 name) ]
 
 instance FromJSON AccountId where
   parseJSON = withObject "AccountId" (\v ->
@@ -1004,32 +1003,32 @@ instance ToJSON AccountId where
 
 instance FromJSON ChoiceId where
   parseJSON = withObject "ChoiceId" (\v ->
-       ChoiceId <$> (fromStrict . encodeUtf8 <$> (v .: "choice_name"))
+       ChoiceId <$> (encodeUtf8 <$> (v .: "choice_name"))
                 <*> (parseJSON =<< (v .: "choice_owner"))
                                     )
 
 instance ToJSON ChoiceId where
-  toJSON (ChoiceId name party) = object [ "choice_name" .= (JSON.String $ decodeUtf8 $ toStrict name)
+  toJSON (ChoiceId name party) = object [ "choice_name" .= (JSON.String $ decodeUtf8 name)
                                         , "choice_owner" .= party
                                         ]
 
 
 instance FromJSON Token where
   parseJSON = withObject "Token" (\v ->
-       Token <$> (CurrencySymbol . fromStrict <$> (JSON.decodeByteString =<< (v .: "currency_symbol")))
-             <*> (Val.TokenName . fromStrict . encodeUtf8 <$> (v .: "token_name"))
+       Token <$> (CurrencySymbol <$> (JSON.decodeByteString =<< (v .: "currency_symbol")))
+             <*> (Val.TokenName . encodeUtf8 <$> (v .: "token_name"))
                                  )
 
 instance ToJSON Token where
   toJSON (Token currSym tokName) = object
-      [ "currency_symbol" .= (JSON.String $ JSON.encodeByteString $ toStrict $ unCurrencySymbol currSym)
-      , "token_name" .= (JSON.String $ decodeUtf8 $ toStrict $ unTokenName tokName)
+      [ "currency_symbol" .= (JSON.String $ JSON.encodeByteString $ unCurrencySymbol currSym)
+      , "token_name" .= (JSON.String $ decodeUtf8 $ unTokenName tokName)
       ]
 
 instance FromJSON ValueId where
-    parseJSON = withText "ValueId" $ return . ValueId . fromStrict . encodeUtf8
+    parseJSON = withText "ValueId" $ return . ValueId . encodeUtf8
 instance ToJSON ValueId where
-    toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
+    toJSON (ValueId x) = JSON.String (decodeUtf8 x)
 
 
 instance FromJSON (Value Observation) where

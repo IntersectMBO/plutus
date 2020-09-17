@@ -70,7 +70,6 @@ import           Control.Lens
 import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
@@ -242,7 +241,7 @@ strip Tx{..} = TxStripped i txOutputs txForge txFee where
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
 -- Double hash of a transaction, excluding its witnesses.
-txId tx = TxId $ BSL.fromStrict $ BA.convert h' where
+txId tx = TxId $ BA.convert h' where
     h :: Digest SHA256
     h = hash $ Write.toStrictByteString $ encode $ strip tx
     h' :: Digest SHA256

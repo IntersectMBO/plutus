@@ -24,8 +24,8 @@ import           Language.PlutusCore.MkPlc                         (staticBuilti
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Data.ByteString.Lazy.Hash                         as Hash
+import qualified Data.ByteString                                   as BS
+import qualified Data.ByteString.Hash                              as Hash
 import           Data.Coerce
 import           Data.Dependent.Map                                (DMap)
 import qualified Data.Dependent.Map                                as DMap
@@ -137,9 +137,9 @@ typedBuiltinNames
     . insertTypedStaticBuiltinName typedGreaterThanInteger   (>)
     . insertTypedStaticBuiltinName typedGreaterThanEqInteger (>=)
     . insertTypedStaticBuiltinName typedEqInteger            (==)
-    . insertTypedStaticBuiltinName typedConcatenate          (coerce BSL.append)
-    . insertTypedStaticBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64)
-    . insertTypedStaticBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64)
+    . insertTypedStaticBuiltinName typedConcatenate          (coerce BS.append)
+    . insertTypedStaticBuiltinName typedTakeByteString       (coerce BS.take . integerToInt)
+    . insertTypedStaticBuiltinName typedDropByteString       (coerce BS.drop . integerToInt)
     . insertTypedStaticBuiltinName typedSHA2                 (coerce Hash.sha2)
     . insertTypedStaticBuiltinName typedSHA3                 (coerce Hash.sha3)
 --     . insertTypedStaticBuiltinName typedVerifySignature      verifySignature
