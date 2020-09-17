@@ -2,14 +2,6 @@
   offline_cache = linkFarm "offline" packages;
   packages = [
     {
-      name = "big_integer___big_integer_1.6.48.tgz";
-      path = fetchurl {
-        name = "big_integer___big_integer_1.6.48.tgz";
-        url  = "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz";
-        sha1 = "8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e";
-      };
-    }
-    {
       name = "chartist_plugin_axistitle___chartist_plugin_axistitle_0.0.4.tgz";
       path = fetchurl {
         name = "chartist_plugin_axistitle___chartist_plugin_axistitle_0.0.4.tgz";
