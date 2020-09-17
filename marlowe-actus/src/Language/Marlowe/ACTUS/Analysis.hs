@@ -32,7 +32,7 @@ sampleCashflows riskFactors terms =
         preserveDate e d = (e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = preserveDate e <$> getSchedule e
-        events = concatMap scheduleEvent eventTypes
+        events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
 
         applyStateTransition (st, ev, date) (ev', date') =
             (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
