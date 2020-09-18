@@ -150,6 +150,9 @@
             ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances";
             };
           };
+        "inline-r" = {
+          package = { ghcOptions = "-XStandaloneKindSignatures"; };
+          };
         };
       }
     ];
