@@ -50,8 +50,8 @@ import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
 import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import qualified Data.Foldable              as F
---import           Data.Scientific            (Scientific, floatingOrInteger)
-import           Data.Text                  (Text, pack, unpack)
+import           Data.Scientific            (Scientific, floatingOrInteger)
+import           Data.Text                  (pack)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
@@ -71,7 +71,6 @@ import qualified Ledger.Value               as Val
 import           Prelude                    ((<$>))
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
-import           Text.Read                  (readMaybe)
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 
@@ -930,41 +929,19 @@ customOptions = defaultOptions
                 , sumEncoding = TaggedObject { tagFieldName = "tag", contentsFieldName = "contents" }
                 }
 
--- getInteger :: Scientific -> Parser Integer
--- getInteger x = case (floatingOrInteger x :: Either Double Integer) of
---                  Right a -> return a
---                  Left _  -> fail "Account number is not an integer"
-
-getInteger :: Text -> Parser Integer
-getInteger x = case readMaybe (unpack x) of
-                 Just y  -> return y
-                 Nothing -> fail "Not an integer"
-
--- withInteger :: JSON.Value -> Parser Integer
--- withInteger = withScientific "" getInteger
+getInteger :: Scientific -> Parser Integer
+getInteger x = case (floatingOrInteger x :: Either Double Integer) of
+                 Right a -> return a
+                 Left _  -> fail "Account number is not an integer"
 
 withInteger :: JSON.Value -> Parser Integer
-withInteger = withText "Integer" getInteger
-
-mapParser :: (Parser b -> Parser c) -> Parser (Map a b) -> Parser (Map a c)
-mapParser f p = do x <- p
-                   let (k, v) = unzip (Map.toList x)
-                   Map.fromList . zip k <$> mapM (f . return) v
-
-parserAdaptor :: Parser String -> Parser Integer
-parserAdaptor p = do x <- p
-                     case readMaybe x of
-                       Just y  -> return y
-                       Nothing -> fail "Not an integer"
-
-valueIntegerOfString :: Parser (Map a String) -> Parser (Map a Integer)
-valueIntegerOfString = mapParser parserAdaptor
+withInteger = withScientific "" getInteger
 
 instance FromJSON State where
   parseJSON = withObject "State" (\v ->
-         State <$> ((valueIntegerOfString . parseJSON) =<< (v .: "accounts"))
-               <*> ((valueIntegerOfString . parseJSON) =<< (v .: "choices"))
-               <*> ((valueIntegerOfString . parseJSON) =<< (v .: "boundValues"))
+         State <$> (parseJSON =<< (v .: "accounts"))
+               <*> (parseJSON =<< (v .: "choices"))
+               <*> (parseJSON =<< (v .: "boundValues"))
                <*> (Slot <$> (withInteger =<< (v .: "minSlot")))
                                  )
 
@@ -973,10 +950,10 @@ instance ToJSON State where
                , choices = c
                , boundValues = bv
                , minSlot = Slot ms } = object
-        [ "accounts" .= fmap show a
-        , "choices" .= fmap show c
-        , "boundValues" .= fmap show bv
-        , "minSlot" .= show ms ]
+        [ "accounts" .= a
+        , "choices" .= c
+        , "boundValues" .= bv
+        , "minSlot" .= ms ]
 
 instance FromJSON Party where
   parseJSON = withObject "Party" (\v ->
@@ -997,7 +974,7 @@ instance FromJSON AccountId where
 
 
 instance ToJSON AccountId where
-  toJSON (AccountId num party) = object [ "account_number" .= show num
+  toJSON (AccountId num party) = object [ "account_number" .= num
                                         , "account_owner" .= party
                                         ]
 
@@ -1042,7 +1019,7 @@ instance FromJSON (Value Observation) where
     <|> (SubValue <$> (parseJSON =<< (v .: "value"))
                   <*> (parseJSON =<< (v .: "minus")))
     <|> (do maybeDiv <- v .:? "divide_by"
-            case maybeDiv :: Maybe Text of
+            case maybeDiv :: Maybe Scientific of
               Nothing -> MulValue <$> (parseJSON =<< (v .: "multiply"))
                                   <*> (parseJSON =<< (v .: "times"))
               Just divi -> Scale <$> ((%) <$> (getInteger =<< (v .: "times")) <*> getInteger divi)
@@ -1054,14 +1031,14 @@ instance FromJSON (Value Observation) where
               <*> (parseJSON =<< (v .: "else")))
   parseJSON (String "slot_interval_start") = return SlotIntervalStart
   parseJSON (String "slot_interval_end") = return SlotIntervalEnd
-  parseJSON (String n) = Constant <$> getInteger n
+  parseJSON (Number n) = Constant <$> getInteger n
   parseJSON _ = fail "Value must be either an object or an integer"
 instance ToJSON (Value Observation) where
   toJSON (AvailableMoney accountId token) = object
       [ "amount_of_token" .= token
       , "in_account" .= accountId
       ]
-  toJSON (Constant x) = toJSON (show x)
+  toJSON (Constant x) = toJSON x
   toJSON (NegValue x) = object
       [ "negate" .= x ]
   toJSON (AddValue lhs rhs) = object
@@ -1078,8 +1055,8 @@ instance ToJSON (Value Observation) where
       ]
   toJSON (Scale rat v) = object
       [ "multiply" .= v
-      , "times" .= show num
-      , "divide_by" .= show den
+      , "times" .= num
+      , "divide_by" .= den
       ]
     where num = numerator rat
           den = denominator rat
@@ -1162,8 +1139,8 @@ instance FromJSON Bound where
                                  )
 instance ToJSON Bound where
   toJSON (Bound from to) = object
-      [ "from" .= show from
-      , "to" .= show to
+      [ "from" .= from
+      , "to" .= to
       ]
 
 instance FromJSON Action where
@@ -1255,7 +1232,7 @@ instance ToJSON Contract where
       ]
   toJSON (When caseList timeout cont) = object
       [ "when" .= toJSONList (map toJSON caseList)
-      , "timeout" .= show (getSlot timeout)
+      , "timeout" .= getSlot timeout
       , "timeout_continuation" .= cont
       ]
   toJSON (Let valId value cont) = object
