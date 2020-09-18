@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -8,8 +9,8 @@ module Spec.Stablecoin(
     ) where
 
 
+import           Control.Monad                                       (void)
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
 import           Language.PlutusTx.Numeric                           (negate, one, zero)
 import           Language.PlutusTx.Ratio                             as Ratio
 import           Ledger.Ada                                          (adaSymbol, adaToken)
@@ -26,6 +27,7 @@ import           Test.Tasty
 import           Language.PlutusTx.Coordination.Contracts.Stablecoin (BC (..), ConversionRate, Input (..), RC (..),
                                                                       SC (..), SCAction (..), Stablecoin (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Stablecoin as Stablecoin
+import qualified Plutus.Trace.Emulator                               as Trace
 
 user :: Wallet
 user = Wallet 1
@@ -62,70 +64,58 @@ initialFee = Ada.lovelaceValueOf 1
 tests :: TestTree
 tests = testGroup "Stablecoin"
     [ checkPredicate "mint reservecoins"
-        Stablecoin.contract
-        (fundsAtAddress stablecoinAddress (== (initialDeposit <> initialFee))
-        /\ assertNoFailedTransactions
-        /\ walletFundsChange user (Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee))
+        (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee))
+        .&&. assertNoFailedTransactions
+        .&&. walletFundsChange user (Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee))
         )
-        (initialise
-        >> mintReserveCoins (RC 100) one
-        )
+        $ initialise >>= mintReserveCoins (RC 100) one
 
     , checkPredicate "mint reservecoins and stablecoins"
-        Stablecoin.contract
-        (fundsAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
-        /\ assertNoFailedTransactions
-        /\ walletFundsChange user (Stablecoin.stableCoins coin 50 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
+        (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
+        .&&. assertNoFailedTransactions
+        .&&. walletFundsChange user (Stablecoin.stableCoins coin 50 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
         )
-        (initialise
-        >> mintReserveCoins (RC 100) one
-        -- Mint 50 stablecoins at a rate of 1 Ada: 1 USD
-        >> mintStableCoins (SC 50) one
-        )
+        $ do
+            hdl <- initialise
+            mintReserveCoins (RC 100) one hdl
+            -- Mint 50 stablecoins at a rate of 1 Ada: 1 USD
+            void $ mintStableCoins (SC 50) one hdl
 
     , checkPredicate "mint reservecoins, stablecoins and redeem stablecoin at a different price"
-        Stablecoin.contract
-        (fundsAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
-        /\ assertNoFailedTransactions
-        /\ walletFundsChange user (Stablecoin.stableCoins coin 40 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
+        (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
+        .&&. assertNoFailedTransactions
+        .&&. walletFundsChange user (Stablecoin.stableCoins coin 40 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
         )
-        (initialise
-        >> mintReserveCoins (RC 100) one
-        >> mintStableCoins (SC 50) one
-        -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
-        >> redeemStableCoins (SC 10) (Ratio.fromInteger 2)
-        )
+        $ do
+            hdl <- initialise
+            mintReserveCoins (RC 100) one hdl
+            mintStableCoins (SC 50) one hdl
+            -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
+            redeemStableCoins (SC 10) (Ratio.fromInteger 2) hdl
     ] where
         initialise = do
-            callEndpoint @"initialise" user coin
-            handleBlockchainEvents user
-            addBlocks 1
-            handleBlockchainEvents user
-            addBlocks 1
-        mintReserveCoins rc rate = do
-            callEndpoint @"run step" user
+            hdl <- Trace.activateContractWallet user Stablecoin.contract
+            Trace.callEndpoint @"initialise" hdl coin
+            _ <- Trace.waitNSlots 2
+            pure hdl
+        mintReserveCoins rc rate hdl = do
+            Trace.callEndpoint @"run step" hdl
                 Input
                     { inpConversionRate = signConversionRate rate
                     , inpSCAction = MintReserveCoin rc
                     }
-            handleBlockchainEvents user
-            addBlocks 1
-            handleBlockchainEvents user
-        mintStableCoins sc rate = do
-            callEndpoint @"run step" user
+            void $ Trace.waitNSlots 2
+        mintStableCoins sc rate hdl = do
+            Trace.callEndpoint @"run step" hdl
                 Input
                     { inpConversionRate = signConversionRate rate
                     , inpSCAction = MintStablecoin sc
                     }
-            handleBlockchainEvents user
-            addBlocks 1
-            handleBlockchainEvents user
-        redeemStableCoins sc rate = do
-            callEndpoint @"run step" user
+            void $ Trace.waitNSlots 2
+        redeemStableCoins sc rate hdl = do
+            Trace.callEndpoint @"run step" hdl
                 Input
                     { inpConversionRate = signConversionRate rate
                     , inpSCAction = MintStablecoin (negate sc)
                     }
-            handleBlockchainEvents user
-            addBlocks 1
-            handleBlockchainEvents user
+            void $ Trace.waitNSlots 2

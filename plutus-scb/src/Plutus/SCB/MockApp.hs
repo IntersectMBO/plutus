@@ -42,7 +42,7 @@ import           Control.Monad.Freer.Error             (Error, handleError, runE
 import           Control.Monad.Freer.Extra.Log         (LogMsg)
 import           Control.Monad.Freer.Extra.State       (use)
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log               (LogLevel (Info), LogMessage, handleLogWriter, logMessage)
+import           Control.Monad.Freer.Log               (LogMessage, handleLogWriter)
 import           Control.Monad.Freer.State             (State, runState)
 import           Control.Monad.Freer.Writer            (Writer)
 import           Control.Monad.IO.Class                (MonadIO (..))
@@ -60,6 +60,7 @@ import qualified Ledger
 import qualified Ledger.AddressMap                     as AM
 import           Plutus.SCB.Command                    ()
 import           Plutus.SCB.Core
+import           Plutus.SCB.Core.ContractInstance      (defaultMaxIterations)
 import           Plutus.SCB.Effects.ContractTest       (ContractTestMsg, TestContracts)
 import           Plutus.SCB.Effects.MultiAgent         (AgentState, MultiAgentSCBEffect, SCBMultiAgentMsg)
 import qualified Plutus.SCB.Effects.MultiAgent         as SCB.MultiAgent
@@ -123,9 +124,9 @@ type MockAppEffects =
 
 data MockAppReport =
     MockAppReport
-        { marFinalChainEvents      :: [ChainEvent]
+        { marFinalChainEvents      :: [LogMessage ChainEvent]
         , marFinalEmulatorEvents   :: [LogMessage MockAppLog]
-        , marFinalChainIndexEvents :: [ChainIndexEvent]
+        , marFinalChainIndexEvents :: [LogMessage ChainIndexEvent]
         }
 
 instance Pretty MockAppReport where
@@ -151,8 +152,8 @@ runScenario ::
        , ChainEffect
        , LogMsg ContractTestMsg
        , LogMsg NodeFollowerLogMsg
+       , LogMsg ChainEvent
        , Writer [LogMessage SCBMultiAgentMsg]
-       , Writer [ChainEvent]
        , Writer [LogMessage MockAppLog]
        , State NodeFollowerState
        , State ChainState
@@ -183,8 +184,8 @@ runScenario action = do
 
 runMockApp :: TestState
     -> Eff (MockAppEffects
-            :++: '[LogMsg ContractTestMsg, LogMsg NodeFollowerLogMsg]
-            :++: '[Writer [LogMessage SCBMultiAgentMsg], Writer [ChainEvent], Writer [LogMessage MockAppLog]]
+            :++: '[LogMsg ContractTestMsg, LogMsg NodeFollowerLogMsg, LogMsg ChainEvent]
+            :++: '[Writer [LogMessage SCBMultiAgentMsg], Writer [LogMessage MockAppLog]]
             :++: '[State NodeFollowerState, State ChainState, State (Map Wallet AgentState)]
             :++: '[Error WalletAPIError]
             :++: '[Error SCBError, State TestState, UUIDEffect, IO]
@@ -193,8 +194,8 @@ runMockApp :: TestState
 runMockApp state action =
   action
     & handleTopLevelEffects
-    & handleLogMessages
-    & handleWriters emulatorTime
+    & handleLogMessages emulatorTime
+    & handleWriters
     & handleStates
     & handleErrors
     & handleFinalEffects state
@@ -217,7 +218,7 @@ handleTopLevelEffects ::
        , Member (State NodeFollowerState) effs
        , Member (Error WalletAPIError) effs
        , Member (Error SCBError) effs
-       , Member (Writer [ChainEvent]) effs
+       , Member (LogMsg ChainEvent) effs
        , Member (Writer [LogMessage SCBMultiAgentMsg]) effs
        , Member UUIDEffect effs
        , Member (LogMsg ContractTestMsg) effs
@@ -227,27 +228,27 @@ handleTopLevelEffects ::
 handleTopLevelEffects action =
   action
     & SCB.MultiAgent.handleMultiAgent
-    & handleControlChain
-    & handleChain
+    & interpret handleControlChain
+    & interpret handleChain
 
 handleLogMessages ::
        Member (Writer [LogMessage MockAppLog]) effs
-    => Eff (LogMsg ContractTestMsg ': LogMsg NodeFollowerLogMsg ': effs)
+    => Slot
+    -> Eff (LogMsg ContractTestMsg ': LogMsg NodeFollowerLogMsg ': LogMsg ChainEvent ': effs)
     ~> Eff effs
-handleLogMessages action =
+handleLogMessages emulatorTime action =
   action
     & interpret (handleLogWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
     & interpret (handleLogWriter @NodeFollowerLogMsg @[LogMessage MockAppLog] (_singleton . below _MockAppNodeFollower))
+    & interpret (handleLogWriter @ChainEvent @[LogMessage MockAppLog] (_singleton . below (_MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
 
 handleWriters ::
        Member (State TestState) effs
-    => Slot
-    -> Eff (Writer [LogMessage SCBMultiAgentMsg] ': Writer [ChainEvent] ': Writer [LogMessage MockAppLog] ': effs)
+    => Eff (Writer [LogMessage SCBMultiAgentMsg] ': Writer [LogMessage MockAppLog] ': effs)
     ~> Eff effs
-handleWriters emulatorTime action =
+handleWriters action =
   action
     & interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage SCBMultiAgentMsg] (below (below _MockAppMultiAgent)))
-    & interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[Wallet.Emulator.Chain.ChainEvent] (below (logMessage Info . _MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
     & interpret (writeIntoState emulatorEventLog)
 
 handleStates ::
@@ -279,7 +280,7 @@ sync wllt = do
     SCB.MultiAgent.agentControlAction wllt ChainIndex.syncState
     SCB.MultiAgent.agentAction wllt $ do
         processAllContractInboxes @TestContracts
-        processAllContractOutboxes @TestContracts Trace.defaultMaxIterations
+        processAllContractOutboxes @TestContracts defaultMaxIterations
 
 -- | Run 'sync' for all agents
 syncAll :: Member MultiAgentSCBEffect effs => Eff effs ()

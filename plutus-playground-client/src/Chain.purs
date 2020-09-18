@@ -29,6 +29,7 @@ import Halogen.Chartist (chartist)
 import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
+import Plutus.Trace.Emulator.Types (ContractInstanceLog(..))
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
@@ -98,7 +99,7 @@ emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
+emulatorEventPane (ChainEvent (TxnValidate (TxId txId) _)) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
@@ -106,7 +107,7 @@ emulatorEventPane (NotificationEvent notificationEvent) =
   div_
     [ text $ "Notification event: " <> show notificationEvent ]
 
-emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
+emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) _ error)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_
@@ -125,6 +126,16 @@ emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
 emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> show logMessage ]
+
+emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
+  div_
+    [ text $ show _cilMessage <> ": " <> show _cilMessage ]
+
+-- TODO: Figure out which of the remaining log messages we want to display.
+-- (Note that most of the remaining log messages aren't produced at the
+-- default "info" log level, so we're unlikely to see them here in the frontend
+-- anyway).
+emulatorEventPane _ = div [] []
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String

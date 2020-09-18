@@ -53,6 +53,8 @@ data ChainIndexEvent =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+makePrisms ''ChainIndexEvent
+
 instance Pretty ChainIndexEvent where
     pretty = \case
         AddressStartWatching addr  -> "StartWatching:" <+> pretty addr
@@ -86,7 +88,7 @@ handleChainIndexControl
 handleChainIndexControl = interpret $ \case
     ChainIndexNotify (SlotChanged sl) -> modify (idxCurrentSlot .~ Just (Max sl))
     ChainIndexNotify (BlockValidated txns) -> do
-        logInfo $ ReceiveBlockNotification (length txns)
+        logDebug $ ReceiveBlockNotification (length txns)
         modify (idxConfirmedBlocks <>~ pure txns)
         (cs, addressMap) <- (,) <$> gets _idxCurrentSlot <*> gets _idxWatchedAddresses
         let currentSlot = maybe 0 getMax cs
@@ -102,7 +104,7 @@ handleChainIndex
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
-    StartWatching addr -> logInfo (AddressStartWatching addr) >> (modify $ \s ->
+    StartWatching addr -> logDebug (AddressStartWatching addr) >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses
     ConfirmedBlocks -> gets _idxConfirmedBlocks

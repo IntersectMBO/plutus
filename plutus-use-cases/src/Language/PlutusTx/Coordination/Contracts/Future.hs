@@ -129,7 +129,9 @@ data Margins =
     Margins
         { ftsShortMargin :: Value
         , ftsLongMargin  :: Value
-        } deriving (Haskell.Eq, Show, Generic)
+        }
+        deriving (Haskell.Eq, Show, Generic)
+        deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Margins where
     l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
@@ -140,7 +142,8 @@ data FutureState =
     -- ^ Ongoing contract, with the current margins.
     | Finished
     -- ^ Contract is finished.
-    deriving (Haskell.Eq, Show)
+    deriving stock (Show, Generic, Haskell.Eq)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq FutureState where
     Running ma == Running ma' = ma == ma'
@@ -158,7 +161,8 @@ data FutureAction =
     -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 data FutureError =
     TokenSetupFailed Currency.CurrencyError
@@ -170,7 +174,8 @@ data FutureError =
     | EscrowRefunded RefundSuccess
     -- ^ The other party didn't make their payment in time so the contract never
     --   started.
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''FutureError
 

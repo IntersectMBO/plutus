@@ -24,9 +24,11 @@
 module Language.Marlowe.Client where
 import           Control.Lens
 import           Control.Monad.Error.Lens                          (catching, throwing)
+import           Data.Aeson                                        (FromJSON, ToJSON)
 import qualified Data.Map.Strict                                   as Map
 import qualified Data.Set                                          as Set
 import qualified Data.Text                                         as T
+import           GHC.Generics                                      (Generic)
 import           Language.Marlowe.Semantics                        hiding (Contract)
 import qualified Language.Marlowe.Semantics                        as Marlowe
 import           Language.Marlowe.Util                             (extractContractRoles)
@@ -70,7 +72,9 @@ data MarloweError =
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
     | RolesCurrencyError Currency.CurrencyError
-  deriving (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON)
+
 
 makeClassyPrisms ''MarloweError
 
@@ -328,7 +332,9 @@ applyInputs params inputs = do
     let theClient = mkMarloweClient params
     dat <- SM.runStep theClient (slotRange, inputs)
     case dat of
-        SM.TransitionFailure e -> throwing _TransitionError e
+        SM.TransitionFailure e -> do
+            logError e
+            throwing _TransitionError e
         SM.TransitionSuccess d -> return d
 
 rolePayoutScript :: CurrencySymbol -> Validator

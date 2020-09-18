@@ -31,8 +31,6 @@ module Playground.Contract
     , IO
     , Show
     , Wallet(..)
-    , runTraceWithDistribution
-    , addBlocksAndNotify
     , module Playground.Interpreter.Util
     , KnownCurrency(KnownCurrency)
     , ValidatorHash(ValidatorHash)
@@ -72,7 +70,7 @@ import           Language.Plutus.Contract                        (AsContractErro
                                                                   type (.\/), utxoAt, watchAddressUntil)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (endpoint)
 import           Language.Plutus.Contract.Effects.OwnPubKey      (ownPubKey)
-import           Language.Plutus.Contract.Trace                  (TraceError (..), runTraceWithDistribution)
+import           Language.Plutus.Contract.Trace                  (TraceError (..))
 import           Ledger.Constraints                              (modifiesUtxoSet)
 import           Ledger.Interval                                 (interval)
 import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
@@ -86,7 +84,6 @@ import           Playground.TH                                   (ensureIotsDefi
 import           Playground.Types                                (Expression, FunctionSchema,
                                                                   KnownCurrency (KnownCurrency), adaCurrency)
 import           Schema                                          (FormSchema, ToArgument, ToSchema)
-import           Wallet.Emulator                                 (addBlocksAndNotify)
 import           Wallet.Emulator.Types                           (Wallet (..))
 
 printSchemas :: ([FunctionSchema FormSchema], [KnownCurrency], Text) -> IO ()

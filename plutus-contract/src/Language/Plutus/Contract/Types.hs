@@ -62,6 +62,7 @@ import           Data.Aeson                          (Value)
 import qualified Data.Aeson                          as Aeson
 import           Data.Sequence                       (Seq)
 import           Data.Void                           (Void)
+import           GHC.Generics                        (Generic)
 
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
@@ -267,3 +268,6 @@ data ResumableResult e i o a =
         , wcsLogs            :: Seq (LogMessage Value) -- Log messages
         , wcsCheckpointStore :: CheckpointStore
         }
+        deriving stock Generic
+        deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
+

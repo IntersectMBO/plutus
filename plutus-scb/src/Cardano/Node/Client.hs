@@ -15,6 +15,7 @@ import           Cardano.Node.Types        (FollowerID)
 import           Control.Monad             (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Log   (LogMessage)
 import           Control.Monad.IO.Class
 import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Block, Slot, Tx)
@@ -27,7 +28,7 @@ healthcheck :: ClientM NoContent
 getCurrentSlot :: ClientM Slot
 addTx :: Tx -> ClientM NoContent
 randomTx :: ClientM Tx
-consumeEventHistory :: ClientM [ChainEvent]
+consumeEventHistory :: ClientM [LogMessage ChainEvent]
 newFollower :: ClientM FollowerID
 getBlocks :: FollowerID -> ClientM [Block]
 (healthcheck, addTx, getCurrentSlot, randomTx, consumeEventHistory, newFollower, getBlocks) =

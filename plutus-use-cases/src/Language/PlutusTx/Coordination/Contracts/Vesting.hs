@@ -1,15 +1,17 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ConstraintKinds    #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
@@ -27,6 +29,7 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
 
 import           Control.Lens
 import           Control.Monad                     (void, when)
+import           Data.Aeson                        (FromJSON, ToJSON)
 import qualified Data.Map                          as Map
 import           Prelude                           (Semigroup (..))
 
@@ -159,7 +162,8 @@ contractAddress = Scripts.scriptAddress . scriptInstance
 data VestingError =
     VContractError ContractError
     | InsufficientFundsError Value Value Value
-    deriving (Haskell.Eq, Show)
+    deriving stock (Haskell.Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''VestingError
 

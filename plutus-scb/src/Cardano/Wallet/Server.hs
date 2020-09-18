@@ -43,7 +43,7 @@ import           Wallet.Effects                  (ChainIndexEffect, NodeClientEf
                                                   ownPubKey, startWatching, submitTxn, updatePaymentWithChange,
                                                   walletSlot)
 import           Wallet.Emulator.Error           (WalletAPIError)
-import           Wallet.Emulator.Wallet          (WalletState)
+import           Wallet.Emulator.Wallet          (WalletState, emptyWalletState)
 import qualified Wallet.Emulator.Wallet          as Wallet
 
 type AppEffects m = '[WalletEffect, NodeClientEffect, ChainIndexEffect, State WalletState, LogMsg Text, Error WalletAPIError, Error ClientError, Error ServerError, m]
@@ -101,7 +101,7 @@ app nodeClientEnv chainIndexEnv mVarState =
 main :: MonadIO m => Config -> BaseUrl -> BaseUrl -> Availability -> m ()
 main Config {baseUrl, wallet} nodeBaseUrl chainIndexBaseUrl availability = runStdoutLoggingT $ do
     let port = baseUrlPort baseUrl
-        state = initialState wallet
+        state = emptyWalletState wallet
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
