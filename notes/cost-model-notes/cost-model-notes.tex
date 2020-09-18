@@ -317,7 +317,7 @@ In this part, we'll talk about the builtins which work with bytestrings.
 The figure for bytestring equality \ref{fig:EqByteString} shows a similar
 behaviour to integer comparison, so we'll use the same base model. Not shown
 here are LtByteString and GtByteString, but their worst case is always equality,
-so the same model as EqByteString can be used.
+assuming they compare bytewise. So the same model as EqByteString can be used.
 
 \begin{figure}
 \centering

@@ -1,4 +1,4 @@
-# source("plutus-core/budgeting-bench/models.R")
+# See CostModel.md, #Add a new kind of model
 library(plotly)
 # install.packages("plotly")
 
