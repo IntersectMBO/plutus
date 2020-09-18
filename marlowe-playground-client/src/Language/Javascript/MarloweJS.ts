@@ -30,12 +30,12 @@ export const role =
         return { "role_token": roleToken };
     };
 
-type AccountId = { "account_number" : string,
+type AccountId = { "account_number" : bignumber.BigNumber,
                    "account_owner" : Party };
 
 export const accountId =
     function (accountNumber : SomeNumber, accountOwner : Party) : AccountId {
-        return { "account_number": coerceNumber(accountNumber).toString(),
+        return { "account_number": coerceNumber(accountNumber),
                  "account_owner": accountOwner };
     };
 
@@ -74,7 +74,7 @@ export const valueId =
 
 type Value = { "amount_of_token": Token,
                "in_account": AccountId }
-           | string
+           | bignumber.BigNumber
            | { "negate": Value }
            | { "add": Value
              , "and": Value }
@@ -83,8 +83,8 @@ type Value = { "amount_of_token": Token,
            | { "multiply": Value
              , "times": Value }
            | { "multiply": Value
-             , "times": string
-             , "divide_by": string }
+             , "times": bignumber.BigNumber
+             , "divide_by": bignumber.BigNumber }
            | { "value_of_choice": ChoiceId }
            | "slot_interval_start"
            | "slot_interval_end"
@@ -96,10 +96,8 @@ type Value = { "amount_of_token": Token,
 type EValue = SomeNumber | Value;
 
 function coerceValue(val : EValue) : Value {
-    if (typeof(val) == "number") {
-        return constant(new bignumber.BigNumber(val));
-    } else if (bignumber.BigNumber.isBigNumber(val)) {
-        return constant(val);
+    if ((typeof(val) == "number") || (typeof(val) == "string" && val != "slot_interval_start" && val != "slot_interval_end")) {
+        return new bignumber.BigNumber(val);
     } else {
         return val;
     }
@@ -113,7 +111,7 @@ export const availableMoney =
 
 export const constant =
     function (number : SomeNumber) : Value {
-        return coerceNumber(number).toString();
+        return coerceNumber(number);
     };
 
 export const negValue =
@@ -146,8 +144,8 @@ export const scale =
             throw(new Error("Denominator in scale must be strictly positve"));
         } else {
             return { "multiply": coerceValue(val),
-                    "times": coerceNumber(num).toString(),
-                    "divide_by": cden.toString() };
+                    "times": coerceNumber(num),
+                    "divide_by": cden };
         }
     };
 
@@ -246,13 +244,13 @@ export const trueObs : Observation = true;
 
 export const falseObs : Observation = false;
 
-type Bound = { "from": String,
-               "to": String };
+type Bound = { "from": bignumber.BigNumber,
+               "to": bignumber.BigNumber };
 
 export const bound =
     function (boundMin : SomeNumber, boundMax : SomeNumber) : Bound {
-        return { "from": coerceNumber(boundMin).toString(),
-                 "to": coerceNumber(boundMax).toString() };
+        return { "from": coerceNumber(boundMin),
+                 "to": coerceNumber(boundMax) };
     };
 
 type Action = { "party": Party,
@@ -304,7 +302,7 @@ type Contract = "close"
                   "then": Contract,
                   "else": Contract }
               | { "when": Case [],
-                  "timeout": string,
+                  "timeout": bignumber.BigNumber,
                   "timeout_continuation": Contract }
               | { "let": ValueId,
                   "be": Value,
@@ -334,7 +332,7 @@ export const ifM =
 export const whenM =
     function (cases : Case[], timeout : SomeNumber, timeoutCont : Contract) : Contract {
         return { "when": cases,
-                 "timeout": coerceNumber(timeout).toString(),
+                 "timeout": coerceNumber(timeout),
                  "timeout_continuation": timeoutCont };
     };
 
