@@ -97,10 +97,8 @@ postulate
 
 postulate
   TermN : Set -- term with names
-  TermA : Set -- term with dummy Alex positions in it
-  Term : Set -- DeBruijn term
+  Term : Set  -- DeBruijn term
   TypeN : Set
-  TypeA : Set
   Type : Set
   ProgramN : Set
   Program : Set
@@ -139,10 +137,8 @@ postulate
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC TermA = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC TypeA = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
@@ -345,10 +341,22 @@ checkKind ty k = do
 
 
 -- a Haskell interface to kind inference:
-inferKind∅ : Type → Maybe Kind
+postulate TypeError : Set
+
+{-# COMPILE GHC TypeError = type Language.PlutusCore.TypeError DefaultUni () #-}
+
+withE : ∀{A E E'} → (E → E') → Either E A → Either E' A
+withE f (inj₁ e) = inj₁ (f e)
+withE f (inj₂ a) = inj₂ a
+
+instance
+  EitherTypeErrorMonad : Monad (Either TypeError)
+  EitherTypeErrorMonad = EitherMonad TypeError
+
+inferKind∅ : Type → Either TypeError Kind
 inferKind∅ ty = do
-  ty       ← liftSum (scopeCheckTy (shifterTy Z (convTy ty)))
-  (k ,, _) ← liftSum (inferKind ∅ ty)
+  ty       ← withE {!!} (scopeCheckTy (shifterTy Z (convTy ty)))
+  (k ,, _) ← withE {!!} (inferKind ∅ ty)
   return k
 
 {-# COMPILE GHC inferKind∅ as inferKindAgda #-}

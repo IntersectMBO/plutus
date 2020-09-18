@@ -112,7 +112,7 @@ EitherMonad E = record { return = inj₂ ; _>>=_ = eitherBind }
 
 data Error : Set where
   typeError : Error
-  kindEqError : Error
+  kindMismatchError : Error
   notTypeError : Error
   notFunction : Error
   notPiError : Error
@@ -131,7 +131,7 @@ open import Data.String
 
 reportError : Error → String
 reportError typeError = "typeError"
-reportError kindEqError = "kindEqError" 
+reportError kindMismatchError = "kindMismatchError"
 reportError notTypeError = "notTypeError"
 reportError notFunction = "notFunctionError"
 reportError notPiError = "notPiError"
