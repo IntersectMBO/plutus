@@ -15,7 +15,6 @@ import           Control.Monad.Except                  (MonadError, throwError)
 import           Control.Monad.Reader
 import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
-import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.List                             (intersperse)
 import           Data.Map                              (Map)
