@@ -9,6 +9,9 @@ function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
     if (typeof(n) == 'string') {
         return new bignumber.BigNumber(n);
     } else if (typeof(n) == 'number') {
+        if ((n > Number.MAX_SAFE_INTEGER) || (n < -Number.MAX_SAFE_INTEGER)) {
+            throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
+        }
         return new bignumber.BigNumber(n);
     } else {
         return n;
@@ -96,7 +99,12 @@ type Value = { "amount_of_token": Token,
 type EValue = SomeNumber | Value;
 
 function coerceValue(val : EValue) : Value {
-    if ((typeof(val) == "number") || (typeof(val) == "string" && val != "slot_interval_start" && val != "slot_interval_end")) {
+    if (typeof(val) == "number") {
+        if ((val > Number.MAX_SAFE_INTEGER) || (val < -Number.MAX_SAFE_INTEGER)) {
+            throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
+        }
+        return new bignumber.BigNumber(val);
+    } else if (typeof(val) == "string" && val != "slot_interval_start" && val != "slot_interval_end") {
         return new bignumber.BigNumber(val);
     } else {
         return val;
