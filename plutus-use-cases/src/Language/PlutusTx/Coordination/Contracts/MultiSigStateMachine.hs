@@ -232,7 +232,7 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ SM.mkStateMachine (transition p) (const False)
 
-validatorCode :: Params -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MultiSigSym)
+validatorCode :: Params -> PlutusTx.CompiledCode PLC.DefaultUni () (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
 type MultiSigSym = StateMachine MSState Input

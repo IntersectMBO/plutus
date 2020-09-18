@@ -82,9 +82,9 @@ import           Ledger.Orphans                   ()
 import           LedgerBytes                      (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
-newtype Script = Script { unScript :: UPLC.Program PLC.Name PLC.DefaultUni () }
+newtype Script = Script { unScript :: UPLC.Program PLC.Name PLC.DefaultUni () () }
   deriving stock Generic
-  deriving Serialise via UPLC.OmitUnitAnnotations PLC.DefaultUni
+  deriving Serialise via UPLC.OmitUnitAnnotations PLC.DefaultUni ()
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
@@ -133,10 +133,10 @@ scriptSize (Script s) = UPLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
+fromCompiledCode :: CompiledCode PLC.DefaultUni () a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni () -> Script
+fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni () () -> Script
 fromPlc = Script
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
@@ -172,13 +172,13 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode PLC.DefaultUni (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode PLC.DefaultUni () (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni () (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script

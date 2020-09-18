@@ -6,10 +6,10 @@ import qualified Language.UntypedPlutusCore as UPLC
 
 type PLCKind = PLC.Kind ()
 type PLCType uni = PLC.Type PLC.TyName uni ()
-type PLCTerm uni = PLC.Term PLC.TyName PLC.Name uni ()
-type PLCProgram uni = PLC.Program PLC.TyName PLC.Name uni ()
+type PLCTerm uni fun = PLC.Term PLC.TyName PLC.Name uni fun ()
+type PLCProgram uni fun = PLC.Program PLC.TyName PLC.Name uni fun ()
 
-type PLCVar uni = PLC.VarDecl PLC.TyName PLC.Name uni ()
+type PLCVar uni fun = PLC.VarDecl PLC.TyName PLC.Name uni fun ()
 type PLCTyVar = PLC.TyVarDecl PLC.TyName ()
 
-type UPLCProgram uni = UPLC.Program PLC.Name uni ()
+type UPLCProgram uni fun = UPLC.Program PLC.Name uni fun ()

@@ -33,7 +33,7 @@ reasonable (Ledger.unValidatorScript -> s) maxSize = do
     liftIO $ putStrLn ("Script size: " ++ show sz)
     assertBool msg (sz <= maxSize)
 
-goldenPir :: FilePath -> CompiledCode PLC.DefaultUni a -> TestTree
+goldenPir :: FilePath -> CompiledCode PLC.DefaultUni () a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
 
 staticFee :: Integer

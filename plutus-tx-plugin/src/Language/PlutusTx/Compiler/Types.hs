@@ -35,14 +35,14 @@ type BuiltinNameInfo = Map.Map TH.Name GHC.TyThing
 -- | Compilation options. Empty currently.
 data CompileOptions = CompileOptions {}
 
-data CompileContext uni = CompileContext {
+data CompileContext uni fun = CompileContext {
     ccOpts            :: CompileOptions,
     ccFlags           :: GHC.DynFlags,
     ccFamInstEnvs     :: GHC.FamInstEnvs,
     ccBuiltinNameInfo :: BuiltinNameInfo,
-    ccScopes          :: ScopeStack uni,
+    ccScopes          :: ScopeStack uni fun,
     ccBlackholed      :: Set.Set GHC.Name,
-    ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PLC.Term PLC.TyName PLC.Name uni ())
+    ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PLC.Term PLC.TyName PLC.Name uni fun ())
     }
 
 data CompileState = CompileState {}
@@ -113,20 +113,20 @@ stableModuleCmp m1 m2 =
     (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
 
 -- See Note [Scopes]
-type Compiling uni m =
+type Compiling uni fun m =
     ( Monad m
-    , MonadError (CompileError uni) m
+    , MonadError (CompileError uni fun) m
     , MonadQuote m
-    , MonadReader (CompileContext uni) m
+    , MonadReader (CompileContext uni fun) m
     , MonadState CompileState m
-    , MonadDefs LexName uni () m
+    , MonadDefs LexName uni fun () m
     , PLC.DefaultUni PLC.<: uni
     , PLC.GShow uni, PLC.GEq uni)
 
-blackhole :: MonadReader (CompileContext uni) m => GHC.Name -> m a -> m a
+blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
 
-blackholed :: MonadReader (CompileContext uni) m => GHC.Name -> m Bool
+blackholed :: MonadReader (CompileContext uni fun) m => GHC.Name -> m Bool
 blackholed name = do
     CompileContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh
@@ -140,8 +140,8 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni = NE.NonEmpty (Scope uni)
+data Scope uni fun = Scope (Map.Map GHC.Name (PLCVar uni fun)) (Map.Map GHC.Name PLCTyVar)
+type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
 
-initialScopeStack :: ScopeStack uni
+initialScopeStack :: ScopeStack uni fun
 initialScopeStack = pure $ Scope Map.empty Map.empty

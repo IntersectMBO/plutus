@@ -44,10 +44,10 @@ instance (Sized a, Sized b) => Sized (a, b) where
     {-# INLINABLE size #-}
     size (a, b) = size a `Builtins.addInteger` size b
 
-sizedBasic :: CompiledCode PLC.DefaultUni (Integer -> Integer)
+sizedBasic :: CompiledCode PLC.DefaultUni () (Integer -> Integer)
 sizedBasic = plc (Proxy @"sizedBasic") (\(a::Integer) -> size a)
 
-sizedPair :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
+sizedPair :: CompiledCode PLC.DefaultUni () (Integer -> Integer -> Integer)
 sizedPair = plc (Proxy @"sizedPair") (\(a::Integer) (b::Integer) -> size (a, b))
 
 -- This has multiple methods, so will have to be passed as a dictionary
@@ -71,7 +71,7 @@ instance PersonLike Alien where
     likesAnimal AlienJane Dog = True
     likesAnimal _ _           = False
 
-multiFunction :: CompiledCode PLC.DefaultUni (Person -> Bool)
+multiFunction :: CompiledCode PLC.DefaultUni () (Person -> Bool)
 multiFunction = plc (Proxy @"multiFunction") (
     let
         {-# NOINLINE predicate #-}
@@ -79,7 +79,7 @@ multiFunction = plc (Proxy @"multiFunction") (
         predicate p = likesAnimal p Cat P.&& (age p `Builtins.greaterThanInteger` 30)
     in \(p::Person) -> predicate p)
 
-defaultMethods :: CompiledCode PLC.DefaultUni (Integer -> Integer)
+defaultMethods :: CompiledCode PLC.DefaultUni () (Integer -> Integer)
 defaultMethods = plc (Proxy @"defaultMethods") (
     let
         {-# NOINLINE f #-}
@@ -87,10 +87,10 @@ defaultMethods = plc (Proxy @"defaultMethods") (
         f a = method2 a
     in \(a::Integer) -> f a)
 
-partialApplication :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Ordering)
+partialApplication :: CompiledCode PLC.DefaultUni () (Integer -> Integer -> Ordering)
 partialApplication = plc (Proxy @"partialApplication") (P.compare @Integer)
 
-sequenceTest :: CompiledCode PLC.DefaultUni (Maybe [Integer])
+sequenceTest :: CompiledCode PLC.DefaultUni () (Maybe [Integer])
 sequenceTest = plc (Proxy @"sequenceTests") (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
 
 opCompare :: P.Ord a => a -> a -> Ordering
@@ -99,5 +99,5 @@ opCompare a b = case P.compare a b of
     EQ -> EQ
     GT -> LT
 
-compareTest :: CompiledCode PLC.DefaultUni (Ordering)
+compareTest :: CompiledCode PLC.DefaultUni () (Ordering)
 compareTest = plc (Proxy @"compareTest") (opCompare (1::Integer) (2::Integer))

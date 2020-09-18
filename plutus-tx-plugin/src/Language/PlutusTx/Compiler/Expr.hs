@@ -94,8 +94,8 @@ So we use another horrible hack and pretend that `Addr#` is `String`, since we t
 -}
 
 compileLiteral
-    :: Compiling uni m
-    => GHC.Literal -> m (PIRTerm uni)
+    :: Compiling uni fun m
+    => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant () i
@@ -145,7 +145,7 @@ strip = \case
     expr -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)
+compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -173,11 +173,11 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 
 -- | Make the alternative for a given 'CoreAlt'.
 compileAlt
-    :: Compiling uni m
+    :: Compiling uni fun m
     => Bool -- ^ Whether we must delay the alternative.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m (PIRTerm uni)
+    -> m (PIRTerm uni fun)
 compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
@@ -353,8 +353,8 @@ just get turned into a function in PLC).
 -}
 
 hoistExpr
-    :: Compiling uni m
-    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni)
+    :: Compiling uni fun m
+    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
 hoistExpr var t =
     let
         name = GHC.getName var
@@ -396,8 +396,8 @@ hoistExpr var t =
 -- Expressions
 
 compileExpr
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: Compiling uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo,ccBuiltinMeanings=means} <- ask
@@ -575,8 +575,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 compileExprWithDefs
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: Compiling uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
     defineBuiltinTypes
     defineBuiltinTerms

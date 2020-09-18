@@ -249,7 +249,7 @@ compileMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni a
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni () a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
@@ -279,9 +279,10 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             -- this will blow up at runtime
             then do
                 defUni <- GHC.lookupTyCon =<< thNameToGhcNameOrFail ''PLC.DefaultUni
+                defFun <- GHC.lookupTyCon =<< thNameToGhcNameOrFail ''()
                 tcName <- thNameToGhcNameOrFail ''CompiledCode
                 tc <- GHC.lookupTyCon tcName
-                let args = [GHC.mkTyConTy defUni, codeTy]
+                let args = [GHC.mkTyConTy defUni, GHC.mkTyConTy defFun, codeTy]
                 pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc args) shown
             -- this will actually terminate compilation
             else failCompilation shown
@@ -298,10 +299,10 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 `GHC.App` bsLitPir
 
 runCompiler
-    :: forall uni m . (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
+    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ (), MonadReader (CompileContext uni fun) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
-    -> m (PIRProgram uni, PLCProgram uni, UPLCProgram uni)
+    -> m (PIRProgram uni fun, PLCProgram uni fun, UPLCProgram uni fun)
 runCompiler opts expr = do
     -- trick here to take out the concrete plc.error
     tcConfigConcrete <-
@@ -325,7 +326,7 @@ runCompiler opts expr = do
 
     when (poDumpPir opts) . liftIO . print . PP.pretty $ pirP
 
-    (plcP::PLCProgram PLC.DefaultUni) <- PLC.Program () (PLC.defaultVersion ()) . void <$> (flip runReaderT ctx $ PIR.compileReadableToPlc pirT')
+    (plcP::PLCProgram PLC.DefaultUni ()) <- PLC.Program () (PLC.defaultVersion ()) . void <$> (flip runReaderT ctx $ PIR.compileReadableToPlc pirT')
     when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
