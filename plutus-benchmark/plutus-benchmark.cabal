@@ -42,5 +42,6 @@ executable plutus-benchmark
     , plutus-tx-plugin -any
     , plutus-core -any
     , containers -any
+    , optparse-applicative -any
 
   default-language: Haskell2010

@@ -17,67 +17,51 @@
 module Main where
 
 import           Control.Monad
+import           Options.Applicative
 import           System.Environment
 
 import           Control.Monad                                              ()
+import qualified Data.Map                                                   as Map
+import           Language.PlutusCore                                        (Name (..))
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
 import           Language.PlutusCore.Evaluation.Machine.Cek                 ()
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import qualified Language.PlutusCore.Pretty                                 as PLC
+import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx                                          as Tx
 import           Language.PlutusTx.Prelude                                  as TxPrelude hiding (replicate)
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import           Plutus.Benchmark.Clausify                                  (Formula (..), clauses, replicate)
-import qualified Data.Map as Map
+import qualified Plutus.Benchmark.Clausify                                  as Clausify
+import qualified Prelude                                                    as P
 
-{-# INLINABLE formula1 #-}  -- Overflow
-formula1 :: Formula  -- (a = a = a) = (a = a = a) = (a = a = a)
-formula1 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                    (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
+data Command =
+    Clausify P.Integer Clausify.StaticFormula
 
-{-# INLINABLE formula2 #-} -- Overflow
-formula2 :: Formula -- (a = b = c) = (d = e = f) = (g = h = i)
-formula2 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
-               (Eqv (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
-                    (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9))))
+clausifyFormulaReader :: String -> Maybe Clausify.StaticFormula
+clausifyFormulaReader "5" = Just Clausify.F5
+clausifyFormulaReader _   = Nothing
 
-{-# INLINABLE formula3 #-}
-formula3 :: Formula  -- (a = a = a) = (a = a = a)
-formula3 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+clausifyOptions :: Parser Command
+clausifyOptions =
+  Clausify P.<$> argument auto (metavar "COUNT")
+           P.<*> argument (maybeReader clausifyFormulaReader)
+                          (metavar "FORMULA")
 
-{-# INLINABLE formula4 #-} -- One execution takes about 0.35s and 300 MB
-formula4 :: Formula  -- (a = a) = (a = a) = (a = a)
-formula4 = Eqv (Eqv (Sym 1) (Sym 1))
-               (Eqv (Eqv (Sym 1) (Sym 1))
-                    (Eqv (Sym 1) (Sym 1)))
+options :: Parser Command
+options = subparser
+  ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark")) )
 
-{-# INLINABLE formula5 #-}  -- One execution takes about 1.5s and 660 MB
-formula5 :: Formula  -- (a = a = a) = (a = a) = (a = a)
-formula5 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Eqv (Sym 1) (Sym 1))
-                    (Eqv (Sym 1) (Sym 1)))
+emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
+emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
 
-{-# INLINABLE formula5a #-}  -- One execution takes about 2s and 1 GB
-formula5a :: Formula  -- (a = b = c) = (d = e) = (f = g)
-formula5a = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
-               (Eqv (Eqv (Sym 4) (Sym 5))
-                    (Eqv (Sym 6) (Sym 7)))
-
-{-# INLINABLE formula6 #-}  -- One execution takes about 11s and 5 GB
-formula6 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
-formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                    (Eqv (Sym 1) (Sym 1)))
-
-
-count :: Integer
-count = 1
+evaluateWithCek :: Term Name DefaultUni () -> EvaluationResult (Term Name DefaultUni ())
+evaluateWithCek term =
+  unsafeEvaluateCek emptyBuiltins defaultCostModel term
 
 main :: IO ()
 main = do
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile [|| map clauses (replicate count formula5a)  ||])
+  let code = Clausify.mkClausifyTerm 1 Clausify.F6
       result = unsafeEvaluateCek (DynamicBuiltinNameMeanings Map.empty) defaultCostModel code
   print . PLC.prettyPlcClassicDebug $ result
