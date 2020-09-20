@@ -5,6 +5,8 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
+{-# LANGUAGE LambdaCase        #-}
+
 {-# OPTIONS_GHC -fwarn-missing-signatures     #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports      #-}
 
@@ -39,19 +41,28 @@ import qualified Prelude                                                    as P
 data Command =
     Clausify P.Integer Clausify.StaticFormula
 
-clausifyFormulaReader :: String -> Maybe Clausify.StaticFormula
-clausifyFormulaReader "5" = Just Clausify.F5
-clausifyFormulaReader _   = Nothing
+clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
+clausifyFormulaReader "1" = Right Clausify.F1
+clausifyFormulaReader "2" = Right Clausify.F2
+clausifyFormulaReader "3" = Right Clausify.F3
+clausifyFormulaReader "4" = Right Clausify.F4
+clausifyFormulaReader "5" = Right Clausify.F5
+clausifyFormulaReader "5A" = Right Clausify.F5A
+clausifyFormulaReader "5a" = Right Clausify.F5A
+clausifyFormulaReader "6" = Right Clausify.F6
+clausifyFormulaReader f   = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 5A or 6."
 
 clausifyOptions :: Parser Command
 clausifyOptions =
-  Clausify P.<$> argument auto (metavar "COUNT")
-           P.<*> argument (maybeReader clausifyFormulaReader)
-                          (metavar "FORMULA")
+  Clausify P.<$> argument auto (metavar "COUNT" P.<>
+                                help "How many times you want the formula replicated")
+           P.<*> argument (eitherReader clausifyFormulaReader)
+                          (metavar "FORMULA" P.<>
+                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 5A or 6")
 
 options :: Parser Command
-options = subparser
-  ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark")) )
+options = hsubparser
+  ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark.")) )
 
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
@@ -61,7 +72,8 @@ evaluateWithCek term =
   unsafeEvaluateCek emptyBuiltins defaultCostModel term
 
 main :: IO ()
-main = do
-  let code = Clausify.mkClausifyTerm 1 Clausify.F6
-      result = unsafeEvaluateCek (DynamicBuiltinNameMeanings Map.empty) defaultCostModel code
-  print . PLC.prettyPlcClassicDebug $ result
+main = execParser (info (helper P.<*> options) idm) >>= \case
+  Clausify cnt formula -> do
+    let code = Clausify.mkClausifyTerm cnt formula
+        result = unsafeEvaluateCek emptyBuiltins defaultCostModel code
+    print . PLC.prettyPlcClassicDebug $ result
