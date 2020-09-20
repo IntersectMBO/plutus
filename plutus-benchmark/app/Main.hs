@@ -36,12 +36,14 @@ import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import           Plutus.Benchmark.Clausify                                  (Formula (..), clauses, replicate)
 import qualified Plutus.Benchmark.Clausify                                  as Clausify
+import qualified Plutus.Benchmark.Knights                                   as Knights
 import qualified Plutus.Benchmark.Queens                                    as Queens
 import qualified Prelude                                                    as P
 
 data Command =
     Clausify P.Integer Clausify.StaticFormula
   | Queens P.Integer [Queens.Algorithm]
+  | Knights P.Integer P.Integer
 
 clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
 clausifyFormulaReader "1"  = Right Clausify.F1
@@ -69,6 +71,12 @@ queensOptions =
          P.<*> some (argument (eitherReader queensAlgorithmReader)
                         (metavar "ALGORITHM" P.<>
                          help "Algorithm to use for constraint solving. I know of: bt, bm, bjbt, bjbt' or fc"))
+knightsOptions :: Parser Command
+knightsOptions =
+  Knights P.<$> argument auto (metavar "DEPTH" P.<>
+                               help "How deep does the search go.")
+          P.<*> argument auto (metavar "BOARD-SIZE" P.<>
+                               help "Board size NxN")
 
 queensAlgorithmReader :: String -> Either String Queens.Algorithm
 queensAlgorithmReader "bt"    = Right Queens.Bt
@@ -81,7 +89,8 @@ queensAlgorithmReader alg     = Left $ "Unknown algorithm: " <> alg <> ". I know
 options :: Parser Command
 options = hsubparser
   ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark.")) P.<>
-    command "queens" (info queensOptions (progDesc "Run the queens benchmark.")) )
+    command "queens" (info queensOptions (progDesc "Run the queens benchmark.")) P.<>
+    command "knights" (info knightsOptions (progDesc "Run the knights benchmark")) )
 
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
@@ -91,12 +100,12 @@ evaluateWithCek term =
   unsafeEvaluateCek emptyBuiltins defaultCostModel term
 
 main :: IO ()
-main = execParser (info (helper P.<*> options) idm) >>= \case
-  Clausify cnt formula -> do
-    let code = Clausify.mkClausifyTerm cnt formula
-        result = unsafeEvaluateCek emptyBuiltins defaultCostModel code
-    print . PLC.prettyPlcClassicDebug $ result
-  Queens boardSize algs -> do
-    let code = Queens.mkQueensTerm boardSize algs
-        result = unsafeEvaluateCek emptyBuiltins defaultCostModel code
-    print . PLC.prettyPlcClassicDebug $ result
+main = do
+  cmd <- execParser (info (helper P.<*> options) idm)
+  let program = 
+        case cmd of
+          Clausify cnt formula    -> Clausify.mkClausifyTerm cnt formula
+          Queens boardSize algs   -> Queens.mkQueensTerm boardSize algs
+          Knights depth boardSize -> Knights.mkKnightsTerm depth boardSize
+  let result = unsafeEvaluateCek emptyBuiltins defaultCostModel program
+  print . PLC.prettyPlcClassicDebug $ result
