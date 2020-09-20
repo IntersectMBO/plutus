@@ -17,7 +17,6 @@
 {-# OPTIONS_GHC -fno-strictness               #-}
 {-# OPTIONS_GHC -fno-worker-wrapper           #-}
 
-
 module Plutus.Benchmark.Clausify where
 
 import           Control.Monad
@@ -29,10 +28,6 @@ import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
 import           Language.PlutusTx.Prelude    as TxPrelude hiding (replicate)
 import           Language.UntypedPlutusCore
-
--- import Data.Ix
--- import System.Environment
--- import Control.Monad (forM_)
 
 type Var = Integer
 
@@ -56,14 +51,6 @@ clause p = clause' p ([] , [])
            clause' (Dis p q)       x   = clause' p (clause' q x)
            clause' (Sym s)       (c,a) = (insert s c , a)
            clause' (Not (Sym s)) (c,a) = (c , insert s a)
-
-{-
--- the main pipeline from propositional formulae to printed clauses
-{-# INLINABLE clauses #-}
-clauses :: Formula -> ([Char], [Char])
-clauses :: [Char] -> [Char]
-clauses = concat . map disp . unicl . split . disin . negin . elim . parse
--}
 
 -- the main pipeline from propositional formulae to a list of clauses
 {-# INLINABLE clauses #-}
@@ -97,7 +84,6 @@ split p = split' p []
           split' (Con p q) a = split' p (split' q a)
           split' p a         = p : a
 
-
 -- eliminate connectives other than not, disjunction and conjunction
 {-# INLINABLE elim #-}
 elim :: Formula -> Formula
@@ -107,7 +93,6 @@ elim (Dis p q)  = Dis (elim p) (elim q)
 elim (Con p q)  = Con (elim p) (elim q)
 elim (Imp p q)  = Dis (Not (elim p)) (elim q)
 elim (Eqv f f') = Con (elim (Imp f f')) (elim (Imp f' f))
-
 
 -- insertion of an item into an ordered list
 -- Note: this is a corrected version from Colin (94/05/03 WDP)
@@ -146,7 +131,6 @@ unicl a = foldr unicl' [] a
 {-# INLINABLE while #-}
 while :: (t -> Bool) -> (t -> t) -> t -> t
 while p f x = if p x then while p f (f x) else x
-
 
 {-# INLINABLE replicate #-}
 replicate :: Integer -> a -> [a]

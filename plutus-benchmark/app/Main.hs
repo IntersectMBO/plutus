@@ -36,21 +36,23 @@ import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import           Plutus.Benchmark.Clausify                                  (Formula (..), clauses, replicate)
 import qualified Plutus.Benchmark.Clausify                                  as Clausify
+import qualified Plutus.Benchmark.Queens                                    as Queens
 import qualified Prelude                                                    as P
 
 data Command =
     Clausify P.Integer Clausify.StaticFormula
+  | Queens P.Integer [Queens.Algorithm]
 
 clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
-clausifyFormulaReader "1" = Right Clausify.F1
-clausifyFormulaReader "2" = Right Clausify.F2
-clausifyFormulaReader "3" = Right Clausify.F3
-clausifyFormulaReader "4" = Right Clausify.F4
-clausifyFormulaReader "5" = Right Clausify.F5
+clausifyFormulaReader "1"  = Right Clausify.F1
+clausifyFormulaReader "2"  = Right Clausify.F2
+clausifyFormulaReader "3"  = Right Clausify.F3
+clausifyFormulaReader "4"  = Right Clausify.F4
+clausifyFormulaReader "5"  = Right Clausify.F5
 clausifyFormulaReader "5A" = Right Clausify.F5A
 clausifyFormulaReader "5a" = Right Clausify.F5A
-clausifyFormulaReader "6" = Right Clausify.F6
-clausifyFormulaReader f   = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 5A or 6."
+clausifyFormulaReader "6"  = Right Clausify.F6
+clausifyFormulaReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 5A or 6."
 
 clausifyOptions :: Parser Command
 clausifyOptions =
@@ -60,9 +62,26 @@ clausifyOptions =
                           (metavar "FORMULA" P.<>
                            help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 5A or 6")
 
+queensOptions :: Parser Command
+queensOptions =
+  Queens P.<$> argument auto (metavar "BOARD-SIZE" P.<>
+                              help "Size of the playing board NxN")
+         P.<*> some (argument (eitherReader queensAlgorithmReader)
+                        (metavar "ALGORITHM" P.<>
+                         help "Algorithm to use for constraint solving. I know of: bt, bm, bjbt, bjbt' or fc"))
+
+queensAlgorithmReader :: String -> Either String Queens.Algorithm
+queensAlgorithmReader "bt"    = Right Queens.Bt
+queensAlgorithmReader "bm"    = Right Queens.Bm
+queensAlgorithmReader "bjbt"  = Right Queens.Bjbt
+queensAlgorithmReader "bjbt'" = Right Queens.Bjbt'
+queensAlgorithmReader "fc"    = Right Queens.Fc
+queensAlgorithmReader alg     = Left $ "Unknown algorithm: " <> alg <> ". I know of: bt, bm, bjbt, bjbt' or fc."
+
 options :: Parser Command
 options = hsubparser
-  ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark.")) )
+  ( command "clausify" (info clausifyOptions (progDesc "Run the clausify benchmark.")) P.<>
+    command "queens" (info queensOptions (progDesc "Run the queens benchmark.")) )
 
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
@@ -75,5 +94,9 @@ main :: IO ()
 main = execParser (info (helper P.<*> options) idm) >>= \case
   Clausify cnt formula -> do
     let code = Clausify.mkClausifyTerm cnt formula
+        result = unsafeEvaluateCek emptyBuiltins defaultCostModel code
+    print . PLC.prettyPlcClassicDebug $ result
+  Queens boardSize algs -> do
+    let code = Queens.mkQueensTerm boardSize algs
         result = unsafeEvaluateCek emptyBuiltins defaultCostModel code
     print . PLC.prettyPlcClassicDebug $ result
