@@ -27,6 +27,7 @@ library
       Plutus.Benchmark.Knights.Queue
       Plutus.Benchmark.Knights.Sort
       Plutus.Benchmark.Knights.Utils
+      Plutus.Benchmark.LastPiece
   hs-source-dirs:
       src
   build-depends:
