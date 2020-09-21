@@ -1,12 +1,12 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 {-# OPTIONS_GHC -fwarn-missing-signatures     #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports      #-}
@@ -182,20 +182,20 @@ data StaticFormula = F1 | F2 | F3 | F4 | F5 | F5A | F6
 
 {-# INLINABLE getFormula #-}
 getFormula :: StaticFormula -> Formula
-getFormula F1 = formula1
-getFormula F2 = formula2
-getFormula F3 = formula3
-getFormula F4 = formula4
-getFormula F5 = formula5
+getFormula F1  = formula1
+getFormula F2  = formula2
+getFormula F3  = formula3
+getFormula F4  = formula4
+getFormula F5  = formula5
 getFormula F5A = formula5a
-getFormula F6 = formula6
+getFormula F6  = formula6
 
 {-# INLINABLE mkClausifyTerm #-}
 mkClausifyTerm :: Integer -> StaticFormula -> Term Name DefaultUni ()
 mkClausifyTerm cnt formula =
   let f = getFormula formula
       (Program _ _ code) =
-        Tx.getPlc $ $$(Tx.compile 
+        Tx.getPlc $ $$(Tx.compile
           [|| \cnt' formula' -> map clauses (replicate cnt' formula')  ||]
         ) `Tx.applyCode` Tx.liftCode cnt `Tx.applyCode` Tx.liftCode f
   in code

@@ -1,16 +1,16 @@
 {- nofib/spectral/constraints converted to Plutus.
    Renamed to avoid conflict with existing package. -}
 
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 {-# OPTIONS_GHC -fwarn-missing-signatures     #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports      #-}
@@ -92,11 +92,11 @@ data Algorithm = Bt
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
-lookupAlgorithm Bt = bt
-lookupAlgorithm Bm = bm
-lookupAlgorithm Bjbt = bjbt
+lookupAlgorithm Bt    = bt
+lookupAlgorithm Bm    = bm
+lookupAlgorithm Bjbt  = bjbt
 lookupAlgorithm Bjbt' = bjbt'
-lookupAlgorithm Fc = fc
+lookupAlgorithm Fc    = fc
 
 -- The main input parameter used by the Plutus version, the size of the board (n).
 boardSize :: Integer
@@ -110,7 +110,7 @@ mkQueensTerm :: Integer -> [Algorithm] -> Term Name DefaultUni ()
 mkQueensTerm sz algs =
   let (Program _ _ code) =
         Tx.getPlc $ $$(Tx.compile [||
-          \sz algs -> map (nqueens sz) 
+          \sz algs -> map (nqueens sz)
                           (map lookupAlgorithm algs) ||])
           `Tx.applyCode` Tx.liftCode sz
           `Tx.applyCode` Tx.liftCode algs

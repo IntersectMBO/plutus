@@ -101,7 +101,7 @@ boardSize = 8
 
 main :: IO ()
 main = main1
-            
+
 -- PLC version
 main1 :: IO ()
 main1 = do
@@ -110,7 +110,7 @@ main1 = do
     mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ code
 
 {-
-        
+
 -- Exercise the Haskell version.  This appears to work correctly.
 main2:: IO ()
 main2 = getArgs >>= \ss ->

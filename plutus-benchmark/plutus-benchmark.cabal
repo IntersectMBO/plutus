@@ -28,6 +28,7 @@ library
       Plutus.Benchmark.Knights.Sort
       Plutus.Benchmark.Knights.Utils
       Plutus.Benchmark.LastPiece
+      Plutus.Benchmark.Prime
   hs-source-dirs:
       src
   build-depends:
