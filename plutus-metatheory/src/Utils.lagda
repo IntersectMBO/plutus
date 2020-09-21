@@ -120,11 +120,10 @@ withE : {A B C : Set} → (A → B) → Either A C → Either B C
 withE f (inj₁ a) = inj₁ (f a)
 withE f (inj₂ c) = inj₂ c
 
+{-# FOREIGN GHC import Raw #-}
+
 data RuntimeError : Set where
   gasError : RuntimeError
 
-data ParseError : Set where
-  parseError : ParseError
-
-
+{-# COMPILE GHC RuntimeError = data RuntimeError (GasError) #-}
 \end{code}

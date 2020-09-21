@@ -73,7 +73,7 @@ data Token ann
     | TkKeyword    { tkLoc :: ann, tkKeyword :: Keyword }
     | TkSpecial    { tkLoc :: ann, tkSpecial :: Special }
     | EOF          { tkLoc :: ann }
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 
 instance Pretty Special where
     pretty OpenParen    = "("

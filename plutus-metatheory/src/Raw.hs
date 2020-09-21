@@ -139,19 +139,12 @@ unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 
 -- I have put this here as it needs to be a .hs file so that it can be
 -- imported in multiple places
-data Error = TypeError
-           | KindEqError
-           | NotTypeError
-           | NotFunction
-           | NotPiError
-           | NotPat
-           | NameError
-           | TypeEqError
-           | TypeVarEqError
-           | TyConError
-           | BuiltinError
-           | UnwrapError
-           | ParseError
-           | ScopeError
-           | GasError
 
+data ERROR = TypeError
+           | ParseError (ParseError ())
+           | ScopeError ScopeError
+           | RuntimeError RuntimeError
+
+data ScopeError = Wibble | FreeVariableError FreeVariableError
+
+data RuntimeError = GasError

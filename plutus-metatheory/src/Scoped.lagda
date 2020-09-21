@@ -247,8 +247,20 @@ deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit 
 
+postulate
+  FreeVariableError : Set
+
+{-# COMPILE GHC FreeVariableError = type FreeVariableError #-}
+
+
 data ScopeError : Set where
   scopeError : ScopeError
+  freeVariableError : FreeVariableError → ScopeError  
+  
+{-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import Raw #-}
+{-# COMPILE GHC ScopeError = data ScopeError (Wibble | FreeVariableError) #-}
+
 
 ℕtoFin : ∀{n} → ℕ → Either ScopeError (Fin n)
 ℕtoFin {zero}  _       = inj₁ scopeError

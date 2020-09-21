@@ -61,7 +61,7 @@ throwingEither r e = case e of
 data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
-    deriving (Show, Eq, Generic, NFData)
+    deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''ParseError
 
 data UniqueError ann
