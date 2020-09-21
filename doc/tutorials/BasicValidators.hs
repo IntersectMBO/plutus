@@ -39,7 +39,7 @@ alwaysFails _ _ _ = error ()
 
 -- We can use 'compile' to turn a validator function into a compiled Plutus Core program.
 -- Here's a reminder of how to do it.
-alwaysSucceedsCompiled :: CompiledCode PLC.DefaultUni (Data -> Data -> Data -> ())
+alwaysSucceedsCompiled :: CompiledCode PLC.DefaultUni () (Data -> Data -> Data -> ())
 alwaysSucceedsCompiled = $$(compile [|| alwaysSucceeds ||])
 -- BLOCK3
 -- | Checks if a date is before the given end date.
