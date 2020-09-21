@@ -204,31 +204,31 @@ applyStaticBuiltinName name args = do
         TakeByteString ->
             applyTypedStaticBuiltinName
                 typedTakeByteString
-                (coerce BS.take . integerToInt)
+                (BS.take . integerToInt)
                 (runCostingFunTwoArguments $ paramTakeByteString params)
                 args
         DropByteString ->
             applyTypedStaticBuiltinName
                 typedDropByteString
-                (coerce BS.drop . integerToInt)
+                (BS.drop . integerToInt)
                 (runCostingFunTwoArguments $ paramDropByteString params)
                 args
         SHA2 ->
             applyTypedStaticBuiltinName
                 typedSHA2
-                (coerce Hash.sha2)
+                Hash.sha2
                 (runCostingFunOneArgument $ paramSHA2 params)
                 args
         SHA3 ->
             applyTypedStaticBuiltinName
                 typedSHA3
-                (coerce Hash.sha3)
+                Hash.sha3
                 (runCostingFunOneArgument $ paramSHA3 params)
                 args
         VerifySignature ->
             applyTypedStaticBuiltinName
                 typedVerifySignature
-                (coerce $ verifySignature @EvaluationResult)
+                (verifySignature @EvaluationResult)
                 (runCostingFunThreeArguments $ paramVerifySignature params)
                 args
         EqByteString ->

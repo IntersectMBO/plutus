@@ -26,7 +26,6 @@ import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString                                   as BS
 import qualified Data.ByteString.Hash                              as Hash
-import           Data.Coerce
 import           Data.Dependent.Map                                (DMap)
 import qualified Data.Dependent.Map                                as DMap
 import           Data.Functor.Compose
@@ -137,11 +136,11 @@ typedBuiltinNames
     . insertTypedStaticBuiltinName typedGreaterThanInteger   (>)
     . insertTypedStaticBuiltinName typedGreaterThanEqInteger (>=)
     . insertTypedStaticBuiltinName typedEqInteger            (==)
-    . insertTypedStaticBuiltinName typedConcatenate          (coerce BS.append)
-    . insertTypedStaticBuiltinName typedTakeByteString       (coerce BS.take . integerToInt)
-    . insertTypedStaticBuiltinName typedDropByteString       (coerce BS.drop . integerToInt)
-    . insertTypedStaticBuiltinName typedSHA2                 (coerce Hash.sha2)
-    . insertTypedStaticBuiltinName typedSHA3                 (coerce Hash.sha3)
+    . insertTypedStaticBuiltinName typedConcatenate          BS.append
+    . insertTypedStaticBuiltinName typedTakeByteString       (BS.take . integerToInt)
+    . insertTypedStaticBuiltinName typedDropByteString       (BS.drop . integerToInt)
+    . insertTypedStaticBuiltinName typedSHA2                 (Hash.sha2)
+    . insertTypedStaticBuiltinName typedSHA3                 (Hash.sha3)
 --     . insertTypedStaticBuiltinName typedVerifySignature      verifySignature
     . insertTypedStaticBuiltinName typedEqByteString         (==)
     $ DenotationContext mempty
