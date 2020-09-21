@@ -73,7 +73,7 @@ evalProg g (error e) = steps refl—↠ (error e)
 
 open import Utils 
 
-stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either Utils.Error (∅ ⊢ A)
+stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either RuntimeError (∅ ⊢ A)
 stepper {A} t n with eval (gas n) t
 ... | steps x (done t' v) = return t'
 ... | steps x out-of-gas  = inj₁ gasError

@@ -247,12 +247,15 @@ deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit 
 
-ℕtoFin : ∀{n} → ℕ → Either Error (Fin n)
+data ScopeError : Set where
+  scopeError : ScopeError
+
+ℕtoFin : ∀{n} → ℕ → Either ScopeError (Fin n)
 ℕtoFin {zero}  _       = inj₁ scopeError
 ℕtoFin {suc m} zero    = return zero
 ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
-ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either Error (WeirdFin w)
+ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either ScopeError (WeirdFin w)
 ℕtoWeirdFin {w = Z}   n    = inj₁ scopeError
 ℕtoWeirdFin {w = S w} zero = return Z
 ℕtoWeirdFin {w = S w} (suc n) = do
@@ -262,7 +265,7 @@ deBruijnifyC unit           = unit
   i ← ℕtoWeirdFin {w = w} n
   return (T i)
 
-scopeCheckTy : ∀{n} → RawTy → Either Error (ScopedTy n)
+scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
@@ -280,7 +283,7 @@ scopeCheckTy (μ A B) = do
   B ← scopeCheckTy B
   return (μ A B)
 
-scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either Error (ScopedTm w)
+scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either ScopeError (ScopedTm w)
 scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
 scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do

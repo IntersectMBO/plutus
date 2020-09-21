@@ -124,12 +124,8 @@ closeState (_◅_ s {t = t} v) = closeStack s t
 closeState (□ {t = t} v)     = t
 closeState (◆ A)             = error _
 
--- this function, apart from making a step, also determines the
--- contexts and provides a proof.  These things could be done
--- seperately.
-
-deval : ∀{A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → ∅ ⊢ A
-deval {t = t} _ = t
+discharge : ∀{A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → ∅ ⊢ A
+discharge {t = t} _ = t
 
 step : ∀{A} → State A → State A
 step (s ▻ ƛ L)                    = s ◅ V-ƛ L
@@ -142,7 +138,7 @@ step (s ▻ con cn)                 = s ◅ V-con cn
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
 step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
-step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ deval V ])
+step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
@@ -177,13 +173,15 @@ open import Data.Nat
 
 stepper : ℕ → ∀{T}
   → State T
-  → Either Error (State T)
+  → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ▻ M) = stepper n (s ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
+
+
 ```
 
 This is the property I would like to have, but it cannot be proved directly like this:

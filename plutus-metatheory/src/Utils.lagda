@@ -110,49 +110,21 @@ SumMonad A = record { return = inj₁ ; _>>=_ = sumBind }
 EitherMonad : (E : Set) → Monad (Either E)
 EitherMonad E = record { return = inj₂ ; _>>=_ = eitherBind }
 
-data Error : Set where
-  typeError : Error
-  kindMismatchError : Error
-  notTypeError : Error
-  notFunction : Error
-  notPiError : Error
-  notPat : Error
-  nameError : Error
-  typeEqError : Error
-  typeVarEqError : Error
-  tyConError : Error
-  builtinError : Error
-  unwrapError : Error
-  parseError : Error
-  scopeError : Error
-  gasError : Error
-
-open import Data.String
-
-reportError : Error → String
-reportError typeError = "typeError"
-reportError kindMismatchError = "kindMismatchError"
-reportError notTypeError = "notTypeError"
-reportError notFunction = "notFunctionError"
-reportError notPiError = "notPiError"
-reportError notPat = "notPat error"
-reportError nameError = "nameError"
-reportError typeEqError = "typeEqError"
-reportError typeVarEqError = "typeVarEqError"
-reportError tyConError = "tyConError"
-reportError builtinError = "builtinError"
-reportError unwrapError = "unwrapError"
-reportError parseError = "parseError"
-reportError scopeError = "scopeError"
-reportError gasError = "gasError"
-
--- the haskell version of Error is defined in Raw
-{-# FOREIGN GHC import Raw #-}
-
-{-# COMPILE GHC Error = data Error (TypeError | KindEqError | NotTypeError | NotFunction | NotPiError | NotPat | NameError | TypeEqError | TypeVarEqError | TyConError | BuiltinError | UnwrapError | ParseError | ScopeError | GasError) #-}
-
+-- one instance to rule them all...
 instance
-  EitherErrorMonad : Monad (Either Error)
-  EitherErrorMonad = EitherMonad Error
+  EitherP : {A : Set} → Monad (Either A)
+  Monad.return EitherP = inj₂
+  Monad._>>=_ EitherP  = eitherBind
+
+withE : {A B C : Set} → (A → B) → Either A C → Either B C
+withE f (inj₁ a) = inj₁ (f a)
+withE f (inj₂ c) = inj₂ c
+
+data RuntimeError : Set where
+  gasError : RuntimeError
+
+data ParseError : Set where
+  parseError : ParseError
+
 
 \end{code}

@@ -236,7 +236,7 @@ step (◆ A)       = ◆ A
 
 open import Data.Nat
 
-stepper : ℕ → ∀{T} → State T → Either Error (State T)
+stepper : ℕ → ∀{T} → State T → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)

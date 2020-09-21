@@ -54,16 +54,6 @@ data TypeError : Set where
   typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
   builtinError : TypeError
 
--- one instance to rule them all...
-instance
-  EitherP : {A : Set} → Monad (Either A)
-  Monad.return EitherP = inj₂
-  Monad._>>=_ EitherP  = eitherBind
-
-withE : {A B C : Set} → (A → B) → Either A C → Either B C
-withE f (inj₁ a) = inj₁ (f a)
-withE f (inj₂ c) = inj₂ c
-
 meqKind : (K K' : Kind) → Either (¬ (K ≡ K')) (K ≡ K')
 meqKind * * = inj₂ refl
 meqKind * (K' ⇒ J') = inj₁ λ() 

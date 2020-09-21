@@ -17,7 +17,7 @@ open import Data.Vec using (Vec;[];_∷_;_++_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Function
 open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Utils hiding (Error)
+open import Utils
 open import Data.Fin using ()
 \end{code}
 
