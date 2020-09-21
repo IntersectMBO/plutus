@@ -253,7 +253,7 @@ mkValidator p = SM.mkValidator $ SM.mkStateMachine (mkMarloweStateMachineTransit
 
 mkMarloweValidatorCode
     :: MarloweParams
-    -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MarloweStateMachine)
+    -> PlutusTx.CompiledCode PLC.DefaultUni () (Scripts.ValidatorType MarloweStateMachine)
 mkMarloweValidatorCode params =
     $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
