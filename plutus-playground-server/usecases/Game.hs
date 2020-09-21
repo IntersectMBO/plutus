@@ -26,7 +26,7 @@ module Game where
 -- output. If the guess is correct, the validator script releases the funds.
 -- If it isn't, the funds stay locked.
 import           Control.Monad               (void)
-import qualified Data.ByteString.Lazy.Char8  as C
+import qualified Data.ByteString.Char8  as C
 import Language.Plutus.Contract
 import qualified Language.PlutusTx           as PlutusTx
 import           Language.PlutusTx.Prelude   hiding (pure, (<$>))

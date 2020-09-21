@@ -6,7 +6,7 @@ module Raw where
 
 import           GHC.Natural
 
-import           Data.ByteString.Lazy         as BSL
+import           Data.ByteString              as BS
 import qualified Data.Text                    as T
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
@@ -29,7 +29,7 @@ data RType = RTyVar Integer
            deriving Show
 
 data RConstant = RConInt Integer
-               | RConBS BSL.ByteString
+               | RConBS BS.ByteString
                | RConStr T.Text
                | RConBool Bool
                | RConChar Char

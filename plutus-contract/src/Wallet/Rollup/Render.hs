@@ -15,7 +15,6 @@ import           Control.Monad.Except                  (MonadError, throwError)
 import           Control.Monad.Reader
 import           Crypto.Hash                           (Digest, SHA256)
 import qualified Data.Aeson.Extras                     as JSON
-import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Foldable                         (fold)
 import           Data.List                             (intersperse)
 import           Data.Map                              (Map)
@@ -119,7 +118,7 @@ instance Render TokenName where
     render t              = pure $ pretty $ Value.toString t
 
 instance Render Builtins.ByteString where
-    render = pure . pretty . JSON.encodeByteString . BSL.toStrict
+    render = pure . pretty . JSON.encodeByteString
 
 deriving via RenderPretty PlutusTx.Data instance
          Render PlutusTx.Data

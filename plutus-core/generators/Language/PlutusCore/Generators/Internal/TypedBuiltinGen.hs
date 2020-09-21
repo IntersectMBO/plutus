@@ -31,7 +31,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy                              as BSL
+import qualified Data.ByteString                                   as BS
 import           Data.Functor.Identity
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
@@ -39,8 +39,8 @@ import qualified Hedgehog.Gen                                      as Gen
 import qualified Hedgehog.Range                                    as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
-genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
-genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
+genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString
+genLowerBytes range = Gen.utf8 range Gen.lower
 
 -- TODO: rename me to @TermWith@.
 -- | A @term@ along with the correspoding Haskell value.

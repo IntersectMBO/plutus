@@ -41,7 +41,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy                  as BSL
+import qualified Data.ByteString                       as BS
 import           Data.Proxy
 
 -- | A class that allows to derive a 'TypeScheme' for a builtin.
@@ -160,61 +160,61 @@ typedEqInteger = makeTypedStaticBuiltinName EqInteger
 
 -- | Typed 'Concatenate'.
 typedConcatenate
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] BSL.ByteString
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BS.ByteString)
+    => TypedStaticBuiltinName term '[BS.ByteString, BS.ByteString] BS.ByteString
 typedConcatenate = makeTypedStaticBuiltinName Concatenate
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
-    => TypedStaticBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BS.ByteString])
+    => TypedStaticBuiltinName term '[Integer, BS.ByteString] BS.ByteString
 typedTakeByteString = makeTypedStaticBuiltinName TakeByteString
 
 -- | Typed 'DropByteString'.
 typedDropByteString
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
-    => TypedStaticBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BS.ByteString])
+    => TypedStaticBuiltinName term '[Integer, BS.ByteString] BS.ByteString
 typedDropByteString = makeTypedStaticBuiltinName DropByteString
 
 -- | Typed 'SHA2'.
 typedSHA2
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedStaticBuiltinName term '[BSL.ByteString] BSL.ByteString
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BS.ByteString)
+    => TypedStaticBuiltinName term '[BS.ByteString] BS.ByteString
 typedSHA2 = makeTypedStaticBuiltinName SHA2
 
 -- | Typed 'SHA3'.
 typedSHA3
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedStaticBuiltinName term '[BSL.ByteString] BSL.ByteString
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BS.ByteString)
+    => TypedStaticBuiltinName term '[BS.ByteString] BS.ByteString
 typedSHA3 = makeTypedStaticBuiltinName SHA3
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BS.ByteString, Bool])
+    => TypedStaticBuiltinName term '[BS.ByteString, BS.ByteString, BS.ByteString] (EvaluationResult Bool)
 typedVerifySignature = makeTypedStaticBuiltinName VerifySignature
 
 -- | Typed 'EqByteString'.
 typedEqByteString
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BS.ByteString, Bool])
+    => TypedStaticBuiltinName term '[BS.ByteString, BS.ByteString] Bool
 typedEqByteString = makeTypedStaticBuiltinName EqByteString
 
 -- | Typed 'LtByteString'.
 typedLtByteString
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BS.ByteString, Bool])
+    => TypedStaticBuiltinName term '[BS.ByteString, BS.ByteString] Bool
 typedLtByteString = makeTypedStaticBuiltinName LtByteString
 
 -- | Typed 'GtByteString'.
 typedGtByteString
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BS.ByteString, Bool])
+    => TypedStaticBuiltinName term '[BS.ByteString, BS.ByteString] Bool
 typedGtByteString = makeTypedStaticBuiltinName GtByteString
 
 -- | Typed 'IfThenElse'.
 typedIfThenElse
-    :: ( HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool]
+    :: ( HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BS.ByteString, Bool]
        , a ~ Opaque term (TyVarRep "a" 0)
        )
     => TypedStaticBuiltinName term '[Bool, a, a] a
