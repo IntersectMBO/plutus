@@ -288,7 +288,7 @@ initState = initRNG 111 47
 
 mkPrimeTerm :: Integer -> Term Name DefaultUni ()
 mkPrimeTerm input =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
+  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile 
         [|| \input' -> process input' initState ||])
         `Tx.applyCode` Tx.liftCode [input]
   in code
