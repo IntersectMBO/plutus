@@ -51,7 +51,7 @@ data RTerm = RVar Integer
 unIndex :: Index -> Integer
 unIndex (Index n) = naturalToInteger n
 
-convP :: Program TyDeBruijn DeBruijn DefaultUni a -> RTerm
+convP :: Program TyDeBruijn DeBruijn DefaultUni () a -> RTerm
 convP (Program _ _ t) = conv t
 
 convK :: Kind a -> RKind
@@ -75,7 +75,7 @@ convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
 convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 
-conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
+conv :: Term TyDeBruijn DeBruijn DefaultUni () a -> RTerm
 conv (Var _ x)                         = RVar (unIndex (dbnIndex x))
 conv (TyAbs _ _ _K t)                  = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)                   = RTApp (conv t) (convT _A)
@@ -124,7 +124,7 @@ tmnames = ['a' .. 'z']
 tynames = ['A' .. 'Z']
 
 
-unconv :: Int -> Int -> RTerm -> Term TyDeBruijn DeBruijn DefaultUni ()
+unconv :: Int -> Int -> RTerm -> Term TyDeBruijn DeBruijn DefaultUni () ()
 unconv tyi tmi (RVar x)          =
   Var () (DeBruijn (T.pack [tmnames !! (tmi - fromIntegral x)]) (Index (naturalFromInteger x)))
 unconv tyi tmi (RTLambda k tm)   = TyAbs () (TyDeBruijn (varTy (tyi+1))) (unconvK k) (unconv (tyi+1) tmi tm)
@@ -154,4 +154,3 @@ data Error = TypeError
            | ParseError
            | ScopeError
            | GasError
-

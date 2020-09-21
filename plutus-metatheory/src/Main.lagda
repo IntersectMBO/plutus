@@ -1,7 +1,7 @@
 \begin{code}
 module Main where
 open import Agda.Builtin.IO
-import IO.Primitive as IO using (return;_>>=_) 
+import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
 open import Function
@@ -132,10 +132,10 @@ postulate
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni () Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni () Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni () Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni () Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
