@@ -23,7 +23,7 @@ import           Criterion.Main
 import qualified Criterion.Types                                            as C
 import           Data.Functor
 
-runTermBench :: String -> Plain Term DefaultUni -> Benchmark
+runTermBench :: String -> Plain Term DefaultUni () -> Benchmark
 runTermBench name term = env
     (do
         (_result, budget) <-
