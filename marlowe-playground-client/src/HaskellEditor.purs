@@ -1,7 +1,6 @@
 module HaskellEditor where
 
 import Prelude hiding (div)
-import API (RunResult, _RunResult)
 import Affjax (defaultRequest)
 import Affjax.RequestBody as Affjax
 import Affjax.RequestHeader (RequestHeader(..))
@@ -94,7 +93,7 @@ handleAction _ SendResultToBlockly = do
   case mContract of
     Success (Right result) -> do
       let
-        source = view (_InterpreterResult <<< _result <<< _RunResult) result
+        source = view (_InterpreterResult <<< _result) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
@@ -103,7 +102,7 @@ postHaskell ::
   MonadError AjaxError m =>
   MonadAff m =>
   SourceCode ->
-  m (Either InterpreterError (InterpreterResult RunResult))
+  m (Either InterpreterError (InterpreterResult String))
 postHaskell sourceCode = do
   let
     affReq =
@@ -257,7 +256,7 @@ resultPane state =
       --     ]
       -- ]
       where
-      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") (unwrap result.result)
+      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
     Success (Left (TimeoutError error)) -> [ text error ]
     Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "" ]

@@ -11,15 +11,14 @@
 # We can then pass the `-optl=-static` flag and statically link this as it does not use TH.
 { pkgs, lib, haskellPackages }:
 let
-  ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-symbolic ]);
+  ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-playground-server ]);
   main = pkgs.writeText "app.hs"
               ''
               module Main where
-              import qualified Marlowe.Symbolic.Lambda as Lambda
+              import qualified Lambda
               main = Lambda.main
               '';
 
-  z3 = pkgs.z3.override { staticbin = true; };
   openssl = (pkgs.openssl.override { static = true; }).overrideAttrs(old : {
     # "no-shared" per https://github.com/NixOS/nixpkgs/pull/77542, should be able to
     # get rid of this when we update nixpkgs
@@ -30,13 +29,9 @@ let
   ncurses = pkgs.ncurses.override { enableStatic = true; };
   libffi = pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; });
   numactl = pkgs.numactl.overrideAttrs (_: { configureFlags = "--enable-static"; });
-
-  killallz3 = pkgs.writeScriptBin "killallz3" ''
-    kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
-  '';
 in
   pkgs.stdenv.mkDerivation {
-    name = "marlowe-symbolic-lambda";
+    name = "marlowe-playground-lambda";
     nativeBuildInputs = [ pkgs.zip ];
     unpackPhase = "true";
     buildPhase =
@@ -52,8 +47,8 @@ in
                      -optl=-L${lib.getLib numactl}/lib
       '';
     installPhase = ''
-      zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
-      mv marlowe-symbolic.zip $out/marlowe-symbolic.zip
+      zip -j marlowe-playground-lambda.zip $out/bin/bootstrap
+      mv marlowe-playground-lambda.zip $out/marlowe-playground-lambda.zip
     '';
 
     # Marlowe lambda builds with musl, and only on linux

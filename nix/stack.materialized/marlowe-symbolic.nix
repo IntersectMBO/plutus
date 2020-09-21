@@ -35,6 +35,7 @@
         depends = [
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
+          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
@@ -45,13 +46,15 @@
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."utf8-string" or (errorHandler.buildDepError "utf8-string"))
           (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
           ];
         buildable = true;
         modules = [
-          "App"
+          "Marlowe/Symbolic/Lambda"
+          "Marlowe/Symbolic/Server"
           "Marlowe/Symbolic/Types/Request"
           "Marlowe/Symbolic/Types/Response"
           ];

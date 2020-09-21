@@ -1,6 +1,5 @@
 module Simulation where
 
-import API as API
 import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Alternative (map, void, when, (<|>))
 import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
@@ -33,7 +32,6 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Foreign.Generic (encodeJSON)
 import Gist (Gist, _GistId, gistFileContent, gistId)
 import Gists (GistAction(..), idPublishGist)
 import Gists as Gists
@@ -60,6 +58,7 @@ import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
+import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
@@ -239,11 +238,11 @@ handleAction settings AnalyseContract = do
     Nothing -> pure unit
     Just contract -> do
       assign _analysisState (WarningAnalysis Loading)
-      response <- checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
+      response <- checkContractForWarnings contract currState
       assign _analysisState (WarningAnalysis response)
   where
   -- FIXME: now we need to get the client to post to lambda-env.marlowe.iohkdev.io
-  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) contract state))
+  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
 
 handleAction settings AnalyseReachabilityContract = do
   currContract <- use _currentContract
@@ -263,7 +262,7 @@ getCurrentContract = do
 checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
 checkAuthStatus settings = do
   assign _authStatus Loading
-  authResult <- runAjax $ runReaderT Server.getOauthStatus settings
+  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
 
 handleGistAction ::
@@ -283,8 +282,8 @@ handleGistAction settings PublishGist = do
         newResult <-
           lift
             $ case preview (_Success <<< gistId) mGist of
-                Nothing -> runAjax $ flip runReaderT settings $ Server.postGists newGist
-                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchGistsByGistId newGist gistId
+                Nothing -> runAjax $ flip runReaderT settings $ Server.postApiGists newGist
+                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
@@ -303,7 +302,7 @@ handleGistAction settings LoadGist = do
           eGistId <- except $ Gists.parseGistUrl mGistId
           --
           assign _loadGistResult $ Right Loading
-          aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getGistsByGistId eGistId
+          aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getApiGistsByGistId eGistId
           assign _loadGistResult $ Right aGist
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
           --

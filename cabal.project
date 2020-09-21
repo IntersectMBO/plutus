@@ -13,6 +13,7 @@ packages: plutus-core
           playground-common
           marlowe-actus
           marlowe-playground-server
+          marlowe-playground-lambda
           marlowe-symbolic
           plutus-contract
           deployment-server
