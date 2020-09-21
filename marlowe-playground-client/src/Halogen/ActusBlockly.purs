@@ -171,7 +171,8 @@ render state =
       [ div [ classes [ panelSubHeaderMain, aHorizontal ]]
         [ toCodeButton "Generate reactive contract"
         , toStaticCodeButton "Generate static contract"
-        , runAnalysis
+        -- this feature is temporary disabled because shiny is not deployed yet
+        --, runAnalysis
         , errorMessage state.errorMessage
         ]
       ]
