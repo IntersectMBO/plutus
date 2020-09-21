@@ -80,26 +80,34 @@ Copied executables to ~/.local/bin:
 
 #### The CK machine
 
-The CK machine can be used to evaluate programs. For this, feed a type checked program to the `runCk` function defined in the [`Language.PlutusCore.Evaluation.CkMachine`](src/Language/PlutusCore/Evaluation/CkMachine.hs) module:
+The CK machine can be used to evaluate programs. For this, feed a type checked
+Plutus Core term to the `unsafeEvaluateCk` function defined in the
+[`Language.PlutusCore.Evaluation.Machine.Ck`](src/Language/PlutusCore/Evaluation/Machine/Ck.hs)
+module (the `DynamicBuiltinNameMeanings` argument contains information about
+extra built-in functions and can safely be set to `Data.Map.empty` for simple
+programs):
 
 ```haskell
-runCk :: Program TyName Name () -> CkEvalResult
+unsafeEvaluateCk
+    :: DynamicBuiltinNameMeanings (CkValue uni)
+    -> Term TyName Name uni () -> EvaluationResult (Term TyName Name uni ())
 ```
 
-It returns a `CkEvalResult` which is either a succesfully computed `Value` (which is a type synonym for `Term`) or a failure:
+It returns an `EvaluationResult` which is either a succesfully computed `Term` or a failure:
 
 ```haskell
-data CkEvalResult
-    = CkEvalSuccess (Value TyName Name ())
-    | CkEvalFailure
+data EvaluationResult a
+    = EvaluationSuccess a
+    | EvaluationFailure
 ```
+It can also raise an exception, as indicated by `unsafe` in the name, but this should not happen for well-formed programs.
 
 There is an executable that runs programs on the CK machine: you can feed a program to `plc evaluate`, the program will be run and the result will be printed.
 
 An example of usage:
 
 ```
-echo "(program 0.1.0 [(lam x [(con integer) (con 2)] x) (con 2 ! 4)])" | plc evaluate --stdin
+echo "(program 0.1.0 [(lam x (con integer) x) (con integer 271)])" | plc evaluate --stdin -mCK
 ```
 
 #### Tests
@@ -111,9 +119,12 @@ The generator makes sure a term is well-typed and keeps track of what it's suppo
 There is an executable that prints a term and the expected result of evaluation. Run it as `plutus-core-generate-evaluation-test`, and you'll be shown two terms separated by a newline.
 
 ```
-(program 0.1.0 [ (lam x_0 [ (con integer) (con 2) ] [ [ { (con lessThanInteger) (con 2) } [ [ { (con divideInteger) (con 2) } x_0 ] [ [ { (con divideInteger) (con 2) } x_0 ] x_0 ] ] ] [ [ { (con remainderInteger) (con 2) } x_0 ] x_0 ] ]) [ [ { (con addInteger) (con 2) } [ [ { { (con resizeInteger) (con 2) } (con 2) } (con 2) ] [ [ { (con subtractInteger) (con 2) } (con 2 ! 26) ] (con 2 ! 63) ] ] ] [ [ { (con multiplyInteger) (con 2) } [ [ { (con divideInteger) (con 2) } (con 2 ! 61) ] (con 2 ! -7) ] ] [ [ { (con subtractInteger) (con 2) } (con 2 ! 16) ] (con 2 ! 74) ] ] ] ])
+(program 0.1.0 [ (lam x0 (con bool) [ [ (builtin dropByteString) [ [ (builtin multiplyInteger) [ [ (builtin addInteger) (con integer 3) ] (con integer 3) ] ] [ [ (builtin multiplyInteger) (con integer 2) ] (con integer 1) ] ] ] [ (builtin sha3_256) [ [ (builtin takeByteString) (con integer 2) ] (con bytestring #7661) ] ] ] ) [ [ (builtin greaterThanInteger) [ [ (builtin multiplyInteger) [ [ (builtin multiplyInteger) (con integer 2) ] (con integer 0) ] ] [ [ (builtin subtractInteger) (con integer 3) ] (con integer 3) ] ] ] [ [ (builtin addInteger) [ [ (builtin multiplyInteger) (con integer 1) ] (con integer 1) ] ] [ [ (builtin addInteger) (con integer 1) ] (con integer 1) ] ] ] ] )
 
-(abs a (type) (lam x (fun (all a (type) (fun a a)) a) (lam y (fun (all a (type) (fun a a)) a) [ y (abs a (type) (lam x a x)) ])))
+(con bytestring #4b6e4ba90e78b6601bc63c806d34f914b983acc3)
 ```
 
-where the first line is a program, the second line is empty and the third line is the result of evaluation of the program (this is how we represent `False` in PLC). Output is always structured this way: three lines with the second one being empty.
+where the first line is a program, the second line is empty and the third line
+is the result of evaluation of the program (in this case, the Plutus Core
+representation of a bytestring). Output is always structured this way: three
+lines with the second one being empty.

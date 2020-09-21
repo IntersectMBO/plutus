@@ -52,9 +52,9 @@ integerToInt64 = fromIntegral
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: forall err m args term res.
+    :: forall err m args exBudgetCat term res.
        ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term
+       , SpendBudget m exBudgetCat term
        )
     => BuiltinName
     -> TypeScheme term args res
@@ -79,7 +79,7 @@ applyTypeSchemed name = go where
                     Nothing
     go (TypeSchemeAll _ _ schK)  f exF args =
         go (schK Proxy) f exF args
-    go (TypeSchemeArrow _ schB)    f exF args = case args of
+    go (TypeSchemeArrow _ schB)  f exF args = case args of
         []          ->
             throwingWithCause _ConstAppError              -- Too few arguments.
                 (TooFewArgumentsConstAppError name)
@@ -94,7 +94,7 @@ applyTypeSchemed name = go where
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    spendBudget (BBuiltin name) exF'
+                    spendBudget (exBudgetBuiltin name) exF'
                     go schB (f x) exF' args'
                 _ -> go schB (f x) exF' args'
 
@@ -102,7 +102,7 @@ applyTypeSchemed name = go where
 -- Checks that the constants are of expected types.
 applyTypedStaticBuiltinName
     :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term
+       , SpendBudget m exBudgetCat term
        )
     => TypedStaticBuiltinName term args res
     -> FoldArgs args res
@@ -115,9 +115,10 @@ applyTypedStaticBuiltinName (TypedStaticBuiltinName name schema) =
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyStaticBuiltinName
-    :: forall m err uni term
+    :: forall m err uni exBudgetCat term
     .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
+       , SpendBudget m exBudgetCat term, HasConstantIn uni term
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => StaticBuiltinName -> [term] -> m (EvaluationResult term)
 applyStaticBuiltinName name args = do

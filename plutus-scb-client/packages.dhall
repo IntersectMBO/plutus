@@ -158,7 +158,7 @@ let additions =
           ⫽ { repo =
                 "https://github.com/shmish111/purescript-foreign-generic"
             , version =
-                "purs-0.13"
+                "a2c5a0d623bb543207968110065e585d407c36d2"
             }
       , matryoshka =
           { dependencies =

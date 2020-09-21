@@ -6,5 +6,5 @@
     (vardecl i (con integer))
     (let (nonrec) (termbind (strict) (vardecl j (con integer)) r) j)
   )
-  (con 3)
+  (con integer 3)
 )

@@ -15,15 +15,15 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Effect.Console as Console
 import Halogen (HalogenM, liftEffect, raise)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
+import Plutus.SCB.Events.Contract (ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver (SPParams_, getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport, StreamToServer)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import Wallet.Types (EndpointDescription, ContractInstanceId)
 
 class
   Monad m <= MonadApp m where

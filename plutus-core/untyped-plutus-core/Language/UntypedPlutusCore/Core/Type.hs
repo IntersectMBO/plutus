@@ -1,7 +1,21 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module Language.UntypedPlutusCore.Core.Type where
+module Language.UntypedPlutusCore.Core.Type
+    ( TPLC.UniOf
+    , TPLC.StaticBuiltinName (..)
+    , TPLC.DynamicBuiltinName (..)
+    , TPLC.BuiltinName (..)
+    , Term (..)
+    , Program (..)
+    , termAnn
+    , erase
+    , eraseProgram
+    ) where
 
 import           PlutusPrelude
 
@@ -33,9 +47,13 @@ data Term name uni ann
     | Delay ann (Term name uni ann)
     | Force ann (Term name uni ann)
     | Error ann
-    deriving (Show, Functor, Generic)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
--- Instances needed by the constant application machinery.
+-- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
+data Program name uni ann = Program ann (TPLC.Version ann) (Term name uni ann)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
 type instance TPLC.UniOf (Term name uni ann) = uni
 
@@ -51,6 +69,11 @@ instance ToExMemory (Term name uni ()) where
 
 instance ToExMemory (Term name uni ExMemory) where
     toExMemory = termAnn
+
+deriving via GenericExMemoryUsage (Term name uni ann) instance
+    ( ExMemoryUsage name, ExMemoryUsage ann
+    , Closed uni, uni `Everywhere` ExMemoryUsage
+    ) => ExMemoryUsage (Term name uni ann)
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni ann -> ann
@@ -75,3 +98,7 @@ erase (TPLC.TyInst ann term _)      = Force ann (erase term)
 erase (TPLC.Unwrap _ term)          = erase term
 erase (TPLC.IWrap _ _ _ term)       = erase term
 erase (TPLC.Error ann _)            = Error ann
+
+-- | Erase a Typed Plutus Core Program to its untyped counterpart.
+eraseProgram :: TPLC.Program tyname name uni ann -> Program name uni ann
+eraseProgram (TPLC.Program a v t) = Program a v $ erase t

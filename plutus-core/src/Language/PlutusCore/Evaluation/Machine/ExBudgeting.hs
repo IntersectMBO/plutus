@@ -76,9 +76,9 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExBudget(..)
     , ExBudgetState(..)
     , ExTally(..)
-    , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
     , ToExMemory(..)
+    , ExBudgetBuiltin(..)
     , SpendBudget(..)
     , CostModel
     , CostModelBase(..)
@@ -142,8 +142,20 @@ instance ToExMemory (Term TyName Name uni ()) where
 instance ToExMemory (Term TyName Name uni ExMemory) where
     toExMemory = termAnn
 
+-- | A class for injecting a 'BuiltinName' into an @exBudgetCat@.
+-- We need it, because the constant application machinery calls 'spendBudget' before reducing a
+-- constant application and we want to be general over @exBudgetCat@ there, but still track the
+-- built-in functions category, hence the ad hoc polymorphism.
+class ExBudgetBuiltin exBudgetCat where
+    exBudgetBuiltin :: BuiltinName -> exBudgetCat
+
+-- | A dummy 'ExBudgetBuiltin' instance to be used in monads where we don't care about costing.
+instance ExBudgetBuiltin () where
+    exBudgetBuiltin _ = ()
+
 -- This works nicely because @m@ contains @term@.
-class ToExMemory term => SpendBudget m term | m -> term where
+class (ExBudgetBuiltin exBudgetCat, ToExMemory term) =>
+            SpendBudget m exBudgetCat term | m -> exBudgetCat term where
     builtinCostParams :: m CostModel
 
     -- | Spend the budget, which may mean different things depending on the monad:
@@ -151,21 +163,7 @@ class ToExMemory term => SpendBudget m term | m -> term where
     -- 1. do nothing for an evaluator that does not care about costing
     -- 2. count upwards to get the cost of a computation
     -- 3. subtract from the current budget and fail if the budget goes below zero
-    spendBudget :: ExBudgetCategory -> ExBudget -> m ()
-
-data ExBudgetCategory
-    = BTyInst
-    | BApply
-    | BIWrap
-    | BUnwrap
-    | BVar
-    | BBuiltin BuiltinName
-    | BAST
-    deriving stock (Show, Eq, Generic)
-    deriving anyclass NFData
-instance Hashable ExBudgetCategory
-instance (PrettyBy config) ExBudgetCategory where
-    prettyBy _ = viaShow
+    spendBudget :: exBudgetCat -> ExBudget -> m ()
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic)
@@ -178,24 +176,28 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExBudget where
         , "}"
         ]
 
-data ExBudgetState = ExBudgetState
-    { _exBudgetStateTally  :: ExTally -- ^ for counting what cost how much
-    , _exBudgetStateBudget :: ExBudget  -- ^ for making sure we don't spend too much
+data ExBudgetState  exBudgetCat = ExBudgetState
+    { _exBudgetStateTally  :: ExTally exBudgetCat -- ^ for counting what cost how much
+    , _exBudgetStateBudget :: ExBudget -- ^ for making sure we don't spend too much
     }
     deriving stock (Eq, Generic, Show)
     deriving anyclass NFData
-instance PrettyDefaultBy config Integer => PrettyBy config ExBudgetState where
+instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
+         , Eq exBudgetCat, Hashable exBudgetCat
+         ) => PrettyBy config (ExBudgetState exBudgetCat) where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
         , "| budget: ", prettyBy config budget, line
         , "}"
         ]
 
-newtype ExTally = ExTally (MonoidalHashMap ExBudgetCategory ExBudget)
+newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat ExBudget)
     deriving stock (Eq, Generic, Show)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTally exBudgetCat))
     deriving anyclass NFData
-instance PrettyDefaultBy config Integer => PrettyBy config ExTally where
+instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
+         , Eq exBudgetCat, Hashable exBudgetCat
+         ) => PrettyBy config (ExTally exBudgetCat) where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
           ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])

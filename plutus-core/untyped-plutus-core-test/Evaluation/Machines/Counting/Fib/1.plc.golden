@@ -1,0 +1,23 @@
+( (Right (1))
+, ({ tally: ({ BForce causes ({ cpu: 6
+| mem: 6
+})
+| BBuiltin (StaticBuiltinName IfThenElse) causes ({ cpu: 1
+| mem: 1
+})
+| BApply causes ({ cpu: 18
+| mem: 18
+})
+| BAST causes ({ cpu: 0
+| mem: 40
+})
+| BVar causes ({ cpu: 13
+| mem: 13
+})
+| BBuiltin (StaticBuiltinName LessThanEqInteger) causes ({ cpu: 15
+| mem: 1
+})})
+| budget: ({ cpu: 53
+| mem: 79
+})
+}) )

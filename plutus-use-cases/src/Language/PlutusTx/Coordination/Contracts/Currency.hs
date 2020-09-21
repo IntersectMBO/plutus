@@ -133,7 +133,8 @@ currencySymbol = scriptCurrencySymbol . curPolicy
 data CurrencyError =
     CurPubKeyError PubKeyError
     | CurContractError ContractError
-    deriving (Prelude.Eq, Show)
+    deriving stock (Prelude.Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''CurrencyError
 

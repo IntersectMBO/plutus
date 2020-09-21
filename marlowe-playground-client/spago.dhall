@@ -4,8 +4,8 @@ You can edit this file as you like.
 -}
 { name = "marlowe-playground-client"
 , dependencies =
-  [ "avar"
-  , "bigints"
+  [ "aff-promise"
+  , "avar"
   , "concurrent-queues"
   , "console"
   , "coroutines"
@@ -15,7 +15,6 @@ You can edit this file as you like.
   , "halogen"
   , "matryoshka"
   , "node-fs"
-  , "numerics"
   , "prelude"
   , "psci-support"
   , "routing"

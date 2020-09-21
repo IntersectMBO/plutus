@@ -61,7 +61,7 @@ data Type tyname uni ann
     | TyBuiltin ann (Some (TypeIn uni)) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 -- | Builtin functions
 data StaticBuiltinName
@@ -87,7 +87,7 @@ data StaticBuiltinName
     | LtByteString
     | GtByteString
     | IfThenElse
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable, Ix)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
@@ -95,12 +95,12 @@ data StaticBuiltinName
 newtype DynamicBuiltinName = DynamicBuiltinName
     { unDynamicBuiltinName :: Text  -- ^ The name of a dynamic built-in name.
     } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Lift, Hashable)
+      deriving newtype (NFData, Hashable)
 
 data BuiltinName
     = StaticBuiltinName StaticBuiltinName
     | DynBuiltinName DynamicBuiltinName
-    deriving (Show, Generic, NFData, Lift, Hashable, Eq)
+    deriving (Show, Generic, NFData, Hashable, Eq)
 
 data Term tyname name uni ann
     = Var ann name -- ^ a named variable
@@ -113,16 +113,16 @@ data Term tyname name uni ann
     | Unwrap ann (Term tyname name uni ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni ann = Program ann (Version ann) (Term tyname name uni ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable)
 
 -- | Extract the universe from a type.
 type family UniOf a :: * -> *
@@ -131,7 +131,7 @@ type instance UniOf (Term tyname name uni ann) = uni
 
 newtype Normalized a = Normalized
     { unNormalized :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable, Lift, Generic)
+    } deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
       deriving newtype (NFData, Pretty, PrettyBy config)
       deriving Applicative via Identity
 

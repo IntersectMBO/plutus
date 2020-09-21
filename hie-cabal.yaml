@@ -6,12 +6,16 @@ cradle:
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
   - path: ./plutus-core/src
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
+  - path: ./plutus-core/untyped-plutus-core
+    config: { cradle: { cabal: { component: "lib:untyped-plutus-core" } } }
   - path: ./plutus-core/plutus-ir
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
   - path: ./plutus-core/common
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
   - path: ./plutus-core/test
     config: { cradle: { cabal: { component: "plutus-core:plutus-core-test" } } }
+  - path: ./plutus-core/untyped-plutus-core-test
+    config: { cradle: { cabal: { component: "lib:untyped-plutus-core-test" } } }
   - path: ./plutus-core/plutus-ir-test
     config: { cradle: { cabal: { component: "plutus-core:plutus-ir-test" } } }
   - path: ./plutus-core/bench

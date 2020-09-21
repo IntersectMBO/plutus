@@ -13,7 +13,8 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Classic ()
 import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Universe
 
 instance Pretty (Kind ann) where

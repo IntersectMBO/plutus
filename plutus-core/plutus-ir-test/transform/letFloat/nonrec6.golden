@@ -11,7 +11,7 @@
         (termbind
           (strict)
           (vardecl j (con integer))
-          [ [ (builtin addInteger) (con 1) ] x ]
+          [ [ (builtin addInteger) (con integer 1) ] x ]
         )
         j
       )

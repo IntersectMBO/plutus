@@ -63,7 +63,7 @@ executable web-ghc-server
         mtl,
         optparse-applicative,
         playground-common,
-        prometheus,
+        prometheus < 2.2,
         servant-server,
         servant,
         text,

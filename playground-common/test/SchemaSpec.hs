@@ -16,8 +16,8 @@ import           GHC.Generics          (Generic)
 import           Ledger.Ada            (lovelaceValueOf)
 import           Ledger.Value          (Value)
 import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
-import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormObjectF, FormRadioF, FormStringF, FormValueF),
-                                        FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaMaybe, FormSchemaObject, FormSchemaRadio, FormSchemaString, FormSchemaTuple),
+import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormIntegerF, FormObjectF, FormRadioF, FormStringF, FormValueF),
+                                        FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaInteger, FormSchemaMaybe, FormSchemaObject, FormSchemaRadio, FormSchemaString, FormSchemaTuple),
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Tasty            (TestTree, testGroup)
 import           Test.Tasty.HUnit      (assertEqual, testCase)
@@ -32,7 +32,7 @@ toSchemaTests =
         "toSchema"
         [ testCase "Encoding of various types" $ do
               assertEqual "Int" (toSchema @Int) FormSchemaInt
-              assertEqual "Integer" (toSchema @Integer) FormSchemaInt
+              assertEqual "Integer" (toSchema @Integer) FormSchemaInteger
               assertEqual "String" (toSchema @String) FormSchemaString
               assertEqual "Text" (toSchema @Text) FormSchemaString
               assertEqual
@@ -68,14 +68,19 @@ toArgumentTests =
         [ testCase "Encoding of various types" $ do
               assertEqual "Bool" (toArgument False) (formBoolF False)
               assertEqual "Int" (toArgument (5 :: Int)) (formIntF 5)
+              assertEqual "Integer" (toArgument (5 :: Integer)) (formIntegerF 5)
               assertEqual
                   "String"
                   (toArgument ("Test" :: String))
                   (formStringF "Test")
               assertEqual
-                  "[String]"
+                  "[Int]"
                   (toArgument ([1, 2, 3] :: [Int]))
                   (formArrayF FormSchemaInt (formIntF <$> [1, 2, 3]))
+              assertEqual
+                  "[Integer]"
+                  (toArgument ([1, 2, 3] :: [Integer]))
+                  (formArrayF FormSchemaInteger (formIntegerF <$> [1, 2, 3]))
               assertEqual
                   "User"
                   (toArgument
@@ -96,7 +101,7 @@ toArgumentTests =
                   "PayToWalletParams"
                   (toArgument PayToWalletParams {payTo, value})
                   (formObjectF
-                       [ ("payTo", formObjectF [("getWallet", formIntF 1)])
+                       [ ("payTo", formObjectF [("getWallet", formIntegerF 1)])
                        , ("value", formValueF value)
                        ])
         ]
@@ -120,6 +125,9 @@ data Size
 ------------------------------------------------------------
 formIntF :: Int -> FormArgument
 formIntF = Fix . FormIntF . Just
+
+formIntegerF :: Integer -> FormArgument
+formIntegerF = Fix . FormIntegerF . Just
 
 formBoolF :: Bool -> FormArgument
 formBoolF = Fix . FormBoolF

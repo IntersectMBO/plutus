@@ -102,6 +102,21 @@ weakenEnd14 u = case decomp u of
     Left u' -> weaken $ weakenEnd13 u'
     Right t -> inj t
 
+weakenEnd15 :: forall effs a b c d e f g h i j k l m n o. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': effs)
+weakenEnd15 u = case decomp u of
+    Left u' -> weaken $ weakenEnd14 u'
+    Right t -> inj t
+
+weakenEnd16 :: forall effs a b c d e f g h i j k l m n o p. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': effs)
+weakenEnd16 u = case decomp u of
+    Left u' -> weaken $ weakenEnd15 u'
+    Right t -> inj t
+
+weakenEnd17 :: forall effs a b c d e f g h i j k l m n o p q. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': q ': effs)
+weakenEnd17 u = case decomp u of
+    Left u' -> weaken $ weakenEnd16 u'
+    Right t -> inj t
+
 weakenUnder :: forall effs a b . Union (a ': effs) ~> Union (a ': b ': effs)
 weakenUnder u = case decomp u of
     Left u' -> weaken $ weaken u'
@@ -196,6 +211,24 @@ raiseEnd14 = loop where
         Val a -> pure a
         E u q -> E (weakenEnd14 u) (tsingleton $ qComp q loop)
 
+raiseEnd15 :: forall effs a b c d e f g h i j k l m n o. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': effs)
+raiseEnd15 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd15 u) (tsingleton $ qComp q loop)
+
+raiseEnd16 :: forall effs a b c d e f g h i j k l m n o p. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': effs)
+raiseEnd16 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd16 u) (tsingleton $ qComp q loop)
+
+raiseEnd17 :: forall effs a b c d e f g h i j k l m n o p q. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': o ': p ': q ': effs)
+raiseEnd17 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd17 u) (tsingleton $ qComp q loop)
+
 raiseUnder :: forall effs a b . Eff (a ': effs) ~> Eff (a ': b ': effs)
 raiseUnder = loop where
     loop = \case
@@ -267,3 +300,11 @@ errorToMonadError
     => (Error e ~> m)
 errorToMonadError = \case
     Error e -> MTL.throwError e
+
+-- | Transform an error type
+wrapError
+    :: forall e f effs. Member (Error f) effs
+    => (e -> f)
+    -> Eff (Error e ': effs)
+    ~> Eff effs
+wrapError f = flip handleError (throwError @f . f)

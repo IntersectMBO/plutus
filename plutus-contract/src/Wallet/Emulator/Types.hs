@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -37,10 +38,6 @@ module Wallet.Emulator.Types(
     ownPrivateKey,
     ownAddress,
     -- ** Traces
-    runTraceChain,
-    runTraceTxPool,
-    evalTraceTxPool,
-    execTraceTxPool,
     walletAction,
     walletRecvBlocks,
     walletNotifyBlock,
@@ -94,7 +91,9 @@ import           Wallet.Emulator.Chain      as Chain
 import           Wallet.Emulator.ChainIndex
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
+import           Wallet.Emulator.Notify     (EmulatorContractNotifyEffect (..))
 import           Wallet.Emulator.Wallet
+import           Wallet.Types               (AsAssertionError (..), AssertionError (..))
 
 type EmulatorEffs = '[MultiAgentEffect, ChainEffect, ChainControlEffect]
 
@@ -140,6 +139,7 @@ processEmulated :: forall e effs.
     ( AsAssertionError e
     , Member (Error e) effs
     , Member (State EmulatorState) effs
+    , Member EmulatorContractNotifyEffect effs
     )
     => Eff EmulatorEffs
     ~> Eff effs
@@ -162,33 +162,10 @@ processEmulated act = do
         & flip Eff.handleError (\(e :: WalletAPIError) -> Eff.throwError $ GenericAssertion $ T.pack $ show e)
         & interpret (Eff.handleZoomedError p2)
 
-
 -- | Run a 'Eff (EmulatorBackend e)' action on an 'EmulatorState', returning
 --   the final state and either the result or an error.
 runEmulator :: forall e a . EmulatorState -> Eff (EmulatorBackend e) a -> (Either e a, EmulatorState)
 runEmulator state = run . Eff.runState state . Eff.runError
-
--- | Run an 'Trace' on a blockchain.
-runTraceChain :: Blockchain -> Eff EmulatorEffs a -> (Either AssertionError a, EmulatorState)
-runTraceChain chain = run . Eff.runState emState . Eff.runError . processEmulated @AssertionError where
-    emState = emulatorState chain
-
--- | Run a 'Trace' on an empty blockchain with a pool of pending transactions.
-runTraceTxPool :: TxPool -> Eff EmulatorEffs a -> (Either AssertionError a, EmulatorState)
-runTraceTxPool tp = run . Eff.runState emState . Eff.runError . processEmulated @AssertionError where
-    emState = emulatorStatePool tp
-
--- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
---   transactions and return the final value, discarding the final
---   'EmulatorState'.
-evalTraceTxPool :: TxPool -> Eff EmulatorEffs a -> Either AssertionError a
-evalTraceTxPool pl t = fst $ runTraceTxPool pl t
-
--- | Evaluate a 'Trace' on an empty blockchain with a pool of pending
---   transactions and return the final 'EmulatorState', discarding the final
---   value.
-execTraceTxPool :: TxPool -> Eff EmulatorEffs a -> EmulatorState
-execTraceTxPool pl t = snd $ runTraceTxPool pl t
 
 -- | Run an action as a wallet, subsequently process any pending transactions
 --   and notify wallets. Returns the new block

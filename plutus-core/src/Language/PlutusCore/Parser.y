@@ -1,40 +1,46 @@
 {
-    {-# LANGUAGE OverloadedStrings  #-}
-    {-# LANGUAGE TypeApplications   #-}
-    {-# LANGUAGE TypeOperators      #-}
-    {-# LANGUAGE LambdaCase         #-}
-module Language.PlutusCore.Parser ( parse
-				  , parseTm
-				  , parseTy
-				  , parseST
-				  , parseTermST
-				  , parseTypeST
-				  , parseProgram
-                                  , parseTerm
-				  , parseType
-				  , ParseError (..)
-				  ) where
-   
+
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
+
+module Language.PlutusCore.Parser
+    ( parse
+    , parseTm
+    , parseTy
+    , parseST
+    , parseTermST
+    , parseTypeST
+    , parseProgram
+    , parseTerm
+    , parseType
+    , ParseError(..)
+    ) where
+
 import PlutusPrelude
 
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Constant.Typed
+import Language.PlutusCore.Core
 import Language.PlutusCore.Core.Type
 import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
-import Language.PlutusCore.Quote
-import Language.PlutusCore.Constant.Dynamic
-import Language.PlutusCore.Constant.Typed
-import Language.PlutusCore.Core
-import Language.PlutusCore.Name
-import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
-import Language.PlutusCore.MkPlc (mkTyBuiltin, mkConstant)
+import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
+import Language.PlutusCore.Name
+import Language.PlutusCore.Parsable
+import Language.PlutusCore.Quote
+import Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.List.NonEmpty as NE
+import           Data.ByteString.Lazy      (ByteString)
+import qualified Data.List.NonEmpty        as NE
 import qualified Data.Map
+import           Data.Proxy
 import qualified Data.Text as T
-import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import Data.Text.Prettyprint.Doc.Internal  (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 
@@ -47,15 +53,6 @@ import Control.Monad.State
 %error { parseError }
 %monad { Parse } { (>>=) } { pure }
 %lexer { lift alexMonadScan >>= } { EOF _ }
-%nonassoc integer
-%nonassoc float
-%nonassoc bytestring
-%nonassoc string
-%nonassoc iwrap
-%nonassoc unwrap
-%nonassoc lam
-%nonassoc con
-%nonassoc bi
 
 %token
 
@@ -66,12 +63,6 @@ import Control.Monad.State
     builtin       { TkKeyword $$ KwBuiltin }
     fun           { TkKeyword $$ KwFun }
     all           { TkKeyword $$ KwAll }
-    integer       { TkKeyword $$ KwInteger }
-    bool          { TkKeyword $$ KwBool }
-    bytestring    { TkKeyword $$ KwByteString }
-    char          { TkKeyword $$ KwChar }
-    string        { TkKeyword $$ KwString }
-    unit          { TkKeyword $$ KwUnit }
     type          { TkKeyword $$ KwType }
     program       { TkKeyword $$ KwProgram }
     iwrap         { TkKeyword $$ KwIWrap }
@@ -86,15 +77,11 @@ import Control.Monad.State
     openBrace     { TkSpecial $$ OpenBrace }
     closeBrace    { TkSpecial $$ CloseBrace }
 
-    unitLit       { $$@TkUnit{} }
-    boolLit       { $$@TkBool{} }
-    charLit       { $$@TkChar{}}
-    integerLit    { $$@TkInt{} }
     naturalLit    { $$@TkNat{} }
-    byteStringLit { $$@TkBS{} }
-    stringLit     { $$@TkString{} }
+    literal       { $$@TkLiteralConst{} }
+    builtintypeid { $$@TkBuiltinTypeId{} }
     name          { $$@TkName{} }
-    builtinid     { $$@TkBuiltinId{} }
+    builtinfnid   { $$@TkBuiltinFnId{} }
 
 %%
 
@@ -121,49 +108,42 @@ TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
 
 TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
 
-Constant : unitLit       { someValue (tkUnit $1) }
-         | boolLit       { someValue (tkBool $1) }
-         | charLit       { someValue (tkChar $1) }
-         | integerLit    { someValue (tkInt $1) }
-         | naturalLit    { someValue (toInteger (tkNat $1)) }
-         | byteStringLit { someValue (tkBytestring $1) }
-         | stringLit     { someValue (tkString (fixStr $1)) } 
+Term : Var                                                 { $1 }
+     | openParen   abs TyName Kind Term      closeParen    { TyAbs $2 $3 $4 $5 }
+     | openBrace   Term some(Type)           closeBrace    { tyInst $1 $2 (NE.reverse $3) }
+     | openParen   lam Name Type Term        closeParen    { LamAbs $2 $3 $4 $5 }
+     | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
+     | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant (tkLoc $3) -- % = monadic action
+	                                                       (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4)}
+     | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
+     | openParen   builtin builtinfnid       closeParen    { mkBuiltinFunction $2 (tkBuiltinFnId $3) }
+     | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
+     | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
-Term : Var                                        { $1 }
-     | openParen abs TyName Kind Term closeParen  { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace       { tyInst $1 $2 (NE.reverse $3) }
-     | openParen lam Name Type Term closeParen    { LamAbs $2 $3 $4 $5 }
-       -- TODO should we reverse here or somewhere else?
-     | openBracket Term some(Term) closeBracket   { app $1 $2 (NE.reverse $3) }
-     | openParen con Constant closeParen          { Constant $2 $3 }
-     | openParen iwrap Type Type Term closeParen  { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinid closeParen     { mkBuiltin $2 (tkBuiltinId $3) }
-     | openParen unwrap Term closeParen           { Unwrap $2 $3 }
-     | openParen errorTerm Type closeParen        { Error $2 $3 }
-
-BuiltinType : integer    { mkTyBuiltin @Integer }
-            | bool       { mkTyBuiltin @Bool }
-            | char       { mkTyBuiltin @Char }
-            | bytestring { mkTyBuiltin @BSL.ByteString }
-            | string     { mkTyBuiltin @String }
-            | unit       { mkTyBuiltin @() }
-		  
 Type : TyVar { $1 }
-     | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
-     | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
-     | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen ifix Type Type closeParen { TyIFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
-     | openParen con BuiltinType closeParen { $3 $2 }
+     | openParen   fun Type Type        closeParen    { TyFun $2 $3 $4 }
+     | openParen   all TyName Kind Type closeParen    { TyForall $2 $3 $4 $5 }
+     | openParen   lam TyName Kind Type closeParen    { TyLam $2 $3 $4 $5 }
+     | openParen   ifix Type Type       closeParen    { TyIFix $2 $3 $4 }
+     | openBracket Type some(Type)      closeBracket  { tyApps $1 $2 (NE.reverse $3) }
+     | openParen   con builtintypeid    closeParen    { % mkBuiltinType (tkLoc $3) (tkBuiltinTypeId $3) }
 
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
+
+-- Haskell helper code
 {
-fixStr :: Token ann -> Token ann
-fixStr (TkString ann s) = TkString ann (read s)   
-fixStr t = t
-  
+--- The Parse monad ---
+
+type Parse = ExceptT (ParseError AlexPosn) Alex
+
+parseError :: Token AlexPosn -> Parse b
+parseError = throwError . Unexpected
+
+
+--- Static built-in functions ---
+
 getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
 getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
@@ -190,21 +170,51 @@ getStaticBuiltinName = \case
     "ifThenElse"               -> Just IfThenElse
     _                          -> Nothing
 
-mkBuiltin :: a -> T.Text -> Term TyName Name uni a
-mkBuiltin loc ident = 
-   case getStaticBuiltinName ident of 
-      Just b  -> Builtin loc $ StaticBuiltinName b
-      Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
--- FIXME: at this point it would be good to have access to the current
--- dynamic builtin names to check if a builtin with that name exists
--- and issue an error if not.  Unfortunately that involves adding a
--- parameter of type DynamicBuiltinNameMeanings to almost every
--- function in PlutusPrelude.hs, and others elsewhere.  @effectfully
--- says that his future plans may help with this.  In the meantime,
--- you get a scope resolution error during typechecking/execution if
--- it encounters a nonexistent name.  [We could also have a hard-coded
--- list of known dynamic names here, but that might not be ideal.]
+--- Parsing built-in types and constants ---
+
+-- | Tags of types in the default universe.
+encodeTyName :: T.Text -> Maybe [Int]
+encodeTyName = \case
+    "bool"       -> Just $ encodeUni DefaultUniBool
+    "bytestring" -> Just $ encodeUni DefaultUniByteString
+    "char"       -> Just $ encodeUni DefaultUniChar
+    "integer"    -> Just $ encodeUni DefaultUniInteger
+    "string"     -> Just $ encodeUni DefaultUniString
+    "unit"       -> Just $ encodeUni DefaultUniUnit
+    _ -> Nothing
+
+-- | Given a type name, return a type in the (default) universe.
+-- This can fail in two ways: there's no type with that name, or decodeUni fails because
+-- it's been given an unknown tag.  In both cases we report an unknown built-in type.
+decodeTyName :: Closed uni => AlexPosn -> T.Text -> Parse (Some (TypeIn uni))
+decodeTyName tyloc tyname =
+    case encodeTyName tyname >>= decodeUni of
+        Nothing -> throwError $ UnknownBuiltinType tyloc tyname
+        Just ty -> pure ty
+
+-- | Convert a textual type name into a Type.
+mkBuiltinType :: Closed uni => AlexPosn -> T.Text -> Parse (Type TyName uni AlexPosn)
+mkBuiltinType tyloc tyname = TyBuiltin tyloc <$> decodeTyName tyloc tyname
+
+-- | Produce a Constant Term from a type name and a literal constant.
+mkBuiltinConstant
+  :: (Closed uni, uni `Everywhere` Parsable)
+  => AlexPosn -> T.Text -> AlexPosn -> T.Text -> Parse (Term TyName Name uni AlexPosn)
+mkBuiltinConstant tyloc tyname litloc lit  = do
+    Some (TypeIn uni1) <- decodeTyName tyloc tyname
+    case bring (Proxy @Parsable) uni1 (parseConstant lit) of
+        Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
+        Just w  -> pure $ Constant litloc (Some (ValueOf uni1 w))
+
+
+--- Constructing terms ---
+
+mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni a
+mkBuiltinFunction loc ident =
+    case getStaticBuiltinName ident of
+        Just b  -> Builtin loc $ StaticBuiltinName b
+        Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
 tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
 tyInst loc t (ty :| []) = TyInst loc t ty
@@ -218,13 +228,16 @@ app :: a -> Term tyname name uni a -> NonEmpty (Term tyname name uni a) -> Term 
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
-parseST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni AlexPosn)
+
+--- Running the parser ---
+
+parseST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
 
-parseTermST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Term TyName Name DefaultUni AlexPosn)
+parseTermST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Term TyName Name DefaultUni AlexPosn)
 parseTermST str = runAlexST' str (runExceptT parsePlutusCoreTerm) >>= liftEither
 
-parseTypeST :: BSL.ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Type TyName DefaultUni AlexPosn)
+parseTypeST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Type TyName DefaultUni AlexPosn)
 parseTypeST str = runAlexST' str (runExceptT parsePlutusCoreType) >>= liftEither
 
 mapParseRun :: (AsParseError e a, MonadError e m, MonadQuote m) => StateT IdentifierState (Except (ParseError a)) b -> m b
@@ -237,34 +250,30 @@ mapParseRun run = do
     pure p
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
+
 -- of handling any parse errors.
-parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni AlexPosn)
 parseProgram str = mapParseRun (parseST str)
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Term TyName Name DefaultUni AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni AlexPosn)
 parseTerm str = mapParseRun (parseTermST str)
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseType :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => BSL.ByteString -> m (Type TyName DefaultUni AlexPosn)
+parseType :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Type TyName DefaultUni AlexPosn)
 parseType str = mapParseRun (parseTypeST str)
 
 -- | Parse a 'ByteString' containing a Plutus Core program, returning a 'ParseError' if syntactically invalid.
 --
-parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
+parse :: ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
 parse str = fmap fst $ runExcept $ runStateT (parseST str) emptyIdentifierState
 
-parseTm :: BSL.ByteString -> Either (ParseError AlexPosn) (Term TyName Name DefaultUni AlexPosn)
+parseTm :: ByteString -> Either (ParseError AlexPosn) (Term TyName Name DefaultUni AlexPosn)
 parseTm str = fmap fst $ runExcept $ runStateT (parseTermST str) emptyIdentifierState
 
-parseTy :: BSL.ByteString -> Either (ParseError AlexPosn) (Type TyName DefaultUni AlexPosn)
+parseTy :: ByteString -> Either (ParseError AlexPosn) (Type TyName DefaultUni AlexPosn)
 parseTy str = fmap fst $ runExcept $ runStateT (parseTypeST str) emptyIdentifierState
-
-type Parse = ExceptT (ParseError AlexPosn) Alex
-
-parseError :: Token AlexPosn -> Parse b
-parseError = throwError . Unexpected
 
 }

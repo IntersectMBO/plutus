@@ -27,7 +27,7 @@ in haskell.packages.shellFor {
     agdaWithStdlib
 
     # Deployment tools
-    pkgs.terraform_0_11
+    pkgs.terraform_0_12
     pkgs.awscli
     pkgs.aws_shell
 

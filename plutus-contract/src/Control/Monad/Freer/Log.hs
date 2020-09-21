@@ -27,6 +27,7 @@ module Control.Monad.Freer.Log(
     , logError
     -- ** Handlers
     , mapLog
+    , mapMLog
     , handleWriterLog
     , handleLogIgnore
     , handleLogTrace
@@ -184,6 +185,17 @@ mapLog ::
 mapLog f = interpret $ \case
     LMessage msg -> send $ LMessage (fmap f msg)
 
+-- | Re-interpret a logging effect by mapping the
+--   log messages. Can use other effects.
+mapMLog ::
+    forall a b effs.
+    Member (LogMsg b) effs
+    => (a -> Eff effs b)
+    -> LogMsg a
+    ~> Eff effs
+mapMLog f = \case
+    LMessage msg -> traverse f msg >>= send . LMessage
+
 -- | Pretty-print the log messages
 renderLogMessages ::
     forall a effs.
@@ -224,7 +236,7 @@ handleLogIgnore = interpret $ \case
     LMessage _ -> pure ()
 
 -- | Write the log to stdout using 'Debug.Trace.trace'
-handleLogTrace :: Eff (LogMsg String ': effs) ~> Eff effs
+handleLogTrace :: Pretty a => Eff (LogMsg a ': effs) ~> Eff effs
 handleLogTrace = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
 
@@ -300,7 +312,7 @@ handleObserve getCurrent handleObs =
     . raiseUnder @effs @(LogObserve v) @(State (ObsState v s))
     where
         -- empty the stack of partial observations at the very end.
-        handleFinalState :: forall a. Eff effs (a, (ObsState v s)) -> Eff effs a
+        handleFinalState :: forall a. Eff effs (a, ObsState v s) -> Eff effs a
         handleFinalState action = do
             (result, finalState) <- action
             _ <- handleObserveAfter Nothing finalState 0
