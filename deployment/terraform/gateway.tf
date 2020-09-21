@@ -29,25 +29,11 @@ resource "aws_api_gateway_integration" "marlowe_symbolic_lambda" {
   http_method = aws_api_gateway_method.marlowe_symbolic_proxy.http_method
 
   integration_http_method = "POST"
-  type                    = "AWS"
+  type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.marlowe_symbolic.invoke_arn
 
   request_parameters = {
   }
-}
-
-resource "aws_api_gateway_method_response" "marlowe_symbolic_lambda" {
-  rest_api_id = aws_api_gateway_rest_api.marlowe_symbolic_lambda.id
-  resource_id = aws_api_gateway_resource.marlowe_symbolic_proxy.id
-  http_method = aws_api_gateway_method.marlowe_symbolic_proxy.http_method
-  status_code = "200"
-}
-
-resource "aws_api_gateway_integration_response" "marlowe_symbolic_lambda" {
-  rest_api_id = aws_api_gateway_rest_api.marlowe_symbolic_lambda.id
-  resource_id = aws_api_gateway_resource.marlowe_symbolic_proxy.id
-  http_method = aws_api_gateway_method.marlowe_symbolic_proxy.http_method
-  status_code = aws_api_gateway_method_response.marlowe_symbolic_lambda.status_code
 }
 
 resource "aws_api_gateway_deployment" "marlowe_symbolic_lambda" {
