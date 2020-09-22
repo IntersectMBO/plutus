@@ -270,11 +270,11 @@ numTests = 100
 initState :: RNGstate
 initState = initRNG 111 47
 
-mkPrimeTerm :: Integer -> Term Name DefaultUni ()
-mkPrimeTerm input =
+mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
+mkPrimeTerm inputs =
   let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| \input' -> process input' initState ||])
-        `Tx.applyCode` Tx.liftCode [input]
+        [|| \inputs' -> process inputs' initState ||])
+        `Tx.applyCode` Tx.liftCode inputs
   in code
 
 -- The @process@ function takes a list of input numbers

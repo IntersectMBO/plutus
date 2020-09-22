@@ -523,5 +523,3 @@ domainWipeOut CSP{vars=vars} t = mapTree f t
                 cs' = if null wipedDomains then cs else Known (collect (head wipedDomains))
 
 Tx.makeLift ''Algorithm
-
-

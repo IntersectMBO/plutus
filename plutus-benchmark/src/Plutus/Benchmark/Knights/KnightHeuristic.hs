@@ -30,7 +30,7 @@ move RD (x,y) = (x+2,y+1)
 startTour :: Tile -> Integer -> ChessSet
 startTour st size
    | (size `Tx.remainder` 2) == 0 = createBoard size st
-   | otherwise           = Tx.trace "startTour" $ Tx.error ()
+   | otherwise           = {-Tx.trace "startTour" $ -} Tx.error ()
 
 {-# INLINABLE moveKnight #-}
 moveKnight :: ChessSet -> Direction -> ChessSet

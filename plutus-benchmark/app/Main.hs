@@ -29,7 +29,7 @@ data Command =
   | Queens P.Integer [Queens.Algorithm]
   | Knights P.Integer P.Integer
   | LastPiece
-  | Prime P.Integer
+  | Prime [P.Integer]
 
 clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
 clausifyFormulaReader "1"  = Right Clausify.F1
@@ -78,8 +78,8 @@ lastpieceOptions = P.pure LastPiece
 
 primeOptions :: Parser Command
 primeOptions =
-  Prime P.<$> argument auto (metavar "INPUT" P.<>
-                             help "The input number")
+  Prime P.<$> some (argument auto (metavar "INPUT" P.<>
+                                   help "The input number"))
 
 options :: Parser Command
 options = hsubparser
