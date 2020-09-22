@@ -1,7 +1,7 @@
 module Main where
 
 import           Criterion.Main
-import Criterion.Types (Config(..))
+import           Criterion.Types                                            (Config (..))
 import qualified Data.Map                                                   as Map
 
 import           Language.PlutusCore                                        (Name (..))
@@ -21,7 +21,7 @@ benchCek program =
      program
 
 config :: Config
-config = defaultConfig 
+config = defaultConfig
   { reportFile = Just "report.html"
   , jsonFile = Just "report.json"
   }
