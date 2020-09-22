@@ -27,26 +27,10 @@ main = defaultMain $ allTests defaultGenOptions
 
 allTests :: GenOptions -> TestTree
 allTests genOpts = testGroup "NEAT"
-  [ testCaseGen "soundness"
+  [ testCaseGen "type-level"
       genOpts
       (Type ())
-      prop_checkKindSound
-  , testCaseGen "normalization"
-      genOpts
-      (Type ())
-      prop_normalizePreservesKind
-  , testCaseGen "normalizationSound"
-      genOpts
-      (Type ())
-      prop_normalizeTypeSound
-  , testCaseGen "normalizationAgree"
-      genOpts
-      (Type ())
-      prop_normalizeTypeSame
-  , testCaseGen "kindInferAgree"
-      genOpts
-      (Type ())
-      prop_kindInferSame
+      prop_Type
   , testCaseGen "typeInfer"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
@@ -65,69 +49,46 @@ allTests genOpts = testGroup "NEAT"
       (prop_runList [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda])
   ]
 
--- check that Agda agrees that the given type is correct
-prop_checkKindSound :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
-prop_checkKindSound k tyG = do
-   ty <- withExceptT GenError $ convertClosedType tynames k tyG
-   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
-     checkKindAgda tyDB (deBruijnifyK (convK k))
 
-
--- check that the Agda type normalizer doesn't mangle the kind
-prop_normalizePreservesKind :: Kind ()
-                            -> ClosedTypeG
-                            -> ExceptT TestFail Quote ()
-prop_normalizePreservesKind k tyG = do
-  ty  <- withExceptT GenError $ convertClosedType tynames k tyG
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
-    liftEither $ normalizeTypeAgda tyDB
-  withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
-    liftEither $ checkKindAgda tyN (deBruijnifyK (convK k))
-
-
--- compare the NEAT type normalizer against the Agda normalizer
-prop_normalizeTypeSound :: Kind ()
-                        -> ClosedTypeG
-                        -> ExceptT TestFail Quote ()
-prop_normalizeTypeSound k tyG = do
+-- one type-level test to rule them all
+prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
+prop_Type k tyG = do
+  -- get a production named type:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  -- get a production De Bruijn type:
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+  
+  -- 1. check soundness of Agda kindchecker with respect to NEAT:
+  withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
+    checkKindAgda tyDB (deBruijnifyK (convK k))
+  -- infer kind using Agda kind inferer:
+  k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+    liftEither $ inferKindAgda tyDB
+  -- infer kind using production kind inferer:
+  k2 <- withExceptT TypeError $ inferKind defConfig ty
+
+  -- 2. check that production and Agda kind inferer agree:
+  unless (unconvK (unDeBruijnifyK k1) == k2) $
+    throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k1)) k2)
+
+    
+  -- normalize type using Agda type normalizer:
+  ty' <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
     liftEither $ normalizeTypeAgda tyDB
-  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
+
+  -- 3. check that the Agda type normalizer doesn't mange the kind:
+  withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
+    liftEither $ checkKindAgda ty' (deBruijnifyK (convK k))
+
+  -- convert Agda normalized type back to named notation:
+  ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'
+  -- normalize NEAT type using NEAT type normalizer:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
+
+  -- 4. check the Agda type normalizer agrees with the NEAT type normalizer:
   unless (ty1 == ty2) $
     throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
-
--- compare the production type normalizer against the Agda type normalizer
-prop_normalizeTypeSame :: Kind ()
-                        -> ClosedTypeG
-                        -> ExceptT TestFail Quote ()
-prop_normalizeTypeSame k tyG = do
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
-    liftEither $ normalizeTypeAgda tyDB
-  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
-  ty2 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
-  unless (ty1 == ty2) $
-    throwCtrex (CtrexTypeNormalizationMismatch k tyG ty1 ty2)
-
--- compare the production kind inference against the Agda
-prop_kindInferSame :: Kind ()
-                   -> ClosedTypeG
-                   -> ExceptT TestFail Quote ()
-prop_kindInferSame k tyG = do
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  k' <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
-    liftEither $ inferKindAgda tyDB
-  k'' <- withExceptT TypeError $ inferKind defConfig ty
-  unless (unconvK (unDeBruijnifyK k') == k'') $
-    throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k')) k'')
-
+  
 -- try to infer the type of a term
 prop_typeinfer :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typeinfer (k , tyG) tmG = do

@@ -399,8 +399,10 @@ inferType∅ t = do
 
 {-# COMPILE GHC inferType∅ as inferTypeAgda #-}
 
-checkTypeX : Type → Term → Either ERROR ⊤
-checkTypeX ty t = do
+
+-- FIXME: we have a checkType function now...
+checkType∅ : Type → Term → Either ERROR ⊤
+checkType∅ ty t = do
   ty'       ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
   k ,, tyN  ← withE (λ _ → typeError) (inferKind ∅ ty')
   t'        ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
@@ -409,7 +411,7 @@ checkTypeX ty t = do
   refl      ← withE ((λ _ → typeError) ∘ typeMismatch _ _) (meqNfTy tyN tyN')
   return _
   
-{-# COMPILE GHC checkTypeX as checkTypeAgda #-}
+{-# COMPILE GHC checkType∅ as checkTypeAgda #-}
 
 -- Haskell interface to (typechecked and proven correct) reduction
 
