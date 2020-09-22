@@ -12,8 +12,8 @@ import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import qualified Plutus.Benchmark.Clausify                                  as Clausify
 import qualified Plutus.Benchmark.Knights                                   as Knights
+import qualified Plutus.Benchmark.Prime                                     as Prime
 import qualified Plutus.Benchmark.Queens                                    as Queens
-import qualified Plutus.Benchmark.Prime                                    as Prime
 
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty

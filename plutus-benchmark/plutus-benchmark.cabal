@@ -41,7 +41,6 @@ library
     -fno-strictness
     -fno-specialise
     -fno-spec-constr
-    -fexpose-all-unfoldings
     -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
