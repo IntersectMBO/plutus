@@ -1,25 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 {- nofib/spectral/constraints converted to Plutus.
    Renamed to avoid conflict with existing package. -}
-
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-
-{-# OPTIONS_GHC -fwarn-missing-signatures     #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports      #-}
-
-{-# OPTIONS_GHC -fexpose-all-unfoldings       #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-spec-constr              #-}
-{-# OPTIONS_GHC -fno-strictness               #-}
-{-# OPTIONS_GHC -fno-worker-wrapper           #-}
 
 module Plutus.Benchmark.Queens where
 
@@ -115,14 +97,6 @@ mkQueensTerm sz algs =
           `Tx.applyCode` Tx.liftCode sz
           `Tx.applyCode` Tx.liftCode algs
   in code
-
-main :: IO ()
-main = main1
-
-main1 :: IO ()  -- Compile a Plutus Core version
-main1 = do
-  let code = Tx.getPlc $ $$(Tx.compile [|| map (nqueens boardSize) algorithms  ||])
-  mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ code
 
 main2 :: IO()  -- Haskell version
 main2 = do

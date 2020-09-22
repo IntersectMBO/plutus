@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 {- Last piece puzzle, adapted from nofib/spectral/last-piece.
    This is a solver for a jigsaw problem:
         see https://www.nicklevine.org/contest/2003/index.html.
@@ -9,15 +11,6 @@
  still doesn't work on the CEK machine (I don't know about the CK machine: that
  took forever).
 -}
-
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-spec-constr       #-}
 
 module Plutus.Benchmark.LastPiece where
 
@@ -306,13 +299,13 @@ mkLastPieceTerm =
         [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
   in code
 
-main :: IO ()
-main = do
---  let solutions = search (1,2) Female initialBoard initialPieces
---  print $ show solutions
-    let code = getPlc $ $$(compile [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
-    mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ code
+-- main :: IO ()
+-- main = do
+-- --  let solutions = search (1,2) Female initialBoard initialPieces
+-- --  print $ show solutions
+--     let code = getPlc $ $$(compile [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
+--     mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ code
 
--- Number of correct solutions: 3
--- Number including failures: 59491
+-- -- Number of correct solutions: 3
+-- -- Number including failures: 59491
 

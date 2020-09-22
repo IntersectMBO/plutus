@@ -1,24 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 -- Primality testing functions taken from nofib/spectral/primetest
 -- Most of the literate Haskell stuff has been removed and everything's
 -- been put into one file for simplicity.
-
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-
-{-# OPTIONS_GHC -fwarn-missing-signatures     #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports      #-}
-
-{-# OPTIONS_GHC -fexpose-all-unfoldings       #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-spec-constr              #-}
-{-# OPTIONS_GHC -fno-strictness               #-}
-{-# OPTIONS_GHC -fno-worker-wrapper           #-}
-
 
 module Plutus.Benchmark.Prime where
 

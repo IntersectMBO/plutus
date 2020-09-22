@@ -1,21 +1,3 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-
-{-# LANGUAGE LambdaCase        #-}
-
-{-# OPTIONS_GHC -fwarn-missing-signatures     #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports      #-}
-
-{-# OPTIONS_GHC -fexpose-all-unfoldings       #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-spec-constr              #-}
-{-# OPTIONS_GHC -fno-strictness               #-}
-{-# OPTIONS_GHC -fno-worker-wrapper           #-}
-
 module Main where
 
 import           Control.Monad

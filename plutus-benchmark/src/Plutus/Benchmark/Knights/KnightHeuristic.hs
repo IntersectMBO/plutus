@@ -1,12 +1,4 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports  #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Plutus.Benchmark.Knights.KnightHeuristic
    ( ChessSet,

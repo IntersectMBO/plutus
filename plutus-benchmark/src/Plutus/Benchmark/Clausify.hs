@@ -1,21 +1,4 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-
-{-# OPTIONS_GHC -fwarn-missing-signatures     #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports      #-}
-
-{-# OPTIONS_GHC -fexpose-all-unfoldings       #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-spec-constr              #-}
-{-# OPTIONS_GHC -fno-strictness               #-}
-{-# OPTIONS_GHC -fno-worker-wrapper           #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Plutus.Benchmark.Clausify where
 
@@ -134,7 +117,7 @@ while p f x = if p x then while p f (f x) else x
 
 {-# INLINABLE replicate #-}
 replicate :: Integer -> a -> [a]
-replicate n a = if n == 0 then []
+replicate n a = if n <= 0 then []
                 else a:(replicate (n-1) a)
 
 {-# INLINABLE formula1 #-}  -- Overflow
