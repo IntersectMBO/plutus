@@ -31,8 +31,6 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type ())
       prop_checkKindSound
-  ]
-{-
   , testCaseGen "normalization"
       genOpts
       (Type ())
@@ -66,15 +64,16 @@ allTests genOpts = testGroup "NEAT"
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       (prop_runList [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda])
   ]
--}
+
 -- check that Agda agrees that the given type is correct
 prop_checkKindSound :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
 prop_checkKindSound k tyG = do
    ty <- withExceptT GenError $ convertClosedType tynames k tyG
    tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $ checkKindAgda tyDB (deBruijnifyK (convK k))
+   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
+     checkKindAgda tyDB (deBruijnifyK (convK k))
 
-{-
+
 -- check that the Agda type normalizer doesn't mangle the kind
 prop_normalizePreservesKind :: Kind ()
                             -> ClosedTypeG
@@ -82,12 +81,11 @@ prop_normalizePreservesKind :: Kind ()
 prop_normalizePreservesKind k tyG = do
   ty  <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN <- withExceptT Ctrex $ case normalizeTypeAgda tyDB of
-    Just tyN -> return tyN
-    Nothing  -> throwError (CtrexTypeNormalizationFail k tyG)
-  case checkKindAgda tyN (deBruijnifyK (convK k)) of
-    Just _  -> return ()
-    Nothing -> throwCtrex (CtrexKindPreservationFail k tyG)
+  tyN <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+    liftEither $ normalizeTypeAgda tyDB
+  withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
+    liftEither $ checkKindAgda tyN (deBruijnifyK (convK k))
+
 
 -- compare the NEAT type normalizer against the Agda normalizer
 prop_normalizeTypeSound :: Kind ()
@@ -96,9 +94,8 @@ prop_normalizeTypeSound :: Kind ()
 prop_normalizeTypeSound k tyG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT Ctrex $ case normalizeTypeAgda tyDB of
-    Just tyN -> return tyN
-    Nothing  -> throwError (CtrexTypeNormalizationFail k tyG)
+  tyN1 <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+    liftEither $ normalizeTypeAgda tyDB
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
   unless (ty1 == ty2) $
@@ -111,10 +108,8 @@ prop_normalizeTypeSame :: Kind ()
 prop_normalizeTypeSame k tyG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT Ctrex $
-    case normalizeTypeAgda tyDB of
-      Just tyN -> return tyN
-      Nothing  -> throwError (CtrexTypeNormalizationFail k tyG)
+  tyN1 <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+    liftEither $ normalizeTypeAgda tyDB
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   ty2 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
   unless (ty1 == ty2) $
@@ -127,73 +122,53 @@ prop_kindInferSame :: Kind ()
 prop_kindInferSame k tyG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  k' <- withExceptT Ctrex $ case inferKindAgda tyDB of
-    Just k' -> return k'
-    Nothing -> throwError (CtrexKindCheckFail k tyG)
+  k' <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+    liftEither $ inferKindAgda tyDB
   k'' <- withExceptT TypeError $ inferKind defConfig ty
-  unless (unconvK (unDeBruijnifyK k') == k'') $ throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k')) k'')
+  unless (unconvK (unDeBruijnifyK k') == k'') $
+    throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k')) k'')
 
 -- try to infer the type of a term
 prop_typeinfer :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typeinfer (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  withExceptT Ctrex $
-    case inferTypeAgda tmDB of
-      Just _  -> return ()
-      Nothing -> throwError (CtrexTypeCheckFail tyG tmG)
+  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
+    inferTypeAgda tmDB
+  return ()
 
 -- try to typecheck a term
-prop_typecheck :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typecheck :: (Kind (), ClosedTypeG) -> ClosedTermG
+               -> ExceptT TestFail Quote ()
 prop_typecheck (k , tyG) tmG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  case checkTypeAgda tyDB tmDB of
-    Just _  -> return ()
-    Nothing -> throwCtrex (CtrexTypeCheckFail tyG tmG)
-
-prop_runCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_runCK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  case runCKAgda tmDB of
-    Just _  -> return ()
-    Nothing -> throwCtrex (CtrexTermEvaluationFail tyG tmG)
-
-prop_runTCK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_runTCK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  case runTCKAgda tmDB of
-    Just _  -> return ()
-    Nothing -> throwCtrex (CtrexTermEvaluationFail tyG tmG)
+  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
+    checkTypeAgda tyDB tmDB
+  return ()
 
 prop_run_plcCK_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_run_plcCK_vs_CK (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  tmCK <- withExceptT Ctrex $
-    case runCKAgda tmDB of
-      Just tmCK -> return tmCK
-      Nothing   -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
+    liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   unless (tmPlcCK == tmCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
 
 type TERM = Term TyDeBruijn DeBruijn DefaultUni ()
 
-prop_runList :: [(TERM -> Maybe TERM)]
+prop_runList :: [(TERM -> Either ERROR TERM)]
             -> (Kind (), ClosedTypeG)
             -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_runList evs (k , tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
   let tmEvsM = evs <*> [tmDB]
-  tmEvs <- withExceptT Ctrex $ case sequence tmEvsM of
-    Just vs -> return vs
-    Nothing -> throwError (CtrexTermEvaluationFail tyG tmG)
+  tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
+    liftEither $ sequence tmEvsM
   tmEvsN <- withExceptT FVErrorP $ sequence (unDeBruijnTerm <$> tmEvs)
   unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)
--}
