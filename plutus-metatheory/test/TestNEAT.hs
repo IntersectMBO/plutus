@@ -31,24 +31,11 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type ())
       prop_Type
-  , testCaseGen "typeInfer"
+  , testCaseGen "term-level"
       genOpts
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typeinfer
-  , testCaseGen "typeCheck"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typecheck
-  , testCaseGen "run_plcCK_vs_CK"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_run_plcCK_vs_CK
-   , testCaseGen "Agda model evaluators agree"
-      genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      (prop_runList [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda])
+      prop_Term
   ]
-
 
 -- one type-level test to rule them all
 prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
@@ -88,46 +75,35 @@ prop_Type k tyG = do
   -- 4. check the Agda type normalizer agrees with the NEAT type normalizer:
   unless (ty1 == ty2) $
     throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
-  
--- try to infer the type of a term
-prop_typeinfer :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_typeinfer (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
-  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
-    inferTypeAgda tmDB
-  return ()
 
--- try to typecheck a term
-prop_typecheck :: (Kind (), ClosedTypeG) -> ClosedTermG
-               -> ExceptT TestFail Quote ()
-prop_typecheck (k , tyG) tmG = do
+
+
+-- one term-level test to rule them all
+prop_Term :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_Term (k , tyG) tmG = do
+  -- get a production named type
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  -- get a production de Bruijn type
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  -- get a production named term
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  -- get a production de Bruijn term
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+
+  -- 1. check the term in the type
   withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
     checkTypeAgda tyDB tmDB
-  return ()
 
-prop_run_plcCK_vs_CK :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_run_plcCK_vs_CK (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
-  unless (tmPlcCK == tmCKN) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
+  unless (tmPlcCK == tmCKN) $
+    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
 
-type TERM = Term TyDeBruijn DeBruijn DefaultUni ()
-
-prop_runList :: [(TERM -> Either ERROR TERM)]
-            -> (Kind (), ClosedTypeG)
-            -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_runList evs (k , tyG) tmG = do
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  -- 3. run all the metatheory evaluators against each other
+  let evs = [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
   let tmEvsM = evs <*> [tmDB]
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM
