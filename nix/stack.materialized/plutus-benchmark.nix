@@ -14,8 +14,8 @@
       identifier = { name = "plutus-benchmark"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
-      maintainer = "jann.mueller@iohk.io";
-      author = "Jann Müller";
+      maintainer = "radu.ometita@iohk.io";
+      author = "Radu Ometita";
       homepage = "https://github.com/iohk/plutus#readme";
       url = "";
       synopsis = "";
@@ -67,6 +67,21 @@
           buildable = true;
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
+          };
+        };
+      benchmarks = {
+        "large-plc-cek" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-benchmark" or (errorHandler.buildDepError "plutus-benchmark"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "bench" ];
           };
         };
       };
