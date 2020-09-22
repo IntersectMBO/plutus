@@ -25,7 +25,6 @@ import           Language.PlutusCore.Subst
 
 import           Control.Monad.Morph       (hoist)
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Set                  (Set)
 import qualified Data.Set                  as Set
 import           Hedgehog                  hiding (Size, Var)
@@ -88,7 +87,7 @@ genBuiltinName = StaticBuiltinName <$> genStaticBuiltinName
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
     [ someValue @Integer <$> Gen.integral_ (Range.linear (-10000000) 10000000)
-    , someValue . BSL.fromStrict <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
+    , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
     ]
 
 genType :: AstGen (Type TyName DefaultUni ())

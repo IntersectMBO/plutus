@@ -15,7 +15,7 @@ module Language.PlutusCore.Universe.Default
 
 import           Language.PlutusCore.Universe.Core
 
-import qualified Data.ByteString.Lazy              as BSL
+import qualified Data.ByteString                   as BS
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -61,7 +61,7 @@ and have meta-constructors as builtin names. We still have to handle types someh
 -- | The universe used by default.
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
-    DefaultUniByteString :: DefaultUni BSL.ByteString
+    DefaultUniByteString :: DefaultUni BS.ByteString
     DefaultUniString     :: DefaultUni String
     DefaultUniChar       :: DefaultUni Char
     DefaultUniUnit       :: DefaultUni ()
@@ -80,7 +80,7 @@ instance Show (DefaultUni a) where
     show DefaultUniBool       = "bool"
 
 instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
-instance DefaultUni `Includes` BSL.ByteString  where knownUni = DefaultUniByteString
+instance DefaultUni `Includes` BS.ByteString  where knownUni = DefaultUniByteString
 instance a ~ Char => DefaultUni `Includes` [a] where knownUni = DefaultUniString
 instance DefaultUni `Includes` Char            where knownUni = DefaultUniChar
 instance DefaultUni `Includes` ()              where knownUni = DefaultUniUnit
@@ -97,7 +97,7 @@ See Note [Stable encoding of PLC]
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
         ( constr Integer
-        , constr BSL.ByteString
+        , constr BS.ByteString
         , constr String
         , constr Char
         , constr ()

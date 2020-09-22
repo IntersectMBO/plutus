@@ -112,17 +112,17 @@ infrequently (I believe).
 -}
 instance Eq Script where
     {-# INLINABLE (==) #-}
-    a == b = serialise a == serialise b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Haskell.Eq Script where
-    a == b = serialise a == serialise b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Ord Script where
     {-# INLINABLE compare #-}
-    a `compare` b = serialise a `compare` serialise b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance Haskell.Ord Script where
-    a `compare` b = serialise a `compare` serialise b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance NFData Script
 
@@ -289,19 +289,19 @@ instance IotsType MonetaryPolicyHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 datumHash :: Datum -> DatumHash
-datumHash = DatumHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+datumHash = DatumHash . Builtins.sha2_256 . BA.convert
 
 redeemerHash :: Redeemer -> RedeemerHash
-redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
+validatorHash vl = ValidatorHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl
 
 monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
-monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
+monetaryPolicyHash vl = MonetaryPolicyHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl

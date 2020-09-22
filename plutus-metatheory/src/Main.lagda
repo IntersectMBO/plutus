@@ -21,7 +21,7 @@ open import Data.List hiding (_++_)
 
 open import Type
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type hiding (ByteString)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Builtin.Signature
 open import Check
@@ -65,10 +65,12 @@ instance
 -- Bytestring stuff
 
 postulate
+  ByteString : Set
   getContents : IO ByteString
   readFile : String → IO ByteString
 
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC ByteString = type BSL.ByteString #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC getContents = BSL.getContents #-}
 

@@ -50,7 +50,7 @@ import qualified Language.Haskell.TH.Syntax             as TH
 import           Control.Monad
 import           Control.Monad.Reader
 
-import qualified Data.ByteString.Lazy                   as BSL
+import qualified Data.ByteString                        as BS
 import qualified Data.Map                               as Map
 import           Data.Proxy
 import qualified Data.Set                               as Set
@@ -276,7 +276,7 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
-        let term = PIR.mkConstant () BSL.empty
+        let term = PIR.mkConstant () BS.empty
         defineBuiltinTerm 'Builtins.emptyByteString term [bs]
 
     -- Integer builtins
@@ -341,7 +341,7 @@ defineBuiltinTypes
     => m ()
 defineBuiltinTypes = do
     do
-        let ty = PLC.toTypeAst $ Proxy @BSL.ByteString
+        let ty = PLC.toTypeAst $ Proxy @BS.ByteString
         defineBuiltinType ''Builtins.ByteString ty []
     do
         let ty = PLC.toTypeAst $ Proxy @Integer

@@ -55,10 +55,6 @@ variable "webghc_instance_type" {
   default = "t3.large"
 }
 
-variable "marlowe_instance_type" {
-  default = "t3.small"
-}
-
 variable "playground_instance_type" {
   default = "t3.small"
 }
@@ -174,4 +170,16 @@ variable "azs" {
 }
 
 variable "symbolic_lambda_file" {
+}
+
+variable "playground_lambda_file" {
+}
+
+variable "marlowe_github_client_id" {
+}
+
+variable "marlowe_github_client_secret" {
+}
+
+variable "marlowe_jwt_signature" {
 }

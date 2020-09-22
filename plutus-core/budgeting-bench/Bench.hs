@@ -8,7 +8,7 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.ByteString                                            as BS
 import           Hedgehog
 import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
@@ -39,7 +39,7 @@ benchTwoByteStrings :: StaticBuiltinName -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
 
 benchBytestringOperations :: StaticBuiltinName -> Benchmark -- TODO the numbers are a bit too big here
-benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BSL.ByteString name numbers (byteStringsToBench seedA)
+benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BS.ByteString name numbers (byteStringsToBench seedA)
     where
         numbers = expToBenchingInteger <$> expsToBench
 
@@ -59,9 +59,9 @@ benchHashOperations name =
         )
 
 -- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
-sig :: BSL.ByteString
+sig :: BS.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
-pubKey :: BSL.ByteString
+pubKey :: BS.ByteString
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 benchVerifySignature :: Benchmark
 benchVerifySignature =
@@ -76,7 +76,7 @@ benchVerifySignature =
 expsToBenchBS :: [Integer]
 expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..15])
 
-byteStringsToBench :: Seed -> [(BSL.ByteString, ExMemory)]
+byteStringsToBench :: Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
 
 expsToBench :: [Integer]
@@ -91,8 +91,8 @@ genSample :: Seed -> Gen a -> a
 genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") treeValue $ evalGen (Size 1) seed gen
 
 -- TODO make a nice class out of these
-expToBenchingBytestring :: Seed -> Int -> (BSL.ByteString, ExMemory)
-expToBenchingBytestring seed e = let x = BSL.fromStrict $ genSample seed (bytes (Hedgehog.Range.singleton e)) in (x, memoryUsage x)
+expToBenchingBytestring :: Seed -> Int -> (BS.ByteString, ExMemory)
+expToBenchingBytestring seed e = let x = genSample seed (bytes (Hedgehog.Range.singleton e)) in (x, memoryUsage x)
 
 -- TODO make the e the actual ExMemory size
 expToBenchingInteger :: Integer -> (Integer, ExMemory)

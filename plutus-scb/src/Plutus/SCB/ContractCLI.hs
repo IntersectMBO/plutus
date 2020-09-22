@@ -31,8 +31,9 @@ import           Data.Aeson                      (FromJSON, ToJSON)
 import qualified Data.Aeson                      as JSON
 import qualified Data.Aeson.Encode.Pretty        as JSON
 import           Data.Bifunctor                  (bimap)
+import qualified Data.ByteString                 as BS
+import qualified Data.ByteString.Char8           as BS8
 import qualified Data.ByteString.Lazy            as BSL
-import qualified Data.ByteString.Lazy.Char8      as BS8
 import           Data.Row                        (type (.\\), AllUniqueLabels, Forall)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
@@ -92,13 +93,13 @@ runCliCommand :: forall s m.
     => Contract s Text ()
     -> Command
     -> m (Either BS8.ByteString BS8.ByteString)
-runCliCommand schema Initialise = pure $ Right $ JSON.encodePretty $ ContractState.initialiseContract schema
+runCliCommand schema Initialise = pure $ Right $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract schema
 runCliCommand schema Update = do
-    arg <- liftIO BSL.getContents
+    arg <- liftIO BS.getContents
     pure $ runUpdate schema arg
 runCliCommand _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ BlockchainActions)
-  pure $ Right $ JSON.encodePretty r
+  pure $ Right $ BSL.toStrict $ JSON.encodePretty r
 
 runUpdate :: forall s.
     ( AllUniqueLabels (Input s)
@@ -107,13 +108,13 @@ runUpdate :: forall s.
     , Forall (Input s) ToJSON
     )
     => Contract s Text ()
-    -> BSL.ByteString
+    -> BS.ByteString
     -> Either BS8.ByteString BS8.ByteString
 runUpdate contract arg =
     bimap
-        (JSON.encodePretty . Text.pack)
-        (JSON.encodePretty . ContractState.insertAndUpdateContract contract)
-        (JSON.eitherDecode arg)
+        (BSL.toStrict . JSON.encodePretty . Text.pack)
+        (BSL.toStrict . JSON.encodePretty . ContractState.insertAndUpdateContract contract)
+        (JSON.eitherDecode $ BSL.fromStrict arg)
 
 commandLineApp ::
        ( AllUniqueLabels (Input s)
@@ -133,7 +134,7 @@ commandLineApp schema = do
     case result of
         Left err -> do
             BS8.hPut System.IO.stderr "Error "
-            BS8.hPut System.IO.stderr (JSON.encodePretty err)
+            BS8.hPut System.IO.stderr (BSL.toStrict $ JSON.encodePretty err)
             exitWith $ ExitFailure 1
         Right response -> do
             BS8.putStrLn response

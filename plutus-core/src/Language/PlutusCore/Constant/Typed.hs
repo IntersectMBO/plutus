@@ -49,7 +49,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                               as BSL
+import qualified Data.ByteString                               as BS
 import qualified Data.Kind                                          as GHC (Type)
 import           Data.Map                                           (Map)
 import           Data.Proxy
@@ -368,14 +368,14 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
     readKnown = pure . Opaque
 
 instance uni `Includes` Integer        => KnownTypeAst uni Integer
-instance uni `Includes` BSL.ByteString => KnownTypeAst uni BSL.ByteString
+instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString
 instance uni `Includes` String         => KnownTypeAst uni String
 instance uni `Includes` Char           => KnownTypeAst uni Char
 instance uni `Includes` ()             => KnownTypeAst uni ()
 instance uni `Includes` Bool           => KnownTypeAst uni Bool
 
 instance KnownBuiltinType term Integer        => KnownType term Integer
-instance KnownBuiltinType term BSL.ByteString => KnownType term BSL.ByteString
+instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
 instance KnownBuiltinType term String         => KnownType term String
 instance KnownBuiltinType term Char           => KnownType term Char
 instance KnownBuiltinType term ()             => KnownType term ()

@@ -53,7 +53,7 @@ resource "aws_iam_role_policy_attachment" "marlowe_symbolic_lambda" {
 resource "aws_lambda_function" "marlowe_symbolic" {
   function_name = "marlowe_symbolic_${var.env}"
   role          = "${aws_iam_role.marlowe_symbolic_lambda.arn}"
-  handler       = "src/App.handler"
+  handler       = "src/Marlowe/Symbolic/Lambda.handler"
 
   runtime = "provided"
 
@@ -70,6 +70,33 @@ resource "aws_lambda_function" "marlowe_symbolic" {
     variables = {
       SBV_Z3 = "z3"
       PATH = "/usr/local/bin:/usr/bin/:/bin:/opt/bin:."
+    }
+  }
+}
+
+resource "aws_lambda_function" "marlowe_playground" {
+  function_name = "marlowe_playground_${var.env}"
+  role          = "${aws_iam_role.marlowe_symbolic_lambda.arn}"
+  handler       = "src/Lambda.handler"
+
+  runtime = "provided"
+
+  # The lambda zip needs to be built and placed on your local filesystem
+  # TODO: This is only a temporary requirement and will be moved to the CD server soon
+  filename = "${var.playground_lambda_file}"
+  source_code_hash = filebase64sha256(var.playground_lambda_file)
+  
+  memory_size = 3008
+  timeout = 120
+  publish = true
+
+  environment {
+    variables = {
+      PATH = "/usr/local/bin:/usr/bin/:/bin:/opt/bin:."
+      GITHUB_CLIENT_ID = var.marlowe_github_client_id
+      GITHUB_CLIENT_SECRET = var.marlowe_github_client_secret
+      JWT_SIGNATURE = var.marlowe_jwt_signature
+      GITHUB_REDIRECT_URL = "https://${var.env}.${var.marlowe_tld}"
     }
   }
 }

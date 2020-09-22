@@ -43,7 +43,7 @@ import           Language.PlutusCore.Universe
 
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
-import qualified Data.ByteString.Lazy                                    as BSL
+import qualified Data.ByteString                                         as BS
 import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
@@ -114,7 +114,7 @@ withTypedBuiltinGen
     => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer        AsKnownType
-    , k @BSL.ByteString AsKnownType
+    , k @BS.ByteString AsKnownType
     , k @Bool           AsKnownType
     ]
 
