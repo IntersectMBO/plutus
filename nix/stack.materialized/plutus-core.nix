@@ -167,6 +167,7 @@
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "Language/UntypedPlutusCore/Core/Instance/CBOR"
           "Language/UntypedPlutusCore/Core/Type"
+          "Language/UntypedPlutusCore/Core/Plated"
           "Language/UntypedPlutusCore/Size"
           "Language/UntypedPlutusCore/Subst"
           "Data/Aeson/THReader"

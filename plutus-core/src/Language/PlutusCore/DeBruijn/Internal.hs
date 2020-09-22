@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -7,7 +8,9 @@
 module Language.PlutusCore.DeBruijn.Internal
     ( Index (..)
     , DeBruijn (..)
+    , NamedDeBruijn (..)
     , TyDeBruijn (..)
+    , NamedTyDeBruijn (..)
     , FreeVariableError (..)
     , Level (..)
     , Levels (..)
@@ -18,6 +21,8 @@ module Language.PlutusCore.DeBruijn.Internal
     , withScope
     , getIndex
     , getUnique
+    , unNameDeBruijn
+    , unNameTyDeBruijn
     , nameToDeBruijn
     , tyNameToDeBruijn
     , deBruijnToName
@@ -39,35 +44,66 @@ import           Data.Typeable
 
 import           Numeric.Natural
 
+import           Control.DeepSeq            (NFData)
 import           GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord)
+    deriving anyclass NFData
 
 -- | A term name as a de Bruijn index.
-data DeBruijn = DeBruijn { dbnString :: T.Text, dbnIndex :: Index }
+data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
     deriving (Show, Generic)
+    deriving anyclass NFData
+
+-- | A term name as a de Bruijn index, without the name string.
+data DeBruijn = DeBruijn { dbnIndex :: Index }
+    deriving (Show, Generic)
+    deriving anyclass NFData
 
 -- | A type name as a de Bruijn index.
+newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn
+    deriving stock (Show, Generic)
+    deriving newtype (PrettyBy config)
+    deriving anyclass NFData
+instance Wrapped NamedTyDeBruijn
+
+-- | A type name as a de Bruijn index, without the name string.
 newtype TyDeBruijn = TyDeBruijn DeBruijn
-    deriving (Show, Generic, PrettyBy config)
+    deriving stock (Show, Generic)
+    deriving newtype (PrettyBy config)
+    deriving anyclass NFData
 instance Wrapped TyDeBruijn
 
-instance HasPrettyConfigName config => PrettyBy config DeBruijn where
-    prettyBy config (DeBruijn txt (Index ix))
+instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
+    prettyBy config (NamedDeBruijn txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
+        where PrettyConfigName showsUnique = toPrettyConfigName config
+
+instance HasPrettyConfigName config => PrettyBy config DeBruijn where
+    prettyBy config (DeBruijn (Index ix))
+        | showsUnique = "i" <> pretty ix
+        | otherwise   = ""
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
 class HasIndex a where
     index :: Lens' a Index
 
+instance HasIndex NamedDeBruijn where
+    index = lens g s where
+        g = ndbnIndex
+        s n i = n{ndbnIndex=i}
+
 instance HasIndex DeBruijn where
     index = lens g s where
         g = dbnIndex
         s n i = n{dbnIndex=i}
+
+instance HasIndex NamedTyDeBruijn where
+    index = _Wrapped' . index
 
 instance HasIndex TyDeBruijn where
     index = _Wrapped' . index
@@ -144,22 +180,30 @@ getUnique ix = do
         Just u  -> pure u
         Nothing -> throwError $ FreeIndex ix
 
+unNameDeBruijn
+    :: NamedDeBruijn -> DeBruijn
+unNameDeBruijn (NamedDeBruijn _ ix) = DeBruijn ix
+
+unNameTyDeBruijn
+    :: NamedTyDeBruijn -> TyDeBruijn
+unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
+
 nameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Name -> m DeBruijn
-nameToDeBruijn (Name str u) = DeBruijn str <$> getIndex u
+    => Name -> m NamedDeBruijn
+nameToDeBruijn (Name str u) = NamedDeBruijn str <$> getIndex u
 
 tyNameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyName -> m TyDeBruijn
-tyNameToDeBruijn (TyName n) = TyDeBruijn <$> nameToDeBruijn n
+    => TyName -> m NamedTyDeBruijn
+tyNameToDeBruijn (TyName n) = NamedTyDeBruijn <$> nameToDeBruijn n
 
 deBruijnToName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => DeBruijn -> m Name
-deBruijnToName (DeBruijn str ix) = Name str <$> getUnique ix
+    => NamedDeBruijn -> m Name
+deBruijnToName (NamedDeBruijn str ix) = Name str <$> getUnique ix
 
 deBruijnToTyName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyDeBruijn -> m TyName
-deBruijnToTyName (TyDeBruijn n) = TyName <$> deBruijnToName n
+    => NamedTyDeBruijn -> m TyName
+deBruijnToTyName (NamedTyDeBruijn n) = TyName <$> deBruijnToName n

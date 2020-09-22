@@ -5,6 +5,7 @@ module Language.UntypedPlutusCore
 
 import           Language.UntypedPlutusCore.Core               as Export
 import           Language.UntypedPlutusCore.Size               as Export
+import           Language.UntypedPlutusCore.Subst              as Export
 -- Also has some functions
 import           Language.UntypedPlutusCore.Core.Instance.CBOR as Export
 
