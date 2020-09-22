@@ -208,12 +208,6 @@ cradle:
         stack:
           component: "web-ghc:test:web-ghc-test"
 
-  - path: ./marlowe-playground-lambda/src
-    config:
-      cradle:
-        stack:
-          component: "marlowe-playground-lambda:lib"
-
   # These use the plutus plugin - HIE doesn't support plugins yet
 
   - path: ./marlowe
