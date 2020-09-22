@@ -7,7 +7,6 @@ import Data.Lens (assign)
 import Data.List (List(..), concatMap, foldl, fromFoldable, length, reverse, snoc, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe as Server

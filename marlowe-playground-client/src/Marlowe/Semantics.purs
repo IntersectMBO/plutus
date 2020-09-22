@@ -1057,11 +1057,66 @@ derive instance ordTransactionWarning :: Ord TransactionWarning
 instance showTransactionWarning :: Show TransactionWarning where
   show = genericShow
 
-instance genericEncodeTransactionWarning :: Encode TransactionWarning where
-  encode a = genericEncode aesonCompatibleOptions a
+instance encodeTransactionWarning :: Encode TransactionWarning where
+  encode TransactionAssertionFailed = encode "assertion_failed"
+  encode (TransactionNonPositiveDeposit party accId tok amount) =
+    encode
+      { party: party
+      , asked_to_deposit: amount
+      , of_token: tok
+      , in_account: accId
+      }
+  encode (TransactionNonPositivePay accId payee tok amount) =
+    encode
+      { account: accId
+      , asked_to_pay: amount
+      , of_token: tok
+      , to_payee: payee
+      }
+  encode (TransactionPartialPay accId payee tok paid expected) =
+    encode
+      { account: accId
+      , asked_to_pay: expected
+      , of_token: tok
+      , to_payee: payee
+      , but_only_paid: paid
+      }
+  encode (TransactionShadowing valId oldVal newVal) =
+    encode
+      { value_id: valId
+      , had_value: oldVal
+      , is_now_assigned: newVal
+      }
 
-instance genericDecodeTransactionWarning :: Decode TransactionWarning where
-  decode a = genericDecode aesonCompatibleOptions a
+instance decodeTransactionWarning :: Decode TransactionWarning where
+  decode a =
+    ( ifM ((\x -> x == "assertion_failed") <$> decode a)
+        (pure TransactionAssertionFailed)
+        (fail (ForeignError "Not \"assertion_failed\" string"))
+    )
+      <|> ( TransactionNonPositiveDeposit <$> (decode =<< readProp "party" a)
+            <*> (decode =<< readProp "in_account" a)
+            <*> (decode =<< readProp "of_token" a)
+            <*> (decode =<< readProp "asked_to_deposit" a)
+        )
+      <|> ( if (hasProperty "but_only_paid" a) then
+            ( TransactionPartialPay <$> (decode =<< readProp "account" a)
+                <*> (decode =<< readProp "to_payee" a)
+                <*> (decode =<< readProp "of_token" a)
+                <*> (decode =<< readProp "asked_to_pay" a)
+                <*> (decode =<< readProp "but_only_paid" a)
+            )
+          else
+            ( TransactionNonPositivePay <$> (decode =<< readProp "account" a)
+                <*> (decode =<< readProp "to_payee" a)
+                <*> (decode =<< readProp "of_token" a)
+                <*> (decode =<< readProp "asked_to_pay" a)
+            )
+        )
+      <|> ( TransactionShadowing <$> (decode =<< readProp "value_id" a)
+            <*> (decode =<< readProp "had_value" a)
+            <*> (decode =<< readProp "is_now_assigned" a)
+        )
 
 -- | Transaction error
 data TransactionError
@@ -1106,10 +1161,31 @@ instance showTransactionInput :: Show TransactionInput where
   show = genericShow
 
 instance encodeTransactionInput :: Encode TransactionInput where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode ( TransactionInput
+      { interval: (SlotInterval (Slot fromSlot) (Slot toSlot))
+    , inputs: txInps
+    }
+  ) =
+    encode
+      { tx_interval:
+        { from: fromSlot
+        , to: toSlot
+        }
+      , tx_inputs: txInps
+      }
 
 instance decodeTransactionInput :: Decode TransactionInput where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a = do
+    interv <- decode =<< readProp "tx_interval" a
+    fromSlot <- decode =<< readProp "from" interv
+    toSlot <- decode =<< readProp "to" interv
+    inputs <- decode =<< readProp "tx_inputs" a
+    pure
+      ( TransactionInput
+          { interval: (SlotInterval (Slot fromSlot) (Slot toSlot))
+          , inputs: inputs
+          }
+      )
 
 data TransactionOutput
   = TransactionOutput
