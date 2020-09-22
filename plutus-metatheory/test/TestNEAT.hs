@@ -31,6 +31,8 @@ allTests genOpts = testGroup "NEAT"
       genOpts
       (Type ())
       prop_checkKindSound
+  ]
+{-
   , testCaseGen "normalization"
       genOpts
       (Type ())
@@ -64,17 +66,15 @@ allTests genOpts = testGroup "NEAT"
       (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       (prop_runList [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda])
   ]
-
+-}
 -- check that Agda agrees that the given type is correct
 prop_checkKindSound :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
 prop_checkKindSound k tyG = do
    ty <- withExceptT GenError $ convertClosedType tynames k tyG
    tyDB <- withExceptT FVErrorP $ deBruijnTy ty
---   withExceptT Ctrex $
-   case checkKindAgda tyDB (deBruijnifyK (convK k)) of
-     Just _  -> return ()
-     Nothing -> throwCtrex (CtrexKindCheckFail k tyG)
+   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $ checkKindAgda tyDB (deBruijnifyK (convK k))
 
+{-
 -- check that the Agda type normalizer doesn't mangle the kind
 prop_normalizePreservesKind :: Kind ()
                             -> ClosedTypeG
@@ -196,3 +196,4 @@ prop_runList evs (k , tyG) tmG = do
     Nothing -> throwError (CtrexTermEvaluationFail tyG tmG)
   tmEvsN <- withExceptT FVErrorP $ sequence (unDeBruijnTerm <$> tmEvs)
   unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)
+-}
