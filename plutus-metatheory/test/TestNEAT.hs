@@ -44,7 +44,7 @@ prop_Type k tyG = do
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   -- get a production De Bruijn type:
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  
+
   -- 1. check soundness of Agda kindchecker with respect to NEAT:
   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
     checkKindAgda tyDB (deBruijnifyK (convK k))
@@ -58,7 +58,7 @@ prop_Type k tyG = do
   unless (unconvK (unDeBruijnifyK k1) == k2) $
     throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k1)) k2)
 
-    
+
   -- normalize type using Agda type normalizer:
   ty' <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
     liftEither $ normalizeTypeAgda tyDB
