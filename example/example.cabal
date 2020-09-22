@@ -34,6 +34,7 @@ library
     , aeson
     , bytestring
     , containers
+    , hashable
     , iots-export
     , mtl
     , plutus-core
@@ -83,6 +84,7 @@ test-suite example-test
     , bytestring
     , containers
     , example
+    , hashable
     , hedgehog
     , plutus-core
     , plutus-tx

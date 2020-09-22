@@ -354,11 +354,11 @@ in rec {
       let shell = haskell.packages.shellFor ({
           packages = ps: with ps; [ plutus-use-cases ];
         });
-      in pkgs.dockerTools.buildImage {
+      in pkgs.callPackage (import (sources.docker-nixpkgs + "/images/devcontainer")) {
         name = "plutus-devcontainer";
         tag = "latest";
-        fromImage = (import sources.docker-nixpkgs).devcontainer;
-        contents = [
+        nixpkgsPath = pkgs.path;
+        extraContents = [
           shell.ghc
           dev.packages.haskell-language-server
           dev.packages.haskell-language-server-wrapper
@@ -367,19 +367,8 @@ in rec {
           dev.packages.cabal-install
           pkgs.binutils-unwrapped
           pkgs.which
+          pkgs.zsh
         ];
-        extraCommands = "mkdir -m 0777 tmp";
-        config = {
-          Env = [
-          "ENV=/nix/var/nix/profiles/default/etc/profile.d/nix.sh"
-          "GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
-          "LD_LIBRARY_PATH=/nix/var/nix/profiles/default/lib"
-          "PAGER=less"
-          "PATH=/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-          "SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
-          "NIX_GHC_LIBDIR=${shell.ghc}/${shell.configFiles.libDir}"
-          ];
-        };
       };
   };
 

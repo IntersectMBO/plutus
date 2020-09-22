@@ -1,14 +1,14 @@
 {
     "docker-nixpkgs": {
-        "branch": "master",
+        "branch": "hkm/nix-devcontainer",
         "description": "docker images from nixpkgs [maintainer=@zimbatm]",
         "homepage": "https://hub.docker.com/u/nixpkgs",
-        "owner": "nix-community",
+        "owner": "hamishmack",
         "repo": "docker-nixpkgs",
-        "rev": "53440b208ed438d762a81825a60bab182e7550cc",
-        "sha256": "1qrcijbl21h16qxnpsgfbx3kzvpd5zwvzz48dp4lsra6h80q33ma",
+        "rev": "fb0a5ff1410f0e3ad58690db973af5824d0f9251",
+        "sha256": "1w5r1r2rz0crp1rcfy46pi60mb7m02z34k7h2mvgpj04h8s5lkz5",
         "type": "tarball",
-        "url": "https://github.com/nix-community/docker-nixpkgs/archive/53440b208ed438d762a81825a60bab182e7550cc.tar.gz",
+        "url": "https://github.com/hamishmack/docker-nixpkgs/archive/fb0a5ff1410f0e3ad58690db973af5824d0f9251.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "easy-purescript-nix": {

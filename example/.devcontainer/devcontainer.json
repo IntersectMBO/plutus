@@ -1,41 +1,24 @@
-// For format details, see https://aka.ms/vscode-remote/devcontainer.json or the definition README at
-// https://github.com/microsoft/vscode-dev-containers/tree/master/containers/docker-existing-dockerfile
 {
-	"name": "Plutus",
-	"context": ".",
-	"dockerFile": "Dockerfile",
+    "name": "Example Plutus Project",
+    "image": "hamishmack/plutus-devcontainer",
+    "workspaceFolder": "/plutus",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/plutus,type=bind,consistency=cached",
 
-	// The optional 'runArgs' property can be used to specify additional runtime arguments.
-	"runArgs": [
-		// For the nix daemon
+    // Uncomment the following lines to persist the ./dist-newstyle and /nix directories of the
+    // container inside of Docker-managed volumes.
+    // "mounts": [
+    //     "source=plutus-dist,target=/plutus/dist-newstyle,type=volume",
+    //     "source=plutus-nix,target=/nix,type=volume",
+    // ],
 
-		// Uncomment the next line if you will be using a ptrace-based debugger like C++, Go, and Rust.
-		"--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined",
-    // TODO: figure out if we can reduce privileges
-		"--privileged",
-		// You may want to add a non-root user to your Dockerfile. On Linux, this will prevent
-		// new files getting created as root. See https://aka.ms/vscode-remote/containers/non-root-user
-		// for the needed Dockerfile updates and then uncomment the next line.
-		"-u", "vscode"
-	],
+    // Use 'settings' to set *default* container specific settings.json values on container create.
+    // You can edit these settings after create using File > Preferences > Settings > Remote.
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh"
+    },
 
-	// Use 'settings' to set *default* container specific settings.json values on container create.
-	// You can edit these settings after create using File > Preferences > Settings > Remote.
-	//"settings": {
-		// This will ignore your local shell user setting for Linux since shells like zsh are typically
-		// not in base container images. You can also update this to an specific shell to ensure VS Code
-		// uses the right one for terminals and tasks. For example, /bin/bash (or /bin/ash for Alpine).
-		//"terminal.integrated.shell.linux": null
-	//},
-
-	// Uncomment the next line if you want to publish any ports.
-	// "appPort": [],
-
-	// Start the nix daemon in the background
-	//"postCreateCommand": "nohup sudo nix-daemon --daemon &",
-
-	// Add the IDs of extensions you want installed when the container is created in the array below.
-	"extensions": [
+    // IDs of extensions inside container.
+    "extensions": [
 		"haskell.haskell"
-	]
+    ],
 }
