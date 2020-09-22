@@ -1,25 +1,19 @@
 module HaskellEditor where
 
 import Prelude hiding (div)
-import Affjax (defaultRequest)
-import Affjax.RequestBody as Affjax
-import Affjax.RequestHeader (RequestHeader(..))
-import Control.Monad.Except (class MonadError, runExceptT)
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.HTTP.Method as Method
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.MediaType (MediaType(..))
-import Data.Newtype (unwrap)
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
-import Foreign.Generic (decode)
 import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
@@ -30,20 +24,22 @@ import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), SourceCode(..), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
-import Marlowe (SPParams_)
+import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Network.RemoteData as RemoteData
-import Servant.PureScript.Ajax (AjaxError, ajax)
+import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.State (_result)
+import Simulation.Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Types (ChildSlots, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
+import Webghc.Server (CompileRequest(..))
 
 handleAction ::
   forall m.
@@ -63,9 +59,9 @@ handleAction settings Compile = do
   mContents <- query _haskellEditorSlot unit (Monaco.GetText identity)
   case mContents of
     Nothing -> pure unit
-    Just contents -> do
+    Just code -> do
       assign _compilationResult Loading
-      result <- RemoteData.fromEither <$> (runExceptT $ postHaskell $ SourceCode contents)
+      result <- runAjax $ flip runReaderT settings $ postRunghc (CompileRequest { code, implicitPrelude: true })
       assign _compilationResult result
       -- Update the error display.
       let
@@ -97,23 +93,11 @@ handleAction _ SendResultToBlockly = do
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
-postHaskell ::
-  forall m.
-  MonadError AjaxError m =>
-  MonadAff m =>
-  SourceCode ->
-  m (Either InterpreterError (InterpreterResult String))
-postHaskell sourceCode = do
-  let
-    affReq =
-      defaultRequest
-        { method = Method.fromString "POST"
-        , url = "/runghc?prelude"
-        , headers = [ ContentType (MediaType "text/plain;charset=utf-8") ]
-        , content = Just $ Affjax.string $ unwrap sourceCode
-        }
-  r <- ajax decode affReq
-  pure r.body
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
 
 toMarkers :: InterpreterError -> Array IMarkerData
 toMarkers (TimeoutError _) = []

@@ -35,6 +35,7 @@ library
                  -Wno-missing-import-lists -Wredundant-constraints
     build-depends:
         base >=4.7 && <5,
+        aeson -any,
         servant,
         servant-server,
         exceptions,

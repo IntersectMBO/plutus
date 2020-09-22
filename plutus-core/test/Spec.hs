@@ -127,7 +127,7 @@ propDeBruijn gen = property . generalizeT $ do
     let
         forward = deBruijnTerm
         backward
-            :: Except FreeVariableError (Term TyDeBruijn DeBruijn DefaultUni () a)
+            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni () a)
             -> Except FreeVariableError (Term TyName Name DefaultUni () a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward

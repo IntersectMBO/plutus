@@ -56,6 +56,7 @@ import           Servant.PureScript                               (HasBridge, Se
 import qualified Swap
 import           System.Directory                                 (createDirectoryIfMissing)
 import           System.FilePath                                  ((</>))
+import qualified Webghc.Server                                    as Webghc
 import qualified ZeroCouponBond
 
 
@@ -138,6 +139,7 @@ myTypes =
     , mkSumType (Proxy @CT.Assertion)
     , mkSumType (Proxy @CT.Assertions)
     , mkSumType (Proxy @CT.AssertionContext)
+    , mkSumType (Proxy @Webghc.CompileRequest)
     ]
 
 mySettings :: Settings
@@ -173,7 +175,7 @@ writeUsecases outputDir = do
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
-type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API
+type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API :<|> Webghc.FrontendAPI
 
 generate :: FilePath -> IO ()
 generate outputDir = do
