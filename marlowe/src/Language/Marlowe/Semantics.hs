@@ -1244,6 +1244,79 @@ instance ToJSON Contract where
       , "then" .= cont
       ]
 
+instance FromJSON TransactionInput where
+  parseJSON (Object v) =
+        TransactionInput <$> (parseSlotInterval =<< (v .: "tx_interval"))
+                         <*> ((v .: "tx_inputs") >>=
+                   withArray "Transaction input list" (\cl ->
+                     mapM parseJSON (F.toList cl)
+                                                      ))
+    where parseSlotInterval = withObject "SlotInterval" (\v ->
+            do from <- Slot <$> (withInteger =<< (v .: "from"))
+               to <- Slot <$> (withInteger =<< (v .: "to"))
+               return (from, to)
+                                                      )
+  parseJSON _ = fail "TransactionInput must be an object"
+
+instance ToJSON TransactionInput where
+  toJSON (TransactionInput (Slot from, Slot to) txInps) = object
+      [ "tx_interval" .= slotIntervalJSON
+      , "tx_inputs" .= toJSONList (map toJSON txInps)
+      ]
+    where slotIntervalJSON = object [ "from" .= from
+                                    , "to" .= to
+                                    ]
+
+instance FromJSON TransactionWarning where
+  parseJSON (String "assertion_failed") = return TransactionAssertionFailed
+  parseJSON (Object v) =
+        (TransactionNonPositiveDeposit <$> (parseJSON =<< (v .: "party"))
+                                       <*> (parseJSON =<< (v .: "in_account"))
+                                       <*> (parseJSON =<< (v .: "of_token"))
+                                       <*> (parseJSON =<< (v .: "asked_to_deposit")))
+    <|> (do maybeButOnlyPaid <- v .:? "but_only_paid"
+            case maybeButOnlyPaid :: Maybe Scientific of
+              Nothing -> TransactionNonPositivePay <$> (parseJSON =<< (v .: "account"))
+                                                   <*> (parseJSON =<< (v .: "to_payee"))
+                                                   <*> (parseJSON =<< (v .: "of_token"))
+                                                   <*> (parseJSON =<< (v .: "asked_to_pay"))
+              Just butOnlyPaid -> TransactionPartialPay <$> (parseJSON =<< (v .: "account"))
+                                                        <*> (parseJSON =<< (v .: "to_payee"))
+                                                        <*> (parseJSON =<< (v .: "of_token"))
+                                                        <*> (parseJSON =<< (v .: "asked_to_pay"))
+                                                        <*> getInteger butOnlyPaid)
+    <|> (TransactionShadowing <$> (parseJSON =<< (v .: "value_id"))
+                              <*> (parseJSON =<< (v .: "had_value"))
+                              <*> (parseJSON =<< (v .: "is_now_assigned")))
+  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+
+instance ToJSON TransactionWarning where
+  toJSON (TransactionNonPositiveDeposit party accId tok amount) = object
+      [ "party" .= party
+      , "asked_to_deposit" .= amount
+      , "of_token" .= tok
+      , "in_account" .= accId
+      ]
+  toJSON (TransactionNonPositivePay accId payee tok amount) = object
+      [ "account" .= accId
+      , "asked_to_pay" .= amount
+      , "of_token" .= tok
+      , "to_payee" .= payee
+      ]
+  toJSON (TransactionPartialPay accId payee tok paid expected) = object
+      [ "account" .= accId
+      , "asked_to_pay" .= expected
+      , "of_token" .= tok
+      , "to_payee" .= payee
+      , "but_only_paid" .= paid
+      ]
+  toJSON (TransactionShadowing valId oldVal newVal) = object
+      [ "value_id" .= valId
+      , "had_value" .= oldVal
+      , "is_now_assigned" .= newVal
+      ]
+  toJSON TransactionAssertionFailed = JSON.String $ pack "assertion_failed"
+
 
 instance Eq Party where
     {-# INLINABLE (==) #-}

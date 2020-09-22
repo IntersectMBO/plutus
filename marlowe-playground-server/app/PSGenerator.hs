@@ -1,13 +1,10 @@
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -82,6 +79,28 @@ stateBridge = do
     typeModule ^== "Language.Marlowe.Semantics"
     psState
 
+psTransactionInput :: MonadReader BridgeData m => m PSType
+psTransactionInput =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "TransactionInput" <$>
+    psTypeParameters
+
+transactionInputBridge :: BridgePart
+transactionInputBridge = do
+    typeName ^== "TransactionInput"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psTransactionInput
+
+psTransactionWarning :: MonadReader BridgeData m => m PSType
+psTransactionWarning =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "TransactionWarning" <$>
+    psTypeParameters
+
+transactionWarningBridge :: BridgePart
+transactionWarningBridge = do
+    typeName ^== "TransactionWarning"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psTransactionWarning
+
 doubleBridge :: BridgePart
 doubleBridge = typeName ^== "Double" >> return psNumber
 
@@ -99,6 +118,8 @@ myBridge =
     dayBridge <|>
     contractBridge <|>
     stateBridge <|>
+    transactionInputBridge <|>
+    transactionWarningBridge <|>
     defaultBridge
 
 data MyBridge
