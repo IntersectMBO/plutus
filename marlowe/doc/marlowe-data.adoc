@@ -181,7 +181,7 @@ Three kinds of action are possible:
 
 This completes our discussion of the types that make up Marlowe contracts.
 
-=== Dynamic data
+=== Transactions
 
 As we noted earlier, the semantics of Marlowe consist in building _transactions_, like this:
 [#img-transaction]
