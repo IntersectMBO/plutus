@@ -229,10 +229,10 @@ executePLC TCEKV t = do
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString m b = do
 {-
-namedprog ← parse b
-  prog ← deBruijnify namedprog
+  namedprog ← withE parseError $ parse b
+  prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   let shiftedprog = shifter Z (convP prog)
-  scopedprog ← scopeCheckTm {0}{Z} shiftedprog
+  scopedprog ← withE scopeError $ scopeCheckTm {0}{Z} shiftedprog
   let extricatedprog = extricateScope scopedprog
   let unshiftedprog = unshifter Z extricatedprog
   return ("orginal: " ++ rawPrinter (convP prog) ++ "\n" ++

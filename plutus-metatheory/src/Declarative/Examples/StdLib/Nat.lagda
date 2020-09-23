@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.StdLib.Nat where
+module Declarative.Examples.StdLib.Nat where
 \end{code}
 
 \begin{code}
@@ -7,7 +7,7 @@ open import Type
 open import Type.Equality
 import Type.RenamingSubstitution as ⋆
 open import Declarative
-open import Declarative.StdLib.Function
+open import Declarative.Examples.StdLib.Function
 \end{code}
 
 \begin{code}
