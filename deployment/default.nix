@@ -63,9 +63,11 @@ let
   syncS3 = env:
     writeShellScript "syncs3" ''
     ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
+    ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial/
     # We do a sync to delete any files that have been removed, just to keep things clean, then we do a recursive cp
     # because sync doesn't update files with the same file size and timestamp
-    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/'';
+    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
+    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial'';
 
   deploy = env: region:
     writeShellScript "deploy" ''
@@ -101,16 +103,43 @@ let
       echo "done"
     '';
 
+  destroy = env: region:
+    writeShellScript "destroy" ''
+      set -e
+      tmp_dir=$(mktemp -d)
+      echo "using tmp_dir $tmp_dir"
+
+      ln -s ${./terraform}/* $tmp_dir
+
+      # in case we have some tfvars around in ./terraform
+      rm $tmp_dir/*.tfvars | true
+
+      ln -s ${terraform-locals env}/* $tmp_dir
+      ln -s ${terraform-vars env region}/* $tmp_dir
+      cd $tmp_dir
+
+      echo "apply terraform"
+      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
+      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
+      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      ${terraform}/bin/terraform init
+      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform destroy -var-file=${env}.tfvars 
+    '';
+
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
     runTerraform = (runTerraform env region);
     deploy = (deploy env region);
+    destroy = (destroy env region);
   };
 
   envs = {
     david = mkEnv "david" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
+    wyohack = mkEnv "wyohack" "us-west-2";
+    # wyohack = mkEnv "wyohack" "eu-central-1";
   };
 in envs // { inherit getCreds; }

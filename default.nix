@@ -257,6 +257,8 @@ in rec {
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
+    
+    tutorial = docs.marlowe-tutorial;
   });
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };

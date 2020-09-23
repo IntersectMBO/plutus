@@ -70,12 +70,11 @@ data "template_file" "playground_user_data" {
 }
 
 resource "aws_instance" "playground_a" {
-  ami = "${lookup(var.aws_amis, var.aws_region)}"
+  ami = "${lookup(var.amis_20_03, var.aws_region)}"
 
   instance_type        = "${var.playground_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[0]}"
   user_data            = "${data.template_file.playground_user_data.rendered}"
-  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.playground.id}",
@@ -101,12 +100,11 @@ resource "aws_route53_record" "playground_internal_a" {
 }
 
 resource "aws_instance" "playground_b" {
-  ami = "${lookup(var.aws_amis, var.aws_region)}"
+  ami = "${lookup(var.amis_20_03, var.aws_region)}"
 
   instance_type        = "${var.playground_instance_type}"
   subnet_id            = "${aws_subnet.private.*.id[1]}"
   user_data            = "${data.template_file.playground_user_data.rendered}"
-  #iam_instance_profile = "elasticsearch_profile"
 
   vpc_security_group_ids = [
     "${aws_security_group.playground.id}",
