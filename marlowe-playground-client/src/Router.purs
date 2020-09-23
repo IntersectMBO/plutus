@@ -20,6 +20,7 @@ data SubRoute
   = Home
   | Simulation
   | HaskellEditor
+  | JSEditor
   | ActusBlocklyEditor
   | Blockly
   | Wallets
@@ -38,6 +39,7 @@ route =
         { "Home": noArgs
         , "Simulation": "simulation" / noArgs
         , "HaskellEditor": "haskell" / noArgs
+        , "JSEditor": "javascript" / noArgs
         , "Blockly": "blockly" / noArgs
         , "ActusBlocklyEditor": "actus" / noArgs
         , "Wallets": "wallets" / noArgs

@@ -141,7 +141,7 @@ let additions =
           , repo =
               "https://github.com/shmish111/purescript-servant-support"
           , version =
-              "v10.0.0"
+              "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
           }
       , concurrent-queues =
           { dependencies =
@@ -158,7 +158,7 @@ let additions =
           //  { repo =
                   "https://github.com/shmish111/purescript-foreign-generic"
               , version =
-                  "d356fd2bf4943e8a85f7d9da5af2ecd12301a48c"
+                  "a2c5a0d623bb543207968110065e585d407c36d2"
               }
       , matryoshka =
           { dependencies =

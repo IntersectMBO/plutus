@@ -797,7 +797,7 @@ renderCurrentState state =
   div [ classes [ Classes.panelContents, active, ClassName "wallet-composer-state" ] ]
     [ div [ classes [ rTable, rTable4cols ] ]
         ( warningsRow <> errorRow
-            <> dataRow "Expiration Block" (state ^. (_currentLoadedMarloweState <<< _contract <<< to contractMaxTime))
+            <> dataRow "Expiration Slot" (state ^. (_currentLoadedMarloweState <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
@@ -1122,7 +1122,8 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
     [ classes [ aHorizontal, ClassName "flex-wrap", ClassName "choice-row" ] ]
     ( [ div []
           [ p [ class_ (ClassName "choice-input") ]
-              [ spanText "Choice "
+              [ b_ [ spanText (show choiceOwner) ]
+              , spanText " make choice "
               , b_ [ spanText (show choiceName <> ":") ]
               , br_
               , spanText "Choose value "
@@ -1164,6 +1165,8 @@ inputItem isEnabled person NotifyInput =
         ]
         [ text "+" ]
     ]
+
+inputItem _ _ _ = text mempty
 
 marloweActionInput :: forall p a action. Show a => Boolean -> (BigInteger -> action) -> a -> HTML p action
 marloweActionInput isEnabled f current =
@@ -1279,7 +1282,7 @@ rightPanel state =
         ]
     , ul []
         [ li [] [ text ((state ^. (_runningContracts <<< _MaxIndex <<< to show)) <> " contracts running") ]
-        , li [] [ text $ "Current Block: " <> show currentBlock ]
+        , li [] [ text $ "Current Slot: " <> show currentBlock ]
         , li [ classes [ bold, pointer ] ]
             [ a
                 [ onClick $ const $ Just ResetContract

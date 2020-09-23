@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -17,8 +19,9 @@ module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptIns
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-
+import Data.Aeson (ToJSON, FromJSON)
 import qualified Data.Map   as Map
+import GHC.Generics (Generic)
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
@@ -49,7 +52,8 @@ data PubKeyError =
     ScriptOutputMissing PubKeyHash
     | MultipleScriptOutputs PubKeyHash
     | PKContractError ContractError
-    deriving (Eq, Show)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''PubKeyError
 

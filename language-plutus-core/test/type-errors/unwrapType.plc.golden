@@ -1,6 +1,0 @@
-Type mismatch at 2:4 in term
-  '(con 0)'.
-Expected type
-  '(ifix * *)',
-found type
-  '(con integer)'

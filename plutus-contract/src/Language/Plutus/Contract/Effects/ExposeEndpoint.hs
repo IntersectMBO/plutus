@@ -12,35 +12,32 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.ExposeEndpoint where
+module Language.Plutus.Contract.Effects.ExposeEndpoint(
+    HasEndpoint
+    , Endpoint
+    , ActiveEndpoint(..)
+    , EndpointDescription(..)
+    , EndpointValue(..)
+    , endpoint
+    , endpointWithMeta
+    , endpointDescription
+    , event
+    , isActive
+    ) where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
 import qualified Data.Aeson                       as JSON
 import           Data.Maybe                       (isJust)
 import           Data.Proxy
 import           Data.Row
-import           Data.String                      (IsString)
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           GHC.TypeLits                     (Symbol, symbolVal)
 
-import qualified Language.Haskell.TH.Syntax       as TH
-import           Language.Plutus.Contract.IOTS
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Types   (AsContractError, Contract)
-
-newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
-    deriving stock (Eq, Ord, Generic, Show, TH.Lift)
-    deriving newtype (IsString, Pretty)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
-
-newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
-    deriving stock (Eq, Ord, Generic, Show)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
-
-deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
+import           Wallet.Types                     (EndpointDescription (..), EndpointValue (..))
 
 type HasEndpoint l a s =
   ( HasType l (EndpointValue a) (Input s)
@@ -89,9 +86,12 @@ endpointWithMeta
   -> Contract s e a
 endpointWithMeta b = unEndpointValue <$> request @l @_ @_ @s s where
   s = ActiveEndpoint
-        { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
+        { aeDescription = endpointDescription (Proxy @l)
         , aeMetadata    = Just $ JSON.toJSON b
         }
+
+endpointDescription :: forall l. KnownSymbol l => Proxy l -> EndpointDescription
+endpointDescription = EndpointDescription . symbolVal
 
 event
   :: forall (l :: Symbol) a s. (KnownSymbol l, HasType l (EndpointValue a) (Input s), AllUniqueLabels (Input s))

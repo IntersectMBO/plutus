@@ -8,24 +8,20 @@
 module Plugin.Typeclasses.Spec where
 
 import           Common
+import           Lib
 import           PlcTestUtils
-import           Plugin.Lib
-
 import           Plugin.Data.Spec
+import           Plugin.Lib
+import           Plugin.Typeclasses.Lib
 
 import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 import qualified Language.PlutusTx.Prelude    as P
 
-import           Plugin.Typeclasses.Lib
-
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
-
--- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
 
 typeclasses :: TestNested
 typeclasses = testNested "Typeclasses" [

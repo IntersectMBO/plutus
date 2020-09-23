@@ -3,26 +3,25 @@ module BridgeTests
   ) where
 
 import Prelude
-import API (RunResult)
 import Control.Monad.Except (runExcept)
+import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (liftEffect)
-import Data.Integral (fromIntegral)
+import Data.Map as Map
 import Data.String.Regex (replace)
 import Data.String.Regex.Flags (RegexFlags(..))
 import Data.String.Regex.Unsafe (unsafeRegex)
 import Data.Tuple (Tuple(..))
-import Data.Map as Map
-import Foreign.Generic (decodeJSON, encodeJSON)
-import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), State(..), Token(..), Value(..), ValueId(..))
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 import Foreign (F, MultipleErrors)
 import Foreign.Class (class Decode)
+import Foreign.Generic (decodeJSON, encodeJSON)
 import Language.Haskell.Interpreter (CompilationError)
+import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), State(..), Token(..), Value(..), ValueId(..))
 import Node.Encoding (Encoding(UTF8))
 import Node.FS.Sync as FS
-import Test.Unit.Assert (equal)
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
+import Test.Unit.Assert (equal)
 
 all :: TestSuite
 all =
@@ -33,7 +32,7 @@ all =
 jsonHandling :: TestSuite
 jsonHandling = do
   test "Json handling" do
-    response1 :: F RunResult <- decodeFile "test/evaluation_response1.json"
+    response1 :: F String <- decodeFile "test/evaluation_response1.json"
     assertRight $ runExcept response1
     error1 :: F (Array CompilationError) <- decodeFile "test/evaluation_error1.json"
     assertRight $ runExcept error1
@@ -47,11 +46,11 @@ serializationTest =
 
       alicePk = PK "deadbeef"
 
-      aliceAcc = AccountId (fromIntegral 0) alicePk
+      aliceAcc = AccountId (fromInt 0) alicePk
 
       bobRole = Role "Bob"
 
-      const = Constant (fromIntegral 100)
+      const = Constant (fromInt 100)
 
       choiceId = ChoiceId "choice" alicePk
 
@@ -66,23 +65,23 @@ serializationTest =
                   ( Let (ValueId "x") valueExpr
                       (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
                   )
-              , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
-                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
+              , Case (Choice choiceId [ Bound (fromInt 0) (fromInt 1) ])
+                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromInt 1) (fromInt 10)) const))
                       (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
                       Close
                   )
               , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
               ]
-              (Slot (fromIntegral 100))
+              (Slot (fromInt 100))
               Close
           )
 
       state =
         State
-          { accounts: Map.singleton (Tuple aliceAcc token) (fromIntegral 12)
-          , choices: Map.singleton choiceId (fromIntegral 42)
-          , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromIntegral 1), Tuple (ValueId "y") (fromIntegral 2) ]
-          , minSlot: (Slot $ fromIntegral 123)
+          { accounts: Map.singleton (Tuple aliceAcc token) (fromInt 12)
+          , choices: Map.singleton choiceId (fromInt 42)
+          , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromInt 1), Tuple (ValueId "y") (fromInt 2) ]
+          , minSlot: (Slot $ fromInt 123)
           }
 
       json = encodeJSON contract

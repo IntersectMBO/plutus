@@ -1,6 +1,5 @@
 module Marlowe.ActusBlockly where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), ContractRole(..), ContractStatus(..), ContractTerms(..), ContractType(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PREF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..))
 import Prelude
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, name, style, x, xml, y)
 import Blockly.Generator (Generator, getFieldValue, insertGeneratorFunction, mkGenerator, statementToCode)
@@ -11,6 +10,8 @@ import Control.Monad.ST as ST
 import Control.Monad.ST.Internal (ST, STRef)
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap, rmap)
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Date (exactDate)
 import Data.Either (Either)
 import Data.Either as Either
@@ -33,6 +34,7 @@ import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), ContractRole(..), ContractStatus(..), ContractTerms(..), ContractType(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PREF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -460,7 +462,7 @@ instance decodeJsonActusContract :: Decode ActusContract where
 
 data ActusValue
   = DateValue String String String
-  | CycleValue ActusValue Int ActusPeriodType
+  | CycleValue ActusValue BigInteger ActusPeriodType
   | DecimalValue Number
   | ActusAssertionCtx Number Number
   | ActusAssertionNpv Number Number
@@ -553,7 +555,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
           ActusError $ "Incorrect date: " <> yyyy <> "-" <> mm <> "-" <> dd
   blockDefinition ActusCycleType g block = do
     valueString <- getFieldValue block "value"
-    value <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString valueString
+    value <- fromMaybe (Either.Left "can't parse bigint") $ Either.Right <$> BigInteger.fromString valueString
     let
       anchor = parseFieldActusValueJson g block "anchor"
     let

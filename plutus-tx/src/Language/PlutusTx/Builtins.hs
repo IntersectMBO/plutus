@@ -43,13 +43,13 @@ module Language.PlutusTx.Builtins (
                                 ) where
 
 import qualified Crypto
-import           Data.ByteString.Lazy      as BSL
-import qualified Data.ByteString.Lazy.Hash as Hash
-import           Data.Maybe                (fromMaybe)
-import           Prelude                   hiding (String, error)
+import           Data.ByteString         as BS
+import qualified Data.ByteString.Hash    as Hash
+import           Data.Maybe              (fromMaybe)
+import           Prelude                 hiding (String, error)
 
 import           Language.PlutusTx.Data
-import           Language.PlutusTx.Utils   (mustBeReplaced)
+import           Language.PlutusTx.Utils (mustBeReplaced)
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.
@@ -62,22 +62,22 @@ them.
 {-# NOINLINE concatenate #-}
 -- | Concatenates two 'ByteString's.
 concatenate :: ByteString -> ByteString -> ByteString
-concatenate = BSL.append
+concatenate = BS.append
 
 {-# NOINLINE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> ByteString -> ByteString
-takeByteString n = BSL.take (fromIntegral n)
+takeByteString n = BS.take (fromIntegral n)
 
 {-# NOINLINE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> ByteString -> ByteString
-dropByteString n = BSL.drop (fromIntegral n)
+dropByteString n = BS.drop (fromIntegral n)
 
 {-# NOINLINE emptyByteString #-}
 -- | An empty 'ByteString'.
 emptyByteString :: ByteString
-emptyByteString = BSL.empty
+emptyByteString = BS.empty
 
 {-# NOINLINE sha2_256 #-}
 -- | The SHA2-256 hash of a 'ByteString'

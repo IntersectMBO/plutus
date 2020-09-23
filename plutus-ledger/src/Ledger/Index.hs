@@ -218,7 +218,7 @@ checkForgingScripts tx = do
         mkVd i = PolicyCtx { policyCtxPolicy = monetaryPolicyHash $ mpss !! fromIntegral i, policyCtxTxInfo = txinfo }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
         let vd = Context $ toData ptx'
-        in case runExcept $ runMonetaryPolicyScript Typecheck vd vl of
+        in case runExcept $ runMonetaryPolicyScript vd vl of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()
 
@@ -273,7 +273,7 @@ checkMatch txinfo = \case
         let
             ptx' = ValidatorCtx { valCtxTxInfo = txinfo, valCtxInput = ix }
             vd = Context (toData ptx')
-        case runExcept $ runScript Typecheck vd vl d r of
+        case runExcept $ runScript vd vl d r of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()
     PubKeyMatch msg pk sig -> unless (signedBy sig pk msg) $ throwError $ InvalidSignature pk sig

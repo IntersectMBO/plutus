@@ -19,7 +19,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -29,6 +29,7 @@ import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Pa
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser (runParser)
@@ -37,7 +38,16 @@ import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div ([ classes [ ClassName "simulation-bottom-panel" ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ ClassName "simulation-bottom-panel" ]
+            else
+              [ ClassName "simulation-bottom-panel", collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
         [ div [ class_ flexTen ]
             [ div [ classes [ footerPanelBg, active ] ]
@@ -94,6 +104,8 @@ bottomPanel state =
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
 
+  showingBottomPanel = state ^. _showBottomPanel
+
 isStaticLoading :: AnalysisState -> Boolean
 isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
 
@@ -109,8 +121,8 @@ panelContents state CurrentStateView =
   div [ class_ Classes.panelContents ]
     [ div [ classes [ rTable, rTable6cols, ClassName "panel-table" ] ]
         ( warningsRow <> errorRow
-            <> dataRow "Current Block" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
-            <> dataRow "Expiration Block" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
+            <> dataRow "Current Slot" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
+            <> dataRow "Expiration Slot" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
@@ -451,16 +463,22 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        Failure failure ->
-          explanation
-            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
-            , text "Analysis failed for the following reason:"
-            , ul [ classes [ ClassName "indented-enum-initial" ] ]
-                [ li_
-                    [ b_ [ spanText failure ]
-                    ]
-                ]
-            ]
+        Failure (AjaxError { description }) ->
+          let
+            err = case description of
+              DecodingError e -> "Decoding error: " <> e
+              ConnectionError e -> "Connection error: " <> e
+              ResponseFormatError e -> "Response Format error: " <> e
+          in
+            explanation
+              [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+              , text "Analysis failed for the following reason:"
+              , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                  [ li_
+                      [ b_ [ spanText err ]
+                      ]
+                  ]
+              ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
         NotStarted ->

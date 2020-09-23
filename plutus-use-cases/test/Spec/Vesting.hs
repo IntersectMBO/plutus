@@ -88,8 +88,7 @@ vesting =
         , vestingOwner    = Ledger.pubKeyHash $ walletPubKey wallet1 }
 
 retrieveFundsTrace
-    :: ( MonadEmulator (TraceError e) m )
-    => ContractTrace VestingSchema e m () ()
+    :: ContractTrace VestingSchema e () ()
 retrieveFundsTrace = do
     callEndpoint @"vest funds" wallet2 ()
     handleBlockchainEvents wallet2

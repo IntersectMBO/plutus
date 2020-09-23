@@ -30,13 +30,13 @@ import Data.Array (catMaybes, (..))
 import Data.Array (deleteAt, snoc) as Array
 import Data.Array.Extra (move) as Array
 import Data.Bifunctor (lmap)
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
-import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (Traversal', _Just, _Right, assign, modifying, over, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
@@ -74,11 +74,11 @@ import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
 
-mkSimulatorWallet :: Array KnownCurrency -> Int -> SimulatorWallet
+mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet
 mkSimulatorWallet currencies walletId =
   SimulatorWallet
     { simulatorWalletWallet: Wallet { getWallet: walletId }
-    , simulatorWalletBalance: mkInitialValue currencies 10
+    , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 10)
     }
 
 mkSimulation :: Array KnownCurrency -> String -> Simulation
@@ -86,7 +86,7 @@ mkSimulation simulationCurrencies simulationName =
   Simulation
     { simulationName
     , simulationActions: []
-    , simulationWallets: mkSimulatorWallet simulationCurrencies <$> 1 .. 2
+    , simulationWallets: mkSimulatorWallet simulationCurrencies <<< BigInteger.fromInt <$> 1 .. 2
     }
 
 mkInitialState :: forall m. MonadThrow Error m => Editor.Preferences -> m State
@@ -280,7 +280,7 @@ handleAction EvaluateActions =
         assign _evaluationResult result
         -- If we got a successful result, switch tab.
         case result of
-          Success (JsonEither (Left _)) -> pure unit
+          Success (Left _) -> pure unit
           _ -> replaceViewOnSuccess result Simulations Transactions
         pure unit
 
@@ -293,7 +293,7 @@ handleAction (LoadScript key) = do
       saveBuffer (unwrap contractDemoEditorContents)
       assign _currentView Editor
       assign _simulations $ Cursor.fromArray contractDemoSimulations
-      assign _compilationResult (Success <<< JsonEither <<< Right $ contractDemoContext)
+      assign _compilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
 
 handleAction AddSimulationSlot = do
@@ -324,12 +324,12 @@ handleAction (ModifyWallets action) = do
 handleAction (ChangeSimulation subaction) = do
   knownCurrencies <- getKnownCurrencies
   let
-    initialValue = mkInitialValue knownCurrencies 0
+    initialValue = mkInitialValue knownCurrencies zero
   modifying (_simulations <<< _current <<< _simulationActions) (handleSimulationAction initialValue subaction)
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
-    peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+    peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
   let
     wrapper = case subaction of
       (FocusTx _) -> animate (_blockchainVisualisationState <<< _chainFocusAppearing)
@@ -349,12 +349,12 @@ handleAction CompileProgram = do
       assign _compilationResult newCompilationResult
       -- If we got a successful result, switch tab.
       case newCompilationResult of
-        Success (JsonEither (Left _)) -> pure unit
+        Success (Left _) -> pure unit
         _ -> replaceViewOnSuccess newCompilationResult Editor Simulations
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
-            Success (JsonEither (Left errors)) -> toAnnotations errors
+            Success (Left errors) -> toAnnotations errors
             _ -> []
       -- If we have a result with new signatures, we can only hold
       -- onto the old actions if the signatures still match. Any
@@ -399,8 +399,8 @@ handleSimulationAction initialValue (PopulateAction n event) = do
     )
     $ Schema.handleFormEvent initialValue event
 
-_details :: forall a. Traversal' (WebData (JsonEither InterpreterError (InterpreterResult a))) a
-_details = _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
+_details :: forall a. Traversal' (WebData (Either InterpreterError (InterpreterResult a))) a
+_details = _Success <<< _Right <<< _InterpreterResult <<< _result
 
 handleGistAction :: forall m. MonadApp m => MonadState State m => GistAction -> m Unit
 handleGistAction PublishGist = do
@@ -454,12 +454,12 @@ handleGistAction LoadGist =
 
   toEither x NotAsked = x
 
-handleActionWalletEvent :: (Int -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
+handleActionWalletEvent :: (BigInteger -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 handleActionWalletEvent mkWallet AddWallet wallets =
   let
-    maxWalletId = fromMaybe 0 $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
+    maxWalletId = fromMaybe zero $ maximumOf (traversed <<< _simulatorWalletWallet <<< _walletId) wallets
 
-    newWallet = mkWallet (maxWalletId + 1)
+    newWallet = mkWallet (add one maxWalletId)
   in
     Array.snoc wallets newWallet
 

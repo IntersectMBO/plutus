@@ -1,7 +1,0 @@
-(abs
-  out_Bool_132
-  (type)
-  (lam
-    case_True_133 out_Bool_132 (lam case_False_134 out_Bool_132 case_False_134)
-  )
-)

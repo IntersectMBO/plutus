@@ -1,1 +1,0 @@
-Kind mismatch at 2:4 in type '(lam a (type) a)'. Expected kind '(type)' , found kind '(fun (type) (type))'

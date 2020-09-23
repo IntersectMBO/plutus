@@ -20,16 +20,14 @@ import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             hiding (run)
 import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Extra.State (assign, use)
+import           Control.Monad.Freer.Log         (renderLogMessages)
 import           Control.Monad.Freer.State
 import qualified Control.Monad.Freer.State       as Eff
-import           Control.Monad.Freer.Writer
-import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable                   (fold, traverse_)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
-import qualified Data.Sequence                   as Seq
 import           Data.Text                       (Text)
 import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
@@ -181,7 +179,7 @@ type ChainIndexEffects m
      = '[ ChainIndexControlEffect
         , ChainIndexEffect
         , State ChainIndexState
-        , Writer [ChainIndexEvent]
+        , LogMsg ChainIndexEvent
         , LogMsg Text
         , m
         ]
@@ -193,12 +191,12 @@ processIndexEffects ::
     -> m a
 processIndexEffects stateVar eff = do
     AppState{_indexState, _indexEvents, _indexFollowerID} <- liftIO $ takeMVar stateVar
-    ((result, newState), events) <- liftIO
+    (result, newState) <- liftIO
                             $ runM
                             $ runStderrLog
-                            $ Eff.runWriter
+                            $ renderLogMessages
                             $ Eff.runState _indexState
                             $ ChainIndex.handleChainIndex
                             $ ChainIndex.handleChainIndexControl eff
-    liftIO $ putMVar stateVar AppState{_indexState=newState, _indexEvents=_indexEvents <> Seq.fromList events, _indexFollowerID=_indexFollowerID  }
+    liftIO $ putMVar stateVar AppState{_indexState=newState, _indexEvents=_indexEvents, _indexFollowerID=_indexFollowerID  }
     pure result

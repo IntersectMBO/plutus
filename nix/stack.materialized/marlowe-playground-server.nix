@@ -42,6 +42,8 @@
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."file-embed" or (errorHandler.buildDepError "file-embed"))
+          (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
+          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
@@ -62,22 +64,20 @@
           (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
           (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
-          (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           ];
         buildable = true;
         modules = [
           "Server"
           "API"
-          "Interpreter"
-          "WebSocket"
+          "Lambda"
           "Marlowe/Contracts"
           "Marlowe/Config"
           ];
@@ -117,6 +117,7 @@
             (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
             (hsPkgs."wai-extra" or (errorHandler.buildDepError "wai-extra"))
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+            (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
             ];
@@ -137,17 +138,7 @@
         };
       tests = {
         "marlowe-playground-server-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."hspec" or (errorHandler.buildDepError "hspec"))
-            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
-            (hsPkgs."marlowe-playground-server" or (errorHandler.buildDepError "marlowe-playground-server"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."raw-strings-qq" or (errorHandler.buildDepError "raw-strings-qq"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
-            ];
+          depends = [ (hsPkgs."base" or (errorHandler.buildDepError "base")) ];
           buildable = true;
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

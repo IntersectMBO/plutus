@@ -45,10 +45,15 @@ common lang
 library
     import: lang
     exposed-modules:
+        Cardano.BM.Data.Tracer.Extras
         Cardano.ChainIndex.API
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
+        Cardano.Metadata.API
+        Cardano.Metadata.Client
+        Cardano.Metadata.Server
+        Cardano.Metadata.Types
         Cardano.Node.API
         Cardano.Node.Client
         Cardano.Node.Follower
@@ -85,11 +90,16 @@ library
         Plutus.SCB.Core.Projections
         Plutus.SCB.Effects.Contract
         Plutus.SCB.Effects.ContractTest
+        Plutus.SCB.Effects.ContractRuntime
         Plutus.SCB.Effects.ContractTest.AtomicSwap
         Plutus.SCB.Effects.ContractTest.PayToWallet
         Plutus.SCB.Effects.EventLog
         Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
+        Plutus.SCB.Instances
+        Plutus.SCB.MonadLoggerBridge
+        Plutus.SCB.Monitoring
+        Plutus.SCB.Swagger
         Plutus.SCB.Webserver.API
         Plutus.SCB.Webserver.Handler
         Plutus.SCB.Webserver.Server
@@ -100,8 +110,10 @@ library
         Plutus.SCB.Events.Node
         Plutus.SCB.Events.User
         Plutus.SCB.Events.Wallet
+        Plutus.SCB.ParseStringifiedJSON
         Plutus.SCB.Query
         Plutus.SCB.Relation
+        Plutus.SCB.SCBLogMsg
         Plutus.SCB.Types
         Plutus.SCB.Utils
     other-modules:
@@ -160,6 +172,8 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-swagger -any,
+        swagger2 -any,
         typed-protocols -any,
         typed-protocols-examples -any,
         servant-websockets -any,
@@ -178,7 +192,10 @@ library
         freer-simple -any,
         mwc-random -any,
         primitive -any,
-        hedgehog -any
+        hedgehog -any,
+        iohk-monitoring -any,
+        lobemo-backend-ekg -any,
+        exceptions -any,
 
 executable plutus-scb
     main-is: Main.hs
@@ -195,7 +212,6 @@ executable plutus-scb
         async -any,
         base >=4.9 && <5,
         bytestring -any,
-        ekg -any,
         filepath -any,
         freer-simple -any,
         lens -any,
@@ -218,7 +234,9 @@ executable plutus-scb
         containers -any,
         iohk-monitoring -any,
         time-units -any,
-        servant-client -any
+        servant-client -any,
+        contra-tracer -any,
+        lobemo-backend-ekg -any
 
 executable plutus-game
     main-is: Main.hs

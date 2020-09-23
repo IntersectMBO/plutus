@@ -77,7 +77,7 @@ library
       --mtl -any,
       --template-haskell >=2.13.0.0,
       --text -any,
-      --language-plutus-core -any,
+      --plutus-core -any,
       --playground-common -any,
       --plutus-tx -any,
       --plutus-wallet-api -any,

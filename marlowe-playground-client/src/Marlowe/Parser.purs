@@ -244,7 +244,7 @@ bigInteger = do
   i <- integral
   case BigInteger.fromString i of
     (Just v) -> pure v
-    Nothing -> fail "not a valid BigInt"
+    Nothing -> fail "not a valid BigInteger"
 
 bigIntegerTerm :: Parser (Term BigInteger)
 bigIntegerTerm = parseTerm bigInteger

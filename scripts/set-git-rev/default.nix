@@ -35,7 +35,10 @@ let
     # https://github.com/NixOS/nixpkgs/issues/46814
     optional stdenv.isDarwin "-liconv";
   setGitRev = pkgs.runCommand "set-git-rev" {} ''
-    ${ghcWithPackages (ps: [ps.text ps.file-embed])}/bin/ghc ${concatStringsSep " " flags} -o $out ${./set-git-rev.hs}
+    # For some reason, recently you need to provide raw ghc compilation source files in the working directory
+    cp ${./set-git-rev.hs} ./set-git-rev.hs
+    ${ghcWithPackages (ps: [ps.text ps.file-embed])}/bin/ghc ${concatStringsSep " " flags} set-git-rev.hs
+    cp set-git-rev $out
   '';
 in
   overrideGitRev

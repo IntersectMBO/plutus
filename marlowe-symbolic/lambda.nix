@@ -15,8 +15,8 @@ let
   main = pkgs.writeText "app.hs"
               ''
               module Main where
-              import qualified App
-              main = App.main
+              import qualified Marlowe.Symbolic.Lambda as Lambda
+              main = Lambda.main
               '';
 
   z3 = pkgs.z3.override { staticbin = true; };

@@ -1,0 +1,6 @@
+Type mismatch at line 2, column 3 in term
+  '(con integer 0)'.
+Expected type
+  '(fun * *)',
+found type
+  '(con integer)'

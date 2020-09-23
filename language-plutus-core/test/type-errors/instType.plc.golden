@@ -1,6 +1,0 @@
-Type mismatch at 2:3 in term
-  '(con 0)'.
-Expected type
-  '(all * (type) *)',
-found type
-  '(con integer)'

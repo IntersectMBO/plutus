@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -32,6 +34,8 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     ) where
 
 import           Control.Monad                         (void)
+import           Data.Aeson                            (FromJSON, ToJSON)
+import           GHC.Generics                          (Generic)
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..), check)
 import           Ledger                                hiding (to)
@@ -40,7 +44,7 @@ import qualified Ledger.Constraints                    as Constraints
 import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as V
 
-import qualified Data.ByteString.Lazy.Char8            as C
+import qualified Data.ByteString.Char8                 as C
 
 import           Language.Plutus.Contract.StateMachine (State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
@@ -66,7 +70,8 @@ data LockArgs =
         -- ^ The secret
         , lockArgsValue  :: Value
         -- ^ Value that is locked by the contract initially
-        } deriving Show
+        } deriving stock (Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 -- | Arguments for the @"guess"@ endpoint
 data GuessArgs =
@@ -77,7 +82,8 @@ data GuessArgs =
         -- ^ The new secret
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
-        } deriving Show
+        } deriving stock (Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 -- | The schema of the contract. It consists of the usual
 --   'BlockchainActions' plus the two endpoints @"lock"@

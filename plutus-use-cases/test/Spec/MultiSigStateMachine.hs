@@ -86,10 +86,9 @@ payment =
 --   'payment', then call @"add-signature"@ a number of times and
 --   finally call @"pay"@ a number of times.
 lockProposeSignPay
-    :: MonadEmulator (TraceError MultiSigError) m
-    => Integer
+    :: Integer
     -> Integer
-    -> ContractTrace MultiSigSchema MultiSigError m a ()
+    -> ContractTrace MultiSigSchema MultiSigError a ()
 lockProposeSignPay signatures rounds = do
 
     let

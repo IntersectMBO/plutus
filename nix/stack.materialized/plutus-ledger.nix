@@ -43,7 +43,7 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
-          (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+          (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."natural-transformation" or (errorHandler.buildDepError "natural-transformation"))

@@ -209,3 +209,6 @@ alignedButtonInTheMiddle = ClassName "aligned-button-in-the-middle"
 
 alignedButtonLast :: ClassName
 alignedButtonLast = ClassName "aligned-button-last"
+
+collapsed :: ClassName
+collapsed = ClassName "collapsed"

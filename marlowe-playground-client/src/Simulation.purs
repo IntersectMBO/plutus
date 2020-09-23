@@ -7,7 +7,7 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, foldr, intercalate, snoc, (:))
+import Data.Array (delete, filter, intercalate, snoc, sortWith)
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger, fromString, fromInt)
@@ -22,6 +22,7 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
 import Data.String as String
@@ -31,12 +32,10 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Foreign.Generic (encodeJSON)
 import Gist (Gist, _GistId, gistFileContent, gistId)
 import Gists (GistAction(..), idPublishGist)
 import Gists as Gists
 import Halogen (HalogenM, query)
-import Halogen as H
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, label, li, option, p, p_, section, select, slot, small, span, strong_, text, ul)
@@ -59,21 +58,22 @@ import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
+import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (-), (<))
-import Reachability (startReachabilityAnalysis, updateWithResponse)
+import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Reachability (startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), AnalysisState(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
+import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, Message(..), _marloweEditorSlot)
+import Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -81,29 +81,20 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
-import WebSocket (WebSocketRequestMessage(..))
-
-handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Message m (Maybe a)
-handleQuery (WebsocketResponse response next) = do
-  analysisState <- use _analysisState
-  case analysisState of
-    NoneAsked -> pure (Just next) -- Unrequested response
-    WarningAnalysis _ -> do
-      assign _analysisState (WarningAnalysis response)
-      pure (Just next)
-    ReachabilityAnalysis reachabilityState -> do
-      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
-      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
-      pure (Just next)
 
 handleAction ::
   forall m.
   MonadEffect m =>
   MonadAff m =>
-  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Message m Unit
+  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
   checkAuthStatus settings
   void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+
+handleAction _ (HandleEditorMessage (Monaco.TextChanged "")) = do
+  assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+  assign _oldContract Nothing
+  updateContractInState ""
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
@@ -153,19 +144,21 @@ handleAction _ (SetEditorText contents) = do
   editorSetValue contents
   updateContractInState contents
 
-handleAction _ NextSlot = do
-  modifying (_marloweState <<< _Head <<< _slot) (add one)
+handleAction _ (MoveSlot slot) = do
+  currentSlot <- use (_currentMarloweState <<< _slot)
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
-  currentSlot <- use (_marloweState <<< _Head <<< _slot)
-  saveInitialState
-  if significantSlot == Just currentSlot then
-    applyInput identity
-  else
-    updateMarloweState identity
-  mCurrContract <- use _currentContract
-  case mCurrContract of
-    Just currContract -> editorSetValue (show $ genericPretty currContract)
-    Nothing -> pure unit
+  when (slot > currentSlot) do
+    saveInitialState
+    if slot >= (fromMaybe zero significantSlot) then
+      moveToSignificantSlot slot
+    else
+      moveToSlot slot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> editorSetValue (show $ genericPretty currContract)
+      Nothing -> pure unit
+
+handleAction _ (SetSlot slot) = assign (_currentMarloweState <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
 
 handleAction _ (AddInput input bounds) = do
   when validInput do
@@ -238,44 +231,45 @@ handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction _ SetBlocklyCode = pure unit
 
-handleAction _ AnalyseContract = do
+handleAction settings AnalyseContract = do
   currContract <- use _currentContract
   currState <- use (_currentMarloweState <<< _state)
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
       assign _analysisState (WarningAnalysis Loading)
+      response <- checkContractForWarnings contract currState
+      assign _analysisState (WarningAnalysis response)
   where
-  checkContractForWarnings contract state = do
-    H.raise $ WebSocketMessage $ CheckForWarnings (encodeJSON false) contract state
+  -- FIXME: now we need to get the client to post to lambda-env.marlowe.iohkdev.io
+  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
 
-handleAction _ AnalyseReachabilityContract = do
+handleAction settings AnalyseReachabilityContract = do
   currContract <- use _currentContract
   currState <- use (_currentMarloweState <<< _state)
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
       assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
-getCurrentContract :: forall m. HalogenM State Action ChildSlots Message m String
+getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m String
 getCurrentContract = do
   oldContract <- use _oldContract
   currContract <- editorGetValue
   pure $ fromMaybe mempty $ oldContract <|> currContract
 
-checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
+checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
 checkAuthStatus settings = do
   assign _authStatus Loading
-  authResult <- runAjax $ runReaderT Server.getOauthStatus settings
+  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
 
 handleGistAction ::
   forall m.
   MonadAff m =>
   MonadEffect m =>
-  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Message m Unit
+  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
 handleGistAction settings PublishGist = do
   marloweState <- use _marloweState
   void
@@ -288,8 +282,8 @@ handleGistAction settings PublishGist = do
         newResult <-
           lift
             $ case preview (_Success <<< gistId) mGist of
-                Nothing -> runAjax $ flip runReaderT settings $ Server.postGists newGist
-                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchGistsByGistId newGist gistId
+                Nothing -> runAjax $ flip runReaderT settings $ Server.postApiGists newGist
+                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
@@ -308,7 +302,7 @@ handleGistAction settings LoadGist = do
           eGistId <- except $ Gists.parseGistUrl mGistId
           --
           assign _loadGistResult $ Right Loading
-          aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getGistsByGistId eGistId
+          aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getApiGistsByGistId eGistId
           assign _loadGistResult $ Right aGist
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
           --
@@ -335,11 +329,11 @@ handleGistAction settings LoadGist = do
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM State Action ChildSlots Message m) a ->
-  HalogenM State Action ChildSlots Message m (WebData a)
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
-scrollHelpPanel :: forall m. MonadEffect m => HalogenM State Action ChildSlots Message m Unit
+scrollHelpPanel :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 scrollHelpPanel =
   liftEffect do
     window <- Web.window
@@ -360,13 +354,13 @@ scrollHelpPanel =
         setScrollTop newScrollHeight sidePanel
       _, _ -> pure unit
 
-editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
+editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Void m Unit
 editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
 
-editorGetValue :: forall m. HalogenM State Action ChildSlots Message m (Maybe String)
+editorGetValue :: forall m. HalogenM State Action ChildSlots Void m (Maybe String)
 editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
 
-saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Message m Unit
+saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 saveInitialState = do
   oldContract <- editorGetValue
   modifying _oldContract
@@ -375,14 +369,14 @@ saveInitialState = do
         _ -> x
     )
 
-resetContract :: forall m. HalogenM State Action ChildSlots Message m Unit
+resetContract :: forall m. HalogenM State Action ChildSlots Void m Unit
 resetContract = do
   newContract <- editorGetValue
   assign _marloweState $ NEL.singleton (emptyMarloweState zero)
   assign _oldContract Nothing
   updateContractInState $ fromMaybe "" newContract
 
-editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Message m Unit
+editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
 editorSetMarkers markers = do
   let
     warnings = filter (\{ severity } -> isWarning severity) markers
@@ -547,17 +541,6 @@ transactionComposer state =
                     ]
                     [ text "Reset" ]
                 ]
-            , li [ classes [ bold, pointer ] ]
-                [ a
-                    [ onClick $ const
-                        $ if isEnabled then
-                            Just NextSlot
-                          else
-                            Nothing
-                    , class_ (Classes.disabled $ not isEnabled)
-                    ]
-                    [ text $ "Next Slot (" <> show currentBlock <> ")" ]
-                ]
             ]
         ]
     ]
@@ -577,50 +560,43 @@ transactionComposer state =
   lastKey :: Maybe Party
   lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-  parties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
-  parties = foldr f mempty
-    where
-    f (Tuple k v) acc = (Tuple k v) : acc
+  sortParties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
+  sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
   actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForParties m = map (\(Tuple k v) -> participant isEnabled k (vs v)) (parties (kvs m))
+  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (sortParties (kvs m))
 
 participant ::
   forall p.
+  State ->
   Boolean ->
   Party ->
   Array ActionInput ->
   HTML p Action
-participant isEnabled party actionInputs
-  | party == otherActionsParty =
-    li [ classes [ ClassName "participant-a", noMargins ] ]
-      ( [ h6_ [ em_ [ text "Other Actions" ] ] ]
-          <> (map (inputItem isEnabled (partyName otherActionsParty)) actionInputs)
-      )
-    where
-    partyName (PK name) = name
-
-    partyName (Role name) = name
-
-participant isEnabled (PK person) actionInputs =
+participant state isEnabled party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem isEnabled person) actionInputs)
+    ( [ h6_ [ em_ title ] ]
+        <> (map (inputItem state isEnabled partyName) actionInputs)
     )
+  where
+  title =
+    if party == otherActionsParty then
+      [ text "Other Actions" ]
+    else
+      [ text "Participant ", strong_ [ text partyName ] ]
 
-participant isEnabled (Role person) actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem isEnabled person) actionInputs)
-    )
+  partyName = case party of
+    (PK name) -> name
+    (Role name) -> name
 
 inputItem ::
   forall p.
+  State ->
   Boolean ->
   PubKey ->
   ActionInput ->
   HTML p Action
-inputItem isEnabled person (DepositInput accountId party token value) =
+inputItem _ isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
     , div [ class_ (ClassName "align-top") ]
@@ -634,7 +610,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
         ]
     ]
 
-inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
@@ -673,7 +649,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 
   boundError (Bound from to) = show from <> " and " <> show to
 
-inputItem isEnabled person NotifyInput =
+inputItem _ isEnabled person NotifyInput =
   li
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
@@ -685,6 +661,37 @@ inputItem isEnabled person NotifyInput =
         ]
         [ text "+" ]
     ]
+
+inputItem state isEnabled person (MoveToSlot slot) =
+  div
+    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    ( [ div []
+          [ p [ class_ (ClassName "slot-input") ]
+              [ spanText "Move to slot "
+              , marloweActionInput isEnabled (SetSlot <<< wrap) slot
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
+  where
+  addButton =
+    if isEnabled && inFuture then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just $ MoveSlot slot
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
+  inFuture = view (_currentMarloweState <<< _slot) state < slot
+
+  error = if inFuture then [] else [ text boundsError ]
+
+  boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _slot <<< to show))
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Action) -> a -> HTML p Action
 marloweActionInput isEnabled f current =

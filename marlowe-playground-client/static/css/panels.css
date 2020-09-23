@@ -166,6 +166,10 @@
   padding: 0 0.1rem;
 }
 
+.composer .slot-input input {
+  width: 150px;
+}
+
 .transaction-composer ul li ul {
   display: flex;
 }
@@ -359,6 +363,10 @@ button.minus-btn:hover {
 
 .footer-panel-bg.footer-panel-haskell>.panel-contents {
   display: block;
+}
+
+.collapsed {
+  resize: none;
 }
 
 .flex-left {

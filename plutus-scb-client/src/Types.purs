@@ -1,13 +1,14 @@
 module Types where
 
 import Prelude
+import Cardano.Metadata.Types (PropertyDescription(..), PropertyKey(..))
+import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Clipboard as Clipboard
 import Control.Monad.Gen as Gen
 import Data.Bifunctor (lmap)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
 import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -20,7 +21,7 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
@@ -30,7 +31,7 @@ import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events (ChainEvent)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
+import Plutus.SCB.Events.Contract (ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
@@ -38,6 +39,7 @@ import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck (class Arbitrary)
 import Wallet.Rollup.Types (AnnotatedTx)
+import Wallet.Types (ContractInstanceId, EndpointDescription)
 import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
 import WebSocket.Support (FromSocket) as WS
 
@@ -98,6 +100,7 @@ newtype State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData StreamToClient
   , webSocketStatus :: WebSocketStatus
+  , metadata :: Map Metadata.Subject (Map PropertyKey PropertyDescription)
   }
 
 type EndpointForm
@@ -127,10 +130,16 @@ _chainState = _Newtype <<< prop (SProxy :: SProxy "chainState")
 _contractStates :: Lens' State ContractStates
 _contractStates = _Newtype <<< prop (SProxy :: SProxy "contractStates")
 
+_metadata ::
+  Lens' State
+    ( Map Metadata.Subject (Map PropertyKey PropertyDescription)
+    )
+_metadata = _Newtype <<< prop (SProxy :: SProxy "metadata")
+
 _annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
-_transactionMap :: forall t. Lens' (ChainReport t) (JsonMap TxId Tx)
+_transactionMap :: forall t. Lens' (ChainReport t) (Map TxId Tx)
 _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 
 _webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
@@ -204,3 +213,25 @@ instance arbitraryView :: Arbitrary View where
 
 instance showView :: Show View where
   show = genericShow
+
+------------------------------------------------------------
+toPropertyKey :: PropertyDescription -> PropertyKey
+toPropertyKey (Preimage _ _) = PropertyKey "preimage"
+
+toPropertyKey (Name _ _) = PropertyKey "name"
+
+toPropertyKey (Description _ _) = PropertyKey "description"
+
+toPropertyKey (Other name _ _) = PropertyKey name
+
+_getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
+_getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
+
+_propertyName :: Getter' Metadata.Property (Maybe String)
+_propertyName =
+  Metadata.propertyDescription
+    <<< to
+        ( case _ of
+            Metadata.Name name _ -> Just name
+            _ -> Nothing
+        )

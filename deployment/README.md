@@ -1,6 +1,40 @@
 # Plutus and Marlowe Playgrounds Infrastructure
 
-The infrastructure is comprised of 2 parts, terraform and nixops:
+## New infrastructure
+
+We are currently in the process of migrating to a new infrastructure, at the moment this is just for the marlowe playground but the intention is to move the plutus playground soon after. The new infrastructure aims to do the following:
+
+1. Remove the need for managing servers
+2. Make setup and configuration easy by using nix to generate scripts to do everything
+3. Make scaling easier and quicker
+4. Cut costs
+
+A website is served from AWS API Gateway which will proxy to the following parts:
+
+* static data is stored in S3
+* anything that can be run in a lambda is
+* other things (currently web-ghc) are run elsewhere (currently on the old server infrastructure)
+
+### Getting Started
+
+If you are using OSX then you cannot build the lambdas locally, therefore if you want to update the infrastructure you will need to build the lambdas on a linux machine and then copy them to a location on your machine. Then you can set the env vars `export TF_VAR_symbolic_lambda_file=/path/to/marlowe-symbolic.zip` and `export TF_VAR_playground_lambda_file=/path/to/marlowe-playground-lambda.zip`
+
+If you have not setup AWS authentication but you have enabled MFA then you can run `eval $($(nix-build -A deployment.getCreds) user.name 123456)` (where 123456 is the current MFA code) before you run any other command to setup temporary credentials that are valid for 24 hours. Notice that you use `$()` to evaluate the result of the nix build (which is a shell script) and then you use `eval $()` around that result to evaluate the output of the script.
+
+The scripts produce files for use with nixops (until we get rid of the legacy infra) and so you should provide the location where you want these files to go by setting another terraform variable, e.g. `export TF_VAR_nixops_root=$(pwd)/deployment/nixops`.
+
+The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
+
+* `deployment.env.runTerraform` will run only the terraform apply command
+* `deployment.env.syncS3` will sync the marlowe client static code with S3
+* `deployment.env.terraform-locals` will produce `generated.tf.json` which contains locals such as `env`
+* `deployment.env.terraform-vars` will produce `env.tfvars` which contains variables such as `symbolic_lambda_file` if you are not on OSX
+
+The scripts require some secrets which are stored encrypted in this repository. To access them you will need to provide your gpg public key to someone who already has access to the secrets.
+
+## Legacy Infrastructure
+
+The legacy infrastructure is comprised of 2 parts, terraform and nixops:
 
 ## Terraform
 

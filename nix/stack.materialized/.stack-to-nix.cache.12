@@ -35,7 +35,6 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
-          (hsPkgs."generic-deriving" or (errorHandler.buildDepError "generic-deriving"))
           (hsPkgs."ghc-heap" or (errorHandler.buildDepError "ghc-heap"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
@@ -82,5 +81,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/3s25qxa1lb9yv84mrb4l4r4rbz4gy06r-cardano-prelude-bd7eb69;
+    src = (pkgs.lib).mkDefault /nix/store/2zfxgrva16sd7krmmx34j7l31vswicdd-cardano-prelude-71ea865;
     }
