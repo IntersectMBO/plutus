@@ -1,17 +1,17 @@
 module View.Blockchain (annotatedBlockchainPane) where
 
 import Bootstrap (cardBody_, cardHeader_, card_)
-import Cardano.Metadata.Types (_Subject, propertySubject)
+import Cardano.Metadata.Types (Subject(..))
 import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array as Array
-import Data.Lens (view)
-import Data.Maybe (Maybe(..))
+import Data.Map as Map
 import Data.Newtype (wrap)
 import Halogen.HTML (HTML, h2_, text)
-import Types (_getPubKeyHash, _propertyName)
+import Ledger.Crypto (PubKeyHash(..))
 import Plutus.SCB.Webserver.Types (ChainReport(..))
-import Prelude ((<<<), (==))
+import Prelude (bind)
+import Types (propertyName)
 
 annotatedBlockchainPane :: forall p. Chain.State -> ChainReport -> HTML p Chain.Action
 annotatedBlockchainPane chainState (ChainReport { relatedMetadata, annotatedBlockchain }) =
@@ -24,17 +24,6 @@ annotatedBlockchainPane chainState (ChainReport { relatedMetadata, annotatedBloc
         ]
     ]
   where
-  namingFn pubKeyHash =
-    Array.findMap
-      ( \property ->
-          let
-            subject = view (propertySubject <<< _Subject) property
-
-            hash = view _getPubKeyHash pubKeyHash
-          in
-            if subject == hash then
-              view _propertyName property
-            else
-              Nothing
-      )
-      relatedMetadata
+  namingFn (PubKeyHash { getPubKeyHash: hash }) = do
+    properties <- Map.lookup (Subject hash) relatedMetadata
+    Array.findMap propertyName properties

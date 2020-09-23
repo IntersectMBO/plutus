@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -18,7 +19,7 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect)
+import           Cardano.Metadata.Types                          (MetadataEffect, SubjectProperties (SubjectProperties))
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
@@ -75,7 +76,10 @@ getContractReport = do
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
+       forall effs.
+       ( Member ChainIndexEffect effs
+       , Member MetadataEffect effs
+       )
     => Eff effs ChainReport
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
@@ -87,7 +91,13 @@ getChainReport = do
     relatedMetadata <-
         mconcat <$>
         traverse
-            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
+            (\wallet -> do
+                 let subject = Metadata.toSubject . pubKeyHash . walletPubKey $ wallet
+                 result <- Metadata.getProperties subject
+                 case result of
+                     Just (SubjectProperties _ properties) ->
+                         pure $ Map.singleton subject properties
+                     Nothing -> pure mempty)
             wallets
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure

@@ -227,11 +227,10 @@ toPropertyKey (Other name _ _) = PropertyKey name
 _getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
 _getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
 
-_propertyName :: Getter' Metadata.Property (Maybe String)
-_propertyName =
-  Metadata.propertyDescription
-    <<< to
-        ( case _ of
-            Metadata.Name name _ -> Just name
-            _ -> Nothing
-        )
+_propertyName :: Getter' Metadata.PropertyDescription (Maybe String)
+_propertyName = to propertyName
+
+propertyName :: Metadata.PropertyDescription -> (Maybe String)
+propertyName (Metadata.Name name _) = Just name
+
+propertyName _ = Nothing

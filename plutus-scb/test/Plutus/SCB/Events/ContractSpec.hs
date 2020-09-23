@@ -10,7 +10,7 @@ module Plutus.SCB.Events.ContractSpec
 import           Control.Monad.Except                            (ExceptT (ExceptT), runExceptT)
 import           Control.Monad.Trans.Except                      (except)
 import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (first, second)
+import           Data.Bifunctor                                  (first)
 import qualified Data.ByteString.Char8                           as BS
 import qualified Data.ByteString.Lazy                            as BSL
 import           Data.Proxy                                      (Proxy (Proxy))
