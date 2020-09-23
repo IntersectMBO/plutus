@@ -891,11 +891,35 @@ derive instance ordInput :: Ord Input
 instance showInput :: Show Input where
   show v = genericShow v
 
-instance encodeInput :: Encode Input where
-  encode a = genericEncode aesonCompatibleOptions a
+instance encodeJsonInput :: Encode Input where
+  encode (IDeposit accId party tok amount) =
+    encode
+      { input_from_party: party
+      , that_deposits: amount
+      , of_token: tok
+      , into_account: accId
+      }
+  encode (IChoice choiceId chosenNum) =
+    encode
+      { input_that_chooses_num: chosenNum
+      , for_choice_id: choiceId
+      }
+  encode INotify = encode "input_notify"
 
-instance decodeInput :: Decode Input where
-  decode = genericDecode aesonCompatibleOptions
+instance decodeJsonInput :: Decode Input where
+  decode a =
+    ( ifM ((\x -> x == "input_notify") <$> decode a)
+        (pure INotify)
+        (fail (ForeignError "Not \"input_notify\" string"))
+    )
+      <|> ( IDeposit <$> (decode =<< readProp "into_account" a)
+            <*> (decode =<< readProp "input_from_party" a)
+            <*> (decode =<< readProp "of_token" a)
+            <*> (decode =<< readProp "that_deposits" a)
+        )
+      <|> ( IChoice <$> (decode =<< readProp "for_choice_id" a)
+            <*> (decode =<< readProp "input_that_chooses_num" a)
+        )
 
 -- Processing of slot interval
 data IntervalError

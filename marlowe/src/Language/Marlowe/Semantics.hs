@@ -285,7 +285,31 @@ data Input = IDeposit AccountId Party Token Integer
            | IChoice ChoiceId ChosenNum
            | INotify
   deriving stock (Show,P.Eq,Generic)
-  deriving anyclass (Pretty,FromJSON,ToJSON)
+  deriving anyclass (Pretty)
+
+instance FromJSON Input where
+  parseJSON (String "input_notify") = return INotify
+  parseJSON (Object v) =
+        (IDeposit <$> (parseJSON =<< (v .: "into_account"))
+                  <*> (parseJSON =<< (v .: "input_from_party"))
+                  <*> (parseJSON =<< (v .: "of_token"))
+                  <*> (parseJSON =<< (v .: "that_deposits")))
+    <|> (IChoice <$> (parseJSON =<< (v .: "for_choice_id"))
+                 <*> (parseJSON =<< (v .: "input_that_chooses_num")))
+  parseJSON _ = fail "Contract must be either an object or a the string \"close\""
+
+instance ToJSON Input where
+  toJSON (IDeposit accId party tok amount) = object
+      [ "input_from_party" .= party
+      , "that_deposits" .= amount
+      , "of_token" .= tok
+      , "into_account" .= accId
+      ]
+  toJSON (IChoice choiceId chosenNum) = object
+      [ "input_that_chooses_num" .= chosenNum
+      , "for_choice_id" .= choiceId
+      ]
+  toJSON INotify = JSON.String $ pack "input_notify"
 
 
 {-| Slot interval errors.
