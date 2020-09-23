@@ -103,17 +103,43 @@ let
       echo "done"
     '';
 
+  destroy = env: region:
+    writeShellScript "destroy" ''
+      set -e
+      tmp_dir=$(mktemp -d)
+      echo "using tmp_dir $tmp_dir"
+
+      ln -s ${./terraform}/* $tmp_dir
+
+      # in case we have some tfvars around in ./terraform
+      rm $tmp_dir/*.tfvars | true
+
+      ln -s ${terraform-locals env}/* $tmp_dir
+      ln -s ${terraform-vars env region}/* $tmp_dir
+      cd $tmp_dir
+
+      echo "apply terraform"
+      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
+      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
+      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      ${terraform}/bin/terraform init
+      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform destroy -var-file=${env}.tfvars 
+    '';
+
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
     runTerraform = (runTerraform env region);
     deploy = (deploy env region);
+    destroy = (destroy env region);
   };
 
   envs = {
     david = mkEnv "david" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
-    wyohack = mkEnv "wyohack" "eu-central-1";
+    wyohack = mkEnv "wyohack" "us-west-2";
+    # wyohack = mkEnv "wyohack" "eu-central-1";
   };
 in envs // { inherit getCreds; }
