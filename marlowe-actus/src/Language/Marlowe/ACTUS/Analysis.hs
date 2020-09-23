@@ -21,7 +21,7 @@ import           Prelude                                               hiding (F
 
 
 genProjectedCashflows :: ContractTerms -> [CashFlow]
-genProjectedCashflows = sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0)
+genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
 sampleCashflows riskFactors terms =

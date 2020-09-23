@@ -19,18 +19,18 @@ import Data.String (IsString (fromString))
 import Data.ByteString.Lazy.Char8(unpack)
 
 get_dates :: String -> R s [String]
-get_dates ct = return $ case (decode $ fromString ct) of
-    Just ct' -> 
+get_dates terms = return $ case (decode $ fromString terms) of
+    Just terms' -> 
       let 
-        cfs = sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) ct'
+        cfs = sampleCashflows (\_ -> RiskFactors 1.0 1.0 1.0 0.0) terms'
         date = showGregorian <$> cashCalculationDay <$> cfs
         event = show <$> cashEvent <$> cfs
       in (\(d, e) -> d ++ " " ++ e) <$> (zip date event)
     Nothing -> []
 
 get_cfs :: String -> Double -> R s [Double]
-get_cfs ct rrmo = return $ case (decode $ fromString ct) of
-    Just ct' -> amount <$> sampleCashflows (\_ -> RiskFactors 1.0 rrmo 1.0 0.0) ct'
+get_cfs terms rrmo = return $ case (decode $ fromString terms) of
+    Just terms' -> amount <$> sampleCashflows (\_ -> RiskFactors 1.0 rrmo 1.0 0.0) terms'
     Nothing -> []
 
 r_shiny :: R s Int32
@@ -83,8 +83,6 @@ server <- function(input, output, session) {
           message(y)
 
           data <- data.frame(x=factor(x,levels=x),text,y)
-
-
           
           fig <- plot_ly(
             data, name = "20", type = "waterfall",
@@ -112,69 +110,3 @@ main :: IO ()
 main = R.withEmbeddedR R.defaultConfig $ do
     code <- R.runRegion $ r_shiny
     print code
-
-
-contractTermsJson :: String
-contractTermsJson = unpack $ encode contractTerms
-
-contractTerms :: ContractTerms
-contractTerms = ContractTerms {
-          contractId = "0"
-        , contractType = PAM
-        , ct_IED = fromGregorian 2008 10 20 -- Initial Exchange Date
-        , ct_SD = fromGregorian 2008 10 22 -- start date
-        , ct_MD = fromGregorian 2009 10 22 -- maturity date
-        , ct_TD = fromGregorian 2009 10 22  -- termination date
-        , ct_PRD = fromGregorian 2008 10 20 -- purchase date
-        , ct_CNTRL = CR_ST
-        , ct_PDIED = -100.0 -- Discount At IED
-        , ct_NT = 1000.0 -- Notional
-        , ct_PPRD = 1200.0 -- Price At Purchase Date
-        , ct_PTD = 1200.0 -- Price At Termination Date
-        , ct_DCC = DCC_A_360 -- Date Count Convention
-        , ct_PREF = PREF_Y -- allow PP
-        , ct_PRF = CS_PF
-        , scfg = ScheduleConfig {
-            calendar = []
-            , includeEndDay = False
-            , eomc = EOMC_EOM
-            , bdc = BDC_NULL
-        }
-        -- Penalties
-        , ct_PYRT = 0.0
-        , ct_PYTP = PYTP_A -- Penalty Pype
-        , ct_cPYRT = 0.0
-        -- Optionality
-        , ct_OPCL = Nothing
-        , ct_OPANX = Nothing
-        -- Scaling:
-        , ct_SCIED = 0.0
-        , ct_SCEF = SE_000
-        , ct_SCCL = Nothing
-        , ct_SCANX = Nothing
-        , ct_SCIXSD = 0.0
-        -- Rate Reset
-        , ct_RRCL = Nothing
-        , ct_RRANX = Nothing
-        , ct_RRNXT = Nothing
-        , ct_RRSP = 0.0
-        , ct_RRMLT = 0.0
-        , ct_RRPF = 0.0
-        , ct_RRPC = 0.0
-        , ct_RRLC = 0.0
-        , ct_RRLF = 0.0
-        -- Interest
-        , ct_IPCED = Nothing
-        , ct_IPCL  = Nothing
-        , ct_IPANX = Nothing
-        , ct_IPNR  = Nothing
-        , ct_IPAC  = Nothing
-        -- Fee
-        , ct_FECL  = Nothing
-        , ct_FEANX  = Nothing
-        , ct_FEAC  = Nothing
-        , ct_FEB = FEB_N
-        , ct_FER = 0.03 -- fee rate
-        , ct_CURS = False
-        , constraints = Nothing
-    }

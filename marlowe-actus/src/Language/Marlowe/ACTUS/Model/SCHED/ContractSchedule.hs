@@ -10,11 +10,10 @@ import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel (_SCHE
                                                                            _SCHED_MD_PAM, _SCHED_PP_PAM, _SCHED_PRD_PAM,
                                                                            _SCHED_PY_PAM, _SCHED_RRF_PAM, _SCHED_RR_PAM,
                                                                            _SCHED_SC_PAM, _SCHED_TD_PAM)
-import           Data.Set                                                 (fromList, toAscList)
 
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
-schedule ev ContractTerms {..} = toAscList <$> fromList <$> case contractType of
+schedule ev ContractTerms {..} = case contractType of
     PAM -> case ev of
         IED  -> _SCHED_IED_PAM scfg ct_IED
         MD   -> _SCHED_MD_PAM scfg ct_MD

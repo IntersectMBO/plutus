@@ -19,7 +19,7 @@ import Halogen as H
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
-import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide)
+import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
 import Halogen.HTML.Core (AttrName(..))
 import Effect (Effect)
@@ -214,7 +214,7 @@ toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
-    , attr (AttrName "style") "margin-left:5px; margin-right:5px"
+    , classes ([alignedButtonInTheMiddle])
     ]
     [ text key ]
 
@@ -222,7 +222,7 @@ runAnalysis :: forall p. HTML p BlocklyAction
 runAnalysis =
   button
     [ onClick $ const $ Just $ RunAnalysis
-    , attr (AttrName "style") "margin-right:5px"
+    , classes ([alignedButtonLast])
     ]
     [ text "Run Analysis" ]
 
