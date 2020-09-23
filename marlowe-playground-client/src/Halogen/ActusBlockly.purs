@@ -171,8 +171,7 @@ render state =
       [ div [ classes [ panelSubHeaderMain, aHorizontal ]]
         [ toCodeButton "Generate reactive contract"
         , toStaticCodeButton "Generate static contract"
-        -- this feature is temporary disabled because shiny is not deployed yet
-        --, runAnalysis
+        , runAnalysis
         , errorMessage state.errorMessage
         ]
       ]
@@ -222,7 +221,7 @@ runAnalysis :: forall p. HTML p BlocklyAction
 runAnalysis =
   button
     [ onClick $ const $ Just $ RunAnalysis
-    , classes ([alignedButtonLast])
+    , classes ([alignedButtonLast, hide])  --this feature is temporary disabled because shiny is not deployed yet
     ]
     [ text "Run Analysis" ]
 

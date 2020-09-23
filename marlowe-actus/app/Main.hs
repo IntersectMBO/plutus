@@ -10,13 +10,11 @@ import qualified Language.R as R
 import Language.R (R)
 import Language.R.QQ
 import Language.Marlowe.ACTUS.Analysis(sampleCashflows)
-import Data.Time.Calendar(showGregorian, fromGregorian)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
+import Data.Time.Calendar(showGregorian)
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents(RiskFactors(..))
 import Language.Marlowe.ACTUS.Definitions.Schedule(CashFlow(..))
-import Data.Aeson(encode, decode)
+import Data.Aeson(decode)
 import Data.String (IsString (fromString))
-import Data.ByteString.Lazy.Char8(unpack)
 
 get_dates :: String -> R s [String]
 get_dates terms = return $ case (decode $ fromString terms) of
