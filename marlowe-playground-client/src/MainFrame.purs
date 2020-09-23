@@ -428,7 +428,7 @@ render settings state =
                 , div [] [ text "Wallets" ]
                 ]
             , div [ class_ (ClassName "nav-bottom-links") ]
-                [ a [ href "./tutorial", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
+                [ a [ href "./tutorial/index.html", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
                 , p_ [ text "Privacy Policy" ]
                 , p_
                     [ text "by "

@@ -106,7 +106,7 @@ resource "aws_api_gateway_integration_response" "marlowe_root_get_method" {
 resource "aws_api_gateway_resource" "website_item_resource" {
   rest_api_id = aws_api_gateway_rest_api.marlowe_symbolic_lambda.id
   parent_id   = aws_api_gateway_rest_api.marlowe_symbolic_lambda.root_resource_id
-  path_part   = "{item}"
+  path_part   = "{proxy+}"
 }
 
 resource "aws_api_gateway_method" "marlowe_item_get_method" {
@@ -114,10 +114,9 @@ resource "aws_api_gateway_method" "marlowe_item_get_method" {
   resource_id      = aws_api_gateway_resource.website_item_resource.id
   http_method      = "GET"
   authorization    = "NONE"
-  api_key_required = false
 
   request_parameters = {
-    "method.request.path.item"   = true
+    "method.request.path.proxy"   = true
   }
 }
 
@@ -126,13 +125,14 @@ resource "aws_api_gateway_integration" "marlowe_item_get_method" {
   resource_id      = aws_api_gateway_resource.website_item_resource.id
   http_method = aws_api_gateway_method.marlowe_item_get_method.http_method
 
-  type                    = "AWS"
+  type                    = "HTTP_PROXY"
   integration_http_method = "GET"
   credentials             = "${aws_iam_role.s3_proxy_role.arn}"
-  uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/{item}"
+  # uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/{proxy}"
+  uri                     = "https://${aws_s3_bucket.marlowe_playground.bucket_regional_domain_name}/{proxy}"
 
   request_parameters = {
-    "integration.request.path.item"   = "method.request.path.item"
+    "integration.request.path.proxy"   = "method.request.path.proxy"
   }
 }
 

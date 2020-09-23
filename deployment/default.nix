@@ -63,9 +63,11 @@ let
   syncS3 = env:
     writeShellScript "syncs3" ''
     ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
+    ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial/
     # We do a sync to delete any files that have been removed, just to keep things clean, then we do a recursive cp
     # because sync doesn't update files with the same file size and timestamp
-    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/'';
+    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
+    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial'';
 
   deploy = env: region:
     writeShellScript "deploy" ''
@@ -112,5 +114,6 @@ let
     david = mkEnv "david" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
+    wyohack = mkEnv "wyohack" "eu-central-1";
   };
 in envs // { inherit getCreds; }
