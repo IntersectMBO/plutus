@@ -27,7 +27,7 @@ import           Test.Tasty                                      (TestTree, test
 import           Test.Tasty.HUnit                                (assertFailure, testCase)
 
 tests :: TestTree
-tests = testGroup "SCB.Events.Contract" [jsonTests]
+tests = testGroup "Plutus.SCB.Events.Contract" [jsonTests]
 
 jsonTests :: TestTree
 jsonTests =
