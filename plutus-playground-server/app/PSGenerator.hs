@@ -20,6 +20,7 @@ import           Control.Lens                               (itraverse, set, (&)
 import           Control.Monad                              (void)
 import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
+import           Control.Monad.Except.Extras                (mapError)
 import qualified Control.Monad.Freer.Log                    as Log
 import           Control.Monad.IO.Class                     (MonadIO)
 import qualified Crowdfunding
@@ -38,6 +39,7 @@ import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
+import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
@@ -53,11 +55,11 @@ import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
                                                              ContractDemo (ContractDemo), Evaluation (Evaluation),
                                                              EvaluationResult, FunctionSchema, KnownCurrency,
-                                                             PlaygroundError, Simulation (Simulation), SimulatorAction,
-                                                             SimulatorWallet, contractDemoContext,
-                                                             contractDemoEditorContents, contractDemoName,
-                                                             contractDemoSimulations, functionSchema, iotsSpec,
-                                                             knownCurrencies, program, simulationActions,
+                                                             PlaygroundError (InterpreterError),
+                                                             Simulation (Simulation), SimulatorAction, SimulatorWallet,
+                                                             contractDemoContext, contractDemoEditorContents,
+                                                             contractDemoName, contractDemoSimulations, functionSchema,
+                                                             iotsSpec, knownCurrencies, program, simulationActions,
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
@@ -220,7 +222,9 @@ runSimulation sourceCode Simulation {simulationActions, simulationWallets} = do
                 , program =
                       toJSON . encodeToText $ toExpression <$> simulationActions
                 }
-    interpreterResult <- PI.evaluateSimulation maxInterpretationTime evaluation
+    expr <- PI.evaluationToExpr evaluation
+    result <- mapError InterpreterError $ Webghc.compile maxInterpretationTime False (SourceCode expr)
+    interpreterResult <- PI.decodeEvaluation result
     pure $ JSON.encodePretty interpreterResult
 
 encodeToText :: ToJSON a => a -> Text
