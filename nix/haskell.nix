@@ -103,6 +103,12 @@ let
               platforms = lib.platforms.linux;
             };
 
+            marlowe-actus.components.exes.marlowe-shiny = {
+              build-tools = r-packages;
+              # Seems to be broken on darwin for some reason
+              platforms = lib.platforms.linux;
+            };
+
             # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
             iohk-monitoring.doHaddock = false;
 

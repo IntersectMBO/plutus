@@ -87,6 +87,59 @@ library
 
   build-tool-depends: unlit:unlit -any
 
+executable marlowe-shiny
+    main-is: Main.hs
+    other-modules:
+      Language.Marlowe.ACTUS.MarloweCompat
+      Language.Marlowe.ACTUS.Generator
+      Language.Marlowe.ACTUS.Analysis
+      Language.Marlowe.ACTUS.Definitions.BusinessEvents
+      Language.Marlowe.ACTUS.Definitions.ContractTerms
+      Language.Marlowe.ACTUS.Definitions.ContractState
+      Language.Marlowe.ACTUS.Definitions.Schedule
+      Language.Marlowe.ACTUS.Model.POF.PayoffModel
+      Language.Marlowe.ACTUS.Model.POF.Payoff
+      Language.Marlowe.ACTUS.Model.POF.PayoffFs
+      Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
+      Language.Marlowe.ACTUS.Model.STF.StateTransition
+      Language.Marlowe.ACTUS.Model.STF.StateTransitionFs
+      Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
+      Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
+      Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
+      Language.Marlowe.ACTUS.Model.INIT.StateInitialization
+      Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+      Language.Marlowe.ACTUS.Model.Utility.DateShift
+      Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
+      Language.Marlowe.ACTUS.Model.Utility.YearFraction
+      Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
+      Language.Marlowe.ACTUS.Ops
+    hs-source-dirs: app src
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+    build-depends:
+      aeson -any,
+      base -any,
+      bytestring,
+      containers -any,
+      deriving-aeson -any,
+      mtl,
+      newtype-generics,
+      template-haskell -any,
+      plutus-tx -any,
+      plutus-contract -any,
+      plutus-ledger,
+      text,
+      vector,
+      sbv >= 8.4,
+      wl-pprint -any,
+      freer-simple -any,
+      marlowe -any,
+      time -any,
+      loch-th -any,
+      sort -any,
+      inline-r -any
+
 test-suite marlowe-actus-test
     default-language: Haskell2010
     hs-source-dirs: test

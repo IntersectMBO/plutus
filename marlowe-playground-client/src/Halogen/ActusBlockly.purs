@@ -16,16 +16,25 @@ import Data.Symbol (SProxy(..))
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
-import Halogen.HTML (HTML, button, div, text)
+import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, id_, ref)
-import Marlowe.ActusBlockly (buildGenerator)
+import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
+import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
+import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
+import Halogen.HTML.Core (AttrName(..))
+import Effect (Effect)
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
+import Foreign.Generic (encodeJSON)
+
+foreign import sendContractToShiny ::
+  String ->
+  Effect Unit
 
 type BlocklyState
   = { actusBlocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
+    , showShiny :: Boolean
     }
 
 _actusBlocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
@@ -36,6 +45,9 @@ _generator = prop (SProxy :: SProxy "generator")
 
 _errorMessage :: Lens' BlocklyState (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
+
+_showShiny :: Lens' BlocklyState Boolean
+_showShiny = prop (SProxy :: SProxy "showShiny")
 
 data BlocklyQuery a
   = Resize a
@@ -48,6 +60,7 @@ data ContractFlavour
 data BlocklyAction
   = Inject String (Array BlockDefinition)
   | GetTerms ContractFlavour
+  | RunAnalysis
 
 data BlocklyMessage
   = Initialized
@@ -59,7 +72,7 @@ type DSL m a
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
     , render
     , eval:
       H.mkEval
@@ -123,22 +136,67 @@ handleAction (GetTerms flavour) = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
+handleAction RunAnalysis = do
+  res <-
+    runExceptT do
+      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _actusBlocklyState
+      generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
+      let
+        workspace = blocklyState.workspace
+
+        rootBlockName = blocklyState.rootBlockName
+      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+      except <<< lmap (\x -> "This workspace cannot be converted to code: " <> (show x)) $ blockToCode block generator
+  case res of
+    Left e -> assign _errorMessage $ Just e
+    Right contract -> do
+      assign _errorMessage Nothing
+      case parseActusJsonCode contract of
+        Left e -> assign _errorMessage $ Just e
+        Right c -> do
+          assign _showShiny true
+          liftEffect $ sendContractToShiny $ encodeJSON c
+  where
+  unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
 render :: forall p. BlocklyState -> HTML p BlocklyAction
 render state =
   div []
-    [ div
-        [ ref blocklyRef
-        , id_ "actusBlocklyWorkspace"
-        , classes [ ClassName "actus-blockly-workspace", ClassName "container-fluid" ]
+    [ section [ classes [ panelSubHeader, aHorizontal ] ]
+        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+            [ toCodeButton "Generate reactive contract"
+            , toStaticCodeButton "Generate static contract"
+            , runAnalysis
+            , errorMessage state.errorMessage
+            ]
         ]
-        [ toCodeButton "Generate reactive contract"
-        , text "  "
-        , toStaticCodeButton "Generate static contract"
-        , text "  (Labs is an experimental feature)"
-        , errorMessage state.errorMessage
+    , div [ classes [ ClassName "code-panel" ] ]
+        [ div
+            [ ref blocklyRef
+            , id_ "actusBlocklyWorkspace"
+            , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
+            ]
+            []
+        , shiny state
+        ]
+    ]
+
+shiny ::
+  forall p.
+  BlocklyState -> HTML p BlocklyAction
+shiny state =
+  aside [ classes ([ sidebarComposer, expanded false ] <> if state.showShiny then [] else [ hide ]) ]
+    [ div [ attr (AttrName "style") "height: 100%;" ]
+        [ iframe
+            [ src "http://localhost:8081"
+            , id_ "shiny"
+            , attr (AttrName "frameborder") "0"
+            , attr (AttrName "scrolling") "no"
+            , attr (AttrName "style") "position: relative; height: 100%; width: 100%;"
+            ]
         ]
     ]
 
@@ -153,8 +211,17 @@ toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
+    , classes ([ alignedButtonInTheMiddle ])
     ]
     [ text key ]
+
+runAnalysis :: forall p. HTML p BlocklyAction
+runAnalysis =
+  button
+    [ onClick $ const $ Just $ RunAnalysis
+    , classes ([ alignedButtonLast, hide ]) --this feature is temporary disabled because shiny is not deployed yet
+    ]
+    [ text "Run Analysis" ]
 
 errorMessage :: forall p i. Maybe String -> HTML p i
 errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]

@@ -101,6 +101,15 @@
   background-size: 50px;
 }
 
+.aligned-button-in-the-middle {
+  margin-left:5px; 
+  margin-right:5px;
+}
+
+.aligned-button-last {
+  margin-right:5px;
+}
+
 .wallet-tab .tab-icon {
   background: url(../images/wallet-icon-grey.svg) center center no-repeat;
   background-size: 50px;

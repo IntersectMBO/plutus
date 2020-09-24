@@ -204,5 +204,11 @@ footerPanelBg = ClassName "footer-panel-bg"
 analysisPanel :: ClassName
 analysisPanel = ClassName "analysis-panel"
 
+alignedButtonInTheMiddle :: ClassName
+alignedButtonInTheMiddle = ClassName "aligned-button-in-the-middle"
+
+alignedButtonLast :: ClassName
+alignedButtonLast = ClassName "aligned-button-last"
+
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
