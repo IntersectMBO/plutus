@@ -1,0 +1,7 @@
+[#javascript-embedding]
+== Marlowe in JavaScript
+
+In this tutorial show how we can _embed_  Marlowe in JavaScript to make more readable, modular
+and reusable descriptions of Marlowe contracts.
+
+
