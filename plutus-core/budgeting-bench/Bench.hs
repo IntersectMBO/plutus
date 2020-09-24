@@ -118,7 +118,7 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ benchComparison <> (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]
