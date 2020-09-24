@@ -48,6 +48,12 @@ This tutorial gives an introduction to the general idea of the ACTUS
 taxonomy, plus examples implemented in Marlowe.
 . xref:migrating#migrating[]
 Here we explain how the current version of Marlowe is related to earlier versions, in particular version 1.3 and 2.0.
+. xref:wallets-simulation#wallets-simulation[]
+The wallets simulation present a view of a running contract from the perspective of a participant in that contract, rather than the ‘omniscient‘ view given in the simulation tab.
+. xref:actus-labs#actus-labs[]
+The Actus Labs support generation of different styles of Actus contract from the parameters that describe the particular contract instance.
+. xref:javascript-embedding#javascript-embedding[]
+Marlowe is also embedded in JavaScript, and here we show how Marlowe contracts can be created and edited in JavaScript.
 // . xref:escrow-step-by-step#escrow-step-by-step[] Escrow step by step NOT YET UPDATED
 // On this tutorial we build the escrow contract step by step. From a single contract with a single actor (Alice) to multiple actors (Alice,Bob,Carol) and multiple interactions. /This was the script for the example in the udemy class/.
 
