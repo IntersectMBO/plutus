@@ -10,28 +10,25 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , DenotationContextMember(..)
     , DenotationContext(..)
     , denoteVariable
-    , denoteTypedStaticBuiltinName
     , insertVariable
-    , insertTypedStaticBuiltinName
-    , typedBuiltinNames
+    , insertBuiltin
+    , typedBuiltins
     ) where
 
 import           Language.PlutusCore.Generators.Internal.Dependent
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.MkPlc                         (staticBuiltinNameAsTerm)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Hash                              as Hash
 import           Data.Dependent.Map                                (DMap)
 import qualified Data.Dependent.Map                                as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
 
--- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
+-- | Haskell denotation of a PLC object. An object can be a 'Builtin' or a variable for example.
 data Denotation term object res = forall args. Denotation
     { _denotationObject :: object
       -- ^ A PLC object.
@@ -54,7 +51,7 @@ data DenotationContextMember term res =
 -- For example it can contain a mapping from @integer@ to
 --   1. a bound variable of type @integer@
 --   2. a bound variable of functional type with the result being @integer@
---   3. the 'AddInteger' 'BuiltinName' or any other 'BuiltinName' which returns an @integer@.
+--   3. the 'AddInteger' 'Builtin' or any other 'Builtin' which returns an @integer@.
 newtype DenotationContext term = DenotationContext
     { unDenotationContext :: DMap (AsKnownType term) (Compose [] (DenotationContextMember term))
     }
@@ -76,15 +73,6 @@ denoteVariable
     => Name -> res -> Denotation (Term TyName Name uni fun ()) Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
--- | Get the 'Denotation' of a 'TypedStaticBuiltinName'.
-denoteTypedStaticBuiltinName
-    :: TypedStaticBuiltinName term args res
-    -> (StaticBuiltinName -> term)
-    -> FoldArgs args res
-    -> Denotation term StaticBuiltinName res
-denoteTypedStaticBuiltinName (TypedStaticBuiltinName name scheme) embed meta =
-    Denotation name embed meta scheme
-
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
     :: (GShow (UniOf term), KnownType term res)
@@ -105,42 +93,43 @@ insertVariable
     -> DenotationContext (Term TyName Name uni fun ())
 insertVariable name = insertDenotation . denoteVariable name
 
--- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
-insertTypedStaticBuiltinName
-    :: GShow uni
-    => TypedStaticBuiltinName (Term TyName Name uni fun ()) args res
-    -> FoldArgs args res
-    -> DenotationContext (Term TyName Name uni fun ())
-    -> DenotationContext (Term TyName Name uni fun ())
-insertTypedStaticBuiltinName tbn@(TypedStaticBuiltinName _ scheme) meta =
-    case typeSchemeResult scheme of
-        AsKnownType ->
-            insertDenotation $ denoteTypedStaticBuiltinName tbn staticBuiltinNameAsTerm meta
+-- | Insert a builtin into a 'DenotationContext'.
+insertBuiltin
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => DefaultFun
+    -> DenotationContext (Term TyName Name uni DefaultFun ())
+    -> DenotationContext (Term TyName Name uni DefaultFun ())
+insertBuiltin fun =
+    case defaultFunMeaning fun of
+        BuiltinMeaning sch meta _ ->
+           case typeSchemeResult sch of
+               AsKnownType ->
+                   insertDenotation $ Denotation fun (Builtin ()) (meta mempty) sch
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
 -- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
--- | A 'DenotationContext' that consists of 'TypedStaticBuiltinName's.
-typedBuiltinNames
+-- | A 'DenotationContext' that consists of 'TypedStaticBuiltin's.
+typedBuiltins
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => DenotationContext (Term TyName Name uni fun ())
-typedBuiltinNames
-    = insertTypedStaticBuiltinName typedAddInteger           (+)
-    . insertTypedStaticBuiltinName typedSubtractInteger      (-)
-    . insertTypedStaticBuiltinName typedMultiplyInteger      (*)
---     . insertTypedStaticBuiltinName typedDivideInteger        (nonZeroArg div)
---     . insertTypedStaticBuiltinName typedRemainderInteger     (nonZeroArg rem)
---     . insertTypedStaticBuiltinName typedQuotientInteger      (nonZeroArg quot)
---     . insertTypedStaticBuiltinName typedModInteger           (nonZeroArg mod)
-    . insertTypedStaticBuiltinName typedLessThanInteger      (<)
-    . insertTypedStaticBuiltinName typedLessThanEqInteger    (<=)
-    . insertTypedStaticBuiltinName typedGreaterThanInteger   (>)
-    . insertTypedStaticBuiltinName typedGreaterThanEqInteger (>=)
-    . insertTypedStaticBuiltinName typedEqInteger            (==)
-    . insertTypedStaticBuiltinName typedConcatenate          BS.append
-    . insertTypedStaticBuiltinName typedTakeByteString       (BS.take . integerToInt)
-    . insertTypedStaticBuiltinName typedDropByteString       (BS.drop . integerToInt)
-    . insertTypedStaticBuiltinName typedSHA2                 (Hash.sha2)
-    . insertTypedStaticBuiltinName typedSHA3                 (Hash.sha3)
---     . insertTypedStaticBuiltinName typedVerifySignature      verifySignature
-    . insertTypedStaticBuiltinName typedEqByteString         (==)
+    => DenotationContext (Term TyName Name uni DefaultFun ())
+typedBuiltins
+    = insertBuiltin AddInteger
+    . insertBuiltin SubtractInteger
+    . insertBuiltin MultiplyInteger
+--     . insertBuiltin DivideInteger
+--     . insertBuiltin RemainderInteger
+--     . insertBuiltin QuotientInteger
+--     . insertBuiltin ModInteger
+    . insertBuiltin LessThanInteger
+    . insertBuiltin LessThanEqInteger
+    . insertBuiltin GreaterThanInteger
+    . insertBuiltin GreaterThanEqInteger
+    . insertBuiltin EqInteger
+    . insertBuiltin Concatenate
+    . insertBuiltin TakeByteString
+    . insertBuiltin DropByteString
+    . insertBuiltin SHA2
+    . insertBuiltin SHA3
+--     . insertBuiltin VerifySignature
+    . insertBuiltin EqByteString
     $ DenotationContext mempty

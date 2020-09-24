@@ -106,13 +106,10 @@ class ExMemoryUsage a where
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
 deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
     (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
-deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
-deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
-deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
 deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
-    , Closed uni, uni `Everywhere` ExMemoryUsage
+    , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
     ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory

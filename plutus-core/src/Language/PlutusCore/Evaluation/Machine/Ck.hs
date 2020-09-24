@@ -1,13 +1,14 @@
 -- | The CK machine.
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( EvaluationResult (..)
@@ -22,18 +23,15 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                                 (PrettyConfigPlc, PrettyConst)
+import           Language.PlutusCore.Pretty                         (PrettyConfigPlc, PrettyConst)
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Reader
 import           Data.Array
-import qualified Data.Map                                                   as Map
 
 infix 4 |>, <|
 
@@ -44,7 +42,7 @@ data CkValue uni fun =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin
-      BuiltinName
+      fun
       Arity                -- Sorts of arguments to be provided (both types and terms): *don't change this*.
       Arity                -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
       [Type TyName uni ()] -- The types the builtin is to be instantiated at.
@@ -67,7 +65,7 @@ data CkValue uni fun =
    case anyway (see Note [Ignoring context in UserEvaluationError] in
    Exception.hs)
 -}
-mkBuiltinApplication :: () -> BuiltinName -> Arity -> [Type TyName uni ()] -> [Term TyName Name uni fun ()] -> Term TyName Name uni fun ()
+mkBuiltinApplication :: () -> fun -> Arity -> [Type TyName uni ()] -> [Term TyName Name uni fun ()] -> Term TyName Name uni fun ()
 mkBuiltinApplication () bn arity0 tys0 args0 =
   go arity0 tys0 args0 (Builtin () bn)
     where go arity tys args term =
@@ -89,7 +87,8 @@ ckValueToTerm () = \case
     {- When we're dealing with VBuiltin we use arity0 to get the type and
        term arguments into the right sequence. -}
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+            PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm ()
 
 data CkUserError =
@@ -98,13 +97,13 @@ data CkUserError =
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
-    EvaluationException UnknownDynamicBuiltinNameError CkUserError (CkValue uni fun)
+    EvaluationException () CkUserError fun (CkValue uni fun)
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-data CkEnv uni fun = CkEnv
-    { ckEnvMeans :: DynamicBuiltinNameMeanings (CkValue uni fun)
+newtype CkEnv uni fun = CkEnv
+    { ckEnvRuntimeInfo :: BuiltinsRuntimeInfo fun (CkValue uni fun)
     }
 
 type CkM uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationException uni fun))
@@ -120,8 +119,7 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
-instance SpendBudget (CkM uni fun) () (CkValue uni fun) where
-    builtinCostParams = pure defaultCostModel
+instance SpendBudget (CkM uni fun) fun () (CkValue uni fun) where
     spendBudget _key _budget = pure ()
 
 type instance UniOf (CkValue uni fun) = uni
@@ -201,24 +199,6 @@ substTyInTy tn0 ty0 = go where
          bt@TyBuiltin{}      -> bt
     goUnder tn ty = if tn == tn0 then ty else go ty
 
--- | Look up a 'DynamicBuiltinName' in the environment.
-lookupDynamicBuiltinName
-    :: DynamicBuiltinName -> CkM uni fun (DynamicBuiltinNameMeaning (CkValue uni fun))
-lookupDynamicBuiltinName dynName = do
-    DynamicBuiltinNameMeanings means <- asks ckEnvMeans
-    case Map.lookup dynName means of
-        Nothing   -> throwingWithCause _MachineError err Nothing where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-        Just mean -> pure mean
-
-arityOf :: BuiltinName -> CkM uni fun Arity
-arityOf (StaticBuiltinName name) =
-    pure $ builtinNameArities ! name
-arityOf (DynBuiltinName name) = do
-    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
-    pure $ getArity sch
--- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
-
 -- FIXME: make sure that the specification is up to date and that this matches.
 -- | The computing part of the CK machine. Rules are as follows:
 --
@@ -232,7 +212,7 @@ arityOf (DynBuiltinName name) = do
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    :: (GShow uni, GEq uni, Ix fun)
     => Context uni fun -> Term TyName Name uni fun () -> CkM uni fun (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
 stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
@@ -241,8 +221,8 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-                                    arity <- arityOf bn
-                                    stack <| VBuiltin bn arity arity [] []
+    BuiltinRuntimeInfo _ arity _ _ <- ask >>= lookupBuiltin bn . ckEnvRuntimeInfo
+    stack <| VBuiltin bn arity arity [] []
 stack |> c@Constant{}          = stack <| VCon c
 _     |> _err@Error{}          =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
@@ -262,7 +242,7 @@ _     |> _var@Var{}            =
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    :: (GShow uni, GEq uni, Ix fun)
     => Context uni fun -> CkValue uni fun -> CkM uni fun (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm () val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
@@ -288,10 +268,10 @@ instead of lists.
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
+-- iterated application of a 'Builtin' to a list of 'Value's and, if succesful,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    :: (GShow uni, GEq uni, Ix fun)
     => Context uni fun
     -> Type TyName uni ()
     -> CkValue uni fun
@@ -303,18 +283,18 @@ instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
                                                                                  -- Should be impossible: see instantiateEvaluate.
       TermArg:_      -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError $ Just val'
                         where val' = VBuiltin bn arity0 arity (tys++[ty]) args   -- Reconstruct the bad application
-      TypeArg:[]     -> applyBuiltinName stack bn args                           -- Final argument is a type argument
+      TypeArg:[]     -> applyBuiltin stack bn args                           -- Final argument is a type argument
       TypeArg:arity' -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args      -- More arguments expected
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
--- as an iterated application of a 'BuiltinName' to a list of 'Value's.
+-- as an iterated application of a 'Builtin' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether 'BuiltinName' is saturated or not.
+-- depending on whether 'Builtin' is saturated or not.
 applyEvaluate
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    :: (GShow uni, GEq uni, Ix fun)
     => Context uni fun
     -> CkValue uni fun
     -> CkValue uni fun
@@ -326,43 +306,40 @@ applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
                                                                                     -- Should be impossible: see instantiateEvaluate.
       TypeArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
                         where val' = VBuiltin bn arity0 arity tyargs (args++[arg])  -- Reconstruct the bad application
-      TermArg:[]     -> applyBuiltinName stack bn (args ++ [arg])                   -- 'arg' was the final argument
+      TermArg:[]     -> applyBuiltin stack bn (args ++ [arg])                   -- 'arg' was the final argument
       TermArg:arity' -> stack <| VBuiltin bn arity0 arity' tyargs (args++[arg])     -- More arguments expected
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
 -- | Apply a (static or dynamic) built-in function to some arguments
-applyBuiltinName
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+applyBuiltin
+    :: (GShow uni, GEq uni, Ix fun)
     => Context uni fun
-    -> BuiltinName
+    -> fun
     -> [CkValue uni fun]
     -> CkM uni fun (Term TyName Name uni fun ())
-applyBuiltinName stack bn args = do
-  result <- case bn of
-           n@(DynBuiltinName name) -> do
-               DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-               applyTypeSchemed n sch x exX args
-           StaticBuiltinName name ->
-               applyStaticBuiltinName name args
-  case result of
-    EvaluationSuccess t -> stack <| t
-    EvaluationFailure ->
-        throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
+applyBuiltin stack bn args = do
+    BuiltinRuntimeInfo sch _ f exF <- ask >>= lookupBuiltin bn . ckEnvRuntimeInfo
+    result <- applyTypeSchemed bn sch f exF args
+    case result of
+        EvaluationSuccess t -> stack <| t
+        EvaluationFailure ->
+            throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 evaluateCk
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    =>  DynamicBuiltinNameMeanings (CkValue uni fun)
+    :: (GShow uni, GEq uni, Ix fun)
+    => BuiltinsRuntimeInfo fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
-evaluateCk meanings term = runReaderT ([] |> term) (CkEnv meanings)
+evaluateCk bri term = runReaderT ([] |> term) $ CkEnv bri
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
-    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni
+    :: ( GShow uni, GEq uni, Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
+       , Pretty fun, Ix fun
        )
-    => DynamicBuiltinNameMeanings (CkValue uni fun)
+    => BuiltinsRuntimeInfo fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
-unsafeEvaluateCk meanings = either throw id . extractEvaluationResult . evaluateCk meanings
+unsafeEvaluateCk bri = either throw id . extractEvaluationResult . evaluateCk bri

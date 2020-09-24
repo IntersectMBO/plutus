@@ -14,6 +14,7 @@ module Language.PlutusCore.StdLib.Data.Bool
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Universe
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
@@ -35,7 +36,7 @@ false = mkConstant () False
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
-ifThenElse :: (TermLike term TyName Name uni fun, uni `IncludesAll` '[Bool, ()]) => term ()
+ifThenElse :: (TermLike term TyName Name uni DefaultFun, uni `IncludesAll` '[Bool, ()]) => term ()
 ifThenElse = runQuote $ do
     a <- freshTyName "a"
     b <- freshName "b"
@@ -50,5 +51,5 @@ ifThenElse = runQuote $ do
           VarDecl () y unitFunA
           ]
       $ mkIterApp ()
-          (tyInst () (staticBuiltinNameAsTerm IfThenElse) unitFunA)
+          (tyInst () (builtin () IfThenElse) unitFunA)
           [var () b, var () x, var () y, unitval]

@@ -37,7 +37,6 @@ module Language.PlutusCore
     , termSubtypes
     , Type (..)
     , typeSubtypes
-    , BuiltinName (..)
     , Kind (..)
     , ParseError (..)
     , Version (..)
@@ -46,11 +45,8 @@ module Language.PlutusCore
     , TyName (..)
     , Unique (..)
     , UniqueMap (..)
-    , StaticBuiltinName (..)
-    , DynamicBuiltinName (..)
     , Normalized (..)
     , defaultVersion
-    , allStaticBuiltinNames
     , allKeywords
     , toTerm
     , termAnn
@@ -70,7 +66,6 @@ module Language.PlutusCore
     , printType
     , normalizeTypesIn
     , normalizeTypesInProgram
-    , InternalTypeError (..)
     , AsTypeError (..)
     , TypeError
     , parseTypecheck
@@ -80,7 +75,6 @@ module Language.PlutusCore
     , Error (..)
     , AsError (..)
     , AsNormCheckError (..)
-    , UnknownDynamicBuiltinNameError (..)
     , UniqueError (..)
     -- * Base functors
     , TermF (..)
@@ -110,6 +104,7 @@ module Language.PlutusCore
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.CBOR                  ()
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
@@ -136,7 +131,7 @@ import qualified Data.Text                                 as T
 fileType :: FilePath -> IO T.Text
 fileType = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni () AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni DefaultFun AlexPosn -> T.Text
         prettyErr = displayPlcDef
 
 -- | Given a file, display
@@ -145,20 +140,20 @@ fileType = fmap (either prettyErr id . printType) . BSL.readFile
 fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
     where
-        prettyErr :: Error DefaultUni () AlexPosn -> T.Text
+        prettyErr :: Error DefaultUni DefaultFun AlexPosn -> T.Text
         prettyErr = displayBy cfg
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e (Term TyName Name DefaultUni () ()) DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun AlexPosn,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
 printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
-    inferTypeOfProgram (TypeCheckConfig mempty) scoped
+    inferTypeOfProgram defTypeCheckConfig scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -168,7 +163,7 @@ parseScoped
         MonadError e m,
         MonadQuote m)
     => BSL.ByteString
-    -> m (Program TyName Name DefaultUni () AlexPosn)
+    -> m (Program TyName Name DefaultUni DefaultFun AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
@@ -176,25 +171,27 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e (Term TyName Name DefaultUni () ()) DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig DefaultUni -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
+    => TypeCheckConfig DefaultUni DefaultFun e AlexPosn
+    -> BSL.ByteString
+    -> m (Normalized (Type TyName DefaultUni ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsTypeError e (Term TyName Name DefaultUni () ()) DefaultUni a,
+    :: (AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun a,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig DefaultUni
-    -> Program TyName Name DefaultUni () a
+    => TypeCheckConfig DefaultUni DefaultFun e a
+    -> Program TyName Name DefaultUni DefaultFun a
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram
 
 parseProgramDef
     :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m)
-    => BSL.ByteString -> m (Program TyName Name DefaultUni () AlexPosn)
+    => BSL.ByteString -> m (Program TyName Name DefaultUni DefaultFun AlexPosn)
 parseProgramDef = parseProgram
 
 formatDoc :: (AsParseError e AlexPosn, MonadError e m) => PrettyConfigPlc -> BSL.ByteString -> m (Doc a)

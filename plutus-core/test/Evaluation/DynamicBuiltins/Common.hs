@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators    #-}
 
-module Evaluation.DynamicBuiltins.Common
+module Evaluation.Builtins.Common
     ( typecheckAnd
     , typecheckEvaluateCek
     , typecheckReadKnownCek
@@ -23,10 +23,10 @@ import           Control.Monad.Except
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
     :: (MonadError (Error uni fun ()) m, GShow uni, GEq uni, DefaultUni <: uni)
-    => (DynamicBuiltinNameMeanings (CekValue uni fun) -> CostModel -> Term TyName Name uni fun () -> a)
-    -> DynamicBuiltinNameMeanings (CekValue uni fun) -> Term TyName Name uni fun () -> m a
+    => (BuiltinMeanings (CekValue uni fun) -> CostModel -> Term TyName Name uni fun () -> a)
+    -> BuiltinMeanings (CekValue uni fun) -> Term TyName Name uni fun () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
-    types <- dynamicBuiltinNameMeaningsToTypes () meanings
+    types <- dynamicBuiltinMeaningsToTypes () meanings
     _ <- inferType (TypeCheckConfig types) term
     -- The bang is important in order to force the effects of a computation regardless of whether
     -- the result of the computation is forced or not.
@@ -38,7 +38,7 @@ typecheckEvaluateCek
        , Closed uni, uni `Everywhere` ExMemoryUsage
        , uni `Everywhere` PrettyConst, Typeable uni, Typeable fun
        )
-    => DynamicBuiltinNameMeanings (CekValue uni fun)
+    => BuiltinMeanings (CekValue uni fun)
     -> Term TyName Name uni fun ()
     -> m (EvaluationResult (Term TyName Name uni fun ()))
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
@@ -48,7 +48,7 @@ typecheckReadKnownCek
     :: ( MonadError (Error uni fun ()) m, KnownType (Term TyName Name uni fun ()) a
        , GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (CekValue uni fun)
+    => BuiltinMeanings (CekValue uni fun)
     -> Term TyName Name uni fun ()
     -> m (Either (CekEvaluationException uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

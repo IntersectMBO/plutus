@@ -7,9 +7,6 @@
 
 module Language.UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
-    , TPLC.StaticBuiltinName (..)
-    , TPLC.DynamicBuiltinName (..)
-    , TPLC.BuiltinName (..)
     , Term (..)
     , Program (..)
     , termAnn
@@ -41,7 +38,7 @@ import           Language.PlutusCore.Universe
 -- serve exactly this purpose.
 data Term name uni fun ann
     = Constant ann (Some (ValueOf uni))
-    | Builtin ann TPLC.BuiltinName
+    | Builtin ann fun
     | Var ann name
     | LamAbs ann name (Term name uni fun ann)
     | Apply ann (Term name uni fun ann) (Term name uni fun ann)
@@ -75,7 +72,7 @@ instance ToExMemory (Term name uni fun ExMemory) where
     toExMemory = termAnn
 
 deriving via GenericExMemoryUsage (Term name uni fun ann) instance
-    ( ExMemoryUsage name, ExMemoryUsage ann
+    ( ExMemoryUsage name, ExMemoryUsage fun, ExMemoryUsage ann
     , Closed uni, uni `Everywhere` ExMemoryUsage
     ) => ExMemoryUsage (Term name uni fun ann)
 

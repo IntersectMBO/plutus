@@ -87,7 +87,7 @@ compareProgram
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni () a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
@@ -121,14 +121,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni () ()) a) -> Property
+propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
         backward
             :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni () a)
-            -> Except FreeVariableError (Term TyName Name DefaultUni () a)
+            -> Except FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -215,7 +215,7 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
-        term0, term1 :: Term TyName Name DefaultUni () ()
+        term0, term1 :: Term TyName Name DefaultUni DefaultFun ()
 
         -- [(lam x a x) x]
         term0 = Apply () lamX varX

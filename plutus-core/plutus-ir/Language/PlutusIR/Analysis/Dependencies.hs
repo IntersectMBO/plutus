@@ -27,7 +27,7 @@ import qualified Data.List.NonEmpty                as NE
 
 import           Data.Foldable
 
-type DepCtx term = (Node, PLC.DynamicBuiltinNameMeanings term)
+type DepCtx term = (Node, PLC.BuiltinMeanings term)
 type StrictnessMap = Map.Map PLC.Unique Strictness
 type DepState = StrictnessMap
 
@@ -60,7 +60,7 @@ varStrictnessFun = do
 runTermDeps
     :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Term tyname name uni fun a
     -> (g, StrictnessMap)
 runTermDeps means t = flip runState mempty $ flip runReaderT (Root, means) $ termDeps t
@@ -77,7 +77,7 @@ runTermDeps means t = flip runState mempty $ flip runReaderT (Root, means) $ ter
 --
 runTypeDeps
     :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Type tyname uni a
     -> g
 runTypeDeps means t = flip runReader (Root, means) $ typeDeps t

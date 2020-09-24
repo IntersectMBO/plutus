@@ -21,13 +21,13 @@ benchData <- function(path) {
     res <- as.data.frame(
       str_match(name, benchname)
     )
-    names(res) <- c("Name2", "BuiltinName", numbercols)
+    names(res) <- c("Name2", "Builtin", numbercols)
     res
   }
 
   numbers <- benchmark_name_to_numbers(dat$Name)
 
-  mutated <- numbers %>% mutate_at(numbercols, function(x) { as.numeric(as.character(x))}) %>% mutate_at(c("BuiltinName"), as.character)
+  mutated <- numbers %>% mutate_at(numbercols, function(x) { as.numeric(as.character(x))}) %>% mutate_at(c("Builtin"), as.character)
   cbind(dat, mutated) %>%
     filter(x_mem < 2000) %>% filter(y_mem < 2000) %>%
     mutate_at(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), function(x) { x * 1000 * 1000 })
@@ -40,27 +40,27 @@ modelFun <- function(path) {
   # filtered does leak from one model to the next, so make sure you don't mistype!
 
   addIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "AddInteger")
+    filtered <- data %>% filter(Builtin == "AddInteger")
     lm(Mean ~ I(x_mem + y_mem), filtered)
   }
 
   eqIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "EqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(Builtin == "EqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
 
   subtractIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "SubtractInteger")
+    filtered <- data %>% filter(Builtin == "SubtractInteger")
     lm(Mean ~ I(x_mem + y_mem), filtered)
   }
 
   multiplyIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
+    filtered <- data %>% filter(Builtin == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
     lm(Mean ~ I(x_mem * y_mem), filtered)
   }
 
   divideIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
+    filtered <- data %>% filter(Builtin == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
     # This one does seem to underestimate the cost by a factor of two
     lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
   }
@@ -69,13 +69,13 @@ modelFun <- function(path) {
   modIntegerModel <- divideIntegerModel
 
   lessThanIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "LessThanInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(Builtin == "LessThanInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
   greaterThanIntegerModel <- lessThanIntegerModel
 
   lessThanEqIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "LessThanEqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(Builtin == "LessThanEqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
   greaterThanEqIntegerModel <- lessThanEqIntegerModel

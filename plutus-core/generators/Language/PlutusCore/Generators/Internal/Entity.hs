@@ -32,6 +32,7 @@ import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
@@ -113,17 +114,15 @@ withTypedBuiltinGen
     :: (Generatable uni, HasConstantIn uni term, Monad m)
     => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
-    [ k @Integer        AsKnownType
+    [ k @Integer       AsKnownType
     , k @BS.ByteString AsKnownType
-    , k @Bool           AsKnownType
+    , k @Bool          AsKnownType
     ]
 
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: ( Generatable uni, Monad m
-       , Closed uni, uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
-       )
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
     -> (forall a. AsKnownType (Plain Term uni fun) a ->
             TermOf (Plain Term uni fun) (EvaluationResult (Plain Term uni fun)) ->
@@ -169,14 +168,14 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
 -- Generates first-order functions and constants including constant applications.
--- Arguments to functions and 'BuiltinName's are generated recursively.
+-- Arguments to functions and 'Builtin's are generated recursively.
 genTerm
     :: forall uni fun m.
        (Generatable uni, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext (Plain Term uni fun)
-       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
+       -- ^ A context to generate terms in. See for example 'typedBuiltins'.
        -- Gets extended by a variable when an applied lambda is generated.
     -> Int
        -- ^ Depth of recursion.
@@ -227,13 +226,13 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose
      :: (Generatable uni, Monad m)
-     => TypedBuiltinGenT (Plain Term uni fun) m
-genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
+     => TypedBuiltinGenT (Plain Term uni DefaultFun) m
+genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: (Generatable uni, Monad m)
+     :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
      => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k

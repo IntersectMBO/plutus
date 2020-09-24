@@ -23,6 +23,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
@@ -65,7 +66,7 @@ makeClassyPrisms ''TypeEvalCheckError
 instance ann ~ () => AsError (TypeEvalCheckError uni fun) uni fun ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
-instance ann ~ () => AsTypeError (TypeEvalCheckError uni fun) (Term TyName Name uni fun ann) uni ann where
+instance ann ~ () => AsTypeError (TypeEvalCheckError uni fun) (Term TyName Name uni fun ann) uni fun ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
@@ -97,17 +98,17 @@ type TypeEvalCheckM uni fun = Either (TypeEvalCheckError uni fun)
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: ( KnownType (Term TyName Name uni fun ()) a, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Eq, Pretty internal, PrettyPlc termErr
+    :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
+       , Pretty internal, PrettyPlc termErr
        )
-    => (Plain Term uni fun -> Either (EvaluationException internal user termErr) (Plain Term uni fun))
+    => (Plain Term uni fun -> Either (EvaluationException internal user fun termErr) (Plain Term uni fun))
        -- ^ An evaluator.
     -> TermOf (Term TyName Name uni fun ()) a
     -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
 typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
         valExpected = makeKnown x
-    tyActual <- runQuoteT $ inferType defConfig term
+    tyActual <- runQuoteT $ inferType defTypeCheckConfig term
     if tyExpected == tyActual
         then case extractEvaluationResult $ eval term of
                 Right valActual ->
@@ -120,13 +121,12 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: ( KnownType (Term TyName Name uni fun ()) a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
-       , uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
-       )
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a)
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostModel) termOfTbv
+    let bri = toBuiltinRuntimeInfos defaultFunMeaning mempty defaultCostModel
+    let errOrRes = typeEvalCheckBy (evaluateCek bri) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

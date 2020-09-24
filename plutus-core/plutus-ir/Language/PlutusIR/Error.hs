@@ -16,7 +16,7 @@ module Language.PlutusIR.Error
     , AsError (..)
     , TypeErrorExt (..)
     , PLC.Normalized (..)
-    , PLC.UnknownDynamicBuiltinNameError (..)
+    , PLC.UnknownBuiltinError (..)
     ) where
 
 import qualified Language.PlutusCore        as PLC

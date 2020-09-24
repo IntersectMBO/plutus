@@ -12,8 +12,6 @@
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
     , UniOf
-    , staticBuiltinNameAsTerm
-    , dynamicBuiltinNameAsTerm
     , mkTyBuiltin
     , mkConstant
     , VarDecl (..)
@@ -60,21 +58,13 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     lamAbs   :: ann -> name -> Type tyname uni ann -> term ann -> term ann
     apply    :: ann -> term ann -> term ann -> term ann
     constant :: ann -> Some (ValueOf uni) -> term ann
-    builtin  :: ann -> BuiltinName -> term ann
+    builtin  :: ann -> fun -> term ann
     tyInst   :: ann -> term ann -> Type tyname uni ann -> term ann
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
     termLet  :: ann -> TermDef term tyname name uni fun ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
-
--- | Lift a 'BuiltinName' to 'Term'.
-staticBuiltinNameAsTerm :: TermLike term tyname name uni fun => StaticBuiltinName -> term ()
-staticBuiltinNameAsTerm = builtin () . StaticBuiltinName
-
--- | Lift a 'DynamicBuiltinName' to 'Term'.
-dynamicBuiltinNameAsTerm :: TermLike term tyname name uni fun => DynamicBuiltinName -> term ()
-dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName
 
 -- | Embed a type from a universe into a PLC type.
 mkTyBuiltin

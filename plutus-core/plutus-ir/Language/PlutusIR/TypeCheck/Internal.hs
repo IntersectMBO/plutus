@@ -8,10 +8,10 @@
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE TypeOperators      #-}
 module Language.PlutusIR.TypeCheck.Internal
-    ( DynamicBuiltinNameTypes (..)
+    ( BuiltinTypes (..)
     , TypeCheckConfig (..)
     , TypeCheckM
-    , tccDynamicBuiltinNameTypes
+    , tccBuiltinTypes
     , inferTypeM
     , checkTypeM
     ) where
@@ -121,7 +121,7 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
 inferTypeM (Builtin ann bn)         =
-    inferTypeOfBuiltinNameM ann bn
+    inferTypeOfBuiltinM ann bn
 
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------

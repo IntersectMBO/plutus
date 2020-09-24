@@ -1,14 +1,14 @@
 ( (Right (2))
-, ({ tally: ({ BBuiltin (StaticBuiltinName SubtractInteger) causes ({ cpu: 60
+, ({ tally: ({ BBuiltin (StaticBuiltin SubtractInteger) causes ({ cpu: 60
 | mem: 164
 })
 | BForce causes ({ cpu: 18
 | mem: 18
 })
-| BBuiltin (StaticBuiltinName AddInteger) causes ({ cpu: 30
+| BBuiltin (StaticBuiltin AddInteger) causes ({ cpu: 30
 | mem: 2
 })
-| BBuiltin (StaticBuiltinName IfThenElse) causes ({ cpu: 5
+| BBuiltin (StaticBuiltin IfThenElse) causes ({ cpu: 5
 | mem: 5
 })
 | BApply causes ({ cpu: 86
@@ -20,7 +20,7 @@
 | BVar causes ({ cpu: 59
 | mem: 59
 })
-| BBuiltin (StaticBuiltinName LessThanEqInteger) causes ({ cpu: 75
+| BBuiltin (StaticBuiltin LessThanEqInteger) causes ({ cpu: 75
 | mem: 5
 })})
 | budget: ({ cpu: 333

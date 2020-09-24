@@ -90,7 +90,7 @@ type ExternalConstraints tyname name uni fun a term =
 
 type Inlining tyname name uni fun a term m =
     ( MonadState (Subst tyname name uni fun a) m
-    , MonadReader (Deps.StrictnessMap, DynamicBuiltinNameMeanings term) m
+    , MonadReader (Deps.StrictnessMap, BuiltinMeanings term) m
     , ExternalConstraints tyname name uni fun a term)
 
 lookupSubst
@@ -121,7 +121,7 @@ and rename everything when we substitute in, which GHC considers too expensive b
 -- See Note [Inlining and global uniqueness]
 inline
     :: ExternalConstraints tyname name uni fun a term
-    => DynamicBuiltinNameMeanings term
+    => BuiltinMeanings term
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 inline means t =

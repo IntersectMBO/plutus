@@ -21,7 +21,6 @@ module Language.PlutusCore.Parser
 
 import PlutusPrelude
 
-import Language.PlutusCore.Constant.Dynamic
 import Language.PlutusCore.Constant.Typed
 import Language.PlutusCore.Core
 import Language.PlutusCore.Core.Type
@@ -144,31 +143,31 @@ parseError = throwError . Unexpected
 
 --- Static built-in functions ---
 
-getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
-getStaticBuiltinName = \case
-    "addInteger"               -> Just AddInteger
-    "subtractInteger"          -> Just SubtractInteger
-    "multiplyInteger"          -> Just MultiplyInteger
-    "divideInteger"            -> Just DivideInteger
-    "quotientInteger"          -> Just QuotientInteger
-    "modInteger"               -> Just ModInteger
-    "remainderInteger"         -> Just RemainderInteger
-    "lessThanInteger"          -> Just LessThanInteger
-    "lessThanEqualsInteger"    -> Just LessThanEqInteger
-    "greaterThanInteger"       -> Just GreaterThanInteger
-    "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
-    "equalsInteger"            -> Just EqInteger
-    "concatenate"              -> Just Concatenate
-    "takeByteString"           -> Just TakeByteString
-    "dropByteString"           -> Just DropByteString
-    "equalsByteString"         -> Just EqByteString
-    "lessThanByteString"       -> Just LtByteString
-    "greaterThanByteString"    -> Just GtByteString
-    "sha2_256"                 -> Just SHA2
-    "sha3_256"                 -> Just SHA3
-    "verifySignature"          -> Just VerifySignature
-    "ifThenElse"               -> Just IfThenElse
-    _                          -> Nothing
+-- getStaticBuiltin :: T.Text -> Maybe StaticBuiltin
+-- getStaticBuiltin = \case
+--   "addInteger"               -> Just AddInteger
+--   "subtractInteger"          -> Just SubtractInteger
+--   "multiplyInteger"          -> Just MultiplyInteger
+--   "divideInteger"            -> Just DivideInteger
+--   "quotientInteger"          -> Just QuotientInteger
+--   "modInteger"               -> Just ModInteger
+--   "remainderInteger"         -> Just RemainderInteger
+--   "lessThanInteger"          -> Just LessThanInteger
+--   "lessThanEqualsInteger"    -> Just LessThanEqInteger
+--   "greaterThanInteger"       -> Just GreaterThanInteger
+--   "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
+--   "equalsInteger"            -> Just EqInteger
+--   "concatenate"              -> Just Concatenate
+--   "takeByteString"           -> Just TakeByteString
+--   "dropByteString"           -> Just DropByteString
+--   "equalsByteString"         -> Just EqByteString
+--   "lessThanByteString"       -> Just LtByteString
+--   "greaterThanByteString"    -> Just GtByteString
+--   "sha2_256"                 -> Just SHA2
+--   "sha3_256"                 -> Just SHA3
+--   "verifySignature"          -> Just VerifySignature
+--   "ifThenElse"               -> Just IfThenElse
+--   _                          -> Nothing
 
 
 --- Parsing built-in types and constants ---
@@ -211,10 +210,10 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 --- Constructing terms ---
 
 mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni fun a
-mkBuiltinFunction loc ident =
-    case getStaticBuiltinName ident of
-        Just b  -> Builtin loc $ StaticBuiltinName b
-        Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
+mkBuiltinFunction loc ident = undefined
+--     case getStaticBuiltin ident of
+--         Just b  -> Builtin loc $ StaticBuiltin b
+--         Nothing -> Builtin loc (DynBuiltin (Builtin ident))
 
 tyInst :: a -> Term tyname name uni fun a -> NonEmpty (Type tyname uni a) -> Term tyname name uni fun a
 tyInst loc t (ty :| []) = TyInst loc t ty

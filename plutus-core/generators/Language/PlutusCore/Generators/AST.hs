@@ -9,8 +9,8 @@ module Language.PlutusCore.Generators.AST
     , genName
     , genTyName
     , genKind
-    , genStaticBuiltinName
-    , genBuiltinName
+    , genStaticBuiltin
+    , genBuiltin
     , genConstant
     , genType
     , genTerm
@@ -60,7 +60,7 @@ genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
     let isKeyword n = n `elem` fmap display allKeywords
-        isBuiltin n = n `elem` fmap display allStaticBuiltinNames
+        isBuiltin n = n `elem` fmap display allStaticBuiltins
         isReserved t = isKeyword t || isBuiltin t
         genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
@@ -78,11 +78,11 @@ genKind = simpleRecursive nonRecursive recursive where
     nonRecursive = pure <$> sequence [Type] ()
     recursive = [KindArrow () <$> genKind <*> genKind]
 
-genStaticBuiltinName :: AstGen StaticBuiltinName
-genStaticBuiltinName = Gen.element allStaticBuiltinNames
+genStaticBuiltin :: AstGen StaticBuiltin
+genStaticBuiltin = Gen.element allStaticBuiltins
 
-genBuiltinName :: AstGen BuiltinName
-genBuiltinName = StaticBuiltinName <$> genStaticBuiltinName
+genBuiltin :: AstGen Builtin
+genBuiltin = StaticBuiltin <$> genStaticBuiltin
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
@@ -100,7 +100,7 @@ genType = simpleRecursive nonRecursive recursive where
     recursive = [funGen, applyGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
-genTerm :: AstGen (Term TyName Name DefaultUni () ())
+genTerm :: AstGen (Term TyName Name DefaultUni DefaultFun ())
 genTerm = simpleRecursive nonRecursive recursive where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
@@ -111,9 +111,9 @@ genTerm = simpleRecursive nonRecursive recursive where
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltinName, errorGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
-genProgram :: AstGen (Program TyName Name DefaultUni () ())
+genProgram :: AstGen (Program TyName Name DefaultUni DefaultFun ())
 genProgram = Program () <$> genVersion <*> genTerm
 
 {- Note [Name mangling]
@@ -138,18 +138,18 @@ subset1 s
 substAllNames
     :: Monad m
     => (Name -> m (Maybe Name))
-    -> Term TyName Name DefaultUni () ()
-    -> m (Term TyName Name DefaultUni () ())
+    -> Term TyName Name DefaultUni DefaultFun ()
+    -> m (Term TyName Name DefaultUni DefaultFun ())
 substAllNames ren =
     termSubstNamesM (fmap (fmap $ Var ()) . ren) >=>
     termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName)
 
 -- See Note [ScopeHandling].
-allTermNames :: Term TyName Name DefaultUni () () -> Set Name
+allTermNames :: Term TyName Name DefaultUni DefaultFun () -> Set Name
 allTermNames term = vTerm term <> Set.map coerce (tvTerm term)
 
 -- See Note [Name mangling]
-mangleNames :: Term TyName Name DefaultUni () () -> AstGen (Maybe (Term TyName Name DefaultUni () ()))
+mangleNames :: Term TyName Name DefaultUni DefaultFun () -> AstGen (Maybe (Term TyName Name DefaultUni DefaultFun ()))
 mangleNames term = do
     let names = allTermNames term
     mayNamesMangle <- subset1 names

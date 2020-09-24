@@ -29,7 +29,7 @@ import qualified Data.List.NonEmpty                      as NE
 removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 removeDeadBindings means t =
@@ -41,7 +41,7 @@ type Liveness = Set.Set Deps.Node
 calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Term tyname name uni fun a
     -> Liveness
 calculateLiveness means t =

@@ -99,56 +99,6 @@ instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf un
     decode = go =<< decode where
         go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
-instance Serialise StaticBuiltinName where
-    encode = encodeConstructorTag . \case
-              AddInteger           -> 0
-              SubtractInteger      -> 1
-              MultiplyInteger      -> 2
-              DivideInteger        -> 3
-              RemainderInteger     -> 4
-              LessThanInteger      -> 5
-              LessThanEqInteger    -> 6
-              GreaterThanInteger   -> 7
-              GreaterThanEqInteger -> 8
-              EqInteger            -> 9
-              Concatenate          -> 10
-              TakeByteString       -> 11
-              DropByteString       -> 12
-              SHA2                 -> 13
-              SHA3                 -> 14
-              VerifySignature      -> 15
-              EqByteString         -> 16
-              QuotientInteger      -> 17
-              ModInteger           -> 18
-              LtByteString         -> 19
-              GtByteString         -> 20
-              IfThenElse           -> 21
-
-    decode = go =<< decodeConstructorTag
-        where go 0  = pure AddInteger
-              go 1  = pure SubtractInteger
-              go 2  = pure MultiplyInteger
-              go 3  = pure DivideInteger
-              go 4  = pure RemainderInteger
-              go 5  = pure LessThanInteger
-              go 6  = pure LessThanEqInteger
-              go 7  = pure GreaterThanInteger
-              go 8  = pure GreaterThanEqInteger
-              go 9  = pure EqInteger
-              go 10 = pure Concatenate
-              go 11 = pure TakeByteString
-              go 12 = pure DropByteString
-              go 13 = pure SHA2
-              go 14 = pure SHA3
-              go 15 = pure VerifySignature
-              go 16 = pure EqByteString
-              go 17 = pure QuotientInteger
-              go 18 = pure ModInteger
-              go 19 = pure LtByteString
-              go 20 = pure GtByteString
-              go 21 = pure IfThenElse
-              go _  = fail "Failed to decode BuiltinName"
-
 instance Serialise Unique where
     encode (Unique i) = encodeInt i
     decode = Unique <$> decodeInt
@@ -196,24 +146,12 @@ instance (Closed uni, Serialise ann, Serialise tyname) => Serialise (Type tyname
               go 6 = TyApp     <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
-instance Serialise DynamicBuiltinName where
-    encode (DynamicBuiltinName name) = encode name
-    decode = DynamicBuiltinName <$> decode
-
-instance Serialise BuiltinName where
-    encode (StaticBuiltinName bn) = encodeConstructorTag 0 <> encode bn
-    encode (DynBuiltinName   dbn) = encodeConstructorTag 1 <> encode dbn
-
-    decode = go =<< decodeConstructorTag
-        where go 0 = StaticBuiltinName <$> decode
-              go 1 = DynBuiltinName    <$> decode
-              go _ = fail "Failed to decode Builtin ()"
-
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
          , Serialise tyname
          , Serialise name
+         , Serialise fun
          ) => Serialise (Term tyname name uni fun ann) where
     encode = \case
         Var      ann n         -> encodeConstructorTag 0 <> encode ann <> encode n
@@ -257,6 +195,7 @@ instance ( Closed uni
          , Serialise ann
          , Serialise tyname
          , Serialise name
+         , Serialise fun
          ) => Serialise (Program tyname name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode

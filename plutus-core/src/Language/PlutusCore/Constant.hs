@@ -6,5 +6,5 @@ module Language.PlutusCore.Constant
 
 import           Language.PlutusCore.Constant.Apply    as Export
 import           Language.PlutusCore.Constant.Function as Export
-import           Language.PlutusCore.Constant.Name     as Export
+import           Language.PlutusCore.Constant.Meaning  as Export
 import           Language.PlutusCore.Constant.Typed    as Export

@@ -16,6 +16,7 @@ module Language.PlutusCore.StdLib.Data.Nat
 
 import           Prelude                                  hiding (succ)
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -134,11 +135,10 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: (TermLike term TyName Name uni fun, uni `Includes` Integer) => term ()
+natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 natToInteger = runQuote $ do
-    let addInteger = staticBuiltinNameAsTerm AddInteger
     return $
         mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
-          [ apply () addInteger (mkConstant @Integer () 1)
+          [ apply () (builtin () AddInteger) (mkConstant @Integer () 1)
           , mkConstant @Integer () 0
           ]

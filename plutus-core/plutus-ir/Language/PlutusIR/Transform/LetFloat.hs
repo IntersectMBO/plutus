@@ -202,7 +202,7 @@ makeLenses ''Rhs
 p1Term ::  forall name tyname uni fun a term
     . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Term tyname name uni fun a
     -> FloatData
 p1Term means pir = toFloatData $ runReader
@@ -287,7 +287,7 @@ removeLets
     :: forall name tyname uni fun a term
     . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Term tyname name uni fun a
     -> (Term tyname name uni fun a, RhsTable tyname name uni fun a)
 removeLets means t =
@@ -326,7 +326,7 @@ removeLets means t =
 p2Term :: forall name tyname uni fun a term .
        (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a,
        PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-       => PLC.DynamicBuiltinNameMeanings term
+       => PLC.BuiltinMeanings term
        -> Term tyname name uni fun a
        -> FloatData
        -> Term tyname name uni fun a
@@ -520,7 +520,7 @@ letMergeOrWrap newAnn newRecurs newBindings = \case
 floatTerm :: forall name tyname uni fun a term .
           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a,
            PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-          => PLC.DynamicBuiltinNameMeanings term
+          => PLC.BuiltinMeanings term
           -> Term tyname name uni fun a -> Term tyname name uni fun a
 floatTerm means pir = p2Term means pir
                 -- give the floatdata of the 1st pass to the start of the 2nd pass
@@ -590,7 +590,7 @@ isSingleton s = NS.size s == 1
 -- | Returns if a binding's rhs is strict and may have effects (see Value.hs)
 mayHaveEffects
     :: (PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
+    => PLC.BuiltinMeanings term
     -> Binding tyname name uni fun a
     -> Bool
 -- See Note [Purity, strictness, and variables]

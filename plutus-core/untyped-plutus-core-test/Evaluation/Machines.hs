@@ -45,7 +45,7 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnown @(Plc.Term TyName Name DefaultUni () ()) val
+            let resExp = erase <$> makeKnown @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp

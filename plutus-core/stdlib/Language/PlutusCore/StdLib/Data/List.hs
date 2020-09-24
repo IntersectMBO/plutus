@@ -22,6 +22,7 @@ module Language.PlutusCore.StdLib.Data.List
 
 import           Prelude                                  hiding (enumFromTo, map, product, reverse, sum)
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -220,7 +221,7 @@ reverse = runQuote $ do
 -- >                 (nil {integer})
 -- >                 (cons {integer} n' (rec (succInteger n'))))
 -- >         n
-enumFromTo :: (TermLike term TyName Name uni fun, uni `IncludesAll` '[Integer, (), Bool]) => term ()
+enumFromTo :: (TermLike term TyName Name uni DefaultFun, uni `IncludesAll` '[Integer, (), Bool]) => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     n   <- freshName "n"
@@ -228,7 +229,7 @@ enumFromTo = runQuote $ do
     rec <- freshName "rec"
     n'  <- freshName "n'"
     u   <- freshName "u"
-    let gtInteger  = staticBuiltinNameAsTerm GreaterThanInteger
+    let gtInteger  = builtin () GreaterThanInteger
         int = mkTyBuiltin @Integer ()
         listInt = TyApp () list int
     return
@@ -253,10 +254,10 @@ enumFromTo = runQuote $ do
 -- |  'sum' as a PLC term.
 --
 -- > foldList {integer} {integer} addInteger 0
-sum :: (TermLike term TyName Name uni fun, uni `Includes` Integer) => term ()
+sum :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 sum = runQuote $ do
     let int = mkTyBuiltin @Integer ()
-        add = staticBuiltinNameAsTerm AddInteger
+        add = builtin () AddInteger
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add , mkConstant @Integer () 0]
@@ -264,10 +265,10 @@ sum = runQuote $ do
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
-product :: (TermLike term TyName Name uni fun, uni `Includes` Integer) => term ()
+product :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
 product = runQuote $ do
     let int = mkTyBuiltin @Integer ()
-        mul = staticBuiltinNameAsTerm MultiplyInteger
+        mul = builtin () MultiplyInteger
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ mul , mkConstant @Integer () 1]

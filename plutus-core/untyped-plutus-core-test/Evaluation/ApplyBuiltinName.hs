@@ -3,8 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
 
-module Evaluation.ApplyBuiltinName
-    ( test_applyStaticBuiltinName
+module Evaluation.ApplyBuiltin
+    ( test_applyStaticBuiltin
     ) where
 
 import           PlutusPrelude
@@ -50,114 +50,114 @@ instance SpendBudget AppM () (Term Name DefaultUni () ()) where
     builtinCostParams = pure defaultCostModel
 
 -- | This shows that the builtin application machinery accepts untyped terms.
-prop_applyStaticBuiltinName
+prop_applyStaticBuiltin
     :: (KnownType (Term Name DefaultUni () ()) res)
-    => TypedStaticBuiltinName (Term Name DefaultUni () ()) args res
+    => TypedStaticBuiltin (Term Name DefaultUni () ()) args res
        -- ^ A (typed) builtin name to apply.
     -> FoldArgs args res
        -- ^ The semantics of the builtin name. E.g. the semantics of
        -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> Property
-prop_applyStaticBuiltinName (TypedStaticBuiltinName name sch) op = property $ do
+prop_applyStaticBuiltin (TypedStaticBuiltin name sch) op = property $ do
     (args, res) <- forAllNoShow $ genArgsRes sch op
     let rhs = makeKnown res
-    case unAppM $ applyStaticBuiltinName name args of
+    case unAppM $ applyStaticBuiltin name args of
         Left _    -> fail $ "Failure while checking an application of " ++ show name
         Right lhs -> lhs === rhs
 
 test_typedAddInteger :: TestTree
 test_typedAddInteger
     = testProperty "typedAddInteger"
-    $ prop_applyStaticBuiltinName typedAddInteger (+)
+    $ prop_applyStaticBuiltin typedAddInteger (+)
 
 test_typedSubtractInteger :: TestTree
 test_typedSubtractInteger
     = testProperty "typedSubtractInteger"
-    $ prop_applyStaticBuiltinName typedSubtractInteger (-)
+    $ prop_applyStaticBuiltin typedSubtractInteger (-)
 
 test_typedMultiplyInteger :: TestTree
 test_typedMultiplyInteger
     = testProperty "typedMultiplyInteger"
-    $ prop_applyStaticBuiltinName typedMultiplyInteger (*)
+    $ prop_applyStaticBuiltin typedMultiplyInteger (*)
 
 test_typedDivideInteger :: TestTree
 test_typedDivideInteger
     = testProperty "typedDivideInteger"
-    $ prop_applyStaticBuiltinName typedDivideInteger (nonZeroArg div)
+    $ prop_applyStaticBuiltin typedDivideInteger (nonZeroArg div)
 
 test_typedQuotientInteger :: TestTree
 test_typedQuotientInteger
     = testProperty "typedQuotientInteger"
-    $ prop_applyStaticBuiltinName typedQuotientInteger (nonZeroArg quot)
+    $ prop_applyStaticBuiltin typedQuotientInteger (nonZeroArg quot)
 
 test_typedModInteger :: TestTree
 test_typedModInteger
     = testProperty "typedModInteger"
-    $ prop_applyStaticBuiltinName typedModInteger (nonZeroArg mod)
+    $ prop_applyStaticBuiltin typedModInteger (nonZeroArg mod)
 
 test_typedRemainderInteger :: TestTree
 test_typedRemainderInteger
     = testProperty "typedRemainderInteger"
-    $ prop_applyStaticBuiltinName typedRemainderInteger (nonZeroArg rem)
+    $ prop_applyStaticBuiltin typedRemainderInteger (nonZeroArg rem)
 
 test_typedLessThanInteger :: TestTree
 test_typedLessThanInteger
     = testProperty "typedLessThanInteger"
-    $ prop_applyStaticBuiltinName typedLessThanInteger (<)
+    $ prop_applyStaticBuiltin typedLessThanInteger (<)
 
 test_typedLessThanEqInteger :: TestTree
 test_typedLessThanEqInteger
     = testProperty "typedLessThanEqInteger"
-    $ prop_applyStaticBuiltinName typedLessThanEqInteger (<=)
+    $ prop_applyStaticBuiltin typedLessThanEqInteger (<=)
 
 test_typedGreaterThanInteger :: TestTree
 test_typedGreaterThanInteger
     = testProperty "typedGreaterThanInteger"
-    $ prop_applyStaticBuiltinName typedGreaterThanInteger (>)
+    $ prop_applyStaticBuiltin typedGreaterThanInteger (>)
 
 test_typedGreaterThanEqInteger :: TestTree
 test_typedGreaterThanEqInteger
     = testProperty "typedGreaterThanEqInteger"
-    $ prop_applyStaticBuiltinName typedGreaterThanEqInteger (>=)
+    $ prop_applyStaticBuiltin typedGreaterThanEqInteger (>=)
 
 test_typedEqInteger :: TestTree
 test_typedEqInteger
     = testProperty "typedEqInteger"
-    $ prop_applyStaticBuiltinName typedEqInteger (==)
+    $ prop_applyStaticBuiltin typedEqInteger (==)
 
 test_typedConcatenate :: TestTree
 test_typedConcatenate
     = testProperty "typedConcatenate"
-    $ prop_applyStaticBuiltinName typedConcatenate (<>)
+    $ prop_applyStaticBuiltin typedConcatenate (<>)
 
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyStaticBuiltinName typedTakeByteString (BS.take . integerToInt)
+    $ prop_applyStaticBuiltin typedTakeByteString (BS.take . integerToInt)
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
     = testProperty "typedSHA2"
-    $ prop_applyStaticBuiltinName typedSHA2 Hash.sha2
+    $ prop_applyStaticBuiltin typedSHA2 Hash.sha2
 
 test_typedSHA3 :: TestTree
 test_typedSHA3
     = testProperty "typedSHA3"
-    $ prop_applyStaticBuiltinName typedSHA3 Hash.sha3
+    $ prop_applyStaticBuiltin typedSHA3 Hash.sha3
 
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyStaticBuiltinName typedDropByteString (BS.drop . integerToInt)
+    $ prop_applyStaticBuiltin typedDropByteString (BS.drop . integerToInt)
 
 test_typedEqByteString :: TestTree
 test_typedEqByteString
     = testProperty "typedEqByteString"
-    $ prop_applyStaticBuiltinName typedEqByteString (==)
+    $ prop_applyStaticBuiltin typedEqByteString (==)
 
-test_applyStaticBuiltinName :: TestTree
-test_applyStaticBuiltinName =
-    testGroup "applyStaticBuiltinName"
+test_applyStaticBuiltin :: TestTree
+test_applyStaticBuiltin =
+    testGroup "applyStaticBuiltin"
         [ test_typedAddInteger
         , test_typedSubtractInteger
         , test_typedMultiplyInteger

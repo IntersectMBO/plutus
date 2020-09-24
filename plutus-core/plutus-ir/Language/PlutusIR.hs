@@ -111,6 +111,7 @@ data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name 
 
 instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Serialise
+         , Serialise fun
          , Serialise a
          , Serialise tyname
          , Serialise name
@@ -198,7 +199,7 @@ data Term tyname name uni fun a =
                         | LamAbs a name (Type tyname uni a) (Term tyname name uni fun a)
                         | Apply a (Term tyname name uni fun a) (Term tyname name uni fun a)
                         | Constant a (PLC.Some (PLC.ValueOf uni))
-                        | Builtin a PLC.BuiltinName
+                        | Builtin a fun
                         | TyInst a (Term tyname name uni fun a) (Type tyname uni a)
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
@@ -216,6 +217,7 @@ instance FromConstant (Term tyname name uni fun ()) where
 
 instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Serialise
+         , Serialise fun
          , Serialise a
          , Serialise tyname
          , Serialise name
@@ -279,6 +281,7 @@ data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deri
 
 instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Serialise
+         , Serialise fun
          , Serialise a
          , Serialise tyname
          , Serialise name
@@ -319,6 +322,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni fun a) where
     prettyBy config = \case
         TermBind _ s d t -> parens' ("termbind" </> vsep' [prettyBy config s, prettyBy config d, prettyBy config t])
@@ -328,6 +332,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni fun a) where
     prettyBy config = \case
         Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' . toList $ fmap (prettyBy config) bs, prettyBy config t])
@@ -349,6 +354,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni fun a) where
     prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
 
@@ -372,17 +378,20 @@ instance ( PLC.PrettyClassic tyname
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => Pretty (Binding tyname name uni fun a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => Pretty (Term tyname name uni fun a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , Pretty fun
          ) => Pretty (Program tyname name uni fun a) where
     pretty = PLC.prettyClassicDef

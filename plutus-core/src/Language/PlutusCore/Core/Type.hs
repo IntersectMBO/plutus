@@ -11,9 +11,6 @@
 module Language.PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
-    , BuiltinName(..)
-    , StaticBuiltinName(..)
-    , DynamicBuiltinName(..)
     , Term(..)
     , Version(..)
     , Program(..)
@@ -21,7 +18,6 @@ module Language.PlutusCore.Core.Type
     , Normalized(..)
     , HasUniques
     , defaultVersion
-    , allStaticBuiltinNames
     -- * Helper functions
     , toTerm
     , termAnn
@@ -35,12 +31,9 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Lens
-import           Data.Array                   (Ix)
 import           Data.Hashable
-import           Data.Text                    (Text)
 import           GHC.Exts                     (Constraint)
 import           Instances.TH.Lift            ()
-
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -64,52 +57,13 @@ data Type tyname uni ann
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
--- | Builtin functions
-data StaticBuiltinName
-    = AddInteger
-    | SubtractInteger
-    | MultiplyInteger
-    | DivideInteger
-    | QuotientInteger
-    | RemainderInteger
-    | ModInteger
-    | LessThanInteger
-    | LessThanEqInteger
-    | GreaterThanInteger
-    | GreaterThanEqInteger
-    | EqInteger
-    | Concatenate
-    | TakeByteString
-    | DropByteString
-    | SHA2
-    | SHA3
-    | VerifySignature
-    | EqByteString
-    | LtByteString
-    | GtByteString
-    | IfThenElse
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix)
-
--- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
--- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --
--- this allows to type check and evaluate dynamic built-in names just like static ones.
-newtype DynamicBuiltinName = DynamicBuiltinName
-    { unDynamicBuiltinName :: Text  -- ^ The name of a dynamic built-in name.
-    } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Hashable)
-
-data BuiltinName
-    = StaticBuiltinName StaticBuiltinName
-    | DynBuiltinName DynamicBuiltinName
-    deriving (Show, Generic, NFData, Hashable, Eq)
-
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
     | TyAbs ann tyname (Kind ann) (Term tyname name uni fun ann)
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni fun ann)
     | Apply ann (Term tyname name uni fun ann) (Term tyname name uni fun ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
-    | Builtin ann BuiltinName
+    | Builtin ann fun
     | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
@@ -148,12 +102,6 @@ type instance HasUniques (Program tyname name uni fun ann) = HasUniques
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
-
--- | The list of all 'BuiltinName's.
-allStaticBuiltinNames :: [StaticBuiltinName]
-allStaticBuiltinNames = [minBound .. maxBound]
--- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
--- automatically handled by tests and other stuff that deals with all built-in names at once.
 
 toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
 toTerm (Program _ _ term) = term

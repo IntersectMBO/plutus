@@ -18,7 +18,7 @@ import qualified Data.Map as Map
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
 
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
-data BuiltinApp tyname name uni fun a = BuiltinApp PLC.BuiltinName [Arg tyname name uni fun a]
+data BuiltinApp tyname name uni fun a = BuiltinApp PLC.Builtin [Arg tyname name uni fun a]
 
 saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
@@ -37,13 +37,13 @@ saturatesScheme (TermArg _ : _) TypeSchemeAll{}   = Nothing
 isSaturated
     :: forall tyname name uni fun a term
     . (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => DynamicBuiltinNameMeanings term
+    => BuiltinMeanings term
     -> BuiltinApp tyname name uni fun a
     -> Maybe Bool
-isSaturated (DynamicBuiltinNameMeanings means) (BuiltinApp b args) = case b of
-    PLC.StaticBuiltinName bn -> withTypedStaticBuiltinName @uni @term bn $ \(TypedStaticBuiltinName _ sch) -> saturatesScheme args sch
-    PLC.DynBuiltinName bn -> case Map.lookup bn means of
-        Just (DynamicBuiltinNameMeaning sch _ _) -> saturatesScheme args sch
+isSaturated (BuiltinMeanings means) (BuiltinApp b args) = case b of
+    PLC.StaticBuiltin bn -> withTypedStaticBuiltin @uni @term bn $ \(TypedStaticBuiltin _ sch) -> saturatesScheme args sch
+    PLC.DynBuiltin bn -> case Map.lookup bn means of
+        Just (BuiltinMeaning sch _ _) -> saturatesScheme args sch
         Nothing -> Nothing
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
@@ -69,7 +69,7 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- it includes things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
     :: (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => DynamicBuiltinNameMeanings term -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
+    => BuiltinMeanings term -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
 isPure means varStrictness = go
     where
         go = \case

@@ -11,10 +11,10 @@
 | BIWrap causes ({ cpu: 1
 | mem: 1
 })
-| BBuiltin (StaticBuiltinName LessThanEqInteger) causes ({ cpu: 15
+| BBuiltin (StaticBuiltin LessThanEqInteger) causes ({ cpu: 15
 | mem: 1
 })
-| BBuiltin (StaticBuiltinName IfThenElse) causes ({ cpu: 1
+| BBuiltin (StaticBuiltin IfThenElse) causes ({ cpu: 1
 | mem: 1
 })
 | BUnwrap causes ({ cpu: 2

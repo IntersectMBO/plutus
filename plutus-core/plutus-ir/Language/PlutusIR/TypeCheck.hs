@@ -4,11 +4,11 @@
 module Language.PlutusIR.TypeCheck
     (
     -- * Configuration.
-      DynamicBuiltinNameTypes (..)
+      BuiltinTypes (..)
     , TypeCheckConfig (..)
-    , tccDynamicBuiltinNameTypes
+    , tccBuiltinTypes
     , PLC.defConfig
-    , PLC.dynamicBuiltinNameMeaningsToTypes
+    , PLC.dynamicBuiltinMeaningsToTypes
     -- * Type inference/checking, extending the plc typechecker
     , inferType
     , checkType

@@ -116,7 +116,7 @@ goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
 
-goldenVsEvaluated :: String -> Term TyName Name DefaultUni () () -> TestTree
+goldenVsEvaluated :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel
 
 -- TODO: ideally, we want to test this for all the machines.

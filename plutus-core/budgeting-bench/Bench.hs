@@ -32,30 +32,30 @@ runTermBench name term = env
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
 
-benchSameTwoByteStrings :: StaticBuiltinName -> Benchmark
+benchSameTwoByteStrings :: StaticBuiltin -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
 
-benchTwoByteStrings :: StaticBuiltinName -> Benchmark
+benchTwoByteStrings :: StaticBuiltin -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
 
-benchBytestringOperations :: StaticBuiltinName -> Benchmark -- TODO the numbers are a bit too big here
+benchBytestringOperations :: StaticBuiltin -> Benchmark -- TODO the numbers are a bit too big here
 benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BS.ByteString name numbers (byteStringsToBench seedA)
     where
         numbers = expToBenchingInteger <$> expsToBench
 
-createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => StaticBuiltinName -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
+createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => StaticBuiltin -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
 createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
         as <&> (\(x, xMem) ->
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
-                runTermBench (show yMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x), (mkConstant () y)]
+                runTermBench (show yMem) $ mkIterApp () (staticBuiltinAsTerm name) [(mkConstant () x), (mkConstant () y)]
             ))
 
-benchHashOperations :: StaticBuiltinName -> Benchmark
+benchHashOperations :: StaticBuiltin -> Benchmark
 benchHashOperations name =
     bgroup (show name) $
         byteStringsToBench seedA <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x)]
+            runTermBench (show xMem) $ mkIterApp () (staticBuiltinAsTerm name) [(mkConstant () x)]
         )
 
 -- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
@@ -67,7 +67,7 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
         bs <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
+            runTermBench (show xMem) $ mkIterApp () (staticBuiltinAsTerm name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
         )
     where
         name = VerifySignature
@@ -101,7 +101,7 @@ expToBenchingInteger e =
                 x = ((3 :: Integer) ^ e)
             in (x, memoryUsage x)
 
-benchTwoInt :: StaticBuiltinName -> Benchmark
+benchTwoInt :: StaticBuiltin -> Benchmark
 benchTwoInt builtinName =
     createTwoTermBuiltinBench builtinName numbers numbers
     where

@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Evaluation.DynamicBuiltins.Definition
+module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
@@ -23,7 +23,7 @@ import qualified Language.PlutusCore.StdLib.Data.List               as Plc
 import qualified Language.PlutusCore.StdLib.Data.Function           as Plc
 import           Language.PlutusCore.Evaluation.Machine.Cek         (CekValue)
 
-import           Evaluation.DynamicBuiltins.Common
+import           Evaluation.Builtins.Common
 
 import           Data.Either                                        (isRight)
 import           Data.Proxy
@@ -34,53 +34,53 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
 
-dynamicFactorialName :: DynamicBuiltinName
-dynamicFactorialName = DynamicBuiltinName "factorial"
+dynamicFactorialName :: Builtin
+dynamicFactorialName = Builtin "factorial"
 
 dynamicFactorialMeaning
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameMeaning term
-dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
+    => BuiltinMeaning term
+dynamicFactorialMeaning = BuiltinMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
 dynamicFactorialDefinition
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameDefinition term
+    => BuiltinDefinition fun term
 dynamicFactorialDefinition =
-    DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
+    BuiltinDefinition dynamicFactorialName dynamicFactorialMeaning
 
 dynamicFactorial :: Term tyname name uni fun ()
-dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
+dynamicFactorial = dynamicBuiltinAsTerm dynamicFactorialName
 
 -- | Check that the dynamic factorial defined above computes to the same thing as
 -- a factorial defined in PLC itself.
 test_dynamicFactorial :: TestTree
 test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
-        let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
+        let env = insertBuiltinDefinition dynamicFactorialDefinition mempty
             ten = mkConstant @Integer @DefaultUni @() () 10
             lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial ten
             rhs = typecheckEvaluateCek mempty $ Apply () factorial ten
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
-dynamicConstName :: DynamicBuiltinName
-dynamicConstName = DynamicBuiltinName "const"
+dynamicConstName :: Builtin
+dynamicConstName = Builtin "const"
 
-dynamicConstMeaning :: DynamicBuiltinNameMeaning term
-dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
+dynamicConstMeaning :: BuiltinMeaning term
+dynamicConstMeaning = BuiltinMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \a ->
         TypeSchemeAll @"b" @1 Proxy (Type ()) $ \b ->
             a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicConstDefinition :: DynamicBuiltinNameDefinition term
+dynamicConstDefinition :: BuiltinDefinition fun term
 dynamicConstDefinition =
-    DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
+    BuiltinDefinition dynamicConstName dynamicConstMeaning
 
 dynamicConst :: Term tyname name uni fun ()
-dynamicConst = dynamicBuiltinNameAsTerm dynamicConstName
+dynamicConst = dynamicBuiltinAsTerm dynamicConstName
 
 -- | Check that the dynamic const defined above computes to the same thing as
 -- a const defined in PLC itself.
@@ -93,34 +93,34 @@ test_dynamicConst =
             tB = mkConstant () b
             char = toTypeAst @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
-            env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
+            env = insertBuiltinDefinition dynamicConstDefinition mempty
             lhs = typecheckReadKnownCek env $ runConst dynamicConst
             rhs = typecheckReadKnownCek mempty $ runConst Plc.const
         lhs === Right (Right c)
         lhs === rhs
 
-dynamicIdName :: DynamicBuiltinName
-dynamicIdName = DynamicBuiltinName "id"
+dynamicIdName :: Builtin
+dynamicIdName = Builtin "id"
 
-dynamicIdMeaning :: DynamicBuiltinNameMeaning term
-dynamicIdMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+dynamicIdMeaning :: BuiltinMeaning term
+dynamicIdMeaning = BuiltinMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \a ->
             a `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicIdDefinition :: DynamicBuiltinNameDefinition term
+dynamicIdDefinition :: BuiltinDefinition fun term
 dynamicIdDefinition =
-    DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
+    BuiltinDefinition dynamicIdName dynamicIdMeaning
 
 dynamicId :: Term tyname name uni fun ()
-dynamicId = dynamicBuiltinNameAsTerm dynamicIdName
+dynamicId = dynamicBuiltinAsTerm dynamicIdName
 
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
 -- See https://github.com/input-output-hk/plutus/issues/1882
 test_dynamicId :: TestTree
 test_dynamicId =
     testCase "dynamicId" $ do
-        let env = insertDynamicBuiltinNameDefinition dynamicIdDefinition mempty
+        let env = insertBuiltinDefinition dynamicIdDefinition mempty
             zer = mkConstant @Integer @DefaultUni @() () 0
             one = mkConstant @Integer @DefaultUni @() () 1
             integer = mkTyBuiltin @Integer ()
@@ -139,35 +139,35 @@ test_dynamicId =
                                   $ Var () i
         typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
 
-dynamicIdFIntegerName :: DynamicBuiltinName
-dynamicIdFIntegerName = DynamicBuiltinName "idFInteger"
+dynamicIdFIntegerName :: Builtin
+dynamicIdFIntegerName = Builtin "idFInteger"
 
 -- >>> :set -XTypeApplications
 -- >>> import Language.PlutusCore.Pretty
--- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdFIntegerMeaning @DefaultUni
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinMeaningToType $ dynamicIdFIntegerMeaning @DefaultUni
 -- (all (f :: * -> *). f integer -> f integer)
 dynamicIdFIntegerMeaning
-    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (CekValue uni fun)
-dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+    :: uni `Includes` Integer => BuiltinMeaning (CekValue uni fun)
+dynamicIdFIntegerMeaning = BuiltinMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
             let ty = Proxy @(Opaque _ (TyAppRep f Integer))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
 dynamicIdFIntegerDefinition
-    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (CekValue uni fun)
+    :: uni `Includes` Integer => BuiltinDefinition (CekValue uni fun)
 dynamicIdFIntegerDefinition =
-    DynamicBuiltinNameDefinition dynamicIdFIntegerName dynamicIdFIntegerMeaning
+    BuiltinDefinition dynamicIdFIntegerName dynamicIdFIntegerMeaning
 
 dynamicIdFInteger :: Term tyname name uni fun ()
-dynamicIdFInteger = dynamicBuiltinNameAsTerm dynamicIdFIntegerName
+dynamicIdFInteger = dynamicBuiltinAsTerm dynamicIdFIntegerName
 
 -- | Test that a polymorphic built-in function can have a higher-kinded type variable in its
 -- signature.
 test_dynamicIdFInteger :: TestTree
 test_dynamicIdFInteger =
     testCase "dynamicIdFInteger" $ do
-        let env = insertDynamicBuiltinNameDefinition dynamicIdFIntegerDefinition mempty
+        let env = insertBuiltinDefinition dynamicIdFIntegerDefinition mempty
             one = mkConstant @Integer @DefaultUni @() () 1
             ten = mkConstant @Integer @DefaultUni @() () 10
             res = mkConstant @Integer @DefaultUni @() () 55
@@ -182,33 +182,33 @@ data ListRep a
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
-dynamicIdListName :: DynamicBuiltinName
-dynamicIdListName = DynamicBuiltinName "idList"
+dynamicIdListName :: Builtin
+dynamicIdListName = Builtin "idList"
 
 -- > idList : all (a :: *). list a -> list a
 -- >>> :set -XTypeApplications
 -- >>> import Language.PlutusCore.Pretty
--- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdListMeaning @DefaultUni
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinMeaningToType $ dynamicIdListMeaning @DefaultUni
 -- (all (a :: *). (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a -> (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a)
-dynamicIdListMeaning :: DynamicBuiltinNameMeaning (CekValue uni fun)
-dynamicIdListMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+dynamicIdListMeaning :: BuiltinMeaning (CekValue uni fun)
+dynamicIdListMeaning = BuiltinMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \(_ :: Proxy a) ->
             let ty = Proxy @(Opaque _ (ListRep a))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
-dynamicIdListDefinition :: DynamicBuiltinNameDefinition (CekValue uni fun)
+dynamicIdListDefinition :: BuiltinDefinition (CekValue uni fun)
 dynamicIdListDefinition =
-    DynamicBuiltinNameDefinition dynamicIdListName dynamicIdListMeaning
+    BuiltinDefinition dynamicIdListName dynamicIdListMeaning
 
 dynamicIdList :: Term tyname name uni fun ()
-dynamicIdList = dynamicBuiltinNameAsTerm dynamicIdListName
+dynamicIdList = dynamicBuiltinAsTerm dynamicIdListName
 
 -- | Test that opaque terms with custom types are allowed.
 test_dynamicIdList :: TestTree
 test_dynamicIdList =
     testCase "dynamicIdList" $ do
-        let env = insertDynamicBuiltinNameDefinition dynamicIdListDefinition mempty
+        let env = insertBuiltinDefinition dynamicIdListDefinition mempty
             one = mkConstant @Integer @DefaultUni @() () 1
             ten = mkConstant @Integer @DefaultUni @() () 10
             res = mkConstant @Integer @DefaultUni @() () 55
@@ -227,8 +227,8 @@ instance (KnownTypeAst uni (TyVarRep text unique), KnownTypeAst uni a) =>
         TyVar () name -> TyForall () name (Type ()) . toTypeAst $ Proxy @a
         _             -> Prelude.error "Impossible"
 
-dynamicIdRank2Name :: DynamicBuiltinName
-dynamicIdRank2Name = DynamicBuiltinName "idNil"
+dynamicIdRank2Name :: Builtin
+dynamicIdRank2Name = Builtin "idNil"
 
 {- Note [Higher-rank built-in functions]
 We can't unlift a monomorphic function passed to a built-in function, let alone unlift a polymorphic
@@ -257,27 +257,27 @@ argument when it's a function, for another example).
 -- See Note [Higher-rank built-in functions].
 -- >>> :set -XTypeApplications
 -- >>> import Language.PlutusCore.Pretty
--- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdRank2Meaning @DefaultUni
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinMeaningToType $ dynamicIdRank2Meaning @DefaultUni
 -- (all (f :: * -> *). (all (a :: *). f a) -> (all (a :: *). f a))
-dynamicIdRank2Meaning :: DynamicBuiltinNameMeaning (CekValue uni fun)
-dynamicIdRank2Meaning = DynamicBuiltinNameMeaning sch id (\_ -> ExBudget 1 1) where
+dynamicIdRank2Meaning :: BuiltinMeaning (CekValue uni fun)
+dynamicIdRank2Meaning = BuiltinMeaning sch id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
             let ty = Proxy @(Opaque _ (TyForallStarRep "a" 1 (TyAppRep f (Opaque _ (TyVarRep "a" 1)))))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
-dynamicIdRank2Definition :: DynamicBuiltinNameDefinition (CekValue uni fun)
+dynamicIdRank2Definition :: BuiltinDefinition (CekValue uni fun)
 dynamicIdRank2Definition =
-    DynamicBuiltinNameDefinition dynamicIdRank2Name dynamicIdRank2Meaning
+    BuiltinDefinition dynamicIdRank2Name dynamicIdRank2Meaning
 
 dynamicIdRank2 :: Term tyname name uni fun ()
-dynamicIdRank2 = dynamicBuiltinNameAsTerm dynamicIdRank2Name
+dynamicIdRank2 = dynamicBuiltinAsTerm dynamicIdRank2Name
 
 -- | Test that opaque terms with higher-rank types are allowed.
 test_dynamicIdRank2 :: TestTree
 test_dynamicIdRank2 =
     testCase "dynamicIdRank2" $ do
-        let env = insertDynamicBuiltinNameDefinition dynamicIdRank2Definition mempty
+        let env = insertBuiltinDefinition dynamicIdRank2Definition mempty
             res = mkConstant @Integer @DefaultUni @() () 0
             integer = mkTyBuiltin @Integer ()
             -- sum (idRank2 {list} nil {integer})

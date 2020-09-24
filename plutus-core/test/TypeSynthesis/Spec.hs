@@ -25,7 +25,7 @@ kindcheck ty = do
     _ <- runQuoteT $ inferKind defConfig ty
     return ty
 
-typecheck :: (MonadError (Error DefaultUni () ()) m) => Term TyName Name DefaultUni () () -> m ()
+typecheck :: (MonadError (Error DefaultUni () ()) m) => Term TyName Name DefaultUni DefaultFun () -> m ()
 typecheck term = do
     _ <- runQuoteT $ inferType defConfig term
     return ()
@@ -37,13 +37,13 @@ assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () () -> Assertion
+assertWellTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () () -> Assertion
+assertIllTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
 assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left  _  -> return ()
@@ -77,20 +77,20 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckStaticBuiltinName :: StaticBuiltinName -> TestTree
-test_typecheckStaticBuiltinName name = goldenVsDoc testName path doc where
+test_typecheckStaticBuiltin :: StaticBuiltin -> TestTree
+test_typecheckStaticBuiltin name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfStaticBuiltinName @DefaultUni name
+    doc      = prettyPlcDef $ typeOfStaticBuiltin @DefaultUni name
 
-test_typecheckStaticBuiltinNames :: TestTree
-test_typecheckStaticBuiltinNames =
-    testGroup "built-in name" $ map test_typecheckStaticBuiltinName allStaticBuiltinNames
+test_typecheckStaticBuiltins :: TestTree
+test_typecheckStaticBuiltins =
+    testGroup "built-in name" $ map test_typecheckStaticBuiltin allStaticBuiltins
 
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
-        [ test_typecheckStaticBuiltinNames
+        [ test_typecheckStaticBuiltins
         , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

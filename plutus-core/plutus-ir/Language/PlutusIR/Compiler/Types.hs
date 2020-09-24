@@ -33,7 +33,7 @@ defaultCompilationOpts = CompilationOpts True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts        :: CompilationOpts
-    , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni fun ())
+    , _ccBuiltinMeanings :: PLC.BuiltinMeanings (PIR.Term PLC.TyName PLC.Name uni fun ())
     , _ccEnclosing :: Provenance a
     , _ccTypeCheckConfig :: PLC.TypeCheckConfig uni
     }

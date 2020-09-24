@@ -111,7 +111,7 @@ values = runQuote $ do
         , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
         , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
         , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni () 1) @?= True
-        , testCase "builtin" $ VR.isTermValue (staticBuiltinNameAsTerm AddInteger) @?= False
+        , testCase "builtin" $ VR.isTermValue (staticBuiltinAsTerm AddInteger) @?= False
       ]
 
 normalTypes :: TestTree
@@ -168,8 +168,8 @@ normalTypesCheck = runQuote $ do
         , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
 
         , testCase "constant" $ isRight (checkNormal (mkConstant @Integer () 2)) @? "Normalization"
-        , testCase "builtin" $ isRight (checkNormal (staticBuiltinNameAsTerm AddInteger)) @? "Normalization"
+        , testCase "builtin" $ isRight (checkNormal (staticBuiltinAsTerm AddInteger)) @? "Normalization"
       ]
         where
-            checkNormal :: Term TyName Name DefaultUni () () -> Either (Normal.NormCheckError TyName Name DefaultUni () ()) ()
+            checkNormal :: Term TyName Name DefaultUni DefaultFun () -> Either (Normal.NormCheckError TyName Name DefaultUni DefaultFun ()) ()
             checkNormal = Normal.checkTerm

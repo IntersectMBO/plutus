@@ -56,7 +56,7 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "DivideInteger")
+filtered <- data %>% filter(Builtin == "DivideInteger")
 plotRaw(filtered)
 
 plotErrorModel(filtered, divideIntegerModel)
@@ -65,14 +65,14 @@ plotErrorModel(filtered, divideIntegerModel)
 # summary(model)
 
 # ggplot(addInt, aes(x=I(x_log2 + y_log2), y=Mean)) +
-#   facet_wrap(~BuiltinName) +
+#   facet_wrap(~Builtin) +
 #   geom_line() +
 #   geom_smooth(method="lm")
 
 # ggplot(addInt, aes(x=x_log2, y=y_log2, z=Mean)) +
 #   geom_contour(aes(colour=stat(level)), bins=30) +
-#   facet_wrap(vars(BuiltinName))
+#   facet_wrap(vars(Builtin))
 
 # ggsave("plot.png")
 
-# unique(benchData$BuiltinName)
+# unique(benchData$Builtin)

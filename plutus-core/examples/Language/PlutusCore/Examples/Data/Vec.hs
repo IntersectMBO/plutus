@@ -15,6 +15,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
+import           Language.PlutusCore.Builtins
 
 import           Language.PlutusCore.StdLib.Data.Unit
 import           Language.PlutusCore.StdLib.Data.Integer
@@ -358,7 +359,7 @@ scottHead = runQuote $ do
 -- >                     x + scottHead {integer} {p} (coe ys))
 -- >             (\(coe : scottVec Integer n -> scottVec integer zero) -> 0)
 -- >             (/\(xs' :: scottVec Integer n) -> xs')
-scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni fun ()
+scottSumHeadsOr0 :: uni `IncludesAll` '[Integer, ()] => Term TyName Name uni DefaultFun ()
 scottSumHeadsOr0 = runQuote $ do
     n <- freshTyName "n"
     p <- freshTyName "p"
@@ -383,7 +384,7 @@ scottSumHeadsOr0 = runQuote $ do
               . LamAbs () xs' (vecInteger $ TyVar () p)
               . LamAbs () coe
                   (TyFun () (vecInteger $ TyVar () n) $ vecInteger (TyApp () succT $ TyVar () p))
-              $ mkIterApp () (staticBuiltinNameAsTerm AddInteger)
+              $ mkIterApp () (builtin () AddInteger)
                   [ Var () x
                   ,   Apply () (mkIterInst () scottHead [integer, TyVar () p])
                     . Apply () (Var () coe)

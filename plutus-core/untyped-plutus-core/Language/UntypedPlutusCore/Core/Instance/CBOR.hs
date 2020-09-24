@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy                 as BSL
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
+         , Serialise fun
          , Serialise name
          ) => Serialise (Term name uni fun ann) where
     encode = \case
@@ -44,6 +45,7 @@ instance ( Closed uni
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
+         , Serialise fun
          , Serialise name
          ) => Serialise (Program name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
@@ -102,12 +104,12 @@ newtype OmitUnitAnnotations name uni fun = OmitUnitAnnotations { restoreUnitAnno
     deriving Serialise via Program name uni fun InvisibleUnit
 
 {-| Convenience functions for serialisation/deserialisation without units -}
-serialiseOmittingUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise) => Program name uni fun () -> BSL.ByteString
+serialiseOmittingUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise, Serialise fun) => Program name uni fun () -> BSL.ByteString
 serialiseOmittingUnits = serialise . OmitUnitAnnotations
 
-deserialiseRestoringUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise) => BSL.ByteString -> Program name uni fun ()
+deserialiseRestoringUnits :: (Closed uni, Serialise name, uni `Everywhere` Serialise, Serialise fun) => BSL.ByteString -> Program name uni fun ()
 deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
 
-deserialiseRestoringUnitsOrFail :: (Closed uni, Serialise name, uni `Everywhere` Serialise) =>
+deserialiseRestoringUnitsOrFail :: (Closed uni, Serialise name, uni `Everywhere` Serialise, Serialise fun) =>
                         BSL.ByteString -> Either DeserialiseFailure (Program name uni fun ())
 deserialiseRestoringUnitsOrFail bs = restoreUnitAnnotations <$> deserialiseOrFail bs
