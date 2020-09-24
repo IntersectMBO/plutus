@@ -51,6 +51,12 @@ createTwoTermBuiltinBench name as bs =
                 runTermBench (show yMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x), (mkConstant () y)]
             ))
 
+benchComparison :: [Benchmark]
+benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (createRecursiveTerm n)) <$> [1..20]
+
+createRecursiveTerm :: Integer -> Plain Term DefaultUni
+createRecursiveTerm d = mkIterApp () (staticBuiltinNameAsTerm AddInteger) [(mkConstant () (1::Integer)), if d == 0 then (mkConstant () (1::Integer)) else (createRecursiveTerm (d - 1))]
+
 benchHashOperations :: StaticBuiltinName -> Benchmark
 benchHashOperations name =
     bgroup (show name) $
@@ -112,7 +118,7 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ benchComparison <> (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]

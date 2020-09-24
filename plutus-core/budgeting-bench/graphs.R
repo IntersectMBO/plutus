@@ -2,9 +2,9 @@
 library(plotly)
 # install.packages("plotly")
 
-options(browser="$HOME/browser.bash")
+# this one is @reactormonk specific
+# options(browser="$HOME/browser.bash")
 # options(error=traceback)
-# Sys.setenv(DISPLAY="localhost:11.0")
 
 plotRaw <- function(filtered) {
   plot_ly(filtered, x=filtered$x_mem, y=filtered$y_mem, z=filtered$Mean) %>%
@@ -68,7 +68,7 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "VerifySignature")
+filtered <- data %>% filter(BuiltinName == "CalibratingBench")
 plotRaw(filtered)
 plotRaw2d(filtered)
 

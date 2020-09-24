@@ -36,6 +36,16 @@ benchData <- function(path) {
 
 modelFun <- function(path) {
   data <- benchData(path)
+
+  calibratingBenchModel <- {
+    # CalibratingBench is number of runs as ExMemory, because I'm too lazy to write a new parser.
+    filtered <- data %>% filter(BuiltinName == "CalibratingBench")
+    lm(Mean ~ x_mem, data=filtered)
+  }
+
+  baseCost <- calibratingBenchModel$coefficients[["(Intercept)"]]
+  data$Mean <- data$Mean - baseCost
+
   # filtered does leak from one model to the next, so make sure you don't mistype!
 
   addIntegerModel <- {
