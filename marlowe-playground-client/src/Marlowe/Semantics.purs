@@ -2,16 +2,19 @@ module Marlowe.Semantics where
 
 import Prelude
 import Control.Alt ((<|>))
+import Control.Monad.Except.Trans (ExceptT)
 import Data.Array (catMaybes)
 import Data.BigInteger (BigInteger, fromInt)
 import Data.Foldable (class Foldable, any, foldl, minimum)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Identity (Identity)
 import Data.Lens (Lens', over, to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.List (List(..), fromFoldable, reverse, (:))
+import Data.List.NonEmpty (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -19,12 +22,15 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Ord (abs, signum)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Foreign (ForeignError(..), fail)
+import Foreign (Foreign, ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Generic (genericDecode, genericEncode)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.Index (hasProperty, readProp)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
+
+decodeProp :: forall a. Decode a => String → Foreign → ExceptT (NonEmptyList ForeignError) Identity a
+decodeProp key obj = decode =<< readProp key obj
 
 type PubKey
   = String
@@ -45,8 +51,8 @@ instance encodeJsonParty :: Encode Party where
 
 instance decodeJsonParty :: Decode Party where
   decode a =
-    (PK <$> (decode =<< readProp "pk_hash" a))
-      <|> (Role <$> (decode =<< readProp "role_token" a))
+    (PK <$> decodeProp "pk_hash" a)
+      <|> (Role <$> decodeProp "role_token" a)
 
 instance showParty :: Show Party where
   show = genericShow
@@ -85,8 +91,8 @@ type TokenJson
 
 instance decodeJsonToken :: Decode Token where
   decode a =
-    ( Token <$> (decode =<< readProp "currency_symbol" a)
-        <*> (decode =<< readProp "token_name" a)
+    ( Token <$> decodeProp "currency_symbol" a
+        <*> decodeProp "token_name" a
     )
 
 derive instance genericToken :: Generic Token _
@@ -225,8 +231,8 @@ instance encodeJsonAccountId :: Encode AccountId where
 
 instance decodeJsonAccountId :: Decode AccountId where
   decode a =
-    ( AccountId <$> (decode =<< readProp "account_number" a)
-        <*> (decode =<< readProp "account_owner" a)
+    ( AccountId <$> decodeProp "account_number" a
+        <*> decodeProp "account_owner" a
     )
 
 instance showAccountId :: Show AccountId where
@@ -257,8 +263,8 @@ instance encodeJsonChoiceId :: Encode ChoiceId where
 
 instance decodeJsonChoiceId :: Decode ChoiceId where
   decode a =
-    ( ChoiceId <$> (decode =<< readProp "choice_name" a)
-        <*> (decode =<< readProp "choice_owner" a)
+    ( ChoiceId <$> decodeProp "choice_name" a
+        <*> decodeProp "choice_owner" a
     )
 
 instance showChoiceId :: Show ChoiceId where
@@ -406,34 +412,34 @@ instance decodeJsonValue :: Decode Value where
             (pure SlotIntervalEnd)
             (fail (ForeignError "Not \"slot_interval_end\" string"))
         )
-      <|> ( AvailableMoney <$> (decode =<< readProp "in_account" a)
-            <*> (decode =<< readProp "amount_of_token" a)
+      <|> ( AvailableMoney <$> decodeProp "in_account" a
+            <*> decodeProp "amount_of_token" a
         )
       <|> (Constant <$> decode a)
-      <|> (NegValue <$> (decode =<< readProp "negate" a))
-      <|> ( AddValue <$> (decode =<< readProp "add" a)
-            <*> (decode =<< readProp "and" a)
+      <|> (NegValue <$> decodeProp "negate" a)
+      <|> ( AddValue <$> decodeProp "add" a
+            <*> decodeProp "and" a
         )
-      <|> ( SubValue <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "minus" a)
+      <|> ( SubValue <$> decodeProp "value" a
+            <*> decodeProp "minus" a
         )
       <|> ( if (hasProperty "divided_by" a) then
             ( Scale
-                <$> ( Rational <$> (decode =<< readProp "times" a)
-                      <*> (decode =<< readProp "divided_by" a)
+                <$> ( Rational <$> decodeProp "times" a
+                      <*> decodeProp "divided_by" a
                   )
-                <*> (decode =<< readProp "multiply" a)
+                <*> decodeProp "multiply" a
             )
           else
-            ( MulValue <$> (decode =<< readProp "multiply" a)
-                <*> (decode =<< readProp "times" a)
+            ( MulValue <$> decodeProp "multiply" a
+                <*> decodeProp "times" a
             )
         )
-      <|> (ChoiceValue <$> (decode =<< readProp "value_of_choice" a))
-      <|> (UseValue <$> (decode =<< readProp "use_value" a))
-      <|> ( Cond <$> (decode =<< readProp "if" a)
-            <*> (decode =<< readProp "then" a)
-            <*> (decode =<< readProp "else" a)
+      <|> (ChoiceValue <$> decodeProp "value_of_choice" a)
+      <|> (UseValue <$> decodeProp "use_value" a)
+      <|> ( Cond <$> decodeProp "if" a
+            <*> decodeProp "then" a
+            <*> decodeProp "else" a
         )
 
 instance showValue :: Show Value where
@@ -522,28 +528,28 @@ instance decodeJsonObservation :: Decode Observation where
             (pure FalseObs)
             (fail (ForeignError "Not a boolean"))
         )
-      <|> ( AndObs <$> (decode =<< readProp "both" a)
-            <*> (decode =<< readProp "and" a)
+      <|> ( AndObs <$> decodeProp "both" a
+            <*> decodeProp "and" a
         )
-      <|> ( OrObs <$> (decode =<< readProp "either" a)
-            <*> (decode =<< readProp "or" a)
+      <|> ( OrObs <$> decodeProp "either" a
+            <*> decodeProp "or" a
         )
-      <|> (NotObs <$> (decode =<< readProp "not" a))
-      <|> (ChoseSomething <$> (decode =<< readProp "chose_something_for" a))
-      <|> ( ValueGE <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "ge_than" a)
+      <|> (NotObs <$> decodeProp "not" a)
+      <|> (ChoseSomething <$> decodeProp "chose_something_for" a)
+      <|> ( ValueGE <$> decodeProp "value" a
+            <*> decodeProp "ge_than" a
         )
-      <|> ( ValueGT <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "gt" a)
+      <|> ( ValueGT <$> decodeProp "value" a
+            <*> decodeProp "gt" a
         )
-      <|> ( ValueLT <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "lt" a)
+      <|> ( ValueLT <$> decodeProp "value" a
+            <*> decodeProp "lt" a
         )
-      <|> ( ValueLE <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "le_than" a)
+      <|> ( ValueLE <$> decodeProp "value" a
+            <*> decodeProp "le_than" a
         )
-      <|> ( ValueEQ <$> (decode =<< readProp "value" a)
-            <*> (decode =<< readProp "equal_to" a)
+      <|> ( ValueEQ <$> decodeProp "value" a
+            <*> decodeProp "equal_to" a
         )
 
 instance showObservation :: Show Observation where
@@ -607,8 +613,8 @@ instance encodeJsonBound :: Encode Bound where
 
 instance decodeJsonBound :: Decode Bound where
   decode a =
-    ( Bound <$> (decode =<< readProp "from" a)
-        <*> (decode =<< readProp "to" a)
+    ( Bound <$> decodeProp "from" a
+        <*> decodeProp "to" a
     )
 
 instance showBound :: Show Bound where
@@ -652,15 +658,15 @@ instance encodeJsonAction :: Encode Action where
 
 instance decodeJsonAction :: Decode Action where
   decode a =
-    ( Deposit <$> (decode =<< readProp "into_account" a)
-        <*> (decode =<< readProp "party" a)
-        <*> (decode =<< readProp "of_token" a)
-        <*> (decode =<< readProp "deposits" a)
+    ( Deposit <$> decodeProp "into_account" a
+        <*> decodeProp "party" a
+        <*> decodeProp "of_token" a
+        <*> decodeProp "deposits" a
     )
-      <|> ( Choice <$> (decode =<< readProp "for_choice" a)
-            <*> (decode =<< readProp "choose_between" a)
+      <|> ( Choice <$> decodeProp "for_choice" a
+            <*> decodeProp "choose_between" a
         )
-      <|> (Notify <$> (decode =<< readProp "notify_if" a))
+      <|> (Notify <$> decodeProp "notify_if" a)
 
 instance showAction :: Show Action where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
@@ -720,8 +726,8 @@ instance encodeJsonCase :: Encode Case where
 
 instance decodeJsonCase :: Decode Case where
   decode a =
-    ( Case <$> (decode =<< readProp "case" a)
-        <*> (decode =<< readProp "then" a)
+    ( Case <$> decodeProp "case" a
+        <*> decodeProp "then" a
     )
 
 instance showCase :: Show Case where
@@ -788,26 +794,26 @@ instance decodeJsonContract :: Decode Contract where
         (pure Close)
         (fail (ForeignError "Not \"close\" string"))
     )
-      <|> ( Pay <$> (decode =<< readProp "from_account" a)
-            <*> (decode =<< readProp "to" a)
-            <*> (decode =<< readProp "token" a)
-            <*> (decode =<< readProp "pay" a)
-            <*> (decode =<< readProp "then" a)
+      <|> ( Pay <$> decodeProp "from_account" a
+            <*> decodeProp "to" a
+            <*> decodeProp "token" a
+            <*> decodeProp "pay" a
+            <*> decodeProp "then" a
         )
-      <|> ( If <$> (decode =<< readProp "if" a)
-            <*> (decode =<< readProp "then" a)
-            <*> (decode =<< readProp "else" a)
+      <|> ( If <$> decodeProp "if" a
+            <*> decodeProp "then" a
+            <*> decodeProp "else" a
         )
-      <|> ( When <$> (decode =<< readProp "when" a)
-            <*> (decode =<< readProp "timeout" a)
-            <*> (decode =<< readProp "timeout_continuation" a)
+      <|> ( When <$> decodeProp "when" a
+            <*> decodeProp "timeout" a
+            <*> decodeProp "timeout_continuation" a
         )
-      <|> ( Let <$> (decode =<< readProp "let" a)
-            <*> (decode =<< readProp "be" a)
-            <*> (decode =<< readProp "then" a)
+      <|> ( Let <$> decodeProp "let" a
+            <*> decodeProp "be" a
+            <*> decodeProp "then" a
         )
-      <|> ( Assert <$> (decode =<< readProp "assert" a)
-            <*> (decode =<< readProp "then" a)
+      <|> ( Assert <$> decodeProp "assert" a
+            <*> decodeProp "then" a
         )
 
 instance showContract :: Show Contract where
@@ -912,13 +918,13 @@ instance decodeJsonInput :: Decode Input where
         (pure INotify)
         (fail (ForeignError "Not \"input_notify\" string"))
     )
-      <|> ( IDeposit <$> (decode =<< readProp "into_account" a)
-            <*> (decode =<< readProp "input_from_party" a)
-            <*> (decode =<< readProp "of_token" a)
-            <*> (decode =<< readProp "that_deposits" a)
+      <|> ( IDeposit <$> decodeProp "into_account" a
+            <*> decodeProp "input_from_party" a
+            <*> decodeProp "of_token" a
+            <*> decodeProp "that_deposits" a
         )
-      <|> ( IChoice <$> (decode =<< readProp "for_choice_id" a)
-            <*> (decode =<< readProp "input_that_chooses_num" a)
+      <|> ( IChoice <$> decodeProp "for_choice_id" a
+            <*> decodeProp "input_that_chooses_num" a
         )
 
 -- Processing of slot interval
@@ -1118,28 +1124,28 @@ instance decodeTransactionWarning :: Decode TransactionWarning where
         (pure TransactionAssertionFailed)
         (fail (ForeignError "Not \"assertion_failed\" string"))
     )
-      <|> ( TransactionNonPositiveDeposit <$> (decode =<< readProp "party" a)
-            <*> (decode =<< readProp "in_account" a)
-            <*> (decode =<< readProp "of_token" a)
-            <*> (decode =<< readProp "asked_to_deposit" a)
+      <|> ( TransactionNonPositiveDeposit <$> decodeProp "party" a
+            <*> decodeProp "in_account" a
+            <*> decodeProp "of_token" a
+            <*> decodeProp "asked_to_deposit" a
         )
       <|> ( if (hasProperty "but_only_paid" a) then
-            ( TransactionPartialPay <$> (decode =<< readProp "account" a)
-                <*> (decode =<< readProp "to_payee" a)
-                <*> (decode =<< readProp "of_token" a)
-                <*> (decode =<< readProp "asked_to_pay" a)
-                <*> (decode =<< readProp "but_only_paid" a)
+            ( TransactionPartialPay <$> decodeProp "account" a
+                <*> decodeProp "to_payee" a
+                <*> decodeProp "of_token" a
+                <*> decodeProp "asked_to_pay" a
+                <*> decodeProp "but_only_paid" a
             )
           else
-            ( TransactionNonPositivePay <$> (decode =<< readProp "account" a)
-                <*> (decode =<< readProp "to_payee" a)
-                <*> (decode =<< readProp "of_token" a)
-                <*> (decode =<< readProp "asked_to_pay" a)
+            ( TransactionNonPositivePay <$> decodeProp "account" a
+                <*> decodeProp "to_payee" a
+                <*> decodeProp "of_token" a
+                <*> decodeProp "asked_to_pay" a
             )
         )
-      <|> ( TransactionShadowing <$> (decode =<< readProp "value_id" a)
-            <*> (decode =<< readProp "had_value" a)
-            <*> (decode =<< readProp "is_now_assigned" a)
+      <|> ( TransactionShadowing <$> decodeProp "value_id" a
+            <*> decodeProp "had_value" a
+            <*> decodeProp "is_now_assigned" a
         )
 
 -- | Transaction error
