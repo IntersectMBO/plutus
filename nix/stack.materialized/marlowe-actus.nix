@@ -53,7 +53,6 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
-          (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
