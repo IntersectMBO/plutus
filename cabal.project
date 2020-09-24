@@ -10,6 +10,7 @@ packages: plutus-core
           plutus-playground-server
           plutus-book
           plutus-scb
+          plutus-benchmark
           playground-common
           marlowe-actus
           marlowe-playground-server

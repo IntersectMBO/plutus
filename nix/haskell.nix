@@ -63,6 +63,7 @@ let
             marlowe.doHaddock = false;
             plutus-use-cases.doHaddock = false;
             plutus-ledger.doHaddock = false;
+            plutus-benchmark.doHaddock = false;
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
             plutus-tx-plugin.doHaddock = false;
 

@@ -60,6 +60,7 @@
         plutus-tx = ./plutus-tx.nix;
         plutus-tx-plugin = ./plutus-tx-plugin.nix;
         plutus-use-cases = ./plutus-use-cases.nix;
+        plutus-benchmark = ./plutus-benchmark.nix;
         playground-common = ./playground-common.nix;
         marlowe = ./marlowe.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
