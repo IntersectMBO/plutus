@@ -6,8 +6,8 @@ data EventType =
     deriving (Eq, Show)
 
 data RiskFactors = RiskFactors
-    { o_rf_CURS  :: Double
-    , o_rf_RRMO  :: Double
-    , o_rf_SCMO  :: Double
-    , pp_payoff  :: Double
+    { o_rf_CURS :: Double
+    , o_rf_RRMO :: Double
+    , o_rf_SCMO :: Double
+    , pp_payoff :: Double
     } deriving (Show)

@@ -26,10 +26,9 @@ import Effect (Effect)
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Foreign.Generic (encodeJSON)
 
-foreign import sendContractToShiny
-  :: String
-  -> Effect Unit
-
+foreign import sendContractToShiny ::
+  String ->
+  Effect Unit
 
 type BlocklyState
   = { actusBlocklyState :: Maybe BT.BlocklyState
@@ -152,12 +151,11 @@ handleAction RunAnalysis = do
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      case parseActusJsonCode contract of 
+      case parseActusJsonCode contract of
         Left e -> assign _errorMessage $ Just e
-        Right c -> do 
+        Right c -> do
           assign _showShiny true
           liftEffect $ sendContractToShiny $ encodeJSON c
-      
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
@@ -166,41 +164,41 @@ blocklyRef = RefLabel "blockly"
 
 render :: forall p. BlocklyState -> HTML p BlocklyAction
 render state =
-  div [] 
+  div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
-      [ div [ classes [ panelSubHeaderMain, aHorizontal ]]
-        [ toCodeButton "Generate reactive contract"
-        , toStaticCodeButton "Generate static contract"
-        , runAnalysis
-        , errorMessage state.errorMessage
+        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+            [ toCodeButton "Generate reactive contract"
+            , toStaticCodeButton "Generate static contract"
+            , runAnalysis
+            , errorMessage state.errorMessage
+            ]
         ]
-      ]
-    , div [ classes [ ClassName "code-panel" ]]
-      [ div
-          [ ref blocklyRef
-          , id_ "actusBlocklyWorkspace"
-          , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
-          ]
-          []
-      , shiny state
-      ]
+    , div [ classes [ ClassName "code-panel" ] ]
+        [ div
+            [ ref blocklyRef
+            , id_ "actusBlocklyWorkspace"
+            , classes [ ClassName "actus-blockly-workspace", ClassName "code-editor" ]
+            ]
+            []
+        , shiny state
+        ]
     ]
 
 shiny ::
   forall p.
   BlocklyState -> HTML p BlocklyAction
 shiny state =
-    aside [ classes ([ sidebarComposer, expanded false] <> if state.showShiny then [] else [hide])]
-      [ div [attr (AttrName "style") "height: 100%;"] [ 
-        iframe 
-        [
-          src "http://localhost:8081"
-        , id_ "shiny"
-        , attr (AttrName "frameborder") "0"
-        , attr (AttrName "scrolling") "no"
-        , attr (AttrName "style") "position: relative; height: 100%; width: 100%;"
+  aside [ classes ([ sidebarComposer, expanded false ] <> if state.showShiny then [] else [ hide ]) ]
+    [ div [ attr (AttrName "style") "height: 100%;" ]
+        [ iframe
+            [ src "http://localhost:8081"
+            , id_ "shiny"
+            , attr (AttrName "frameborder") "0"
+            , attr (AttrName "scrolling") "no"
+            , attr (AttrName "style") "position: relative; height: 100%; width: 100%;"
+            ]
         ]
-      ]] 
+    ]
 
 toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
@@ -213,7 +211,7 @@ toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
-    , classes ([alignedButtonInTheMiddle])
+    , classes ([ alignedButtonInTheMiddle ])
     ]
     [ text key ]
 
@@ -221,7 +219,7 @@ runAnalysis :: forall p. HTML p BlocklyAction
 runAnalysis =
   button
     [ onClick $ const $ Just $ RunAnalysis
-    , classes ([alignedButtonLast, hide])  --this feature is temporary disabled because shiny is not deployed yet
+    , classes ([ alignedButtonLast, hide ]) --this feature is temporary disabled because shiny is not deployed yet
     ]
     [ text "Run Analysis" ]
 
