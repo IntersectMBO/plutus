@@ -95,9 +95,9 @@ instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
 instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
   enumerate = share $ aconcat
     [ pay . c1 $ \i         -> Neutral (TyVarG i)
-    , pay . c2 $ \ty1 ty2   -> Neutral (TyFunG (unNeutral ty1) (unNeutral ty2))
-    , pay . c3 $ \ty1 k ty2 -> Neutral (TyIFixG (unNeutral ty1) k (unNeutral ty2))
-    , pay . c2 $ \k ty      -> Neutral (TyForallG k (unNeutral ty))
+    , pay . c2 $ \ty1 ty2   -> Neutral (TyFunG (unNormalized ty1) (unNormalized ty2))
+    , pay . c3 $ \ty1 k ty2 -> Neutral (TyIFixG (unNormalized ty1) k (unNormalized ty2))
+    , pay . c2 $ \k ty      -> Neutral (TyForallG k (unNormalized ty))
     , pay . c1 $ \tyBuiltin -> Neutral (TyBuiltinG tyBuiltin)
     , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
     ]
