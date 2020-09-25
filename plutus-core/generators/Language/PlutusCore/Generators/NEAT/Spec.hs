@@ -213,8 +213,8 @@ testCaseGen name GenOptions{..} t prop =
 data TestFail
   = GenError GenError
   | TypeError (TypeError DefaultUni ())
-  | AgdaErrorP () -- FIXME
-  | FVErrorP FreeVariableError -- FIXME
+  | AgdaErrorP ()
+  | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni)
   | CekP (CekEvaluationException DefaultUni)
   | Ctrex Ctrex
@@ -228,7 +228,6 @@ data Ctrex
   | CtrexNormalTypesCannotReduce
     (Kind ())
     ClosedTypeG
--- james v
   | CtrexKindCheckFail
     (Kind ())
     ClosedTypeG
