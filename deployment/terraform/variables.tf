@@ -178,6 +178,9 @@ variable "symbolic_lambda_file" {
 variable "playground_lambda_file" {
 }
 
+variable "plutus_playground_lambda_file" {
+}
+
 variable "marlowe_github_client_id" {
 }
 
@@ -185,4 +188,13 @@ variable "marlowe_github_client_secret" {
 }
 
 variable "marlowe_jwt_signature" {
+}
+
+variable "plutus_github_client_id" {
+}
+
+variable "plutus_github_client_secret" {
+}
+
+variable "plutus_jwt_signature" {
 }

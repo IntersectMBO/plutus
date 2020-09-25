@@ -268,7 +268,9 @@ in rec {
 
   plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
 
-  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda marlowe-playground-lambda; };
+  deployment = pkgs.callPackage ./deployment { 
+    inherit marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda; 
+  };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
