@@ -254,7 +254,8 @@ test-suite plutus-playground-server-test
         text -any,
         time-units -any,
         transformers -any,
-        plutus-ledger -any
+        plutus-ledger -any,
+        web-ghc -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

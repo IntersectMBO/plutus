@@ -40,7 +40,8 @@ let
   sphinxemoji = pkgs.python3Packages.callPackage ./nix/python/sphinxemoji.nix {};
 
   pkgsMusl = import ./nix/default.nix {
-    inherit system config sourcesOverride;
+    inherit config sourcesOverride;
+    system = "x86_64-linux";
     crossSystem = lib.systems.examples.musl64;
   };
 

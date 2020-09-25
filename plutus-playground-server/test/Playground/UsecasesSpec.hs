@@ -9,6 +9,7 @@ module Playground.UsecasesSpec
 
 import           Control.Monad                                   (unless)
 import           Control.Monad.Except                            (runExceptT)
+import           Control.Monad.Except.Extras  (mapError)
 import           Crowdfunding                                    (Contribution (Contribution), contribValue)
 import           Data.Aeson                                      (ToJSON)
 import qualified Data.Aeson                                      as JSON
@@ -21,6 +22,7 @@ import qualified Data.Text.Lazy                                  as TL
 import           Data.Time.Units                                 (Minute)
 import           Game                                            (GuessParams (GuessParams), LockParams (LockParams),
                                                                   amount, guessWord, secretWord)
+import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter                    (InterpreterError,
                                                                   InterpreterResult (InterpreterResult, result),
                                                                   SourceCode (SourceCode))
@@ -33,7 +35,7 @@ import           Playground.Types                                (CompilationRes
                                                                   Evaluation (Evaluation),
                                                                   EvaluationResult (EvaluationResult), Expression,
                                                                   FunctionSchema (FunctionSchema),
-                                                                  KnownCurrency (KnownCurrency), PlaygroundError,
+                                                                  KnownCurrency (KnownCurrency), PlaygroundError(InterpreterError),
                                                                   SimulatorWallet (SimulatorWallet), adaCurrency,
                                                                   argument, argumentValues, caller, emulatorLog,
                                                                   endpointDescription, fundsDistribution, program,
@@ -294,10 +296,10 @@ crowdfundingTest =
 knownCurrencyTest :: TestTree
 knownCurrencyTest =
     testCase "should return registered known currencies" $ do
-        currencies <- runExceptT $ PI.compile maxInterpretationTime code
+        currencies <- compile source
         hasKnownCurrency currencies
   where
-    code =
+    source =
         SourceCode $
         Text.unlines
             [ "import Playground.Contract"
@@ -330,12 +332,18 @@ knownCurrencyTest =
 compile ::
        SourceCode
     -> IO (Either InterpreterError (InterpreterResult CompilationResult))
-compile = runExceptT . PI.compile maxInterpretationTime
+compile source = runExceptT $ do
+  PI.checkCode source
+  result <- Webghc.compile maxInterpretationTime False source
+  PI.getCompilationResult result
 
 evaluate ::
        Evaluation
     -> IO (Either PlaygroundError (InterpreterResult EvaluationResult))
-evaluate = runExceptT . PI.evaluateSimulation maxInterpretationTime
+evaluate evaluation = runExceptT $ do
+    expr <- PI.evaluationToExpr evaluation
+    result <- mapError InterpreterError $ Webghc.compile maxInterpretationTime False (SourceCode expr)
+    PI.decodeEvaluation result
 
 compilationChecks :: SourceCode -> TestTree
 compilationChecks source =

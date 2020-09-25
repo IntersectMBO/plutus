@@ -31,6 +31,7 @@ let
   numactl = pkgs.numactl.overrideAttrs (_: { configureFlags = "--enable-static"; });
 in
   pkgs.stdenv.mkDerivation {
+    system = "x86_64-linux";
     name = "plutus-playground-lambda";
     nativeBuildInputs = [ pkgs.zip ];
     unpackPhase = "true";
