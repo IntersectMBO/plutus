@@ -21,6 +21,7 @@ Create a command line application from a @Contract schema Text ()@. For example:
 -}
 module Plutus.SCB.ContractCLI
     ( commandLineApp
+    , commandLineApp'
     , runCliCommand
     , runUpdate
     , Command(..)
@@ -34,6 +35,7 @@ import           Data.Bifunctor                  (bimap)
 import qualified Data.ByteString                 as BS
 import qualified Data.ByteString.Char8           as BS8
 import qualified Data.ByteString.Lazy            as BSL
+import           Data.Proxy                      (Proxy (..))
 import           Data.Row                        (type (.\\), AllUniqueLabels, Forall)
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
@@ -82,23 +84,24 @@ exportSignatureParser =
     command "export-signature" $
     info (pure ExportSignature) (fullDesc <> progDesc "Export the contract's signature.")
 
-runCliCommand :: forall s m.
+runCliCommand :: forall s s2 m.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Output s) ToJSON
        , Forall (Input s) ToJSON
-       , EndpointToSchema (s .\\ BlockchainActions)
+       , EndpointToSchema (s .\\ s2)
        , MonadIO m
        )
-    => Contract s Text ()
+    => Proxy s2
+    -> Contract s Text ()
     -> Command
     -> m (Either BS8.ByteString BS8.ByteString)
-runCliCommand schema Initialise = pure $ Right $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract schema
-runCliCommand schema Update = do
+runCliCommand _ schema Initialise = pure $ Right $ BSL.toStrict $ JSON.encodePretty $ ContractState.initialiseContract schema
+runCliCommand _ schema Update = do
     arg <- liftIO BS.getContents
     pure $ runUpdate schema arg
-runCliCommand _ ExportSignature = do
-  let r = endpointsToSchemas @(s .\\ BlockchainActions)
+runCliCommand _ _ ExportSignature = do
+  let r = endpointsToSchemas @(s .\\ s2)
   pure $ Right $ BSL.toStrict $ JSON.encodePretty r
 
 runUpdate :: forall s.
@@ -116,7 +119,9 @@ runUpdate contract arg =
         (BSL.toStrict . JSON.encodePretty . ContractState.insertAndUpdateContract contract)
         (JSON.eitherDecode $ BSL.fromStrict arg)
 
-commandLineApp ::
+-- | Make a command line app with a schema that includes all of the contract's
+--   endpoints except the 'BlockchainActions' ones.
+commandLineApp :: forall s.
        ( AllUniqueLabels (Input s)
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
@@ -125,12 +130,26 @@ commandLineApp ::
        )
     => Contract s Text ()
     -> IO ()
-commandLineApp schema = do
+commandLineApp = commandLineApp' @s @BlockchainActions (Proxy @BlockchainActions)
+
+-- | Make a command line app for a contract, excluding some of the contract's
+--   endpoints from the generated schema.
+commandLineApp' :: forall s s2.
+       ( AllUniqueLabels (Input s)
+       , Forall (Input s) FromJSON
+       , Forall (Input s) ToJSON
+       , Forall (Output s) ToJSON
+       , EndpointToSchema (s .\\ s2)
+       )
+    => Proxy s2
+    -> Contract s Text ()
+    -> IO ()
+commandLineApp' p schema = do
     cmd <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
-    result <- runCliCommand schema cmd
+    result <- runCliCommand p schema cmd
     case result of
         Left err -> do
             BS8.hPut System.IO.stderr "Error "
