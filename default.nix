@@ -218,6 +218,8 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
+    tutorial = docs.site;
+    haddock = docs.combined-haddock;
   });
 
   marlowe-playground = pkgs.recurseIntoAttrs (rec {

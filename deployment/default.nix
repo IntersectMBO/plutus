@@ -61,12 +61,22 @@ let
     writeShellScript "syncs3" ''
     ${awscli}/bin/aws s3 sync --delete ${plutus-playground.client} s3://plutus-playground-website-${env}/
     ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-    ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial/
+    if [ $1 = "docs" ]; then
+      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial/
+      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.haddock}/share/doc/ s3://plutus-playground-website-${env}/haddock/
+      ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial/
+    fi
     # We do a sync to delete any files that have been removed, just to keep things clean, then we do a recursive cp
     # because sync doesn't update files with the same file size and timestamp
     ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
     ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial'';
+    if [ $1 = "docs" ]; then
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.haddock}/share/doc/ s3://plutus-playground-website-${env}/haddock
+      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial
+    else
+      echo "not deploying docs, call script with parameter `docs` to deploy tutorials and haddocks"
+    fi'';
 
   deploy = env: region:
     writeShellScript "deploy" ''
