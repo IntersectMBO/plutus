@@ -1307,8 +1307,8 @@ instance FromJSON TransactionWarning where
               Just butOnlyPaid -> TransactionPartialPay <$> (v .: "account")
                                                         <*> (v .: "to_payee")
                                                         <*> (v .: "of_token")
-                                                        <*> (v .: "asked_to_pay")
-                                                        <*> getInteger butOnlyPaid)
+                                                        <*> getInteger butOnlyPaid
+                                                        <*> (v .: "asked_to_pay"))
     <|> (TransactionShadowing <$> (v .: "value_id")
                               <*> (v .: "had_value")
                               <*> (v .: "is_now_assigned"))

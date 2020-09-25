@@ -1133,8 +1133,8 @@ instance decodeTransactionWarning :: Decode TransactionWarning where
             ( TransactionPartialPay <$> decodeProp "account" a
                 <*> decodeProp "to_payee" a
                 <*> decodeProp "of_token" a
-                <*> decodeProp "asked_to_pay" a
                 <*> decodeProp "but_only_paid" a
+                <*> decodeProp "asked_to_pay" a
             )
           else
             ( TransactionNonPositivePay <$> decodeProp "account" a
