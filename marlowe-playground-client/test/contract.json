@@ -110,7 +110,7 @@
                "equal_to": {
                  "times": 1,
                  "multiply": 100,
-                 "divided_by": 10
+                 "divide_by": 10
                }
              },
              "either": {

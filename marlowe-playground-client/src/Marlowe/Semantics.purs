@@ -383,7 +383,7 @@ instance encodeJsonValue :: Encode Value where
     encode
       { multiply: val
       , times: num
-      , divided_by: den
+      , divide_by: den
       }
   encode (ChoiceValue choiceId) =
     encode
@@ -423,10 +423,10 @@ instance decodeJsonValue :: Decode Value where
       <|> ( SubValue <$> decodeProp "value" a
             <*> decodeProp "minus" a
         )
-      <|> ( if (hasProperty "divided_by" a) then
+      <|> ( if (hasProperty "divide_by" a) then
             ( Scale
                 <$> ( Rational <$> decodeProp "times" a
-                      <*> decodeProp "divided_by" a
+                      <*> decodeProp "divide_by" a
                   )
                 <*> decodeProp "multiply" a
             )
