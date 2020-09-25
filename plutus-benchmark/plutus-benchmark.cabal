@@ -17,7 +17,18 @@ source-repository head
     type: git
     location: https://github.com/iohk/plutus
 
+common lang
+  default-language: Haskell2010
+  ghc-options:
+    -fno-strictness
+    -fno-specialise
+    -fno-spec-constr
+    -fno-ignore-interface-pragmas
+    -fno-omit-interface-pragmas
+    -fno-worker-wrapper
+
 library
+  import: lang
   exposed-modules:
       Plutus.Benchmark.Clausify
       Plutus.Benchmark.Queens
@@ -36,14 +47,6 @@ library
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
-  default-language: Haskell2010
-  ghc-options:
-    -fno-strictness
-    -fno-specialise
-    -fno-spec-constr
-    -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas
-    -fno-worker-wrapper
   default-extensions:
     DataKinds
     NamedFieldPuns
@@ -56,17 +59,10 @@ library
     NoImplicitPrelude
 
 executable plutus-benchmark
+  import: lang
   main-is: Main.hs
   hs-source-dirs:
       app
-  ghc-options:
-    -fno-strictness
-    -fno-specialise
-    -fno-spec-constr
-    -fexpose-all-unfoldings
-    -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas
-    -fno-worker-wrapper
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -76,22 +72,12 @@ executable plutus-benchmark
     , containers -any
     , optparse-applicative -any
 
-  default-language: Haskell2010
-
 benchmark large-plc-cek
+  import: lang
   type: exitcode-stdio-1.0
   main-is: Main.hs
   hs-source-dirs:
     bench
-  ghc-options:
-    -fno-strictness
-    -fno-specialise
-    -fno-spec-constr
-    -fexpose-all-unfoldings
-    -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas
-    -fno-worker-wrapper
-    "-with-rtsopts=-T"
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -100,5 +86,3 @@ benchmark large-plc-cek
     , plutus-core -any
     , containers -any
     , criterion -any
-
-  default-language: Haskell2010
