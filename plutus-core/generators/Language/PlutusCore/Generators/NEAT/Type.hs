@@ -148,9 +148,14 @@ convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 
 -- |Convert well-kinded generated types to Plutus types.
 --
--- NOTE: Passes an explicit `TyNameState`, instead of using a State monad,
---       as the type of the `TyNameState` changes throughout the computation.
---       Alternatively, this could be written using an indexed State monad.
+-- NOTE: Passes an explicit `TyNameState`, instead of using a State
+--       monad, as the type of the `TyNameState` changes throughout
+--       the computation.  Alternatively, this could be written using
+--       an indexed State monad.
+--
+-- NOTE: Roman points out that this is more like reader than state,
+--       however it doesn't fit easily into this pattern as the
+--       function `extTyNameState` is monadic (`MonadQuote`).
 convertType
   :: (Show tyname, MonadQuote m, MonadError GenError m)
   => TyNameState tyname -- ^ Type name environment with fresh name stream
@@ -336,10 +341,6 @@ checkTypeG kcs tcs (TyForallG k ty) (TyAbsG tm)
   where
     tmTypeOk = checkTypeG (extKCS k kcs) (firstTCS FS tcs) ty tm
 
--- NOTE: In the PlutusCore type checker, the type of the body is
---       not necessarily in normal form. I've opted to force all
---       types to be in normal form, so there's no normalization.
---
 checkTypeG kcs tcs (TyFunG ty1 ty2) (LamAbsG tm)
   = tyKindOk &&& tmTypeOk
   where
