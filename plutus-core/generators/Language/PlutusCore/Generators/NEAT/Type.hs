@@ -89,7 +89,7 @@ type ClosedTypeG = TypeG Z
 instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
   enumerate = share $ aconcat
     [       c1 $ \ty -> Normalized (unNeutral ty)
-    , pay . c1 $ \ty -> Normalized (TyLamG (unNormalized ty))    
+    , pay . c1 $ \ty -> Normalized (TyLamG (unNormalized ty))
     , pay . c3 $ \ty1 k ty2 -> Normalized (TyIFixG (unNormalized ty1) k (unNormalized ty2))
     , pay . c2 $ \k ty      -> Normalized (TyForallG k (unNormalized ty))
     , pay . c1 $ \tyBuiltin -> Normalized (TyBuiltinG tyBuiltin)
