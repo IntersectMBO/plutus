@@ -267,10 +267,10 @@ instance Show TestFail where
   show (TypeError e)  = show e
   show (GenError e)   = show e
   show (Ctrex e)      = show e
-  show (AgdaErrorP e) = show e -- FIXME
-  show (FVErrorP e)   = show e -- FIXME
-  show (CkP e)        = show e -- FIXME
-  show (CekP e)       = show e -- FIXME
+  show (AgdaErrorP e) = show e
+  show (FVErrorP e)   = show e
+  show (CkP e)        = show e
+  show (CekP e)       = show e
 
 instance Show Ctrex where
   show (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2) =
