@@ -113,13 +113,13 @@ data TermG tyname name
     | ApplyG
       (TermG tyname name)
       (TermG tyname name)
-      (Normalized (TypeG tyname))
+      (TypeG tyname)
     | TyAbsG
       (TermG (S tyname) name)
     | TyInstG
       (TermG tyname name)
-      (Normalized (TypeG (S tyname)))
-      (Normalized (TypeG tyname))
+      (TypeG (S tyname))
+      (TypeG tyname)
       (Kind ())
     deriving (Typeable, Eq, Show)
 
@@ -127,9 +127,9 @@ instance Bifunctor TermG where
   bimap _ g (VarG i) = VarG (g i)
   bimap f g (TyAbsG tm) = TyAbsG (bimap (fmap f) g tm)
   bimap f g (LamAbsG tm) = LamAbsG (bimap f (fmap g) tm)
-  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap (fmap f) ty)
+  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap f ty)
   bimap f g (TyInstG tm vCod ty k) =
-    TyInstG (bimap f g tm) (fmap (fmap (fmap f)) vCod) (fmap (fmap f) ty) k
+    TyInstG (bimap f g tm) (fmap (fmap f) vCod) (fmap f ty) k
 
 deriveEnumerable ''StaticBuiltinName
 
@@ -207,12 +207,12 @@ convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
   ns' <- extNameState ns
   ty1' <- convertType tns (Type ()) ty1
   LamAbs () (nameOf ns' FZ) ty1' <$> convertTerm tns ns' ty2 tm
-convertTerm tns ns ty2 (ApplyG tm1 tm2 (Normalized ty1)) =
+convertTerm tns ns ty2 (ApplyG tm1 tm2 ty1) =
   Apply () <$> convertTerm tns ns (TyFunG ty1 ty2) tm1 <*> convertTerm tns ns ty1 tm2
 convertTerm tns ns (TyForallG k ty) (TyAbsG tm) = do
   tns' <- extTyNameState tns
   TyAbs () (tynameOf tns' FZ) k <$> convertTerm tns' ns ty tm
-convertTerm tns ns _ (TyInstG tm (Normalized cod) (Normalized ty) k) =
+convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
@@ -346,13 +346,13 @@ checkTypeG kcs tcs (TyFunG ty1 ty2) (LamAbsG tm)
     tyKindOk = checkKindG kcs (Type ()) ty1
     tmTypeOk = checkTypeG kcs (extTCS ty1 tcs) ty2 tm
 
-checkTypeG kcs tcs ty2 (ApplyG tm1 tm2 (Normalized ty1))
+checkTypeG kcs tcs ty2 (ApplyG tm1 tm2 ty1)
   = tm1TypeOk &&& tm2TypeOk
   where
     tm1TypeOk = checkTypeG kcs tcs (TyFunG ty1 ty2) tm1
     tm2TypeOk = checkTypeG kcs tcs ty1 tm2
 
-checkTypeG kcs tcs vTy (TyInstG tm (Normalized vCod) (Normalized ty) k)
+checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
   = tmTypeOk &&& tyKindOk &&& tyOk
   where
     tmTypeOk = checkTypeG kcs tcs (TyForallG k vCod) tm
