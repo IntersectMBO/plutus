@@ -45,6 +45,7 @@
           (hsPkgs."algebraic-graphs" or (errorHandler.buildDepError "algebraic-graphs"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+          (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
