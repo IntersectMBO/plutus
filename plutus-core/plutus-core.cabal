@@ -196,6 +196,7 @@ library
         algebraic-graphs >= 0.3,
         base >=4.9 && <5,
         barbies -any,
+        bifunctors -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,

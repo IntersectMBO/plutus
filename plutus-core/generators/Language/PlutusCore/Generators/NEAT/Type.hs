@@ -37,7 +37,7 @@ module Language.PlutusCore.Generators.NEAT.Type
 
 import           Control.Enumerable
 import           Control.Monad.Except
-import           Data.Bifunctor
+import           Data.Bifunctor.TH
 import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
 import qualified Data.Stream                                as Stream
 import qualified Data.Text                                  as Text
@@ -123,16 +123,8 @@ data TermG tyname name
       (Kind ())
     deriving (Typeable, Eq, Show)
 
-instance Bifunctor TermG where
-  bimap _ g (VarG i) = VarG (g i)
-  bimap f g (TyAbsG tm) = TyAbsG (bimap (fmap f) g tm)
-  bimap f g (LamAbsG tm) = LamAbsG (bimap f (fmap g) tm)
-  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap f ty)
-  bimap f g (TyInstG tm vCod ty k) =
-    TyInstG (bimap f g tm) (fmap (fmap f) vCod) (fmap f ty) k
-
+deriveBifunctor ''TermG
 deriveEnumerable ''StaticBuiltinName
-
 deriveEnumerable ''TermG
 
 type ClosedTermG = TermG Z Z
