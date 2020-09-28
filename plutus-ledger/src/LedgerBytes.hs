@@ -23,7 +23,7 @@ import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
 import           Data.Bifunctor                   (bimap)
 import qualified Data.ByteString                  as BS
-import           Data.ByteString.Internal         (c2w)
+import           Data.ByteString.Internal         (c2w, w2c)
 import           Data.Either.Extras               (unsafeFromEither)
 import           Data.String                      (IsString (..))
 import qualified Data.Text                        as Text
@@ -46,7 +46,7 @@ fromHex = fmap LedgerBytes . asBSLiteral
         | x >= c2w '0' && x <= c2w '9' = Right (x - c2w '0') -- hexits 0-9
         | x >= c2w 'a' && x <= c2w 'f' = Right (x - c2w 'a' + 10) -- hexits a-f
         | x >= c2w 'A' && x <= c2w 'F' = Right (x - c2w 'A' + 10) -- hexits A-F
-        | otherwise = Left ("not a hexit: '" <> show x <> "'")
+        | otherwise = Left ("not a hexit: " <> show (w2c x) <> "")
 
     -- turns a pair of bytes such as "a6" into a single Word8
     handlePair :: Word8 -> Word8 -> Either String Word8
