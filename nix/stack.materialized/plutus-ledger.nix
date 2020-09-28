@@ -68,6 +68,7 @@
         buildable = true;
         modules = [
           "Data/Aeson/Extras"
+          "Data/Either/Extras"
           "Data/Text/Prettyprint/Doc/Extras"
           "Ledger"
           "Ledger/Ada"
