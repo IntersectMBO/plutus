@@ -25,10 +25,13 @@ The scripts produce files for use with nixops (until we get rid of the legacy in
 
 The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
 
-* `deployment.env.runTerraform` will run only the terraform apply command
-* `deployment.env.syncS3` will sync the marlowe client static code with S3
+* `deployment.env.applyTerraform` will run only the terraform apply command
+* `deployment.env.syncS3` will sync the marlowe client, marlowe tutorial and plutus client static code with S3
+* `deployment.env.syncPlutusTutorial` will sync the plutus tutorial static code with S3, this is separate as it is 170Mb and so can take a long time
 * `deployment.env.terraform-locals` will produce `generated.tf.json` which contains locals such as `env`
 * `deployment.env.terraform-vars` will produce `env.tfvars` which contains variables such as `symbolic_lambda_file` if you are not on OSX
+
+Once you have setup an environment with `$(nix-build -A deployment.david.deploy)` you will probably want to stick to using `$(nix-build -A deployment.david.applyTerraform)` and `$(nix-build -A deployment.david.syncS3)` only, avoiding dealing with the large plutus tutorial.
 
 The scripts require some secrets which are stored encrypted in this repository. To access them you will need to provide your gpg public key to someone who already has access to the secrets.
 
