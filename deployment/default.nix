@@ -39,46 +39,22 @@ let
         plutus_playground_lambda_file="${plutus-playground-lambda}/plutus-playground-lambda.zip"'';
     };
 
-  runTerraform = env: region:
-    writeShellScript "terraform" ''
-      tmp_dir=$(mktemp -d)
-      ln -s ${./terraform}/* $tmp_dir
-      ln -s ${terraform-locals env}/* $tmp_dir
-      ln -s ${terraform-vars env region}/* $tmp_dir
-      cd $tmp_dir
-      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
-      export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
-      export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
-      ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform apply -var-file=${env}.tfvars
-    '';
-
   syncS3 = env:
     writeShellScript "syncs3" ''
-    ${awscli}/bin/aws s3 sync --delete ${plutus-playground.client} s3://plutus-playground-website-${env}/
-    ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-    if [ $1 = "docs" ]; then
-      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial/
-      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.haddock}/share/doc/ s3://plutus-playground-website-${env}/haddock/
-      ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial/
-    fi
-    # We do a sync to delete any files that have been removed, just to keep things clean, then we do a recursive cp
-    # because sync doesn't update files with the same file size and timestamp
-    ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
-    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-    if [ $1 = "docs" ]; then
-      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
-      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.haddock}/share/doc/ s3://plutus-playground-website-${env}/haddock
+      echo "sync with S3"
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
+      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
       ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial
-    else
-      echo "not deploying docs, call script with parameter `docs` to deploy tutorials and haddocks"
-    fi'';
+      '';
+  
+  syncPlutusTutorial = env:
+    writeShellScript "syncPlutusTutorial" ''
+      echo "sync plutus tutorial with S3"
+      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      '';
 
-  deploy = env: region:
+  applyTerraform = env: region:
     writeShellScript "deploy" ''
       set -e
       tmp_dir=$(mktemp -d)
@@ -107,15 +83,18 @@ let
       plutus_api_id=$(${terraform}/bin/terraform output plutus_rest_api_id)
       region=$(${terraform}/bin/terraform output region)
 
-      echo "sync with S3"
-      ${syncS3 env}
-
       echo "deploy api"
       ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $marlowe_api_id --stage-name ${env}
       ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $plutus_api_id --stage-name ${env}
-
-      echo "done"
     '';
+
+  deploy = env: region:
+    writeShellScript "deploy" ''
+      ${applyTerraform env region}
+      ${syncS3 env}
+      ${syncPlutusTutorial env}
+      echo "done"
+      '';
 
   destroy = env: region:
     writeShellScript "destroy" ''
@@ -147,7 +126,8 @@ let
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
-    runTerraform = (runTerraform env region);
+    syncPlutusTutorial = (syncPlutusTutorial env);
+    applyTerraform = (applyTerraform env region);
     deploy = (deploy env region);
     destroy = (destroy env region);
   };

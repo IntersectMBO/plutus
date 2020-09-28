@@ -142,7 +142,7 @@ compile ::
 compile clientEnv source = do
   -- There are a couple of custom rules required for compilation
   checkCode source
-  result <- runscript clientEnv (Newtype.unpack source)
+  result <- runscript clientEnv $ mkCompileScript (Newtype.unpack source)
   getCompilationResult result
 
 evaluationToExpr :: (MonadError PlaygroundError m, MonadIO m) => Evaluation -> m Text

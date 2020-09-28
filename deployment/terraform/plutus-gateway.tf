@@ -129,7 +129,7 @@ resource "aws_api_gateway_integration" "plutus_item_get_method" {
   integration_http_method = "GET"
   credentials             = "${aws_iam_role.plutus_s3_proxy_role.arn}"
   # uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/plutus-playground-website-${var.env}/{proxy}"
-  uri                     = "https://${aws_s3_bucket.plutus_playground.bucket_regional_domain_name}/{proxy}"
+  uri                     = "http://${aws_s3_bucket.plutus_playground.id}.${aws_s3_bucket.plutus_playground.website_domain}/{proxy}"
 
   request_parameters = {
     "integration.request.path.proxy"   = "method.request.path.proxy"
