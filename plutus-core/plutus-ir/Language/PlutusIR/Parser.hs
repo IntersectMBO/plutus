@@ -31,8 +31,8 @@ import           PlutusPrelude                      (display)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 
+import qualified Data.ByteString                    as BS
 import           Data.ByteString.Internal           (c2w)
-import qualified Data.ByteString.Lazy               as BSL
 import           Data.Char
 import           Data.Foldable
 import qualified Data.Map                           as M
@@ -199,8 +199,8 @@ hexPair = do
               | c >= 'a' && c <= 'f' = pure $ 10 + (c2w c - c2w 'a')
               | otherwise = customFailure $ InternalError "non-hexadecimal character in bytestring literal"
 
-bytestring :: Parser BSL.ByteString
-bytestring = lexeme $ BSL.pack <$> (char '#' >> many hexPair)
+bytestring :: Parser BS.ByteString
+bytestring = lexeme $ BS.pack <$> (char '#' >> many hexPair)
 
 version :: Parser (PLC.Version SourcePos)
 version = lexeme $ do
@@ -213,7 +213,7 @@ version = lexeme $ do
 
 constant :: Parser (PLC.Some (PLC.ValueOf PLC.DefaultUni))
 constant =
-    (PLC.someValue <$> integer) <|> (PLC.someValue <$> bytestring)
+    (reservedWord "integer" >> PLC.someValue <$> integer) <|> (reservedWord "bytestring" >> PLC.someValue <$> bytestring)
 
 recursivity :: Parser Recursivity
 recursivity = inParens $ (reservedWord "rec" >> return Rec) <|> (reservedWord "nonrec" >> return NonRec)
@@ -240,7 +240,7 @@ builtinType :: Parser (Type TyName PLC.DefaultUni SourcePos)
 builtinType = do
     p <- getSourcePos
     PLC.mkTyBuiltin @Integer p <$ reservedWord "integer" <|>
-        PLC.mkTyBuiltin @BSL.ByteString p <$ reservedWord "bytestring"
+        PLC.mkTyBuiltin @BS.ByteString p <$ reservedWord "bytestring"
 
 appType :: Parser (Type TyName PLC.DefaultUni SourcePos)
 appType = do

@@ -7,8 +7,10 @@ import Auth (AuthStatus)
 import Control.Monad.Except (runExcept)
 import Cursor (Cursor)
 import Cursor as Cursor
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(JsonEither))
+import Data.Foldable (product)
 import Data.Json.JsonNonEmptyList (JsonNonEmptyList(..))
 import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Tuple (Tuple(..))
@@ -71,8 +73,8 @@ jsonHandlingTests = do
           Value
             { getValue:
               AssocMap.fromTuples
-                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 10 ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) 20 ])
+                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 10) ])
+                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 20) ])
                 ]
             }
       equal
@@ -84,9 +86,9 @@ jsonHandlingTests = do
           Value
             { getValue:
               AssocMap.fromTuples
-                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) 100 ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) 40 ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "EUR" }) 40 ])
+                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
+                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 40) ])
+                , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "EUR" }) (BigInteger.fromInt 40) ])
                 ]
             }
       assertEncodesTo
@@ -94,16 +96,17 @@ jsonHandlingTests = do
         "test/value1.json"
     test "Encode Ada." do
       let
-        aValue = Value { getValue: AssocMap.fromTuples [ Tuple (CurrencySymbol { unCurrencySymbol: "" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "" }) 50 ]) ] }
+        aValue = Value { getValue: AssocMap.fromTuples [ Tuple (CurrencySymbol { unCurrencySymbol: "" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "" }) (BigInteger.fromInt 50) ]) ] }
       assertEncodesTo
         aValue
         "test/value_ada.json"
     suite "Roundtrips" do
+      testRoundTrip "BigInteger" arbitraryBigInteger
       testRoundTrip "CurrencySymbol" arbitraryCurrencySymbol
       testRoundTrip "TokenName" arbitraryTokenName
       testRoundTrip "Value" arbitraryValue
       testRoundTrip "KnownCurrency" arbitraryKnownCurrency
-      testRoundTrip "JsonEither" ((JsonEither <$> arbitraryEither arbitrary arbitrary) :: Gen (JsonEither String Int))
+      testRoundTrip "Either" (arbitraryEither arbitrary arbitrary :: Gen (Either String Int))
       testRoundTrip "JsonTuple" ((JsonTuple <$> (Tuple <$> arbitrary <*> arbitrary)) :: Gen (JsonTuple String Int))
       testRoundTrip "JsonNonEmptyList" ((JsonNonEmptyList <$> arbitrary) :: Gen (JsonNonEmptyList String))
       testRoundTrip "Cursor" ((Cursor.fromArray <$> arbitrary) :: Gen (Cursor String))
@@ -145,8 +148,15 @@ arbitraryAssocMap genK genV = do
 
 arbitraryValue :: Gen Value
 arbitraryValue = do
-  assocMap <- arbitraryAssocMap arbitraryCurrencySymbol (arbitraryAssocMap arbitraryTokenName arbitrary)
+  assocMap <- arbitraryAssocMap arbitraryCurrencySymbol (arbitraryAssocMap arbitraryTokenName arbitraryBigInteger)
   pure $ Value { getValue: assocMap }
+
+arbitraryBigInteger :: Gen BigInteger
+arbitraryBigInteger = do
+  let
+    intSized :: Gen BigInteger
+    intSized = BigInteger.fromInt <$> arbitrary
+  product <$> vectorOf 5 intSized
 
 arbitraryKnownCurrency :: Gen KnownCurrency
 arbitraryKnownCurrency = do

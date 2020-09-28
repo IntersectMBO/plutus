@@ -1,31 +1,22 @@
 module HaskellEditor where
 
 import Prelude hiding (div)
-import API (RunResult, _RunResult)
-import Affjax (defaultRequest)
-import Affjax.RequestBody as Affjax
-import Affjax.RequestHeader (RequestHeader(..))
-import Control.Monad.Except (class MonadError, runExceptT)
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.HTTP.Method as Method
-import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.MediaType (MediaType(..))
-import Data.Newtype (unwrap)
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
-import Foreign.Generic (decode)
 import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
-import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
@@ -33,27 +24,29 @@ import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), SourceCode(..), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
-import Marlowe (SPParams_)
+import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Network.RemoteData as RemoteData
-import Servant.PureScript.Ajax (AjaxError, ajax)
-import Servant.PureScript.Settings (SPSettings_, _params)
+import Servant.PureScript.Ajax (AjaxError)
+import Servant.PureScript.Settings (SPSettings_)
 import Simulation.State (_result)
+import Simulation.Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
+import Types (ChildSlots, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
+import Webghc.Server (CompileRequest(..))
 
 handleAction ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
-  HalogenM State Action ChildSlots Message m Unit
+  HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _activeHaskellDemo ""
@@ -66,16 +59,14 @@ handleAction settings Compile = do
   mContents <- query _haskellEditorSlot unit (Monaco.GetText identity)
   case mContents of
     Nothing -> pure unit
-    Just contents -> do
+    Just code -> do
       assign _compilationResult Loading
-      let
-        baseURL = view (_params <<< _Newtype <<< to _.baseURL) settings
-      result <- RemoteData.fromEither <$> (runExceptT $ postHaskell baseURL $ SourceCode contents)
+      result <- runAjax $ flip runReaderT settings $ postRunghc (CompileRequest { code, implicitPrelude: true })
       assign _compilationResult result
       -- Update the error display.
       let
         markers = case result of
-          Success (JsonEither (Left errors)) -> toMarkers errors
+          Success (Left errors) -> toMarkers errors
           _ -> []
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
@@ -96,30 +87,17 @@ handleAction _ SendResultToSimulator = pure unit
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
   case mContract of
-    Success (JsonEither (Right result)) -> do
+    Success (Right result) -> do
       let
-        source = view (_InterpreterResult <<< _result <<< _RunResult) result
+        source = view (_InterpreterResult <<< _result) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
-postHaskell ::
-  forall m.
-  MonadError AjaxError m =>
-  MonadAff m =>
-  String ->
-  SourceCode ->
-  m (JsonEither InterpreterError (InterpreterResult RunResult))
-postHaskell baseURL sourceCode = do
-  let
-    affReq =
-      defaultRequest
-        { method = Method.fromString "POST"
-        , url = baseURL <> "runghc"
-        , headers = [ ContentType (MediaType "text/plain;charset=utf-8") ]
-        , content = Just $ Affjax.string $ unwrap sourceCode
-        }
-  r <- ajax decode affReq
-  pure r.body
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
 
 toMarkers :: InterpreterError -> Array IMarkerData
 toMarkers (TimeoutError _) = []
@@ -200,7 +178,16 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ analysisPanel ]
+            else
+              [ analysisPanel, collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div
         [ classes [ footerPanelBg, ClassName "flip-x" ] ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
@@ -224,6 +211,8 @@ bottomPanel state =
             (resultPane state)
         ]
     ]
+  where
+  showingBottomPanel = state ^. _showBottomPanel
 
 sendResultButton :: forall p. State -> String -> Action -> HTML p Action
 sendResultButton state msg action =
@@ -231,7 +220,7 @@ sendResultButton state msg action =
     compilationResult = view _compilationResult state
   in
     case view _compilationResult state of
-      Success (JsonEither (Right (InterpreterResult result))) ->
+      Success (Right (InterpreterResult result)) ->
         button
           [ onClick $ const $ Just action
           , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
@@ -242,7 +231,7 @@ sendResultButton state msg action =
 resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _compilationResult state of
-    Success (JsonEither (Right (InterpreterResult result))) ->
+    Success (Right (InterpreterResult result)) ->
       [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
@@ -251,9 +240,9 @@ resultPane state =
       --     ]
       -- ]
       where
-      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") (unwrap result.result)
-    Success (JsonEither (Left (TimeoutError error))) -> [ text error ]
-    Success (JsonEither (Left (CompilationErrors errors))) -> map compilationErrorPane errors
+      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
+    Success (Left (TimeoutError error)) -> [ text error ]
+    Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "" ]
   else
     [ text "" ]

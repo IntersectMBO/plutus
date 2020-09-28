@@ -1,15 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Marlowe.Symbolic.Types.Request where
 
-import           Data.Aeson
-import           GHC.Generics
+import           Data.Aeson       (FromJSON, ToJSON)
+import           GHC.Generics     (Generic)
+import           Language.Marlowe (Contract, State)
 
 data Request = Request
-  { uuid           :: String
-  , callbackUrl    :: String
-  , onlyAssertions :: String
-  , contract       :: String
-  , state          :: String
+  { onlyAssertions :: Bool
+  , contract       :: Contract
+  , state          :: State
   } deriving (Generic)
 instance FromJSON Request
 instance ToJSON Request

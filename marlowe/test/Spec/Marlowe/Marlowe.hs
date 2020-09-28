@@ -3,59 +3,48 @@
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation, prop_jsonLoops
     )
 where
 
 import           Control.Exception                     (SomeException, catch)
 import           Data.Maybe                            (isJust)
-import           Language.Marlowe                      (ada, applyInputs, createContract, defaultMarloweParams, deposit,
-                                                        makeProgress, marloweParams, notify, rolePayoutScript,
-                                                        validatorScript)
 import           Language.Marlowe.Analysis.FSSemantics
+import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
-import           Ledger                                (pubKeyHash)
+import           Language.Marlowe.Util
 import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
 
-import           Control.Lens                          (view)
-import           Control.Monad                         (void)
-import qualified Control.Monad.Freer                   as Eff
 import           Data.Aeson                            (decode, encode)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
-import qualified Data.Map.Strict                       as Map
 import           Data.Ratio                            ((%))
 import           Data.String
 
 import qualified Codec.CBOR.Write                      as Write
 import qualified Codec.Serialise                       as Serialise
-import qualified Hedgehog
 import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
+import           Language.Plutus.Contract.Test
+import           Language.PlutusTx.Lattice
+
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
-import           Ledger.Ada                            (adaValueOf)
-import qualified Ledger.Generators                     as Gen
-import qualified Ledger.Value                          as Val
+import           Ledger.Ada                            (lovelaceValueOf)
+import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
 import           Spec.Marlowe.Common
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                   (HedgehogTestLimit (..))
-import qualified Test.Tasty.Hedgehog                   as Hedgehog
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
-import           Wallet.Emulator
-import qualified Wallet.Emulator.Generators            as Gen
-import           Wallet.Emulator.MultiAgent            (EmulatedWalletEffects)
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
-
-limitedProperty :: TestName -> Hedgehog.Property -> TestTree
-limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ Hedgehog.testProperty a b
 
 tests :: TestTree
 tests = testGroup "Marlowe"
@@ -72,107 +61,83 @@ tests = testGroup "Marlowe"
     , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
     , testProperty "Multiply by zero" mulTest
     , testProperty "Scale rounding" scaleRoundingTest
-    , limitedProperty "Zero Coupon Bond Contract" zeroCouponBondTest
-    , limitedProperty "Zero Coupon Bond w/ Roles Contract" zeroCouponBondRolesTest
-    , limitedProperty "Trust Fund Contract" trustFundTest
-    , limitedProperty "Make progress Contract" makeProgressTest
+    , zeroCouponBondTest
+    , trustFundTest
     ]
 
 
-alice, bob, carol :: Wallet
+alice, bob :: Wallet
 alice = Wallet 1
 bob = Wallet 2
-carol = Wallet 3
 
 
-zeroCouponBondTest :: Hedgehog.Property
-zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList
-        [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
+zeroCouponBondTest :: TestTree
+zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bond Contract" marlowePlutusContract
+    (assertNoFailedTransactions
+    -- /\ emulatorLog (const False) ""
+    /\ assertDone alice (const True) "contract should close"
+    /\ assertDone bob (const True) "contract should close"
+    /\ walletFundsChange alice (lovelaceValueOf (150))
+    /\ walletFundsChange bob (lovelaceValueOf (-150))
+    ) $ do
     -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
+    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
-        update = updateAll [alice, bob]
-    update
+        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
 
     let params = defaultMarloweParams
 
     let zeroCouponBond = When [ Case
-            (Deposit aliceAcc alicePk ada (Constant 850_000_000))
-            (Pay aliceAcc (Party bobPk) ada (Constant 850_000_000)
+            (Deposit aliceAcc alicePk ada (Constant 850))
+            (Pay aliceAcc (Party bobPk) ada (Constant 850)
                 (When
-                    [ Case (Deposit aliceAcc bobPk ada (Constant 1000_000_000))
-                        (Pay aliceAcc (Party alicePk) ada (Constant 1000_000_000)
-                        Close)
-                    ] (Slot 200) Close
+                    [ Case (Deposit aliceAcc bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
+    callEndpoint @"create" alice (params, zeroCouponBond)
+    handleBlockchainEvents alice
+    addBlocks 1
+    handleBlockchainEvents alice
 
-    let performs = performNotify [alice, bob]
-    (md, tx) <- alice `performs` createContract params zeroCouponBond
-    (md, tx) <- alice `performs` deposit tx params md aliceAcc ada 850_000_000
-    bob `performs` deposit tx params md aliceAcc ada 1000_000_000
+    callEndpoint @"wait" bob (params)
+    handleBlockchainEvents bob
 
-    assertOwnFundsEq alice (adaValueOf 1150)
-    assertOwnFundsEq bob (adaValueOf 850)
+    callEndpoint @"apply-inputs" alice (params, [IDeposit aliceAcc alicePk ada 850])
+    handleBlockchainEvents alice
+    addBlocks 1
+    handleBlockchainEvents alice
 
+    callEndpoint @"wait" alice (params)
 
-aliceToken :: Val.Value
-aliceToken = Val.singleton "11" "alice" 1
+    handleBlockchainEvents bob
 
+    callEndpoint @"apply-inputs" bob (params, [IDeposit aliceAcc bobPk ada 1000])
 
-bobToken :: Val.Value
-bobToken = Val.singleton "11" "bob" 1
-
-
-zeroCouponBondRolesTest :: Hedgehog.Property
-zeroCouponBondRolesTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList
-        [ (walletPubKey alice, adaValueOf 1000 <> aliceToken)
-        , (walletPubKey bob, adaValueOf 1000 <> bobToken) ] }) $ do
-    -- Init a contract
-    let aliceRole = Role "alice"
-        aliceAcc = AccountId 0 aliceRole
-        bobRole = Role "bob"
-        update = updateAll [alice, bob]
-    update
-
-    let params = marloweParams "11"
-
-    let zeroCouponBond = When [ Case
-            (Deposit aliceAcc aliceRole ada (Constant 850_000_000))
-            (Pay aliceAcc (Party bobRole) ada (Constant 850_000_000)
-                (When
-                    [ Case (Deposit aliceAcc bobRole ada (Constant 1000_000_000))
-                        (Pay aliceAcc (Party aliceRole) ada (Constant 1000_000_000)
-                        Close)
-                    ] (Slot 200) Close
-                ))] (Slot 100) Close
-    let performs = performNotify [alice, bob]
-    (md, tx) <- alice `performs` createContract params zeroCouponBond
-    (md, tx) <- alice `performs` applyInputs tx params md [IDeposit aliceAcc aliceRole ada 850_000_000]
-    bob `performs` applyInputs tx params md [IDeposit aliceAcc bobRole ada 1000_000_000]
-
-    assertOwnFundsEq alice (adaValueOf 150 <> aliceToken)
-    assertOwnFundsEq bob (adaValueOf 0 <> bobToken)
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
 
 
-trustFundTest :: Hedgehog.Property
-trustFundTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList
-        [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
+trustFundTest :: TestTree
+trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract" marlowePlutusContract
+    (assertNoFailedTransactions
+    -- /\ emulatorLog (const False) ""
+    /\ assertDone alice (const True) "contract should close"
+    /\ assertDone bob (const True) "contract should close"
+    /\ walletFundsChange alice (lovelaceValueOf (-256))
+    /\ walletFundsChange bob (lovelaceValueOf (256))
+    ) $ do
     -- Init a contract
     let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
         bobPk = PK $ pubKeyHash $ walletPubKey bob
-        update = updateAll [alice, bob]
-    update
 
     let params = defaultMarloweParams
     let chId = ChoiceId "1" alicePk
 
     let contract = When [
-            Case (Choice chId [Bound 100_000000 1500_000000])
+            Case (Choice chId [Bound 100 1500])
                 (When [Case
                     (Deposit aliceAcc alicePk ada (ChoiceValue chId))
                         (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
@@ -182,46 +147,33 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
                     ] (Slot 200) Close)
             ] (Slot 100) Close
 
-    let performs = performNotify [alice, bob]
-    (md, tx) <- alice `performs` createContract params contract
-    (md, tx) <- alice `performs` applyInputs tx params md
-        [ IChoice chId 256_000000
-        , IDeposit aliceAcc alicePk ada 256_000000]
-    addBlocksAndNotify [alice, bob] 150
-    bob `performs` notify tx params md
+    callEndpoint @"create" alice (params, contract)
+    handleBlockchainEvents alice
+    addBlocks 1
+    handleBlockchainEvents alice
 
-    assertOwnFundsEq alice (adaValueOf 744)
-    assertOwnFundsEq bob (adaValueOf 1256)
+    callEndpoint @"wait" bob (params)
+    handleBlockchainEvents bob
 
+    callEndpoint @"apply-inputs" alice (params,
+        [ IChoice chId 256
+        , IDeposit aliceAcc alicePk ada 256
+        ])
+    handleBlockchainEvents alice
+    addBlocks 150
+    handleBlockchainEvents alice
 
-makeProgressTest :: Hedgehog.Property
-makeProgressTest = checkMarloweTrace (MarloweScenario {
-    mlInitialBalances = Map.fromList
-        [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
-    -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
-        update = updateAll [alice, bob]
-    update
+    callEndpoint @"wait" alice (params)
 
-    let params = defaultMarloweParams
+    handleBlockchainEvents bob
 
-    let contract = If (SlotIntervalStart `ValueLT` Constant 10)
-            (When [Case (Deposit aliceAcc alicePk ada (Constant 500_000000))
-                    (Pay aliceAcc (Party bobPk) ada
-                        (AvailableMoney aliceAcc ada) Close)
-                  ] (Slot 100) Close)
-            Close
+    callEndpoint @"apply-inputs" bob (params, [INotify])
 
-    let performs = performNotify [alice, bob]
-    (md, tx) <- alice `performs` createContract params contract
-    addBlocksAndNotify [alice, bob] 5
-    (md, tx) <- alice `performs` makeProgress tx params md
-    void $ alice `performs` deposit tx params md aliceAcc ada 500_000000
-
-    assertOwnFundsEq alice (adaValueOf 500)
-    assertOwnFundsEq bob (adaValueOf 1500)
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
 
 
 uniqueContractHash :: IO ()
@@ -230,40 +182,18 @@ uniqueContractHash = do
             { rolesCurrency = cs
             , rolePayoutValidatorHash = validatorHash rolePayoutScript }
 
-    let hash1 = validatorHash $ validatorScript (params "11")
-    let hash2 = validatorHash $ validatorScript (params "22")
-    let hash3 = validatorHash $ validatorScript (params "22")
+    let hash1 = scriptHash $ scriptInstance (params "11")
+    let hash2 = scriptHash $ scriptInstance (params "22")
+    let hash3 = scriptHash $ scriptInstance (params "22")
     assertBool "Hashes must be different" (hash1 /= hash2)
     assertBool "Hashes must be same" (hash2 == hash3)
 
 
 validatorSize :: IO ()
 validatorSize = do
-    let validator = validatorScript defaultMarloweParams
+    let validator = validatorScript $ scriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool "Validator is too large" (vsize < 700000)
-
-
--- | Run a trace with the given scenario and check that the emulator finished
---   successfully with an empty transaction pool.
-checkMarloweTrace :: MarloweScenario -> Eff.Eff EmulatorEffs () -> Hedgehog.Property
-checkMarloweTrace MarloweScenario{mlInitialBalances} t = Hedgehog.property $ do
-    let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
-    (result, st) <- Hedgehog.forAll $ Gen.runTraceOn model t
-    Hedgehog.assert (isRight result)
-    Hedgehog.assert (null (view (chainState . txPool) st))
-
-
-updateAll :: [Wallet] -> Eff.Eff EmulatorEffs ()
-updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
-
-
-performNotify :: [Wallet] -> Wallet -> Eff.Eff EmulatedWalletEffects (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
-performNotify wallets actor action = do
-    (md, tx) <- walletAction actor action
-    processPending >>= void . walletsNotifyBlock wallets
-    assertIsValidated tx
-    return (md, tx)
+    assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
 
 
 checkEqValue :: Property
@@ -305,6 +235,7 @@ valuesFormAbelianGroup = property $ do
         -- substraction works
         eval (SubValue (AddValue a b) b) === eval a
 
+
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
@@ -317,11 +248,13 @@ scaleRoundingTest = property $ do
     where
       halfAwayRound fraction = let (n,f) = properFraction fraction in n + round (f + 1) - 1
 
+
 scaleMulTest :: Property
 scaleMulTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     forAll valueGen $ \a ->
         eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
+
 
 mulTest :: Property
 mulTest = property $ do
@@ -329,12 +262,14 @@ mulTest = property $ do
     forAll valueGen $ \a ->
         eval (MulValue (Constant 0) a) === 0
 
+
 valueSerialization :: Property
 valueSerialization = property $
     forAll valueGen $ \a ->
         let decoded :: Maybe (Value Observation)
             decoded = decode $ encode a
         in Just a === decoded
+
 
 mulAnalysisTest :: IO ()
 mulAnalysisTest = do
@@ -382,6 +317,7 @@ stateSerialization = do
 prop_showWorksForContracts :: Property
 prop_showWorksForContracts = forAllShrink contractGen shrinkContract showWorksForContract
 
+
 showWorksForContract :: Contract -> Property
 showWorksForContract contract = unsafePerformIO $ do
   res <- runInterpreter $ setImports ["Language.Marlowe"]
@@ -391,8 +327,10 @@ showWorksForContract contract = unsafePerformIO $ do
             Right x  -> x === contract
             Left err -> counterexample (show err) False)
 
+
 interpretContractString :: MonadInterpreter m => String -> m Contract
 interpretContractString contractStr = interpret contractStr (as :: Contract)
+
 
 noFalsePositivesForContract :: Contract -> Property
 noFalsePositivesForContract cont =
@@ -449,4 +387,9 @@ runManuallySameAsOldImplementation :: Property
 runManuallySameAsOldImplementation =
   forAllShrink contractGen shrinkContract sameAsOldImplementation
 
+jsonLoops :: Contract -> Property
+jsonLoops cont = decode (encode cont) === Just cont
+
+prop_jsonLoops :: Property
+prop_jsonLoops = withMaxSuccess 1000 $ forAllShrink contractGen shrinkContract jsonLoops
 

@@ -8,7 +8,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Map as Map
 import Data.Newtype (unwrap)
 import Halogen.HTML (HTML, b_, div_, span_, text)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Language.Plutus.Contract.Effects.WriteTx (WriteTxResponse(..))
 import Language.Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
@@ -20,6 +20,7 @@ import Plutus.SCB.Events.Node (NodeEvent(..))
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent(..))
 import Plutus.SCB.Types (ContractExe(..))
+import Wallet.Types (EndpointDescription)
 import Types (_contractActiveEndpoints, _contractInstanceIdString)
 
 class Pretty a where
@@ -145,6 +146,18 @@ instance prettyContractResponse :: Pretty ContractResponse where
       , nbsp
       , pretty writeTxResponse
       ]
+  pretty (OwnInstanceResponse ownInstanceResponse) =
+    span_
+      [ text "OwnInstanceResponse:"
+      , nbsp
+      , text $ view _contractInstanceIdString ownInstanceResponse
+      ]
+  pretty (NotificationResponse notificationResponse) =
+    span_
+      [ text "NotificationResponse:"
+      , nbsp
+      , text $ show notificationResponse
+      ]
 
 instance prettyContractSCBRequest :: Pretty ContractSCBRequest where
   pretty (AwaitSlotRequest slot) =
@@ -189,6 +202,18 @@ instance prettyContractSCBRequest :: Pretty ContractSCBRequest where
       , nbsp
       , pretty writeTxRequest
       ]
+  pretty (OwnInstanceIdRequest ownInstanceIdRequest) =
+    span_
+      [ text "OwnInstanceIdRequest:"
+      , nbsp
+      , text $ show ownInstanceIdRequest
+      ]
+  pretty (SendNotificationRequest sendNotificationRequest) =
+    span_
+      [ text "SendNotificationRequest:"
+      , nbsp
+      , text $ show sendNotificationRequest
+      ]
 
 instance prettyWriteTxResponse :: Pretty WriteTxResponse where
   pretty (WriteTxSuccess tx) = span_ [ text "WriteTxSuccess:", nbsp, pretty tx ]
@@ -208,7 +233,7 @@ instance prettyUnbalancedTx :: Pretty UnbalancedTx where
       , text ", "
       , withBasicPlural (length txOutputs) "output"
       , text ", "
-      , withBasicPlural (Map.size (unwrap txSignatures)) "signature"
+      , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
       ]
 
@@ -221,7 +246,7 @@ instance prettyTx :: Pretty Tx where
       , text ", "
       , withBasicPlural (length txOutputs) "output"
       , text ", "
-      , withBasicPlural (Map.size (unwrap txSignatures)) "signature"
+      , withBasicPlural (Map.size txSignatures) "signature"
       , text "."
       ]
 

@@ -83,6 +83,8 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."servant-swagger" or (errorHandler.buildDepError "servant-swagger"))
+          (hsPkgs."swagger2" or (errorHandler.buildDepError "swagger2"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
           (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
@@ -153,6 +155,7 @@
           "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
           "Plutus/SCB/Effects/ContractTest"
+          "Plutus/SCB/Effects/ContractRuntime"
           "Plutus/SCB/Effects/ContractTest/AtomicSwap"
           "Plutus/SCB/Effects/ContractTest/PayToWallet"
           "Plutus/SCB/Effects/EventLog"
@@ -161,6 +164,7 @@
           "Plutus/SCB/Instances"
           "Plutus/SCB/MonadLoggerBridge"
           "Plutus/SCB/Monitoring"
+          "Plutus/SCB/Swagger"
           "Plutus/SCB/Webserver/API"
           "Plutus/SCB/Webserver/Handler"
           "Plutus/SCB/Webserver/Server"

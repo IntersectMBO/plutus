@@ -32,12 +32,13 @@ runscript ::
   Handle ->
   FilePath ->
   t ->
+  Bool ->
   Text ->
   m (InterpreterResult String)
-runscript handle file timeout script = do
+runscript handle file timeout implicitPrelude script = do
   liftIO $ Text.hPutStr handle script
   liftIO $ hFlush handle
-  runghc timeout runghcOpts file
+  runghc timeout (runghcOpts implicitPrelude) file
 
 compile ::
   ( Show t,
@@ -47,17 +48,18 @@ compile ::
     MonadError InterpreterError m
   ) =>
   t ->
+  Bool ->
   SourceCode ->
   m (InterpreterResult String)
-compile timeout source =
+compile timeout implicitPrelude source =
   do
     avoidUnsafe source
     withSystemTempDirectory "web-ghc-work" $ \dir -> do
       let file = dir </> "Main.hs"
-      withFile file ReadWriteMode $ \handle -> runscript handle file timeout . Newtype.unpack $ source
+      withFile file ReadWriteMode $ \handle -> runscript handle file timeout implicitPrelude . Newtype.unpack $ source
 
-runghcOpts :: [String]
-runghcOpts =
+runghcOpts :: Bool -> [String]
+runghcOpts implicitPrelude =
   [ "-XDataKinds",
     "-XDeriveAnyClass",
     "-XDeriveGeneric",
@@ -67,7 +69,6 @@ runghcOpts =
     "-XGeneralizedNewtypeDeriving",
     "-XMultiParamTypeClasses",
     "-XNamedFieldPuns",
-    "-XNoImplicitPrelude",
     "-XOverloadedStrings",
     "-XRecordWildCards",
     "-XScopedTypeVariables",
@@ -80,3 +81,4 @@ runghcOpts =
     "-fno-ignore-interface-pragmas",
     "-fobject-code"
   ]
+    <> if implicitPrelude then [] else ["-XNoImplicitPrelude"]

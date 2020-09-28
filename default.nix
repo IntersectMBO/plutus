@@ -164,6 +164,7 @@ in rec {
         ps.playground-common
         ps.plutus-playground-server
         ps.plutus-use-cases
+        ps.marlowe
       ]);
     in pkgs.runCommand "web-ghc" { buildInputs = [pkgs.makeWrapper]; } ''
       # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
@@ -256,7 +257,15 @@ in rec {
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
+    
+    tutorial = docs.marlowe-tutorial;
   });
+
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+  
+  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda marlowe-playground-lambda; };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
@@ -357,8 +366,6 @@ in rec {
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
-
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }

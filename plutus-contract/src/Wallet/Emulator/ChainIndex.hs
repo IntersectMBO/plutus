@@ -28,11 +28,11 @@ import           Data.Semigroup                   (Max (..))
 import           Data.Semigroup.Generic           (GenericSemigroupMonoid (..))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
-import           Wallet.Effects                   (AddressChangeRequest (..), AddressChangeResponse (..),
-                                                   ChainIndexEffect (..))
+import           Wallet.Effects                   (ChainIndexEffect (..))
 import           Wallet.Emulator.ChainIndex.Index (ChainIndex, ChainIndexItem (..))
 import qualified Wallet.Emulator.ChainIndex.Index as Index
 import           Wallet.Emulator.NodeClient       (ChainClientNotification (..))
+import           Wallet.Types                     (AddressChangeRequest (..), AddressChangeResponse (..))
 
 import           Ledger.Address                   (Address)
 import           Ledger.AddressMap                (AddressMap)
@@ -56,7 +56,7 @@ data ChainIndexEvent =
 instance Pretty ChainIndexEvent where
     pretty = \case
         AddressStartWatching addr  -> "StartWatching:" <+> pretty addr
-        ReceiveBlockNotification i -> "ReceiveBlockNotification:" <+> pretty i <+> " transactions."
+        ReceiveBlockNotification i -> "ReceiveBlockNotification:" <+> pretty i <+> "transactions."
         HandlingAddressChangeRequest req itms ->
             let prettyItem ChainIndexItem{ciSlot, ciTxId} = pretty ciSlot <+> pretty ciTxId
             in hang 2 $ vsep

@@ -11,7 +11,6 @@ import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
 import qualified Data.ByteString            as BSS
-import qualified Data.ByteString.Lazy       as BSL
 import           IOTS                       (IotsType (iotsDefinition))
 import           Language.PlutusTx          (Data)
 import qualified Language.PlutusTx.AssocMap as Map
@@ -56,8 +55,8 @@ instance IotsType Data where
 instance (Typeable k, Typeable v, IotsType k, IotsType v) =>
          IotsType (Map.Map k v)
 
-instance ToJSON BSL.ByteString where
-    toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict
+instance ToJSON BSS.ByteString where
+    toJSON = JSON.String . JSON.encodeByteString
 
-instance FromJSON BSL.ByteString where
-    parseJSON v = BSL.fromStrict <$> JSON.decodeByteString v
+instance FromJSON BSS.ByteString where
+    parseJSON v = JSON.decodeByteString v

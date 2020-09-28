@@ -9,7 +9,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 -- plutus/plutus-core/test/data/stringLiteral.plc
 
 postulate str1 : ByteString
-{-# FOREIGN GHC import qualified Data.ByteString.Lazy.Char8 as BS #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Char8 as BS #-}
 {-# COMPILE GHC str1 = BS.pack "4321758fabce1aa4780193f" #-}
 
 open import Relation.Binary.PropositionalEquality

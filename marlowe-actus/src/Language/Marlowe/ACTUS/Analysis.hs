@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module Language.Marlowe.ACTUS.Analysis(genProjectedCashflows, genZeroRiskAssertions) where
+module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
 import qualified Data.List                                             as L (scanl, tail, zip)
 import           Data.Maybe                                            (fromMaybe)
@@ -19,22 +19,25 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransition      (stateTra
 import           Language.Marlowe.ACTUS.Ops                            (ActusNum (..), YearFractionOps (_y))
 import           Prelude                                               hiding (Fractional, Num, (*), (+), (-), (/))
 
+
 genProjectedCashflows :: ContractTerms -> [CashFlow]
-genProjectedCashflows terms =
+genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
+
+sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
+sampleCashflows riskFactors terms =
     let
         eventTypes   = [IED, MD, RR, IP]
         analysisDate = fromGregorian 1970 1 1
-        riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate
 
         preserveDate e d = (e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = preserveDate e <$> getSchedule e
-        events = concatMap scheduleEvent eventTypes
+        events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
 
         applyStateTransition (st, ev, date) (ev', date') =
-            (stateTransition ev riskFactors terms st (calculationDay date), ev', date')
+            (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
         calculatePayoff (st, ev, date) =
-            payoff ev riskFactors terms st (calculationDay date)
+            payoff ev (riskFactors $ calculationDay date) terms st (calculationDay date)
 
         initialState =
             ( inititializeState terms

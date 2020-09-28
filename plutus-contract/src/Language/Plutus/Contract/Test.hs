@@ -54,7 +54,8 @@ import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import           Data.Maybe                                      (fromMaybe, mapMaybe)
 import           Data.Proxy                                      (Proxy (..))
-import           Data.Row                                        (Forall, HasType)
+import           Data.Row                                        (AllUniqueLabels, Forall, HasType)
+import           Data.Row.Internal                               (Unconstrained1)
 import           Data.Semigroup                                  (First (..))
 import           Data.Semigroup.Generic                          (GenericSemigroupMonoid (..))
 import           Data.Sequence                                   (Seq)
@@ -146,17 +147,21 @@ checkPredicate
     :: forall s e a
     . ( Show e
       , Forall (Input s) Pretty
-      , Forall (Output s) Pretty)
+      , Forall (Output s) Pretty
+      , AllUniqueLabels (Input s)
+      , Forall (Input s) JSON.FromJSON
+      , Forall (Output s) Unconstrained1
+      )
     => String
     -> Contract s e a
     -> TracePredicate s (TraceError e) a
-    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
+    -> ContractTrace s e a ()
     -> TestTree
 checkPredicate nm con predicate action =
     HUnit.testCaseSteps nm $ \step ->
         case runTrace con action of
             (Left err, _) ->
-                HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
+                HUnit.assertFailure $ "ContractTrace failed. " ++ show err
             (Right ((), st), ms) -> do
                 let dt = ContractTraceResult ms st
                     (result, testOutputs) = runWriter $ unPredF predicate (defaultDist, dt)

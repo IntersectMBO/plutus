@@ -23,12 +23,10 @@ module Ledger.Scripts(
     Script (..),
     scriptSize,
     fromCompiledCode,
-    Checking (..),
     ScriptError (..),
     evaluateScript,
     runScript,
     runMonetaryPolicyScript,
-    applyScript,
     -- * Script wrappers
     mkValidatorScript,
     Validator,
@@ -55,56 +53,43 @@ module Ledger.Scripts(
     acceptingMonetaryPolicy
     ) where
 
-import qualified Prelude                              as Haskell
+import qualified Prelude                             as Haskell
 
-import           Codec.Serialise                      (Serialise, serialise)
-import           Control.DeepSeq                      (NFData)
-import           Control.Monad.Except                 (MonadError, runExcept, throwError)
-import           Crypto.Hash                          (Digest, SHA256, hash)
-import           Data.Aeson                           (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                           as JSON
-import qualified Data.Aeson.Extras                    as JSON
-import qualified Data.ByteArray                       as BA
-import qualified Data.ByteString.Lazy                 as BSL
-import           Data.Functor                         (void)
-import           Data.Hashable                        (Hashable)
+import           Codec.Serialise                     (Serialise, serialise)
+import           Control.DeepSeq                     (NFData)
+import           Control.Monad.Except                (MonadError, runExceptT, throwError)
+import           Crypto.Hash                         (Digest, SHA256, hash)
+import           Data.Aeson                          (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                          as JSON
+import qualified Data.Aeson.Extras                   as JSON
+import qualified Data.ByteArray                      as BA
+import qualified Data.ByteString.Lazy                as BSL
+import           Data.Hashable                       (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                         (Generic)
-import           IOTS                                 (IotsType (iotsDefinition))
-import qualified Language.PlutusCore                  as PLC
-import           Language.PlutusCore.CBOR
-import qualified Language.PlutusCore.Constant.Dynamic as PLC
-import qualified Language.PlutusCore.Pretty           as PLC
-import           Language.PlutusTx                    (CompiledCode, IsData (..), compile, getPlc, makeLift)
-import           Language.PlutusTx.Builtins           as Builtins
-import           Language.PlutusTx.Evaluation         (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
-import           Language.PlutusTx.Lift               (liftCode)
+import           GHC.Generics                        (Generic)
+import           IOTS                                (IotsType (iotsDefinition))
+import qualified Language.PlutusCore                 as PLC
+import           Language.PlutusTx                   (CompiledCode, IsData (..), compile, getPlc, makeLift)
+import           Language.PlutusTx.Builtins          as Builtins
+import           Language.PlutusTx.Evaluation        (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import           Language.PlutusTx.Lift              (liftCode)
 import           Language.PlutusTx.Prelude
-import           Ledger.Orphans                       ()
-import           LedgerBytes                          (LedgerBytes (..))
+import qualified Language.UntypedPlutusCore          as UPLC
+import qualified Language.UntypedPlutusCore.DeBruijn as UPLC
+import           Ledger.Orphans                      ()
+import           LedgerBytes                         (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
---
--- Note: the program inside the 'Script' should have normalized types.
-newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () }
+newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni () }
   deriving stock Generic
-  deriving Serialise via OmitUnitAnnotations PLC.DefaultUni
+  deriving Serialise via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
-
-{- Note [Normalized types in Scripts]
-The Plutus Tx plugin and lifting machinery does not necessarily produce programs
-with normalized types, but we are supposed to put programs on the chain *with*
-normalized types.
-
-So we normalize types when we turn things into 'Script's. The only operation we
-do after that is applying 'Script's together, which preserves type normalization.
--}
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -127,72 +112,66 @@ infrequently (I believe).
 -}
 instance Eq Script where
     {-# INLINABLE (==) #-}
-    a == b = serialise a == serialise b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Haskell.Eq Script where
-    a == b = serialise a == serialise b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Ord Script where
     {-# INLINABLE compare #-}
-    a `compare` b = serialise a `compare` serialise b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance Haskell.Ord Script where
-    a `compare` b = serialise a `compare` serialise b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance NFData Script
-
-data Checking = Typecheck | DontCheck
 
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
 -- proportional to the serialized size of the script.
 scriptSize :: Script -> Integer
-scriptSize (Script s) = PLC.programSize s
+scriptSize (Script s) = UPLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () -> Script
-fromPlc = Script
+fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni () -> Script
+fromPlc (UPLC.Program a v t) = case UPLC.deBruijnTerm $ t of
+    Right t' ->
+        let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t'
+        in Script $ UPLC.Program a v nameless
+    Left _   -> Haskell.error "Debruijn failed"
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
-applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `PLC.applyProgram` s2
+applyScript (unScript -> s1) (unScript -> s2) = Script $ s1 `UPLC.applyProgram` s2
 
 data ScriptError =
-      TypecheckError Haskell.String -- ^ Incorrect type at runtime
-    | EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
+    EvaluationError [Haskell.String] -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String -- ^ Unexpected behavior of the engine (a bug)
+    | MalformedScript Haskell.String -- ^ Script is wrong in some way
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
     deriving anyclass (ToJSON, FromJSON)
 
 -- | Evaluate a script, returning the trace log.
-evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
-evaluateScript checking s = do
-    case checking of
-      DontCheck -> Haskell.pure ()
-      Typecheck -> void $ typecheckScript s
-    let (logOut, _tally, result) = evaluateCekTrace (unScript s)
+evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m [Haskell.String]
+evaluateScript s = do
+    -- TODO: evaluate the nameless debruijn program directly
+    let namedProgram =
+            let (UPLC.Program a v t) = unScript s
+                named = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "" ix) t
+            in UPLC.Program a v named
+    p <- case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+        Right p -> return p
+        Left e  -> throwError $ MalformedScript $ show e
+    let (logOut, _tally, result) = evaluateCekTrace p
     case result of
         Right _ -> Haskell.pure ()
         Left errWithCause@(ErrorWithCause err _) -> throwError $ case err of
             InternalEvaluationError {} -> EvaluationException $ show errWithCause
             UserEvaluationError {}     -> EvaluationError logOut -- TODO fix this error channel fuckery
     Haskell.pure logOut
-
-typecheckScript :: (MonadError ScriptError m) => Script -> m (PLC.Type PLC.TyName PLC.DefaultUni ())
-typecheckScript (unScript -> p) =
-    either (throwError . TypecheckError . show . PLC.prettyPlcDef) Haskell.pure act
-      where
-        act :: Either (PLC.Error PLC.DefaultUni ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
-        act = runExcept $ PLC.runQuoteT $ do
-            types <- PLC.getStringBuiltinTypes ()
-            -- We should be normalized, so we can use the on-chain config
-            -- See Note [Normalized types in Scripts]
-            -- FIXME
-            let config = PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }
-            PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
     toJSON = JSON.String . JSON.encodeSerialise
@@ -323,19 +302,19 @@ instance IotsType MonetaryPolicyHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 datumHash :: Datum -> DatumHash
-datumHash = DatumHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+datumHash = DatumHash . Builtins.sha2_256 . BA.convert
 
 redeemerHash :: Redeemer -> RedeemerHash
-redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
-validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
+validatorHash vl = ValidatorHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl
 
 monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
-monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
+monetaryPolicyHash vl = MonetaryPolicyHash $ BA.convert h' where
     h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
     e = serialise vl
@@ -349,26 +328,24 @@ newtype Context = Context Data
 -- | Evaluate a validator script with the given arguments, returning the log.
 runScript
     :: (MonadError ScriptError m)
-    => Checking
-    -> Context
+    => Context
     -> Validator
     -> Datum
     -> Redeemer
     -> m [Haskell.String]
-runScript checking (Context valData) (Validator validator) (Datum datum) (Redeemer redeemer) = do
+runScript (Context valData) (Validator validator) (Datum datum) (Redeemer redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
-    evaluateScript checking appliedValidator
+    evaluateScript appliedValidator
 
 -- | Evaluate a monetary policy script with just the validation context, returning the log.
 runMonetaryPolicyScript
     :: (MonadError ScriptError m)
-    => Checking
-    -> Context
+    => Context
     -> MonetaryPolicy
     -> m [Haskell.String]
-runMonetaryPolicyScript checking (Context valData) (MonetaryPolicy validator) = do
+runMonetaryPolicyScript (Context valData) (MonetaryPolicy validator) = do
     let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)
-    evaluateScript checking appliedValidator
+    evaluateScript appliedValidator
 
 -- | @()@ as a datum.
 unitDatum :: Datum

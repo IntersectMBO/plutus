@@ -18,6 +18,7 @@
 module Ledger.Constraints.TxConstraints where
 
 import           Data.Aeson                 (FromJSON, ToJSON)
+import           Data.Bifunctor             (Bifunctor (..))
 import qualified Data.Map                   as Map
 import           Data.Text.Prettyprint.Doc  hiding ((<>))
 import           GHC.Generics               (Generic)
@@ -48,7 +49,7 @@ data TxConstraint =
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
     | MustHashDatum DatumHash Datum
-    deriving stock (Generic, Haskell.Eq)
+    deriving stock (Show, Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty TxConstraint where
@@ -78,7 +79,7 @@ data InputConstraint a =
     InputConstraint
         { icRedeemer :: a
         , icTxOutRef :: TxOutRef
-        } deriving (Generic)
+        } deriving stock (Show, Generic, Haskell.Functor)
 
 addTxIn :: TxOutRef -> i -> TxConstraints i o -> TxConstraints i o
 addTxIn outRef red tc =
@@ -100,7 +101,7 @@ data OutputConstraint a =
     OutputConstraint
         { ocDatum :: a
         , ocValue :: Value
-        } deriving (Generic)
+        } deriving stock (Show, Generic, Haskell.Functor)
 
 instance (Pretty a) => Pretty (OutputConstraint a) where
     pretty OutputConstraint{ocDatum, ocValue} =
@@ -120,7 +121,14 @@ data TxConstraints i o =
         , txOwnInputs   :: [InputConstraint i]
         , txOwnOutputs  :: [OutputConstraint o]
         }
-    deriving stock (Generic)
+    deriving stock (Show, Generic)
+
+instance Bifunctor TxConstraints where
+    bimap f g txc =
+        txc
+            { txOwnInputs = Haskell.fmap (Haskell.fmap f) (txOwnInputs txc)
+            , txOwnOutputs = Haskell.fmap (Haskell.fmap g) (txOwnOutputs txc)
+            }
 
 type UntypedConstraints = TxConstraints PlutusTx.Data PlutusTx.Data
 

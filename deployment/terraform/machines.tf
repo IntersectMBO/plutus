@@ -2,7 +2,7 @@ data "template_file" "playground_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.playground_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.playground_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }
@@ -19,17 +19,7 @@ locals {
     ip   = "${element(concat(aws_instance.playground_b.*.private_ip, list("")), 0)}"
     dns  = "playground-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
-  marlowePlaygroundA = {
-    name = "marlowePlaygroundA"
-    ip   = "${element(concat(aws_instance.marlowe_a.*.private_ip, list("")), 0)}"
-    dns  = "marlowe-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
-  marlowePlaygroundB = {
-    name = "marlowePlaygroundB"
-    ip   = "${element(concat(aws_instance.marlowe_b.*.private_ip, list("")), 0)}"
-    dns  = "marlowe-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
+  
   webghcA = {
     name = "webghcA"
     ip   = "${element(concat(aws_instance.webghc_a.*.private_ip, list("")), 0)}"
@@ -58,8 +48,6 @@ locals {
   machines = {
     playgroundA       = "${local.playgroundA}"
     playgroundB       = "${local.playgroundB}"
-    marlowePlaygroundA       = "${local.marlowePlaygroundA}"
-    marlowePlaygroundB       = "${local.marlowePlaygroundB}"
     webghcA       = "${local.webghcA}"
     webghcB       = "${local.webghcB}"
     nixops         = "${local.nixops}"
@@ -81,10 +69,10 @@ locals {
 
 resource "local_file" "bastion_machines" {
   content  = "${jsonencode(local.bastionMachines)}"
-  filename = "${var.nixops_root}/bastion_machines.json"
+  filename = "${pathexpand(var.nixops_root)}/bastion_machines.json"
 }
 
 resource "local_file" "machines" {
   content  = "${jsonencode(local.machines)}"
-  filename = "${var.nixops_root}/machines.json"
+  filename = "${pathexpand(var.nixops_root)}/machines.json"
 }

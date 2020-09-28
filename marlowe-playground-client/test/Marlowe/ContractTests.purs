@@ -3,7 +3,7 @@ module Marlowe.ContractTests where
 import Prelude
 import Control.Monad.State (runState)
 import Data.Array (snoc)
-import Data.Integral (fromIntegral)
+import Data.BigInteger (fromInt)
 import Data.Lens (over, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
@@ -27,13 +27,13 @@ all =
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromIntegral 0) (Role alice)) (Role alice) ada (fromIntegral 450)
+        deposit = IDeposit (AccountId (fromInt 0) (Role alice)) (Role alice) ada (fromInt 450)
 
         choice = ChoiceId "choice"
 
-        choice1 = IChoice (choice (Role alice)) (fromIntegral 0)
+        choice1 = IChoice (choice (Role alice)) (fromInt 0)
 
-        choice2 = IChoice (choice (Role bob)) (fromIntegral 0)
+        choice2 = IChoice (choice (Role bob)) (fromInt 0)
 
         (Tuple _ finalState) =
           (flip runState mkState) do

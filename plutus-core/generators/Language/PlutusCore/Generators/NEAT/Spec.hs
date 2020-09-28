@@ -129,7 +129,7 @@ prop_typePreservationCek (k, tyG) tmG = do
 
   tmV <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
   withExceptT
-    (\ (_ :: TypeError DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV))
+    (\ (_ :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV))
     (checkType defConfig () tmV (Normalized ty))
     `catchError` \_ -> return () -- expecting this to fail at the moment
 
@@ -212,7 +212,7 @@ testCaseGen name GenOptions{..} t prop =
 
 data TestFail
   = GenError GenError
-  | TypeError (TypeError DefaultUni ())
+  | TypeError (TypeError (Term TyName Name DefaultUni ()) DefaultUni ())
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
   | CkP (CkEvaluationException DefaultUni)

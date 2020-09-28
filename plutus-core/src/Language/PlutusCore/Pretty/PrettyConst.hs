@@ -1,12 +1,19 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Pretty.PrettyConst where
 
-import qualified Data.ByteString.Lazy               as BSL
+import           Language.PlutusCore.Universe
+
+import qualified Data.ByteString                    as BS
 import           Data.Foldable                      (fold)
+import           Data.Proxy
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
@@ -47,8 +54,8 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | x < 16    = ('0' :)
               | otherwise = id
 
-instance PrettyConst BSL.ByteString where
-    prettyConst b = "#" <> fold (asBytes <$> BSL.unpack b)
+instance PrettyConst BS.ByteString where
+    prettyConst b = "#" <> fold (asBytes <$> BS.unpack b)
 
 -- The basic built-in types use `show` via the default instance
 instance PrettyConst ()
@@ -56,3 +63,19 @@ instance PrettyConst Bool
 instance PrettyConst Char
 instance PrettyConst Integer
 instance PrettyConst String
+-- ^ This instance for String quotes control characters (which is what we want)
+-- but also Unicode characters (\8704 and so on).  That may not be ideal.
+
+instance GShow uni => Pretty (TypeIn uni a) where
+    pretty (TypeIn uni) = pretty $ gshow uni
+
+-- | Special treatment for built-in constants: see the Note in Language.PlutusCore.Pretty.PrettyConst.
+instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
+    pretty (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyConst x
+
+instance GShow uni => Pretty (Some (TypeIn uni)) where
+    pretty (Some s) = pretty s
+
+-- Note that the call to `pretty` here is to the instance for `ValueOf uni a`, which calls prettyConst.
+instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where
+    pretty (Some s) = pretty s

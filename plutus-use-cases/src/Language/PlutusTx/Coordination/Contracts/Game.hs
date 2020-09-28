@@ -46,7 +46,7 @@ import GHC.Generics (Generic)
 import IOTS (IotsType)
 import Language.Plutus.Contract
 import Language.Plutus.Contract.Schema ()
-import Language.Plutus.Contract.Trace (ContractTrace, MonadEmulator, TraceError)
+import Language.Plutus.Contract.Trace (ContractTrace)
 import qualified Language.Plutus.Contract.Trace as Trace
 import qualified Language.PlutusTx as PlutusTx
 import Language.PlutusTx.Prelude
@@ -63,7 +63,7 @@ import Schema (ToSchema, ToArgument)
 import qualified Ledger as Ledger
 import qualified Ledger.Ada as Ada
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.ByteString.Char8 as C
 import qualified Prelude
 
 newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData
@@ -145,8 +145,7 @@ game :: AsContractError e => Contract GameSchema e ()
 game = lock `select` guess
 
 lockTrace
-    :: ( MonadEmulator (TraceError e) m )
-    => ContractTrace GameSchema e m () ()
+    :: ContractTrace GameSchema e () ()
 lockTrace =
     let w1 = Trace.Wallet 1 in
     Trace.callEndpoint @"lock" w1 (LockParams "secret" (Ada.lovelaceValueOf 10))
@@ -154,8 +153,7 @@ lockTrace =
         >> Trace.addBlocks 1
 
 guessTrace
-    :: ( MonadEmulator (TraceError e) m )
-    => ContractTrace GameSchema e m () ()
+    :: ContractTrace GameSchema e () ()
 guessTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace
@@ -164,8 +162,7 @@ guessTrace =
         >> Trace.addBlocks 1
 
 guessWrongTrace
-    :: ( MonadEmulator (TraceError e) m )
-    => ContractTrace GameSchema e m () ()
+    :: ContractTrace GameSchema e () ()
 guessWrongTrace =
     let w2 = Trace.Wallet 2 in
     lockTrace

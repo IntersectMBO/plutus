@@ -33,7 +33,6 @@ module Ledger.Generators(
     ) where
 
 import           Data.Bifunctor            (Bifunctor (..))
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Foldable             (fold, foldl')
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
@@ -193,17 +192,17 @@ genAda = Ada.lovelaceOf <$> Gen.integral (Range.linear 0 (100000 :: Integer))
 -- | Generate a 'ByteString s' of up to @s@ bytes.
 genSizedByteString :: forall m. MonadGen m => Int -> m P.ByteString
 genSizedByteString s =
-    let range = Range.linear 0 s in
-    BSL.fromStrict <$> Gen.bytes range
+    let range = Range.linear 0 s
+    in Gen.bytes range
 
 -- | Generate a 'ByteString s' of exactly @s@ bytes.
 genSizedByteStringExact :: forall m. MonadGen m => Int -> m P.ByteString
 genSizedByteStringExact s =
-    let range = Range.singleton s in
-    BSL.fromStrict <$> Gen.bytes range
+    let range = Range.singleton s
+    in Gen.bytes range
 
 genTokenName :: MonadGen m => m TokenName
-genTokenName = (Value.TokenName . BSL.fromStrict) <$> Gen.utf8 (Range.linear 0 32) Gen.unicode
+genTokenName = Value.TokenName <$> Gen.utf8 (Range.linear 0 32) Gen.unicode
 
 genValue' :: MonadGen m => Range Integer -> m Value
 genValue' valueRange = do

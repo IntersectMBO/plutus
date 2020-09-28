@@ -20,13 +20,14 @@ import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
+import Plutus.SCB.Events.Contract (ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
 import Schema.Types (FormEvent)
 import Types (ContractStates, EndpointForm, HAction(..), WebStreamData, _contractInstanceIdString, _contractPath, _csContract, _csContractDefinition, _csCurrentState, _hooks)
 import Validation (_argument)
 import View.Pretty (pretty)
 import View.Utils (webStreamDataPane)
+import Wallet.Types (ContractInstanceId)
 
 installedContractsPane ::
   forall p.

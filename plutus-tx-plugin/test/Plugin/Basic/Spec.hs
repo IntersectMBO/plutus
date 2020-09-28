@@ -9,6 +9,7 @@
 module Plugin.Basic.Spec where
 
 import           Common
+import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
@@ -20,9 +21,6 @@ import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
--- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
-
 basic :: TestNested
 basic = testNested "Basic" [
     goldenPir "monoId" monoId
@@ -31,7 +29,7 @@ basic = testNested "Basic" [
   -- must keep the scrutinee as it evaluates to error
   , goldenPir "ifOpt" ifOpt
   -- should fail
-  , goldenEval "ifOptEval" [ifOpt]
+  , goldenUEval "ifOptEval" [ifOpt]
   ]
 
 monoId :: CompiledCode PLC.DefaultUni (Integer -> Integer)

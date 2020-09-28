@@ -65,7 +65,7 @@ makeClassyPrisms ''TypeEvalCheckError
 instance ann ~ () => AsError (TypeEvalCheckError uni) uni ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
-instance ann ~ () => AsTypeError (TypeEvalCheckError uni) uni ann where
+instance ann ~ () => AsTypeError (TypeEvalCheckError uni) (Term TyName Name uni ann) uni ann where
     _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.

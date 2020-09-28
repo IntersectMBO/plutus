@@ -2,12 +2,12 @@ module Main where
 
 import Prelude
 import Control.Coroutine (consumer)
+import Data.Maybe (Maybe(Nothing))
 import Effect (Effect)
 import Effect.Aff (forkAff)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
-import Data.Maybe (Maybe(Nothing))
 import MainFrame (initialMainFrame)
 import Plutus.SCB.Webserver.Types (StreamToClient, StreamToServer)
 import Types (HAction(..), Query(..), Output(..))

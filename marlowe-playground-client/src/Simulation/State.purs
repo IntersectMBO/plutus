@@ -13,7 +13,6 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
-import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
@@ -32,7 +31,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, ($), (<), (<<<), (==), (||), (#))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, (#), ($), (<<<), (==))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger

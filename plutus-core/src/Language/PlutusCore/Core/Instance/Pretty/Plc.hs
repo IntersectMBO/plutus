@@ -1,6 +1,3 @@
--- | The global pretty-printing config used to pretty-print everything in the PLC world.
--- This module also defines custom pretty-printing functions for PLC types as a convenience.
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE MultiParamTypeClasses #-}

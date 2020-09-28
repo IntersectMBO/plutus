@@ -10,10 +10,12 @@ module Plutus.SCB.Events.ContractSpec
 import           Control.Monad.Except                            (ExceptT (ExceptT), runExceptT)
 import           Control.Monad.Trans.Except                      (except)
 import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (first)
-import qualified Data.ByteString.Lazy.Char8                      as BSL
+import           Data.Bifunctor                                  (first, second)
+import qualified Data.ByteString.Char8                           as BS
+import qualified Data.ByteString.Lazy                            as BSL
 import           Data.Proxy                                      (Proxy (Proxy))
 import           GHC.TypeLits                                    (symbolVal)
+import           Language.Plutus.Contract                        (BlockchainActions)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..),
                                                                   EndpointDescription (EndpointDescription))
 import qualified Language.Plutus.Contract.Schema                 as Schema
@@ -47,9 +49,9 @@ jsonTests =
                   runExceptT $ do
                       initialisationResponse <-
                           ExceptT $
-                          first BSL.unpack <$> runCliCommand game Initialise
+                            first BS.unpack <$> runCliCommand (Proxy @BlockchainActions) game Initialise
                       result <-
-                          except $ JSON.eitherDecode initialisationResponse
+                          except $ JSON.eitherDecode $ BSL.fromStrict initialisationResponse
                       pure
                           (result :: PartiallyDecodedResponse ContractHandlersResponse)
               assertRight v

@@ -70,7 +70,7 @@ data ReachabilityAnalysisData
 
 data AnalysisState
   = NoneAsked
-  | WarningAnalysis (RemoteData String Result)
+  | WarningAnalysis (WebData Result)
   | ReachabilityAnalysis ReachabilityAnalysisData
 
 type State

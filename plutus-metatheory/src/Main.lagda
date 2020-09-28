@@ -1,7 +1,7 @@
 \begin{code}
 module Main where
 open import Agda.Builtin.IO
-import IO.Primitive as IO using (return;_>>=_) 
+import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
 open import Function
@@ -21,7 +21,7 @@ open import Data.List hiding (_++_)
 
 open import Type
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type hiding (ByteString)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Builtin.Signature
 open import Check
@@ -65,10 +65,12 @@ instance
 -- Bytestring stuff
 
 postulate
+  ByteString : Set
   getContents : IO ByteString
   readFile : String → IO ByteString
 
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC ByteString = type BSL.ByteString #-}
 {-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC getContents = BSL.getContents #-}
 
@@ -138,11 +140,12 @@ postulate
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program TyDeBruijn DeBruijn DefaultUni () #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
 {-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni () #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni () #-}
+{-# COMPILE GHC Type = type Language.PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
+
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
 postulate

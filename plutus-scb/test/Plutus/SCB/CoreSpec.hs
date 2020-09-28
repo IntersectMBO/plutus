@@ -20,6 +20,7 @@ import           Control.Monad.Freer.Extra.State                   (use)
 import qualified Control.Monad.Freer.Log                           as EmulatorLog
 import           Control.Monad.Freer.State                         (State)
 import           Data.Foldable                                     (fold)
+import qualified Data.Map                                          as Map
 import qualified Data.Set                                          as Set
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
@@ -34,10 +35,12 @@ import           Plutus.SCB.Effects.Contract                       (ContractEffe
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
 import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEffects, agentAction)
-import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId, csContract)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId,
+                                                                    ContractInstanceState (..), hooks)
 import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
                                                                     defaultWallet, runScenario, syncAll, txCounts,
                                                                     txValidated, valueAt)
+import qualified Plutus.SCB.Query                                  as Query
 import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain,
                                                                     mkChainOverview)
 import           Plutus.SCB.Utils                                  (tshow)
@@ -93,6 +96,7 @@ executionTests =
         "Executing contracts."
         [ guessingGameTest
         , currencyTest
+        , rpcTest
         ]
 
 currencyTest :: TestTree
@@ -118,6 +122,24 @@ currencyTest =
                 "Forging the currency should produce two valid transactions."
                 (initialTxCounts & txValidated +~ 2)
 
+rpcTest :: TestTree
+rpcTest =
+    testCase "RPC" $
+        runScenario $ do
+            agentAction defaultWallet (installContract RPCClient)
+            agentAction defaultWallet (installContract RPCServer)
+            ContractInstanceState{csContract=clientId} <- agentAction defaultWallet (activateContract RPCClient)
+            ContractInstanceState{csContract=serverId} <- agentAction defaultWallet (activateContract RPCServer)
+            syncAll
+            agentAction defaultWallet $ void $ callContractEndpoint @TestContracts serverId "serve" ()
+            syncAll
+            agentAction defaultWallet $ callAdder clientId serverId
+            syncAll
+            syncAll
+            syncAll
+            agentAction defaultWallet $ do
+                assertDone clientId
+                assertDone serverId
 
 guessingGameTest :: TestTree
 guessingGameTest =
@@ -176,7 +198,6 @@ guessingGameTest =
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
               syncAll
-              syncAll
               void Chain.processBlock
               assertTxCounts
                 "A correct guess creates a third transaction."
@@ -211,6 +232,27 @@ assertTxCounts ::
     -> Eff effs ()
 assertTxCounts msg expected =  txCounts >>= assertEqual msg expected
 
+assertDone ::
+    ( Member (EventLogEffect (ChainEvent TestContracts)) effs
+    , Member (Error SCBError) effs
+    )
+    => ContractInstanceId
+    -> Eff effs ()
+assertDone i = do
+    h <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @TestContracts)
+    case Map.lookup i h of
+        Just [] -> pure ()
+        Just xs ->
+            throwError
+                $ OtherError
+                $ Text.unwords
+                    [ "Contract"
+                    , tshow i
+                    , "not done. Open requests:"
+                    , tshow xs
+                    ]
+        Nothing -> throwError $ ContractInstanceNotFound i
+
 type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
@@ -238,6 +280,14 @@ guess ::
     -> Eff effs ()
 guess uuid params =
     void $ callContractEndpoint @TestContracts uuid "guess" params
+
+callAdder ::
+    Members SpecEffects effs
+    => ContractInstanceId
+    -> ContractInstanceId
+    -> Eff effs ()
+callAdder source target =
+    void $ callContractEndpoint @TestContracts source "target instance" target
 
 -- | Call the @"Create native token"@ endpoint on the currency contract.
 createCurrency ::

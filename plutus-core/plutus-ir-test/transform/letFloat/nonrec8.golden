@@ -9,18 +9,19 @@
         (con integer)
         (let
           (nonrec)
-          (termbind (strict) (vardecl k (con integer)) (con 1))
+          (termbind (strict) (vardecl k (con integer)) (con integer 1))
           (termbind
             (strict)
             (vardecl j (con integer))
             [
-              [ (builtin addInteger) k ] [ [ (builtin addInteger) (con 1) ] x ]
+              [ (builtin addInteger) k ]
+              [ [ (builtin addInteger) (con integer 1) ] x ]
             ]
           )
           j
         )
       )
-      (con 1)
+      (con integer 1)
     ]
   )
   i

@@ -10,12 +10,12 @@
       )
     )
     [
-      [ { Cons (con char) } (con 't') ]
+      [ { Cons (con char) } (con char 't') ]
       [
-        [ { Cons (con char) } (con 'e') ]
+        [ { Cons (con char) } (con char 'e') ]
         [
-          [ { Cons (con char) } (con 's') ]
-          [ [ { Cons (con char) } (con 't') ] { Nil (con char) } ]
+          [ { Cons (con char) } (con char 's') ]
+          [ [ { Cons (con char) } (con char 't') ] { Nil (con char) } ]
         ]
       ]
     ]

@@ -120,7 +120,7 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
-instance SpendBudget (CkM uni) (CkValue uni) where
+instance SpendBudget (CkM uni) () (CkValue uni) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 
@@ -301,7 +301,7 @@ instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
                                                                                  -- Should be impossible: see instantiateEvaluate.
-      TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
+      TermArg:_      -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError $ Just val'
                         where val' = VBuiltin bn arity0 arity (tys++[ty]) args   -- Reconstruct the bad application
       TypeArg:[]     -> applyBuiltinName stack bn args                           -- Final argument is a type argument
       TypeArg:arity' -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args      -- More arguments expected

@@ -12,7 +12,7 @@
           (con integer)
           (let (nonrec) (termbind (strict) (vardecl j (con integer)) y) y)
         )
-        (con 5)
+        (con integer 5)
       ]
     )
     i

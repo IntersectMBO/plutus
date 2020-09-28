@@ -11,6 +11,7 @@
 -- (wrapped in 'OtherMachineError').
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -29,9 +30,12 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudget(..)
+    , ExBudgetCategory(..)
     , ExBudgetMode(..)
     , ExRestrictingBudget(..)
     , ExTally(..)
+    , CekExBudgetState
+    , CekExTally
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
@@ -64,6 +68,7 @@ import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.Array
+import           Data.Hashable
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
@@ -92,9 +97,7 @@ which is a problem.)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni =
-    -- TODO: we probably want to store a @Some (ValueOf uni)@ here, but then we have trouble in
-    -- 'readKnownCek'. I'll reconsider the way we deal with annotations once again.
-    VCon (TermWithMem uni)
+    VCon ExMemory (Some (ValueOf uni))
   | VTyAbs ExMemory TyName KindWithMem (TermWithMem uni) (CekValEnv uni)
   | VLamAbs ExMemory Name (TypeWithMem uni) (TermWithMem uni) (CekValEnv uni)
   | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (CekValue uni)
@@ -153,13 +156,32 @@ type CekEvaluationExceptionCarrying term =
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
 type CekCarryingM term uni =
-    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State ExBudgetState))
+    ReaderT (CekEnv uni)
+        (ExceptT (CekEvaluationExceptionCarrying term)
+            (State CekExBudgetState))
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException uni = CekEvaluationExceptionCarrying (Plain Term uni)
 
 -- | The monad the CEK machine runs in.
 type CekM uni = CekCarryingM (Plain Term uni) uni
+
+data ExBudgetCategory
+    = BTyInst
+    | BApply
+    | BIWrap
+    | BUnwrap
+    | BVar
+    | BBuiltin BuiltinName
+    | BAST
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass NFData
+instance Hashable ExBudgetCategory
+instance PrettyBy config ExBudgetCategory where
+    prettyBy _ = viaShow
+
+type CekExBudgetState = ExBudgetState ExBudgetCategory
+type CekExTally       = ExTally       ExBudgetCategory
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -206,7 +228,9 @@ mkBuiltinApplication ex bn arity0 tys0 args0 =
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
+dischargeCekValEnv
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValEnv uni -> TermWithMem uni -> TermWithMem uni
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -217,9 +241,11 @@ dischargeCekValEnv valEnv =
 
 -- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue :: CekValue uni -> TermWithMem uni
+dischargeCekValue
+    :: (Closed uni, uni `Everywhere` ExMemoryUsage)
+    => CekValue uni -> TermWithMem uni
 dischargeCekValue = \case
-    VCon t                                 -> t
+    VCon     ex val                        -> Constant ex val
     VTyAbs   ex tn k body env              -> TyAbs ex tn k (dischargeCekValEnv env body)
     VLamAbs  ex name ty body env           -> LamAbs ex name ty (dischargeCekValEnv env body)
     VIWrap   ex ty1 ty2 val                -> IWrap ex ty1 ty2 $ dischargeCekValue val
@@ -228,27 +254,31 @@ dischargeCekValue = \case
        or (b) it's needed for an error message.  When we're discharging VBuiltin
        we use arity0 to get the type and term arguments into the right sequence. -}
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CekValue uni) where
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage) =>
+            PrettyBy PrettyConfigPlc (CekValue uni) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
 type instance UniOf (CekValue uni) = uni
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
-    fromConstant = VCon . fromConstant
+    fromConstant val = VCon (memoryUsage val) val
 
 instance AsConstant (CekValue uni) where
-    asConstant (VCon term) = asConstant term
-    asConstant _           = Nothing
+    asConstant (VCon _ val) = Just val
+    asConstant _            = Nothing
 
 instance ToExMemory (CekValue uni) where
     toExMemory = \case
-        VCon t -> termAnn t
-        VTyAbs ex _ _ _ _ -> ex
-        VLamAbs ex _ _ _ _ -> ex
-        VIWrap ex _ _ _ -> ex
+        VCon     ex _           -> ex
+        VTyAbs   ex _ _ _ _     -> ex
+        VLamAbs  ex _ _ _ _     -> ex
+        VIWrap   ex _ _ _       -> ex
         VBuiltin ex _ _ _ _ _ _ -> ex
 
-instance ToExMemory term => SpendBudget (CekCarryingM term uni) term where
+instance ExBudgetBuiltin ExBudgetCategory where
+    exBudgetBuiltin = BBuiltin
+
+instance ToExMemory term => SpendBudget (CekCarryingM term uni) ExBudgetCategory term where
     builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -276,9 +306,9 @@ type Context uni = [Frame uni]
 runCekM
     :: forall a uni
      . CekEnv uni
-    -> ExBudgetState
+    -> CekExBudgetState
     -> CekM uni a
-    -> (Either (CekEvaluationException uni) a, ExBudgetState)
+    -> (Either (CekEvaluationException uni) a, CekExBudgetState)
 runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
 -- | Extend an environment with a variable name, the value the variable stands for
@@ -340,9 +370,9 @@ computeCek ctx env (LamAbs ex name ty body) =
     -- TODO: budget?
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx _ c@Constant{} =
+computeCek ctx _ (Constant ex val) =
     -- TODO: budget?
-    returnCek ctx (VCon c)
+    returnCek ctx (VCon ex val)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx env (Builtin ex bn) = do
     -- TODO: budget?
@@ -361,32 +391,23 @@ computeCek ctx env (Var _ varName) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: MonadError (ErrorWithCause e (Plain Term uni)) m
+    :: ( MonadError (ErrorWithCause e (Plain Term uni)) m
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => AReview e t -> t -> CekValue uni -> m x
 throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
--- | The returning phase of the CEK machine.
--- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
--- from the context and uses it to decide how to proceed with the current value v.
---  'FrameTyInstArg': call instantiateEvaluate.  If v is a lambda then discard the type
---     and compute the body of v; if v is a builtin application then check that
---     it's expecting a type argument, either apply the builtin to its arguments or
---     and return the result, or extend the value with the type and call returnCek;
---     if v is anything else, fail.
---  'FrameApplyArg': call applyEvaluate. If v is a lambda then discard the type
---     and compute the body of v; if v is a builtin application then check that
---     it's expecting a type argument, either apply the builtin to its arguments
---     and return the result, or extend the value with the type and call returnCek;
---     if v is anything else, fail.
---  'FrameApplyFun': call applyEvaluate to attempt to apply the function
---     stored in the frame to an argument.  If the function is a lambda 'lam x ty body'
---     then extend the environment with a binding of v to x and call computeCek on the body.
---     If the is a builtin application then check that it's expecting a term argument,
---     and if it's the final argument then apply the builtin to its arguments
---     return the result, or extend the value with the new argument and call
---     returnCek.  If v is anything else, fail.
---  'FrameIWrap':  wrap v and call returnCek on the wrapped value.
---  'FrameUnwrap': if v is a wrapped value w then returnCek w, else fail.
+{- | The returning phase of the CEK machine.
+Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
+from the context and uses it to decide how to proceed with the current value v.
+
+  * 'FrameTyInstArg': call instantiateEvaluate
+  * 'FrameApplyArg': call 'computeCek' over the context extended with 'FrameApplyFun',
+  * 'FrameApplyFun': call applyEvaluate to attempt to apply the function
+      stored in the frame to an argument.
+  * 'FrameIWrap':  wrap v and call returnCek on the wrapped value.
+  * 'FrameUnwrap': if v is a wrapped value w then returnCek w, else fail.
+-}
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> CekValue uni -> CekM uni (Plain Term uni)
@@ -425,9 +446,11 @@ instead of lists.
 -}
 
 -- | Instantiate a term with a type and proceed.
--- In case of 'VTyAbs' just ignore the type; for 'VBuiltin', extend
--- the type arguments with the type, decrement the argument count,
--- and proceed; otherwise, it's an error.
+-- If v is a lambda then discard the type
+-- and compute the body of v; if v is a builtin application then check that
+-- it's expecting a type argument, either apply the builtin to its arguments or
+-- and return the result, or extend the value with the type and call returnCek;
+-- if v is anything else, fail.instantiateEvaluate
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> CekValue uni -> CekM uni (Plain Term uni)
@@ -440,7 +463,7 @@ instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) 
       {- This should be impossible if we don't have zero-arity builtins:
          we will have found this case in an earlier call to instantiateEvaluate
          or applyEvaluate and called applyBuiltinName. -}
-          throwingDischarged _MachineError UnexpectedBuiltinInstantiationMachineError val'
+          throwingDischarged _MachineError BuiltinTermArgumentExpectedMachineError val'
                         where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
       TypeArg:arity' ->
           case arity' of
@@ -449,13 +472,12 @@ instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) 
 instantiateEvaluate _ _ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
-
 -- | Apply a function to an argument and proceed.
--- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
--- If the function is a 'Builtin', then check whether we've got the right number of arguments.
--- If we do, then ask the constant application machinery to apply it, and proceed with
--- the result (or throw an error if something goes wrong); if we don't, then add the new
--- argument to the VBuiltin and call returnCek to look for more arguments.
+-- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
+-- to x@ and call 'computeCek' on the body.
+-- If the function is a builtin application then check that it's expecting a term argument, and if
+-- it's the final argument then apply the builtin to its arguments, return the result, or extend
+-- the value with the new argument and call 'returnCek'. If v is anything else, fail.
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni
@@ -512,7 +534,7 @@ runCek
     -> ExBudgetMode
     -> CostModel
     -> Plain Term uni
-    -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Plain Term uni), CekExBudgetState)
 runCek means mode params term =
     runCekM (CekEnv means mode params)
             (ExBudgetState mempty mempty)
@@ -528,7 +550,7 @@ runCekCounting
     => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
-    -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
+    -> (Either (CekEvaluationException uni) (Plain Term uni), CekExBudgetState)
 runCekCounting means = runCek means Counting
 
 -- | Evaluate a term using the CEK machine.

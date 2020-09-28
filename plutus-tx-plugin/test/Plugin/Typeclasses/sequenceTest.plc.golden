@@ -394,8 +394,8 @@
                       n
                       a
                       [
-                        [ c [ { Just (con integer) } (con 1) ] ]
-                        [ [ c [ { Just (con integer) } (con 2) ] ] n ]
+                        [ c [ { Just (con integer) } (con integer 1) ] ]
+                        [ [ c [ { Just (con integer) } (con integer 2) ] ] n ]
                       ]
                     )
                   )

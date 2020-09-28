@@ -29,7 +29,6 @@ module Language.PlutusCore
     , deriveGEq
     , (:~:) (..)
     , Lift
-    , GLift (..)
     , type (<:)
     , DefaultUni (..)
     -- * AST
@@ -72,8 +71,8 @@ module Language.PlutusCore
     , normalizeTypesIn
     , normalizeTypesInProgram
     , InternalTypeError (..)
-    , TypeError (..)
     , AsTypeError (..)
+    , TypeError
     , parseTypecheck
     -- for testing
     , typecheckPipeline
@@ -153,7 +152,7 @@ fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
 printType
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni AlexPosn,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -177,7 +176,7 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
+        AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni AlexPosn,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
@@ -185,7 +184,7 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsTypeError e DefaultUni a,
+    :: (AsTypeError e (Term TyName Name DefaultUni ()) DefaultUni a,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni
@@ -210,5 +209,4 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name uni () -> Program tyname name uni () -> Program tyname name uni ()
--- TODO: some kind of version checking
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (defaultVersion ()) (Apply () t1 t2)

@@ -10,6 +10,9 @@
         (vardecl Poly (fun a [[MyPolyData a] b]))
       )
     )
-    [ [ { { Poly (con integer) } (con integer) } (con 1) ] (con 2) ]
+    [
+      [ { { Poly (con integer) } (con integer) } (con integer 1) ]
+      (con integer 2)
+    ]
   )
 )

@@ -145,11 +145,11 @@ tests = testGroup "crowdfunding"
 
 renderPredicate
     :: Contract CrowdfundingSchema ContractError ()
-    -> ContractTrace CrowdfundingSchema ContractError (EmulatorAction (TraceError ContractError)) () ()
+    -> ContractTrace CrowdfundingSchema ContractError () ()
     -> IO ByteString
 renderPredicate contract trace = do
     case runTrace contract trace of
         (Left err, _) ->
-            HUnit.assertFailure $ "EmulatorAction failed. " ++ show err
+            HUnit.assertFailure $ "ContractTrace failed. " ++ show err
         (Right (_, st), _) -> do
             pure $ BSL.fromStrict $ T.encodeUtf8 $ renderTraceContext mempty st

@@ -1,10 +1,11 @@
-resolver: lts-15.6
+resolver: nightly-2020-08-17
 
 packages:
 - plutus-core
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases
+- plutus-benchmark
 - playground-common
 - marlowe
 - marlowe-playground-server
@@ -30,7 +31,8 @@ extra-deps:
 - Stream-0.4.7.2@sha256:ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53,1009
 - lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
 # Other missing packages
-- aws-lambda-haskell-runtime-2.0.4
+- aws-lambda-haskell-runtime-3.0.3
+- aws-lambda-haskell-runtime-wai-1.0.2@sha256:5ce655247461b562c8048011ddc022130135a03417def8203aad92366cc979ab,1965
 - binary-instances-1.0.0.1
 - composition-prelude-2.0.2.1
 - constraints-extras-0.3.0.2
@@ -47,22 +49,36 @@ extra-deps:
 # we work around the newer persistent-template by adding flags below
 - eventful-sql-common-0.2.0@rev:0
 - eventful-sqlite-0.2.0
+- persistent-sqlite-2.10.6.2
+- persistent-template-2.8.2.3
 - github-0.24
 - github-webhooks-0.12.0
 - monoidal-containers-0.6.0.1
 - monad-stm-0.1.0.2
 - prometheus-2.1.3
-- row-types-0.3.1.0
+- row-types-0.4.0.0
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
 - th-utilities-0.2.4.0
+- servant-0.16.2
 - servant-options-0.1.0.0
 - servant-github-webhook-0.4.1.0@sha256:6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753
+- servant-client-0.16.0.1
+- servant-client-core-0.16
+- servant-server-0.16.2
+- servant-websockets-2.0.0
+- servant-foreign-0.15
+- servant-subscriber-0.7.0.0
+- servant-swagger-1.1.7.1
+- safe-exceptions-checked-0.1.0
+- async-timer-0.2.0.0
 - sbv-8.6
 - random-strings-0.1.1.0@sha256:935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677,2517
 - wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
 - inline-r-0.10.3
+- witherable-0.3.5
+- witherable-class-0
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 28c37771ef30b0d751960c061ef95627f05d290e
@@ -75,13 +91,12 @@ extra-deps:
   commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
 ## Node protocols
 - canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
-- cborg-0.2.2.0@sha256:eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c,4779
 - statistics-linreg-0.3@sha256:95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f,2544
 # Making the repository compatible with GHC-8.8.X required a couple of
 # source code changes, so I forked the original repository until it will
 # be properly updated to GHC-8.8.X
-- git: https://github.com/raduom/ouroboros-network
-  commit: af744374a05d6a5eb76713b399595131e2a24c38
+- git: https://github.com/input-output-hk/ouroboros-network
+  commit: 75153affa23a0e68e035d7bb19880fe1ae35b1d4
   subdirs:
     - typed-protocols
     - typed-protocols-examples
@@ -92,10 +107,12 @@ extra-deps:
     - network-mux
     - Win32-network
 - git: https://github.com/input-output-hk/cardano-prelude
-  commit: bd7eb69d27bfaee46d435bc1d2720520b1446426
+  commit: 71ea865408f2e03e6d6832359423546699730849
   subdirs:
     - .
     - test
+# cardano-prelude currently redefines some instances that appear in 0.3.4.0
+- nonempty-containers-0.3.3.0
 - git: https://github.com/input-output-hk/cardano-base
   commit: 5035c9ed95e9d47f050314a7d96b1b2043288f61
   subdirs:
@@ -118,8 +135,8 @@ extra-deps:
 # Making the repository compatible with GHC-8.8.X required a couple of
 # source code changes, so I forked the original repository until it will
 # be properly updated to GHC-8.8.X
-- git: https://github.com/j-mueller/iohk-monitoring-framework
-  commit: 636eb9f52f504e8009162b5cf7147e8acb727c1b
+- git: https://github.com/input-output-hk/iohk-monitoring-framework
+  commit: 5c9627b6aee487f9b7ec44981aba57a6afc659b1
   subdirs:
     - contra-tracer
     - iohk-monitoring
@@ -159,7 +176,8 @@ ghc-options:
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
   # Disable all warnings, we're building with a newer version of GHC
-  iohk-monitoring: "-w"
+  iohk-monitoring: "-w" 
+  inline-r: "-XStandaloneKindSignatures"
 
 nix:
   shell-file: shell.nix
