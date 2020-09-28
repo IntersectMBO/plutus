@@ -100,18 +100,19 @@ NOTE: We don't just want to enumerate arbitrary types but also normal
       be the safest option as it would then be impossible to generate
       a non-normalized type that claimed to be normalized. This is how
       it's done in the metatheory package. The downside is that there
-      there is some duplication of code and it's a bit cumbersome and
-      slow to convert from a normalized type back to an ordinary one
-      when you need one.
+      there is some duplication of code and/or it's a bit cumbersome and
+      slow to convert from a normalized type back to an ordinary one. 
 
      2. We could use a simple newtype wrapper to mark a type as
      normalized/neutral. This is how it's done in the plutus-core
      package. It's a helpful cue but there's nothing stopping us
      marking any type as normalised. This saves some extra work as we
-     can conveniently unwrap a normal form and reuse code.
+     can conveniently unwrap a normal form and reuse code such as
+     substitution.
 
      Here we go with option 2. The enumerable instances below explain
-     how to construct a normalized or neutral type.
+     how to construct a normalized or neutral type using the machinery of
+     Control.Enumerable from the sized-based package.
 -}
 
 instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
@@ -447,7 +448,6 @@ stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <
 -- |Normalise a generated type.
 normalizeTypeG :: TypeG n -> TypeG n
 normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
-
 
 -- * Errors
 
