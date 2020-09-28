@@ -16,7 +16,7 @@ import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
                                                             normalizeTypeAgda, runCKAgda, runLAgda, runTCEKCAgda,
-                                                            runTCEKVAgda, runTCKAgda)
+                                                            runTCEKVAgda, runTCKAgda, normalizeTypeTermAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -102,8 +102,10 @@ prop_Term (k , tyG) tmG = do
   unless (tmPlcCK == tmCKN) $
     throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
 
-  -- 3. run all the metatheory evaluators against each other
-  let evs = [runLAgda,runCKAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
+  -- 3. run all the metatheory evaluators against each other. Taking
+  -- care to normalize the types in the output of runCKAgda. The other
+  -- versions return terms with already normalized types.
+  let evs = [runLAgda,runCKAgda >=> normalizeTypeTermAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
   let tmEvsM = evs <*> [tmDB]
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM

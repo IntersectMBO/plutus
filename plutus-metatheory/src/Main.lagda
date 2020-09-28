@@ -413,7 +413,18 @@ checkType∅ ty t = do
   refl      ← withE ((λ _ → typeError) ∘ kindMismatch _ _) (meqKind k *)
   refl      ← withE ((λ _ → typeError) ∘ typeMismatch _ _) (meqNfTy tyN tyN')
   return _
+
+-- Haskell interface to type normalizer (for terms)
+-- the type checker/inferer could also return such a term
+normalizeTypeTerm : Term → Either ERROR Term
+normalizeTypeTerm t = do
+  tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
+  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
+  return (unconvTm (unshifter Z (extricateScope (extricate tC))))
   
+{-# COMPILE GHC normalizeTypeTerm as normalizeTypeTermAgda #-}
+
+
 {-# COMPILE GHC checkType∅ as checkTypeAgda #-}
 
 -- Haskell interface to (typechecked and proven correct) reduction
