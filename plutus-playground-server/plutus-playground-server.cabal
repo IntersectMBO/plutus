@@ -241,6 +241,7 @@ test-suite plutus-playground-server-test
         tasty-hunit -any,
         tasty-golden -any,
         insert-ordered-containers -any,
+        newtype-generics -any,
         playground-common -any,
         iots-export -any,
         mtl -any,
