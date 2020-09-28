@@ -218,6 +218,7 @@
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."insert-ordered-containers" or (errorHandler.buildDepError "insert-ordered-containers"))
+            (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
