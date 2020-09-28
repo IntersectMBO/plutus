@@ -15,8 +15,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                                            normalizeTypeAgda, runCKAgda, runLAgda, runTCEKCAgda,
-                                                            runTCEKVAgda, runTCKAgda, normalizeTypeTermAgda)
+                                                            normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
+                                                            runLAgda, runTCEKCAgda, runTCEKVAgda, runTCKAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn

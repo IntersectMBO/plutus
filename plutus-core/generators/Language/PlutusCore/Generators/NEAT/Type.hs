@@ -20,6 +20,8 @@ This file contains
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
+{-# LANGUAGE UndecidableInstances      #-}
+
 module Language.PlutusCore.Generators.NEAT.Type
   ( TypeBuiltinG (..)
   , TypeG (..)
@@ -44,6 +46,17 @@ import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
+
+
+import           Bound
+import           Data.ClassSharing
+
+deriveEnumerable ''Bound.Var
+
+instance ( Typeable f, Typeable b, Typeable a
+         , Applicative f, Enumerable (f (Bound.Var b a))
+         ) => Enumerable (Scope b f a) where
+    enumerate = share . fmap (Scope . fmap (fmap pure)) $ unsafeAccess enumerate
 
 
 -- * Helper definitions
@@ -86,6 +99,23 @@ deriveEnumerable ''TypeG
 
 type ClosedTypeG = TypeG Z
 
+
+-- an attempt at using bound
+-- FIXME: decide to use or throw away
+data BTypeG tyname
+  = BVarG tyname
+  | BLamG (Scope () BTypeG tyname)
+  | BAppG (BTypeG tyname) (BTypeG tyname) (Kind ())
+  deriving (Functor,Foldable,Traversable)
+
+instance Applicative BTypeG where pure = BVarG; (<*>) = ap
+
+instance Monad BTypeG where
+  return = pure
+  BVarG a       >>= f = f a
+  (BAppG x y k) >>= f = BAppG (x >>= f) (y >>= f) k
+  BLamG e       >>= f = BLamG (e >>>= f)
+
 {-
 
 NOTE: We don't just want to enumerate arbitrary types but also normal
@@ -101,7 +131,7 @@ NOTE: We don't just want to enumerate arbitrary types but also normal
       a non-normalized type that claimed to be normalized. This is how
       it's done in the metatheory package. The downside is that there
       there is some duplication of code and/or it's a bit cumbersome and
-      slow to convert from a normalized type back to an ordinary one. 
+      slow to convert from a normalized type back to an ordinary one.
 
      2. We could use a simple newtype wrapper to mark a type as
      normalized/neutral. This is how it's done in the plutus-core
@@ -430,6 +460,13 @@ applyTySub _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
 applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
 applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
 
+instance Monad TypeG where
+  a >>= f = applyTySub f a
+  return = pure
+
+instance Applicative TypeG where
+  (<*>) = ap
+  pure = TyVarG
 
 -- |Reduce a generated type by a single step, or fail.
 stepTypeG :: TypeG n -> Maybe (TypeG n)
