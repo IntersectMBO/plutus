@@ -192,11 +192,12 @@ testCaseGen :: (Check t a, Enumerable a, Show e)
         -> TestTree
 testCaseGen name GenOptions{..} t prop =
   testCaseInfo name $ do
-    -- NOTE: in the `Right` case, `prop t ctrex` is guarded by `not (isOk (prop t ctrex))`
+    -- NOTE: in the `Right` case, `prop t ctrex` is guarded by `not
+    -- (isOk (prop t ctrex))` hence the safe use of undefined
     result <- ctrex' genMode genDepth (\x -> check t x !=> isOk (prop t x))
     case result of
       Left  count -> return $ printf "%d examples generated" count
-      Right ctrex -> assertFailure . either show undefined . run $ prop t ctrex
+      Right ctrex -> assertFailure . show . fromLeft undefined . run $ prop t ctrex
 
 
 -- * Test failures
