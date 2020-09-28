@@ -86,6 +86,34 @@ deriveEnumerable ''TypeG
 
 type ClosedTypeG = TypeG Z
 
+{-
+
+NOTE: We don't just want to enumerate arbitrary types but also normal
+      types that cannot reduce any further. Neutral types are a subset
+      of normal forms that consist of either a variable or a stuck
+      application.
+
+      Two approaches spring to mind:
+
+      1. We could define a seperate AST for normal types and possibly
+      also a seperate AST for terms with normalized types. This would
+      be the safest option as it would then be impossible to generate
+      a non-normalized type that claimed to be normalized. This is how
+      it's done in the metatheory package. The downside is that there
+      there is some duplication of code and it's a bit cumbersome and
+      slow to convert from a normalized type back to an ordinary one
+      when you need one.
+
+     2. We could use a simple newtype wrapper to mark a type as
+     normalized/neutral. This is how it's done in the plutus-core
+     package. It's a helpful cue but there's nothing stopping us
+     marking any type as normalised. This saves some extra work as we
+     can conveniently unwrap a normal form and reuse code.
+
+     Here we go with option 2. The enumerable instances below explain
+     how to construct a normalized or neutral type.
+-}
+
 instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
   enumerate = share $ aconcat
     [       c1 $ \ty -> Normalized (unNeutral ty)
@@ -101,7 +129,6 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
     [ pay . c1 $ \i         -> Neutral (TyVarG i)
     , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
     ]
-
 
 -- ** Enumerating terms
 
