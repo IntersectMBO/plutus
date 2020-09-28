@@ -25,8 +25,8 @@
 :marloweplayground: https://alpha.marlowe.iohkdev.io/
 :plutusplayground: https://alpha.plutus.iohkdev.io/
 
-include::overview.adoc[leveloffset=+ 1]
-include::introducing-marlowe.adoc[leveloffset=+ 1]
+include::overview.adoc[leveloffset=+1]
+include::introducing-marlowe.adoc[leveloffset=+1]
 include::escrow-ex.adoc[leveloffset=+1]
 include::marlowe-model.adoc[leveloffset=+1]
 include::marlowe-step-by-step.adoc[leveloffset=+1]
@@ -41,4 +41,6 @@ include::static-analysis.adoc[leveloffset=+1]
 include::actus-marlowe.adoc[leveloffset=+1]
 include::migrating.adoc[leveloffset=+1]
 include::wallets-simulation.adoc[leveloffset=+1]
+include::actus-labs.adoc[leveloffset=+1]
+include::javascript-embedding.adoc[leveloffset=+1]
 // include::marlowe-plutus.adoc[leveloffset=+1]
