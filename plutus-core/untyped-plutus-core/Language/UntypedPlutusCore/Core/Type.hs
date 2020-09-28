@@ -10,6 +10,7 @@ module Language.UntypedPlutusCore.Core.Type
     , TPLC.StaticBuiltinName (..)
     , TPLC.DynamicBuiltinName (..)
     , TPLC.BuiltinName (..)
+    , TPLC.Version (..)
     , Term (..)
     , Program (..)
     , termAnn

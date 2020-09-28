@@ -145,6 +145,8 @@ tokens :-
     <kwd> iwrap          { mkKeyword KwIWrap       `andBegin` 0 }
     <kwd> unwrap         { mkKeyword KwUnwrap      `andBegin` 0 }
     <kwd> error          { mkKeyword KwError       `andBegin` 0 }
+    <kwd> force          { mkKeyword KwForce       `andBegin` 0 }
+    <kwd> delay          { mkKeyword KwDelay       `andBegin` 0 }
     <kwd> builtin        { mkKeyword KwBuiltin     `andBegin` builtin }
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
     -- These are converted into Builtin names (possibly dynamic) in the parser.
