@@ -56,7 +56,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 10
+  { genDepth = 15
   , genMode  = OF
   }
 
@@ -71,15 +71,10 @@ tests genOpts@GenOptions{} =
       genOpts
       (Type ())
       prop_normalTypesCannotReduce
-  , testCaseGen "type preservation - CK"
+  , testCaseGen "type preservation - CK & CEK"
       genOpts
       (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typePreservationCk
-  -- this fails, but we run it anyway and catch the error
-  , testCaseGen "type preservation - CEK"
-      genOpts
-      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typePreservationCek
+      prop_typePreservation
   , testCaseGen "CEK and CK produce the same output"
       genOpts
 --    v  - this fails as it exposes mistreatment of type annotations by CEK
@@ -101,8 +96,8 @@ tests genOpts@GenOptions{} =
 --                  convertClosedTerm
 -- @
 --
-prop_typePreservationCk :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_typePreservationCk (k, tyG) tmG = do
+prop_typePreservation :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typePreservation (k, tyG) tmG = do
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
@@ -110,27 +105,17 @@ prop_typePreservationCk (k, tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 
-  -- Check if the converted term, when evaluated, still has the same type:
+  -- Check if the converted term, when evaluated by CK, still has the same type:
 
-  tmV <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
-  withExceptT TypeError $ checkType defConfig () tmV (Normalized ty)
+  tmCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
+  withExceptT TypeError $ checkType defConfig () tmCK (Normalized ty)
 
+  -- Check if the converted term, when evaluated by CEK, still has the same type:
 
-prop_typePreservationCek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_typePreservationCek (k, tyG) tmG = do
-
-  -- Check if the type checker for generated terms is sound:
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  withExceptT TypeError $ checkKind defConfig () ty k
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
-
-  -- Check if the converted term, when evaluated, still has the same type:
-
-  tmV <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
+  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
   withExceptT
-    (\ (_ :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmV))
-    (checkType defConfig () tmV (Normalized ty))
+    (\ (_ :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
+    (checkType defConfig () tmCEK (Normalized ty))
     `catchError` \_ -> return () -- expecting this to fail at the moment
 
 prop_agree_Ck_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
@@ -142,7 +127,7 @@ prop_agree_Ck_Cek (k, tyG) tmG = do
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 
-  -- Check if the converted term, when normalized, still has the same type:
+  -- check if CK and CEK give the same output
 
   tmCek <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
   tmCk <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
@@ -183,6 +168,8 @@ prop_normalTypesCannotReduce k (Normalized tyG) =
   unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexNormalTypesCannotReduce k tyG)
 
 
+-- NOTE:
+
 -- |Create a generator test, searching for a counter-example to the given predicate.
 testCaseGen :: (Check t a, Enumerable a, Show e)
         => TestName
@@ -193,7 +180,7 @@ testCaseGen :: (Check t a, Enumerable a, Show e)
 testCaseGen name GenOptions{..} t prop =
   testCaseInfo name $ do
     -- NOTE: in the `Right` case, `prop t ctrex` is guarded by `not
-    -- (isOk (prop t ctrex))` hence the safe use of undefined
+    -- (isOk (prop t ctrex))` hence the reasonable use of undefined
     result <- ctrex' genMode genDepth (\x -> check t x !=> isOk (prop t x))
     case result of
       Left  count -> return $ printf "%d examples generated" count
