@@ -61,7 +61,7 @@ defaultGenOptions = GenOptions
   }
 
 tests :: GenOptions -> TestTree
-tests genOpts@GenOptions{..} =
+tests genOpts@GenOptions{} =
   testGroup "NEAT"
   [ testCaseGen "normalization commutes with conversion from generated types"
       genOpts
