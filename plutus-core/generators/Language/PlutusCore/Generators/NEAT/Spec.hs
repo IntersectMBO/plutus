@@ -77,25 +77,17 @@ tests genOpts@GenOptions{} =
       prop_typePreservation
   , testCaseGen "CEK and CK produce the same output"
       genOpts
---    v  - this fails as it exposes mistreatment of type annotations by CEK
+--    v - this fails as it exposes mistreatment of type annotations by CEK
 --    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+--    v - this would also fail if the depth was increased
       (Type (), TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek
   ]
--- |Property: the following diagram commutes for well-typed terms...
+-- |Property: check if the type is preserved by evaluation.
 --
--- @
---                  convertClosedTerm
---    ClosedTermG ---------------------> Term TyName Name DefaultUni ()
---         |                                        |
---         |                                        |
---         | normalizeTermG [?]                     | normalizeTerm [?]
---         |                                        |
---         v                                        v
---    ClosedTermG ---------------------> Term TyName Name DefaultUni ()
---                  convertClosedTerm
--- @
---
+-- This property is expected to hold for the CK machine and fail for
+-- the CEK machine at the time of writing.
+
 prop_typePreservation :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation (k, tyG) tmG = do
 
@@ -117,6 +109,16 @@ prop_typePreservation (k, tyG) tmG = do
     (\ (_ :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
     (checkType defConfig () tmCEK (Normalized ty))
     `catchError` \_ -> return () -- expecting this to fail at the moment
+
+-- |Property: check if both the CK and CEK machine produce the same ouput
+--
+-- They should produce the same terms. Currently they differ in the
+-- type annotations of those terms as the the CEK machine does not
+-- handle the annotations correctly. This is not exposed on the small
+-- examples used here. I believe it would be if we increased the
+-- depth. One could work around this problem by erasing type
+-- annotations before comparison, or fix the problem by updating the
+-- CEK machine.
 
 prop_agree_Ck_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_Ck_Cek (k, tyG) tmG = do
