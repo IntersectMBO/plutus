@@ -26,3 +26,5 @@ exports.greenCircle = require('static/images/green-circle.svg');
 exports.greyCircle = require('static/images/grey-circle.svg');
 
 exports.selectButton = require('static/images/select-button.svg');
+
+exports.iohkLogo = require('static/images/IOHK-logo.svg');

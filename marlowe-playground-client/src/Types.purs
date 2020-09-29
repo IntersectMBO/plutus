@@ -105,7 +105,8 @@ _walletSlot = SProxy
 
 -----------------------------------------------------------
 data View
-  = HaskellEditor
+  = HomePage
+  | HaskellEditor
   | JSEditor
   | Simulation
   | BlocklyEditor

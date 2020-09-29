@@ -148,6 +148,10 @@ button.small-btn {
   margin-left: 1rem;
 }
 
+.space-right {
+  margin-right: 1rem;
+}
+
 .space-top {
   margin-top: 2rem;
 }
@@ -166,4 +170,8 @@ button.small-btn {
 
 .hide {
   display: none;
+}
+
+.full-width {
+  width: 100%;
 }

@@ -32,6 +32,11 @@ foreign import greyCircle :: String
 
 foreign import selectButton :: String
 
+foreign import iohkLogo :: String
+
+fullWidth :: ClassName
+fullWidth = ClassName "full-width"
+
 active :: ClassName
 active = ClassName "active"
 
@@ -46,6 +51,9 @@ aHorizontal = ClassName "a-horizontal"
 
 spaceLeft :: ClassName
 spaceLeft = ClassName "space-left"
+
+spaceRight :: ClassName
+spaceRight = ClassName "space-right"
 
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
