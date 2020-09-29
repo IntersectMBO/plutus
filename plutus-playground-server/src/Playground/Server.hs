@@ -20,6 +20,7 @@ import           Control.Monad.Logger         (LoggingT, runStderrLoggingT)
 import           Control.Monad.Reader         (ReaderT, runReaderT)
 import qualified Data.ByteString.Lazy.Char8   as BSL
 import           Data.Proxy                   (Proxy (Proxy))
+import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Time.Units              (Second)
 import           Language.Haskell.Interpreter (InterpreterError (CompilationErrors), InterpreterResult, SourceCode)
@@ -34,7 +35,7 @@ import           Servant                      (Application, err400, errBody, hoi
 import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody)
 import           Servant.Client               (ClientEnv, mkClientEnv, parseBaseUrl)
 import           Servant.Server               (Handler (Handler), Server, ServerError)
-import           System.Environment           (getEnv)
+import           System.Environment           (lookupEnv)
 import qualified Web.JWT                      as JWT
 
 type API
@@ -101,10 +102,10 @@ data AppConfig = AppConfig { authConfig :: Auth.Config, clientEnv :: ClientEnv }
 initializeContext :: MonadIO m => m AppConfig
 initializeContext = liftIO $ do
   putStrLn "Initializing Context"
-  githubClientId <- Text.pack <$> getEnv "GITHUB_CLIENT_ID"
-  githubClientSecret <- Text.pack <$> getEnv "GITHUB_CLIENT_SECRET"
-  jwtSignature <- Text.pack <$> getEnv "JWT_SIGNATURE"
-  redirectURL <- Text.pack <$> getEnv "GITHUB_REDIRECT_URL"
+  githubClientId <- getEnvOrEmpty "GITHUB_CLIENT_ID"
+  githubClientSecret <- getEnvOrEmpty "GITHUB_CLIENT_SECRET"
+  jwtSignature <- getEnvOrEmpty "JWT_SIGNATURE"
+  redirectURL <- getEnvOrEmpty "GITHUB_REDIRECT_URL"
   let authConfig =
         Auth.Config
           { _configJWTSignature = JWT.hmacSecret jwtSignature,
@@ -112,10 +113,25 @@ initializeContext = liftIO $ do
             _configGithubClientId = OAuthClientId githubClientId,
             _configGithubClientSecret = OAuthClientSecret githubClientSecret
           }
-  webghcURL <- parseBaseUrl =<< getEnv "WEBGHC_URL"
+  mWebghcURL <- lookupEnv "WEBGHC_URL"
+  webghcURL <- case mWebghcURL of
+    Just url -> parseBaseUrl url
+    Nothing -> do
+      let localhost = "http://localhost:8009"
+      putStrLn $ "WEBGHC_URL not set, using " <> localhost
+      parseBaseUrl localhost
   manager <- newManager defaultManagerSettings
   let clientEnv = mkClientEnv manager webghcURL
   pure $ AppConfig authConfig clientEnv
+
+getEnvOrEmpty :: String -> IO Text
+getEnvOrEmpty name = do
+  mEnv <- lookupEnv name
+  case mEnv of
+    Just env -> pure $ Text.pack env
+    Nothing -> do
+      putStrLn $ "Warning: " <> name <> " not set"
+      pure mempty
 
 initializeApplication :: AppConfig -> IO Application
 initializeApplication config = do

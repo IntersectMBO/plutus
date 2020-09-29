@@ -13,11 +13,6 @@ stack exec -- plutus-playground-server webserver
 ### nix
 
 ```sh
-GITHUB_CLIENT_ID="" \
-GITHUB_CLIENT_SECRET="" \
-JWT_SIGNATURE="" \
-GITHUB_REDIRECT_URL="" \
-WEBGHC_URL="http://localhost:8080" \
 $(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground webserver
 ```
 

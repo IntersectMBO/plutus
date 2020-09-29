@@ -4,11 +4,6 @@
 
 Make sure you have a local backend server running first:
 ```bash
-GITHUB_CLIENT_ID="" \
-GITHUB_CLIENT_SECRET="" \
-JWT_SIGNATURE="" \
-GITHUB_REDIRECT_URL="" \
-WEBGHC_URL="http://localhost:8080" \
 $(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
 ```
 
