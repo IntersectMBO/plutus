@@ -6,6 +6,7 @@ module StaticData
   , marloweBufferLocalStorageKey
   , marloweContract
   , marloweContracts
+  , showHomePageLocalStorageKey
   ) where
 
 import Data.Map (Map)
@@ -84,3 +85,7 @@ jsBufferLocalStorageKey = LocalStorage.Key "JavascriptBuffer"
 marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
+
+showHomePageLocalStorageKey ::
+  LocalStorage.Key
+showHomePageLocalStorageKey = LocalStorage.Key "ShowHomePage"

@@ -37,6 +37,12 @@ foreign import iohkLogo :: String
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
 
+fullHeight :: ClassName
+fullHeight = ClassName "full-height"
+
+scroll :: ClassName
+scroll = ClassName "scroll"
+
 active :: ClassName
 active = ClassName "active"
 

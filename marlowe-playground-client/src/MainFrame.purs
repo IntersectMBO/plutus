@@ -11,8 +11,9 @@ import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Gists (GistAction(..))
 import Halogen (Component, ComponentHTML, get, liftEffect, query, subscribe)
 import Halogen as H
@@ -20,8 +21,8 @@ import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
-import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hide, iohkIcon, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
+import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, iohkIcon, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
@@ -60,10 +61,10 @@ import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
-import StaticData (jsBufferLocalStorageKey)
+import StaticData (jsBufferLocalStorageKey, showHomePageLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -78,6 +79,7 @@ initialState =
     , simulationState: ST.mkState
     , jsEditorKeybindings: DefaultBindings
     , activeJSDemo: mempty
+    , showHomePage: true
     }
 
 ------------------------------------------------------------
@@ -174,11 +176,27 @@ handleAction ::
   HAction ->
   HalogenM FrontendState HAction ChildSlots Void m Unit
 handleAction settings Init = do
+  let
+    isTrue (Just "false") = false
+
+    isTrue Nothing = true
+
+    isTrue _ = true
+  showHome <- liftEffect $ isTrue <$> LocalStorage.getItem showHomePageLocalStorageKey
+  assign _showHomePage showHome
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
+    Right { subroute: Router.Home, gistId } -> do
+      let
+        subroute = if showHome then Router.Home else Router.Simulation
+      trace { showHome, subroute } \_ -> handleRoute settings { subroute, gistId }
     Right route -> handleRoute settings route
     Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init
+
+handleAction settings (ShowHomePageInFuture b) = do
+  liftEffect $ LocalStorage.setItem showHomePageLocalStorageKey (show b)
+  assign _showHomePage b
 
 handleAction s (HaskellAction action) = do
   currentState <- get
