@@ -129,7 +129,6 @@ resource "aws_api_gateway_integration" "marlowe_item_get_method" {
   type                    = "HTTP_PROXY"
   integration_http_method = "GET"
   credentials             = "${aws_iam_role.marlowe_s3_proxy_role.arn}"
-  # uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/{proxy}"
   uri                     = "https://${aws_s3_bucket.marlowe_playground.bucket_regional_domain_name}/{proxy}"
 
   request_parameters = {

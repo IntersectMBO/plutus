@@ -90,6 +90,7 @@ let
 
   deploy = env: region:
     writeShellScript "deploy" ''
+      set -e
       ${applyTerraform env region}
       ${syncS3 env}
       ${syncPlutusTutorial env}
