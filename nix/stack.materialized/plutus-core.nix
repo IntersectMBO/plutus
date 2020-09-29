@@ -124,6 +124,7 @@
           "Language/PlutusCore/Lexer/Type"
           "Language/PlutusCore/Eq"
           "Language/PlutusCore/Mark"
+          "Language/PlutusCore/Parser/Internal"
           "Language/PlutusCore/Pretty/Classic"
           "Language/PlutusCore/Pretty/Default"
           "Language/PlutusCore/Pretty/Plc"
@@ -245,6 +246,7 @@
           "Language/UntypedPlutusCore"
           "Language/UntypedPlutusCore/DeBruijn"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
+          "Language/UntypedPlutusCore/Parser"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Hash"
@@ -419,6 +421,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))

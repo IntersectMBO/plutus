@@ -127,9 +127,9 @@ postulate
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT (-1) ty) #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
-{-# COMPILE GHC parse = first (const ParseError) . parse  #-}
-{-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
-{-# COMPILE GHC parseTy = either (\_ -> Nothing) Just . parseTy  #-}
+{-# COMPILE GHC parse = first (\(_::ParseError AlexPosn) -> ParseError) . runQuote . runExceptT . parseProgram #-}
+{-# COMPILE GHC parseTm = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseTerm #-}
+{-# COMPILE GHC parseTy = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseType #-}
 {-# COMPILE GHC deBruijnify = first (const ScopeError) . runExcept . deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}

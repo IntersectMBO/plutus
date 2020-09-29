@@ -5,14 +5,10 @@
 module Language.PlutusCore
     (
       -- * Parser
-      parse
-    , parseST
-    , parseTermST
-    , parseTypeST
-    , parseScoped
-    , parseProgram
+    parseProgram
     , parseTerm
     , parseType
+    , parseScoped
     -- * Universe
     , Some (..)
     , TypeIn (..)

@@ -120,6 +120,7 @@ library
         Language.UntypedPlutusCore
         Language.UntypedPlutusCore.DeBruijn
         Language.UntypedPlutusCore.Evaluation.Machine.Cek
+        Language.UntypedPlutusCore.Parser
 
         PlutusPrelude
         Common
@@ -154,6 +155,7 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Eq
         Language.PlutusCore.Mark
+        Language.PlutusCore.Parser.Internal
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
@@ -371,6 +373,7 @@ benchmark plutus-core-bench
     build-depends:
         base -any,
         bytestring -any,
+        mtl -any,
         containers -any,
         criterion -any,
         plutus-core -any,
