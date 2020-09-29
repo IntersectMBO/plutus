@@ -5,26 +5,15 @@
 ### stack
 
 ```sh
-cd playground-server
-cp playground.yaml.sample playground.yaml
-
-vi playground.yaml # Fill in this file.
-
-stack build
-stack exec -- plutus-playground-server psgenerator ../plutus-playground-client/generated
-stack exec -- plutus-playground-server webserver ../plutus-playground-client/dist
+stack build plutus-playground-server
+stack exec -- plutus-playground-server psgenerator ./plutus-playground-client/generated
+stack exec -- plutus-playground-server webserver
 ```
 
 ### nix
 
 ```sh
-cp playground.yaml.sample playground.yaml
-
-vi playground.yaml # Fill in this file.
-
-nix build -f default.nix plutus-playground.server-invoker
-result/bin/plutus-playground psgenerator -p 4000 ./plutus-playground-client/generated
-result/bin/plutus-playground webserver -p 4000 ./plutus-playground-client/dist
+$(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground webserver
 ```
 
 # Troubleshooting
