@@ -49,6 +49,7 @@ in haskell.packages.shellFor {
     # This breaks compilation of R on macOS. The latest version of R
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
+    pkgs.R
   ]);
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
