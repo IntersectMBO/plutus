@@ -36,7 +36,7 @@ import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                                             (Enumerable (..), Options (..), ctrex')
+import           Control.Search                                             (Enumerable (..), Options (..), ctrex',search')
 import           Data.Coolean                                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
@@ -45,7 +45,7 @@ import qualified Data.Text                                                  as T
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
-
+import System.IO.Unsafe
 
 -- * Property-based tests
 
@@ -56,14 +56,16 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 15
+  { genDepth = 14
   , genMode  = OF
   }
 
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
   testGroup "NEAT"
-  [ testCaseGen "normalization commutes with conversion from generated types"
+  
+  [ -- as originally written, use lazy-search to find ctrexs
+    testCaseGen "normalization commutes with conversion from generated types"
       genOpts
       (Type ())
       prop_normalizeConvertCommuteTypes
@@ -82,6 +84,14 @@ tests genOpts@GenOptions{} =
 --    v - this would also fail if the depth was increased
       (Type (), TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek
+      
+  -- FIXME: this is an experiment   
+  -- generate examples using lazy search and turn them into individual tests
+  -- uses unsafePerformIO to extract examples from IO [a].
+  , mapTest
+      genOpts
+      (Type ())
+      (packTest prop_normalizeConvertCommuteTypes)
   ]
 -- |Property: check if the type is preserved by evaluation.
 --
@@ -347,3 +357,19 @@ tynames = mkTextNameStream "t"
 -- |Stream of names x0, x1, x2, ..
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
+
+-- FIXME: this is an experiment
+-- generate examples and then turn them into individual tasty tests
+{-# NOINLINE mapTest #-}
+mapTest :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
+mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
+  where
+  examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
+
+-- take a prop and turn it into a tasty test
+packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
+packTest f t a = testCase ("typecheck test: " ++ show a) $
+  case (runQuote . runExceptT $ f t a) of
+    Left  e -> assertFailure $ show e
+    Right _ -> return ()
