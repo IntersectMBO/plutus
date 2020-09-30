@@ -11,9 +11,8 @@ import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (class MonadEffect)
 import Gists (GistAction(..))
 import Halogen (Component, ComponentHTML, get, liftEffect, query, subscribe)
 import Halogen as H
@@ -21,10 +20,10 @@ import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
-import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, iohkIcon, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p_, section, slot, text)
+import Halogen.Classes (aCenter, aHorizontal, active, flexCol, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, section, slot, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
+import Halogen.HTML.Properties (class_, classes, href, id_, src, target)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
@@ -189,7 +188,7 @@ handleAction settings Init = do
     Right { subroute: Router.Home, gistId } -> do
       let
         subroute = if showHome then Router.Home else Router.Simulation
-      trace { showHome, subroute } \_ -> handleRoute settings { subroute, gistId }
+      handleRoute settings { subroute, gistId }
     Right route -> handleRoute settings route
     Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init

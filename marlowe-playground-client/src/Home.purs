@@ -3,22 +3,21 @@ module Home where
 import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (blocklyIcon, blocklyIconColour, flex, fullHeight, fullWidth, haskellIcon, horizontalFlip, marloweLogo, marloweLogo2, rightArrow, scroll, simulationIcon)
+import Halogen.Classes (blocklyIconColour, flex, fullHeight, fullWidth, haskellIcon, horizontalFlip, marloweLogo2, rightArrow, scroll, simulationIcon)
 import Halogen.HTML (a, button, div, h1, h2, h3, img, input, label, p, text)
-import Halogen.HTML.Events (onChecked)
+import Halogen.HTML.Events (onChecked, onClick)
 import Halogen.HTML.Properties (InputType(..), checked, classes, href, id_, src, target, type_)
 import Halogen.HTML.Properties as HTML
-import Prelude (not, (<<<))
-import Types (ChildSlots, FrontendState, HAction(..), _showHomePage)
+import Prelude (const, not, (<<<))
+import Types (ChildSlots, FrontendState, HAction(..), View(..), _showHomePage)
 
 render :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
 render state =
   div [ classes [ scroll, fullHeight ] ]
     [ h1 [] [ text "What is the Marlowe Playground?" ]
-    , p [] [ text "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction. Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction. Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction." ]
-    , p [] [ text "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction." ]
+    , p [] [ text "For Marlowe to be usable in practice, users need to be able to understand how contracts will behave once deployed to the blockchain, but without doing the deployment. We can do that by simulating their behaviour off-chain, interactively stepping through the evaluation of a contract in the browser-based tool, the Marlowe Playground, a web tool that supports the interactive construction, revision, and simulation of smart-contracts written in Marlowe." ]
     , h2 [] [ text "How does the playground work?" ]
-    , p [] [ text "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction. Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties." ]
+    , p [] [ text "Not sure what to put here" ]
     , div [ classes [ flex, ClassName "start-with-container" ] ]
         [ div [ classes [ fullWidth ] ]
             [ h3 [] [ text "Option 1: Start with Haskell" ]
@@ -32,7 +31,7 @@ render state =
     , h3 [] [ text "Ready to go?" ]
     , div [ classes [ ClassName "ready-to-go-buttons" ] ]
         [ a [ href "./tutorial/index.html", target "_blank", classes [] ] [ text "Read our tutorial" ]
-        , button [] [ text "Start coding!" ]
+        , button [ onClick ((const <<< Just <<< ChangeView) Simulation) ] [ text "Start coding!" ]
         ]
     , div [ classes [ ClassName "no-show-home" ] ]
         [ input [ id_ "no-show-home", type_ InputCheckbox, onChecked (Just <<< ShowHomePageInFuture <<< not), checked (state ^. (_showHomePage <<< to not)) ]
