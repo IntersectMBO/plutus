@@ -45,13 +45,13 @@ render state =
             , button [ onClick ((const <<< Just <<< ChangeView) Simulation) ] [ text "Start coding!" ]
             ]
         , div [ classes [ ClassName "no-show-home" ] ]
-            [ label [ HTML.for "no-show-home" ] [ text "Don’t show this screen next time" ]
-            , input
+            [ input
                 [ id_ "no-show-home"
                 , type_ InputCheckbox
                 , onChecked (Just <<< ShowHomePageInFuture <<< not)
                 , checked (state ^. (_showHomePage <<< to not))
                 ]
+            , label [ HTML.for "no-show-home" ] [ text "Don’t show this screen next time" ]
             ]
         ]
     ]

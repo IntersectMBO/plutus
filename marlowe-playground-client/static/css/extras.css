@@ -97,7 +97,7 @@
 }
 
 .no-show-home input {
-  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .marlowe-intro-container {
@@ -120,4 +120,7 @@
 .home-buttons {
   display: flex;
   justify-content: space-between;
+
+  /* remove this to put dont show button on right */
+  flex-flow: column;
 }
