@@ -48,7 +48,7 @@ import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (/=))
 import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
@@ -176,21 +176,16 @@ handleAction ::
   HalogenM FrontendState HAction ChildSlots Void m Unit
 handleAction settings Init = do
   let
-    isTrue (Just "false") = false
-
-    isTrue Nothing = true
-
-    isTrue _ = true
+    isTrue = (/=) (Just "false")
   showHome <- liftEffect $ isTrue <$> LocalStorage.getItem showHomePageLocalStorageKey
+  let
+    subroute = if showHome then Router.Home else Router.Simulation
   assign _showHomePage showHome
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
-    Right { subroute: Router.Home, gistId } -> do
-      let
-        subroute = if showHome then Router.Home else Router.Simulation
-      handleRoute settings { subroute, gistId }
+    Right { subroute: Router.Home, gistId } -> handleRoute settings { subroute, gistId }
     Right route -> handleRoute settings route
-    Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
+    Left _ -> handleRoute settings { subroute, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init
 
 handleAction settings (ShowHomePageInFuture b) = do
