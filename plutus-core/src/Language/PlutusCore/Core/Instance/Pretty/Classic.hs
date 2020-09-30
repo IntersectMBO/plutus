@@ -17,8 +17,8 @@ import           PlutusPrelude
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Instance.Recursive
 import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Pretty                      (PrettyConst)
 import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Universe
 
 import           Data.Functor.Foldable
@@ -50,7 +50,7 @@ instance
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> pretty b)  -- NB: actually calls prettyConst
+        a (ConstantF _ b)      = parens' ("con" </> prettyTypeOf b </> pretty b)  -- NB: actually calls prettyConst
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n
@@ -65,6 +65,8 @@ instance
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
 
+        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
+        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
 
 
 instance PrettyClassicBy configName (Term tyname name uni a) =>

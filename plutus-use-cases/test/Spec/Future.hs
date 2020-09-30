@@ -109,7 +109,7 @@ theFuture = Future {
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
-initContract :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+initContract :: ContractTrace FutureSchema FutureError a ()
 initContract = do
     callEndpoint @"initialise-future" (Wallet 1) (setup, Short)
     handleBlockchainEvents (Wallet 1)
@@ -122,7 +122,7 @@ initContract = do
 
 -- | Calls the "join-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
-joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+joinFuture :: ContractTrace FutureSchema FutureError a ()
 joinFuture = do
     callEndpoint @"join-future" (Wallet 2) (accounts, setup)
     handleBlockchainEvents (Wallet 2)
@@ -135,7 +135,7 @@ joinFuture = do
 
 -- | Calls the "settle-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
-payOut :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+payOut :: ContractTrace FutureSchema FutureError a ()
 payOut = do
     let
         spotPrice = Ada.lovelaceValueOf 1124
@@ -169,7 +169,7 @@ accounts =
             F.setupTokens
             (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 ) w1
 
-increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+increaseMargin :: ContractTrace FutureSchema FutureError a ()
 increaseMargin = do
     callEndpoint @"increase-margin" (Wallet 2) (Ada.lovelaceValueOf 100, Long)
     addBlocks 1
@@ -177,7 +177,7 @@ increaseMargin = do
     addBlocks 1
     handleBlockchainEvents (Wallet 2)
 
-settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+settleEarly :: ContractTrace FutureSchema FutureError a ()
 settleEarly = do
     let
         spotPrice = Ada.lovelaceValueOf 11240

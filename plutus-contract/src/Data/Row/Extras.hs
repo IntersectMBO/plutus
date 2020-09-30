@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -7,6 +8,7 @@ module Data.Row.Extras(
       JsonRec(..)
     , JsonVar(..)
     , MonoidRec(..)
+    , namedBranchFromJSON
     ) where
 
 import           Data.Aeson            (FromJSON, ToJSON, (.:), (.=))
@@ -25,7 +27,12 @@ import qualified Data.Text             as Text
 newtype JsonVar s = JsonVar { unJsonVar :: Var s }
 
 instance (AllUniqueLabels s, Forall s FromJSON) => FromJSON (JsonVar s) where
-    parseJSON vl = JsonVar <$> Variants.fromLabels @FromJSON @s @Aeson.Parser (\lbl -> Aeson.withObject "Var" (\obj -> do { tg <- obj .: "tag"; if tg == show lbl then (obj .: "value") >>= Aeson.parseJSON else fail "Wrong label" }) vl)
+    parseJSON vl = fmap JsonVar $ do
+      Aeson.withObject "Var" (\obj -> do
+        theTag <- obj .: "tag"
+        theValue <- obj .: "value"
+        namedBranchFromJSON theTag theValue)
+        vl
 
 instance Forall s ToJSON => ToJSON (JsonVar s) where
     toJSON (JsonVar v) =
@@ -33,6 +40,11 @@ instance Forall s ToJSON => ToJSON (JsonVar s) where
       in Aeson.object ["tag" .= lbl, "value" .= vl]
 
 newtype JsonRec s = JsonRec { unJsonRec :: Rec s }
+
+-- | Parse a 'Var s' from JSON if the label of the branch is known.
+namedBranchFromJSON :: forall s. (AllUniqueLabels s, Forall s FromJSON) => String -> Aeson.Value -> Aeson.Parser (Var s)
+namedBranchFromJSON nm vl =
+  Variants.fromLabels @FromJSON @s @Aeson.Parser (\case { n | show n == nm -> Aeson.parseJSON vl; _ -> fail "Wrong label" })
 
 instance Forall s ToJSON => ToJSON (JsonRec s) where
   toJSON = Aeson.object . Records.eraseWithLabels @ToJSON @s @Text @Aeson.Value Aeson.toJSON . unJsonRec

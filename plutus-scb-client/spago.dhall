@@ -7,6 +7,7 @@ You can edit this file as you like.
   [ "prelude"
   , "aff"
   , "avar"
+  , "bigints"
   , "console"
   , "concurrent-queues"
   , "debug"

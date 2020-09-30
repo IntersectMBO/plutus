@@ -70,12 +70,12 @@ import           Control.Lens
 import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import qualified Data.ByteArray            as BA
-import qualified Data.ByteString.Lazy      as BSL
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (isJust)
 import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
+import           Data.Typeable
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 
@@ -134,7 +134,7 @@ data Tx = Tx {
     -- ^ Signatures of this transaction.
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
-    } deriving stock (Show, Eq, Generic)
+    } deriving stock (Show, Eq, Generic, Typeable)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
 instance Pretty Tx where
@@ -241,7 +241,7 @@ strip Tx{..} = TxStripped i txOutputs txForge txFee where
 -- | Compute the id of a transaction.
 txId :: Tx -> TxId
 -- Double hash of a transaction, excluding its witnesses.
-txId tx = TxId $ BSL.fromStrict $ BA.convert h' where
+txId tx = TxId $ BA.convert h' where
     h :: Digest SHA256
     h = hash $ Write.toStrictByteString $ encode $ strip tx
     h' :: Digest SHA256
@@ -297,7 +297,7 @@ instance Pretty TxIn where
                 in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
 
 -- | The 'TxOutRef' spent by a transaction input.
-inRef :: Lens TxIn TxIn TxOutRef TxOutRef
+inRef :: Lens' TxIn TxOutRef
 inRef = lens txInRef s where
     s txi r = txi { txInRef = r }
 
@@ -370,7 +370,7 @@ txOutPubKey TxOut{txOutAddress = a} = case a of
     _                 -> Nothing
 
 -- | The address of a transaction output.
-outAddress :: Lens TxOut TxOut Address Address
+outAddress :: Lens' TxOut Address
 outAddress = lens txOutAddress s where
     s tx a = tx { txOutAddress = a }
 

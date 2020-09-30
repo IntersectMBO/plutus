@@ -12,14 +12,16 @@ module Plutus.SCB.Webserver.WebSocket
 
 import qualified Cardano.BM.Configuration.Model as CM
 import           Cardano.BM.Trace               (Trace)
+import           Cardano.Metadata.Types         (MetadataEffect)
+import qualified Cardano.Metadata.Types         as Metadata
 import           Control.Concurrent.Async       (Async, async, waitAnyCancel)
 import           Control.Exception              (SomeException, handle)
-import           Control.Monad                  (void, when)
+import           Control.Monad                  (forever, void, when)
 import           Control.Monad.Freer            (Eff, LastMember, Member)
 import           Control.Monad.Freer.Delay      (DelayEffect, delayThread, handleDelayEffect)
-import           Control.Monad.Freer.Extra.Log  (LogMsg, logInfo)
+import           Control.Monad.Freer.Extra.Log  (LogMsg, logDebug, logInfo)
 import           Control.Monad.Freer.Reader     (Reader, ask)
-import           Control.Monad.Freer.WebSocket  (WebSocketEffect, acceptConnection, sendJSON)
+import           Control.Monad.Freer.WebSocket  (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Data.Aeson                     (ToJSON)
 import           Data.Time.Units                (Second, TimeUnit)
@@ -31,8 +33,9 @@ import           Plutus.SCB.Events              (ChainEvent)
 import           Plutus.SCB.SCBLogMsg           (SCBLogMsg)
 import           Plutus.SCB.Types               (Config, ContractExe, SCBError)
 import           Plutus.SCB.Webserver.Handler   (getChainReport, getContractReport, getEvents)
-import           Plutus.SCB.Webserver.Types     (StreamToClient (NewChainEvents, NewChainReport, NewContractReport),
-                                                 WebSocketLogMsg (ClosedConnection, CreatedConnection))
+import           Plutus.SCB.Webserver.Types     (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport, Pong),
+                                                 StreamToServer (FetchProperties, FetchProperty, Ping),
+                                                 WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
 import           Wallet.Effects                 (ChainIndexEffect)
 
 ------------------------------------------------------------
@@ -40,6 +43,7 @@ import           Wallet.Effects                 (ChainIndexEffect)
 ------------------------------------------------------------
 chainReportThread ::
        ( Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Member DelayEffect effs
        , Member WebSocketEffect effs
        )
@@ -104,6 +108,32 @@ watchForChanges time query notify = go Nothing
         delayThread time
         go $ Just newValue
 
+queryHandlerThread ::
+       forall effs.
+       ( Member WebSocketEffect effs
+       , Member MetadataEffect effs
+       , Member (LogMsg WebSocketLogMsg) effs
+       )
+    => Connection
+    -> Eff effs ()
+queryHandlerThread connection =
+    forever $ do
+        rawRequest <- receiveJSON connection
+        logDebug $ ReceivedWebSocketRequest rawRequest
+        response <-
+            case rawRequest of
+                Left err      -> pure $ ErrorResponse err
+                Right request -> handler request
+        logDebug $ SendingWebSocketResponse response
+        sendJSON connection response
+  where
+    handler :: StreamToServer -> Eff effs StreamToClient
+    handler (FetchProperties subject) =
+        FetchedProperties <$> Metadata.getProperties subject
+    handler (FetchProperty subject propertyKey) =
+        FetchedProperty <$> Metadata.getProperty subject propertyKey
+    handler Ping = pure Pong
+
 ------------------------------------------------------------
 -- Plumbing
 ------------------------------------------------------------
@@ -115,6 +145,7 @@ threadApp trace logConfig config connection = do
             [ chainReportThread connection
             , contractStateThread connection
             , eventsThread connection
+            , queryHandlerThread connection
             ]
     void $ waitAnyCancel tasks
   where

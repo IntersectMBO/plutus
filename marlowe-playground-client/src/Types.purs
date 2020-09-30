@@ -2,6 +2,7 @@ module Types where
 
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Blockly.Types (BlocklyState)
+import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', (^.))
@@ -12,37 +13,40 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Halogen (AttrName(..), ClassName)
 import Halogen as H
-import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.ActusBlockly as AB
+import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
+import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
+import Language.Javascript.Interpreter as JS
+import Marlowe.Semantics (Contract)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
 import Wallet as Wallet
-import WebSocket.Support as WS
-import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebSocketMessage (WS.FromSocket WebSocketResponseMessage) a
-  | ChangeRoute Route a
-
-data Message
-  = WebSocketMessage WebSocketRequestMessage
+  = ChangeRoute Route a
 
 data HAction
   = Init
   -- Haskell Editor
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
+  | JSHandleEditorMessage Monaco.Message
+  | JSSelectEditorKeyBindings KeyBindings
   | ShowBottomPanel Boolean
   -- haskell actions
+  | CompileJSProgram
+  | CompiledJSProgram (Either JS.CompilationError (JS.InterpreterResult Contract))
   | ChangeView View
+  | SendResultJSToSimulator
+  | LoadJSScript String
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   | HandleActusBlocklyMessage AB.BlocklyMessage
@@ -54,16 +58,23 @@ data HAction
 instance actionIsEvent :: IsEvent HAction where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (HaskellAction action) = toEvent action
+  toEvent (JSHandleEditorMessage _) = Just $ defaultEvent "JSHandleEditorMessage"
   toEvent (SimulationAction action) = toEvent action
+  toEvent (JSSelectEditorKeyBindings _) = Just $ defaultEvent "JSSelectEditorKeyBindings"
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
+  toEvent CompileJSProgram = Just $ defaultEvent "CompileJSProgram"
+  toEvent (CompiledJSProgram _) = Just $ defaultEvent "CompiledJSProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
+  toEvent (LoadJSScript script) = Just $ (defaultEvent "LoadJSScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
 
 ------------------------------------------------------------
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
+    , jsEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     , actusBlocklySlot :: H.Slot AB.BlocklyQuery AB.BlocklyMessage Unit
     , simulationSlot :: H.Slot Simulation.Query BlocklyMessage Unit
@@ -73,6 +84,9 @@ type ChildSlots
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"
 _haskellEditorSlot = SProxy
+
+_jsEditorSlot :: SProxy "jsEditorSlot"
+_jsEditorSlot = SProxy
 
 _blocklySlot :: SProxy "blocklySlot"
 _blocklySlot = SProxy
@@ -92,6 +106,7 @@ _walletSlot = SProxy
 -----------------------------------------------------------
 data View
   = HaskellEditor
+  | JSEditor
   | Simulation
   | BlocklyEditor
   | ActusBlocklyEditor
@@ -104,11 +119,20 @@ derive instance genericView :: Generic View _
 instance showView :: Show View where
   show = genericShow
 
+data JSCompilationState
+  = JSNotCompiled
+  | JSCompiling
+  | JSCompilationError JS.CompilationError
+  | JSCompiledSuccessfully (JS.InterpreterResult Contract)
+
 newtype FrontendState
   = FrontendState
   { view :: View
+  , jsCompilationResult :: JSCompilationState
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
+  , jsEditorKeybindings :: KeyBindings
+  , activeJSDemo :: String
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
   , simulationState :: Simulation.State
@@ -125,11 +149,20 @@ data MarloweError
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
+_jsCompilationResult :: Lens' FrontendState JSCompilationState
+_jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
+
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
 _actusBlocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
+
+_jsEditorKeybindings :: Lens' FrontendState KeyBindings
+_jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
+
+_activeJSDemo :: Lens' FrontendState String
+_activeJSDemo = _Newtype <<< prop (SProxy :: SProxy "activeJSDemo")
 
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")

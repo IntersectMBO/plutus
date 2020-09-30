@@ -9,6 +9,7 @@
 module Plugin.Errors.Spec where
 
 import           Common
+import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
@@ -30,15 +31,15 @@ import           GHC.Integer.GMP.Internals
 
 errors :: TestNested
 errors = testNested "Errors" [
-    goldenPlcCatch "machInt" machInt
+    goldenUPlcCatch "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     -- , goldenPlcCatch "negativeInt" negativeInt
-    , goldenPlcCatch "caseInt" caseInt
-    , goldenPlcCatch "recursiveNewtype" recursiveNewtype
-    , goldenPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-    , goldenPlcCatch "literalCaseInt" literalCaseInt
-    , goldenPlcCatch "literalCaseBs" literalCaseBs
-    , goldenPlcCatch "literalCaseOther" literalCaseOther
+    , goldenUPlcCatch "caseInt" caseInt
+    , goldenUPlcCatch "recursiveNewtype" recursiveNewtype
+    , goldenUPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+    , goldenUPlcCatch "literalCaseInt" literalCaseInt
+    , goldenUPlcCatch "literalCaseBs" literalCaseBs
+    , goldenUPlcCatch "literalCaseOther" literalCaseOther
   ]
 
 machInt :: CompiledCode PLC.DefaultUni Int

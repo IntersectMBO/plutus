@@ -170,7 +170,7 @@ ledgerBytesShowFromHexProp = property $ do
     bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString 32
     let result = LedgerBytes.fromHex $ fromString $ show bts
 
-    Hedgehog.assert $ result == bts
+    Hedgehog.assert $ result == Right bts
 
 ledgerBytesToJSONProp :: Property
 ledgerBytesToJSONProp = property $ do

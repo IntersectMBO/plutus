@@ -20,8 +20,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.ByteString.Lazy.Hash                                  as Hash
+import qualified Data.ByteString                                            as BS
+import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Proxy
 import           Hedgehog
 import           Test.Tasty
@@ -45,7 +45,7 @@ newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
 
-instance SpendBudget AppM (Term Name DefaultUni ()) where
+instance SpendBudget AppM () (Term Name DefaultUni ()) where
     spendBudget _ _ = pure ()
     builtinCostParams = pure defaultCostModel
 
@@ -133,22 +133,22 @@ test_typedConcatenate
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyStaticBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
+    $ prop_applyStaticBuiltinName typedTakeByteString (BS.take . integerToInt)
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
     = testProperty "typedSHA2"
-    $ prop_applyStaticBuiltinName typedSHA2 (coerce Hash.sha2)
+    $ prop_applyStaticBuiltinName typedSHA2 Hash.sha2
 
 test_typedSHA3 :: TestTree
 test_typedSHA3
     = testProperty "typedSHA3"
-    $ prop_applyStaticBuiltinName typedSHA3 (coerce Hash.sha3)
+    $ prop_applyStaticBuiltinName typedSHA3 Hash.sha3
 
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyStaticBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
+    $ prop_applyStaticBuiltinName typedDropByteString (BS.drop . integerToInt)
 
 test_typedEqByteString :: TestTree
 test_typedEqByteString

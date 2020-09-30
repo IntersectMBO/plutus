@@ -11,7 +11,7 @@ module Ledger.TxId(
 
 import           Codec.Serialise.Class     (Serialise)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.ByteString           as BS
 import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
@@ -21,7 +21,7 @@ import           Ledger.Orphans            ()
 import           LedgerBytes               (LedgerBytes (..))
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
-newtype TxId = TxId { getTxId :: BSL.ByteString }
+newtype TxId = TxId { getTxId :: BS.ByteString }
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSON, ToJSONKey, FromJSON, FromJSONKey, IotsType)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)

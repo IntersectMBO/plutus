@@ -13,7 +13,7 @@
 
 module Language.PlutusCore.Constant.Apply
     ( nonZeroArg
-    , integerToInt64
+    , integerToInt
     , applyTypeSchemed
     , applyStaticBuiltinName
     , builtinNameArities
@@ -34,9 +34,8 @@ import           Language.PlutusCore.Universe
 import           Control.Monad.Except
 import           Crypto
 import           Data.Array
-import qualified Data.ByteString.Lazy                               as BSL
-import qualified Data.ByteString.Lazy.Hash                          as Hash
-import           Data.Int
+import qualified Data.ByteString                                    as BS
+import qualified Data.ByteString.Hash                               as Hash
 import           Data.Proxy
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
@@ -46,15 +45,15 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
-integerToInt64 :: Integer -> Int64
-integerToInt64 = fromIntegral
+integerToInt :: Integer -> Int
+integerToInt = fromIntegral
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: forall err m args term res.
+    :: forall err m args exBudgetCat term res.
        ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term
+       , SpendBudget m exBudgetCat term
        )
     => BuiltinName
     -> TypeScheme term args res
@@ -79,7 +78,7 @@ applyTypeSchemed name = go where
                     Nothing
     go (TypeSchemeAll _ _ schK)  f exF args =
         go (schK Proxy) f exF args
-    go (TypeSchemeArrow _ schB)    f exF args = case args of
+    go (TypeSchemeArrow _ schB)  f exF args = case args of
         []          ->
             throwingWithCause _ConstAppError              -- Too few arguments.
                 (TooFewArgumentsConstAppError name)
@@ -94,7 +93,7 @@ applyTypeSchemed name = go where
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    spendBudget (BBuiltin name) exF'
+                    spendBudget (exBudgetBuiltin name) exF'
                     go schB (f x) exF' args'
                 _ -> go schB (f x) exF' args'
 
@@ -102,7 +101,7 @@ applyTypeSchemed name = go where
 -- Checks that the constants are of expected types.
 applyTypedStaticBuiltinName
     :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term
+       , SpendBudget m exBudgetCat term
        )
     => TypedStaticBuiltinName term args res
     -> FoldArgs args res
@@ -115,9 +114,10 @@ applyTypedStaticBuiltinName (TypedStaticBuiltinName name schema) =
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyStaticBuiltinName
-    :: forall m err uni term
+    :: forall m err uni exBudgetCat term
     .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
-       , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
+       , SpendBudget m exBudgetCat term, HasConstantIn uni term
+       , GShow uni, GEq uni, DefaultUni <: uni
        )
     => StaticBuiltinName -> [term] -> m (EvaluationResult term)
 applyStaticBuiltinName name args = do
@@ -204,31 +204,31 @@ applyStaticBuiltinName name args = do
         TakeByteString ->
             applyTypedStaticBuiltinName
                 typedTakeByteString
-                (coerce BSL.take . integerToInt64)
+                (BS.take . integerToInt)
                 (runCostingFunTwoArguments $ paramTakeByteString params)
                 args
         DropByteString ->
             applyTypedStaticBuiltinName
                 typedDropByteString
-                (coerce BSL.drop . integerToInt64)
+                (BS.drop . integerToInt)
                 (runCostingFunTwoArguments $ paramDropByteString params)
                 args
         SHA2 ->
             applyTypedStaticBuiltinName
                 typedSHA2
-                (coerce Hash.sha2)
+                Hash.sha2
                 (runCostingFunOneArgument $ paramSHA2 params)
                 args
         SHA3 ->
             applyTypedStaticBuiltinName
                 typedSHA3
-                (coerce Hash.sha3)
+                Hash.sha3
                 (runCostingFunOneArgument $ paramSHA3 params)
                 args
         VerifySignature ->
             applyTypedStaticBuiltinName
                 typedVerifySignature
-                (coerce $ verifySignature @EvaluationResult)
+                (verifySignature @EvaluationResult)
                 (runCostingFunThreeArguments $ paramVerifySignature params)
                 args
         EqByteString ->

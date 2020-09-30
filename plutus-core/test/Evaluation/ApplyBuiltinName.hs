@@ -22,9 +22,8 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.ByteString.Lazy.Hash                                  as Hash
-import           Data.Coerce
+import qualified Data.ByteString                                            as BS
+import qualified Data.ByteString.Hash                                       as Hash
 import           Hedgehog                                                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -38,7 +37,7 @@ type TestEvaluationException uni =
 
 type TestM uni = Either (TestEvaluationException uni)
 
-instance SpendBudget (TestM uni) (Term TyName Name uni ()) where
+instance SpendBudget (TestM uni) () (Term TyName Name uni ()) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 
@@ -137,22 +136,22 @@ test_typedConcatenate
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyStaticBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
+    $ prop_applyStaticBuiltinName typedTakeByteString (BS.take . integerToInt)
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
     = testProperty "typedSHA2"
-    $ prop_applyStaticBuiltinName typedSHA2 (coerce Hash.sha2)
+    $ prop_applyStaticBuiltinName typedSHA2 Hash.sha2
 
 test_typedSHA3 :: TestTree
 test_typedSHA3
     = testProperty "typedSHA3"
-    $ prop_applyStaticBuiltinName typedSHA3 (coerce Hash.sha3)
+    $ prop_applyStaticBuiltinName typedSHA3 Hash.sha3
 
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyStaticBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
+    $ prop_applyStaticBuiltinName typedDropByteString (BS.drop . integerToInt)
 
 test_typedEqByteString :: TestTree
 test_typedEqByteString

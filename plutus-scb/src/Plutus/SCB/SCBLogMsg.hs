@@ -1,12 +1,10 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 -- | SCB Log messages and instances
 module Plutus.SCB.SCBLogMsg(
     SCBLogMsg(..),
@@ -14,27 +12,28 @@ module Plutus.SCB.SCBLogMsg(
     AppMsg(..)
     ) where
 
-import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras    (Tagged (..), mkObjectStr)
-import           Data.Aeson                       (FromJSON, ToJSON, Value)
-import qualified Data.Aeson.Encode.Pretty         as JSON
-import qualified Data.ByteString.Lazy.Char8       as BSL8
-import           Data.String                      (IsString (..))
-import           Data.Text                        (Text)
-import           Data.Text.Prettyprint.Doc        (Pretty (..), colon, hang, viaShow, vsep, (<+>))
-import           Data.Time.Units                  (Second)
-import           GHC.Generics                     (Generic)
-import           Language.Plutus.Contract.State   (ContractRequest)
-import           Ledger.Tx                        (Tx)
-import           Plutus.SCB.Core                  (CoreMsg (..))
-import           Plutus.SCB.Core.ContractInstance (ContractInstanceMsg (..))
-import           Plutus.SCB.Events.Contract       (ContractInstanceId, ContractInstanceState)
-import           Plutus.SCB.Instances             ()
-import           Plutus.SCB.MonadLoggerBridge     (MonadLoggerMsg (..))
-import           Plutus.SCB.ParseStringifiedJSON  (UnStringifyJSONLog (..))
-import           Plutus.SCB.Types                 (ContractExe, SCBError (..))
-import           Plutus.SCB.Webserver.Types       (WebSocketLogMsg)
-import           Wallet.Emulator.Wallet           (WalletEvent (..))
+import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
+import           Data.Aeson                         (FromJSON, ToJSON, Value)
+import qualified Data.Aeson.Encode.Pretty           as JSON
+import qualified Data.ByteString.Lazy.Char8         as BSL8
+import           Data.String                        (IsString (..))
+import           Data.Text                          (Text)
+import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, hang, viaShow, vsep, (<+>))
+import           Data.Time.Units                    (Second)
+import           GHC.Generics                       (Generic)
+import           Language.Plutus.Contract.State     (ContractRequest)
+import           Ledger.Tx                          (Tx)
+import           Plutus.SCB.Core                    (CoreMsg (..))
+import           Plutus.SCB.Core.ContractInstance   (ContractInstanceMsg (..))
+import           Plutus.SCB.Effects.ContractRuntime (ContractRuntimeMsg)
+import           Plutus.SCB.Events.Contract         (ContractInstanceId, ContractInstanceState)
+import           Plutus.SCB.Instances               ()
+import           Plutus.SCB.MonadLoggerBridge       (MonadLoggerMsg (..))
+import           Plutus.SCB.ParseStringifiedJSON    (UnStringifyJSONLog (..))
+import           Plutus.SCB.Types                   (ContractExe, SCBError (..))
+import           Plutus.SCB.Webserver.Types         (WebSocketLogMsg)
+import           Wallet.Emulator.Wallet             (WalletEvent (..))
 
 data AppMsg =
     InstalledContractsMsg
@@ -73,6 +72,7 @@ data SCBLogMsg =
     | SWalletEvent Wallet.Emulator.Wallet.WalletEvent
     | SLoggerBridge MonadLoggerMsg
     | SWebsocketMsg WebSocketLogMsg
+    | SContractRuntimeMsg ContractRuntimeMsg
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -85,6 +85,7 @@ instance Pretty SCBLogMsg where
         SWalletEvent w -> pretty w
         SLoggerBridge m -> pretty m
         SWebsocketMsg m -> pretty m
+        SContractRuntimeMsg m -> pretty m
 
 data ContractExeLogMsg =
     InvokeContractMsg
@@ -153,7 +154,7 @@ instance ToObject AppMsg where
             mkObjectStr "Processing inbox message" ()
         ProcessAllOutboxesMsg second ->
             mkObjectStr "Processing outbox messages"
-            $ (Tagged @"interval_seconds" $ fromIntegral @_ @Integer second)
+              (Tagged @"interval_seconds" $ fromIntegral @_ @Integer second)
         SCBMsg m -> toObject v m
         InstalledContract t ->
             mkObjectStr "Installed contract" t
@@ -181,6 +182,7 @@ instance ToObject SCBLogMsg where
         SWalletEvent e -> toObject v e
         SLoggerBridge e -> toObject v e
         SWebsocketMsg e -> toObject v e
+        SContractRuntimeMsg e -> toObject v e
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case

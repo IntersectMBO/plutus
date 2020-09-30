@@ -1,0 +1,2 @@
+Error during typechecking:
+Free type variable at  nonSelfRecursive:8:62 :  List

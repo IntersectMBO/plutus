@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -22,6 +23,7 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as P
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
+import           Codec.Serialise
 import           Control.DeepSeq                                            (rnf)
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
@@ -121,7 +123,7 @@ data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode Format Timing
-data PrintMode = Classic | Debug deriving (Show, Read)
+data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 data PrintOptions = PrintOptions Input PrintMode
 data PlcToCborOptions = PlcToCborOptions Input Output
 data CborToPlcOptions = CborToPlcOptions Input Output PrintMode
@@ -182,7 +184,8 @@ printMode = option auto
   <> metavar "MODE"
   <> value Classic
   <> showDefault
-  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+  <> help ("Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
+        ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> printMode
@@ -248,7 +251,7 @@ getCborInput (FileInput file) = BSL.readFile file
 loadPlcFromCborFile :: Input -> IO PlainProgram
 loadPlcFromCborFile inp = do
   p <- getCborInput inp -- The type is constrained in the Right case below.
-  case deserialiseRestoringUnitsOrFail p of  -- See Note [Annotation Types]
+  case deserialiseOrFail p of
     Left (DeserialiseFailure offset msg) ->
         do
           putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
@@ -308,14 +311,19 @@ runEval (EvalOptions inp mode fmt printtime) = do
 
 ---------------- Parse and print a PLC source file ----------------
 
+getPrintMethod :: PLC.PrettyPlc a => PrintMode -> (a -> Doc ann)
+getPrintMethod = \case
+      Classic       -> PLC.prettyPlcClassicDef
+      Debug         -> PLC.prettyPlcClassicDebug
+      Readable      -> PLC.prettyPlcReadableDef
+      ReadableDebug -> PLC.prettyPlcReadableDebug
+
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-  let printMethod = case mode of
-            Classic -> PLC.prettyPlcClassicDef
-            Debug   -> PLC.prettyPlcClassicDebug
+  let
   in do
     p <- parsePlcFile inp
-    print . printMethod $ p
+    print . (getPrintMethod mode) $ p
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -323,7 +331,7 @@ runPrint (PrintOptions inp mode) =
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
   p <- parsePlcFile inp
-  let cbor = serialiseOmittingUnits (() <$ p) -- Change annotations to (): see Note [Annotation types].
+  let cbor = serialise (() <$ p) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor *> putStrLn ""
@@ -334,9 +342,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
   plc <- loadPlcFromCborFile inp
-  let printMethod = case mode of
-                      Classic -> PLC.prettyPlcClassicDef
-                      Debug   -> PLC.prettyPlcClassicDebug
+  let printMethod = getPrintMethod mode
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
     StdOutput       -> print . printMethod $ plc

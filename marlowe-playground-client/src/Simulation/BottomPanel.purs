@@ -4,7 +4,6 @@ import Control.Alternative (map)
 import Data.Array (concatMap, drop, head, length, reverse)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
-import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
@@ -19,25 +18,33 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
-import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, showPrettyToken, timeouts)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
-import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
 import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div ([ classes [ ClassName "simulation-bottom-panel" ], bottomPanelHeight (state ^. _showBottomPanel) ])
+  div
+    ( [ classes
+          ( if showingBottomPanel then
+              [ ClassName "simulation-bottom-panel" ]
+            else
+              [ ClassName "simulation-bottom-panel", collapsed ]
+          )
+      , bottomPanelHeight showingBottomPanel
+      ]
+    )
     [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
         [ div [ class_ flexTen ]
             [ div [ classes [ footerPanelBg, active ] ]
@@ -93,6 +100,8 @@ bottomPanel state =
   hasRuntimeWarnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings <<< to Array.null <<< to not)
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
+
+  showingBottomPanel = state ^. _showBottomPanel
 
 isStaticLoading :: AnalysisState -> Boolean
 isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
@@ -451,16 +460,22 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        Failure failure ->
-          explanation
-            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
-            , text "Analysis failed for the following reason:"
-            , ul [ classes [ ClassName "indented-enum-initial" ] ]
-                [ li_
-                    [ b_ [ spanText failure ]
-                    ]
-                ]
-            ]
+        Failure (AjaxError { description }) ->
+          let
+            err = case description of
+              DecodingError e -> "Decoding error: " <> e
+              ConnectionError e -> "Connection error: " <> e
+              ResponseFormatError e -> "Response Format error: " <> e
+          in
+            explanation
+              [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+              , text "Analysis failed for the following reason:"
+              , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                  [ li_
+                      [ b_ [ spanText err ]
+                      ]
+                  ]
+              ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
         NotStarted ->
@@ -495,36 +510,34 @@ analysisResultPane state =
             , text "Reachability analysis could not find any subcontract that is not reachable."
             ]
 
-displayTransactionList :: forall p. String -> HTML p Action
-displayTransactionList transactionList = case runParser transactionInputList transactionList of
-  Right pTL ->
-    ol [ classes [ ClassName "indented-enum" ] ]
-      ( do
-          ( TransactionInput
-              { interval: SlotInterval (Slot from) (Slot to)
-            , inputs: inputList
-            }
-          ) <-
-            ((toUnfoldable pTL) :: Array TransactionInput)
-          pure
-            ( li_
-                [ span_
-                    [ b_ [ text "Transaction" ]
-                    , text " with slot interval "
-                    , b_ [ text $ (show from <> " to " <> show to) ]
-                    , if List.null inputList then
-                        text " and no inputs (empty transaction)."
-                      else
-                        text " and inputs:"
-                    ]
-                , if List.null inputList then
-                    text ""
-                  else
-                    displayInputList inputList
-                ]
-            )
-      )
-  Left _ -> code_ [ text transactionList ]
+displayTransactionList :: forall p. Array TransactionInput -> HTML p Action
+displayTransactionList transactionList =
+  ol [ classes [ ClassName "indented-enum" ] ]
+    ( do
+        ( TransactionInput
+            { interval: SlotInterval (Slot from) (Slot to)
+          , inputs: inputList
+          }
+        ) <-
+          transactionList
+        pure
+          ( li_
+              [ span_
+                  [ b_ [ text "Transaction" ]
+                  , text " with slot interval "
+                  , b_ [ text $ (show from <> " to " <> show to) ]
+                  , if List.null inputList then
+                      text " and no inputs (empty transaction)."
+                    else
+                      text " and inputs:"
+                  ]
+              , if List.null inputList then
+                  text ""
+                else
+                  displayInputList inputList
+              ]
+          )
+    )
 
 displayInputList :: forall p. List Input -> HTML p Action
 displayInputList inputList =
@@ -565,15 +578,13 @@ displayInput (INotify) =
   , b_ [ text "True" ]
   ]
 
-displayWarningList :: forall p. String -> HTML p Action
-displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
-  Right pWL ->
-    ol [ classes [ ClassName "indented-enum" ] ]
-      ( do
-          warning <- ((toUnfoldable pWL) :: Array TransactionWarning)
-          pure (li_ (displayWarning warning))
-      )
-  Left _ -> code_ [ text transactionWarnings ]
+displayWarningList :: forall p. Array TransactionWarning -> HTML p Action
+displayWarningList transactionWarnings =
+  ol [ classes [ ClassName "indented-enum" ] ]
+    ( do
+        warning <- transactionWarnings
+        pure (li_ (displayWarning warning))
+    )
 
 displayWarnings :: forall p. Array TransactionWarning -> HTML p Action
 displayWarnings [] = text mempty

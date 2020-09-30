@@ -28,7 +28,7 @@ import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Monad.RWS.Strict
-import qualified Data.ByteString.Lazy         as BSL
+import qualified Data.ByteString              as BS
 import qualified Data.Kind                    as GHC
 import           Data.Proxy
 import qualified Data.Text                    as T
@@ -40,17 +40,18 @@ import           GHC.Prim
 
 {- Note [Memory Usage for Plutus]
 
-The base unit is 'ExMemory', which corresponds to machine words. For primities,
+The base unit is 'ExMemory', which corresponds to machine words. For primitives,
 we use static values for the size, see the corresponding instances. For
 composite data types, the Generic instance is used, + 1 for the constructor tag.
 For ADTs, the currently selected branch is counted, not the maximum value.
 Memory usage of the annotation is not counted, because this should be
-abstractily specifiable. It's an implementation detail.
+abstractly specifiable. It's an implementation detail.
 
 -}
 
 type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
+-- | NOT the amount of memory it cost to calculate this value.
 type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
@@ -103,14 +104,16 @@ class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
-deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
+deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
+    (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
-  instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
-    ExMemoryUsage (Term TyName Name uni ann)
+deriving via (GenericExMemoryUsage (Term tyname name uni ann)) instance
+    ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
+    , Closed uni, uni `Everywhere` ExMemoryUsage
+    ) => ExMemoryUsage (Term tyname name uni ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
@@ -128,10 +131,10 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
+  memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 60)) -- assume 60bit size
 
-instance ExMemoryUsage BSL.ByteString where
-  memoryUsage bsl = ExMemory $ (toInteger $ BSL.length bsl) `div` 8
+instance ExMemoryUsage BS.ByteString where
+  memoryUsage bs = ExMemory $ (toInteger $ BS.length bs) `div` 8
 
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16

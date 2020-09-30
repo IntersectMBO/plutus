@@ -6,7 +6,7 @@ module Language.PlutusCore.Pretty.Utils
 
 import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy               as BSL
+import qualified Data.ByteString                    as BS
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal
 import           Numeric                            (showHex)
@@ -18,5 +18,5 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | x < 16    = ('0' :)
               | otherwise = id
 
-prettyBytes :: BSL.ByteString -> Doc ann
-prettyBytes b = "#" <> fold (asBytes <$> BSL.unpack b)
+prettyBytes :: BS.ByteString -> Doc ann
+prettyBytes b = "#" <> fold (asBytes <$> BS.unpack b)

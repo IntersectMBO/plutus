@@ -365,6 +365,10 @@ button.minus-btn:hover {
   display: block;
 }
 
+.collapsed {
+  resize: none;
+}
+
 .flex-left {
   flex-direction: column;
   align-items: flex-start;

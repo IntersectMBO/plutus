@@ -26,6 +26,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , ErrorWithCause (..)
     , MachineException
     , EvaluationException
+    , mapErrorWithCauseF
     , throwingWithCause
     , extractEvaluationResult
     ) where
@@ -73,10 +74,10 @@ data MachineError err term
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError (ConstAppError term)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
-    | UnexpectedBuiltinInstantiationMachineError
-      -- ^ A builtin was instantiated when a term argument was expected
+    | BuiltinTermArgumentExpectedMachineError
+      -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
-      -- ^ A term argument to a builtin was encountered when an instantiation was expected
+      -- ^ A buitlin received a term argument when something else was expected
     | EmptyBuiltinArityMachineError
       -- ^ We've reached a state where a builtin instantiation or application is attempted
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
@@ -91,7 +92,7 @@ data EvaluationError internal user term
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
@@ -118,8 +119,21 @@ data ErrorWithCause err term
     = ErrorWithCause err (Maybe term)
     deriving (Eq, Functor)
 
-type MachineException internal term = ErrorWithCause (MachineError internal term) term
-type EvaluationException internal user term = ErrorWithCause (EvaluationError internal user term) term
+instance Bifunctor ErrorWithCause where
+    bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
+
+type MachineException internal term =
+    ErrorWithCause (MachineError internal term) term
+
+type EvaluationException internal user term =
+    ErrorWithCause (EvaluationError internal user term) term
+
+mapErrorWithCauseF
+    :: Functor f
+    => (term1 -> term2)
+    -> ErrorWithCause (f term1) term1
+    -> ErrorWithCause (f term2) term2
+mapErrorWithCauseF f = bimap (fmap f) f
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -150,7 +164,7 @@ extractEvaluationResult
     -> Either (MachineException internal term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    InternalEvaluationError err -> Left $ ErrorWithCause err cause
+    InternalEvaluationError err -> Left  $ ErrorWithCause err cause
     UserEvaluationError _       -> Right $ EvaluationFailure
 
 instance Pretty UnliftingError where
@@ -178,11 +192,11 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
     prettyBy _      NonFunctionalApplicationMachineError   =
         "Attempted to apply a non-function."
     prettyBy _      OpenTermEvaluatedMachineError         =
-        "Cannot evaluate an open term."
-    prettyBy _      UnexpectedBuiltinInstantiationMachineError =
-        "A builtin was instantiated when a term argument was expected "
+        "Cannot evaluate an open term"
+    prettyBy _      BuiltinTermArgumentExpectedMachineError =
+        "A builtin expected a term argument, but something else was received"
     prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
-        "A buitlin received a term argument when an instantiation was expected"
+        "A buitlin received a term argument when something else was expected"
     prettyBy _      EmptyBuiltinArityMachineError =
         "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy config (ConstAppMachineError constAppError)  =

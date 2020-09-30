@@ -86,7 +86,7 @@ data GenError
  =  forall n. Show n => Gen (TypeG n) (Kind ())
 
 data ErrorP ann
- = TypeErrorP (TypeError DefaultUni ann)
+ = TypeErrorP (TypeError (Term TyName Name DefaultUni ()) DefaultUni ann)
  | AgdaErrorP ()
  | GenErrorP GenError
  | FVErrorP FreeVariableError

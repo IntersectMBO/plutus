@@ -40,7 +40,8 @@ let
   sphinxemoji = pkgs.python3Packages.callPackage ./nix/python/sphinxemoji.nix {};
 
   pkgsMusl = import ./nix/default.nix {
-    inherit system config sourcesOverride;
+    inherit config sourcesOverride;
+    system = "x86_64-linux";
     crossSystem = lib.systems.examples.musl64;
   };
 
@@ -96,7 +97,7 @@ in rec {
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
-      // { inherit (packages) plc-agda; };
+      // { inherit (packages) plutus-metatheory; };
 
     muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit agdaPackages checkMaterialization; };
     # All the packages defined by our project, built for musl
@@ -157,6 +158,26 @@ in rec {
     eutxoma = pkgs.callPackage ./papers/eutxoma/default.nix { inherit latex; };
   };
 
+  web-ghc = 
+    let
+      web-ghc-server = set-git-rev haskell.packages.web-ghc.components.exes.web-ghc-server;
+      runtimeGhc = haskell.packages.ghcWithPackages (ps: [
+        ps.playground-common
+        ps.plutus-playground-server
+        ps.plutus-use-cases
+        ps.marlowe
+      ]);
+    in pkgs.runCommand "web-ghc" { buildInputs = [pkgs.makeWrapper]; } ''
+      # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
+      mkdir -p $out/bin
+      ln -s ${web-ghc-server}/bin/web-ghc-server $out/bin/web-ghc-server
+      wrapProgram $out/bin/web-ghc-server \
+        --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
+        --set GHC_BIN_DIR "${runtimeGhc}/bin" \
+        --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
+        --set GHC_RTS "-M2G"
+    '';
+
   plutus-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
     server-invoker = let
@@ -197,6 +218,8 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
+    tutorial = docs.site;
+    haddock = docs.combined-haddock;
   });
 
   marlowe-playground = pkgs.recurseIntoAttrs (rec {
@@ -237,7 +260,19 @@ in rec {
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
+    
+    tutorial = docs.marlowe-tutorial;
   });
+
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+  
+  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { 
+    inherit marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda; 
+  };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 
@@ -338,8 +373,6 @@ in rec {
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
-
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }

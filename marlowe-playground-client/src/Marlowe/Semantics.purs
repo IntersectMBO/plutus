@@ -1,38 +1,36 @@
 module Marlowe.Semantics where
 
 import Prelude
-import Prelude
-import Control.Monad.Except (mapExcept, runExcept)
+import Control.Alt ((<|>))
+import Control.Monad.Except.Trans (ExceptT)
 import Data.Array (catMaybes)
-import Data.Bifunctor (bimap, lmap, rmap)
-import Data.BigInteger (BigInteger, fromInt, quot, rem)
-import Data.Either (Either(..))
+import Data.BigInteger (BigInteger, fromInt)
 import Data.Foldable (class Foldable, any, foldl, minimum)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Integral (class Integral)
+import Data.Identity (Identity)
 import Data.Lens (Lens', over, to, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.List (List(..), fromFoldable, null, reverse, (:))
+import Data.List (List(..), fromFoldable, reverse, (:))
+import Data.List.NonEmpty (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.Num (class Num)
 import Data.Ord (abs, signum)
-import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
-import Foreign (F, readString, Foreign)
+import Foreign (Foreign, ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
-import Foreign.Generic (genericEncode, genericDecode)
+import Foreign.Generic (genericDecode, genericEncode)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
-import Foreign.Index (readProp)
-import Foreign.Object (Object)
+import Foreign.Index (hasProperty, readProp)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
+
+decodeProp :: forall a. Decode a => String → Foreign → ExceptT (NonEmptyList ForeignError) Identity a
+decodeProp key obj = decode =<< readProp key obj
 
 type PubKey
   = String
@@ -48,10 +46,13 @@ derive instance eqParty :: Eq Party
 derive instance ordParty :: Ord Party
 
 instance encodeJsonParty :: Encode Party where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (PK pubKey) = encode { pk_hash: pubKey }
+  encode (Role tokName) = encode { role_token: tokName }
 
 instance decodeJsonParty :: Decode Party where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    (PK <$> decodeProp "pk_hash" a)
+      <|> (Role <$> decodeProp "role_token" a)
 
 instance showParty :: Show Party where
   show = genericShow
@@ -79,19 +80,20 @@ data Token
   = Token CurrencySymbol TokenName
 
 instance encodeJsonToken :: Encode Token where
-  encode (Token "" "") = encode "ada"
-  encode (Token cur tok) = encode { currency: { unCurrencySymbol: cur }, token: { unTokenName: tok } }
+  encode (Token cur tok) =
+    encode
+      { currency_symbol: cur
+      , token_name: tok
+      }
 
 type TokenJson
   = { currency :: { unCurrencySymbol :: String }, token :: { unTokenName :: String } }
 
 instance decodeJsonToken :: Decode Token where
-  decode a = do
-    mapExcept f (readString a)
-    where
-    f (Right "ada") = Right (Token "" "")
-
-    f _ = (\{ currency: { unCurrencySymbol: cur }, token: { unTokenName: tok } } -> Token cur tok) <$> runExcept (decode a :: F TokenJson)
+  decode a =
+    ( Token <$> decodeProp "currency_symbol" a
+        <*> decodeProp "token_name" a
+    )
 
 derive instance genericToken :: Generic Token _
 
@@ -157,13 +159,10 @@ newtype Slot
   = Slot BigInteger
 
 instance encodeJsonSlot :: Encode Slot where
-  encode (Slot n) = encode { getSlot: n }
-
-type SlotJson
-  = { getSlot :: BigInteger }
+  encode (Slot n) = encode n
 
 instance decodeJsonSlot :: Decode Slot where
-  decode a = (\{ getSlot: s } -> Slot s) <$> (decode a :: F SlotJson)
+  decode a = Slot <$> decode a
 
 derive instance genericSlot :: Generic Slot _
 
@@ -182,12 +181,6 @@ derive newtype instance ringSlot :: Ring Slot
 instance commutativeRingSlot :: CommutativeRing Slot
 
 derive newtype instance euclideanRingSlot :: EuclideanRing Slot
-
-derive newtype instance numSlot :: Num Slot
-
-derive newtype instance realRingSlot :: Real Slot
-
-derive newtype instance integralSlot :: Integral Slot
 
 derive newtype instance prettySlot :: Pretty Slot
 
@@ -212,17 +205,11 @@ derive instance ordAda :: Ord Ada
 
 derive newtype instance showAda :: Show Ada
 
-derive newtype instance integralAda :: Integral Ada
-
-derive newtype instance numAda :: Num Ada
-
 derive newtype instance semiringAda :: Semiring Ada
 
 derive newtype instance ringAda :: Ring Ada
 
 derive newtype instance euclideanRingAda :: EuclideanRing Ada
-
-derive newtype instance realRingAda :: Real Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
@@ -236,10 +223,17 @@ derive instance eqAccountId :: Eq AccountId
 derive instance ordAccountId :: Ord AccountId
 
 instance encodeJsonAccountId :: Encode AccountId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (AccountId accNum party) =
+    encode
+      { account_number: accNum
+      , account_owner: party
+      }
 
 instance decodeJsonAccountId :: Decode AccountId where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( AccountId <$> decodeProp "account_number" a
+        <*> decodeProp "account_owner" a
+    )
 
 instance showAccountId :: Show AccountId where
   show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
@@ -261,10 +255,17 @@ derive instance eqChoiceId :: Eq ChoiceId
 derive instance ordChoiceId :: Ord ChoiceId
 
 instance encodeJsonChoiceId :: Encode ChoiceId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (ChoiceId name owner) =
+    encode
+      { choice_name: name
+      , choice_owner: owner
+      }
 
 instance decodeJsonChoiceId :: Decode ChoiceId where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( ChoiceId <$> decodeProp "choice_name" a
+        <*> decodeProp "choice_owner" a
+    )
 
 instance showChoiceId :: Show ChoiceId where
   show (ChoiceId name owner) = "(ChoiceId " <> show name <> " " <> show owner <> ")"
@@ -291,10 +292,10 @@ derive instance eqValueId :: Eq ValueId
 derive instance ordValueId :: Ord ValueId
 
 instance encodeJsonValueId :: Encode ValueId where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (ValueId a) = encode a
 
 instance decodeJsonValueId :: Decode ValueId where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a = ValueId <$> decode a
 
 instance showValueId :: Show ValueId where
   show (ValueId valueId) = show valueId
@@ -353,10 +354,93 @@ derive instance eqValue :: Eq Value
 derive instance ordValue :: Ord Value
 
 instance encodeJsonValue :: Encode Value where
-  encode a = genericEncode defaultOptions a
+  encode (AvailableMoney accId tok) =
+    encode
+      { amount_of_token: tok
+      , in_account: accId
+      }
+  encode (Constant val) = encode val
+  encode (NegValue val) =
+    encode
+      { negate: val
+      }
+  encode (AddValue lhs rhs) =
+    encode
+      { add: lhs
+      , and: rhs
+      }
+  encode (SubValue lhs rhs) =
+    encode
+      { value: lhs
+      , minus: rhs
+      }
+  encode (MulValue lhs rhs) =
+    encode
+      { multiply: lhs
+      , times: rhs
+      }
+  encode (Scale (Rational num den) val) =
+    encode
+      { multiply: val
+      , times: num
+      , divide_by: den
+      }
+  encode (ChoiceValue choiceId) =
+    encode
+      { value_of_choice: choiceId
+      }
+  encode SlotIntervalStart = encode "slot_interval_start"
+  encode SlotIntervalEnd = encode "slot_interval_end"
+  encode (UseValue valueId) =
+    encode
+      { use_value: valueId
+      }
+  encode (Cond cond thenValue elseValue) =
+    encode
+      { if: cond
+      , then: thenValue
+      , else: elseValue
+      }
 
 instance decodeJsonValue :: Decode Value where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    ( ifM ((\x -> x == "slot_interval_start") <$> decode a)
+        (pure SlotIntervalStart)
+        (fail (ForeignError "Not \"slot_interval_start\" string"))
+    )
+      <|> ( ifM ((\x -> x == "slot_interval_end") <$> decode a)
+            (pure SlotIntervalEnd)
+            (fail (ForeignError "Not \"slot_interval_end\" string"))
+        )
+      <|> ( AvailableMoney <$> decodeProp "in_account" a
+            <*> decodeProp "amount_of_token" a
+        )
+      <|> (Constant <$> decode a)
+      <|> (NegValue <$> decodeProp "negate" a)
+      <|> ( AddValue <$> decodeProp "add" a
+            <*> decodeProp "and" a
+        )
+      <|> ( SubValue <$> decodeProp "value" a
+            <*> decodeProp "minus" a
+        )
+      <|> ( if (hasProperty "divide_by" a) then
+            ( Scale
+                <$> ( Rational <$> decodeProp "times" a
+                      <*> decodeProp "divide_by" a
+                  )
+                <*> decodeProp "multiply" a
+            )
+          else
+            ( MulValue <$> decodeProp "multiply" a
+                <*> decodeProp "times" a
+            )
+        )
+      <|> (ChoiceValue <$> decodeProp "value_of_choice" a)
+      <|> (UseValue <$> decodeProp "use_value" a)
+      <|> ( Cond <$> decodeProp "if" a
+            <*> decodeProp "then" a
+            <*> decodeProp "else" a
+        )
 
 instance showValue :: Show Value where
   show v = genericShow v
@@ -388,10 +472,85 @@ derive instance eqObservation :: Eq Observation
 derive instance ordObservation :: Ord Observation
 
 instance encodeJsonObservation :: Encode Observation where
-  encode a = genericEncode defaultOptions a
+  encode (AndObs lhs rhs) =
+    encode
+      { both: lhs
+      , and: rhs
+      }
+  encode (OrObs lhs rhs) =
+    encode
+      { either: lhs
+      , or: rhs
+      }
+  encode (NotObs obs) =
+    encode
+      { not: obs
+      }
+  encode (ChoseSomething choiceId) =
+    encode
+      { chose_something_for: choiceId
+      }
+  encode (ValueGE lhs rhs) =
+    encode
+      { value: lhs
+      , ge_than: rhs
+      }
+  encode (ValueGT lhs rhs) =
+    encode
+      { value: lhs
+      , gt: rhs
+      }
+  encode (ValueLT lhs rhs) =
+    encode
+      { value: lhs
+      , lt: rhs
+      }
+  encode (ValueLE lhs rhs) =
+    encode
+      { value: lhs
+      , le_than: rhs
+      }
+  encode (ValueEQ lhs rhs) =
+    encode
+      { value: lhs
+      , equal_to: rhs
+      }
+  encode TrueObs = encode true
+  encode FalseObs = encode false
 
 instance decodeJsonObservation :: Decode Observation where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    ( ifM (decode a)
+        (pure TrueObs)
+        (fail (ForeignError "Not a boolean"))
+    )
+      <|> ( ifM (not <$> decode a)
+            (pure FalseObs)
+            (fail (ForeignError "Not a boolean"))
+        )
+      <|> ( AndObs <$> decodeProp "both" a
+            <*> decodeProp "and" a
+        )
+      <|> ( OrObs <$> decodeProp "either" a
+            <*> decodeProp "or" a
+        )
+      <|> (NotObs <$> decodeProp "not" a)
+      <|> (ChoseSomething <$> decodeProp "chose_something_for" a)
+      <|> ( ValueGE <$> decodeProp "value" a
+            <*> decodeProp "ge_than" a
+        )
+      <|> ( ValueGT <$> decodeProp "value" a
+            <*> decodeProp "gt" a
+        )
+      <|> ( ValueLT <$> decodeProp "value" a
+            <*> decodeProp "lt" a
+        )
+      <|> ( ValueLE <$> decodeProp "value" a
+            <*> decodeProp "le_than" a
+        )
+      <|> ( ValueEQ <$> decodeProp "value" a
+            <*> decodeProp "equal_to" a
+        )
 
 instance showObservation :: Show Observation where
   show o = genericShow o
@@ -446,10 +605,17 @@ derive instance eqBound :: Eq Bound
 derive instance orBound :: Ord Bound
 
 instance encodeJsonBound :: Encode Bound where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (Bound fromSlot toSlot) =
+    encode
+      { from: fromSlot
+      , to: toSlot
+      }
 
 instance decodeJsonBound :: Decode Bound where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( Bound <$> decodeProp "from" a
+        <*> decodeProp "to" a
+    )
 
 instance showBound :: Show Bound where
   show = genericShow
@@ -473,10 +639,34 @@ derive instance eqAction :: Eq Action
 derive instance ordAction :: Ord Action
 
 instance encodeJsonAction :: Encode Action where
-  encode a = genericEncode defaultOptions a
+  encode (Deposit accountId party token value) =
+    encode
+      { party: party
+      , deposits: value
+      , of_token: token
+      , into_account: accountId
+      }
+  encode (Choice choiceId boundArray) =
+    encode
+      { choose_between: boundArray
+      , for_choice: choiceId
+      }
+  encode (Notify obs) =
+    encode
+      { notify_if: obs
+      }
 
 instance decodeJsonAction :: Decode Action where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    ( Deposit <$> decodeProp "into_account" a
+        <*> decodeProp "party" a
+        <*> decodeProp "of_token" a
+        <*> decodeProp "deposits" a
+    )
+      <|> ( Choice <$> decodeProp "for_choice" a
+            <*> decodeProp "choose_between" a
+        )
+      <|> (Notify <$> decodeProp "notify_if" a)
 
 instance showAction :: Show Action where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
@@ -500,10 +690,13 @@ derive instance eqPayee :: Eq Payee
 derive instance ordPayee :: Ord Payee
 
 instance encodeJsonPayee :: Encode Payee where
-  encode a = genericEncode defaultOptions a
+  encode (Account accountId) = encode accountId
+  encode (Party party) = encode party
 
 instance decodeJsonPayee :: Decode Payee where
-  decode a = genericDecode defaultOptions a
+  decode a =
+    (Account <$> decode a)
+      <|> (Party <$> decode a)
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -525,10 +718,17 @@ derive instance eqCase :: Eq Case
 derive instance ordCase :: Ord Case
 
 instance encodeJsonCase :: Encode Case where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode (Case action cont) =
+    encode
+      { case: action
+      , then: cont
+      }
 
 instance decodeJsonCase :: Decode Case where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( Case <$> decodeProp "case" a
+        <*> decodeProp "then" a
+    )
 
 instance showCase :: Show Case where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
@@ -555,10 +755,66 @@ derive instance eqContract :: Eq Contract
 derive instance ordContract :: Ord Contract
 
 instance encodeJsonContract :: Encode Contract where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode Close = encode "close"
+  encode (Pay accId payee token val cont) =
+    encode
+      { pay: val
+      , token: token
+      , from_account: accId
+      , to: payee
+      , then: cont
+      }
+  encode (If obs contTrue contFalse) =
+    encode
+      { if: obs
+      , then: contTrue
+      , else: contFalse
+      }
+  encode (When cases timeout cont) =
+    encode
+      { when: cases
+      , timeout: timeout
+      , timeout_continuation: cont
+      }
+  encode (Let valId val cont) =
+    encode
+      { let: valId
+      , be: val
+      , then: cont
+      }
+  encode (Assert obs cont) =
+    encode
+      { assert: obs
+      , then: cont
+      }
 
 instance decodeJsonContract :: Decode Contract where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a =
+    ( ifM ((\x -> x == "close") <$> decode a)
+        (pure Close)
+        (fail (ForeignError "Not \"close\" string"))
+    )
+      <|> ( Pay <$> decodeProp "from_account" a
+            <*> decodeProp "to" a
+            <*> decodeProp "token" a
+            <*> decodeProp "pay" a
+            <*> decodeProp "then" a
+        )
+      <|> ( If <$> decodeProp "if" a
+            <*> decodeProp "then" a
+            <*> decodeProp "else" a
+        )
+      <|> ( When <$> decodeProp "when" a
+            <*> decodeProp "timeout" a
+            <*> decodeProp "timeout_continuation" a
+        )
+      <|> ( Let <$> decodeProp "let" a
+            <*> decodeProp "be" a
+            <*> decodeProp "then" a
+        )
+      <|> ( Assert <$> decodeProp "assert" a
+            <*> decodeProp "then" a
+        )
 
 instance showContract :: Show Contract where
   show v = genericShow v
@@ -641,11 +897,35 @@ derive instance ordInput :: Ord Input
 instance showInput :: Show Input where
   show v = genericShow v
 
-instance encodeInput :: Encode Input where
-  encode a = genericEncode aesonCompatibleOptions a
+instance encodeJsonInput :: Encode Input where
+  encode (IDeposit accId party tok amount) =
+    encode
+      { input_from_party: party
+      , that_deposits: amount
+      , of_token: tok
+      , into_account: accId
+      }
+  encode (IChoice choiceId chosenNum) =
+    encode
+      { input_that_chooses_num: chosenNum
+      , for_choice_id: choiceId
+      }
+  encode INotify = encode "input_notify"
 
-instance decodeInput :: Decode Input where
-  decode = genericDecode aesonCompatibleOptions
+instance decodeJsonInput :: Decode Input where
+  decode a =
+    ( ifM ((\x -> x == "input_notify") <$> decode a)
+        (pure INotify)
+        (fail (ForeignError "Not \"input_notify\" string"))
+    )
+      <|> ( IDeposit <$> decodeProp "into_account" a
+            <*> decodeProp "input_from_party" a
+            <*> decodeProp "of_token" a
+            <*> decodeProp "that_deposits" a
+        )
+      <|> ( IChoice <$> decodeProp "for_choice_id" a
+            <*> decodeProp "input_that_chooses_num" a
+        )
 
 -- Processing of slot interval
 data IntervalError
@@ -807,11 +1087,66 @@ derive instance ordTransactionWarning :: Ord TransactionWarning
 instance showTransactionWarning :: Show TransactionWarning where
   show = genericShow
 
-instance genericEncodeTransactionWarning :: Encode TransactionWarning where
-  encode a = genericEncode aesonCompatibleOptions a
+instance encodeTransactionWarning :: Encode TransactionWarning where
+  encode TransactionAssertionFailed = encode "assertion_failed"
+  encode (TransactionNonPositiveDeposit party accId tok amount) =
+    encode
+      { party: party
+      , asked_to_deposit: amount
+      , of_token: tok
+      , in_account: accId
+      }
+  encode (TransactionNonPositivePay accId payee tok amount) =
+    encode
+      { account: accId
+      , asked_to_pay: amount
+      , of_token: tok
+      , to_payee: payee
+      }
+  encode (TransactionPartialPay accId payee tok paid expected) =
+    encode
+      { account: accId
+      , asked_to_pay: expected
+      , of_token: tok
+      , to_payee: payee
+      , but_only_paid: paid
+      }
+  encode (TransactionShadowing valId oldVal newVal) =
+    encode
+      { value_id: valId
+      , had_value: oldVal
+      , is_now_assigned: newVal
+      }
 
-instance genericDecodeTransactionWarning :: Decode TransactionWarning where
-  decode a = genericDecode aesonCompatibleOptions a
+instance decodeTransactionWarning :: Decode TransactionWarning where
+  decode a =
+    ( ifM ((\x -> x == "assertion_failed") <$> decode a)
+        (pure TransactionAssertionFailed)
+        (fail (ForeignError "Not \"assertion_failed\" string"))
+    )
+      <|> ( TransactionNonPositiveDeposit <$> decodeProp "party" a
+            <*> decodeProp "in_account" a
+            <*> decodeProp "of_token" a
+            <*> decodeProp "asked_to_deposit" a
+        )
+      <|> ( if (hasProperty "but_only_paid" a) then
+            ( TransactionPartialPay <$> decodeProp "account" a
+                <*> decodeProp "to_payee" a
+                <*> decodeProp "of_token" a
+                <*> decodeProp "but_only_paid" a
+                <*> decodeProp "asked_to_pay" a
+            )
+          else
+            ( TransactionNonPositivePay <$> decodeProp "account" a
+                <*> decodeProp "to_payee" a
+                <*> decodeProp "of_token" a
+                <*> decodeProp "asked_to_pay" a
+            )
+        )
+      <|> ( TransactionShadowing <$> decodeProp "value_id" a
+            <*> decodeProp "had_value" a
+            <*> decodeProp "is_now_assigned" a
+        )
 
 -- | Transaction error
 data TransactionError
@@ -856,10 +1191,31 @@ instance showTransactionInput :: Show TransactionInput where
   show = genericShow
 
 instance encodeTransactionInput :: Encode TransactionInput where
-  encode a = genericEncode aesonCompatibleOptions a
+  encode ( TransactionInput
+      { interval: (SlotInterval (Slot fromSlot) (Slot toSlot))
+    , inputs: txInps
+    }
+  ) =
+    encode
+      { tx_interval:
+        { from: fromSlot
+        , to: toSlot
+        }
+      , tx_inputs: txInps
+      }
 
 instance decodeTransactionInput :: Decode TransactionInput where
-  decode a = genericDecode aesonCompatibleOptions a
+  decode a = do
+    interv <- decode =<< readProp "tx_interval" a
+    fromSlot <- decode =<< readProp "from" interv
+    toSlot <- decode =<< readProp "to" interv
+    inputs <- decode =<< readProp "tx_inputs" a
+    pure
+      ( TransactionInput
+          { interval: (SlotInterval (Slot fromSlot) (Slot toSlot))
+          , inputs: inputs
+          }
+      )
 
 data TransactionOutput
   = TransactionOutput
@@ -936,9 +1292,9 @@ evalValue env state value =
         let
           nn = eval rhs * n
 
-          q = nn `quot` d
+          q = nn `div` d
 
-          r = nn `rem` d
+          r = nn `mod` d
         in
           if abs r * fromInt 2 < abs d then q else q + signum nn * signum d
       ChoiceValue choiceId -> fromMaybe zero $ Map.lookup choiceId (unwrap state).choices

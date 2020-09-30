@@ -136,13 +136,6 @@
             )
           )
         )
-        (termbind
-          (strict)
-          (vardecl
-            addInteger (fun (con integer) (fun (con integer) (con integer)))
-          )
-          (builtin addInteger)
-        )
         (let
           (rec)
           (termbind
@@ -210,10 +203,14 @@
                     (lam
                       ds
                       a
-                      (lam acc (con integer) [ [ addInteger acc ] (con 1) ])
+                      (lam
+                        acc
+                        (con integer)
+                        [ [ (builtin addInteger) acc ] (con integer 1) ]
+                      )
                     )
                   ]
-                  (con 0)
+                  (con integer 0)
                 ]
               )
             )
@@ -546,7 +543,10 @@
                                   {
                                     [
                                       Unit_match
-                                      [ trace (con "not enough signatures") ]
+                                      [
+                                        trace
+                                        (con string "not enough signatures")
+                                      ]
                                     ]
                                     (fun Unit Bool)
                                   }

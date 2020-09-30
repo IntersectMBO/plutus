@@ -83,7 +83,7 @@ projects that you can build with stack.
 2. Run `nix build -f default.nix docker.plutusPlaygroundImage`, to build
 3. Run `docker load < docker-image-plutus-playgrounds.tar.gz` - this will
 print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp`
-4. Run `docker run --mount ‘type=bind,source=/tmp,target=/tmp’ -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp` using the image name from the previous step.
+4. Run `docker run --mount 'type=bind,source=/tmp,target=/tmp' -p 8080:8080 plutus-playgrounds:yn7h7m5qdjnnj9rxv8cgkvvwjkkcdnvp` using the image name from the previous step.
 5. Open http://localhost:8080/ in a web browser.
 
 === How to get the most recent documentation PDFs from CI

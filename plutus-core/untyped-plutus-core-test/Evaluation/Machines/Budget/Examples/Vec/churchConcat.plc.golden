@@ -1,0 +1,8 @@
+( (Right (delay (delay (delay (\xs -> \ys -> delay (\f -> \z -> force xs (delay (force f)) (force ys f z)))))))
+, ({ tally: ({ BAST causes ({ cpu: 0
+| mem: 13
+})})
+| budget: ({ cpu: 0
+| mem: 13
+})
+}) )

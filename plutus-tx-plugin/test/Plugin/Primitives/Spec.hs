@@ -7,6 +7,7 @@
 module Plugin.Primitives.Spec where
 
 import           Common
+import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
@@ -22,9 +23,6 @@ import           Data.Proxy
 
 import           GHC.Magic
 
--- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
-
 primitives :: TestNested
 primitives = testNested "Primitives" [
     goldenPir "string" string
@@ -32,27 +30,27 @@ primitives = testNested "Primitives" [
   , goldenPir "int2" int2
   , goldenPir "bool" bool
   , goldenPir "and" andPlc
-  , goldenEval "andApply" [ getProgram andPlc, getProgram $ plc (Proxy @"T") True, getProgram $ plc (Proxy @"F") False ]
+  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
   , goldenPir "tuple" tuple
   , goldenPir "tupleMatch" tupleMatch
-  , goldenEval "tupleConstDest" [ getProgram tupleMatch, getProgram tuple ]
+  , goldenUEval "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]
   , goldenPir "intCompare" intCompare
   , goldenPir "intEq" intEq
-  , goldenEval "intEqApply" [ getProgram intEq, getProgram int, getProgram int ]
+  , goldenUEval "intEqApply" [ toUPlc intEq, toUPlc int, toUPlc int ]
   , goldenPir "void" void
   , goldenPir "intPlus" intPlus
   , goldenPir "intDiv" intDiv
-  , goldenEval "intPlusApply" [ getProgram intPlus, getProgram int, getProgram int2 ]
+  , goldenUEval "intPlusApply" [ toUPlc intPlus, toUPlc int, toUPlc int2 ]
   , goldenPir "error" errorPlc
   , goldenPir "ifThenElse" ifThenElse
-  , goldenEval "ifThenElseApply" [ getProgram ifThenElse, getProgram int, getProgram int2 ]
+  , goldenUEval "ifThenElseApply" [ toUPlc ifThenElse, toUPlc int, toUPlc int2 ]
   , goldenPir "emptyByteString" emptyByteString
-  , goldenEval "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
+  , goldenUEval "emptyByteStringApply" [ getPlc emptyByteString, liftProgram Builtins.emptyByteString ]
   , goldenPir "bytestring" bytestring
-  , goldenEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello"::Builtins.ByteString) ]
-  , goldenEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
-  , goldenEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
+  , goldenUEval "bytestringApply" [ getPlc bytestring, liftProgram ("hello"::Builtins.ByteString) ]
+  , goldenUEval "sha2_256" [ getPlc sha2, liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenUEval "equalsByteString" [ getPlc bsEquals, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("hello" :: Builtins.ByteString)]
+  , goldenUEval "ltByteString" [ getPlc bsLt, liftProgram ("hello" :: Builtins.ByteString), liftProgram ("world" :: Builtins.ByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "stringLiteral" stringLiteral

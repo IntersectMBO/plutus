@@ -308,4 +308,30 @@ makes it rather difficult to see what the code is actually doing, and
 the performance may be very device-dependent, so we may need different
 cost models for different architectures.
 
+
+\subsection{Memory Models}
+
+The first approach to measuring memory consumption of a builtin was similar to
+the CPU approach - measuring it via benchmarking. The tool for the job was
+valgrind - but it didn't detect any internal allocations in the integer
+operations. After running the benchmark a few times and digging into the source
+of GMP, no direct calls to `malloc' or similar could be found.
+
+The execution interpreter first predicts the memory usage, as with the CPU
+usage. However, the final memory consumption also has to be computed, because
+the size of a builtin datastructure is required for calculating the cost of a
+builtin operation. So there will be a difference between predicted memory cost
+and actual memory cost.
+
+The model could include this difference and adjust the used amount of memory
+back down to the actually used size. However, this would include additional
+complexity into the counting mode of the interpreter. Because the budgeting mode
+will require more memory than it's actually using, the counting mode has to keep
+track of this possible overcommitting.
+
+To avoid this complexity, the interpreter budgets for the worst possible case,
+and then calculates the actual usage to inform future operations. The offset is
+usually only one byte for integer operations, so this tradeoff was considered to
+be acceptable.
+
 \end{document}

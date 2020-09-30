@@ -15,7 +15,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
-import           Language.PlutusCore.Pretty                      (PrettyConst)
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 

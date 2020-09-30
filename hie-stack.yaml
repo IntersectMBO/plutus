@@ -190,6 +190,24 @@ cradle:
         stack:
           component: "plutus-core:test:plutus-core-test-cost-model"
 
+  - path: ./web-ghc/src
+    config:
+      cradle:
+        stack:
+          component: "web-ghc:lib"
+
+  - path: ./web-ghc/app
+    config:
+      cradle:
+        stack:
+          component: "web-ghc:exe:web-ghc-server"
+
+  - path: ./web-ghc/test
+    config:
+      cradle:
+        stack:
+          component: "web-ghc:test:web-ghc-test"
+
   # These use the plutus plugin - HIE doesn't support plugins yet
 
   - path: ./marlowe

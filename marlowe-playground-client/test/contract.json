@@ -1,286 +1,159 @@
 {
-  "contents":[
-    {
-      "tag": "TrueObs"
-    },
-    {
-      "contents":[
-         [
-            [
-               {
-                  "contents":[
-                     [
-                        0,
-                        {
-                           "contents":"deadbeef",
-                           "tag":"PK"
-                        }
-                     ],
-                     {
-                        "contents":"deadbeef",
-                        "tag":"PK"
-                     },
-                     "ada",
-                     {
-                        "contents":[
-                           {
-                              "contents":100,
-                              "tag":"Constant"
-                           },
-                           {
-                              "contents":[
-                                 {
-                                    "contents":100,
-                                    "tag":"Constant"
-                                 },
-                                 {
-                                    "contents":{
-                                       "contents":100,
-                                       "tag":"Constant"
-                                    },
-                                    "tag":"NegValue"
-                                 }
-                              ],
-                              "tag":"SubValue"
-                           }
-                        ],
-                        "tag":"AddValue"
-                     }
-                  ],
-                  "tag":"Deposit"
+   "then": {
+     "when": [
+       {
+         "then": {
+           "then": {
+             "token": {
+               "token_name": "",
+               "currency_symbol": ""
+             },
+             "to": {
+               "role_token": "Bob"
+             },
+             "then": "close",
+             "pay": {
+               "then": {
+                 "use_value": "x"
                },
-               {
-                  "contents":[
-                     "x",
-                     {
-                        "contents":[
-                           {
-                              "contents":100,
-                              "tag":"Constant"
-                           },
-                           {
-                              "contents":[
-                                 {
-                                    "contents":100,
-                                    "tag":"Constant"
-                                 },
-                                 {
-                                    "contents":{
-                                       "contents":100,
-                                       "tag":"Constant"
-                                    },
-                                    "tag":"NegValue"
-                                 }
-                              ],
-                              "tag":"SubValue"
-                           }
-                        ],
-                        "tag":"AddValue"
-                     },
-                     {
-                        "contents":[
-                           [
-                              0,
-                              {
-                                 "contents":"deadbeef",
-                                 "tag":"PK"
-                              }
-                           ],
-                           {
-                              "contents":{
-                                 "contents":"Bob",
-                                 "tag":"Role"
-                              },
-                              "tag":"Party"
-                           },
-                           "ada",
-                           {
-                              "contents":[
-                                 {
-                                    "tag":"TrueObs"
-                                 },
-                                 {
-                                    "contents":"x",
-                                    "tag":"UseValue"
-                                 },
-                                 {
-                                    "contents":"y",
-                                    "tag":"UseValue"
-                                 }
-                              ],
-                              "tag":"Cond"
-                           },
-                           {
-                              "tag":"Close"
-                           }
-                        ],
-                        "tag":"Pay"
-                     }
-                  ],
-                  "tag":"Let"
+               "if": true,
+               "else": {
+                 "use_value": "y"
                }
-            ],
-            [
-               {
-                  "contents":[
-                     [
-                        "choice",
-                        {
-                           "contents":"deadbeef",
-                           "tag":"PK"
-                        }
-                     ],
-                     [
-                        [
-                           0,
-                           1
-                        ]
-                     ]
-                  ],
-                  "tag":"Choice"
+             },
+             "from_account": {
+               "account_owner": {
+                 "pk_hash": "deadbeef"
                },
-               {
-                  "contents":[
-                     {
-                        "contents":[
-                           {
-                              "contents":[
-                                 "choice",
-                                 {
-                                    "contents":"deadbeef",
-                                    "tag":"PK"
-                                 }
-                              ],
-                              "tag":"ChoseSomething"
-                           },
-                           {
-                              "contents":[
-                                 {
-                                    "contents":[
-                                       "choice",
-                                       {
-                                          "contents":"deadbeef",
-                                          "tag":"PK"
-                                       }
-                                    ],
-                                    "tag":"ChoiceValue"
-                                 },
-                                 {
-                                    "contents":[
-                                       [
-                                          1,
-                                          10
-                                       ],
-                                       {
-                                          "contents":100,
-                                          "tag":"Constant"
-                                       }
-                                    ],
-                                    "tag":"Scale"
-                                 }
-                              ],
-                              "tag":"ValueEQ"
-                           }
-                        ],
-                        "tag":"OrObs"
-                     },
-                     {
-                        "contents":[
-                           [
-                              0,
-                              {
-                                 "contents":"deadbeef",
-                                 "tag":"PK"
-                              }
-                           ],
-                           {
-                              "contents":[
-                                 0,
-                                 {
-                                    "contents":"deadbeef",
-                                    "tag":"PK"
-                                 }
-                              ],
-                              "tag":"Account"
-                           },
-                           {
-                              "token":{
-                                 "unTokenName":"name"
-                              },
-                              "currency":{
-                                 "unCurrencySymbol":"aa"
-                              }
-                           },
-                           {
-                              "contents":[
-                                 [
-                                    0,
-                                    {
-                                       "contents":"deadbeef",
-                                       "tag":"PK"
-                                    }
-                                 ],
-                                 {
-                                    "token":{
-                                       "unTokenName":"name"
-                                    },
-                                    "currency":{
-                                       "unCurrencySymbol":"aa"
-                                    }
-                                 }
-                              ],
-                              "tag":"AvailableMoney"
-                           },
-                           {
-                              "tag":"Close"
-                           }
-                        ],
-                        "tag":"Pay"
-                     },
-                     {
-                        "tag":"Close"
-                     }
-                  ],
-                  "tag":"If"
+               "account_number": 0
+             }
+           },
+           "let": "x",
+           "be": {
+             "and": {
+               "value": 100,
+               "minus": {
+                 "negate": 100
                }
-            ],
-            [
-               {
-                  "contents":{
-                     "contents":[
-                        {
-                           "contents":[
-                              {
-                                 "tag":"SlotIntervalStart"
-                              },
-                              {
-                                 "tag":"SlotIntervalEnd"
-                              }
-                           ],
-                           "tag":"ValueLT"
-                        },
-                        {
-                           "tag":"TrueObs"
-                        }
-                     ],
-                     "tag":"AndObs"
-                  },
-                  "tag":"Notify"
-               },
-               {
-                  "tag":"Close"
-               }
-            ]
-         ],
-         {
-            "getSlot":100
+             },
+             "add": 100
+           }
          },
-         {
-            "tag":"Close"
+         "case": {
+           "party": {
+             "pk_hash": "deadbeef"
+           },
+           "of_token": {
+             "token_name": "",
+             "currency_symbol": ""
+           },
+           "into_account": {
+             "account_owner": {
+               "pk_hash": "deadbeef"
+             },
+             "account_number": 0
+           },
+           "deposits": {
+             "and": {
+               "value": 100,
+               "minus": {
+                 "negate": 100
+               }
+             },
+             "add": 100
+           }
          }
-      ],
-      "tag":"When"
-    }
-  ],
-  "tag":"Assert"
-}
+       },
+       {
+         "then": {
+           "then": {
+             "token": {
+               "token_name": "name",
+               "currency_symbol": "aa"
+             },
+             "to": {
+               "account_owner": {
+                 "pk_hash": "deadbeef"
+               },
+               "account_number": 0
+             },
+             "then": "close",
+             "pay": {
+               "in_account": {
+                 "account_owner": {
+                   "pk_hash": "deadbeef"
+                 },
+                 "account_number": 0
+               },
+               "amount_of_token": {
+                 "token_name": "name",
+                 "currency_symbol": "aa"
+               }
+             },
+             "from_account": {
+               "account_owner": {
+                 "pk_hash": "deadbeef"
+               },
+               "account_number": 0
+             }
+           },
+           "if": {
+             "or": {
+               "value": {
+                 "value_of_choice": {
+                   "choice_owner": {
+                     "pk_hash": "deadbeef"
+                   },
+                   "choice_name": "choice"
+                 }
+               },
+               "equal_to": {
+                 "times": 1,
+                 "multiply": 100,
+                 "divide_by": 10
+               }
+             },
+             "either": {
+               "chose_something_for": {
+                 "choice_owner": {
+                   "pk_hash": "deadbeef"
+                 },
+                 "choice_name": "choice"
+               }
+             }
+           },
+           "else": "close"
+         },
+         "case": {
+           "for_choice": {
+             "choice_owner": {
+               "pk_hash": "deadbeef"
+             },
+             "choice_name": "choice"
+           },
+           "choose_between": [
+             {
+               "to": 1,
+               "from": 0
+             }
+           ]
+         }
+       },
+       {
+         "then": "close",
+         "case": {
+           "notify_if": {
+             "both": {
+               "value": "slot_interval_start",
+               "lt": "slot_interval_end"
+             },
+             "and": true
+           }
+         }
+       }
+     ],
+     "timeout_continuation": "close",
+     "timeout": 100
+   },
+   "assert": true
+ }

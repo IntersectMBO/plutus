@@ -10,10 +10,11 @@ import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Functor.Foldable (Fix)
 import Data.Int as Int
-import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (preview, review, view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
@@ -47,7 +48,7 @@ simulationPane ::
   Maybe Int ->
   Signatures ->
   Cursor Simulation ->
-  WebData (JsonEither PlaygroundError EvaluationResult) ->
+  WebData (Either PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m
 simulationPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
   Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
@@ -130,7 +131,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -217,7 +218,7 @@ actionPaneBody index (PayToWallet { sender, recipient, amount }) =
             , value $ show $ view _walletId recipient
             , required true
             , placeholder "Wallet ID"
-            , onIntInput (ModifyActions <<< SetPayToWalletRecipient index <<< review _walletId)
+            , onBigIntegerInput (ModifyActions <<< SetPayToWalletRecipient index <<< review _walletId)
             ]
         ]
     , formGroup_
@@ -240,7 +241,7 @@ actionPaneBody index (AddBlocks { blocks }) =
                     , classes [ formControl, ClassName $ "action-argument-0-blocks" ]
                     , value $ show blocks
                     , placeholder "Block Number"
-                    , onIntInput $ ModifyActions <<< SetWaitTime index
+                    , onBigIntegerInput $ ModifyActions <<< SetWaitTime index
                     ]
                 ]
             ]
@@ -261,14 +262,14 @@ actionPaneBody index (AddBlocksUntil { slot }) =
                     , classes [ formControl, ClassName $ "action-argument-0-until-slot" ]
                     , value $ show $ view _InSlot slot
                     , placeholder "Slot Number"
-                    , onIntInput $ ModifyActions <<< SetWaitUntilTime index <<< review _InSlot
+                    , onBigIntegerInput $ ModifyActions <<< SetWaitUntilTime index <<< review _InSlot
                     ]
                 ]
             ]
         ]
     ]
 
-waitTypeButtons :: forall p. Int -> Either Slot Int -> HTML p SimulationAction
+waitTypeButtons :: forall p. Int -> Either Slot BigInteger -> HTML p SimulationAction
 waitTypeButtons index wait =
   btnGroup_
     [ button
@@ -306,7 +307,7 @@ addWaitActionPane index =
             [ class_ $ ClassName "add-wait-action" ]
             [ div
                 ( [ class_ card
-                  , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction 10
+                  , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction $ BigInteger.fromInt 10
                   ]
                     <> dragTargetProperties index
                 )
@@ -318,7 +319,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
+evaluateActionsPane :: forall p. WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsPane evaluationResult actions =
   col_
     [ button
@@ -334,7 +335,7 @@ evaluateActionsPane evaluationResult actions =
 
   btnClass _ true = btnWarning
 
-  btnClass (Success (JsonEither (Left _))) _ = btnDanger
+  btnClass (Success (Left _)) _ = btnDanger
 
   btnClass (Success _) _ = btnSuccess
 
@@ -443,3 +444,6 @@ showCompilationError (CompilationError { text: errors }) = pre_ [ text (String.j
 
 onIntInput :: forall i r. (Int -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onIntInput f = onValueInput $ map f <<< Int.fromString
+
+onBigIntegerInput :: forall i r. (BigInteger -> i) -> IProp ( onInput :: Event, value :: String | r ) i
+onBigIntegerInput f = onValueInput $ map f <<< BigInteger.fromString

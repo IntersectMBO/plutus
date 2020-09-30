@@ -64,11 +64,11 @@ newtype SourceCode = SourceCode Text
 
 newtype Warning = Warning Text
   deriving stock (Eq, Show, Generic)
-  deriving newtype (ToJSON)
+  deriving newtype (ToJSON, FromJSON)
 
 data InterpreterResult a = InterpreterResult { warnings :: [Warning], result :: a }
   deriving stock (Eq, Show, Generic, Functor)
-  deriving anyclass (ToJSON)
+  deriving anyclass (ToJSON, FromJSON)
 
 -- | spawn an external process to runghc a file
 --

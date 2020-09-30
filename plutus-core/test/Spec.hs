@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Main
@@ -15,7 +16,6 @@ import           Pretty.Readable
 import           TypeSynthesis.Spec                                         (test_typecheck)
 
 import           Language.PlutusCore
-import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -98,18 +98,13 @@ propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
-propCBORnoUnits :: Property
-propCBORnoUnits = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
-    Hedgehog.tripping prog serialiseOmittingUnits deserialiseRestoringUnitsOrFail
-
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
+    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do
@@ -133,7 +128,7 @@ propDeBruijn gen = property . generalizeT $ do
     let
         forward = deBruijnTerm
         backward
-            :: Except FreeVariableError (Term TyDeBruijn DeBruijn DefaultUni a)
+            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni a)
             -> Except FreeVariableError (Term TyName Name DefaultUni a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
@@ -143,7 +138,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
-    , testProperty "serialization round-trip without units" propCBORnoUnits
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $

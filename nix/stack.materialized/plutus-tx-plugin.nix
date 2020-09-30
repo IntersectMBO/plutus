@@ -104,6 +104,7 @@
             "StdLib/Spec"
             "TH/Spec"
             "TH/TestTH"
+            "Lib"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

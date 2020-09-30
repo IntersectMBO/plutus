@@ -7,13 +7,6 @@
       (lam x (con integer) x)
     )
     (termbind
-      (nonstrict)
-      (vardecl
-        fSizedInteger [(lam a (type) (fun a (con integer))) (con integer)]
-      )
-      csize
-    )
-    (termbind
       (strict)
       (vardecl
         size
@@ -21,6 +14,6 @@
       )
       (abs a (type) (lam v [(lam a (type) (fun a (con integer))) a] v))
     )
-    (lam ds (con integer) [ [ { size (con integer) } fSizedInteger ] ds ])
+    (lam ds (con integer) [ [ { size (con integer) } csize ] ds ])
   )
 )

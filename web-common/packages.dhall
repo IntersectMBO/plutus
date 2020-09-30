@@ -119,7 +119,7 @@ let additions =
 
 
 let upstream =
-	  https://github.com/purescript/package-sets/releases/download/psc-0.13.3-20190920/packages.dhall sha256:53873cf2fc4a343a41f335ee47c1706ecf755ac7c5a336e8eb03ad23165dfd28
+      https://github.com/purescript/package-sets/releases/download/psc-0.13.6-20200502/packages.dhall sha256:1e1ecbf222c709b76cc7e24cf63af3c2089ffd22bbb1e3379dfd3c07a1787694
 
 let overrides = {=}
 
@@ -141,36 +141,8 @@ let additions =
 		  , repo =
 			  "https://github.com/shmish111/purescript-servant-support"
 		  , version =
-			  "purs-0.13"
+              "v10.0.0"
 		  }
-	  , foreign-generic =
-			upstream.foreign-generic
-          //  { repo =
-                  "https://github.com/shmish111/purescript-foreign-generic"
-              , version =
-                  "purs-0.13"
-              }
-      , affjax =
-          { dependencies =
-              [ "aff"
-              , "argonaut-core"
-              , "arraybuffer-types"
-              , "web-xhr"
-              , "foreign"
-              , "form-urlencoded"
-              , "http-methods"
-              , "integers"
-              , "math"
-              , "media-types"
-              , "nullable"
-              , "refs"
-              , "unsafe-coerce"
-              ]
-          , repo =
-              "https://github.com/krisajenkins/purescript-affjax"
-          , version =
-              "purs-0.13"
-          }
       , ace-halogen =
           { dependencies =
               [ "ace"
@@ -202,6 +174,23 @@ let additions =
           , version =
               "v7.0.0"
           }
+      , concurrent-queues =
+          { dependencies =
+              [ "aff"
+              , "avar"
+              ]
+          , repo =
+              "https://github.com/purescript-contrib/purescript-concurrent-queues.git"
+          , version =
+              "v1.1.0"
+          }
+      , foreign-generic =
+            upstream.foreign-generic
+          ⫽ { repo =
+                "https://github.com/shmish111/purescript-foreign-generic"
+            , version =
+                "a2c5a0d623bb543207968110065e585d407c36d2"
+            }
       , matryoshka =
           { dependencies =
               [ "prelude"
