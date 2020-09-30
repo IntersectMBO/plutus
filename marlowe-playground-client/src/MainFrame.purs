@@ -20,10 +20,10 @@ import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
-import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hide, iohkIcon, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
-import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
+import Halogen.Classes (aCenter, aHorizontal, active, flexCol, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, section, slot, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
+import Halogen.HTML.Properties (class_, classes, href, id_, src, target)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
@@ -34,6 +34,7 @@ import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
 import HaskellEditor.Types (_compilationResult)
 import HaskellEditor.Types as HE
+import Home as Home
 import JSEditor as JSEditor
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
@@ -47,7 +48,7 @@ import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (/=))
 import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
@@ -59,10 +60,10 @@ import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
-import StaticData (jsBufferLocalStorageKey)
+import StaticData (jsBufferLocalStorageKey, showHomePageLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -77,6 +78,7 @@ initialState =
     , simulationState: ST.mkState
     , jsEditorKeybindings: DefaultBindings
     , activeJSDemo: mempty
+    , showHomePage: true
     }
 
 ------------------------------------------------------------
@@ -126,7 +128,7 @@ handleSubRoute ::
   forall m action message.
   MonadEffect m =>
   SubRoute -> HalogenM FrontendState action ChildSlots message m Unit
-handleSubRoute Router.Home = selectView Simulation
+handleSubRoute Router.Home = selectView HomePage
 
 handleSubRoute Router.Simulation = selectView Simulation
 
@@ -173,11 +175,22 @@ handleAction ::
   HAction ->
   HalogenM FrontendState HAction ChildSlots Void m Unit
 handleAction settings Init = do
+  let
+    isTrue = (/=) (Just "false")
+  showHome <- liftEffect $ isTrue <$> LocalStorage.getItem showHomePageLocalStorageKey
+  let
+    subroute = if showHome then Router.Home else Router.Simulation
+  assign _showHomePage showHome
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
+    Right { subroute: Router.Home, gistId } -> handleRoute settings { subroute, gistId }
     Right route -> handleRoute settings route
-    Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
+    Left _ -> handleRoute settings { subroute, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init
+
+handleAction settings (ShowHomePageInFuture b) = do
+  liftEffect $ LocalStorage.setItem showHomePageLocalStorageKey (show b)
+  assign _showHomePage b
 
 handleAction s (HaskellAction action) = do
   currentState <- get
@@ -327,6 +340,7 @@ selectView ::
 selectView view = do
   let
     subroute = case view of
+      HomePage -> Router.Home
       Simulation -> Router.Simulation
       HaskellEditor -> Router.HaskellEditor
       JSEditor -> Router.JSEditor
@@ -336,6 +350,7 @@ selectView view = do
   liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
   case view of
+    HomePage -> pure unit
     Simulation -> do
       void $ query _marloweEditorSlot unit (Monaco.Resize unit)
       void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
@@ -379,9 +394,10 @@ render settings state =
                         []
                     ]
                 ]
-            , h1 [ classes [ spaceLeft, uppercase ] ] [ text "Marlowe Playground" ]
+            , h1 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
+            , img [ src iohkLogo ]
             ]
-        , p [] [ text "Online tool for creating embedded Marlowe contracts" ]
+        , a [ href "./tutorial/index.html", target "_blank", classes [] ] [ text "Tutorial" ]
         ]
     , main []
         [ nav [ id_ "panel-nav" ]
@@ -427,49 +443,41 @@ render settings state =
                 [ div [ class_ tabIcon ] []
                 , div [] [ text "Wallets" ]
                 ]
-            , div [ class_ (ClassName "nav-bottom-links") ]
-                [ a [ href "./tutorial/index.html", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
-                , p_ [ text "Privacy Policy" ]
-                , p_
-                    [ text "by "
-                    , img [ src iohkIcon, alt "input output hong kong logo" ]
-                    ]
-                ]
             ]
-        , section [ id_ "main-panel" ]
-            -- simulation panel
-            [ div [ classes ([ hide ] <> isActiveTab state Simulation) ]
-                [ bimap (map SimulationAction) SimulationAction (Simulation.render (state ^. _simulationState)) ]
-            -- haskell panel
-            , div [ classes ([ hide ] <> isActiveTab state HaskellEditor) ]
-                [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
-            -- javascript panel
-            , div [ classes ([ hide ] <> isActiveTab state JSEditor) ]
-                (JSEditor.render state)
-            -- blockly panel
-            , div [ classes ([ hide ] <> isActiveTab state BlocklyEditor) ]
-                [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
-                , MB.toolbox
-                , MB.workspaceBlocks
-                ]
-            -- ACTUS blockly panel
-            , div [ classes ([ hide ] <> isActiveTab state ActusBlocklyEditor) ]
-                [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
-                , AMB.toolbox
-                , AMB.workspaceBlocks
-                ]
-            -- wallet panel
-            , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]
-                [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
-            -- Haskell Editor bottom panel
-            , bottomPanel
-            ]
+        , section [ id_ "main-panel" ] case state ^. _view of
+            HomePage -> [ Home.render state ]
+            Simulation ->
+              [ div []
+                  [ bimap (map SimulationAction) SimulationAction (Simulation.render (state ^. _simulationState)) ]
+              ]
+            HaskellEditor ->
+              [ div []
+                  [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
+              , bimap (map HaskellAction) HaskellAction (HaskellEditor.bottomPanel (state ^. _haskellState))
+              ]
+            JSEditor ->
+              [ div [] (JSEditor.render state)
+              , JSEditor.bottomPanel state
+              ]
+            BlocklyEditor ->
+              [ div []
+                  [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
+                  , MB.toolbox
+                  , MB.workspaceBlocks
+                  ]
+              ]
+            ActusBlocklyEditor ->
+              [ div []
+                  [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
+                  , AMB.toolbox
+                  , AMB.workspaceBlocks
+                  ]
+              ]
+            WalletEmulator ->
+              [ div [ classes [ ClassName "full-height" ] ]
+                  [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
+              ]
         ]
     ]
   where
-  bottomPanel = case state ^. _view of
-    HaskellEditor -> bimap (map HaskellAction) HaskellAction (HaskellEditor.bottomPanel (state ^. _haskellState))
-    JSEditor -> JSEditor.bottomPanel state
-    _ -> text mempty
-
   isActiveTab state' activeView = if state' ^. _view <<< to (eq activeView) then [ active ] else []
