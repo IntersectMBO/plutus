@@ -36,16 +36,17 @@ import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                                             (Enumerable (..), Options (..), ctrex',search')
+import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
+                                                                             search')
 import           Data.Coolean                                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
 import qualified Data.Stream                                                as Stream
 import qualified Data.Text                                                  as Text
+import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
-import System.IO.Unsafe
 
 -- * Property-based tests
 
@@ -63,7 +64,7 @@ defaultGenOptions = GenOptions
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
   testGroup "NEAT"
-  
+
   [ -- as originally written, use lazy-search to find ctrexs
     testCaseGen "normalization commutes with conversion from generated types"
       genOpts
@@ -84,8 +85,8 @@ tests genOpts@GenOptions{} =
 --    v - this would also fail if the depth was increased
       (Type (), TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek
-      
-  -- FIXME: this is an experiment   
+
+  -- FIXME: this is an experiment
   -- generate examples using lazy search and turn them into individual tests
   -- uses unsafePerformIO to extract examples from IO [a].
   , mapTest
@@ -93,7 +94,7 @@ tests genOpts@GenOptions{} =
       (Type ())
       (packTest prop_normalizeConvertCommuteTypes)
 
-  -- FIXME: this is an experiment   
+  -- FIXME: this is an experiment
   -- generate examples using lazy search and turn them into one big test
  , bigTest
       genOpts
@@ -388,7 +389,7 @@ packTest f t a = testCase ("typecheck test: " ++ show a) $
 -- given a prop, generate one test
 
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
-packAssertion f t a = 
+packAssertion f t a =
   case (runQuote . runExceptT $ f t a) of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
