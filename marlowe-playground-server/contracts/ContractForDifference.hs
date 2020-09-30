@@ -2,47 +2,48 @@
 module ContractForDifference where
 
 import           Language.Marlowe
+import           Data.String                                       (IsString (fromString))
 
 main :: IO ()
 main = print . pretty $ contract
 
-party :: Role 
+party :: Party 
 party = Role "party"
 
-partyAccount :: Account 
+partyAccount :: AccountId 
 partyAccount = AccountId 0 party
 
-counterParty :: Role
+counterParty :: Party
 counterParty = Role "counterparty"
 
-counterPartyAccount :: Account 
+counterPartyAccount :: AccountId 
 counterPartyAccount = AccountId 0 counterParty
 
 partyCollateralToken :: Token
 partyCollateralToken = (Token "" "")
 
-partyCollateralAmount :: Constant
+partyCollateralAmount :: (Value Observation)
 partyCollateralAmount = Constant 1000
 
 counterPartyCollateralToken :: Token
 counterPartyCollateralToken = (Token "" "")
 
-counterPartyCollateralAmount :: Constant
+counterPartyCollateralAmount :: (Value Observation)
 counterPartyCollateralAmount = Constant 1000
 
 endDate :: Integer
 endDate = 1000
 
-oracle :: Role
+oracle :: Party
 oracle = Role "oracle"
 
 when :: Integer -> Action -> Contract -> Contract
-when timeout action continue = When [Case action continue] 0 Close
+when timeout action continue = When [Case action continue] (Slot timeout) Close
 
 before :: Integer -> Integer
 before = id
 
-partyCollateralDeposit :: Deposit
+partyCollateralDeposit :: Action
 partyCollateralDeposit = 
     Deposit
         partyAccount
@@ -50,7 +51,7 @@ partyCollateralDeposit =
         partyCollateralToken
         partyCollateralAmount
 
-counterPartyCollateralDeposit :: Deposit
+counterPartyCollateralDeposit :: Action
 counterPartyCollateralDeposit = 
     Deposit
         partyAccount
@@ -58,14 +59,14 @@ counterPartyCollateralDeposit =
         partyCollateralToken
         partyCollateralAmount
             
-receive :: String -> Contract -> Contract
-receive value continue = (Choice (ChoiceId value oracle) [Bound 0 100000])
+receiveValue :: String -> Action
+receiveValue value = (Choice (ChoiceId (fromString value) oracle) [Bound 0 100000])
 
-read :: String -> (Value Observation)
-read value = ChoiceValue (ChoiceId "price1" oracle))
+readValue :: String -> (Value Observation)
+readValue value = ChoiceValue (ChoiceId (fromString value) oracle)
 
 waitFor :: Integer -> Contract -> Contract
-waitFor delay continue =  When [] delay continue
+waitFor delay continue =  When [] (Slot delay) continue
 
 then' :: Contract -> Contract
 then' = id
@@ -73,26 +74,29 @@ then' = id
 else' :: Contract -> Contract
 else' = id
 
+letValue :: String -> (Value Observation) -> Contract -> Contract
+letValue value = Let (ValueId $ fromString value)
+
 contract :: Contract
 contract = 
     let 
-        max val1 val2 = Cond (ValueGE val1 val2) val2 val1
+        maximum val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in 
         when (before 100) partyCollateralDeposit $
         when (before 100) counterPartyCollateralDeposit $
-        when (before 100) (receive "price1") $ 
+        when (before 100) (receiveValue "price1") $ 
         waitFor endDate $
-        when (before $ endDate + 100) (receive "price2") $
-        Let "diff" (SubValue (read "price1") (read "price2")) $
+        when (before $ endDate + 100) (receiveValue "price2") $
+        letValue "diff" (SubValue (readValue "price1") (readValue "price2")) $
         If (ValueLT (UseValue "diff") (Constant 0)) 
-            (then' 
-                Let "absdiff" (NegValue (UseValue "diff")) $
-                (let payoff = max (UseValue "absdiff") counterPartyCollateralDeposit
-                in Pay partyAccount counterParty counterPartyCollateralToken payoff) $
+            (then' $ 
+                letValue "absdiff" (NegValue (UseValue "diff")) $
+                (let payoff = maximum (UseValue "absdiff") counterPartyCollateralAmount
+                in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
                 Close
             )
-            (else' 
-                (let payoff = max (UseValue "diff") partyCollateralDeposit
-                in Pay partyAccount counterParty counterPartyCollateralToken payoff) $
+            (else' $
+                (let payoff = maximum (UseValue "diff") partyCollateralAmount
+                in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
                 Close
             )
