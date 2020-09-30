@@ -3,6 +3,7 @@ module ContractForDifference where
 
 import           Language.Marlowe
 import           Data.String                                       (IsString (fromString))
+import           Prelude                                          hiding (Fractional, Num, (*), (<), (-), (/))
 
 main :: IO ()
 main = print . pretty $ contract
@@ -23,13 +24,13 @@ partyCollateralToken :: Token
 partyCollateralToken = (Token "" "")
 
 partyCollateralAmount :: (Value Observation)
-partyCollateralAmount = Constant 1000
+partyCollateralAmount = value 1000
 
 counterPartyCollateralToken :: Token
 counterPartyCollateralToken = (Token "" "")
 
 counterPartyCollateralAmount :: (Value Observation)
-counterPartyCollateralAmount = Constant 1000
+counterPartyCollateralAmount = value 1000
 
 endDate :: Integer
 endDate = 1000
@@ -37,8 +38,8 @@ endDate = 1000
 oracle :: Party
 oracle = Role "oracle"
 
-when :: Integer -> Action -> Contract -> Contract
-when timeout action continue = When [Case action continue] (Slot timeout) Close
+when :: Action -> Integer -> Contract -> Contract
+when action timeout continue = When [Case action continue] (Slot timeout) Close
 
 before :: Integer -> Integer
 before = id
@@ -60,10 +61,10 @@ counterPartyCollateralDeposit =
         partyCollateralAmount
             
 receiveValue :: String -> Action
-receiveValue value = (Choice (ChoiceId (fromString value) oracle) [Bound 0 100000])
+receiveValue val = (Choice (ChoiceId (fromString val) oracle) [Bound 0 100000])
 
 readValue :: String -> (Value Observation)
-readValue value = ChoiceValue (ChoiceId (fromString value) oracle)
+readValue val = ChoiceValue (ChoiceId (fromString val) oracle)
 
 waitFor :: Integer -> Contract -> Contract
 waitFor delay continue =  When [] (Slot delay) continue
@@ -75,28 +76,40 @@ else' :: Contract -> Contract
 else' = id
 
 letValue :: String -> (Value Observation) -> Contract -> Contract
-letValue value = Let (ValueId $ fromString value)
+letValue val = Let (ValueId $ fromString val)
+ 
+useValue :: String -> (Value Observation)
+useValue = UseValue . fromString
+
+value :: Integer -> (Value Observation)
+value = Constant
+
+(-) :: (Value Observation) -> (Value Observation) -> (Value Observation)
+(-) = SubValue
+
+(<) :: (Value Observation) -> (Value Observation) -> Observation
+(<) = ValueLT
 
 contract :: Contract
 contract = 
     let 
-        maximum val1 val2 = Cond (ValueGE val1 val2) val2 val1
+        maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in 
-        when (before 100) partyCollateralDeposit $
-        when (before 100) counterPartyCollateralDeposit $
-        when (before 100) (receiveValue "price1") $ 
+        when partyCollateralDeposit (before 100) $
+        when counterPartyCollateralDeposit (before 100) $
+        when (receiveValue "price1") (before 100) $ 
         waitFor endDate $
-        when (before $ endDate + 100) (receiveValue "price2") $
-        letValue "diff" (SubValue (readValue "price1") (readValue "price2")) $
-        If (ValueLT (UseValue "diff") (Constant 0)) 
+        when (receiveValue "price2") (before $ endDate + 100) $
+        letValue "delta" (readValue "price1" - readValue "price2") $
+        If (useValue "delta" < value 0) 
             (then' $ 
-                letValue "absdiff" (NegValue (UseValue "diff")) $
-                (let payoff = maximum (UseValue "absdiff") counterPartyCollateralAmount
+                letValue "absdelta" (value 0 - useValue "delta") $
+                (let payoff = maxValue (useValue "absdelta") counterPartyCollateralAmount
                 in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
                 Close
             )
             (else' $
-                (let payoff = maximum (UseValue "diff") partyCollateralAmount
+                (let payoff = maxValue (useValue "delta") partyCollateralAmount
                 in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
                 Close
             )
