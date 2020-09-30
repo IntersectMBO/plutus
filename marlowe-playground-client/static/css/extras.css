@@ -44,6 +44,7 @@
 .start-with-marlowe {
   max-width: 350px;
 }
+
 .start-with-haskell .haskell-icon {
   max-width: 100px;
 }
@@ -96,5 +97,25 @@
 }
 
 .no-show-home input {
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.marlowe-intro-container {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width:768px) {
+  .marlowe-intro-container {
+    flex-wrap: wrap;
+  }
+
+  .start-with-container {
+    flex-wrap: wrap;
+  }
+}
+
+.home-buttons {
+  display: flex;
+  justify-content: space-between;
 }

@@ -14,10 +14,21 @@ import Types (ChildSlots, FrontendState, HAction(..), View(..), _showHomePage)
 render :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
 render state =
   div [ classes [ scroll, fullHeight ] ]
-    [ h1_ [ text "What is the Marlowe Playground?" ]
-    , p_ [ text "For Marlowe to be usable in practice, users need to be able to understand how contracts will behave once deployed to the blockchain, but without doing the deployment. We can do that by simulating their behaviour off-chain, interactively stepping through the evaluation of a contract in the browser-based tool, the Marlowe Playground, a web tool that supports the interactive construction, revision, and simulation of smart-contracts written in Marlowe." ]
-    , h2_ [ text "How does the playground work?" ]
-    , p_ [ text "Not sure what to put here" ]
+    [ div [ classes [ ClassName "marlowe-intro-container" ] ]
+        [ div [ classes [ ClassName "text-block" ] ]
+            [ h2_ [ text "What is Marlowe?" ]
+            , p_ [ text "Marlowe is special-purpose language for financial contracts, allowing contracts to be written in the language of finance, rather than using general-purpose the language of the blockchain. Because it is special purpose, it is easier to read, write and understand Marlowe contracts. It is also safer: some sorts of errors are impossible to write, and we can completely analyse contract behaviour without having to run a contract." ]
+            , p_ [ text "As a part of the Goguen rollout, we will be completing the implementation of Marlowe on Cardano, but in the meantime you can get started with Marlowe by using it in the Marlowe Playground." ]
+            ]
+        , div [ classes [ ClassName "text-block" ] ]
+            [ h2_ [ text "What is the Marlowe Playground?" ]
+            , p_ [ text "In the browser-based Marlowe Playground you can write Marlowe contracts, in a variety of different ways. Once a contract is written, you can analyse its behaviour, e.g. checking whether any payments made by the contract could conceivably fail. You can also step through how a contract will behave, simulating the actions of the participants, and read a comprehensive tutorial on Marlowe and the Playground." ]
+            ]
+        , div [ classes [ ClassName "text-block" ] ]
+            [ h2_ [ text "How does the playground work?" ]
+            , p_ [ text "Marlowe contracts can be built in different ways. You can write them as Marlowe text, but also use the Blockly visual programming tool to create contracts by fitting together blocks that represent the different components. Marlowe is written in the Haskell programming language, and you can also use Haskell features to help you describe Marlowe contracts more readably and succinctly." ]
+            ]
+        ]
     , div [ classes [ flex, ClassName "start-with-container" ] ]
         [ div [ classes [ fullWidth ] ]
             [ h3_ [ text "Option 1: Start with Haskell" ]
@@ -29,18 +40,20 @@ render state =
             ]
         ]
     , h3_ [ text "Ready to go?" ]
-    , div [ classes [ ClassName "ready-to-go-buttons" ] ]
-        [ a [ href "./tutorial/index.html", target "_blank" ] [ text "Read our tutorial" ]
-        , button [ onClick ((const <<< Just <<< ChangeView) Simulation) ] [ text "Start coding!" ]
-        ]
-    , div [ classes [ ClassName "no-show-home" ] ]
-        [ input
-            [ id_ "no-show-home"
-            , type_ InputCheckbox
-            , onChecked (Just <<< ShowHomePageInFuture <<< not)
-            , checked (state ^. (_showHomePage <<< to not))
+    , div [ classes [ ClassName "home-buttons" ] ]
+        [ div [ classes [ ClassName "ready-to-go-buttons" ] ]
+            [ a [ href "./tutorial/index.html", target "_blank" ] [ text "Read our tutorial" ]
+            , button [ onClick ((const <<< Just <<< ChangeView) Simulation) ] [ text "Start coding!" ]
             ]
-        , label [ HTML.for "no-show-home" ] [ text "Don’t show this screen next time" ]
+        , div [ classes [ ClassName "no-show-home" ] ]
+            [ label [ HTML.for "no-show-home" ] [ text "Don’t show this screen next time" ]
+            , input
+                [ id_ "no-show-home"
+                , type_ InputCheckbox
+                , onChecked (Just <<< ShowHomePageInFuture <<< not)
+                , checked (state ^. (_showHomePage <<< to not))
+                ]
+            ]
         ]
     ]
 
