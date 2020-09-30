@@ -47,7 +47,6 @@
           (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
           (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
-          (hsPkgs."bound" or (errorHandler.buildDepError "bound"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))

@@ -214,7 +214,6 @@ library
         barbies -any,
         bifunctors -any,
         bimap -any,
-        bound -any,
         bytestring -any,
         cardano-crypto,
         cborg -any,

@@ -12,7 +12,6 @@ This file contains
 {-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE DerivingVia               #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
@@ -45,21 +44,6 @@ import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
-
-import           Bound          
-import           Data.ClassSharing
-
-
-
-deriveEnumerable ''Bound.Var
-
-instance ( Typeable f, Typeable b, Typeable a
-         , Applicative f, Enumerable (f (Bound.Var b a))
-         ) => Enumerable (Scope b f a) where
-    enumerate = share . fmap (Scope . fmap (fmap pure)) $ unsafeAccess enumerate
-
-
--- * Helper definitions
 
 newtype Neutral a = Neutral
   { unNeutral :: a
@@ -98,45 +82,6 @@ deriveEnumerable ''Kind
 deriveEnumerable ''TypeG
 
 type ClosedTypeG = TypeG Z
-
-
--- an attempt at using bound
--- FIXME: decide to use or throw away
-data BTypeG tyname
-  = BVarG tyname
-  | BLamG (Scope () BTypeG tyname)
-  | BAppG (BTypeG tyname) (BTypeG tyname) (Kind ())
-  | BFunG (BTypeG tyname) (BTypeG tyname)
-  | BIFixG (BTypeG tyname) (Kind ()) (BTypeG tyname)
-  | BForallG (Kind ()) (Scope () BTypeG tyname)
-  | BBuiltinG TypeBuiltinG
-  deriving (Functor)
-
-{-
-makeBound ''BTypeG
-
-^ fails as it doesn't seem to like `Kind ()` or possibly just `()`
-
-    Exception when trying to run compile-time code:
-      This is bad: AppT (ConT Language.PlutusCore.Core.Type.Kind) (TupleT 0) False
-CallStack (from HasCallStack):
-  error, called at src/Bound/TH.hs:269:35 in bound-2.0.1:Bound.TH
-    Code: makeBound ''BTypeG
-
--}
-
-
-instance Applicative BTypeG where pure = BVarG; (<*>) = ap
-
-instance Monad BTypeG where
-  return = pure
-  BVarG a      >>= f = f a
-  BAppG x y k  >>= f = BAppG (x >>= f) (y >>= f) k
-  BLamG e      >>= f = BLamG (e >>>= f)
-  BFunG x y    >>= f = BFunG (x >>= f) (y >>= f)
-  BIFixG x k y >>= f = BIFixG (x >>= f) k (y >>= f)
-  BForallG k x >>= f = BForallG k (x >>>= f)
-  BBuiltinG b  >>= _ = BBuiltinG b
 
 {-
 
