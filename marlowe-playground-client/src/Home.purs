@@ -4,7 +4,7 @@ import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (blocklyIconColour, flex, fullHeight, fullWidth, haskellIcon, horizontalFlip, marloweLogo2, rightArrow, scroll, simulationIcon)
-import Halogen.HTML (a, button, div, div_, h1_, h2_, h3_, img, input, label, p_, text)
+import Halogen.HTML (a, button, div, div_, h2_, h3_, img, input, label, p_, text)
 import Halogen.HTML.Events (onChecked, onClick)
 import Halogen.HTML.Properties (InputType(..), checked, classes, href, id_, src, target, type_)
 import Halogen.HTML.Properties as HTML
