@@ -92,6 +92,13 @@ tests genOpts@GenOptions{} =
       genOpts
       (Type ())
       (packTest prop_normalizeConvertCommuteTypes)
+
+  -- FIXME: this is an experiment   
+  -- generate examples using lazy search and turn them into one big test
+ , bigTest
+      genOpts
+      (Type ())
+      (packAssertion prop_normalizeConvertCommuteTypes)
   ]
 -- |Property: check if the type is preserved by evaluation.
 --
@@ -359,7 +366,10 @@ names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
 -- FIXME: this is an experiment
--- generate examples and then turn them into individual tasty tests
+
+-- given a prop, generate examples and then turn them into individual
+-- tasty tests
+
 {-# NOINLINE mapTest #-}
 mapTest :: (Check t a, Enumerable a)
         => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
@@ -367,9 +377,25 @@ mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
   where
   examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
 
--- take a prop and turn it into a tasty test
+-- Take a prop and turn it into a tasty test
 packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
 packTest f t a = testCase ("typecheck test: " ++ show a) $
   case (runQuote . runExceptT $ f t a) of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
+
+-- FIXME: this is an experiment
+-- given a prop, generate one test
+
+packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
+packAssertion f t a = 
+  case (runQuote . runExceptT $ f t a) of
+    Left  e -> assertFailure $ show e
+    Right _ -> return ()
+
+bigTest :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> Assertion) -> TestTree
+bigTest GenOptions{..} t f = testCase "one big test" $ do
+  as <- search' genMode genDepth (\a -> check t a)
+  _  <- sequence $ map (f t) as
+  return ()
