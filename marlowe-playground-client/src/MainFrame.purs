@@ -449,14 +449,6 @@ render settings state =
                 [ div [ class_ tabIcon ] []
                 , div [] [ text "Wallets" ]
                 ]
-            , div [ class_ (ClassName "nav-bottom-links") ]
-                [ a [ href "./tutorial/index.html", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
-                , p_ [ text "Privacy Policy" ]
-                , p_
-                    [ text "by "
-                    , img [ src iohkIcon, alt "input output hong kong logo" ]
-                    ]
-                ]
             ]
         , section [ id_ "main-panel" ] case state ^. _view of
             HomePage -> [ Home.render state ]
