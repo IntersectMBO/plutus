@@ -20,21 +20,6 @@ counterParty = Role "counterparty"
 counterPartyAccount :: AccountId 
 counterPartyAccount = AccountId 0 counterParty
 
-partyCollateralToken :: Token
-partyCollateralToken = (Token "" "")
-
-partyCollateralAmount :: (Value Observation)
-partyCollateralAmount = value 1000
-
-counterPartyCollateralToken :: Token
-counterPartyCollateralToken = (Token "" "")
-
-counterPartyCollateralAmount :: (Value Observation)
-counterPartyCollateralAmount = value 1000
-
-endDate :: Integer
-endDate = 1000
-
 oracle :: Party
 oracle = Role "oracle"
 
@@ -43,22 +28,6 @@ when action timeout continue = When [Case action continue] (Slot timeout) Close
 
 before :: Integer -> Integer
 before = id
-
-partyCollateralDeposit :: Action
-partyCollateralDeposit = 
-    Deposit
-        partyAccount
-        party
-        partyCollateralToken
-        partyCollateralAmount
-
-counterPartyCollateralDeposit :: Action
-counterPartyCollateralDeposit = 
-    Deposit
-        partyAccount
-        party
-        partyCollateralToken
-        partyCollateralAmount
             
 receiveValue :: String -> Action
 receiveValue val = (Choice (ChoiceId (fromString val) oracle) [Bound 0 100000])
@@ -105,6 +74,27 @@ amountOf = id
 contract :: Contract
 contract = 
     let 
+
+        partyCollateralToken = (Token "" "")
+        partyCollateralAmount = value 1000
+        counterPartyCollateralToken = (Token "" "")
+        counterPartyCollateralAmount = value 1000
+        endDate = 1000
+
+        partyCollateralDeposit = 
+            Deposit
+                partyAccount
+                party
+                partyCollateralToken
+                partyCollateralAmount
+
+        counterPartyCollateralDeposit = 
+            Deposit
+                partyAccount
+                party
+                partyCollateralToken
+                partyCollateralAmount
+                
         maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in 
         when partyCollateralDeposit (before 100) $
