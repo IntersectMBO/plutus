@@ -90,6 +90,18 @@ value = Constant
 (<) :: (Value Observation) -> (Value Observation) -> Observation
 (<) = ValueLT
 
+from :: AccountId -> AccountId
+from = id
+
+to :: Party -> Payee
+to = Party
+
+with :: Token -> Token
+with = id
+
+amountOf :: (Value Observation) -> (Value Observation)
+amountOf = id
+
 contract :: Contract
 contract = 
     let 
@@ -105,11 +117,19 @@ contract =
             (then' $ 
                 letValue "absdelta" (value 0 - useValue "delta") $
                 (let payoff = maxValue (useValue "absdelta") counterPartyCollateralAmount
-                in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
+                in Pay 
+                    (from partyAccount)
+                    (to counterParty) 
+                    (with counterPartyCollateralToken)
+                    (amountOf payoff)) $
                 Close
             )
             (else' $
                 (let payoff = maxValue (useValue "delta") partyCollateralAmount
-                in Pay partyAccount (Party counterParty) counterPartyCollateralToken payoff) $
+                in Pay 
+                    (from counterPartyAccount)
+                    (to party) 
+                    (with partyCollateralToken) 
+                    (amountOf payoff)) $
                 Close
             )
