@@ -103,6 +103,8 @@
 .marlowe-intro-container {
   display: flex;
   gap: 1rem;
+  /* remove this if we want 3 columns */
+  flex-wrap: wrap;
 }
 
 @media (max-width:768px) {
