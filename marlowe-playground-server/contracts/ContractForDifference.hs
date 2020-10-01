@@ -23,11 +23,14 @@ counterPartyAccount = AccountId 0 counterParty
 oracle :: Party
 oracle = Role "oracle"
 
-when :: Action -> Integer -> Contract -> Contract
-when action timeout continue = When [Case action continue] (Slot timeout) Close
+waitForEvent :: Action -> Integer -> Contract -> Contract -> Contract
+waitForEvent action timeout alternative continue = When [Case action continue] (Slot timeout) alternative
 
 before :: Integer -> Integer
 before = id
+
+orElse :: Contract -> Contract
+orElse = id
             
 receiveValue :: String -> Action
 receiveValue val = (Choice (ChoiceId (fromString val) oracle) [Bound 0 100000])
@@ -90,18 +93,18 @@ contract =
 
         counterPartyCollateralDeposit = 
             Deposit
-                partyAccount
-                party
-                partyCollateralToken
-                partyCollateralAmount
+                counterPartyAccount
+                counterParty
+                counterPartyCollateralToken
+                counterPartyCollateralAmount
                 
         maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in 
-        when partyCollateralDeposit (before 100) $
-        when counterPartyCollateralDeposit (before 100) $
-        when (receiveValue "price1") (before 100) $ 
+        waitForEvent partyCollateralDeposit (before 100) (orElse Close) $
+        waitForEvent counterPartyCollateralDeposit (before 100) (orElse Close) $
+        waitForEvent (receiveValue "price1") (before 100) (orElse Close) $ 
         waitFor endDate $
-        when (receiveValue "price2") (before $ endDate + 100) $
+        waitForEvent (receiveValue "price2") (before $ endDate + 100) (orElse Close) $
         letValue "delta" (readValue "price1" - readValue "price2") $
         If (useValue "delta" < value 0) 
             (then' $ 
