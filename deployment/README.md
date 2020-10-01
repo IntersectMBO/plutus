@@ -17,7 +17,7 @@ A website is served from AWS API Gateway which will proxy to the following parts
 
 ### Getting Started
 
-If you are using OSX then you cannot build the lambdas locally, therefore if you want to update the infrastructure you will need to build the lambdas on a linux machine and then copy them to a location on your machine. Then you can set the env vars `export TF_VAR_symbolic_lambda_file=/path/to/marlowe-symbolic.zip` and `export TF_VAR_playground_lambda_file=/path/to/marlowe-playground-lambda.zip`
+If you are using OSX then you cannot build the lambdas locally, therefore if you want to update the infrastructure you will need to build the lambdas on a remote builder with system type "x86_64-linux". You can do this by adding such a build machine to your `/etc/nix/machines` file, nix will try to use this machine to build the lambdas.
 
 If you have not setup AWS authentication but you have enabled MFA then you can run `eval $($(nix-build -A deployment.getCreds) user.name 123456)` (where 123456 is the current MFA code) before you run any other command to setup temporary credentials that are valid for 24 hours. Notice that you use `$()` to evaluate the result of the nix build (which is a shell script) and then you use `eval $()` around that result to evaluate the output of the script.
 
@@ -25,10 +25,13 @@ The scripts produce files for use with nixops (until we get rid of the legacy in
 
 The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
 
-* `deployment.env.runTerraform` will run only the terraform apply command
-* `deployment.env.syncS3` will sync the marlowe client static code with S3
+* `deployment.env.applyTerraform` will run only the terraform apply command
+* `deployment.env.syncS3` will sync the marlowe client, marlowe tutorial and plutus client static code with S3
+* `deployment.env.syncPlutusTutorial` will sync the plutus tutorial static code with S3, this is separate as it is 170Mb and so can take a long time
 * `deployment.env.terraform-locals` will produce `generated.tf.json` which contains locals such as `env`
 * `deployment.env.terraform-vars` will produce `env.tfvars` which contains variables such as `symbolic_lambda_file` if you are not on OSX
+
+Once you have setup an environment with `$(nix-build -A deployment.david.deploy)` you will probably want to stick to using `$(nix-build -A deployment.david.applyTerraform)` and `$(nix-build -A deployment.david.syncS3)` only, avoiding dealing with the large plutus tutorial.
 
 The scripts require some secrets which are stored encrypted in this repository. To access them you will need to provide your gpg public key to someone who already has access to the secrets.
 

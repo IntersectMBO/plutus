@@ -6,13 +6,12 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Language.PlutusCore.Parser
+-- | This is a parser for untyped Plutus Core. It's largely a copy of the one for
+-- typed Plutus Core.
+module Language.UntypedPlutusCore.Parser
     ( parseProgram
     , parseTerm
-    , parseType
     , ParseError(..)
-    , IdentifierState
-    , emptyIdentifierState
     ) where
 
 import PlutusPrelude
@@ -21,8 +20,6 @@ import Language.PlutusCore.Parser.Internal
 
 import Language.PlutusCore.Constant.Dynamic
 import Language.PlutusCore.Constant.Typed
-import Language.PlutusCore.Core
-import Language.PlutusCore.Core.Type
 import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
@@ -32,6 +29,9 @@ import Language.PlutusCore.Name
 import Language.PlutusCore.Parsable
 import Language.PlutusCore.Quote
 import Language.PlutusCore.Universe
+
+import Language.UntypedPlutusCore.Core
+import Language.UntypedPlutusCore.Core.Type
 
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.List.NonEmpty        as NE
@@ -46,7 +46,6 @@ import Control.Monad.State
 
 %name parsePlutusCoreProgram Program
 %name parsePlutusCoreTerm Term
-%name parsePlutusCoreType Type
 %tokentype { Token AlexPosn }
 %error { parseError }
 %monad { Parse } { (>>=) } { pure }
@@ -54,26 +53,19 @@ import Control.Monad.State
 
 %token
 
-    abs           { TkKeyword $$ KwAbs }
     lam           { TkKeyword $$ KwLam }
-    ifix          { TkKeyword $$ KwIFix }
     con           { TkKeyword $$ KwCon }
     builtin       { TkKeyword $$ KwBuiltin }
-    fun           { TkKeyword $$ KwFun }
-    all           { TkKeyword $$ KwAll }
-    type          { TkKeyword $$ KwType }
     program       { TkKeyword $$ KwProgram }
-    iwrap         { TkKeyword $$ KwIWrap }
-    unwrap        { TkKeyword $$ KwUnwrap }
     errorTerm     { TkKeyword $$ KwError }
+    force         { TkKeyword $$ KwForce }
+    delay         { TkKeyword $$ KwDelay }
 
     openParen     { TkSpecial $$ OpenParen }
     closeParen    { TkSpecial $$ CloseParen }
     openBracket   { TkSpecial $$ OpenBracket }
     closeBracket  { TkSpecial $$ CloseBracket }
     dot           { TkSpecial $$ Dot }
-    openBrace     { TkSpecial $$ OpenBrace }
-    closeBrace    { TkSpecial $$ CloseBrace }
 
     naturalLit    { $$@TkNat{} }
     literal       { $$@TkLiteralConst{} }
@@ -98,47 +90,20 @@ Name   : name { Name (tkName $1) (tkIdentifier $1) }
 
 Var    : name { Var (tkLoc $1) (Name (tkName $1) (tkIdentifier $1)) }
 
-TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
-
-TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
-
 Term : Var                                                 { $1 }
-     | openParen   abs TyName Kind Term      closeParen    { TyAbs $2 $3 $4 $5 }
-     | openBrace   Term some(Type)           closeBrace    { tyInst $1 $2 (NE.reverse $3) }
-     | openParen   lam Name Type Term        closeParen    { LamAbs $2 $3 $4 $5 }
+     | openParen   lam Name Term             closeParen    { LamAbs $2 $3 $4 }
      | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
      -- % = monadic action
-     | openParen   con builtintypeid literal closeParen    { % fmap (uncurry Constant) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4)) }
-     | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
+     | openParen   con builtintypeid literal closeParen    { % fmap (uncurry Constant) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4))}
      | openParen   builtin builtinfnid       closeParen    { (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
-     | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
-     | openParen   errorTerm Type            closeParen    { Error $2 $3 }
-
-Type : TyVar { $1 }
-     | openParen   fun Type Type        closeParen    { TyFun $2 $3 $4 }
-     | openParen   all TyName Kind Type closeParen    { TyForall $2 $3 $4 $5 }
-     | openParen   lam TyName Kind Type closeParen    { TyLam $2 $3 $4 $5 }
-     | openParen   ifix Type Type       closeParen    { TyIFix $2 $3 $4 }
-     | openBracket Type some(Type)      closeBracket  { tyApps $1 $2 (NE.reverse $3) }
-     -- % = monadic action
-     | openParen   con builtintypeid    closeParen    { % mkBuiltinType (tkLoc $3) (tkBuiltinTypeId $3) }
-
-Kind : parens(type) { Type $1 }
-     | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
-
+     | openParen   errorTerm                 closeParen    { Error $2 }
+     | openParen   force Term                closeParen    { Force $2 $3 }
+     | openParen   delay Term                closeParen    { Delay $2 $3 }
 
 -- Haskell helper code
 {
 
-tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
-tyInst loc t (ty :| [])  = TyInst loc t ty
-tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
-
-tyApps :: a -> Type tyname uni a -> NonEmpty (Type tyname uni a) -> Type tyname uni a
-tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
-tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
-
-app :: a -> Term tyname name uni a -> NonEmpty (Term tyname name uni a) -> Term tyname name uni a
+app :: a -> Term name uni a -> NonEmpty (Term name uni a) -> Term name uni a
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
@@ -158,16 +123,11 @@ mapParseRun run = do
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program Name DefaultUni AlexPosn)
 parseProgram str = mapParseRun $ parseST parsePlutusCoreProgram str
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term Name DefaultUni AlexPosn)
 parseTerm str = mapParseRun $ parseST parsePlutusCoreTerm str
-
--- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parseType :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Type TyName DefaultUni AlexPosn)
-parseType str = mapParseRun $ parseST parsePlutusCoreType str
 }

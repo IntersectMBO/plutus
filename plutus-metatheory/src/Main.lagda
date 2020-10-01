@@ -130,14 +130,22 @@ postulate
 {-# COMPILE GHC unconvTy = unconvT 0 #-}
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
-{-# COMPILE GHC ParseError = type ParseError () #-}
 
-{-# COMPILE GHC parse = first (() <$) . parse  #-}
-{-# COMPILE GHC parseTm = first (() <$) . parseTm  #-}
-{-# COMPILE GHC parseTy = first (() <$) . parseTy  #-}
+{-# COMPILE GHC ParseError = type ParseError () #-}
+{-# COMPILE GHC parse = first (() <$) . runQuote . runExceptT . parseProgram  #-}
+{-# COMPILE GHC parseTm = first (() <$) . runQuote. runExceptT . parseTerm  #-}
+{-# COMPILE GHC parseTy = first (() <$) . runQuote . runExceptT . parseType  #-}
 {-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
+{-
+{-# COMPILE GHC parse = first (\(_::ParseError AlexPosn) -> ParseError) . runQuote . runExceptT . parseProgram #-}
+{-# COMPILE GHC parseTm = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseTerm #-}
+{-# COMPILE GHC parseTy = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseType #-}
+{-# COMPILE GHC deBruijnify = first (const ScopeError) . runExcept . deBruijnProgram #-}
+{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
+{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
+-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Main
@@ -101,7 +102,7 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
+    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do

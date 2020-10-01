@@ -30,7 +30,7 @@ import           Network.Wai.Middleware.Cors                      (cors, corsReq
 import           Servant                                          ((:<|>) ((:<|>)), (:>), Application,
                                                                    Handler (Handler), Server, ServerError, hoistServer,
                                                                    serve)
-import           System.Environment                               (getEnv)
+import           System.Environment                               (lookupEnv)
 import qualified Web.JWT                                          as JWT
 
 genActusContract :: ContractTerms -> Handler String
@@ -71,10 +71,10 @@ data AppConfig = AppConfig {authConfig :: Auth.Config}
 initializeContext :: IO AppConfig
 initializeContext = do
   putStrLn "Initializing Context"
-  githubClientId <- Text.pack <$> getEnv "GITHUB_CLIENT_ID"
-  githubClientSecret <- Text.pack <$> getEnv "GITHUB_CLIENT_SECRET"
-  jwtSignature <- Text.pack <$> getEnv "JWT_SIGNATURE"
-  redirectURL <- Text.pack <$> getEnv "GITHUB_REDIRECT_URL"
+  githubClientId <- getEnvOrEmpty "GITHUB_CLIENT_ID"
+  githubClientSecret <- getEnvOrEmpty "GITHUB_CLIENT_SECRET"
+  jwtSignature <- getEnvOrEmpty "JWT_SIGNATURE"
+  redirectURL <- getEnvOrEmpty "GITHUB_REDIRECT_URL"
   let authConfig =
         Auth.Config
           { _configJWTSignature = JWT.hmacSecret jwtSignature,
@@ -83,6 +83,15 @@ initializeContext = do
             _configGithubClientSecret = OAuthClientSecret githubClientSecret
           }
   pure $ AppConfig authConfig
+
+getEnvOrEmpty :: String -> IO Text
+getEnvOrEmpty name = do
+  mEnv <- lookupEnv name
+  case mEnv of
+    Just env -> pure $ Text.pack env
+    Nothing -> do
+      putStrLn $ "Warning: " <> name <> " not set"
+      pure mempty
 
 initializeApplication :: AppConfig -> IO Application
 initializeApplication config = do
