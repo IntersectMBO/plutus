@@ -138,14 +138,6 @@ postulate
 {-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
-{-
-{-# COMPILE GHC parse = first (\(_::ParseError AlexPosn) -> ParseError) . runQuote . runExceptT . parseProgram #-}
-{-# COMPILE GHC parseTm = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseTerm #-}
-{-# COMPILE GHC parseTy = either (\(_::ParseError AlexPosn) -> Nothing) Just . runQuote . runExceptT . parseType #-}
-{-# COMPILE GHC deBruijnify = first (const ScopeError) . runExcept . deBruijnProgram #-}
-{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
-{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
--}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}

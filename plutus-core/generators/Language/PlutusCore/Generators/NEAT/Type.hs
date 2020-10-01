@@ -383,8 +383,8 @@ checkTypeG _ _ _ _ = false
 instance Check ClosedTypeG ClosedTermG where
   check = checkTypeG emptyKCS emptyTCS
 
-instance Check (Kind (), ClosedTypeG) ClosedTermG where
-  check (_k, tyG) = check tyG
+--instance Check ClosedTypeG ClosedTermG where
+--  check tyG = check tyG
 
 
 -- ** Type checking state

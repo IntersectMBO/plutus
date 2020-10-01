@@ -57,7 +57,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 14
+  { genDepth = 12
   , genMode  = OF
   }
 
@@ -76,14 +76,14 @@ tests genOpts@GenOptions{} =
       prop_normalTypesCannotReduce
   , testCaseGen "type preservation - CK & CEK"
       genOpts
-      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_typePreservation
   , testCaseGen "CEK and CK produce the same output"
       genOpts
 --    v - this fails as it exposes mistreatment of type annotations by CEK
 --    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
 --    v - this would also fail if the depth was increased
-      (Type (), TyBuiltinG TyIntegerG)
+      (TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek
 
   -- FIXME: this is an experiment
@@ -106,12 +106,12 @@ tests genOpts@GenOptions{} =
 -- This property is expected to hold for the CK machine and fail for
 -- the CEK machine at the time of writing.
 
-prop_typePreservation :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_typePreservation (k, tyG) tmG = do
+prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_typePreservation tyG tmG = do
 
   -- Check if the type checker for generated terms is sound:
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  withExceptT TypeError $ checkKind defConfig () ty k
+  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  withExceptT TypeError $ checkKind defConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 
@@ -138,12 +138,12 @@ prop_typePreservation (k, tyG) tmG = do
 -- annotations before comparison, or fix the problem by updating the
 -- CEK machine.
 
-prop_agree_Ck_Cek :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_agree_Ck_Cek (k, tyG) tmG = do
+prop_agree_Ck_Cek :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_agree_Ck_Cek tyG tmG = do
 
   -- Check if the type checker for generated terms is sound:
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  withExceptT TypeError $ checkKind defConfig () ty k
+  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  withExceptT TypeError $ checkKind defConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
 

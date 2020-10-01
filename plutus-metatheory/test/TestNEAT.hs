@@ -33,7 +33,7 @@ allTests genOpts = testGroup "NEAT"
       prop_Type
   , testCaseGen "term-level"
       genOpts
-      (Type (),TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
       prop_Term
   ]
 
@@ -79,10 +79,10 @@ prop_Type k tyG = do
 
 
 -- one term-level test to rule them all
-prop_Term :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
-prop_Term (k , tyG) tmG = do
+prop_Term :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_Term tyG tmG = do
   -- get a production named type
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
   -- get a production de Bruijn type
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   -- get a production named term
