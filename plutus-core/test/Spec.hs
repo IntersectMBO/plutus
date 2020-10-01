@@ -44,7 +44,9 @@ main = do
     typeFiles <- findByExtension [".plc"] "test/types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
     evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
+    let tests = allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles
+    neat <- NEAT.iotests NEAT.defaultGenOptions
+    defaultMain $ testGroup "all tests" (tests ++ neat)
 
 compareName :: Name -> Name -> Bool
 compareName = (==) `on` nameString
@@ -131,8 +133,8 @@ propDeBruijn gen = property . generalizeT $ do
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [TestTree]
+allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR

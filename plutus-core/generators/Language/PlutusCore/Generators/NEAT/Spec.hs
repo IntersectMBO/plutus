@@ -14,6 +14,7 @@ generators.
 
 module Language.PlutusCore.Generators.NEAT.Spec
   ( tests
+  , iotests
   , GenOptions (..)
   , defaultGenOptions
   , Options (..)
@@ -43,7 +44,6 @@ import           Data.Either
 import           Data.Maybe
 import qualified Data.Stream                                                as Stream
 import qualified Data.Text                                                  as Text
-import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -60,6 +60,7 @@ defaultGenOptions = GenOptions
   { genDepth = 12
   , genMode  = OF
   }
+
 
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
@@ -85,14 +86,6 @@ tests genOpts@GenOptions{} =
 --    v - this would also fail if the depth was increased
       (TyBuiltinG TyIntegerG)
       prop_agree_Ck_Cek
-
-  -- FIXME: this is an experiment
-  -- generate examples using lazy search and turn them into individual tests
-  -- uses unsafePerformIO to extract examples from IO [a].
-  , mapTest
-      genOpts
-      (Type ())
-      (packTest prop_normalizeConvertCommuteTypes)
 
   -- FIXME: this is an experiment
   -- generate examples using lazy search and turn them into one big test
@@ -371,12 +364,20 @@ names = mkTextNameStream "x"
 -- given a prop, generate examples and then turn them into individual
 -- tasty tests
 
-{-# NOINLINE mapTest #-}
-mapTest :: (Check t a, Enumerable a)
-        => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
-mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
-  where
-  examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
+iotests :: GenOptions -> IO [TestTree]
+iotests genOpts@GenOptions{} = do
+  t1 <- packGroup genOpts (Type ()) (packTest prop_normalizeConvertCommuteTypes)
+
+  -- more tests...
+
+  return [t1]
+
+packGroup :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> TestTree) -> IO TestTree
+packGroup GenOptions{..} t f = fmap (testGroup "a bunch of tests") $ do
+  examples <- search' genMode genDepth (\a -> check t a)
+  return $ map (f t) examples
+
 
 -- Take a prop and turn it into a tasty test
 packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
