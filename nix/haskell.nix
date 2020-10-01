@@ -58,6 +58,12 @@ let
             ];
 
           packages = {
+            # Using https connections ultimately requires x509. But on
+            # OSX, a pure build can't find the package. This is the
+            # solution used by the wallet build, and we reuse it here.
+            x509-system.components.library.preBuild = lib.optionalString (stdenv.isDarwin) ''
+              substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
+            '';
             inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
             # See https://github.com/input-output-hk/plutus/issues/1213
             marlowe.doHaddock = false;
