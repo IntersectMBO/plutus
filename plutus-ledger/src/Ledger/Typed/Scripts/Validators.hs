@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
@@ -18,6 +19,7 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 
 import           Ledger.Scripts
+import           Ledger.Validation         (PolicyCtx (..), TxInfo (..))
 import qualified Ledger.Validation         as Validation
 
 -- | The type of validators for the given connection type.
@@ -79,10 +81,17 @@ wrapMonetaryPolicy f (fromData -> Just p) = check $ f p
 wrapMonetaryPolicy _ _                    = check False
 
 -- | A monetary policy that checks whether the validator script was run
---   in the forging transaction
-{-# INLINABLE mkMonetaryPolicy #-}
-mkMonetaryPolicy :: ValidatorHash -> MonetaryPolicy
-mkMonetaryPolicy vshsh =
+--   in the forging transaction.
+{-# INLINABLE forwardingMPS #-}
+forwardingMPS :: ValidatorHash -> MonetaryPolicy
+forwardingMPS vshsh =
     mkMonetaryPolicyScript
-    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (\ptx -> not $ null $ Validation.scriptOutputsAt hsh (Validation.policyCtxTxInfo ptx)) ||]))
+    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (forwardToValidator hsh) ||]))
        `PlutusTx.applyCode` PlutusTx.liftCode vshsh
+
+{-# INLINABLE forwardToValidator #-}
+forwardToValidator :: ValidatorHash -> PolicyCtx -> Bool
+forwardToValidator h PolicyCtx{policyCtxTxInfo=TxInfo{txInfoInputs}} =
+    let checkHash (Just (vh, _, _)) = vh == h
+        checkHash _                 = False
+    in any (checkHash . Validation.txInInfoWitness) txInfoInputs
