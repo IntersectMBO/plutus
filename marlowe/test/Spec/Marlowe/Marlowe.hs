@@ -16,10 +16,14 @@ import           Data.Maybe                            (isJust)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
+import qualified Data.Text.IO        as T
+import qualified Data.Text        as T
+import Data.Text.Lazy (toStrict)
 import           Language.Marlowe.Util
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
+import           Data.Aeson.Text                            (encodeToLazyText)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
 import           Data.Ratio                            ((%))
@@ -81,16 +85,15 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
-        aliceAcc = AccountId 0 alicePk
         bobPk = PK $ (pubKeyHash $ walletPubKey bob)
 
     let params = defaultMarloweParams
 
     let zeroCouponBond = When [ Case
-            (Deposit aliceAcc alicePk ada (Constant 850))
-            (Pay aliceAcc (Party bobPk) ada (Constant 850)
+            (Deposit alicePk alicePk ada (Constant 850))
+            (Pay alicePk (Party bobPk) ada (Constant 850)
                 (When
-                    [ Case (Deposit aliceAcc bobPk ada (Constant 1000)) Close] (Slot 200) Close
+                    [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
     callEndpoint @"create" alice (params, zeroCouponBond)
     handleBlockchainEvents alice
@@ -100,7 +103,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
     callEndpoint @"wait" bob (params)
     handleBlockchainEvents bob
 
-    callEndpoint @"apply-inputs" alice (params, [IDeposit aliceAcc alicePk ada 850])
+    callEndpoint @"apply-inputs" alice (params, [IDeposit alicePk alicePk ada 850])
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -109,7 +112,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
 
     handleBlockchainEvents bob
 
-    callEndpoint @"apply-inputs" bob (params, [IDeposit aliceAcc bobPk ada 1000])
+    callEndpoint @"apply-inputs" bob (params, [IDeposit alicePk bobPk ada 1000])
 
     handleBlockchainEvents alice
     handleBlockchainEvents bob
@@ -129,7 +132,6 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     ) $ do
     -- Init a contract
     let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk
         bobPk = PK $ pubKeyHash $ walletPubKey bob
 
     let params = defaultMarloweParams
@@ -138,9 +140,9 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     let contract = When [
             Case (Choice chId [Bound 100 1500])
                 (When [Case
-                    (Deposit aliceAcc alicePk ada (ChoiceValue chId))
+                    (Deposit alicePk alicePk ada (ChoiceValue chId))
                         (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
-                            (Pay aliceAcc (Party bobPk) ada
+                            (Pay alicePk (Party bobPk) ada
                                 (ChoiceValue chId) Close)]
                         (Slot 300) Close)
                     ] (Slot 200) Close)
@@ -156,7 +158,7 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
 
     callEndpoint @"apply-inputs" alice (params,
         [ IChoice chId 256
-        , IDeposit aliceAcc alicePk ada 256
+        , IDeposit alicePk alicePk ada 256
         ])
     handleBlockchainEvents alice
     addBlocks 150
@@ -274,8 +276,7 @@ mulAnalysisTest :: IO ()
 mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
         alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk
-        contract = If (muliply `ValueGE` Constant 10000) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
+        contract = If (muliply `ValueGE` Constant 10000) Close (Pay alicePk (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result
     assertBool "Analysis ok" $ isRight result
@@ -283,11 +284,15 @@ mulAnalysisTest = do
 
 pangramContractSerialization :: IO ()
 pangramContractSerialization = do
+    let json = toStrict (encodeToLazyText pangramContract)
+    -- uncomment to generate json after updating pangramContract
+    -- T.putStrLn json
+    Just pangramContract @=? (decode $ encode pangramContract)
     contract <- readFile "test/contract.json"
     let decoded :: Maybe Contract
         decoded = decode (fromString contract)
     case decoded of
-        Just cont -> Just cont @=? (decode $ encode cont)
+        Just cont -> cont @=? pangramContract
         _         -> assertFailure "Nope"
 
 
@@ -296,9 +301,9 @@ tokenShowTest = do
     -- SCP-834, CurrencySymbol is HEX encoded ByteString,
     -- and TokenSymbol as UTF8 encoded Unicode string
     let actual :: Value Observation
-        actual = AvailableMoney (AccountId 1 (Role "alice")) (Token "00010afF" "ÚSD©")
+        actual = AvailableMoney (Role "alice") (Token "00010afF" "ÚSD©")
 
-    show actual @=? "AvailableMoney (AccountId 1 \"alice\") (Token \"00010aff\" \"ÚSD©\")"
+    show actual @=? "AvailableMoney \"alice\" (Token \"00010aff\" \"ÚSD©\")"
 
 
 stateSerialization :: IO ()

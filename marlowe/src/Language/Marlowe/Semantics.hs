@@ -75,7 +75,6 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 
 {- Functions that used in Plutus Core must be inlineable,
    so their code is available for PlutusTx compiler -}
-{-# INLINABLE accountOwner #-}
 {-# INLINABLE inBounds #-}
 {-# INLINABLE fixInterval #-}
 {-# INLINABLE evalValue #-}
@@ -111,7 +110,7 @@ instance Show Party where
                                               . showString "\""
   showsPrec _ (Role role) = showsPrec 11 $ unTokenName role
 
-type NumAccount = Integer
+type AccountId = Party
 type Timeout = Slot
 type Money = Val.Value
 type ChoiceName = ByteString
@@ -120,22 +119,6 @@ type SlotInterval = (Slot, Slot)
 type Accounts = Map (AccountId, Token) Integer
 
 -- * Data Types
-
-{-| Party account id.
-    Accounts have a number NumAccount and an owner,
-    who is a Party to the contract.
-    @
-    AccountId 0 alicePK
-    AccountId 1 alicePK
-    @
-    Note that alicePK is the owner here in the sense that she will be
-    refunded any money in the account when the contract terminates.
--}
-data AccountId = AccountId NumAccount Party
-  deriving stock (Show,Generic,P.Eq,P.Ord)
-  deriving anyclass (Pretty)
-
-
 {-| Choices – of integers – are identified by ChoiceId
     which combines a name for the choice with the Party who had made the choice.
 -}
@@ -457,14 +440,6 @@ emptyState sn = State
     , minSlot = sn }
 
 
-{-| Returns an owner of an account.
-    We don't use record syntax for 'AccountId' because that
-    results in cumbersome `Read`/`Show` representations.
--}
-accountOwner :: AccountId -> Party
-accountOwner (AccountId _ party) = party
-
-
 -- | Check if a 'num' is withint a list of inclusive bounds.
 inBounds :: ChosenNum -> [Bound] -> Bool
 inBounds num = any (\(Bound l u) -> num >= l && num <= u)
@@ -552,7 +527,7 @@ refundOne accounts = case Map.toList accounts of
     [] -> Nothing
     ((accId, Token cur tok), balance) : rest ->
         if balance > 0
-        then Just ((accountOwner accId, Val.singleton cur tok balance), Map.fromList rest)
+        then Just ((accId, Val.singleton cur tok balance), Map.fromList rest)
         else refundOne (Map.fromList rest)
 
 
@@ -989,18 +964,6 @@ instance ToJSON Party where
     toJSON (Role (Val.TokenName name)) = object
         [ "role_token" .= (JSON.String $ decodeUtf8 name) ]
 
-instance FromJSON AccountId where
-  parseJSON = withObject "AccountId" (\v ->
-       AccountId <$> (withInteger =<< (v .: "account_number"))
-                 <*> (v .: "account_owner")
-                                     )
-
-
-instance ToJSON AccountId where
-  toJSON (AccountId num party) = object [ "account_number" .= num
-                                        , "account_owner" .= party
-                                        ]
-
 
 instance FromJSON ChoiceId where
   parseJSON = withObject "ChoiceId" (\v ->
@@ -1195,12 +1158,13 @@ instance ToJSON Action where
 
 
 instance FromJSON Payee where
-  parseJSON v = (Account <$> parseJSON v)
-            <|> (Party <$> parseJSON v)
+  parseJSON = withObject "Action" (\v ->
+                (Account <$> (v .: "account"))
+            <|> (Party <$> (v .: "party")))
 
 instance ToJSON Payee where
-  toJSON (Account acc) = toJSON acc
-  toJSON (Party party) = toJSON party
+  toJSON (Account acc) = object ["account" .= acc]
+  toJSON (Party party) = object ["party" .= party]
 
 
 instance FromJSON a => FromJSON (Case a) where
@@ -1218,7 +1182,7 @@ instance ToJSON a => ToJSON (Case a) where
 instance FromJSON Contract where
   parseJSON (String "close") = return Close
   parseJSON (Object v) =
-        (Pay <$> (v .: "from_account")
+        (Pay <$> (v .: "from")
              <*> (v .: "to")
              <*> (v .: "token")
              <*> (v .: "pay")
@@ -1242,7 +1206,7 @@ instance FromJSON Contract where
 instance ToJSON Contract where
   toJSON Close = JSON.String $ pack "close"
   toJSON (Pay accountId payee token value contract) = object
-      [ "from_account" .= accountId
+      [ "from" .= accountId
       , "to" .= payee
       , "token" .= token
       , "pay" .= value
@@ -1347,11 +1311,6 @@ instance Eq Party where
     (PK p1) == (PK p2) = p1 == p2
     (Role r1) == (Role r2) = r1 == r2
     _ == _ = False
-
-
-instance Eq AccountId where
-    {-# INLINABLE (==) #-}
-    (AccountId n1 p1) == (AccountId n2 p2) = n1 == n2 && p1 == p2
 
 
 instance Eq ChoiceId where
@@ -1478,8 +1437,6 @@ instance Eq State where
 -- Lifting data types to Plutus Core
 makeLift ''Party
 makeIsData ''Party
-makeLift ''AccountId
-makeIsData ''AccountId
 makeLift ''ChoiceId
 makeIsData ''ChoiceId
 makeLift ''Token

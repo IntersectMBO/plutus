@@ -25,10 +25,7 @@
     [
       [
         {
-          "account_owner": {
-            "pk_hash": "deadbeef"
-          },
-          "account_number": 0
+          "pk_hash": "deadbeef"
         },
         {
           "token_name": "name",

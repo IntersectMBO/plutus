@@ -44,7 +44,7 @@ serializationTest =
     let
       ada = Token "" ""
 
-      alicePk = PK "deadbeef"
+      alicePk = PK "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
 
       aliceAcc = AccountId (fromInt 0) alicePk
 
