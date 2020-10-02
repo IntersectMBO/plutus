@@ -93,16 +93,7 @@
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             ];
           buildable = true;
-          modules = [
-            "Spec/Marlowe/Common"
-            "Spec/Marlowe/Marlowe"
-            "OldAnalysis/FSMap"
-            "OldAnalysis/FSSemantics"
-            "OldAnalysis/FSSet"
-            "OldAnalysis/IntegerArray"
-            "OldAnalysis/MkSymb"
-            "OldAnalysis/Numbering"
-            ];
+          modules = [ "Spec/Marlowe/Common" "Spec/Marlowe/Marlowe" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

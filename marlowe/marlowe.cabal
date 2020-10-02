@@ -85,12 +85,6 @@ test-suite marlowe-test
       -- Spec.Common
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
-        OldAnalysis.FSMap
-        OldAnalysis.FSSemantics
-        OldAnalysis.FSSet
-        OldAnalysis.IntegerArray
-        OldAnalysis.MkSymb
-        OldAnalysis.Numbering
       -- Spec.Actus
     build-depends:
         aeson -any,
