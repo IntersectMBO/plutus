@@ -7,7 +7,7 @@
 
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation, prop_jsonLoops
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts, prop_jsonLoops
     )
 where
 
@@ -17,7 +17,6 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
-import qualified OldAnalysis.FSSemantics               as OldAnalysis
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
@@ -359,33 +358,6 @@ wrapLeft r = do tempRes <- r
 
 prop_noFalsePositives :: Property
 prop_noFalsePositives = forAllShrink contractGen shrinkContract noFalsePositivesForContract
-
-
-sameAsOldImplementation :: Contract -> Property
-sameAsOldImplementation cont =
-  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
-                                   (\exc -> return $ Left (Left (exc :: SomeException)))
-                      res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
-                                    (\exc -> return $ Left (Left (exc :: SomeException)))
-                      return (case (res, res2) of
-                                 (Right Nothing, Right Nothing) ->
-                                    label "No counterexample" True
-                                 (Right (Just _), Right Nothing) ->
-                                    label "Old version couldn't see counterexample" True
-                                 (Right (Just _), Right (Just _)) ->
-                                    label "Both versions found counterexample" True
-                                 (Left _, Left _) ->
-                                    label "Both solvers failed" True
-                                 (Left _, _) ->
-                                    label "Solver for new version failed" True
-                                 (_, Left _) ->
-                                    label "Solver for old version failed" True
-                                 problems -> counterexample (show problems) False))
-
-
-runManuallySameAsOldImplementation :: Property
-runManuallySameAsOldImplementation =
-  forAllShrink contractGen shrinkContract sameAsOldImplementation
 
 jsonLoops :: Contract -> Property
 jsonLoops cont = decode (encode cont) === Just cont
