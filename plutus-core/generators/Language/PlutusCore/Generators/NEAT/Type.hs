@@ -216,6 +216,14 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 -- NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
 --       State monad, as the type of the `TyNameState` changes throughout the
 --       computation. This could be written using an indexed State monad.
+--
+--       No checking is performed during conversion. The type is given
+--       as it contains information needed to fully annotate a `Term`.
+--       `Term`, unlike `TermG`, contains all necessary type
+--       information to infer the type of the term. It is expected
+--       that this function is only called on a well-typed
+--       term. Violating this would point to an error in the
+--       generator/checker.
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
   => TyNameState tyname -- ^ Type name environment with fresh name stream
@@ -425,7 +433,7 @@ applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty
 
 instance Monad TypeG where
   a >>= f = applyTySub f a
-  return = pure
+--  return = pure
 
 instance Applicative TypeG where
   (<*>) = ap

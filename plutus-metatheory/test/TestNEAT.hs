@@ -106,8 +106,9 @@ prop_Term tyG tmG = do
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
   let evs = [runLAgda,runCKAgda >=> normalizeTypeTermAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
-  let tmEvsM = evs <*> [tmDB]
+  let tmEvsM = map ($ tmDB) evs
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM
-  tmEvsN <- withExceptT FVErrorP $ sequence (unDeBruijnTerm <$> tmEvs)
+  tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
+
   unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)

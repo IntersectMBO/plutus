@@ -381,5 +381,5 @@ bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
 bigTest s GenOptions{..} t f = testCase s $ do
   as <- search' genMode genDepth (\a -> check t a)
-  _  <- sequence $ map (f t) as
+  _  <- traverse (f t) as
   return ()
