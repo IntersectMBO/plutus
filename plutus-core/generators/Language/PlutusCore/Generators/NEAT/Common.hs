@@ -1,5 +1,4 @@
-{-|
-Description : Property based testing Name Utilities
+{-| Description : Property based testing Name Utilities
 
 This file contains various naming related utilities used for
 generating Plutus Core types and terms.
@@ -27,15 +26,11 @@ module Language.PlutusCore.Generators.NEAT.Common
   , mkTextNameStream
   ) where
 
-
 import           Control.Enumerable
 import qualified Data.Stream               as Stream
 import qualified Data.Text                 as Text
 import           Language.PlutusCore.Name  (Name, TyName (..))
 import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
-
-
-
 
 -- * Enumerating deBruijn indices
 

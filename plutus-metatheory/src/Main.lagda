@@ -232,6 +232,7 @@ executePLC TCEKV t = do
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString m b = do
 {-
+  -- some debugging code
   namedprog ← withE parseError $ parse b
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   let shiftedprog = shifter Z (convP prog)
@@ -252,7 +253,8 @@ typeCheckByteString : ByteString → Either ERROR String
 typeCheckByteString b = do
   t ← parsePLC b
   (A ,, _) ← withE (λ _ → typeError) $ typeCheckPLC t
-{-  
+{-
+  -- some debugging code
   let extricatedtype = extricateScopeTy (extricateNf⋆ A)
   let unshiftedtype = unshifterTy Z extricatedtype
   return ("original: " ++ "???" ++ "\n" ++
@@ -406,12 +408,15 @@ inferType∅ t = do
 -- FIXME: we have a checkType function now...
 checkType∅ : Type → Term → Either ERROR ⊤
 checkType∅ ty t = do
-  ty'       ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
-  k ,, tyN  ← withE (λ _ → typeError) (inferKind ∅ ty')
-  t'        ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
+  ty' ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
+  tyN ← withE (λ _ → typeError) (checkKind ∅ ty' *)
+  t'  ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
+  withE (λ _ → typeError) (checkType ∅ t' tyN)
+{-
   tyN' ,, tmC ← withE (λ _ → typeError) (inferType ∅ t')
   refl      ← withE ((λ _ → typeError) ∘ kindMismatch _ _) (meqKind k *)
   refl      ← withE ((λ _ → typeError) ∘ typeMismatch _ _) (meqNfTy tyN tyN')
+-}
   return _
 
 -- Haskell interface to type normalizer (for terms)
@@ -447,7 +452,7 @@ runCK t = do
   □ V ← withE runtimeError $ Scoped.CK.stepper maxsteps (ε ▻ tDB)
     where (_ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- FIXME: should we try harder to get the correct type?
+          ◆ → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (Scoped.CK.discharge V))))
 
 {-# COMPILE GHC runCK as runCKAgda #-}
@@ -460,7 +465,7 @@ runTCK t = do
   □ V ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ tC)
     where (_ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- FIXME: should we try harder to get the correct type?
+          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CK.discharge V)))))
   
 {-# COMPILE GHC runTCK as runTCKAgda #-}
@@ -473,7 +478,7 @@ runTCEKV t = do
   □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ tC)
     where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- FIXME: should we try harder to get the correct type?
+          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
 {-# COMPILE GHC runTCEKV as runTCEKVAgda #-}
@@ -486,7 +491,7 @@ runTCEKC t = do
   □ (_ ,, _ ,, V ,, ρ) ← withE runtimeError $ Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ tC)
     where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
           (_ ; _ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- FIXME: should we try harder to get the correct type?
+          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ))))))
   
 {-# COMPILE GHC runTCEKC as runTCEKCAgda #-}

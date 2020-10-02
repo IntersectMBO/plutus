@@ -254,21 +254,21 @@ postulate
 
 
 data ScopeError : Set where
-  scopeError : ScopeError
+  deBError : ScopeError
   freeVariableError : FreeVariableError → ScopeError  
   
 {-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC ScopeError = data ScopeError (Wibble | FreeVariableError) #-}
+{-# COMPILE GHC ScopeError = data ScopeError (DeBError | FreeVariableError) #-}
 
 
 ℕtoFin : ∀{n} → ℕ → Either ScopeError (Fin n)
-ℕtoFin {zero}  _       = inj₁ scopeError
+ℕtoFin {zero}  _       = inj₁ deBError
 ℕtoFin {suc m} zero    = return zero
 ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
 ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either ScopeError (WeirdFin w)
-ℕtoWeirdFin {w = Z}   n    = inj₁ scopeError
+ℕtoWeirdFin {w = Z}   n    = inj₁ deBError
 ℕtoWeirdFin {w = S w} zero = return Z
 ℕtoWeirdFin {w = S w} (suc n) = do
   i ← ℕtoWeirdFin {w = w} n

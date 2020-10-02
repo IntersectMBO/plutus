@@ -278,7 +278,6 @@ meqNeTy (_ · _) (` _) = inj₁ λ()
 
 open import Type.BetaNormal.Equality
 
--- FIXME: remove?
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')

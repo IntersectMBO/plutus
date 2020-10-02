@@ -144,7 +144,7 @@ data ERROR = TypeError
            | ScopeError ScopeError
            | RuntimeError RuntimeError
 
-data ScopeError = Wibble | FreeVariableError FreeVariableError
+data ScopeError = DeBError|FreeVariableError FreeVariableError
 
 data RuntimeError = GasError
 

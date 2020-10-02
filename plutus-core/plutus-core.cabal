@@ -228,7 +228,6 @@ library
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
         deepseq -any,
-        dictionary-sharing -any,
         filepath -any,
         hashable,
         hedgehog >=1.0,

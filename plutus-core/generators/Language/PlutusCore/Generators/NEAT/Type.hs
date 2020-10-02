@@ -379,12 +379,8 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
 
 checkTypeG _ _ _ _ = false
 
-
 instance Check ClosedTypeG ClosedTermG where
   check = checkTypeG emptyKCS emptyTCS
-
---instance Check ClosedTypeG ClosedTermG where
---  check tyG = check tyG
 
 
 -- ** Type checking state

@@ -1,5 +1,4 @@
-{-|
-Description : Property based testing for Plutus Core
+{-| Description : Property based testing for Plutus Core
 
 This file contains the tests and some associated machinery but not the
 generators.
@@ -62,7 +61,6 @@ defaultGenOptions = GenOptions
   , genMode  = OF
   }
 
-
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
   testGroup "NEAT"
@@ -92,13 +90,13 @@ tests genOpts@GenOptions{} =
 
 {- NOTE:
 
-The tests below perform multiple steps manner conceptially like a
-pipeline, they take in kind & type or type & term and then peform
-operations on them passing the result along to the next one, sometimes
-the result is passed to several operations and/or several results are
-later combined and sometimes a result is discarded. Quite a lot of
-this is inherently sequential. There is some limited opportunity for
-parallelism which is not exploited.
+The tests below perform multiple steps in a pipeline, they take in
+kind & type or type & term and then peform operations on them passing
+the result along to the next one, sometimes the result is passed to
+several operations and/or several results are later combined and
+sometimes a result is discarded. Quite a lot of this is inherently
+sequential. There is some limited opportunity for parallelism which is
+not exploited.
 
 -}
 
@@ -191,8 +189,9 @@ prop_normalTypesCannotReduce k (Normalized tyG) =
 
 -- |Create a generator test, searching for a counter-example to the given predicate.
 
--- NOTE: we are not currently using this approach, instead we generate
--- a list of examples using `search'` and look for a counter ourselves
+-- NOTE: we are not currently using this approach (using `ctrex'` to
+-- search for a counter example), instead we generate a list of
+-- examples using `search'` and look for a counter example ourselves
 testCaseGen :: (Check t a, Enumerable a, Show e)
         => TestName
         -> GenOptions
@@ -217,8 +216,9 @@ testCaseGen name GenOptions{..} t prop =
 --       - we encounter an error while converting to deBruijn notation;
 --       - we encounter an error while running the Agda terms;
 --       - we found a counter-example.
-
--- james: Isn't everything except an error in the generator a counterexample?
+--
+-- This is distinction is not strictly enforced as ultimately
+-- everything leads to a counter-example of some kind
 
 data TestFail
   = GenError GenError
@@ -348,7 +348,7 @@ instance Show Ctrex where
             , "after evaluation:  %s"
             ]
 
--- |Throw a counter-example.
+-- | Throw a counter-example.
 throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
 throwCtrex ctrex = throwError (Ctrex ctrex)
 
@@ -368,14 +368,14 @@ tynames = mkTextNameStream "t"
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
--- given a prop, generate one test
+-- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
 packAssertion f t a =
   case (runQuote . runExceptT $ f t a) of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
 
--- generate examples using `search'` and then generate one big test
+-- | generate examples using `search'` and then generate one big test
 -- that applies the given test to each of them.
 bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree

@@ -180,17 +180,3 @@ stepper (suc n) st | (s ▻ M) = stepper n (s ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
-
-
-```
-
-This is the property I would like to have, but it cannot be proved directly like this:
-
-```
-open import Relation.Binary.PropositionalEquality
-
-{-
-preservation : ∀ n {Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : NoVar Γ)(t : Γ ⊢ A)
-  → Σ (Φ ⊢Nf⋆ *) λ A' → Σ (Γ ⊢ A') λ t' → Σ (Value t') λ v → stepper n p (ε ▻ t) ≡ (Φ ,, Γ ,, p ,, just (□ v)) → A ≡ A'
--}
-```

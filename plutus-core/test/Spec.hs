@@ -133,7 +133,7 @@ propDeBruijn gen = property . generalizeT $ do
 
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
 allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
-  testGroup "all the tests"
+  testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
