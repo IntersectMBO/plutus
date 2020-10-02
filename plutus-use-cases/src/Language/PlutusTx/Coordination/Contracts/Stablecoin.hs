@@ -88,8 +88,8 @@ import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Ratio               as R
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
-import qualified Ledger.Interval as Interval
 import           Ledger.Crypto                         (PubKey)
+import qualified Ledger.Interval                       as Interval
 import           Ledger.Oracle
 import           Ledger.Scripts                        (MonetaryPolicyHash, monetaryPolicyHash)
 import           Ledger.Typed.Scripts                  (scriptHash)
