@@ -88,6 +88,20 @@ tests genOpts@GenOptions{} =
       (TyBuiltinG TyIntegerG)
       (packAssertion prop_agree_Ck_Cek)
   ]
+
+
+{- NOTE:
+
+The tests below perform multiple steps manner conceptially like a
+pipeline, they take in kind & type or type & term and then peform
+operations on them passing the result along to the next one, sometimes
+the result is passed to several operations and/or several results are
+later combined and sometimes a result is discarded. Quite a lot of
+this is inherently sequential. There is some limited opportunity for
+parallelism which is not exploited.
+
+-}
+
 -- |Property: check if the type is preserved by evaluation.
 --
 -- This property is expected to hold for the CK machine and fail for
