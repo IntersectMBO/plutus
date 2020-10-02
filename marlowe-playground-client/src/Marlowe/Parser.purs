@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
@@ -46,7 +46,6 @@ type HelperFunctions a
     , mkNotify :: Term Observation -> Action
     , mkChoiceId :: String -> Term Party -> ChoiceId
     , mkValueId :: String -> ValueId
-    , mkAccountId :: BigInteger -> Term Party -> AccountId
     , mkToken :: String -> String -> Token
     , mkPK :: String -> Party
     , mkRole :: String -> Party
@@ -99,7 +98,6 @@ helperFunctions =
   , mkNotify: Notify
   , mkChoiceId: ChoiceId
   , mkValueId: ValueId
-  , mkAccountId: AccountId
   , mkToken: Token
   , mkPK: PK
   , mkRole: Role
@@ -266,18 +264,7 @@ timeout = do
     (Term v pos) -> pure $ TermWrapper (Slot v) pos
 
 accountId :: Parser AccountId
-accountId = parens accountId'
-
-accountId' :: Parser AccountId
-accountId' = do
-  skipSpaces
-  void $ string "AccountId"
-  void someWhiteSpace
-  first <- bigInteger
-  void someWhiteSpace
-  second <- parseTerm $ parens party
-  skipSpaces
-  pure $ AccountId first second
+accountId = parseTerm $ parens party
 
 choiceId :: Parser ChoiceId
 choiceId = parens choiceId'
@@ -577,7 +564,7 @@ input =
     )
 
 accountIdValue :: Parser S.AccountId
-accountIdValue = parseToValue accountId
+accountIdValue = parseToValue (parens party)
 
 choiceIdValue :: Parser S.ChoiceId
 choiceIdValue = parseToValue choiceId

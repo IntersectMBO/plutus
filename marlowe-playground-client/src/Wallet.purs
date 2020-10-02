@@ -49,7 +49,7 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
 import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
@@ -801,7 +801,7 @@ renderCurrentState state =
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
-                , columns: ("Account ID" /\ "Participant" /\ "Assets")
+                , columns: ("Participant" /\ "Assets" /\ mempty)
                 , rowData: accountsData
                 }
             <> tableRow
@@ -860,7 +860,7 @@ renderCurrentState state =
     let
       (accounts :: Array _) = state ^. (_currentLoadedMarloweState <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
-      asTuple (Tuple (Tuple (AccountId accountNumber accountOwner) token) value) = show accountNumber /\ stripParens (show accountOwner) /\ (show value <> " " <> shortTokenString token)
+      asTuple (Tuple (Tuple accountOwner token) value) = stripParens (show accountOwner) /\ (show value <> " " <> shortTokenString token) /\ mempty
     in
       map asTuple accounts
 
@@ -927,22 +927,20 @@ renderCurrentState state =
     , div [ classes [ rTableCell, rTableDataRow ] ] [ text message ]
     ]
 
-  displayWarning' (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
+  displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
     , div [ class_ rTableCell ]
         [ text $ "Party " <> show party <> " is asked to deposit " <> show amount
             <> " units of "
             <> show tok
-            <> " into account "
-            <> show accNum
-            <> " of "
+            <> " into account of "
             <> show owner
             <> "."
         ]
     ]
 
-  displayWarning' (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
+  displayWarning' (TransactionNonPositivePay owner payee tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositivePay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
@@ -950,20 +948,18 @@ renderCurrentState state =
             <> show amount
             <> " units of "
             <> show tok
-            <> " from account "
-            <> show accNum
-            <> " of "
+            <> " from account of "
             <> show owner
             <> " to "
             <> ( case payee of
-                  (Account (AccountId accNum2 owner2)) -> "account " <> show accNum2 <> " of " <> show owner2
+                  (Account owner2) -> "account of " <> show owner2
                   (Party dest) -> "party " <> show dest
               )
             <> "."
         ]
     ]
 
-  displayWarning' (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
+  displayWarning' (TransactionPartialPay owner payee tok amount expected) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionPartialPay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
@@ -971,13 +967,11 @@ renderCurrentState state =
             <> show expected
             <> " units of "
             <> show tok
-            <> " from account "
-            <> show accNum
-            <> " of "
+            <> " from account of "
             <> show owner
             <> " to "
             <> ( case payee of
-                  (Account (AccountId accNum2 owner2)) -> ("account " <> show accNum2 <> " of " <> show owner2)
+                  (Account owner2) -> ("account of " <> show owner2)
                   (Party dest) -> ("party " <> show dest)
               )
             <> " but there is only "
@@ -1180,13 +1174,13 @@ marloweActionInput isEnabled f current =
     ]
 
 renderDeposit :: forall p a. AccountId -> S.Party -> Token -> BigInteger -> Array (HTML p a)
-renderDeposit (AccountId accountNumber accountOwner) party tok money =
+renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
   , b_ [ spanText (show tok) ]
   , spanText " into Account "
-  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
+  , b_ [ spanText (show accountOwner) ]
   , spanText " as "
   , b_ [ spanText (show party) ]
   ]
@@ -1222,7 +1216,7 @@ transactionRow ::
   State ->
   Input ->
   HTML p Action
-transactionRow state input@(IDeposit (AccountId accountNumber accountOwner) party token money) =
+transactionRow state input@(IDeposit accountOwner party token money) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Deposit "
@@ -1230,7 +1224,7 @@ transactionRow state input@(IDeposit (AccountId accountNumber accountOwner) part
         , text " units of "
         , strong_ [ text (show token) ]
         , text " into account "
-        , strong_ [ text (show accountOwner <> " (" <> show accountNumber <> ")") ]
+        , strong_ [ text (show accountOwner) ]
         , text " as "
         , strong_ [ text (show party) ]
         ]

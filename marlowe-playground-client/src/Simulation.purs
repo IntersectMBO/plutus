@@ -57,7 +57,7 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
@@ -713,13 +713,13 @@ marloweActionInput isEnabled f current =
     ]
 
 renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
-renderDeposit (AccountId accountNumber accountOwner) party tok money =
+renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
   , b_ [ spanText (showPrettyToken tok) ]
   , spanText " into Account "
-  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
+  , b_ [ spanText (show accountOwner) ]
   , spanText " as "
   , b_ [ spanText (show party) ]
   ]

@@ -10,7 +10,7 @@ import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Party(..), Token(..))
+import Marlowe.Semantics (Party(..), Token(..))
 import Marlowe.Semantics as S
 import Test.Unit (TestSuite, Test, suite, test, failure)
 import Test.Unit.Assert as Assert
@@ -396,7 +396,7 @@ positiveDeposit = testNoWarning (depositContract "(Constant 1)")
 depositFromState :: Test
 depositFromState =
   let
-    accountId = AccountId zero (Role "test")
+    accountId = Role "test"
 
     state =
       S.State
