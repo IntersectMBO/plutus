@@ -24,6 +24,7 @@ data SubRoute
   | ActusBlocklyEditor
   | Blockly
   | Wallets
+  | Projects
 
 derive instance eqRoute :: Eq SubRoute
 
@@ -43,6 +44,7 @@ route =
         , "Blockly": "blockly" / noArgs
         , "ActusBlocklyEditor": "actus" / noArgs
         , "Wallets": "wallets" / noArgs
+        , "Projects": "projects" / noArgs
         }
   where
   _gistId = SProxy :: SProxy "gistId"
