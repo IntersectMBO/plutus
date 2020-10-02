@@ -14,12 +14,13 @@ generators.
 
 module Language.PlutusCore.Generators.NEAT.Spec
   ( tests
-  , iotests
   , GenOptions (..)
   , defaultGenOptions
   , Options (..)
   , TestFail (..)
   , testCaseGen
+  , bigTest
+  , packAssertion
   , tynames
   , names
   , throwCtrex
@@ -67,32 +68,25 @@ tests genOpts@GenOptions{} =
   testGroup "NEAT"
 
   [ -- as originally written, use lazy-search to find ctrexs
-    testCaseGen "normalization commutes with conversion from generated types"
+    bigTest "normalization commutes with conversion from generated types"
       genOpts
       (Type ())
-      prop_normalizeConvertCommuteTypes
-  , testCaseGen "normal types cannot reduce"
+      (packAssertion prop_normalizeConvertCommuteTypes)
+  , bigTest "normal types cannot reduce"
       genOpts
       (Type ())
-      prop_normalTypesCannotReduce
-  , testCaseGen "type preservation - CK & CEK"
+      (packAssertion prop_normalTypesCannotReduce)
+  , bigTest "type preservation - CK & CEK"
       genOpts
       (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typePreservation
-  , testCaseGen "CEK and CK produce the same output"
+      (packAssertion prop_typePreservation)
+  , bigTest "CEK and CK produce the same output"
       genOpts
 --    v - this fails as it exposes mistreatment of type annotations by CEK
 --    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
 --    v - this would also fail if the depth was increased
       (TyBuiltinG TyIntegerG)
-      prop_agree_Ck_Cek
-
-  -- FIXME: this is an experiment
-  -- generate examples using lazy search and turn them into one big test
- , bigTest
-      genOpts
-      (Type ())
-      (packAssertion prop_normalizeConvertCommuteTypes)
+      (packAssertion prop_agree_Ck_Cek)
   ]
 -- |Property: check if the type is preserved by evaluation.
 --
@@ -181,9 +175,10 @@ prop_normalTypesCannotReduce k (Normalized tyG) =
   unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexNormalTypesCannotReduce k tyG)
 
 
--- NOTE:
-
 -- |Create a generator test, searching for a counter-example to the given predicate.
+
+-- NOTE: we are not currently using this approach, instead we generate
+-- a list of examples using `search'` and look for a counter ourselves
 testCaseGen :: (Check t a, Enumerable a, Show e)
         => TestName
         -> GenOptions
@@ -359,45 +354,18 @@ tynames = mkTextNameStream "t"
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
--- FIXME: this is an experiment
-
--- given a prop, generate examples and then turn them into individual
--- tasty tests
-
-iotests :: GenOptions -> IO [TestTree]
-iotests genOpts@GenOptions{} = do
-  t1 <- packGroup genOpts (Type ()) (packTest prop_normalizeConvertCommuteTypes)
-
-  -- more tests...
-
-  return [t1]
-
-packGroup :: (Check t a, Enumerable a)
-        => GenOptions -> t -> (t -> a -> TestTree) -> IO TestTree
-packGroup GenOptions{..} t f = fmap (testGroup "a bunch of tests") $ do
-  examples <- search' genMode genDepth (\a -> check t a)
-  return $ map (f t) examples
-
-
--- Take a prop and turn it into a tasty test
-packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
-packTest f t a = testCase ("typecheck test: " ++ show a) $
-  case (runQuote . runExceptT $ f t a) of
-    Left  e -> assertFailure $ show e
-    Right _ -> return ()
-
--- FIXME: this is an experiment
 -- given a prop, generate one test
-
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
 packAssertion f t a =
   case (runQuote . runExceptT $ f t a) of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
 
+-- generate examples using `search'` and then generate one big test
+-- that applies the given test to each of them.
 bigTest :: (Check t a, Enumerable a)
-        => GenOptions -> t -> (t -> a -> Assertion) -> TestTree
-bigTest GenOptions{..} t f = testCase "one big test" $ do
+        => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
+bigTest s GenOptions{..} t f = testCase s $ do
   as <- search' genMode genDepth (\a -> check t a)
   _  <- sequence $ map (f t) as
   return ()

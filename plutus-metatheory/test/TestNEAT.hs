@@ -27,14 +27,14 @@ main = defaultMain $ allTests defaultGenOptions
 
 allTests :: GenOptions -> TestTree
 allTests genOpts = testGroup "NEAT"
-  [ testCaseGen "type-level"
+  [ bigTest "type-level"
       genOpts
       (Type ())
-      prop_Type
-  , testCaseGen "term-level"
+      (packAssertion prop_Type)
+  , bigTest "term-level"
       genOpts
       (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_Term
+      (packAssertion prop_Term)
   ]
 
 -- one type-level test to rule them all
