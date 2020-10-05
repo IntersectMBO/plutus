@@ -13,17 +13,17 @@ where
 
 import           Control.Exception                     (SomeException, catch)
 import           Data.Maybe                            (isJust)
+import qualified Data.Text                             as T
+import qualified Data.Text.IO                          as T
+import           Data.Text.Lazy                        (toStrict)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
-import qualified Data.Text.IO        as T
-import qualified Data.Text        as T
-import Data.Text.Lazy (toStrict)
 import           Language.Marlowe.Util
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
-import           Data.Aeson.Text                            (encodeToLazyText)
+import           Data.Aeson.Text                       (encodeToLazyText)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
 import           Data.Ratio                            ((%))
