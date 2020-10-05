@@ -126,61 +126,50 @@ let overrides = {=}
 let additions =
       { servant-support =
           { dependencies =
-              [ "console"
-              , "prelude"
-              , "either"
-              , "foldable-traversable"
-              , "generics-rep"
-              , "effect"
-              , "aff"
-              , "affjax"
-              , "exceptions"
-              , "web-xhr"
-              , "foreign-generic"
-              ]
-          , repo =
-              "https://github.com/shmish111/purescript-servant-support"
-          , version =
-              "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
+            [ "console"
+            , "prelude"
+            , "either"
+            , "foldable-traversable"
+            , "generics-rep"
+            , "effect"
+            , "aff"
+            , "affjax"
+            , "exceptions"
+            , "web-xhr"
+            , "foreign-generic"
+            ]
+          , repo = "https://github.com/shmish111/purescript-servant-support"
+          , version = "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
           }
       , concurrent-queues =
-          { dependencies =
-              [ "aff"
-              , "avar"
-              ]
+          { dependencies = [ "aff", "avar" ]
           , repo =
               "https://github.com/purescript-contrib/purescript-concurrent-queues.git"
-          , version =
-              "v1.1.0"
+          , version = "v1.1.0"
+          }
+        --   https://github.com/jmackie/purescript-datetime-iso/pull/11
+      , datetime-iso =
+          { dependencies = [ "newtype", "datetime", "parsing" ]
+          , repo = "https://github.com/shmish111/purescript-datetime-iso"
+          , version = "3a7cbe9fe22509393ddb6bd271f77c095326f6b3"
           }
       , foreign-generic =
-              upstream.foreign-generic
-          //  { repo =
-                  "https://github.com/shmish111/purescript-foreign-generic"
-              , version =
-                  "a2c5a0d623bb543207968110065e585d407c36d2"
-              }
+            upstream.foreign-generic
+          ⫽ { repo = "https://github.com/shmish111/purescript-foreign-generic"
+            , version = "a2c5a0d623bb543207968110065e585d407c36d2"
+            }
       , matryoshka =
           { dependencies =
-              [ "prelude"
-              , "fixed-points"
-              , "free"
-              , "transformers"
-              , "profunctor"
-              ]
-          , repo =
-              "https://github.com/slamdata/purescript-matryoshka.git"
-          , version =
-              "v0.4.0"
+            [ "prelude", "fixed-points", "free", "transformers", "profunctor" ]
+          , repo = "https://github.com/slamdata/purescript-matryoshka.git"
+          , version = "v0.4.0"
           }
       , numerics =
           { dependencies =
-              [ "prelude", "integers", "rationals", "uint", "bigints" ]
-          , repo =
-              "https://github.com/Proclivis/purescript-numerics"
-          , version =
-              "v0.1.2"
+            [ "prelude", "integers", "rationals", "uint", "bigints" ]
+          , repo = "https://github.com/Proclivis/purescript-numerics"
+          , version = "v0.1.2"
           }
       }
 
-in  upstream // overrides // additions
+in  upstream ⫽ overrides ⫽ additions

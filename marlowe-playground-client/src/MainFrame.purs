@@ -1,6 +1,6 @@
 module MainFrame (mkMainFrame) where
 
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
@@ -40,7 +40,7 @@ import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
-import Marlowe (SPParams_)
+import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
@@ -48,7 +48,10 @@ import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>), (/=))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
+import Projects (handleAction, render) as Projects
+import Projects.Types (Action(..), State, _projects, emptyState) as Projects
+import Projects.Types (Lang(..))
 import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
@@ -63,7 +66,7 @@ import Simulation.Types as ST
 import StaticData (jsBufferLocalStorageKey, showHomePageLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _projects, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -79,6 +82,7 @@ initialState =
     , jsEditorKeybindings: DefaultBindings
     , activeJSDemo: mempty
     , showHomePage: true
+    , projects: Projects.emptyState
     }
 
 ------------------------------------------------------------
@@ -124,23 +128,41 @@ toHaskellEditor halogen = do
     getState = view _haskellState
   (imapState setState getState <<< mapAction HaskellAction) halogen
 
+toProjects ::
+  forall m a.
+  Functor m =>
+  HalogenM Projects.State Projects.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
+toProjects halogen = do
+  currentState <- get
+  let
+    setState = flip (set _projects) currentState
+  let
+    getState = view _projects
+  (imapState setState getState <<< mapAction ProjectsAction) halogen
+
 handleSubRoute ::
-  forall m action message.
+  forall m.
   MonadEffect m =>
-  SubRoute -> HalogenM FrontendState action ChildSlots message m Unit
-handleSubRoute Router.Home = selectView HomePage
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  SubRoute -> HalogenM FrontendState HAction ChildSlots Void m Unit
+handleSubRoute _ Router.Home = selectView HomePage
 
-handleSubRoute Router.Simulation = selectView Simulation
+handleSubRoute _ Router.Simulation = selectView Simulation
 
-handleSubRoute Router.HaskellEditor = selectView HaskellEditor
+handleSubRoute _ Router.HaskellEditor = selectView HaskellEditor
 
-handleSubRoute Router.JSEditor = selectView JSEditor
+handleSubRoute _ Router.JSEditor = selectView JSEditor
 
-handleSubRoute Router.Blockly = selectView BlocklyEditor
+handleSubRoute _ Router.Blockly = selectView BlocklyEditor
 
-handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
+handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
-handleSubRoute Router.Wallets = selectView WalletEmulator
+handleSubRoute _ Router.Wallets = selectView WalletEmulator
+
+handleSubRoute settings Router.Projects = do
+  selectView Projects
+  toProjects $ Projects.handleAction settings Projects.LoadProjects
 
 handleRoute ::
   forall m.
@@ -152,9 +174,9 @@ handleRoute settings { gistId: (Just gistId), subroute } = do
   toSimulation do
     Simulation.handleAction settings (ST.GistAction (SetGistUrl (unwrap gistId)))
     Simulation.handleAction settings (ST.GistAction LoadGist)
-  handleSubRoute subroute
+  handleSubRoute settings subroute
 
-handleRoute _ { subroute } = handleSubRoute subroute
+handleRoute settings { subroute } = handleSubRoute settings subroute
 
 handleQuery ::
   forall m a.
@@ -316,6 +338,24 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
+handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
+  res <-
+    runExceptT
+      $ do
+          gist <- flip runReaderT s $ getApiGistsByGistId gistId
+          lift $ toSimulation $ Simulation.loadGist gist
+  case res of
+    Right _ -> pure unit
+    Left error -> assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
+  toProjects $ Projects.handleAction s action
+  case lang of
+    Haskell -> selectView HaskellEditor
+    Marlowe -> selectView Simulation
+    Blockly -> selectView BlocklyEditor
+    Javascript -> pure unit
+
+handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
+
 ----------
 showErrorDescription :: ErrorDescription -> String
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = "BadResponse"
@@ -347,6 +387,7 @@ selectView view = do
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
+      Projects -> Router.Projects
   liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
   case view of
@@ -363,6 +404,7 @@ selectView view = do
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+    Projects -> pure unit
 
 render ::
   forall m.
@@ -477,6 +519,7 @@ render settings state =
               [ div [ classes [ ClassName "full-height" ] ]
                   [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
               ]
+            Projects -> [ bimap (map ProjectsAction) ProjectsAction (Projects.render (state ^. _projects)) ]
         ]
     ]
   where
