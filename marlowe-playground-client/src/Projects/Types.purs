@@ -2,7 +2,6 @@ module Projects.Types where
 
 import Prelude
 import Analytics (class IsEvent, Event)
-import Analytics as A
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens')
@@ -28,11 +27,11 @@ data Action
   | LoadProject Lang GistId
 
 defaultEvent :: String -> Event
-defaultEvent s = A.defaultEvent $ "Projects." <> s
+defaultEvent action = { category: Just "Projects", action, label: Nothing, value: Nothing }
 
 instance isEventAction :: IsEvent Action where
   toEvent LoadProjects = Just $ defaultEvent "LoadProjects"
-  toEvent (LoadProject lang _) = Just <<< defaultEvent $ "LoadProject." <> show lang
+  toEvent (LoadProject lang _) = Just { category: Just "Projects", action: "LoadProject", label: Just (show lang), value: Nothing }
 
 type State
   = { projects :: RemoteData String (Array Gist)

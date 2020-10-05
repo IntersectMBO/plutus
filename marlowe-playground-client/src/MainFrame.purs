@@ -1,6 +1,6 @@
 module MainFrame (mkMainFrame) where
 
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
@@ -339,13 +339,13 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
 handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
-  eGist <- flip runReaderT s $ runExceptT $ getApiGistsByGistId gistId
-  case eGist of
-    Right gist -> do
-      res <- toSimulation $ Simulation.loadGist gist
-      case res of
-        Right _ -> pure unit
-        Left error -> assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
+  res <-
+    runExceptT
+      $ do
+          gist <- flip runReaderT s $ getApiGistsByGistId gistId
+          lift $ toSimulation $ Simulation.loadGist gist
+  case res of
+    Right _ -> pure unit
     Left error -> assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
   case lang of

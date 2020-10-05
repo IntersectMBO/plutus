@@ -329,15 +329,13 @@ loadGist ::
   HalogenM State Action ChildSlots Void m (Either String Unit)
 loadGist gist =
   runExceptT do
-    currentContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (currentSimulationMarloweGistFile gist)
+    currentContract <- noteT "Source not found in gist." $ view (_Just <<< gistFileContent) (currentSimulationMarloweGistFile gist)
     let
-      oldContract = preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
+      oldContract = view (_Just <<< gistFileContent) (oldSimulationMarloweGistFile gist)
     lift $ editorSetValue currentContract
     liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
     assign _oldContract oldContract
-    case simulationState gist of
-      Just state -> assign _marloweState state
-      Nothing -> assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+    assign _marloweState $ fromMaybe (NEL.singleton (emptyMarloweState zero)) $ simulationState gist
 
 runAjax ::
   forall m a.

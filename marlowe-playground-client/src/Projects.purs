@@ -15,7 +15,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gist (Gist, gistCreatedAt, gistDescription, gistId)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (flex)
-import Halogen.HTML (a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
+import Halogen.HTML (HTML(..), a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Marlowe (SPParams_, getApiGists)
@@ -53,6 +53,8 @@ render state =
     , body (view _projects state)
     ]
   where
+  body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]
+
   body (Success gists) = gistsTable $ filter playgroundGist gists
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
@@ -62,10 +64,9 @@ render state =
   body NotAsked = text mempty
 
 gistsTable ::
-  forall m.
-  MonadAff m =>
+  forall p.
   Array Gist ->
-  ComponentHTML Action ChildSlots m
+  HTML p Action
 gistsTable gists =
   table [ classes [ ClassName "gists" ] ]
     [ thead []
@@ -89,15 +90,18 @@ formatDate s = case runParser s ISO.parseISO of
           , MonthTwoDigits
           , Placeholder "/"
           , YearFull
+          , Placeholder " "
+          , Hours24
+          , Placeholder ":"
+          , MinutesTwoDigits
           ]
       )
       (unwrap iso)
 
 gistRow ::
-  forall m.
-  MonadAff m =>
+  forall p.
   Gist ->
-  ComponentHTML Action ChildSlots m
+  HTML p Action
 gistRow gist =
   tr []
     [ td_ [ gist ^. (gistDescription <<< to text) ]
