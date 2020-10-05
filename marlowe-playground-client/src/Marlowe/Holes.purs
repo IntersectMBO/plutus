@@ -554,7 +554,8 @@ instance partyHasMarloweHoles :: HasMarloweHoles Party where
 instance partyHasContractData :: HasContractData Party where
   gatherContractData party s = over _parties (Set.insert party) s
 
-type AccountId = Term Party
+type AccountId
+  = Term Party
 
 data Token
   = Token String String

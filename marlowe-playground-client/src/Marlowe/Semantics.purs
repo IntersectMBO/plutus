@@ -213,7 +213,8 @@ derive newtype instance euclideanRingAda :: EuclideanRing Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
-type AccountId = Party
+type AccountId
+  = Party
 
 data ChoiceId
   = ChoiceId String Party
