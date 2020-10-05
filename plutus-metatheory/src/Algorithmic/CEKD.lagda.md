@@ -37,16 +37,11 @@ lookup (S x) (ρ ∷ c) = lookup x ρ
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *} → Clos (A ⇒ B) → Frame B A
-
-  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
-    → Frame (B [ A ]Nf) (Π B)
-
-  wrap-   : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (ne (μ1 · pat · arg))
-            (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-            (ne (μ1 · pat · arg))
+  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K) → Frame (B [ A ]Nf) (Π B)
+  wrap-   : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+  unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
 
   builtin- : (b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -148,8 +143,8 @@ step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ M
 step (s ; ρ ▻ (L · M))  = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ M)      = s ; ρ ◅ V-Λ M
 step (s ; ρ ▻ (M ·⋆ A)) = (s , -·⋆ A) ; ρ ▻ M
-step (s ; ρ ▻ wrap1 pat arg M) = (s , wrap-) ; ρ ▻ M
-step (s ; ρ ▻ unwrap1 M) = (s , unwrap-) ; ρ ▻ M
+step (s ; ρ ▻ wrap A B M) = (s , wrap-) ; ρ ▻ M
+step (s ; ρ ▻ unwrap M) = (s , unwrap-) ; ρ ▻ M
 step (s ; ρ ▻ con c) = s ; ρ ◅ V-con c
 step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ proj₂ ∘ SIG) bn
 ... | L.[]     | [[ p ]] =

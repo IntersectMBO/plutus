@@ -41,11 +41,11 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → Value (Λ M)
 
   V-wrap : ∀{Φ Γ K}
-   → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {arg : Φ ⊢Nf⋆ K}
+   → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {B : Φ ⊢Nf⋆ K}
    → {term : Γ ⊢  _}
    → Value term
-   → Value (wrap1 pat arg term)
+   → Value (wrap A B term)
 
   V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
@@ -103,12 +103,10 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
     → Frame (B [ A ]Nf) (Π B)
 
-  wrap-   : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (ne (μ1 · pat · arg))
-            (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-            (ne (μ1 · pat · arg))
+  wrap-   : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+  unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
 
   builtin- : ∀{Γ}(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -202,8 +200,8 @@ step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ M
 step (s ; ρ ▻ (L · M))  = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ M)      = s ; ρ ◅ V-Λ M
 step (s ; ρ ▻ (M ·⋆ A)) = (s , -·⋆ A) ; ρ ▻ M
-step (s ; ρ ▻ wrap1 pat arg M) = (s , wrap-) ; ρ ▻ M
-step (s ; ρ ▻ unwrap1 M) = (s , unwrap-) ; ρ ▻ M
+step (s ; ρ ▻ wrap A B M) = (s , wrap-) ; ρ ▻ M
+step (s ; ρ ▻ unwrap M) = (s , unwrap-) ; ρ ▻ M
 step (s ; ρ ▻ con c) = s ; ρ ◅ V-con c
 step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ proj₂ ∘ SIG) bn
 ... | L.[]     | [[ p ]] =
@@ -238,7 +236,7 @@ step (◆ A)       = ◆ A
 
 open import Data.Nat
 
-stepper : ℕ → ∀{T} → State T → Either Error (State T)
+stepper : ℕ → ∀{T} → State T → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)

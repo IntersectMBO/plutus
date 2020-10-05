@@ -3,103 +3,112 @@ module Main where
 import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
+import           Data.List
+
 import           Language.PlutusCore
-import           Language.PlutusCore.Generators.NEAT.PropTest
+import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Generators.NEAT.Spec
+import           Language.PlutusCore.Generators.NEAT.Type
+import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                            (checkKindAgda, inferKindAgda, normalizeTypeAgda)
-import           MAlonzo.Code.Scoped                          (deBruijnifyK, unDeBruijnifyK)
+import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                                            normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
+                                                            runLAgda, runTCEKCAgda, runTCEKVAgda, runTCKAgda)
+import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
-import           Raw
-
+import           Raw                                       hiding (TypeError, tynames)
 
 main :: IO ()
-main = defaultMain allTests
+main = defaultMain $ allTests defaultGenOptions
 
-allTests :: TestTree
-allTests = testGroup "all tests"
-  [ testCaseCount "soundness" $
-      testTyProp size star prop_checkKindSound
-  , testCaseCount "normalization" $
-      testTyProp size star prop_normalizePreservesKind
-  , testCaseCount "normalizationSound" $
-      testTyProp size star prop_normalizeTypeSound
-  , testCaseCount "normalizationAgree" $
-      testTyProp size star prop_normalizeTypeSame
-  , testCaseCount "kindInferAgree" $
-      testTyProp size star prop_kindInferSame
+allTests :: GenOptions -> TestTree
+allTests genOpts = testGroup "NEAT"
+  [ bigTest "type-level"
+      genOpts
+      (Type ())
+      (packAssertion prop_Type)
+  , bigTest "term-level"
+      genOpts
+      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      (packAssertion prop_Term)
   ]
 
-testCaseCount :: String -> IO Integer -> TestTree
-testCaseCount name act = testCaseInfo name $
-  liftM (\i -> show i ++ " types generated") act
-
-
--- NEAT settings
-
-size :: Int
-size = 10
-
-star :: Kind ()
-star = Type ()
-
--- |Check if the type/kind checker or generation threw any errors.
-isSafe :: ExceptT (ErrorP a) Quote a -> Cool
-isSafe = toCool . isRight . runQuote . runExceptT
-
-prop_checkKindSound :: TyProp
-prop_checkKindSound k _ tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
+-- one type-level test to rule them all
+prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
+prop_Type k tyG = do
+  -- get a production named type:
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  -- get a production De Bruijn type:
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  withExceptT AgdaErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyDB) (deBruijnifyK (convK k)) of
-    Just _  -> return ()
-    Nothing -> throwError ()
 
-prop_normalizePreservesKind :: TyProp
-prop_normalizePreservesKind k _ tyQ = isSafe $ do
-  ty  <- withExceptT GenErrorP tyQ
+  -- 1. check soundness of Agda kindchecker with respect to NEAT:
+  withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
+    checkKindAgda tyDB (deBruijnifyK (convK k))
+  -- infer kind using Agda kind inferer:
+  k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+    liftEither $ inferKindAgda tyDB
+  -- infer kind using production kind inferer:
+  k2 <- withExceptT TypeError $ inferKind defConfig ty
+
+  -- 2. check that production and Agda kind inferer agree:
+  unless (unconvK (unDeBruijnifyK k1) == k2) $
+    throwCtrex (CtrexKindMismatch k tyG (unconvK (unDeBruijnifyK k1)) k2)
+
+
+  -- normalize type using Agda type normalizer:
+  ty' <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+    liftEither $ normalizeTypeAgda tyDB
+
+  -- 3. check that the Agda type normalizer doesn't mange the kind:
+  withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
+    liftEither $ checkKindAgda ty' (deBruijnifyK (convK k))
+
+  -- convert Agda normalized type back to named notation:
+  ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'
+  -- normalize NEAT type using NEAT type normalizer:
+  ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
+
+  -- 4. check the Agda type normalizer agrees with the NEAT type normalizer:
+  unless (ty1 == ty2) $
+    throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
+
+
+
+-- one term-level test to rule them all
+prop_Term :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_Term tyG tmG = do
+  -- get a production named type
+  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  -- get a production de Bruijn type
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just tyN -> return tyN
-    Nothing  -> throwError ()
-  withExceptT AgdaErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyN) (deBruijnifyK (convK k)) of
-    Just _  -> return ()
-    Nothing -> throwError ()
+  -- get a production named term
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  -- get a production de Bruijn term
+  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
 
--- the agda implementation throws names away, so I guess we need to compare deBruijn terms
-prop_normalizeTypeSound :: TyProp
-prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just tyN -> return tyN
-    Nothing  -> throwError ()
-  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
+  -- 1. check the term in the type
+  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
+    checkTypeAgda tyDB tmDB
 
-  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
-  return (ty1 == (AlexPn 0 0 0 <$ ty2))
+  -- 2. run production CK against metatheory CK
+  tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
+  tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
+    liftEither $ runCKAgda tmDB
+  tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
+  unless (tmPlcCK == tmCKN) $
+    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmPlcCK,tmCKN])
 
-prop_normalizeTypeSame :: TyProp
-prop_normalizeTypeSame k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just tyN -> return tyN
-    Nothing  -> throwError ()
-  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
+  -- 3. run all the metatheory evaluators against each other. Taking
+  -- care to normalize the types in the output of runCKAgda. The other
+  -- versions return terms with already normalized types.
+  let evs = [runLAgda,runCKAgda >=> normalizeTypeTermAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
+  let tmEvsM = map ($ tmDB) evs
+  tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
+    liftEither $ sequence tmEvsM
+  tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
 
-  ty2 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
-  return (ty1 == (AlexPn 0 0 0 <$ ty2))
-
-prop_kindInferSame :: TyProp
-prop_kindInferSame k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  k' <- withExceptT AgdaErrorP $ case inferKindAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just k' -> return k'
-    Nothing -> throwError ()
-  k'' <- withExceptT TypeErrorP $ inferKind defConfig (True <$ ty)
-  return (unconvK (unDeBruijnifyK k') == k'')
+  unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG tmEvsN)

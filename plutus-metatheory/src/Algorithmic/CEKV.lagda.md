@@ -41,10 +41,10 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
     → Value (Π B)
 
   V-wrap : ∀{K}
-   → {pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {arg : ∅ ⊢Nf⋆ K}
-   → Value (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-   → Value (ne (μ1 · pat · arg))
+   → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {B : ∅ ⊢Nf⋆ K}
+   → Value (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+   → Value (μ A B)
 
   V-con : {tcn : TyCon}
     → (cn : TermCon {∅} (con tcn))
@@ -84,7 +84,7 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
 
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
-discharge (V-wrap V) = wrap1 _ _ (discharge V)
+discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c
 
 VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : L.List (Δ ⊢Nf⋆ *)) → Set
@@ -168,12 +168,12 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
     → Frame (B [ A ]Nf) (Π B)
 
-  wrap-   : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (ne (μ1 · pat · arg))
-            (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
-    → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-            (ne (μ1 · pat · arg))
+  wrap-   : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (μ A B)
+            (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+  unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
+    → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+            (μ A B)
             
   builtin- : ∀{Γ}(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -202,8 +202,8 @@ step (s ; ρ ▻ ƛ L)             = s ◅ V-ƛ L ρ
 step (s ; ρ ▻ (L · M))         = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ L)             = s ◅ V-Λ L ρ
 step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L 
-step (s ; ρ ▻ wrap1 pat arg L) = (s , wrap-) ; ρ ▻ L
-step (s ; ρ ▻ unwrap1 {pat = pat}{arg} L) = (s , unwrap-) ; ρ ▻ L
+step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
+step (s ; ρ ▻ unwrap L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c
 step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ proj₂ ∘ SIG) bn
 step (s ; ρ ▻ builtin bn σ [])       | L.[]     | [[ p ]]
@@ -217,7 +217,7 @@ step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
 step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
-step ((s , wrap- {pat = pat}{arg = arg}) ◅ V) = s ◅ V-wrap V
+step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
 step ((s , builtin- b σ As vs A L.[] p ts' ρ) ◅ V)
   with BUILTIN b σ (extendVTel As σ vs V (sym p))
@@ -240,7 +240,7 @@ step (◆ A) = ◆ A
 
 open import Data.Nat
 
-stepper : ℕ → ∀{T} → State T → Either Error (State T)
+stepper : ℕ → ∀{T} → State T → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)

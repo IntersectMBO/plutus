@@ -59,7 +59,7 @@ compareResultMode mode1 mode2 eq test = do
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' " ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'"
+  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' " ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'" ++ " === "++ T.unpack (M.blah (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2))
 
 testNames = ["succInteger"
             ,"unitval"

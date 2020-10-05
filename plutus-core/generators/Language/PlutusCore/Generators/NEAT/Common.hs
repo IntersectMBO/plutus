@@ -1,5 +1,4 @@
-{-|
-Description : Property based testing Name Utilities
+{-| Description : Property based testing Name Utilities
 
 This file contains various naming related utilities used for
 generating Plutus Core types and terms.
@@ -19,14 +18,13 @@ module Language.PlutusCore.Generators.NEAT.Common
   , fromZ
   , NameState (nameOf)
   , emptyNameState
-  , extendNameState
+  , extNameState
   , TyNameState
   , tynameOf
   , emptyTyNameState
-  , extendTyNameState
+  , extTyNameState
   , mkTextNameStream
   ) where
-
 
 import           Control.Enumerable
 import qualified Data.Stream               as Stream
@@ -42,7 +40,7 @@ data Z
 data S n
   = FZ
   | FS n
-  deriving (Typeable, Eq, Show)
+  deriving (Typeable, Eq, Show, Functor)
 
 instance Enumerable Z where
   enumerate = datatype []
@@ -71,11 +69,11 @@ emptyNameState :: Stream.Stream Text.Text -> NameState Z
 emptyNameState strs = NameState { nameOf = fromZ, freshNameStrings = strs }
 
 -- |Extend name state with a fresh name.
-extendNameState
+extNameState
   :: (MonadQuote m)
   => NameState n
   -> m (NameState (S n))
-extendNameState NameState{..} = liftQuote $ do
+extNameState NameState{..} = liftQuote $ do
   let str = Stream.head freshNameStrings
       freshNameStrings' = Stream.tail freshNameStrings
   name <- freshName str
@@ -88,12 +86,12 @@ emptyTyNameState :: Stream.Stream Text.Text -> TyNameState Z
 emptyTyNameState strs = TyNameState (emptyNameState strs)
 
 -- |Extend type name state with a fresh type name.
-extendTyNameState
+extTyNameState
   :: (MonadQuote m)
   => TyNameState n
   -> m (TyNameState (S n))
-extendTyNameState (TyNameState nameState) =
-  TyNameState <$> extendNameState nameState
+extTyNameState (TyNameState nameState) =
+  TyNameState <$> extNameState nameState
 
 -- |Create a stream of names |x0, x1, x2, ...| from a prefix |"x"|
 mkTextNameStream :: Text.Text -> Stream.Stream Text.Text

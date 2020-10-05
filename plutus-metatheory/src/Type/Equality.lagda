@@ -31,20 +31,20 @@ reflexivity). Finally, we have one computation rule: the beta-rule for
 application.
 
 \begin{code}
-data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
+data _≡β_ {Φ} : ∀{J} → Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
 
   -- structural rules
 
   refl≡β  : ∀{J}
-    → (A : Γ ⊢⋆ J)
+    → (A : Φ ⊢⋆ J)
       ------------
     → A ≡β A
     
-  sym≡β   : ∀{J}{A B : Γ ⊢⋆ J}
+  sym≡β   : ∀{J}{A B : Φ ⊢⋆ J}
     → A ≡β B
       ------
     → B ≡β A
-  trans≡β : ∀{J}{A B C : Γ ⊢⋆ J}
+  trans≡β : ∀{J}{A B C : Φ ⊢⋆ J}
     → A ≡β B
     → B ≡β C
       ------
@@ -54,35 +54,39 @@ data _≡β_ {Γ} : ∀{J} → Γ ⊢⋆ J → Γ ⊢⋆ J → Set where
 
   -- (no variable rule is needed)
  
-  ⇒≡β : {A A' B B' : Γ ⊢⋆ *}
+  ⇒≡β : {A A' B B' : Φ ⊢⋆ *}
     → A ≡β A'
     → B ≡β B'
       ---------------------
     → (A ⇒ B) ≡β (A' ⇒ B')
     
-  Π≡β : ∀{J}{B B' : Γ ,⋆ J ⊢⋆ *}
+  Π≡β : ∀{J}{B B' : Φ ,⋆ J ⊢⋆ *}
     → B ≡β B'
       -------
     → Π B ≡β Π B'
     
-  ƛ≡β : ∀{K J}{B B' : Γ ,⋆ J ⊢⋆ K}
+  ƛ≡β : ∀{K J}{B B' : Φ ,⋆ J ⊢⋆ K}
     → B ≡β B'
       ---------------
     → ƛ B ≡β ƛ B'
     
-  ·≡β : ∀{K J}{A A' : Γ ⊢⋆ K ⇒ J}{B B' : Γ ⊢⋆ K}
+  ·≡β : ∀{K J}{A A' : Φ ⊢⋆ K ⇒ J}{B B' : Φ ⊢⋆ K}
     → A ≡β A'
     → B ≡β B'
       --------------------
     → A · B ≡β A' · B'
     
-  -- no μ1 rule is needed
-
+  μ≡β : ∀{K}{A A'}{B B' : Φ ⊢⋆ K}
+    → A ≡β A'
+    → B ≡β B'
+      ----------------
+    → μ A B ≡β μ A' B'
+    
   -- computation rule
 
   β≡β : ∀{K J}
-    → (B : Γ ,⋆ J ⊢⋆ K)
-    → (A : Γ ⊢⋆ J)
+    → (B : Φ ,⋆ J ⊢⋆ K)
+    → (A : Φ ⊢⋆ J)
       ------------------------
     → ƛ B · A ≡β B [ A ]
     
@@ -110,6 +114,7 @@ ren≡β ρ (⇒≡β p q)     = ⇒≡β (ren≡β ρ p) (ren≡β ρ q)
 ren≡β ρ (Π≡β p)       = Π≡β (ren≡β (ext ρ) p)
 ren≡β ρ (ƛ≡β p)       = ƛ≡β (ren≡β (ext ρ) p)
 ren≡β ρ (·≡β p q)     = ·≡β (ren≡β ρ p) (ren≡β ρ q)
+ren≡β ρ (μ≡β p q)     = μ≡β (ren≡β ρ p) (ren≡β ρ q)
 ren≡β ρ (β≡β B A)     = trans≡β
   (β≡β _ _)
   (≡2β (trans (sym (subst-ren B))
@@ -132,6 +137,7 @@ subst≡β σ (⇒≡β p q)     = ⇒≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
 subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
 subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
+subst≡β σ (μ≡β p q)     = μ≡β (subst≡β σ p) (subst≡β σ q)
 subst≡β σ (β≡β B A)     = trans≡β
   (β≡β _ _)
   (≡2β (trans (trans (sym (subst-comp B))

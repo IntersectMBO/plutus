@@ -1,5 +1,5 @@
 \begin{code}
-module Declarative.StdLib.ChurchNat where
+module Declarative.Examples.StdLib.ChurchNat where
 \end{code}
 
 \begin{code}
@@ -32,22 +32,23 @@ open import Data.Integer
 open import Data.Nat
 open import Agda.Builtin.Sigma renaming (_,_ to _,,_)
 
-{-
 con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-con0 = con (integer 8 (ℤ.pos 0) _) -- (-≤+ ,, (+≤+ (s≤s z≤n))))
+con0 = con (integer (ℤ.pos 0))
 
 con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-con1 = con (integer 8 (ℤ.pos 1) _) -- (-≤+ ,, (+≤+ (s≤s (s≤s z≤n)))))
+con1 = con (integer (ℤ.pos 1))
 
-inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (con integer (` Z) ⇒ con integer (` Z))
-inc = Λ (ƛ (builtin addInteger (λ { Z → ` Z ; (S ())}) ((builtin resizeInteger (λ { Z → ` Z ; (S Z) → size⋆ 8 ; (S (S ()))}) (builtin sizeOfInteger (λ { Z → ` Z ; (S ())}) (` Z ,, tt) ,, (con1 ,, tt))) ,, (` Z) ,, tt)))
+inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer ⇒ con integer
+inc = ƛ (builtin
+  addInteger
+  (λ())
+  (con1 ∷ (` Z ∷ [])))
 
-
-Nat2Int : ∅ ⊢ N ⇒ con integer (size⋆ 8)
+Nat2Int : ∅ ⊢ N ⇒ con integer
 Nat2Int = ƛ (Iter
-  ·⋆ con integer (size⋆ 8)
+  ·⋆ con integer
   ·  con0
-  ·  (inc ·⋆ size⋆ 8)
-  · ` Z)
--}
+  ·  inc
+  ·  ` Z)
+
 \end{code}
