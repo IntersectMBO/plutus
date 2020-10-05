@@ -1182,7 +1182,7 @@ instance ToJSON a => ToJSON (Case a) where
 instance FromJSON Contract where
   parseJSON (String "close") = return Close
   parseJSON (Object v) =
-        (Pay <$> (v .: "from")
+        (Pay <$> (v .: "from_account")
              <*> (v .: "to")
              <*> (v .: "token")
              <*> (v .: "pay")
@@ -1206,7 +1206,7 @@ instance FromJSON Contract where
 instance ToJSON Contract where
   toJSON Close = JSON.String $ pack "close"
   toJSON (Pay accountId payee token value contract) = object
-      [ "from" .= accountId
+      [ "from_account" .= accountId
       , "to" .= payee
       , "token" .= token
       , "pay" .= value

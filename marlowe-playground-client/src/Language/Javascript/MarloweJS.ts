@@ -33,14 +33,7 @@ export const role =
         return { "role_token": roleToken };
     };
 
-type AccountId = { "account_number" : bignumber.BigNumber,
-                   "account_owner" : Party };
-
-export const accountId =
-    function (accountNumber : SomeNumber, accountOwner : Party) : AccountId {
-        return { "account_number": coerceNumber(accountNumber),
-                 "account_owner": accountOwner };
-    };
+type AccountId = Party;
 
 type ChoiceId = { "choice_name" : string,
                   "choice_owner" : Party };
@@ -288,8 +281,16 @@ export const notify =
         return { "notify_if": obs };
     };
 
-type Payee = AccountId
-           | Party;
+type Payee = { "account" : AccountId }
+           | { "party" : Party };
+
+export function account(party: Party) : Payee {
+    return { "account" : party };
+}
+
+export function party(party: Party) : Payee {
+  return { "party" : party };
+}
 
 type Case = { "case": Action,
               "then": Contract };
