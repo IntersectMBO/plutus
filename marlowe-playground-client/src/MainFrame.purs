@@ -13,6 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
+import Gist (newGistDescription)
 import Gists (GistAction(..))
 import Halogen (Component, ComponentHTML, get, liftEffect, query, subscribe)
 import Halogen as H
@@ -36,18 +37,21 @@ import HaskellEditor.Types (_compilationResult)
 import HaskellEditor.Types as HE
 import Home as Home
 import JSEditor as JSEditor
-import Language.Haskell.Interpreter (_InterpreterResult)
+import Language.Haskell.Interpreter (SourceCode(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
-import Marlowe (SPParams_, getApiGistsByGistId)
+import Marlowe (SPParams_, getApiGistsByGistId, postApiGists)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
+import Marlowe.Gists (mkNewGist)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
+import NewProject (handleAction, render) as NewProject
+import NewProject.Types (Action(..), State, _projectName, emptyState, _error) as NewProject
 import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
 import Projects (handleAction, render) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
@@ -66,7 +70,7 @@ import Simulation.Types as ST
 import StaticData (jsBufferLocalStorageKey, showHomePageLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _projects, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), JSCompilationState(..), View(..), WebData, _activeJSDemo, _actusBlocklySlot, _blocklySlot, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _marloweEditorSlot, _newProject, _projects, _showBottomPanel, _showHomePage, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -83,6 +87,7 @@ initialState =
     , activeJSDemo: mempty
     , showHomePage: true
     , projects: Projects.emptyState
+    , newProject: NewProject.emptyState
     }
 
 ------------------------------------------------------------
@@ -140,6 +145,18 @@ toProjects halogen = do
     getState = view _projects
   (imapState setState getState <<< mapAction ProjectsAction) halogen
 
+toNewProject ::
+  forall m a.
+  Functor m =>
+  HalogenM NewProject.State NewProject.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
+toNewProject halogen = do
+  currentState <- get
+  let
+    setState = flip (set _newProject) currentState
+  let
+    getState = view _newProject
+  (imapState setState getState <<< mapAction NewProjectAction) halogen
+
 handleSubRoute ::
   forall m.
   MonadEffect m =>
@@ -163,6 +180,8 @@ handleSubRoute _ Router.Wallets = selectView WalletEmulator
 handleSubRoute settings Router.Projects = do
   selectView Projects
   toProjects $ Projects.handleAction settings Projects.LoadProjects
+
+handleSubRoute _ Router.NewProject = selectView NewProject
 
 handleRoute ::
   forall m.
@@ -348,13 +367,40 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
     Right _ -> pure unit
     Left error -> assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
-  case lang of
-    Haskell -> selectView HaskellEditor
-    Marlowe -> selectView Simulation
-    Blockly -> selectView BlocklyEditor
-    Javascript -> pure unit
+  selectLanguageView lang
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
+
+handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
+  description <- use (_newProject <<< NewProject._projectName)
+  marloweState <- use (_simulationState <<< _marloweState)
+  currentContract <- toSimulation Simulation.editorGetValue
+  oldContract <- use (_simulationState <<< ST._oldContract)
+  let
+    newGist = set newGistDescription description $ mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
+  res <-
+    runExceptT
+      $ do
+          gist <- flip runReaderT s $ postApiGists newGist
+          lift $ toSimulation $ Simulation.loadGist gist
+  case res of
+    Right _ -> selectLanguageView lang
+    Left _ -> assign (_newProject <<< NewProject._error) (Just "Could not create new project")
+  toNewProject $ NewProject.handleAction s action
+
+handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
+
+selectLanguageView ::
+  forall m action message.
+  MonadEffect m =>
+  Lang -> HalogenM FrontendState action ChildSlots message m Unit
+selectLanguageView Haskell = selectView HaskellEditor
+
+selectLanguageView Marlowe = selectView Simulation
+
+selectLanguageView Blockly = selectView BlocklyEditor
+
+selectLanguageView Javascript = pure unit
 
 ----------
 showErrorDescription :: ErrorDescription -> String
@@ -388,6 +434,7 @@ selectView view = do
       WalletEmulator -> Router.Wallets
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
       Projects -> Router.Projects
+      NewProject -> Router.NewProject
   liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
   case view of
@@ -405,6 +452,7 @@ selectView view = do
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
     Projects -> pure unit
+    NewProject -> pure unit
 
 render ::
   forall m.
@@ -520,6 +568,7 @@ render settings state =
                   [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
               ]
             Projects -> [ bimap (map ProjectsAction) ProjectsAction (Projects.render (state ^. _projects)) ]
+            NewProject -> [ bimap (map NewProjectAction) NewProjectAction (NewProject.render (state ^. _newProject)) ]
         ]
     ]
   where

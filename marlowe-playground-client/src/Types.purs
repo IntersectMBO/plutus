@@ -23,6 +23,7 @@ import HaskellEditor.Types as HE
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
 import Network.RemoteData (RemoteData)
+import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Projects.Types as Projects
 import Router (Route)
@@ -56,6 +57,7 @@ data HAction
   -- Wallet Actions
   | HandleWalletMessage Wallet.Message
   | ProjectsAction Projects.Action
+  | NewProjectAction NewProject.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -76,6 +78,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
   toEvent (ProjectsAction action) = toEvent action
+  toEvent (NewProjectAction action) = toEvent action
 
 ------------------------------------------------------------
 type ChildSlots
@@ -119,6 +122,7 @@ data View
   | ActusBlocklyEditor
   | WalletEmulator
   | Projects
+  | NewProject
 
 derive instance eqView :: Eq View
 
@@ -146,6 +150,7 @@ newtype FrontendState
   , simulationState :: Simulation.State
   , showHomePage :: Boolean
   , projects :: Projects.State
+  , newProject :: NewProject.State
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -188,6 +193,9 @@ _showHomePage = _Newtype <<< prop (SProxy :: SProxy "showHomePage")
 
 _projects :: Lens' FrontendState Projects.State
 _projects = _Newtype <<< prop (SProxy :: SProxy "projects")
+
+_newProject :: Lens' FrontendState NewProject.State
+_newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
 
 -- editable
 _timestamp ::
