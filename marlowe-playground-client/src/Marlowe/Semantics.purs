@@ -661,13 +661,13 @@ derive instance eqPayee :: Eq Payee
 derive instance ordPayee :: Ord Payee
 
 instance encodeJsonPayee :: Encode Payee where
-  encode (Account accountId) = encode accountId
-  encode (Party party) = encode party
+  encode (Account accountId) = encode { account: accountId }
+  encode (Party party) = encode { party: party }
 
 instance decodeJsonPayee :: Decode Payee where
   decode a =
-    (Account <$> decode a)
-      <|> (Party <$> decode a)
+    (Account <$> decodeProp "account" a)
+      <|> (Party <$> decodeProp "party" a)
 
 instance showPayee :: Show Payee where
   show v = genericShow v

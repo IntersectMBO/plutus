@@ -9,7 +9,7 @@ import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
+import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import Simulation.State (_contract, _pendingInputs, _transactionError, applyTransactions, updateContractInState, updateMarloweState)
 import Simulation.Types (_marloweState, mkState)
 import Test.Unit (TestSuite, suite, test)
