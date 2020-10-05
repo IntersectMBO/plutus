@@ -8,17 +8,17 @@ image:js-editor.png[The JavaScript editing pane]
 
 The editor supports syntax highlighting, completion, and 'squiggly line' feedback. Mousing over defined elements will reveal their types, and over types their definitions.
 
-The form of the code in the code editor should be  
+The form of the code in the code editor should be
 
 [source,typescript]
 ----
 import * as bignumber from 'bignumber.js';
-import { role, accountId, choiceId, token, ada, valueId, availableMoney, constant, 
-         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart, 
-         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE, 
-         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice, 
+import { role, choiceId, token, ada, valueId, availableMoney, constant,
+         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart,
+         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE,
+         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice,
          notify, caseM, closeM, payM, ifM, whenM, letM, assertM, Party, SomeNumber,
-         AccountId, ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action,
+         ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action,
          Payee, Case, Contract } from 'marlowe-js';
 
 /* === Code above this comment will be removed at compile time === */
@@ -26,7 +26,7 @@ import { role, accountId, choiceId, token, ada, valueId, availableMoney, constan
 const alice : Party = {"pk_hash":"alice"} ;
 const bob : Payee   = {"pk_hash":"bob" };
 
-const payAB = payM(accountId(0,alice),bob,ada,10,closeM);
+const payAB = payM(alice,bob,ada,10,closeM);
 
 payAB
 ----
@@ -41,7 +41,7 @@ To construct contracts we provide _smart constructors_ – JavaScript functions 
 ----
 export const ifM =
     function (obs : Observation, contThen : Contract, contElse : Contract) : Contract {
-        /* === Code implementing the constructor === */ 
+        /* === Code implementing the constructor === */
     };
 ----
 
