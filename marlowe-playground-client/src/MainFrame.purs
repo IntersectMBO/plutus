@@ -5,13 +5,12 @@ import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
 import Data.Foldable (for_, traverse_)
-import Data.Lens (_Right, assign, set, to, use, view, (^.))
+import Data.Lens (_Right, assign, set, to, use, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Traversable (traverse)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gist (newGistDescription)
@@ -23,6 +22,7 @@ import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
 import Halogen.Classes (aCenter, aHorizontal, active, flexCol, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
+import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, src, target)
@@ -30,7 +30,6 @@ import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (affEventSource, emit)
-import Halogen.Query.HalogenM (imapState, mapAction)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
@@ -114,49 +113,25 @@ toSimulation ::
   forall m a.
   Functor m =>
   HalogenM ST.State ST.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
-toSimulation halogen = do
-  currentState <- get
-  let
-    setState = flip (set _simulationState) currentState
-  let
-    getState = view _simulationState
-  (imapState setState getState <<< mapAction SimulationAction) halogen
+toSimulation = mapSubmodule _simulationState SimulationAction
 
 toHaskellEditor ::
   forall m a.
   Functor m =>
   HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
-toHaskellEditor halogen = do
-  currentState <- get
-  let
-    setState = flip (set _haskellState) currentState
-  let
-    getState = view _haskellState
-  (imapState setState getState <<< mapAction HaskellAction) halogen
+toHaskellEditor = mapSubmodule _haskellState HaskellAction
 
 toProjects ::
   forall m a.
   Functor m =>
   HalogenM Projects.State Projects.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
-toProjects halogen = do
-  currentState <- get
-  let
-    setState = flip (set _projects) currentState
-  let
-    getState = view _projects
-  (imapState setState getState <<< mapAction ProjectsAction) halogen
+toProjects = mapSubmodule _projects ProjectsAction
 
 toNewProject ::
   forall m a.
   Functor m =>
   HalogenM NewProject.State NewProject.Action ChildSlots Void m a -> HalogenM FrontendState HAction ChildSlots Void m a
-toNewProject halogen = do
-  currentState <- get
-  let
-    setState = flip (set _newProject) currentState
-  let
-    getState = view _newProject
-  (imapState setState getState <<< mapAction NewProjectAction) halogen
+toNewProject = mapSubmodule _newProject NewProjectAction
 
 handleSubRoute ::
   forall m.

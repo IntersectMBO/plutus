@@ -10,7 +10,7 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import Marlowe (SPParams_)
 import NewProject.Types (Action(..), State, _error, _projectName)
-import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
+import Prelude (Unit, Void, const, map, pure, show, unit, ($), (<<<))
 import Projects.Types (Lang(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Types (ChildSlots)
@@ -34,14 +34,12 @@ render state =
     [ input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
     , hr_
     , h2_ [ text "Choose your initial coding environment" ]
-    , div [ classes [ flex, ClassName "language-links" ] ]
-        [ a [ onClick (const <<< Just $ CreateProject Haskell) ] [ text "Haskell" ]
-        , a [ onClick (const <<< Just $ CreateProject Marlowe) ] [ text "Marlowe" ]
-        , a [ onClick (const <<< Just $ CreateProject Blockly) ] [ text "Blockly" ]
-        ]
+    , div [ classes [ flex, ClassName "language-links" ] ] (map link [ Haskell, Marlowe, Blockly ])
     , renderError (state ^. _error)
     ]
   where
   renderError Nothing = text ""
 
   renderError (Just err) = div [ class_ (ClassName "error") ] [ text err ]
+
+  link lang = a [ onClick (const <<< Just $ CreateProject lang) ] [ text $ show lang ]
