@@ -37,11 +37,9 @@ mkTest stripParens marloweType parser = do
     else
       failure $ "expected all parsable but got " <> show parsed <> " for items " <> show items
 
--- | We use this testFor function in combination with `upFromIncluding bottom` in order to ensure 
+-- | We use this testFor function in combination with `upFromIncluding bottom` in order to ensure
 --   that we have written a test for every MarloweType
 testFor :: MarloweType -> TestSuite
-testFor AccountIdType = mkTest false AccountIdType (parse Parser.accountId')
-
 testFor ChoiceIdType = mkTest false ChoiceIdType (parse Parser.choiceId')
 
 testFor ValueIdType = mkTest false ValueIdType (parse Parser.valueId)

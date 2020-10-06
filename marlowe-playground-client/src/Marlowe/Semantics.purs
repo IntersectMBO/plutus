@@ -213,37 +213,8 @@ derive newtype instance euclideanRingAda :: EuclideanRing Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
-data AccountId
-  = AccountId BigInteger Party
-
-derive instance genericAccountId :: Generic AccountId _
-
-derive instance eqAccountId :: Eq AccountId
-
-derive instance ordAccountId :: Ord AccountId
-
-instance encodeJsonAccountId :: Encode AccountId where
-  encode (AccountId accNum party) =
-    encode
-      { account_number: accNum
-      , account_owner: party
-      }
-
-instance decodeJsonAccountId :: Decode AccountId where
-  decode a =
-    ( AccountId <$> decodeProp "account_number" a
-        <*> decodeProp "account_owner" a
-    )
-
-instance showAccountId :: Show AccountId where
-  show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
-
-instance prettyAccountId :: Pretty AccountId where
-  pretty = genericPretty
-
-instance hasArgsAccountId :: Args AccountId where
-  hasArgs = genericHasArgs
-  hasNestedArgs = genericHasNestedArgs
+type AccountId
+  = Party
 
 data ChoiceId
   = ChoiceId String Party
@@ -690,13 +661,13 @@ derive instance eqPayee :: Eq Payee
 derive instance ordPayee :: Ord Payee
 
 instance encodeJsonPayee :: Encode Payee where
-  encode (Account accountId) = encode accountId
-  encode (Party party) = encode party
+  encode (Account accountId) = encode { account: accountId }
+  encode (Party party) = encode { party: party }
 
 instance decodeJsonPayee :: Decode Payee where
   decode a =
-    (Account <$> decode a)
-      <|> (Party <$> decode a)
+    (Account <$> decodeProp "account" a)
+      <|> (Party <$> decodeProp "party" a)
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -1242,9 +1213,6 @@ emptyState sn =
     , minSlot: sn
     }
 
-accountOwner :: AccountId -> Party
-accountOwner (AccountId _ owner) = owner
-
 inBounds :: ChosenNum -> Array Bound -> Boolean
 inBounds num = any (\(Bound l u) -> num >= l && num <= u)
 
@@ -1333,7 +1301,7 @@ refundOne accounts = case Map.toUnfoldable accounts of
   Nil -> Nothing
   Tuple (Tuple accId (Token cur tok)) balance : rest ->
     if balance > zero then
-      Just (Tuple (Tuple (accountOwner accId) (asset cur tok balance)) (Map.fromFoldable rest))
+      Just (Tuple (Tuple accId (asset cur tok balance)) (Map.fromFoldable rest))
     else
       refundOne (Map.fromFoldable rest)
 

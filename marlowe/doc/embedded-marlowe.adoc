@@ -112,7 +112,7 @@ have this contract instead:
 When [
   (Case
      (Deposit
-        (AccountId 0 "alice") "alice" ada
+        "alice" "alice" ada
         (Constant 450))
      (When [
            (Case
@@ -136,7 +136,7 @@ When [
                                 (ChoiceId "choice" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob") ada
                              (Constant 450) Close) Close)
                        (When [
@@ -150,7 +150,7 @@ When [
                                    (ChoiceId "choice" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob") ada
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -164,7 +164,7 @@ When [
                              (ChoiceId "choice" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob") ada
                              (Constant 450) Close))] 100 Close)))
       ]

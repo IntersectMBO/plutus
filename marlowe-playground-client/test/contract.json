@@ -1,159 +1,148 @@
 {
-   "then": {
-     "when": [
-       {
-         "then": {
-           "then": {
-             "token": {
-               "token_name": "",
-               "currency_symbol": ""
-             },
-             "to": {
-               "role_token": "Bob"
-             },
-             "then": "close",
-             "pay": {
-               "then": {
-                 "use_value": "x"
-               },
-               "if": true,
-               "else": {
-                 "use_value": "y"
-               }
-             },
-             "from_account": {
-               "account_owner": {
-                 "pk_hash": "deadbeef"
-               },
-               "account_number": 0
-             }
-           },
-           "let": "x",
-           "be": {
-             "and": {
-               "value": 100,
-               "minus": {
-                 "negate": 100
-               }
-             },
-             "add": 100
-           }
-         },
-         "case": {
-           "party": {
-             "pk_hash": "deadbeef"
-           },
-           "of_token": {
-             "token_name": "",
-             "currency_symbol": ""
-           },
-           "into_account": {
-             "account_owner": {
-               "pk_hash": "deadbeef"
-             },
-             "account_number": 0
-           },
-           "deposits": {
-             "and": {
-               "value": 100,
-               "minus": {
-                 "negate": 100
-               }
-             },
-             "add": 100
-           }
-         }
-       },
-       {
-         "then": {
-           "then": {
-             "token": {
-               "token_name": "name",
-               "currency_symbol": "aa"
-             },
-             "to": {
-               "account_owner": {
-                 "pk_hash": "deadbeef"
-               },
-               "account_number": 0
-             },
-             "then": "close",
-             "pay": {
-               "in_account": {
-                 "account_owner": {
-                   "pk_hash": "deadbeef"
-                 },
-                 "account_number": 0
-               },
-               "amount_of_token": {
-                 "token_name": "name",
-                 "currency_symbol": "aa"
-               }
-             },
-             "from_account": {
-               "account_owner": {
-                 "pk_hash": "deadbeef"
-               },
-               "account_number": 0
-             }
-           },
-           "if": {
-             "or": {
-               "value": {
-                 "value_of_choice": {
-                   "choice_owner": {
-                     "pk_hash": "deadbeef"
-                   },
-                   "choice_name": "choice"
-                 }
-               },
-               "equal_to": {
-                 "times": 1,
-                 "multiply": 100,
-                 "divide_by": 10
-               }
-             },
-             "either": {
-               "chose_something_for": {
-                 "choice_owner": {
-                   "pk_hash": "deadbeef"
-                 },
-                 "choice_name": "choice"
-               }
-             }
-           },
-           "else": "close"
-         },
-         "case": {
-           "for_choice": {
-             "choice_owner": {
-               "pk_hash": "deadbeef"
-             },
-             "choice_name": "choice"
-           },
-           "choose_between": [
-             {
-               "to": 1,
-               "from": 0
-             }
-           ]
-         }
-       },
-       {
-         "then": "close",
-         "case": {
-           "notify_if": {
-             "both": {
-               "value": "slot_interval_start",
-               "lt": "slot_interval_end"
-             },
-             "and": true
-           }
-         }
-       }
-     ],
-     "timeout_continuation": "close",
-     "timeout": 100
-   },
-   "assert": true
- }
+  "then": {
+    "when": [
+      {
+        "then": {
+          "then": {
+            "token": {
+              "token_name": "",
+              "currency_symbol": ""
+            },
+            "to": {
+              "party": {
+                "role_token": "Bob"
+              }
+            },
+            "then": "close",
+            "pay": {
+              "then": {
+                "use_value": "x"
+              },
+              "if": true,
+              "else": {
+                "use_value": "y"
+              }
+            },
+            "from_account": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            }
+          },
+          "let": "x",
+          "be": {
+            "and": {
+              "value": 100,
+              "minus": {
+                "negate": 100
+              }
+            },
+            "add": 100
+          }
+        },
+        "case": {
+          "party": {
+            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+          },
+          "of_token": {
+            "token_name": "",
+            "currency_symbol": ""
+          },
+          "into_account": {
+            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+          },
+          "deposits": {
+            "and": {
+              "value": 100,
+              "minus": {
+                "negate": 100
+              }
+            },
+            "add": 100
+          }
+        }
+      },
+      {
+        "then": {
+          "then": {
+            "token": {
+              "token_name": "name",
+              "currency_symbol": "aa"
+            },
+            "to": {
+              "account": {
+                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              }
+            },
+            "then": "close",
+            "pay": {
+              "in_account": {
+                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              },
+              "amount_of_token": {
+                "token_name": "name",
+                "currency_symbol": "aa"
+              }
+            },
+            "from_account": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            }
+          },
+          "if": {
+            "or": {
+              "value": {
+                "value_of_choice": {
+                  "choice_owner": {
+                    "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+                  },
+                  "choice_name": "choice"
+                }
+              },
+              "equal_to": {
+                "times": 1,
+                "multiply": 100,
+                "divide_by": 10
+              }
+            },
+            "either": {
+              "chose_something_for": {
+                "choice_owner": {
+                  "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+                },
+                "choice_name": "choice"
+              }
+            }
+          },
+          "else": "close"
+        },
+        "case": {
+          "for_choice": {
+            "choice_owner": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            },
+            "choice_name": "choice"
+          },
+          "choose_between": [
+            {
+              "to": 1,
+              "from": 0
+            }
+          ]
+        }
+      },
+      {
+        "then": "close",
+        "case": {
+          "notify_if": {
+            "both": {
+              "value": "slot_interval_start",
+              "lt": "slot_interval_end"
+            },
+            "and": true
+          }
+        }
+      }
+    ],
+    "timeout_continuation": "close",
+    "timeout": 100
+  },
+  "assert": true
+}

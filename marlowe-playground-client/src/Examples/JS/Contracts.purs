@@ -7,9 +7,6 @@ const alice : Party = role("alice");
 const bob : Party = role("bob");
 const carol : Party = role("carol");
 
-/* Accounts */
-const alicesAccount : AccountId = accountId(0, alice);
-
 /* Value under escrow */
 const price : SomeNumber = new bignumber.BigNumber(450);
 
@@ -59,13 +56,13 @@ const bobChosen : Value = choiceValueBy(bob);
    Carol has to intervene after a single choice from Alice or Bob. */
 
 const arbitrate : Contract = whenM([caseM(carolRefund, closeM),
-                                    caseM(carolPay, payM(alicesAccount, bob, ada, price, closeM))],
+                                    caseM(carolPay, payM(alice, party(bob), ada, price, closeM))],
                                    100, closeM);
 
 /* The contract to follow when Alice and Bob have made the same choice. */
 
 const agreement : Contract = ifM(valueEQ(aliceChosen, 0),
-                                 payM(alicesAccount, bob, ada, price, closeM),
+                                 payM(alice, party(bob), ada, price, closeM),
                                  closeM);
 
 /* Inner part of contract */
@@ -97,13 +94,11 @@ zeroCouponBond =
   """const investor : Party = role("investor");
 const issuer : Party = role("issuer");
 
-const investorAcc : AccountId = accountId(0, investor);
-
 whenM([caseM(
-        deposit(investorAcc, investor, ada, 850),
-        payM(investorAcc, issuer, ada, 850,
-             whenM([ caseM(deposit(investorAcc, issuer, ada, 1000),
-                           payM(investorAcc, investor, ada, 1000, closeM))
+        deposit(investor, investor, ada, 850),
+        payM(investor, issuer, ada, 850,
+             whenM([ caseM(deposit(investor, issuer, ada, 1000),
+                           payM(investor, party(investor), ada, 1000, closeM))
                    ],
                    20,
                    closeM)
@@ -117,20 +112,19 @@ couponBondGuaranteed =
   """const issuer : Party = role("issuer");
 const guarantor : Party = role("guarantor");
 const investor : Party = role("investor");
-const investorAcc : AccountId = accountId(0, investor);
 
-whenM([caseM(deposit(investorAcc, guarantor, ada, 1030),
-        (whenM([caseM(deposit(investorAcc, investor, ada, 1000),
-                payM(investorAcc, issuer, ada, 1000,
-                    (whenM([caseM(deposit( investorAcc, issuer, ada, 10),
-                            payM(investorAcc, investor, ada, 10,
-                                payM(investorAcc, guarantor, ada, 10,
-                                    (whenM([caseM(deposit(investorAcc, issuer, ada, 10),
-                                            payM(investorAcc, investor, ada, 10,
-                                                payM(investorAcc, guarantor, ada, 10,
-                                                    (whenM([caseM(deposit(investorAcc, issuer, ada, 1010),
-                                                            payM(investorAcc, investor, ada, 1010,
-                                                                payM(investorAcc, guarantor, ada, 1010, closeM)
+whenM([caseM(deposit(investor, guarantor, ada, 1030),
+        (whenM([caseM(deposit(investor, investor, ada, 1000),
+                payM(investor, party(issuer), ada, 1000,
+                    (whenM([caseM(deposit( investor, issuer, ada, 10),
+                            payM(investor, party(investor), ada, 10,
+                                payM(investor, party(guarantor), ada, 10,
+                                    (whenM([caseM(deposit(investor, issuer, ada, 10),
+                                            payM(investor, party(investor), ada, 10,
+                                                payM(investor, party(guarantor), ada, 10,
+                                                    (whenM([caseM(deposit(investor, issuer, ada, 1010),
+                                                            payM(investor, party(investor), ada, 1010,
+                                                                payM(investor, party(guarantor), ada, 1010, closeM)
                                                             ))], 20, closeM)
                                                     )
                                                 )
@@ -149,14 +143,12 @@ swap =
 const party2 : Party = role("party2");
 const gracePeriod : SomeNumber = new bignumber.BigNumber(5);
 const date1 : SomeNumber = new bignumber.BigNumber(20);
-const acc1 : AccountId = accountId(1, party1);
-const acc2 : AccountId = accountId(2, party2);
 
-const contract : Contract = whenM([ caseM(deposit(acc1, party1, ada, 500),
+const contract : Contract = whenM([ caseM(deposit(party1, party1, ada, 500),
                                       /* when 1st party committed, wait for 2nd */
                                       whenM([caseM(deposit(acc2, party2, ada, 300),
-                                                  payM(acc1, party2, ada, 500,
-                                                      payM(acc2, party1, ada, 300, closeM)))
+                                                  payM(party1, party(party2), ada, 500,
+                                                      payM(party2, party(party1), ada, 300, closeM)))
                                           ], date1,
                                       /* if a party dosn't commit, simply Close to the owner */
                                       closeM))

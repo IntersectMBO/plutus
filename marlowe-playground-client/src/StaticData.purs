@@ -37,10 +37,10 @@ demoFiles =
 addHeader :: Contents -> Contents
 addHeader c =
   """import * as bignumber from 'bignumber.js';
-import { role, accountId, choiceId, token, ada, valueId, availableMoney, constant, 
-         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart, 
-         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE, 
-         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice, 
+import { role, account, party, choiceId, token, ada, valueId, availableMoney, constant,
+         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart,
+         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE,
+         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice,
          notify, caseM, closeM, payM, ifM, whenM, letM, assertM, Party, SomeNumber,
          AccountId, ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action,
          Payee, Case, Contract } from 'marlowe-js';
