@@ -276,7 +276,8 @@ handleGistAction settings PublishGist = do
     $ runMaybeT do
         currentContract <- lift editorGetValue
         oldContract <- use _oldContract
-        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
+        let
+          newGist = mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
         mGist <- use _createGistResult
         assign _createGistResult Loading
         newResult <-

@@ -9,7 +9,6 @@ module Marlowe.Gists
 import Prelude
 import Control.Monad.Except (runExcept)
 import Data.Array (catMaybes, sort)
-import Data.Array as Array
 import Data.Either (hush)
 import Data.Lens (toArrayOfOn, traversed, view)
 import Data.List.NonEmpty as NEL
@@ -26,17 +25,13 @@ mkNewGist ::
   Maybe SourceCode ->
   Maybe SourceCode ->
   NonEmptyList MarloweState ->
-  Maybe NewGist
+  NewGist
 mkNewGist currentSource oldSource marloweState =
-  if Array.null gistFiles then
-    Nothing
-  else
-    Just
-      $ NewGist
-          { _newGistDescription: "Marlowe Smart Contract"
-          , _newGistPublic: true
-          , _newGistFiles: gistFiles
-          }
+  NewGist
+    { _newGistDescription: "Marlowe Smart Contract"
+    , _newGistPublic: true
+    , _newGistFiles: gistFiles
+    }
   where
   gistFiles =
     catMaybes
@@ -48,11 +43,12 @@ mkNewGist currentSource oldSource marloweState =
   stateArray :: Array MarloweState
   stateArray = NEL.toUnfoldable marloweState
 
-  mkNewGistFile _newGistFilename _newGistFileContent =
-    NewGistFile
-      { _newGistFilename
-      , _newGistFileContent
-      }
+mkNewGistFile :: String -> String -> NewGistFile
+mkNewGistFile _newGistFilename _newGistFileContent =
+  NewGistFile
+    { _newGistFilename
+    , _newGistFileContent
+    }
 
 currentSimulationMarloweFile :: String
 currentSimulationMarloweFile = "CurrentMarlowe.hs"
