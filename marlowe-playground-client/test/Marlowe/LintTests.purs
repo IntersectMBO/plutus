@@ -341,7 +341,7 @@ negativePay = testWarningSimple (payContract "(Constant -1)") $ show NegativePay
 payBeforeWarning :: Test
 payBeforeWarning = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
   where
-  contract = "When [Case (Deposit (Role \"role\" ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
+  contract = "When [Case (Deposit (Role \"role1\" ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 payBeforeWarningBranch :: Test
 payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
