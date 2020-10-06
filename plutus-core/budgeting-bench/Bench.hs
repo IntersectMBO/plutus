@@ -18,6 +18,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
+import           System.Directory
 
 import           Criterion.Main
 import qualified Criterion.Types                                            as C
@@ -33,7 +34,7 @@ runTermBench name term = env
     (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
 
 benchSameTwoByteStrings :: StaticBuiltinName -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
+benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
 benchTwoByteStrings :: StaticBuiltinName -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
@@ -118,7 +119,8 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature]
+    createDirectoryIfMissing True "budgeting-bench/csvs/"
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature] <> benchComparison
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]

@@ -50,7 +50,7 @@ plotErrorModel <- function(filtered, filteredModel) {
       , name="Predicted"
       , marker=list(size=2)
       , error_z=list(type="data", array=positiveErrors, arrayminus=negativeErrors, symmetric=FALSE)
-      , error_z = list(type="constant", value=0.05, symmetric=FALSE)
+      , error_z=list(type="constant", value=0.05, symmetric=FALSE)
       ) %>% layout(
         scene=list(
           xaxis=list(title=list(text="ExMemory of first argument"))
@@ -68,7 +68,7 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "CalibratingBench")
+filtered <- data %>% filter(BuiltinName == "DropByteString")
 plotRaw(filtered)
 plotRaw2d(filtered)
 

@@ -18,17 +18,17 @@
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3,
+            "arguments": 9,
             "type": "constant_cost"
         }
     },
     "take_byte_string": {
         "memory": {
-            "arguments": 1,
+            "arguments": 2,
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 4,
+            "arguments": 12,
             "type": "constant_cost"
         }
     },
@@ -52,8 +52,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.27391754546852e-3,
-                "intercept": 2.9129374632452
+                "slope": 2.67110983223839e-3,
+                "intercept": 11.176786920421
             },
             "type": "min_size"
         }
@@ -145,11 +145,11 @@
     },
     "drop_byte_string": {
         "memory": {
-            "arguments": 1,
+            "arguments": 2,
             "type": "constant_cost"
         },
         "cpu": {
-            "arguments": 3,
+            "arguments": 12,
             "type": "constant_cost"
         }
     },
@@ -173,8 +173,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.27391754546852e-3,
-                "intercept": 2.9129374632452
+                "slope": 2.67110983223839e-3,
+                "intercept": 11.176786920421
             },
             "type": "min_size"
         }
@@ -198,12 +198,18 @@
     },
     "concatenate": {
         "memory": {
-            "arguments": 1,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 1,
+                "intercept": 0
+            },
+            "type": "added_sizes"
         },
         "cpu": {
-            "arguments": 2,
-            "type": "constant_cost"
+            "arguments": {
+                "slope": 8.03717462754073e-3,
+                "intercept": 10.4550617318648
+            },
+            "type": "added_sizes"
         }
     },
     "divide_integer": {
@@ -241,13 +247,13 @@
     },
     "sha2": {
         "memory": {
-            "arguments": 1,
+            "arguments": 4,
             "type": "constant_cost"
         },
         "cpu": {
             "arguments": {
-                "slope": 0.167020391251432,
-                "intercept": 11.3556038928742,
+                "slope": 0.167076935301223,
+                "intercept": 27.8542873749512,
                 "orientation": "x"
             },
             "type": "linear_cost"
@@ -260,8 +266,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.26054571482386e-3,
-                "intercept": 2.74917170268578
+                "slope": 2.77882181788001e-3,
+                "intercept": 9.93338839754092
             },
             "type": "min_size"
         }
@@ -285,13 +291,13 @@
     },
     "sha3": {
         "memory": {
-            "arguments": 1,
+            "arguments": 4,
             "type": "constant_cost"
         },
         "cpu": {
             "arguments": {
-                "slope": 0.445692636367198,
-                "intercept": 17.4935790445223,
+                "slope": 0.533769729390723,
+                "intercept": 35.9840473659199,
                 "orientation": "x"
             },
             "type": "linear_cost"

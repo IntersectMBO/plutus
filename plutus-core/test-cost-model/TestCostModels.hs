@@ -48,24 +48,24 @@ prop_greaterThanEqInteger :: Property
 prop_greaterThanEqInteger = testPredict greaterThanEqInteger (getConst . paramGreaterThanEqInteger)
 prop_eqInteger :: Property
 prop_eqInteger = testPredict eqInteger (getConst . paramEqInteger)
--- prop_concatenate :: Property
--- prop_concatenate = testPredict concatenate (getConst . paramConcatenate)
--- prop_takeByteString :: Property
--- prop_takeByteString = testPredict takeByteString (getConst . paramTakeByteString)
--- prop_dropByteString :: Property
--- prop_dropByteString = testPredict dropByteString (getConst . paramDropByteString)
--- prop_sha2 :: Property
--- prop_sha2 = testPredict sHA2 (getConst . paramSha2)
--- prop_sha3 :: Property
--- prop_sha3 = testPredict sHA3 (getConst . paramSha3)
+prop_concatenate :: Property
+prop_concatenate = testPredict concatenate (getConst . paramConcatenate)
+prop_takeByteString :: Property
+prop_takeByteString = testPredict takeByteString (getConst . paramTakeByteString)
+prop_dropByteString :: Property
+prop_dropByteString = testPredict dropByteString (getConst . paramDropByteString)
+prop_sha2 :: Property
+prop_sha2 = testPredictOne sHA2 (getConst . paramSHA2)
+prop_sha3 :: Property
+prop_sha3 = testPredictOne sHA3 (getConst . paramSHA3)
 -- prop_verifySignature :: Property
 -- prop_verifySignature = testPredict verifySignature (getConst . paramVerifySignature)
--- prop_eqByteString :: Property
--- prop_eqByteString = testPredict eqByteString (getConst . paramEqByteString)
--- prop_ltByteString :: Property
--- prop_ltByteString = testPredict ltByteString (getConst . paramLtByteString)
--- prop_gtByteString :: Property
--- prop_gtByteString = testPredict gtByteString (getConst . paramGtByteString)
+prop_eqByteString :: Property
+prop_eqByteString = testPredict eqByteString (getConst . paramEqByteString)
+prop_ltByteString :: Property
+prop_ltByteString = testPredict ltByteString (getConst . paramLtByteString)
+prop_gtByteString :: Property
+prop_gtByteString = testPredict gtByteString (getConst . paramGtByteString)
 -- prop_ifThenElse :: Property
 -- prop_ifThenElse = testPredict ifThenElse (getConst . paramIfThenElse)
 
@@ -110,6 +110,58 @@ testPredict haskellModelFun modelFun = propertyR $ do
   byR <- lift $ predictR x y
   diff byR (>) 0
   byR === predictH x y
+
+testPredictOne :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelOneArgument))
+  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> Property
+testPredictOne haskellModelFun modelFun = propertyR $ do
+  modelR <- lift $ costModelsR
+  modelH <- lift $ haskellModelFun $ modelFun modelR
+  let
+    predictR :: MonadR m => Integer -> m Integer
+    predictR x =
+      let
+        xD = fromInteger x :: Double
+        model = modelFun modelR
+      in
+        (\t -> ceiling $ (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs))[[1]]|]
+    predictH :: Integer -> Integer
+    predictH x = coerce $ _exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
+    sizeGen = do
+      x <- Gen.integral (Range.exponential 0 5000)
+      pure x
+  x <- forAll sizeGen
+  byR <- lift $ predictR x
+  diff byR (>) 0
+  byR === predictH x
+
+testPredictThree :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelThreeArguments))
+  -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
+  -> Property
+testPredictThree haskellModelFun modelFun = propertyR $ do
+  modelR <- lift $ costModelsR
+  modelH <- lift $ haskellModelFun $ modelFun modelR
+  let
+    predictR :: MonadR m => Integer -> Integer -> Integer -> m Integer
+    predictR x y _z =
+      let
+        xD = fromInteger x :: Double
+        yD = fromInteger y :: Double
+        -- zD = fromInteger z :: Double
+        model = modelFun modelR
+      in
+        (\t -> ceiling $ (fromSomeSEXP t :: Double)) <$> [r|predict(model_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+    predictH :: Integer -> Integer -> Integer -> Integer
+    predictH x y z = coerce $ _exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
+    sizeGen = do
+      y <- Gen.integral (Range.exponential 0 5000)
+      x <- Gen.integral (Range.exponential 0 5000)
+      z <- Gen.integral (Range.exponential 0 5000)
+      pure (x, y, z)
+  (x, y, z) <- forAll sizeGen
+  byR <- lift $ predictR x y z
+  diff byR (>) 0
+  byR === predictH x y z
 
 main :: IO ()
 main =  withEmbeddedR defaultConfig $ defaultMain $ [checkSequential $$(discover)]

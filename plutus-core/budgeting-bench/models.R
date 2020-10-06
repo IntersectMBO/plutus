@@ -91,19 +91,19 @@ modelFun <- function(path) {
   greaterThanEqIntegerModel <- lessThanEqIntegerModel
 
   eqByteStringModel <- {
-    filtered <- data %>% filter(BuiltinName == "EqByteString") %>% filter(x_mem != y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "EqByteString") %>% filter(x_mem == y_mem)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
 
   ltByteStringModel <- {
-    filtered <- data %>% filter(BuiltinName == "LtByteString") %>% filter(x_mem != y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "LtByteString")
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
   gtByteStringModel <- ltByteStringModel
 
   concatenateModel <- {
-    filtered <- data %>% filter(BuiltinName == "Concatenate")
-    lm(Mean ~ 1, data=filtered)
+    filtered <- data %>% filter(BuiltinName == "Concatenate") %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
+    lm(Mean ~ I(x_mem + y_mem), data=filtered)
   }
 
   takeByteStringModel <- {

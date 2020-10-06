@@ -11,7 +11,9 @@ import           Barbies
 import           Control.Applicative
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
+import qualified Data.ByteString.Hash                               as PlutusHash
 import qualified Data.ByteString.Lazy                               as BSL
+import           Data.Coerce
 import           Data.Csv
 import           Data.Default
 import           Data.Either.Extra
@@ -23,6 +25,7 @@ import           Foreign.R
 import           GHC.Generics
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.R
 
 {- See Note [Creation of the Cost Model]
@@ -173,6 +176,9 @@ readModelConstantCost model = (\(i, _i) -> pure $ ceiling i) =<< unsafeReadModel
 readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope ModelOrientationX) =<< unsafeReadModelFromR "x_mem" model
 
+boolMemModel :: ModelTwoArguments
+boolMemModel = ModelTwoArgumentsConstantCost 1
+
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
@@ -220,74 +226,68 @@ remainderInteger = quotientInteger
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the size of the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanInteger = lessThanInteger
 
 lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanEqInteger = lessThanEqInteger
 
 eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
 eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  let memModel = def
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
 ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 ltByteString cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  let memModel = def
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 
 gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 gtByteString = ltByteString
 
 concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 concatenate cpuModelR = do
-  cpuModel <- readModelConstantCost cpuModelR
-  let memModel = def
-  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+  cpuModel <- readModelAddedSizes cpuModelR
+  -- The buffer gets reallocated
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
 
 takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 takeByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
-  let memModel = def
+  -- The buffer gets reused.
+  let memModel = ModelTwoArgumentsConstantCost 2
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 dropByteString cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
-  let memModel = def
+  -- The buffer gets reused.
+  let memModel = ModelTwoArgumentsConstantCost 2
   pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = def
+  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha2 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA3 cpuModelR = do
   cpuModel <- readModelLinear cpuModelR
-  let memModel = def
+  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha3 "")
   pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 verifySignature cpuModelR = do
   cpuModel <- readModelConstantCost cpuModelR
-  let memModel = def
-  pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) memModel
+  pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) (ModelThreeArgumentsConstantCost 1)
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse _ = pure def
