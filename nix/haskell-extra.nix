@@ -10,7 +10,7 @@ in {
   Agda = pkgs.haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "0pl6cgvn6fi3g3wfhvhav0fkxv66522gqifd0jm9r58imxca85c6";
+    plan-sha256 = "17ypsqyrrsd53g8lhqfq5baa1iyid67r6px8zv4nq29rjpligx6s";
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -45,21 +45,21 @@ in {
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0nvcaa4nn2bnayyfjmcrxrzb390xbwyasqmjm335nizww2n9j22v";
+    plan-sha256 = "19kn00zpj1b1p1fyrzwbg062z45x2lgcfap5bb9ra5alf0wxngh3";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1y5p7wbqvj2i6kyyy34w1gfih76x65q209df2ajlk3wdg9kw9fb3";
+    plan-sha256 = "0gg64j082l4wph2wymp10akyc9qdb5di5r1d5w9nqgjxnjxdwh9v";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0wl57va8a6a74w05yjd29hrc39d8vkx1bqbk188mxyfflz08adjc";
+    plan-sha256 = "12xbj6i81nragfcl8aq7hjlxgi0jxaka4jdndh1ag7lrs34c7k7c";
   };
   inherit (
     let hspkgs = pkgs.haskell-nix.cabalProject {
@@ -67,8 +67,8 @@ in {
           name = "haskell-language-server";
           owner = "haskell";
           repo = "haskell-language-server";
-          rev = "0.4.0";
-          sha256 = "0b94l6bywa6jk20y2cswyq5ks4g515895k2apvr1mdfkfhngdb7b";
+          rev = "0.5.0";
+          sha256 = "0vkh5ff6l5wr4450xmbki3cfhlwf041fjaalnwmj7zskd72s9p7p";
           fetchSubmodules = true;
         };
         lookupSha256 = { location, tag, ... } : {
@@ -78,7 +78,7 @@ in {
         # Plan issues with the benchmarks, can try removing later
         configureArgs = "--disable-benchmarks";
         # Invalidate and update if you change the version
-        plan-sha256 = "044p19wpydc6c56f0zw5b7c17151n0cghimr9wd8rlhifymmky2h";
+        plan-sha256 = "1vyriqi905kl2yrx1xg04cy11wfm9nq1wswny7xm1cwv03gyj6y8";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
