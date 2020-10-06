@@ -4,13 +4,14 @@ import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
-import Data.Foldable (for_)
+import Data.Foldable (for_, traverse_)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Traversable (traverse)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gist (newGistDescription)
@@ -367,7 +368,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
     Right _ -> pure unit
     Left error -> assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
-  selectLanguageView lang
+  traverse_ selectView $ selectLanguageView lang
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
@@ -384,23 +385,20 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
           gist <- flip runReaderT s $ postApiGists newGist
           lift $ toSimulation $ Simulation.loadGist gist
   case res of
-    Right _ -> selectLanguageView lang
+    Right _ -> traverse_ selectView $ selectLanguageView lang
     Left _ -> assign (_newProject <<< NewProject._error) (Just "Could not create new project")
   toNewProject $ NewProject.handleAction s action
 
 handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
 
-selectLanguageView ::
-  forall m action message.
-  MonadEffect m =>
-  Lang -> HalogenM FrontendState action ChildSlots message m Unit
-selectLanguageView Haskell = selectView HaskellEditor
+selectLanguageView :: Lang -> Maybe View
+selectLanguageView Haskell = Just HaskellEditor
 
-selectLanguageView Marlowe = selectView Simulation
+selectLanguageView Marlowe = Just Simulation
 
-selectLanguageView Blockly = selectView BlocklyEditor
+selectLanguageView Blockly = Just BlocklyEditor
 
-selectLanguageView Javascript = pure unit
+selectLanguageView Javascript = Nothing
 
 ----------
 showErrorDescription :: ErrorDescription -> String
