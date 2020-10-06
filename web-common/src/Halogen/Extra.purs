@@ -1,7 +1,6 @@
 module Halogen.Extra where
 
 import Prelude
-
 import Data.Bifunctor (bimap)
 import Data.Lens (Lens', set, view)
 import Halogen (ComponentHTML, get)
@@ -13,8 +12,8 @@ mapSubmodule ::
   Functor m =>
   Lens' state state' ->
   (action' -> action) ->
-  HalogenM state' action' slots msg m ~>
-  HalogenM state action slots msg m
+  HalogenM state' action' slots msg m
+    ~> HalogenM state action slots msg m
 mapSubmodule lens wrapper halogen = do
   currentState <- get
   let
