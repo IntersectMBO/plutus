@@ -2,7 +2,6 @@ module MainFrame (mkMainFrame) where
 
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (_Right, assign, set, to, use, (^.))
@@ -22,7 +21,7 @@ import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
 import Halogen.Classes (aCenter, aHorizontal, active, flexCol, iohkLogo, noMargins, spaceLeft, spaceRight, tabIcon, tabLink, uppercase)
-import Halogen.Extra (mapSubmodule)
+import Halogen.Extra (mapSubmodule, renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, src, target)
@@ -52,7 +51,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject (handleAction, render) as NewProject
 import NewProject.Types (Action(..), State, _projectName, emptyState, _error) as NewProject
-import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
 import Projects (handleAction, render) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
 import Projects.Types (Lang(..))
@@ -511,12 +510,12 @@ render settings state =
             HomePage -> [ Home.render state ]
             Simulation ->
               [ div []
-                  [ bimap (map SimulationAction) SimulationAction (Simulation.render (state ^. _simulationState)) ]
+                  [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
               ]
             HaskellEditor ->
               [ div []
-                  [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
-              , bimap (map HaskellAction) HaskellAction (HaskellEditor.bottomPanel (state ^. _haskellState))
+                  [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
+              , renderSubmodule _haskellState HaskellAction HaskellEditor.bottomPanel state
               ]
             JSEditor ->
               [ div [] (JSEditor.render state)
@@ -540,8 +539,8 @@ render settings state =
               [ div [ classes [ ClassName "full-height" ] ]
                   [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
               ]
-            Projects -> [ bimap (map ProjectsAction) ProjectsAction (Projects.render (state ^. _projects)) ]
-            NewProject -> [ bimap (map NewProjectAction) NewProjectAction (NewProject.render (state ^. _newProject)) ]
+            Projects -> [ renderSubmodule _projects ProjectsAction Projects.render state ]
+            NewProject -> [ renderSubmodule _newProject NewProjectAction NewProject.render state ]
         ]
     ]
   where

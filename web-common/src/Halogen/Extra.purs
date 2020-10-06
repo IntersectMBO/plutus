@@ -2,8 +2,9 @@ module Halogen.Extra where
 
 import Prelude
 
+import Data.Bifunctor (bimap)
 import Data.Lens (Lens', set, view)
-import Halogen (get)
+import Halogen (ComponentHTML, get)
 import Halogen.Query (HalogenM)
 import Halogen.Query.HalogenM (imapState, mapAction)
 
@@ -21,3 +22,12 @@ mapSubmodule lens wrapper halogen = do
   let
     getState = view lens
   (imapState setState getState <<< mapAction wrapper) halogen
+
+renderSubmodule ::
+  forall m action action' state state' slots.
+  Lens' state state' ->
+  (action' -> action) ->
+  (state' -> ComponentHTML action' slots m) ->
+  state ->
+  ComponentHTML action slots m
+renderSubmodule lens wrapper renderer state = bimap (map wrapper) wrapper (renderer (view lens state))
