@@ -446,7 +446,7 @@ testString =
   """When [
   (Case
      (Deposit
-        (AccountId 0 "alice") "alice"
+        "alice" "alice"
         (Constant 450))
      (When [
            (Case
@@ -470,7 +470,7 @@ testString =
                                 (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close) Close)
                        (When [
@@ -484,7 +484,7 @@ testString =
                                    (ChoiceId "1" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -498,7 +498,7 @@ testString =
                              (ChoiceId "1" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close))] 100 Close)))
            ,
@@ -523,7 +523,7 @@ testString =
                                 (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close) Close)
                        (When [
@@ -537,7 +537,7 @@ testString =
                                    (ChoiceId "1" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -551,7 +551,7 @@ testString =
                              (ChoiceId "1" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close"""
 
@@ -617,7 +617,7 @@ transactionInputList :: Parser (List TransactionInput)
 transactionInputList = haskellList transactionInput
 
 testTransactionInputParsing :: String
-testTransactionInputParsing = "[TransactionInput { txInterval = (2 , 8), txInputs = [ (IDeposit (AccountId 0 (Role \"investor\")) (Role \"investor\") (Token \"\" \"\") 850)]}]"
+testTransactionInputParsing = "[TransactionInput { txInterval = (2 , 8), txInputs = [ (IDeposit (Role \"investor\") (Role \"investor\") (Token \"\" \"\") 850)]}]"
 
 transactionWarning :: Parser TransactionWarning
 transactionWarning = do
@@ -645,8 +645,7 @@ testTransactionWarningParsing :: String
 testTransactionWarningParsing =
   """[
   (TransactionPartialPay
-    (AccountId 0
-      (Role "investor"))
+    (Role "investor")
     (Party
       (Role "investor"))
     (Token "" "") 1000 1300)]"""
