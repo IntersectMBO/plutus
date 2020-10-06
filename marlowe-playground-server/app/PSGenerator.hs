@@ -16,6 +16,7 @@ module PSGenerator
 
 import qualified API
 import qualified Auth
+import qualified ContractForDifference
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
 import           Control.Monad.Reader                             (MonadReader)
@@ -40,7 +41,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
                                                                    genForeign)
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
-import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond, contractForDifference)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -182,6 +183,7 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
          <> multilineString "swap" swap
+         <> multilineString "contractForDifference" contractForDifference
         haskellUsecasesModule = psModule "Examples.Haskell.Contracts" haskellUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Haskell")
     BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
@@ -191,6 +193,7 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
          <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)
+         <> multilineString "contractForDifference" (contractToString ContractForDifference.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
