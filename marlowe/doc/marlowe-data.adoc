@@ -82,12 +82,13 @@ data Slot    = Slot Integer
 type Timeout = Slot
 ----
 
+Each Party in the contract owns one account with the same name as the party.
 
-Accounts have an owner, who is a `Party` to the contract.
 [source,haskell]
 ----
-type AccountId  = Party
+type AccountId = Party
 ----
+
 Note that `"alice"` is the owner here in the sense that she will be refunded any money in the account when the contract terminates.
 
 We can use overloaded strings to allow us to abbreviate this account by the name of its owner: in this case `"alice"`.

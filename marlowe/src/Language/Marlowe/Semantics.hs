@@ -1158,7 +1158,7 @@ instance ToJSON Action where
 
 
 instance FromJSON Payee where
-  parseJSON = withObject "Action" (\v ->
+  parseJSON = withObject "Payee" (\v ->
                 (Account <$> (v .: "account"))
             <|> (Party <$> (v .: "party")))
 
