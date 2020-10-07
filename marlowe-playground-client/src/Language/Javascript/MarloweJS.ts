@@ -48,11 +48,11 @@ type Token = { "currency_symbol": string,
                "token_name": string };
 
 export const Token =
-    function (currencySymbol : string, choiceOwner : string) : Token {
+    function (currencySymbol : string, tokenName : string) : Token {
         var regexp = /^([0-9a-f][0-9a-f])*$/g;
         if (currencySymbol.match(regexp)) {
             return { "currency_symbol": currencySymbol,
-                     "token_name": choiceOwner };
+                     "token_name": tokenName };
         } else {
             throw(new Error('Currency symbol must be base16'));
         };
