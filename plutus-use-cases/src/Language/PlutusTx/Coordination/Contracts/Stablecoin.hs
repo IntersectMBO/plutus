@@ -252,15 +252,17 @@ data Input =
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINEABLE baseCurrencyValue #-}
-baseCurrencyValue :: Stablecoin -> BankState -> Value
-baseCurrencyValue Stablecoin{scBaseCurrency=(s, n)} BankState{bsReserves = BC i} =
+{-# INLINEABLE bankReservesValue #-}
+-- | The 'Value' containing the bank's reserve in base currency. This is
+--   the 'Value' locked by the state machine output with that state.
+bankReservesValue :: Stablecoin -> BankState -> Value
+bankReservesValue Stablecoin{scBaseCurrency=(s, n)} BankState{bsReserves = BC i} =
     Value.singleton s n i
 
 {-# INLINEABLE transition #-}
 transition :: Stablecoin -> State BankState -> Input -> Maybe (TxConstraints Void Void, State BankState)
 transition sc State{stateData=oldState} input =
-    let toSmState state = State{stateData=state, stateValue=baseCurrencyValue sc state}
+    let toSmState state = State{stateData=state, stateValue=bankReservesValue sc state}
     in fmap (\(constraints, newState) -> (constraints, toSmState newState)) (step sc oldState input)
 
 {-# INLINEABLE step #-}
