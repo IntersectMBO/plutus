@@ -108,7 +108,9 @@ typeEvalCheckBy
 typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
         valExpected = makeKnown x
-    tyActual <- runQuoteT $ inferType defTypeCheckConfig term
+    tyActual <- runQuoteT $ do
+        config <- getDefTypeCheckConfig ()
+        inferType config term
     if tyExpected == tyActual
         then case extractEvaluationResult $ eval term of
                 Right valActual ->

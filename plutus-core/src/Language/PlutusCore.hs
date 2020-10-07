@@ -31,6 +31,7 @@ module Language.PlutusCore
     , Lift
     , type (<:)
     , DefaultUni (..)
+    , DefaultFun (..)
     -- * AST
     , Term (..)
     , termSubterms
@@ -126,6 +127,9 @@ import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                      as BSL
 import qualified Data.Text                                 as T
 
+nullAlexPosn :: AlexPosn
+nullAlexPosn = AlexPn 0 0 0
+
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
@@ -153,7 +157,8 @@ printType
     -> m T.Text
 printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
-    inferTypeOfProgram defTypeCheckConfig scoped
+    config <- getDefTypeCheckConfig nullAlexPosn
+    inferTypeOfProgram config scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -174,7 +179,7 @@ parseTypecheck
         AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun AlexPosn,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig DefaultUni DefaultFun e AlexPosn
+    => TypeCheckConfig DefaultUni DefaultFun
     -> BSL.ByteString
     -> m (Normalized (Type TyName DefaultUni ()))
 parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
@@ -184,7 +189,7 @@ typecheckPipeline
     :: (AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun a,
         MonadError e m,
         MonadQuote m)
-    => TypeCheckConfig DefaultUni DefaultFun e a
+    => TypeCheckConfig DefaultUni DefaultFun
     -> Program TyName Name DefaultUni DefaultFun a
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram

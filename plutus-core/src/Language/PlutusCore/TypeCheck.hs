@@ -11,7 +11,7 @@ module Language.PlutusCore.TypeCheck
     , TypeCheckConfig (..)
     , tccBuiltinTypes
     , builtinMeaningsToTypes
-    , defTypeCheckConfig
+    , getDefTypeCheckConfig
     -- * Kind/type inference/checking.
     , inferKind
     , checkKind
@@ -32,35 +32,38 @@ import           Language.PlutusCore.Rename
 import           Language.PlutusCore.TypeCheck.Internal
 import           Language.PlutusCore.Universe
 
-import           Control.Monad.Error.Lens
 import           Control.Monad.Except
+import           Data.Ix
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'BuiltinMeanings'.
 builtinMeaningsToTypes
-    :: (AsTypeError err (Term TyName Name uni fun ()) uni fun ann, UniOf term ~ uni)
-    => (fun -> BuiltinMeaning term dyn cost) -> BuiltinTypes uni fun err ann
-builtinMeaningsToTypes mean =
-    BuiltinTypes $ \ann fun -> case mean fun of
+    :: ( uni ~ UniOf term, AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+       , MonadError err m, MonadQuote m
+       , Bounded fun, Enum fun, Ix fun
+       )
+    => ann -> (fun -> BuiltinMeaning term dyn cost) -> m (BuiltinTypes uni fun)
+builtinMeaningsToTypes ann mean =
+    fmap (BuiltinTypes . Just) . sequence . universeMapping $ \fun -> case mean fun of
         BuiltinMeaning sch _ _ -> do
-            let throwUnexpectedBuiltin ann' = throwing _TypeError . UnexpectedBuiltinFunction ann'
-                config = TypeCheckConfig $ BuiltinTypes throwUnexpectedBuiltin
-                ty = typeSchemeToType sch
-            _ <- inferKind config $ ann <$ ty
+            let ty = typeSchemeToType sch
+            _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
             pure <$> normalizeType ty
 
-defTypeCheckConfig
+getDefTypeCheckConfig
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
+       , MonadError err m, MonadQuote m
        , AsTypeError err (Term TyName Name uni fun ()) uni fun ann
        )
-    => TypeCheckConfig uni fun err ann
-defTypeCheckConfig =
-    TypeCheckConfig . builtinMeaningsToTypes $ defaultFunMeaning @_ @(Term TyName Name _ _ ())
+    => ann -> m (TypeCheckConfig uni fun)
+getDefTypeCheckConfig ann =
+    fmap TypeCheckConfig . builtinMeaningsToTypes ann $
+        defaultFunMeaning @_ @(Term TyName Name _ _ ())
 
 -- | Infer the kind of a type.
 inferKind
     :: (AsTypeError err term uni fun ann, MonadError err m, MonadQuote m)
-    => TypeCheckConfig uni fun err ann -> Type TyName uni ann -> m (Kind ())
+    => TypeCheckConfig uni fun -> Type TyName uni ann -> m (Kind ())
 inferKind config = runTypeCheckM config . inferKindM
 
 -- | Check a type against a kind.
@@ -68,15 +71,15 @@ inferKind config = runTypeCheckM config . inferKindM
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
     :: (AsTypeError err term uni fun ann, MonadError err m, MonadQuote m)
-    => TypeCheckConfig uni fun err ann -> ann -> Type TyName uni ann -> Kind () -> m ()
+    => TypeCheckConfig uni fun -> ann -> Type TyName uni ann -> Kind () -> m ()
 checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, MonadError err m, MonadQuote m
-       , GShow uni, GEq uni
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni fun err ann -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => TypeCheckConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
@@ -84,9 +87,9 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, MonadError err m, MonadQuote m
-       , GShow uni, GEq uni
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni fun err ann
+    => TypeCheckConfig uni fun
     -> ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
@@ -98,9 +101,9 @@ checkType config ann term ty = do
 -- | Infer the type of a program.
 inferTypeOfProgram
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, MonadError err m, MonadQuote m
-       , GShow uni, GEq uni
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni fun err ann -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => TypeCheckConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ _ term) = inferType config term
 
 -- | Check a program against a type.
@@ -108,9 +111,9 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
     :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, MonadError err m, MonadQuote m
-       , GShow uni, GEq uni
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni fun err ann
+    => TypeCheckConfig uni fun
     -> ann
     -> Program TyName Name uni fun ann
     -> Normalized (Type TyName uni ())

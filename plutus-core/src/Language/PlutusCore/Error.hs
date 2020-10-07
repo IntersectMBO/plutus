@@ -94,7 +94,7 @@ data TypeError term uni fun ann
         (Normalized (Type TyName uni ()))
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
-    | UnexpectedBuiltinFunction ann fun
+    | UnknownBuiltinFunctionE ann fun
     deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''TypeError
 
@@ -171,8 +171,8 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
         "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (FreeVariableE ann name)              =
         "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
-    prettyBy _ (UnexpectedBuiltinFunction ann fun) =
-        "An expected built-in function at" <+> pretty ann <> ":" <+> pretty fun
+    prettyBy _ (UnknownBuiltinFunctionE ann fun) =
+        "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
