@@ -41,7 +41,10 @@ backed by reserves even if the price of the base currency falls.
 = Implementation
 
 The contract is written as a state machine defined in the 'step' function. It
-supports four operations: mint/redeem stablecoins and mint/redeem reservecoins.
+supports two operations: mint a number of stablecoins and mint a number of
+reservecoins. Stablecoins and reservecoins can be redeemed by minting a
+negative number of them.
+
 An oracle value with the current exchange rate of the base currency has to be
 provided with every transition.
 
@@ -226,9 +229,7 @@ stablecoinNominalPrice bankState@BankState{bsStablecoins=SC sc} cr
 -- | Action that can be performed on the stablecoin contract.
 data SCAction
     = MintStablecoin (SC Integer) -- ^ Create a number stablecoins, depositing the matching amount of base currency
-    | RedeemStablecoin (SC Integer) -- ^ Destroy a number of stablecoins, releasing the matching amount of base currency
     | MintReserveCoin (RC Integer) -- ^ Create a number of reservecoins, depositing the matching amount of base currency
-    | RedeemReserveCoin (RC Integer) -- ^ Destroy a number of reservecoins, releasing the matching amount of base currency
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -239,11 +240,7 @@ calcFees :: Stablecoin -> BankState -> ConversionRate -> SCAction -> BC (Ratio I
 calcFees sc@Stablecoin{scFee} bs conversionRate = \case
     MintStablecoin (SC i) ->
         stablecoinNominalPrice bs conversionRate * (BC scFee) * (BC $ fromInteger i)
-    RedeemStablecoin (SC i) ->
-        stablecoinNominalPrice bs conversionRate * (BC scFee) * (BC $ fromInteger i)
     MintReserveCoin (RC i) ->
-        reservecoinNominalPrice sc bs conversionRate * (BC scFee) * (BC $ fromInteger i)
-    RedeemReserveCoin (RC i) ->
         reservecoinNominalPrice sc bs conversionRate * (BC scFee) * (BC $ fromInteger i)
 
 -- | Input to the stablecoin state machine
@@ -278,40 +275,27 @@ step sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@Ban
                 { bsStablecoins = bsStablecoins bs + sc'
                 , bsReserves = bsReserves bs + fmap round (fees + scValue)
                 }, Constraints.mustForgeCurrency bsForgingPolicyScript scStablecoinTokenName (unSC sc'))
-            RedeemStablecoin sc' ->
-                let scValue = stablecoinNominalPrice bs rate * (BC $ fromInteger $ unSC sc') in
-                (bs
-                { bsStablecoins = bsStablecoins bs - sc'
-                , bsReserves = bsReserves bs + fmap round (fees - scValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scStablecoinTokenName (unSC $ negate sc'))
             MintReserveCoin rc ->
                 let rcValue = reservecoinNominalPrice sc bs rate * (BC $ fromInteger $ unRC rc) in
                 (bs
                 { bsReservecoins = bsReservecoins bs + rc
                 , bsReserves = bsReserves bs + fmap round (fees + rcValue)
                 }, Constraints.mustForgeCurrency bsForgingPolicyScript scReservecoinTokenName (unRC rc))
-            RedeemReserveCoin rc ->
-                let rcValue = reservecoinNominalPrice sc bs rate * (BC $ fromInteger $ unRC rc) in
-                (bs
-                { bsReservecoins = bsReservecoins bs - rc
-                , bsReserves = bsReserves bs + fmap round (fees - rcValue)
-                }, Constraints.mustForgeCurrency bsForgingPolicyScript scReservecoinTokenName (unRC $ negate rc))
     guard $ isValidState sc newState rate
     let dateConstraints = Constraints.mustValidateIn $ Interval.from obsSlot
     pure (constraints <> newConstraints <> dateConstraints, newState)
 
 -- | A 'Value' with the given number of reservecoins
-reserveCoins :: Stablecoin -> Integer -> Value
+reserveCoins :: Stablecoin -> RC Integer -> Value
 reserveCoins sc@Stablecoin{scReservecoinTokenName} =
     let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
-    in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName
+    in Value.singleton (Value.mpsSymbol sym) scReservecoinTokenName . unRC
 
 -- | A 'Value' with the given number of stablecoins
-stableCoins :: Stablecoin -> Integer -> Value
+stableCoins :: Stablecoin -> SC Integer -> Value
 stableCoins sc@Stablecoin{scStablecoinTokenName} =
     let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
-    in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName
-
+    in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
 {-# INLINEABLE isValidState #-}
 isValidState :: Stablecoin -> BankState -> ConversionRate -> Bool
@@ -323,14 +307,13 @@ isValidState sc bs@BankState{bsReservecoins, bsReserves, bsStablecoins} cr =
     && traceIfFalse "liabilities < 0" (liabilities bs cr >= zero)
     && traceIfFalse "equity < 0" (equity bs cr >= zero)
 
-stablecoinStateMachine ::
-    Stablecoin
-    -> StateMachine BankState Input
-stablecoinStateMachine sc = StateMachine.mkStateMachine (transition sc) (const False)
+stablecoinStateMachine :: Stablecoin -> StateMachine BankState Input
+stablecoinStateMachine sc = StateMachine.mkStateMachine (transition sc) isFinal
+    -- the state machine never stops (OK for the prototype but we probably need
+    -- to add a final state to the real thing)
+    where isFinal _ = False
 
-scriptInstance ::
-    Stablecoin
-    -> Scripts.ScriptInstance (StateMachine BankState Input)
+scriptInstance :: Stablecoin -> Scripts.ScriptInstance (StateMachine BankState Input)
 scriptInstance stablecoin =
     let val = $$(PlutusTx.compile [|| validator ||]) `PlutusTx.applyCode` PlutusTx.liftCode stablecoin
         validator d = StateMachine.mkValidator (stablecoinStateMachine d)

@@ -43,12 +43,24 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           GHC.Generics               (Generic)
 import qualified GHC.Real                   as Ratio
-import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), (*))
+import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), Show (..), showParen,
+                                             showString, (*))
 import qualified Prelude                    as Haskell
 
 data Ratio a = a :% a
-    deriving stock (Eq,Generic,Haskell.Show)
+    deriving stock (Eq,Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+instance  Show a => Show (Ratio a) where
+    -- Adapted from Data.Ratio in the base library
+    showsPrec p r = showParen (p > ratioPrec) Haskell.$
+                    showString "(" Haskell..
+                    showsPrec ratioPrec1 (numerator r) Haskell..
+                    showString " % " Haskell..
+                    showsPrec ratioPrec1 (denominator r) Haskell..
+                    showString ")"
+       where ratioPrec = 7  -- This refers to the operator precedence level of %
+             ratioPrec1 = ratioPrec Haskell.+ 1
 
 {-# ANN module "HLint: ignore" #-}
 

@@ -124,9 +124,8 @@ tests = testGroup "Stablecoin"
             callEndpoint @"run step" user
                 Input
                     { inpConversionRate = signConversionRate rate
-                    , inpSCAction = RedeemStablecoin sc
+                    , inpSCAction = MintStablecoin (negate sc)
                     }
             handleBlockchainEvents user
             addBlocks 1
             handleBlockchainEvents user
-
