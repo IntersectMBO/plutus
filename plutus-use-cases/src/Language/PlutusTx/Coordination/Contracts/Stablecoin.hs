@@ -208,23 +208,20 @@ minReserve Stablecoin{scMinReserveRatio} cr BankState{bsStablecoins=SC sc} =
 {-# INLINEABLE reservecoinNominalPrice #-}
 -- | Price of a single reservecoin in base currency
 reservecoinNominalPrice :: Stablecoin -> BankState -> ConversionRate -> BC (Ratio Integer)
-reservecoinNominalPrice Stablecoin{scReservecoinDefaultPrice} bankState@BankState{bsReservecoins=RC rc} cr =
-    if rc /= 0
-        then
-            let BC e = equity bankState cr
-            in BC (e * R.recip (fromInteger rc))
-        else fmap fromInteger scReservecoinDefaultPrice
+reservecoinNominalPrice Stablecoin{scReservecoinDefaultPrice} bankState@BankState{bsReservecoins=RC rc} cr
+    | rc /= 0 = let BC e = equity bankState cr in BC (e * R.recip (fromInteger rc))
+    | otherwise = fmap fromInteger scReservecoinDefaultPrice
 
 {-# INLINEABLE stablecoinNominalPrice #-}
 -- | Price of a single stablecoin in base currency. If the banks' liabilities
 --   exceed its reserves then 'stablecoinNominalPrice' is zero.
 stablecoinNominalPrice :: BankState -> ConversionRate -> BC (Ratio Integer)
-stablecoinNominalPrice bankState@BankState{bsStablecoins=SC sc} cr =
-    let BC p = convert cr (PC $ fromInteger 1)
+stablecoinNominalPrice bankState@BankState{bsStablecoins=SC sc} cr
+    | sc == zero = BC p
+    | otherwise  = BC $ min p l
+    where
+        BC p = convert cr (PC $ fromInteger 1)
         BC l = liabilities bankState cr
-    in if sc == zero
-        then BC p
-        else BC $ min p l
 
 -- | Action that can be performed on the stablecoin contract.
 data SCAction
