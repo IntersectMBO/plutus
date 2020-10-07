@@ -2,11 +2,13 @@
 -- | Definition analysis for Plutus Core.
 module Language.PlutusCore.Analysis.Definitions
     ( UniqueInfos
-    , ScopeType
+    , ScopeType(..)
     , termDefs
     , typeDefs
     , runTermDefs
     , runTypeDefs
+    , addDef
+    , addUsage
     ) where
 
 import           Language.PlutusCore.Core

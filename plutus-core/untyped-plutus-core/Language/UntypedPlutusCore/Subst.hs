@@ -8,12 +8,15 @@ module Language.UntypedPlutusCore.Subst
     , termSubstFreeNamesA
     , termSubstFreeNames
     , termMapNames
+    , uniquesTerm
+    , vTerm
     ) where
 
 import           PlutusPrelude
 
 import           Language.UntypedPlutusCore.Core
 
+import           Language.PlutusCore.Core        (HasUniques)
 import           Language.PlutusCore.Name
 
 import           Control.Lens
@@ -101,3 +104,20 @@ termMapNames f = go
             Constant ann c -> Constant ann c
             Builtin ann b -> Builtin ann b
             Error ann -> Error ann
+
+-- All variables
+
+setOf :: Getting (Set a) s a -> s -> Set a
+setOf g = foldMapOf g singleton
+
+-- | Get all the term variables in a term.
+vTerm :: Ord name => Term name uni ann -> Set name
+vTerm = setOf $ termSubtermsDeep . termVars
+
+-- All uniques
+
+-- | Get all the uniques in a term
+uniquesTerm :: HasUniques (Term name uni ann) => Term name uni ann -> Set Unique
+uniquesTerm = setOf termUniquesDeep
+
+

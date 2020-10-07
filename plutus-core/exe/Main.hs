@@ -25,7 +25,6 @@ import qualified Language.PlutusCore.StdLib.Data.Integer                    as P
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 import qualified Language.UntypedPlutusCore                                 as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
-import qualified Language.UntypedPlutusCore.Parser                          as UPLC
 
 import           Codec.Serialise
 import           Control.DeepSeq                                            (rnf)
@@ -284,7 +283,7 @@ parsePlcFile typing inp = do
                  Left errCheck        -> failWith errCheck
                  Right (Left errEval) -> failWith errEval
                  Right (Right p)      -> return $ TypedProgram p
-      Untyped -> case PLC.runQuoteT $ runExceptT (UPLC.parseProgram bsContents) of  -- FIXME: parseScoped.  Requires porting Rename/Unique code.
+      Untyped -> case PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents) of
                  Left errCheck        -> failWith errCheck
                  Right (Left errEval) -> failWith errEval
                  Right (Right p)      -> return $ UntypedProgram p
