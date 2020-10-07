@@ -28,7 +28,11 @@ module Gist
 
 import           Auth.Types        (Token, TokenProvider (Github))
 import           Data.Aeson        (FromJSON, GFromJSON, ToJSON, Value, Zero, genericParseJSON, object, parseJSON,
+<<<<<<< HEAD
                                     toJSON, withObject, (.!=), (.:), (.:?), (.=))
+=======
+                                    toJSON, withObject, (.:), (.:?), (.=), (.!=))
+>>>>>>> Save entire workspace when saving to gist
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
 import           Data.Bifunctor    (bimap)
@@ -145,7 +149,10 @@ instance FromJSON Gist where
             _gistTruncated <- o .: "truncated"
             _gistCreatedAt <- o .: "created_at"
             _gistUpdatedAt <- o .: "updated_at"
+<<<<<<< HEAD
             -- playground gists will always have a description but to avoid breaking with non-playground gists we change null to empty string
+=======
+>>>>>>> Save entire workspace when saving to gist
             _gistDescription <- o .:? "description" .!= ""
             pure Gist {..}
 
