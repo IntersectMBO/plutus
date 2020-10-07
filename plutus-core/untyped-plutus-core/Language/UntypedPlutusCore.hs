@@ -11,6 +11,8 @@ import           Language.UntypedPlutusCore.Rename             as Rename
 import           Language.UntypedPlutusCore.Core               as Export
 import           Language.UntypedPlutusCore.Core.Instance.CBOR as Export
 import           Language.UntypedPlutusCore.Size               as Export
+import           Language.UntypedPlutusCore.Subst              as Export
+-- Also has some functions
 
 
 import qualified Language.PlutusCore                           as PLC
