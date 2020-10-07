@@ -1,6 +1,6 @@
 -- | The user-facing API of the untyped renamer.
 -- See Language.PlutusCore.Rename for details.
--- FIXME: Annoyingly, the only thing that's needed here is the instance for Rename,
+-- FIXME: Annoyingly, all that's needed here are the instances for Rename,
 -- and they're orphans.
 
 {-# LANGUAGE UndecidableInstances #-}
