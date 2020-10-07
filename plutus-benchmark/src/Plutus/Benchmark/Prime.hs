@@ -223,7 +223,8 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 -- Interestingly, memory consumption on the CK machine is essentially flat and
 -- the times aren't much worse (maybe 10-20% greater).
 input :: [Integer]
-input = [115756986668303657898962467957]
+input = [9576890767]                                                   -- 10 digits: 2.4s,  0.9 GB
+-- input = [115756986668303657898962467957]
 
 -- input = [179,179, 77595795]
 -- input = [8987964267331664557] -- Composite: 61ms, 68 MB
@@ -260,22 +261,15 @@ composite = Tx.False
 probablyPrime :: Result
 probablyPrime = Tx.True
 
--- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
-{-# INLINABLE numTests #-}
-numTests :: Integer
-numTests = 100
-
 -- Initialise the RNG
 {-# INLINABLE initState #-}
 initState :: RNGstate
 initState = initRNG 111 47
 
-mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
-mkPrimeTerm inputs =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| \inputs' -> process inputs' initState ||])
-        `Tx.applyCode` Tx.liftCode inputs
-  in code
+-- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
+{-# INLINABLE numTests #-}
+numTests :: Integer
+numTests = 100
 
 -- The @process@ function takes a list of input numbers
 -- and produces a list of output results.
@@ -284,6 +278,15 @@ process :: [Integer] -> RNGstate -> [Result]
 process input r =
     case input of
       [] -> []
-      n:ns -> case multiTest numTests r n
+      n:ns -> trace "===" $ case multiTest numTests r n
               of (True, r')  -> {-Tx.trace "   Probably prime" $ -}probablyPrime : process ns r'
                  (False, r') -> {-Tx.trace "   Composite" $ -}composite : process ns r'
+
+
+mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
+mkPrimeTerm inputs =
+  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
+        [|| \inputs' -> process inputs' initState ||])
+        `Tx.applyCode` Tx.liftCode inputs
+  in code
+
