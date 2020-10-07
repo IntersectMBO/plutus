@@ -18,7 +18,7 @@ function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
     }
 }
 
-export const pk =
+export const PK =
     function (pubKey : string) : Party {
         var regexp = /^([0-9a-f][0-9a-f])*$/g;
         if (pubKey.match(regexp)) {
