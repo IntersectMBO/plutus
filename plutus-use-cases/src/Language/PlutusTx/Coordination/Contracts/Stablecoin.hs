@@ -45,7 +45,7 @@ supports four operations: mint/redeem stablecoins and mint/redeem reservecoins.
 An oracle value with the current exchange rate of the base currency has to be
 provided with every transition.
 
-The two coins (stablecoin and reserveoin) are Plutus native token whose forging
+The two coins (stablecoin and reservecoin) are Plutus native token whose forging
 policy is the forwarding policy for the stablecoin's state machine.
 
 We use the 'Ratio' type for all calculations in the script, using 'round' to
@@ -141,7 +141,7 @@ data BankState =
         { bsReserves            :: BC Integer -- ^ Value of the bank's reserves in base currency
         , bsStablecoins         :: SC Integer -- ^ Amount of stablecoins in circulation
         , bsReservecoins        :: RC Integer -- ^ Amount of reservecoins currently in circulation
-        , bsForgingPolicyScript :: MonetaryPolicyHash -- ^ Hash of the forging policy that forwards all check to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
+        , bsForgingPolicyScript :: MonetaryPolicyHash -- ^ Hash of the forging policy that forwards all checks to the state machine. (This has to be in this type, rather than in 'Stablecoin', to avoid a circular dependency on the script's hash)
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
