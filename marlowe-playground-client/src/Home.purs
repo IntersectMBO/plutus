@@ -9,9 +9,9 @@ import Halogen.HTML.Events (onChecked, onClick)
 import Halogen.HTML.Properties (InputType(..), checked, classes, href, id_, src, target, type_)
 import Halogen.HTML.Properties as HTML
 import Prelude (const, not, (<<<))
-import Types (ChildSlots, FrontendState, HAction(..), View(..), _showHomePage)
+import Types (ChildSlots, FrontendState, Action(..), View(..), _showHomePage)
 
-render :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
+render :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
 render state =
   div [ classes [ scroll, fullHeight ] ]
     [ div [ classes [ ClassName "marlowe-intro-container" ] ]
@@ -56,7 +56,7 @@ render state =
         ]
     ]
 
-startWithHaskell :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
+startWithHaskell :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
 startWithHaskell state =
   div [ classes [ ClassName "start-with-haskell" ] ]
     [ div []
@@ -72,7 +72,7 @@ startWithHaskell state =
         ]
     ]
 
-startWithMarlowe :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
+startWithMarlowe :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
 startWithMarlowe state =
   div [ classes [ ClassName "start-with-marlowe" ] ]
     [ marloweBlocklyBox state
@@ -83,7 +83,7 @@ startWithMarlowe state =
         ]
     ]
 
-marloweBlocklyBox :: forall m. FrontendState -> ComponentHTML HAction ChildSlots m
+marloweBlocklyBox :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
 marloweBlocklyBox state =
   div [ classes [ ClassName "marlowe-blockly-box" ] ]
     [ div [ classes [ ClassName "t-align-center" ] ]

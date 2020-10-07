@@ -342,9 +342,6 @@ instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
   fromTerm (Term a _) = fromTerm a
   fromTerm _ = Nothing
 
--- FIXME: I need to add the end position to Term in the entire project
--- in the nearley parser I can get this info by finding the position of the last paren
--- once I've done this I can fix the markers which actually have the incorrect range
 getRange :: forall a. Term a -> Range
 getRange (Term _ range) = range
 

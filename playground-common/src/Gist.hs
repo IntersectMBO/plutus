@@ -28,12 +28,11 @@ module Gist
 
 import           Auth.Types        (Token, TokenProvider (Github))
 import           Data.Aeson        (FromJSON, GFromJSON, ToJSON, Value, Zero, genericParseJSON, object, parseJSON,
-                                    toJSON, withObject, (.:), (.:?), (.=))
+                                    toJSON, withObject, (.:), (.:?), (.=), (.!=))
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
 import           Data.Bifunctor    (bimap)
 import           Data.Map          (Map)
-import qualified Data.Map          as Map
 import           Data.Proxy        (Proxy (Proxy))
 import           Data.Text         (Text)
 import qualified Data.Text         as T
@@ -127,7 +126,7 @@ data Gist =
         , _gistGitPushUrl  :: !Text
         , _gistHtmlUrl     :: !Text
         , _gistOwner       :: !Owner
-        , _gistFiles       :: ![GistFile]
+        , _gistFiles       :: !(Map String GistFile)
         , _gistTruncated   :: !Bool
         , _gistCreatedAt   :: !String
         , _gistUpdatedAt   :: !String
@@ -142,12 +141,11 @@ instance FromJSON Gist where
             _gistGitPushUrl <- o .: "git_push_url"
             _gistHtmlUrl <- o .: "html_url"
             _gistOwner <- o .: "owner"
-            _gistFiles <-
-                Map.elems <$> ((o .: "files") :: Parser (Map String GistFile))
+            _gistFiles <- (o .: "files")
             _gistTruncated <- o .: "truncated"
             _gistCreatedAt <- o .: "created_at"
             _gistUpdatedAt <- o .: "updated_at"
-            _gistDescription <- o .: "description"
+            _gistDescription <- o .:? "description" .!= ""
             pure Gist {..}
 
 data GistFile =

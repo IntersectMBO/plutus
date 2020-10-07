@@ -2,19 +2,15 @@ module Simulation where
 
 import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Alternative (map, void, when, (<|>))
-import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
-import Control.Monad.Except.Extra (noteT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (delete, filter, intercalate, snoc, sortWith)
 import Data.Array as Array
-import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
+import Data.Lens (assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -32,9 +28,8 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Gist (Gist, _GistId, gistFileContent, gistId)
+import Gist (Gist)
 import Gists (GistAction(..), idPublishGist)
-import Gists as Gists
 import Halogen (HalogenM, query)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
@@ -48,11 +43,9 @@ import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx
 import Halogen.SVG as SVG
 import Help (HelpContext(..), toHTML)
 import Icons (Icon(..), icon)
-import Language.Haskell.Interpreter (SourceCode(..))
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Gists (currentSimulationMarloweGistFile, mkNewGist, oldSimulationMarloweGistFile, simulationState)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
@@ -61,15 +54,15 @@ import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(.
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
-import Network.RemoteData (RemoteData(..), _Success)
+import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Reachability (startReachabilityAnalysis)
-import Servant.PureScript.Ajax (AjaxError, errorToString)
+import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _createGistResult, _loadGistResult, _helpContext, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
@@ -89,7 +82,7 @@ handleAction ::
   SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
   checkAuthStatus settings
-  void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+  editorSetTheme
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged "")) = do
   assign _marloweState $ NEL.singleton (emptyMarloweState zero)
@@ -210,7 +203,7 @@ handleAction _ (SelectHole hole) = assign _selectedHole hole
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
   assign _showBottomPanel true
-  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+  editorResize
 
 handleAction _ (ChangeHelpContext help) = do
   assign _helpContext help
@@ -219,13 +212,13 @@ handleAction _ (ChangeHelpContext help) = do
 handleAction settings CheckAuthStatus = do
   checkAuthStatus settings
 
-handleAction settings (GistAction subEvent) = handleGistAction settings subEvent
+handleAction settings (GistAction subEvent) = pure unit
 
 handleAction _ (ShowRightPanel val) = assign _showRightPanel val
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
-  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+  editorResize
 
 handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
@@ -241,7 +234,6 @@ handleAction settings AnalyseContract = do
       response <- checkContractForWarnings contract currState
       assign _analysisState (WarningAnalysis response)
   where
-  -- FIXME: now we need to get the client to post to lambda-env.marlowe.iohkdev.io
   checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
 
 handleAction settings AnalyseReachabilityContract = do
@@ -264,79 +256,6 @@ checkAuthStatus settings = do
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
-
-handleGistAction ::
-  forall m.
-  MonadAff m =>
-  MonadEffect m =>
-  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
-handleGistAction settings PublishGist = do
-  marloweState <- use _marloweState
-  void
-    $ runMaybeT do
-        currentContract <- lift editorGetValue
-        oldContract <- use _oldContract
-        let
-          newGist = mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
-        mGist <- use _createGistResult
-        assign _createGistResult Loading
-        newResult <-
-          lift
-            $ case preview (_Success <<< gistId) mGist of
-                Nothing -> runAjax $ flip runReaderT settings $ Server.postApiGists newGist
-                Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
-        assign _createGistResult newResult
-        gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
-        assign _gistUrl (Just gistId)
-        assign _loadGistResult $ Right NotAsked
-
-handleGistAction _ (SetGistUrl newGistUrl) = do
-  assign _createGistResult NotAsked
-  assign _loadGistResult $ Right NotAsked
-  assign _gistUrl (Just newGistUrl)
-
-handleGistAction settings LoadGist = do
-  -- LoadGist in Simulation will soon be removed as it is being replaced by the Projects.purs
-  res <-
-    runExceptT
-      $ do
-          mGistId <- ExceptT (note "Gist Url not set." <$> use _gistUrl)
-          eGistId <- except $ Gists.parseGistUrl mGistId
-          --
-          assign _loadGistResult $ Right Loading
-          aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getApiGistsByGistId eGistId
-          assign _loadGistResult $ Right aGist
-          gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
-          --
-          -- Load the source, if available.
-          ExceptT $ loadGist gist
-          pure aGist
-  assign _loadGistResult res
-  where
-  toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
-  toEither _ (Success a) = Right a
-
-  toEither _ (Failure e) = Left e
-
-  toEither x Loading = x
-
-  toEither x NotAsked = x
-
-loadGist ::
-  forall m.
-  MonadAff m =>
-  MonadEffect m =>
-  Gist ->
-  HalogenM State Action ChildSlots Void m (Either String Unit)
-loadGist gist =
-  runExceptT do
-    currentContract <- noteT "Source not found in gist." $ view (_Just <<< gistFileContent) (currentSimulationMarloweGistFile gist)
-    let
-      oldContract = view (_Just <<< gistFileContent) (oldSimulationMarloweGistFile gist)
-    lift $ editorSetValue currentContract
-    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
-    assign _oldContract oldContract
-    assign _marloweState $ fromMaybe (NEL.singleton (emptyMarloweState zero)) $ simulationState gist
 
 runAjax ::
   forall m a.
@@ -365,10 +284,16 @@ scrollHelpPanel =
         setScrollTop newScrollHeight sidePanel
       _, _ -> pure unit
 
-editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Void m Unit
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+
+editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorResize = void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+
+editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
 
-editorGetValue :: forall m. HalogenM State Action ChildSlots Void m (Maybe String)
+editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
 
 saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit

@@ -78,6 +78,10 @@ foreign import render_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
 
 foreign import getBlockById_ :: forall a. Fn4 (a -> Maybe a) (Maybe a) Workspace String (Maybe Block)
 
+foreign import workspaceXML_ :: Fn2 Blockly Workspace String
+
+foreign import loadWorkspace_ :: forall r. Fn3 Blockly (STRef r Workspace) String (ST r Unit)
+
 newtype ElementId
   = ElementId String
 
@@ -148,6 +152,12 @@ render = runFn1 render_
 
 getBlockById :: Workspace -> String -> Maybe Block
 getBlockById = runFn4 getBlockById_ Just Nothing
+
+workspaceXML :: Blockly -> Workspace -> String
+workspaceXML = runFn2 workspaceXML_
+
+loadWorkspace :: forall r. Blockly -> (STRef r Workspace) -> String -> ST r Unit
+loadWorkspace = runFn3 loadWorkspace_
 
 data Pair
   = Pair String String

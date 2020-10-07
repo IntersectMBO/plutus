@@ -13,18 +13,19 @@ import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Data.Traversable (for, for_)
+import Effect (Effect)
 import Effect.Class (class MonadEffect)
+import Foreign.Generic (encodeJSON)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
+import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
+import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
-import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
-import Halogen.HTML.Core (AttrName(..))
-import Effect (Effect)
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
-import Foreign.Generic (encodeJSON)
 
 foreign import sendContractToShiny ::
   String ->
@@ -52,6 +53,8 @@ _showShiny = prop (SProxy :: SProxy "showShiny")
 data BlocklyQuery a
   = Resize a
   | SetError String a
+  | GetWorkspace (String -> a)
+  | LoadWorkspace String a
 
 data ContractFlavour
   = FS
@@ -98,6 +101,23 @@ handleQuery (Resize next) = do
 
 handleQuery (SetError err next) = do
   assign _errorMessage $ Just err
+  pure $ Just next
+
+handleQuery (GetWorkspace f) = do
+  mState <- use _actusBlocklyState
+  for mState \bs -> do
+    let
+      xml = Blockly.workspaceXML bs.blockly bs.workspace
+    pure $ f xml
+
+handleQuery (LoadWorkspace xml next) = do
+  mState <- use _actusBlocklyState
+  for_ mState \state ->
+    pure
+      $ ST.run do
+          workspaceRef <- STRef.new state.workspace
+          Blockly.loadWorkspace state.blockly workspaceRef xml
+  assign _errorMessage Nothing
   pure $ Just next
 
 handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit

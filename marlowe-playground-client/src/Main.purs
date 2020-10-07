@@ -19,7 +19,7 @@ import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Types (HQuery(..))
+import Types (Query(..))
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
