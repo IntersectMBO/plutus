@@ -60,7 +60,7 @@ import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<$>), (<*>), (<>))
-import           Language.PlutusTx.Ratio    (Ratio, denominator, numerator)
+import           Language.PlutusTx.Ratio    (denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (Datum (..))
@@ -916,10 +916,6 @@ marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
 
 
 -- Typeclass instances
-
-deriving instance FromJSON (Language.PlutusTx.Ratio.Ratio Integer)
-deriving instance ToJSON   (Language.PlutusTx.Ratio.Ratio Integer)
-
 
 customOptions :: Options
 customOptions = defaultOptions

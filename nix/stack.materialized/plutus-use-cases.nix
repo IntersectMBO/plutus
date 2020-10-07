@@ -73,8 +73,9 @@
           "Language/PlutusTx/Coordination/Contracts/Prism/Unlock"
           "Language/PlutusTx/Coordination/Contracts/PubKey"
           "Language/PlutusTx/Coordination/Contracts/RPC"
-          "Language/PlutusTx/Coordination/Contracts/Vesting"
+          "Language/PlutusTx/Coordination/Contracts/Stablecoin"
           "Language/PlutusTx/Coordination/Contracts/Swap"
+          "Language/PlutusTx/Coordination/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -118,6 +119,7 @@
             "Spec/Prism"
             "Spec/Rollup"
             "Spec/RPC"
+            "Spec/Stablecoin"
             "Spec/TokenAccount"
             "Spec/Vesting"
             ];

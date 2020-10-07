@@ -89,7 +89,7 @@ data SignedMessage a = SignedMessage
     -- ^ Hash of the message
     , osmDatum       :: Datum
     }
-    deriving stock (Generic, Haskell.Show)
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data SignedMessageCheckError =
