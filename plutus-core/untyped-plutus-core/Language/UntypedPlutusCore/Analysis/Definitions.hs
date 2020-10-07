@@ -8,10 +8,8 @@ module Language.UntypedPlutusCore.Analysis.Definitions
     ) where
 
 import           Language.UntypedPlutusCore.Core
-import           Language.UntypedPlutusCore.Core.Instance.Recursive
 
-import           Language.PlutusCore.Analysis.Definitions           (ScopeType (TermScope), UniqueInfos, addDef,
-                                                                     addUsage)
+import           Language.PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
 
