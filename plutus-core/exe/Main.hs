@@ -281,17 +281,11 @@ parsePlcFile typing inp = do
     case typing of
       Typed   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
       Untyped -> handleResult UntypedProgram $ PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents)
-                 Left errCheck        -> failWith errCheck
-                 Right (Left errEval) -> failWith errEval
-                 Right (Right p)      -> return $ UntypedProgram p
-                 Left errCheck        -> failWith errCheck
-                 Right (Left errEval) -> failWith errEval
-                 Right (Right p)      -> return $ TypedProgram p
-      where handleResult wrapper r =
-            case r of
-                 Left errCheck        -> failWith errCheck
-                 Right (Left errEval) -> failWith errEval
-                 Right (Right p)      -> return $ wrapper p
+      where handleResult wrapper =
+                \case
+                  Left errCheck        -> failWith errCheck
+                  Right (Left errEval) -> failWith errEval
+                  Right (Right p)      -> return $ wrapper p
             failWith (err :: PlcParserError) = T.putStrLn (PLC.displayPlcDef err) >> exitFailure
 
 -- Read a PLC AST from a CBOR file
@@ -304,16 +298,13 @@ getCborInput (FileInput file) = BSL.readFile file
 loadPlcFromCborFile :: Typing -> Input -> IO (Program ())
 loadPlcFromCborFile typing inp =
     case typing of
-         Typed -> getCborInput inp <&> deserialiseOrFail >>= \case
-                Left e                     -> failWith e
-                Right (r::TypedProgram ()) -> return (TypedProgram r)
-              -- ^ The type constraint on r is required so that deserialiseOrFail knows what type it should be deserialising to.
-         Untyped -> getCborInput inp <&> deserialiseOrFail >>= \case
-                Left e                       -> failWith e
-                Right (r::UntypedProgram ()) -> return (UntypedProgram r)
-    where failWith (DeserialiseFailure offset msg) = do
-            putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
-            exitFailure
+         Typed   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
+         Untyped -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+    where handleResult wrapper =
+              \case
+                Left (DeserialiseFailure offset msg) ->
+                  putStrLn ("Deserialisation failure at offset " ++ show offset ++ ": " ++ msg) >> exitFailure
+                Right r -> return $ wrapper r
 
 -- FIXME: should we be writing error messages to stdout or stderr?
 
