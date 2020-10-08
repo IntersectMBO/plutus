@@ -197,7 +197,7 @@ const makePayment = function(src : SwapParty, dest : SwapParty,
 }
 ----
 
-For this, we just need to use the Pay construct to pay from the account where the source party made the deposit to the destination party.
+For this, we just need to use the `Pay` construct to pay from the account where the source party made the deposit to the destination party.
 
 Finally we can combine all the pieces:
 
