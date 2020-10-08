@@ -27,6 +27,7 @@ import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as U
 
 import           Codec.Serialise
 import           Control.DeepSeq                                            (rnf)
+import qualified Control.Exception                                          (evaluate)
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import           Data.Bifunctor                                             (second)
@@ -455,13 +456,13 @@ runEval (EvalOptions typing inp mode fmt printtime) =
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
-            _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
+        _ <-  Control.Exception.evaluate $ rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
         start <- getCPUTime
         case evaluate body of
               PLC.EvaluationSuccess v ->
                   do
                     end <- getCPUTime
-                    T.putStrLn (PLC.displayPlcDef v)
+                    T.putStrLn $ PLC.displayPlcDef v
                     when (printtime == Timing) $ printExecutiontime start end
                     exitSuccess
               PLC.EvaluationFailure -> exitFailure
@@ -472,13 +473,13 @@ runEval (EvalOptions typing inp mode fmt printtime) =
                   UntypedProgram prog <- getProg Untyped inp fmt
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
-                      _ = rnf body
+                  _ <- Control.Exception.evaluate $ rnf body
                   start <- getCPUTime
                   case evaluate body of
                     UPLC.EvaluationSuccess v ->
                         do
                           end <- getCPUTime
-                          T.putStrLn (PLC.displayPlcDef v)
+                          T.putStrLn $ PLC.displayPlcDef v
                           when (printtime == Timing) $ printExecutiontime start end
                           exitSuccess
                     UPLC.EvaluationFailure -> exitFailure
