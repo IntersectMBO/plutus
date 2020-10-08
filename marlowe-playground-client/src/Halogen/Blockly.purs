@@ -1,6 +1,6 @@
 module Halogen.Blockly where
 
-import Blockly (BlockDefinition, ElementId(..), getBlockById)
+import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
@@ -47,8 +47,8 @@ data BlocklyQuery a
   = Resize a
   | SetCode String a
   | SetError String a
-  | GetWorkspace (String -> a)
-  | LoadWorkspace String a
+  | GetWorkspace (XML -> a)
+  | LoadWorkspace XML a
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)

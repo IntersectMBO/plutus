@@ -8,16 +8,18 @@ module Marlowe.Gists
   ) where
 
 import Prelude
+import Blockly (XML)
 import Control.Monad.Except (runExcept)
 import Data.Array (catMaybes)
 import Data.Either (hush)
-import Data.Lens (Traversal', has, to, traversed, view)
+import Data.Lens (Traversal', has, view)
 import Data.Lens.Index (ix)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Maybe (Maybe, fromMaybe)
+import Data.Newtype (unwrap, wrap)
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Gist (Gist, NewGist(NewGist), NewGistFile(..), gistFileContent, gistFileFilename, gistFiles)
+import Gist (Gist, NewGist(NewGist), NewGistFile(..), gistFileContent, gistFiles)
 import Simulation.State (MarloweState, emptyMarloweState)
 
 mkNewGist :: String -> PlaygroundFiles -> NewGist
@@ -42,9 +44,9 @@ type PlaygroundFiles
     , simulation :: NonEmptyList MarloweState
     , marlowe :: Maybe String
     , haskell :: Maybe String
-    , blockly :: Maybe String
+    , blockly :: Maybe XML
     , javascript :: Maybe String
-    , actus :: Maybe String
+    , actus :: Maybe XML
     }
 
 toArray :: PlaygroundFiles -> Array NewGistFile
@@ -55,9 +57,9 @@ toArray { playground, currentSimulation, oldSimulation, simulation, marlowe, has
     <> catMaybes
         [ mkNewGistFile marloweFilename <$> marlowe
         , mkNewGistFile haskellFilename <$> haskell
-        , mkNewGistFile blocklyFilename <$> blockly
+        , mkNewGistFile blocklyFilename <<< unwrap <$> blockly
         , mkNewGistFile jsFilename <$> javascript
-        , mkNewGistFile actusFilename <$> actus
+        , mkNewGistFile actusFilename <<< unwrap <$> actus
         , mkNewGistFile currentSimulationMarloweFilename <$> currentSimulation
         , mkNewGistFile oldSimulationMarloweFilename <$> oldSimulation
         ]
@@ -115,9 +117,9 @@ playgroundFiles gist =
   , simulation: fromMaybe (pure (emptyMarloweState zero)) $ simulationState gist
   , marlowe: getFile marloweFilename
   , haskell: getFile haskellFilename
-  , blockly: getFile blocklyFilename
+  , blockly: wrap <$> getFile blocklyFilename
   , javascript: getFile jsFilename
-  , actus: getFile actusFilename
+  , actus: wrap <$> getFile actusFilename
   }
   where
   getFile name = view (gistFiles <<< ix name <<< gistFileContent) gist

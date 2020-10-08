@@ -404,9 +404,9 @@ handleGistAction settings PublishGist = do
   -- soon we will separate the marlowe editor and the simulation, currently they are the same
   marlowe <- toSimulation Simulation.editorGetValue
   haskell <- HaskellEditor.editorGetValue
-  blockly <- query _blocklySlot unit (Blockly.GetWorkspace identity)
-  javascript <- query _jsEditorSlot unit (Monaco.GetText identity)
-  actus <- query _actusBlocklySlot unit (ActusBlockly.GetWorkspace identity)
+  blockly <- query _blocklySlot unit $ H.request Blockly.GetWorkspace
+  javascript <- query _jsEditorSlot unit $ H.request Monaco.GetText
+  actus <- query _actusBlocklySlot unit $ H.request ActusBlockly.GetWorkspace
   let
     files = { playground, currentSimulation, oldSimulation, simulation, marlowe, haskell, blockly, javascript, actus }
 
@@ -656,6 +656,8 @@ render settings state =
         ]
     ]
   where
-  isActiveTab activeView = if state ^. _view <<< to (eq activeView) then [ active ] else []
+  isActiveView activeView = state ^. _view <<< to (eq activeView)
 
-  tabContents activeView contents = if state ^. _view <<< to (eq activeView) then div [ classes [ fullHeight ] ] contents else div [ classes [ hide ] ] contents
+  isActiveTab activeView = if isActiveView activeView then [ active ] else []
+
+  tabContents activeView contents = if isActiveView activeView then div [ classes [ fullHeight ] ] contents else div [ classes [ hide ] ] contents

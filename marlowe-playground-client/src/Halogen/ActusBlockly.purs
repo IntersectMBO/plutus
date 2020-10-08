@@ -1,6 +1,6 @@
 module Halogen.ActusBlockly where
 
-import Blockly (BlockDefinition, ElementId(..), getBlockById)
+import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Types as BT
@@ -53,8 +53,8 @@ _showShiny = prop (SProxy :: SProxy "showShiny")
 data BlocklyQuery a
   = Resize a
   | SetError String a
-  | GetWorkspace (String -> a)
-  | LoadWorkspace String a
+  | GetWorkspace (XML -> a)
+  | LoadWorkspace XML a
 
 data ContractFlavour
   = FS
