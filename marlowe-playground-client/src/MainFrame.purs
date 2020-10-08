@@ -291,11 +291,11 @@ handleAction s SendResultJSToSimulator = do
     JSCompiling -> pure unit
     JSCompilationError err -> pure unit
     JSCompiledSuccessfully (JSI.InterpreterResult { result: contract }) -> do
+      selectView Simulation
       void $ toSimulation
         $ do
             Simulation.handleAction s (ST.SetEditorText (show $ pretty contract))
             Simulation.handleAction s ST.ResetContract
-      selectView Simulation
 
 handleAction _ (ChangeView view) = selectView view
 
