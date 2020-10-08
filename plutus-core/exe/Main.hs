@@ -279,15 +279,20 @@ parsePlcFile :: Typing -> Input -> IO (Program PLC.AlexPosn)
 parsePlcFile typing inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getPlcInput inp
     case typing of
-      Typed -> case PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents) of
-                 Left errCheck        -> failWith errCheck
-                 Right (Left errEval) -> failWith errEval
-                 Right (Right p)      -> return $ TypedProgram p
-      Untyped -> case PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents) of
+      Typed   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
+      Untyped -> handleResult UntypedProgram $ PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents)
                  Left errCheck        -> failWith errCheck
                  Right (Left errEval) -> failWith errEval
                  Right (Right p)      -> return $ UntypedProgram p
-      where failWith (err :: PlcParserError) = T.putStrLn (PLC.displayPlcDef err) >> exitFailure
+                 Left errCheck        -> failWith errCheck
+                 Right (Left errEval) -> failWith errEval
+                 Right (Right p)      -> return $ TypedProgram p
+      where handleResult wrapper r =
+            case r of
+                 Left errCheck        -> failWith errCheck
+                 Right (Left errEval) -> failWith errEval
+                 Right (Right p)      -> return $ wrapper p
+            failWith (err :: PlcParserError) = T.putStrLn (PLC.displayPlcDef err) >> exitFailure
 
 -- Read a PLC AST from a CBOR file
 getCborInput :: Input -> IO BSL.ByteString
