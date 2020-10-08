@@ -83,7 +83,7 @@ We therefore recommend the use of `BigNumber` library, but we acknowledge that i
   - Notation is more cumbersome than native numbers, e.g: `new bignumber.BigNumber(450);`
   - They do not lose precision
 
-All of these representations are converted to `BigNumber` internally, but a loss of precision may occur before the conversion.
+All of these representations are converted to `BigNumber` internally, but a loss of precision may occur as it is constructed, before the conversion.
 
 === The `EValue` type and boolean overloading
 
