@@ -211,9 +211,10 @@ makeDeposit(alice, 10,
 ----
 
 The contract has four steps:
-. Alice can deposit until slot 10
-. Bob can deposit until slot 20 (otherwise Alice gets a refund and the contract is aborted)
-. Then we pay Alice’s deposit to Bob
-. We pay Bob’s deposit to Alice.
+
+ . Alice can deposit until slot 10
+ . Bob can deposit until slot 20 (otherwise Alice gets a refund and the contract is aborted)
+ . Then we pay Alice’s deposit to Bob
+ . We pay Bob’s deposit to Alice.
 
 And that was all. You can find the full source code for the swap smart contract in the examples that are available at the top of the JS Tab.
