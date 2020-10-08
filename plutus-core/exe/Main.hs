@@ -456,16 +456,13 @@ runEval (EvalOptions typing inp mode fmt printtime) =
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
-        _ <-  Control.Exception.evaluate $ rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
+        _ <-  Control.Exception.evaluate $ rnf body
+        -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+        -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- getCPUTime
         case evaluate body of
-              PLC.EvaluationSuccess v ->
-                  do
-                    end <- getCPUTime
-                    T.putStrLn $ PLC.displayPlcDef v
-                    when (printtime == Timing) $ printExecutiontime start end
-                    exitSuccess
-              PLC.EvaluationFailure -> exitFailure
+              PLC.EvaluationSuccess v -> succeed start v
+              PLC.EvaluationFailure   -> exitFailure
       Untyped ->
           case mode of
             CK  -> T.putStrLn "There is no CK machine for Untyped Plutus Core" >> exitFailure
@@ -476,18 +473,15 @@ runEval (EvalOptions typing inp mode fmt printtime) =
                   _ <- Control.Exception.evaluate $ rnf body
                   start <- getCPUTime
                   case evaluate body of
-                    UPLC.EvaluationSuccess v ->
-                        do
-                          end <- getCPUTime
-                          T.putStrLn $ PLC.displayPlcDef v
-                          when (printtime == Timing) $ printExecutiontime start end
-                          exitSuccess
-                    UPLC.EvaluationFailure -> exitFailure
-    where printExecutiontime start end = do
+                    UPLC.EvaluationSuccess v -> succeed start v
+                    UPLC.EvaluationFailure   -> exitFailure
+    where succeed start v = do
+            end <- getCPUTime
+            T.putStrLn $ PLC.displayPlcDef v
             let ms = 1e9 :: Double
                 diff = (fromIntegral (end - start)) / ms
-            printf "Evaluation time: %0.2f ms\n" diff
-
+            when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
+            exitSuccess
 
 ---------------- Erasure ----------------
 
