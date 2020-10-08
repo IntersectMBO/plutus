@@ -1,4 +1,5 @@
 #panel-nav {
+  overflow: scroll;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -49,12 +50,12 @@
 }
 
 .simulation-tab .tab-icon {
-  background: url(../images/simulation-icon-grey.svg) 29px center no-repeat;
+  background: url(../images/simulation-icon-grey.svg) center center no-repeat;
   background-size: 50px;
 }
 
 .simulation-tab.active .tab-icon {
-  background: url(../images/simulation-icon.svg) 30px center no-repeat;
+  background: url(../images/simulation-icon.svg) center center no-repeat;
   background-size: 50px;
 }
 
@@ -98,6 +99,15 @@
 .actus-blockly-tab.active .tab-icon {
   background: url(../images/actus-blockly-icon.svg) center center no-repeat;
   background-size: 50px;
+}
+
+.aligned-button-in-the-middle {
+  margin-left:5px; 
+  margin-right:5px;
+}
+
+.aligned-button-last {
+  margin-right:5px;
 }
 
 .wallet-tab .tab-icon {

@@ -124,7 +124,7 @@ digestBridge = do
 byteStringBridge :: BridgePart
 byteStringBridge = do
     typeName ^== "ByteString"
-    typeModule ^== "Data.ByteString.Lazy.Internal"
+    typeModule ^== "Data.ByteString.Lazy.Internal" <|> typeModule ^== "Data.ByteString.Internal"
     pure psString
 
 scientificBridge :: BridgePart

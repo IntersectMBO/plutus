@@ -35,10 +35,12 @@ stability (ƛ B)    =
                                    (embNf B)))
                 (stability B))
 stability (con tcn)   = refl
+stability (μ A B) = cong₂ μ (stability A) (stability B)
 stability {K = *}     (ne n) = stabilityNe n
 stability {K = K ⇒ J} (ne n) = reifyCR (stabilityNe n)
 
 stabilityNe (` α)    = reflectCR refl
-stabilityNe (n · n') = transCR (AppCR (stabilityNe n) (idext idCR (embNf n'))) (reflectCR (cong₂ _·_ refl (stability n')))
-stabilityNe μ1      = refl
+stabilityNe (n · n') = transCR
+  (AppCR (stabilityNe n) (idext idCR (embNf n')))
+  (reflectCR (cong₂ _·_ refl (stability n')))
 \end{code}

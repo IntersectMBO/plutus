@@ -2,11 +2,24 @@
 
 ## Getting started
 
+Make sure you have a local backend server running first:
 ```bash
-cd marlowe-playground-client
-$(nix-build -A dev.scripts.updateClientDeps ../default.nix)
-yarn run webpack
+$(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
 ```
+
+Now we will build and run the front end:
+```bash
+# First generate the purescript bridge files
+$(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator ./marlowe-playground-client/generated
+# Now we will build and run the client on localhost
+cd marlowe-playground-client
+# Download javascript dependencies
+yarn
+# Install purescript depdendencies
+yarn purs:compile
+```
+
+Then run `yarn run webpack:server` for an auto-reloading dev build on http://localhost:8009
 
 ## Adding dependencies
 

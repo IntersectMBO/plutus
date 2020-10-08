@@ -44,7 +44,7 @@ import qualified Ledger.Constraints                    as Constraints
 import qualified Ledger.Typed.Scripts                  as Scripts
 import qualified Ledger.Value                          as V
 
-import qualified Data.ByteString.Lazy.Char8            as C
+import qualified Data.ByteString.Char8                 as C
 
 import           Language.Plutus.Contract.StateMachine (State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM

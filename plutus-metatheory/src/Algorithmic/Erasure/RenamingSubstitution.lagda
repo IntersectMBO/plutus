@@ -187,11 +187,11 @@ ren-erase ρ⋆ ρ (t · u)            =
 ren-erase ρ⋆ ρ (Λ t)            = cong ƛ (trans (trans (cong U.weaken (ren-erase (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ) t)) (trans (sym (U.ren-comp (erase-Ren (⋆.ext ρ⋆) (A.ext⋆ ρ⋆ ρ)) suc (erase t))) (U.ren-cong (cong suc ∘ ext⋆-erase ρ⋆ ρ) (erase t)))) (U.ren-comp suc (U.lift (erase-Ren ρ⋆ ρ)) (erase t)))
 ren-erase ρ⋆ ρ (_·⋆_ {B = B} t A) = trans
   (conv⊢-erase (sym (ren[]Nf ρ⋆ B A)) (A.ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)) (cong (_· plc_dummy) (ren-erase ρ⋆ ρ t))
-ren-erase ρ⋆ ρ (wrap1 pat arg t)  = trans
-  (conv⊢-erase (ren-nf-μ1 ρ⋆ pat arg) (A.ren ρ⋆ ρ t))
+ren-erase ρ⋆ ρ (wrap A B t)  = trans
+  (conv⊢-erase (ren-nf-μ ρ⋆ A B) (A.ren ρ⋆ ρ t))
   (ren-erase ρ⋆ ρ t)
-ren-erase ρ⋆ ρ (unwrap1 {pat = pat}{arg = arg} t) = trans
-  (conv⊢-erase (sym (ren-nf-μ1 ρ⋆ pat arg)) (unwrap1 (A.ren ρ⋆ ρ t)))
+ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t) = trans
+  (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t)))
   (ren-erase ρ⋆ ρ t)
 ren-erase ρ⋆ ρ (con c)            = cong con (renTermCon-erase ρ⋆ ρ c)
 ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
@@ -316,11 +316,11 @@ sub-erase σ⋆ σ (Λ {B = B} t) = cong ƛ (trans
                 (U.sub-ren suc (U.lifts (erase-Sub σ⋆ σ)) (erase t)))))
 sub-erase σ⋆ σ (_·⋆_ {B = B} t A) = trans
   (conv⊢-erase (sym (subst[]Nf' σ⋆ A B)) (A.subst σ⋆ σ t ·⋆ substNf σ⋆ A)) (cong (_· plc_dummy) (sub-erase σ⋆ σ t))
-sub-erase σ⋆ σ (wrap1 pat arg t) = trans
-  (conv⊢-erase (subst-nf-μ σ⋆ pat arg) (A.subst σ⋆ σ t))
+sub-erase σ⋆ σ (wrap A B t) = trans
+  (conv⊢-erase (subst-nf-μ σ⋆ A B) (A.subst σ⋆ σ t))
   (sub-erase σ⋆ σ t)
-sub-erase σ⋆ σ (unwrap1 {pat = pat}{arg} t) = trans
-  (conv⊢-erase (sym (subst-nf-μ σ⋆ pat arg)) (unwrap1 (A.subst σ⋆ σ t)))
+sub-erase σ⋆ σ (unwrap {A = A}{B} t) = trans
+  (conv⊢-erase (sym (subst-nf-μ σ⋆ A B)) (unwrap (A.subst σ⋆ σ t)))
   (sub-erase σ⋆ σ t)
 sub-erase σ⋆ σ (con c) = cong con (subTermCon-erase σ⋆ σ c)
 sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans

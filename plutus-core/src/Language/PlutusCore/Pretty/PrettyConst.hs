@@ -5,14 +5,13 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Pretty.PrettyConst where
 
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy               as BSL
+import qualified Data.ByteString                    as BS
 import           Data.Foldable                      (fold)
 import           Data.Proxy
 import qualified Data.Text                          as T
@@ -55,8 +54,8 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | x < 16    = ('0' :)
               | otherwise = id
 
-instance PrettyConst BSL.ByteString where
-    prettyConst b = "#" <> fold (asBytes <$> BSL.unpack b)
+instance PrettyConst BS.ByteString where
+    prettyConst b = "#" <> fold (asBytes <$> BS.unpack b)
 
 -- The basic built-in types use `show` via the default instance
 instance PrettyConst ()

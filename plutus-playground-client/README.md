@@ -7,9 +7,14 @@ Please view the instructions for building the server [here](../plutus-playground
 ## Client
 
 ```sh
+# First generate the purescript bridge files
+$(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator ./plutus-playground-client/generated
+# Now we will build and run the client on localhost
 cd plutus-playground-client
-$(nix-build -A dev.scripts.updateClientDeps ../default.nix)
-yarn run webpack
+# Download javascript dependencies
+yarn
+# Install purescript depdendencies
+yarn purs:compile
 ```
 
 Then run `yarn run webpack:server` for an auto-reloading dev build on https://localhost:8009

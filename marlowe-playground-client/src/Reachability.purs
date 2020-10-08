@@ -1,6 +1,5 @@
 module Reachability (startReachabilityAnalysis, updateWithResponse) where
 
-import API as API
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Function (flip)
@@ -8,12 +7,12 @@ import Data.Lens (assign)
 import Data.List (List(..), concatMap, foldl, fromFoldable, length, reverse, snoc, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (AccountId, Case(..), Contract(..), Observation(..), Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
+import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -130,7 +129,7 @@ checkContractForReachability ::
   Contract ->
   S.State ->
   HalogenM State Action ChildSlots Void m (WebData Result)
-checkContractForReachability settings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) (encodeJSON contract) (encodeJSON state)))
+checkContractForReachability settings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract: contract, state: state }))
 
 expandSubproblem :: ContractZipper -> (ContractPath /\ Contract)
 expandSubproblem z = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)

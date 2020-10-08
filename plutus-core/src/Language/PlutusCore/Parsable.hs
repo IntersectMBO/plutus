@@ -1,9 +1,6 @@
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 {- | A typeclass which provides a `parseConstant` method to convert Text strings
 into objects of the appropriate type. This allows one to define parsers for
@@ -19,12 +16,12 @@ where
 
 import           PlutusPrelude
 
-import           Data.Bits            (shiftL, (.|.))
-import           Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as BSL (pack)
-import           Data.Char            (ord)
-import qualified Data.Text            as T
-import           Text.Read            (readMaybe)
+import           Data.Bits       (shiftL, (.|.))
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS (pack)
+import           Data.Char       (ord)
+import qualified Data.Text       as T
+import           Text.Read       (readMaybe)
 
 
 class Parsable a
@@ -78,5 +75,5 @@ asBSLiteral :: String -> Maybe ByteString
 asBSLiteral s =
     mapM hexDigitToWord8 s >>= pairs      -- convert s into a list of pairs of Word8 values in [0..0xF]
     <&> map (\(a,b) -> shiftL a 4 .|. b)  -- convert pairs of values in [0..0xF] to values in [0..xFF]
-    <&> BSL.pack
+    <&> BS.pack
 

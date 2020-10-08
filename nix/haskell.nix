@@ -58,11 +58,18 @@ let
             ];
 
           packages = {
+            # Using https connections ultimately requires x509. But on
+            # OSX, a pure build can't find the package. This is the
+            # solution used by the wallet build, and we reuse it here.
+            x509-system.components.library.preBuild = lib.optionalString (stdenv.isDarwin) ''
+              substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
+            '';
             inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
             # See https://github.com/input-output-hk/plutus/issues/1213
             marlowe.doHaddock = false;
             plutus-use-cases.doHaddock = false;
             plutus-ledger.doHaddock = false;
+            plutus-benchmark.doHaddock = false;
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
             plutus-tx-plugin.doHaddock = false;
 
@@ -97,6 +104,12 @@ let
             };
 
             plutus-core.components.benchmarks.plutus-core-create-cost-model = {
+              build-tools = r-packages;
+              # Seems to be broken on darwin for some reason
+              platforms = lib.platforms.linux;
+            };
+
+            marlowe-actus.components.exes.marlowe-shiny = {
               build-tools = r-packages;
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;

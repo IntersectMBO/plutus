@@ -273,8 +273,8 @@ instance Serialise Special
 deriving newtype instance Serialise Index
 
 instance Serialise DeBruijn where
-    encode (DeBruijn txt i) = encode txt <> encode i
-    decode = DeBruijn <$> decode <*> decode
+    encode (DeBruijn i) = encode i
+    decode = DeBruijn <$> decode
 
 instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n

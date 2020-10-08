@@ -95,10 +95,19 @@ ren {Δ = Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
          (trans (⋆.subst-cong (⋆.ren-subst-cons ρ⋆ A) B)
                 (⋆.ren-subst B)))
   (_·⋆_ (ren _ ρ t) (⋆.ren ρ⋆ A))
-ren _ ρ (wrap1 pat arg t) = wrap1 _ _ (ren _ ρ t)
-ren _ ρ (unwrap1 t)       = unwrap1 (ren _ ρ t)
+ren _ ρ (wrap A B t) = wrap
+  _
+  _
+  (conv⊢
+    refl
+    (⋆.ren-μ _ A B)
+    (ren _ ρ t))
+ren _ ρ (unwrap t) = conv⊢
+  refl
+  (sym (⋆.ren-μ _ _ _))
+  (unwrap (ren _ ρ t))
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
-ren ρ⋆ ρ (con cn)   = con (renTermCon ρ⋆ cn)
+ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
 ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
   refl
   (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
@@ -201,8 +210,10 @@ subst {Δ = Δ} σ⋆ σ (_·⋆_ {B = B} L A) = conv⊢
          (trans (⋆.subst-cong (⋆.subst-subst-cons σ⋆ A) B)
                 (⋆.subst-comp B)))
   (_·⋆_ (subst σ⋆ σ L) (⋆.subst σ⋆ A))
-subst _ σ (wrap1 pat arg t)           = wrap1 _ _ (subst _ σ t)
-subst _ σ (unwrap1 t)                 = unwrap1 (subst _ σ t)
+subst _ σ (wrap A B t)                =
+  wrap _ _ (conv⊢ refl (⋆.subst-μ _ A B) (subst _ σ t))
+subst σ⋆ σ (unwrap {A = A}{B} t)                  =
+ conv⊢ refl (sym (⋆.subst-μ σ⋆ A B)) (unwrap (subst σ⋆ σ t))
 subst _ σ (conv p t)                  = conv (subst≡β _ p) (subst _ σ t)
 subst σ⋆ σ (con cn)                   = con (substTermCon σ⋆ cn)
 subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢

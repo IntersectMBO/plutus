@@ -7,12 +7,13 @@
 module Language.UntypedPlutusCore.DeBruijn
     ( Index (..)
     , DeBruijn (..)
-    , TyDeBruijn (..)
+    , NamedDeBruijn (..)
     , FreeVariableError (..)
     , deBruijnTerm
     , deBruijnProgram
     , unDeBruijnTerm
     , unDeBruijnProgram
+    , unNameDeBruijn
     ) where
 
 import           Language.PlutusCore.DeBruijn.Internal
@@ -33,19 +34,19 @@ This module is just a boring port of the typed version.
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnTerm
     :: MonadError FreeVariableError m
-    => Term Name uni ann -> m (Term DeBruijn uni ann)
+    => Term Name uni ann -> m (Term NamedDeBruijn uni ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnProgram
     :: MonadError FreeVariableError m
-    => Program Name uni ann -> m (Program DeBruijn uni ann)
+    => Program Name uni ann -> m (Program NamedDeBruijn uni ann)
 deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
 deBruijnTermM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
     => Term Name uni ann
-    -> m (Term DeBruijn uni ann)
+    -> m (Term NamedDeBruijn uni ann)
 deBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> nameToDeBruijn n
@@ -65,18 +66,18 @@ deBruijnTermM = \case
 -- | Convert a 'Term' with 'TyDeBruijn's and 'DeBruijn's into a 'Term' with 'TyName's and 'Name's.
 unDeBruijnTerm
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Term DeBruijn uni ann -> m (Term Name uni ann)
+    => Term NamedDeBruijn uni ann -> m (Term Name uni ann)
 unDeBruijnTerm = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTermM
 
 -- | Convert a 'Program' with 'TyDeBruijn's and 'DeBruijn's into a 'Program' with 'TyName's and 'Name's.
 unDeBruijnProgram
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Program DeBruijn uni ann -> m (Program Name uni ann)
+    => Program NamedDeBruijn uni ann -> m (Program Name uni ann)
 unDeBruijnProgram (Program ann ver term) = Program ann ver <$> unDeBruijnTerm term
 
 unDeBruijnTermM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Term DeBruijn uni ann
+    => Term NamedDeBruijn uni ann
     -> m (Term Name uni ann)
 unDeBruijnTermM = \case
     -- variable case

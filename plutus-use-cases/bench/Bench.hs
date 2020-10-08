@@ -16,7 +16,6 @@ import           Criterion.Main
 import           Crypto.Hash                                           hiding (Context)
 import qualified Data.ByteArray                                        as BA
 import qualified Data.ByteString                                       as BS
-import qualified Data.ByteString.Lazy                                  as BSL
 import qualified Language.PlutusTx.Coordination.Contracts.Future       as FT
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig     as MS
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey       as PK
@@ -236,7 +235,7 @@ multisig = bgroup "multisig" [
 -- Test functions and data
 
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
-verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
+verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BA.convert m) s
 
 runScript' :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScript' (vd, v, d, r) = runScript vd v d r

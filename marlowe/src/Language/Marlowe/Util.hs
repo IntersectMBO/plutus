@@ -14,9 +14,6 @@ import qualified Ledger.Value               as Val
 instance IsString Party where
     fromString s = Role (fromString s)
 
-instance IsString AccountId where
-    fromString s = AccountId 0 (fromString s)
-
 instance IsString ValueId where
     fromString = ValueId . fromString
 

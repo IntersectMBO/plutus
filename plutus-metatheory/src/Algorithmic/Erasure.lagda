@@ -97,8 +97,8 @@ erase (ƛ t)                = ƛ (erase t)
 erase (t · u)              = erase t · erase u
 erase (Λ t)                = ƛ (U.weaken (erase t))
 erase (_·⋆_ t A)           = erase t · plc_dummy
-erase (wrap1 pat arg t)    = erase t
-erase (unwrap1 t)          = erase t
+erase (wrap A B t)         = erase t
+erase (unwrap t)           = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (AS.SIG bn)) ++ eraseTel ts)
@@ -345,14 +345,14 @@ same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
     (trans (cong₂ _·_ (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemΠ B) (nfType t)) ) (lem-plc_dummy (lenLemma Γ)))
            (lem· (lenLemma Γ) (erase (conv⊢ refl (lemΠ B) (nfType t))) plc_dummy))
     (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A)))) 
-same {Γ = Γ} (D.wrap1 pat arg t) = trans
+same {Γ = Γ} (D.wrap A B t) = trans
   (same t)
-  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemXX pat arg) (nfType t)))
-same {Γ = Γ} (D.unwrap1 {pat = pat}{arg = arg} t) = trans
+  (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (stability-μ A B) (nfType t)))
+same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
   (same t)
   (cong
     (subst _⊢ (lenLemma Γ))
-    (lem-erase' (sym (lemXX pat arg)) (unwrap1 (nfType t)))) 
+    (lem-erase' (sym (stability-μ A B)) (unwrap (nfType t)))) 
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
@@ -474,8 +474,8 @@ same' {Γ = Γ} (Λ t)      = trans
 same' {Γ = Γ} (_·⋆_ t A)   = trans
   (cong₂ _·_ (same' t) (lem-plc_dummy (same'Len Γ)))
   (lem· (same'Len Γ) (D.erase (emb t)) plc_dummy)
-same' {Γ = Γ} (wrap1 pat arg t)   = same' t
-same' {Γ = Γ} (unwrap1 t) = same' t
+same' {Γ = Γ} (wrap A B t)   = same' t
+same' {Γ = Γ} (unwrap t) = same' t
 same' {Γ = Γ} (con x) = trans (cong con (same'TC {Γ = Γ} x)) (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
 same' {Γ = Γ} (builtin b σ ts) = trans
   (lem-builtin b (eraseTel⋆ Γ (proj₁ (AS.SIG b)) ++ eraseTel ts) (lemma≤ b) (D.lemma≤ b) (sym (cong₂ _+_ (nfTypeSIG≡₁' b) (nfTypeSIG≡₃ b))))

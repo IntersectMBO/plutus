@@ -31,7 +31,6 @@ module Ledger.Oracle(
   ) where
 
 import           Data.Aeson                (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy      as BSL
 import           GHC.Generics              (Generic)
 
 import           Language.PlutusTx
@@ -90,7 +89,7 @@ data SignedMessage a = SignedMessage
     -- ^ Hash of the message
     , osmDatum       :: Datum
     }
-    deriving stock (Generic, Haskell.Show)
+    deriving stock (Generic, Haskell.Show, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data SignedMessageCheckError =
@@ -196,7 +195,7 @@ signMessage :: IsData a => a -> PrivateKey -> SignedMessage a
 signMessage msg pk =
   let dt = Datum (toData msg)
       DatumHash msgHash = Scripts.datumHash dt
-      sig     = Crypto.sign (BSL.toStrict msgHash) pk
+      sig     = Crypto.sign msgHash pk
   in SignedMessage
         { osmSignature = sig
         , osmMessageHash = DatumHash msgHash

@@ -8,7 +8,7 @@ open import Scoped.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 
-open import Utils hiding (Error)
+open import Utils
 
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Vec using ([];_∷_;_++_)

@@ -137,11 +137,14 @@ step (_◅_ (s , builtin- b As {ts} vs (t' ∷ ts') q) {t} V) =
 
 step (_◅_ (s , (V-builtin b As q ts ·-)) {t} V) = s ▻ builtin b (inj₂ (refl ,, q)) As (ts :< t)
 step ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = s ▻ builtin b (inj₁ (q ,, refl)) (As :< A) []
+
+discharge : {t : ScopedTm Z} → Value t → ScopedTm Z
+discharge {t} _ = t
 ```
 
 ```
 open import Utils
-stepper : ℕ → State → Either Error State
+stepper : ℕ → State → Either RuntimeError State
 stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | s ▻ M = stepper n (s ▻ M)

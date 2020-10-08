@@ -10,6 +10,7 @@ module Language.UntypedPlutusCore.Core.Type
     , TPLC.StaticBuiltinName (..)
     , TPLC.DynamicBuiltinName (..)
     , TPLC.BuiltinName (..)
+    , TPLC.Version (..)
     , Term (..)
     , Program (..)
     , termAnn
@@ -23,6 +24,7 @@ import qualified Language.PlutusCore.Constant                       as TPLC
 import qualified Language.PlutusCore.Core                           as TPLC
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import qualified Language.PlutusCore.Name                           as TPLC
 import           Language.PlutusCore.Universe
 
 -- | The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
@@ -63,6 +65,11 @@ instance TPLC.AsConstant (Term name uni ann) where
 
 instance TPLC.FromConstant (Term name uni ()) where
     fromConstant = Constant ()
+
+type instance TPLC.HasUniques (Term name uni ann)
+    = TPLC.HasUnique name TPLC.TermUnique
+type instance TPLC.HasUniques (Program name uni ann) = TPLC.HasUniques
+    (Term name uni ann)
 
 instance ToExMemory (Term name uni ()) where
     toExMemory _ = 0

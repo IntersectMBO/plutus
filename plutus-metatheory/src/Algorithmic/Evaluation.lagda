@@ -70,5 +70,13 @@ eval (gas (suc n)) M = evalProg (gas n) (progress _ M)
 evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
 evalProg g (done VM) = steps refl—↠ (done _ VM)
 evalProg g (error e) = steps refl—↠ (error e)
---evalProg g (neutral p) = steps refl—↠ (neutral p)
+
+open import Utils 
+
+stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either RuntimeError (∅ ⊢ A)
+stepper {A} t n with eval (gas n) t
+... | steps x (done t' v) = return t'
+... | steps x out-of-gas  = inj₁ gasError
+... | steps x (error _)   = return (error A)
+
 \end{code}

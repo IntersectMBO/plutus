@@ -300,7 +300,7 @@ idext p (ƛ B)     =
   ,
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
 idext p (A · B)     = AppCR (idext p A) (idext p B)
-idext p μ1          = refl
+idext p (μ A B)     = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
 idext p (con tcn)   = refl
 
 renVal-eval (` x) p ρ = renCR ρ (p x)
@@ -335,7 +335,9 @@ renVal-eval (ƛ B) {η}{η'} p ρ =
 renVal-eval (A · B) p ρ = transCR
   (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
-renVal-eval μ1          p ρ = refl
+renVal-eval (μ A B)     p ρ = cong₂ μ
+  (trans (ren-reify (idext (reflCR ∘ p) A) ρ) (reifyCR (renVal-eval A p ρ)))
+  (trans (ren-reify (idext (reflCR ∘ p) B) ρ) (reifyCR (renVal-eval B p ρ)))
 renVal-eval (con tcn)   p ρ = refl
 \end{code}
 
@@ -376,8 +378,9 @@ ren-eval (ƛ B) p ρ =
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → renCR ρ' (reflCR (symCR (p (ρ x)))) }) B)
 ren-eval (A · B) p ρ = AppCR (ren-eval A p ρ) (ren-eval B p ρ)
-ren-eval μ1          p ρ = refl
-ren-eval (con tcn)   p ρ = refl
+ren-eval (μ A B) p ρ =
+  cong₂ μ (reifyCR (ren-eval A p ρ)) (reifyCR (ren-eval B p ρ))
+ren-eval (con tcn) p ρ = refl
 \end{code}
 
 Subsitution lemma
@@ -399,8 +402,8 @@ subst-eval (Π B)    p σ = cong Π (trans
                   (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl)) S)
                 (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
-subst-eval (A ⇒ B)    p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (ƛ B)      p σ =
+subst-eval (A ⇒ B) p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
+subst-eval (ƛ B) p σ =
   (λ ρ ρ' v v' q → transCR
      (renVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
      (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
@@ -423,9 +426,10 @@ subst-eval (ƛ B)      p σ =
                      S)
                    (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
-subst-eval (A · B)    p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
-subst-eval μ1          p ρ = refl
-subst-eval (con tcn) p ρ   = refl
+subst-eval (A · B) p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
+subst-eval (μ A B) p ρ =
+  cong₂ μ (reifyCR (subst-eval A p ρ)) (reifyCR (subst-eval B p ρ))
+subst-eval (con tcn) p ρ = refl
 \end{code}
 
 Fundamental Theorem of logical relations for CR
@@ -456,6 +460,7 @@ fund p (ƛ≡β {B = B}{B'} q) =
   ,
   λ ρ r → fund (CR,,⋆ (renCR ρ ∘ p) r) q
 fund p (·≡β q r) = AppCR (fund p q) (fund p r)
+fund p (μ≡β q r) = cong₂ μ (reifyCR (fund p q)) (reifyCR (fund p r)) 
 fund p (β≡β B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
                     ; (S x) → renVal-id (reflCR (p x))})

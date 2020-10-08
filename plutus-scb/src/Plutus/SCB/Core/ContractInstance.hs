@@ -271,24 +271,24 @@ processFirstInboxMessage ::
     -> Eff effs ()
 processFirstInboxMessage instanceID (Last msg) = surroundInfo @Text.Text "processFirstInboxMessage" $ do
     logInfo @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
-    logInfo @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
+    logDebug @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
     logInfo @(ContractInstanceMsg t) $ CurrentIteration csCurrentIteration
     if csCurrentIteration /= rspItID msg
-        then logInfo @(ContractInstanceMsg t) $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
+        then logDebug @(ContractInstanceMsg t) $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
         else do
-            logInfo @(ContractInstanceMsg t) InboxMessageMatchesIteration
+            logDebug @(ContractInstanceMsg t) InboxMessageMatchesIteration
             -- process the message
             let payload = Contract.contractMessageToPayload msg
-            logInfo @(ContractInstanceMsg t) InvokingContractUpdate
+            logDebug @(ContractInstanceMsg t) InvokingContractUpdate
             newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
-            logInfo @(ContractInstanceMsg t) ObtainedNewState
+            logDebug @(ContractInstanceMsg t) ObtainedNewState
             -- send out the new requests
             -- see note [Contract Iterations]
             let newIteration = succ csCurrentIteration
             sendContractStateMessages $ ContractInstanceState instanceID newIteration newState csContractDefinition
-            logInfo @(ContractInstanceMsg t) $ UpdatedContract instanceID newIteration
+            logDebug @(ContractInstanceMsg t) $ UpdatedContract instanceID newIteration
 
 
 -- | Check the inboxes of all contracts.
@@ -317,7 +317,7 @@ processContractInbox ::
     => ContractInstanceId
     -> Eff effs ()
 processContractInbox i = surroundInfo @Text.Text "processContractInbox" $ do
-    logInfo @(ContractInstanceMsg t) $ ProcessContractInbox i
+    logDebug @(ContractInstanceMsg t) $ ProcessContractInbox i
     state <- runGlobalQuery (Query.inboxMessages @t)
     traverse_ (processFirstInboxMessage @t i) (Map.lookup i state)
 

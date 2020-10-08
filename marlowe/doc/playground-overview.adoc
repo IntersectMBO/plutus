@@ -19,13 +19,17 @@ contract in the browser-based tool, the Marlowe Playground, a web tool
 that supports the interactive construction, revision, and simulation of
 smart-contracts written in Marlowe.
 
-The playground has three top-level tabs,
+The playground has six top-level tabs. Three that we look at in this section, 
 
 * The Haskell Editor
 * The Simulator
 * Blockly, the visual editor
 
-and we look at these three in turn now.
+and, in later sections, three *experimental* features *under active deveopment*
+
+* xref:javascript-embedding#javascript-embedding[JavaScript Editor]
+* xref:actus-labs#actus-labs[Actus Labs] 
+* xref:wallets-simulation#wallets-simulation[Wallet-level simulation]
 
 We use *bold* type for buttons and other components in what follows.
 

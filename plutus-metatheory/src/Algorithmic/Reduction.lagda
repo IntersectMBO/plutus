@@ -33,7 +33,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-open import Utils hiding (Error)
+open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 \end{code}
@@ -54,11 +54,11 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → Value (Λ M)
 
   V-wrap : ∀{Φ Γ K}
-   → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {arg : Φ ⊢Nf⋆ K}
-   → {term : Γ ⊢  _}
-   → Value term
-   → Value (wrap1 pat arg term)
+   → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {B : Φ ⊢Nf⋆ K}
+   → {M : Γ ⊢  _}
+   → Value M
+   → Value (wrap A B M)
 
   V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
@@ -180,26 +180,26 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       -------------------
     → (Λ N) ·⋆ A —→ N [ A ]⋆
 
-  β-wrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢ _}
-    → Value term
-    → unwrap1 (wrap1 pat arg term) —→ term
+  β-wrap : ∀{Φ Γ K}
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → {M : Γ ⊢ _}
+    → Value M
+    → unwrap (wrap A B M) —→ M
 
-  ξ-unwrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {M M' : Γ ⊢ ne (μ1 · pat · arg)}
+  ξ-unwrap : ∀{Φ Γ K}
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → {M M' : Γ ⊢ μ A B}
     → M —→ M'
-    → unwrap1 M —→ unwrap1 M'
+    → unwrap M —→ unwrap M'
     
   ξ-wrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {M M' : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → {M M' : Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}
     → M —→ M'
-    → wrap1 pat arg M —→ wrap1 pat arg M'
+    → wrap A B M —→ wrap A B M'
 
   β-builtin : ∀{Φ Γ}
     → (bn : Builtin)
@@ -225,14 +225,14 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
   E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K}
     → error {Γ = Γ} (Π B) ·⋆ A —→ error (B [ A ]Nf)
   E-unwrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → unwrap1 (error (ne (μ1 · pat · arg)))
-        —→ error {Γ = Γ} (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → unwrap (error (μ A B))
+        —→ error {Γ = Γ} (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   E-wrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → wrap1 pat arg (error _) —→ error {Γ = Γ} (ne (μ1 · pat · arg)) 
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → wrap A B (error _) —→ error {Γ = Γ} (μ A B) 
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -321,12 +321,12 @@ progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
 
-progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
-  → Progress t → Progress (unwrap1 t)
-progress-unwrap (step q) = step (ξ-unwrap1 q)
-progress-unwrap (done (V-wrap v)) = step (β-wrap1 v)
-progress-unwrap {pat = pat} (error E-error) =
-  step (E-unwrap {pat = pat})
+progress-unwrap : ∀{Φ Γ K}{A}{B : Φ ⊢Nf⋆ K}{t : Γ ⊢ μ A B}
+  → Progress t → Progress (unwrap t)
+progress-unwrap (step q) = step (ξ-unwrap q)
+progress-unwrap (done (V-wrap v)) = step (β-wrap v)
+progress-unwrap {A = A} (error E-error) =
+  step (E-unwrap {A = A})
 
 progress-builtin : ∀{Φ Γ} bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → Φ ⊢Nf⋆ J)
@@ -373,10 +373,10 @@ progressTel p {As = A ∷ As} (t ∷ tel) =
   progressTelCons p (progress p t) (progressTel p tel)
 
 progress-wrap :  ∀{Φ Γ} → NoVar Γ  → ∀{K}
-   → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-   → {arg : Φ ⊢Nf⋆ K}
-   → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
-   → Progress term → Progress (wrap1 pat arg term)
+   → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {B : Φ ⊢Nf⋆ K}
+   → {M : Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}
+   → Progress M → Progress (wrap A B M)
 progress-wrap n (step p)        = step (ξ-wrap p)
 progress-wrap n (done v)        = done (V-wrap v)
 progress-wrap n (error E-error) = step E-wrap
@@ -386,8 +386,8 @@ progress p (ƛ M)                = done (V-ƛ M)
 progress p (M · N)              = progress-· (progress p M) (progress p N)
 progress p (Λ M)                = done (V-Λ M)
 progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
-progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
-progress p (unwrap1 M)          = progress-unwrap (progress p M)
+progress p (wrap A B M) = progress-wrap p (progress p M)
+progress p (unwrap M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error
@@ -402,7 +402,7 @@ open import Data.Empty
 -- a value cannot make progress
 
 val-red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
-val-red (V-wrap p) (.(wrap1 _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
+val-red (V-wrap p) (.(wrap _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
 
 valT-redT : ∀ {Φ Γ Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
   → {ts : Tel Γ Δ σ As} → VTel Γ Δ σ As ts → ¬ Σ (Tel Γ Δ σ As) (ts —→T_)
@@ -435,7 +435,7 @@ redT-errT (.(_ ∷ _) ,, there v p) (there w q) = redT-errT (_ ,, p) q
 valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A) → (v v' : Value t) → v ≡ v'
 valUniq .(ƛ _)         (V-ƛ _)    (V-ƛ _)     = refl
 valUniq .(Λ _)         (V-Λ _)    (V-Λ _)     = refl
-valUniq .(wrap1 _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
+valUniq .(wrap _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
 valUniq .(con cn)      (V-con cn) (V-con .cn) = refl
 
 -- telescopes of values are unique for that telescope
@@ -487,11 +487,11 @@ det (ξ-·⋆ p) (ξ-·⋆ q) = cong (_·⋆ _) (det p q)
 det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val-red v (_ ,, q))
 det (β-ƛ v) (β-ƛ w) = refl
 det β-Λ β-Λ = refl
-det (β-wrap1 p) (β-wrap1 q) = refl
-det (β-wrap1 p) (ξ-unwrap1 q) = ⊥-elim (val-red (V-wrap p) (_ ,, q))
-det (ξ-unwrap1 p) (β-wrap1 q) = ⊥-elim (val-red (V-wrap q) (_ ,, p))
-det (ξ-unwrap1 p) (ξ-unwrap1 q) = cong unwrap1 (det p q)
-det (ξ-wrap p) (ξ-wrap q) = cong (wrap1 _ _) (det p q)
+det (β-wrap p) (β-wrap q) = refl
+det (β-wrap p) (ξ-unwrap q) = ⊥-elim (val-red (V-wrap p) (_ ,, q))
+det (ξ-unwrap p) (β-wrap q) = ⊥-elim (val-red (V-wrap q) (_ ,, p))
+det (ξ-unwrap p) (ξ-unwrap q) = cong unwrap (det p q)
+det (ξ-wrap p) (ξ-wrap q) = cong (wrap _ _) (det p q)
 det (β-builtin bn σ ts vs) (β-builtin .bn .σ .ts ws) =
   cong (BUILTIN bn σ ts) (vTelUniq _ _ σ _ ts vs ws)
 det (β-builtin bn σ ts vs) (ξ-builtin .bn .σ p) =

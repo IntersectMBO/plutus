@@ -7,21 +7,28 @@ import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck                  (unsafeEvaluateCk)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.State
 import           Criterion.Main
 import           Crypto
+import qualified Data.ByteString                                            as BS
 import qualified Data.ByteString.Lazy                                       as BSL
 
-pubKey, sig, msg :: BSL.ByteString
+pubKey, sig, msg :: BS.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 msg = ""
 
 traceBuiltins :: QuoteT (Either (Error DefaultUni ())) (DynamicBuiltinNameTypes DefaultUni)
 traceBuiltins = getStringBuiltinTypes ()
+
+parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
+parse str = runQuote $ runExceptT $ flip evalStateT emptyIdentifierState $ parseProgram str
 
 main :: IO ()
 main =
@@ -118,7 +125,7 @@ main =
                      , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostModel . toTerm) g'
                      ]
                 ,   bgroup "verifySignature" $
-                      let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool
+                      let verify :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Maybe Bool
                           verify = verifySignature
                       in
 

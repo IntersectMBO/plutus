@@ -12,6 +12,7 @@ in haskell.packages.shellFor {
     pkgs.ghcid
     pkgs.git
     pkgs.cacert
+    pkgs.niv
     pkgs.nodejs
     pkgs.yarn
     pkgs.zlib
@@ -30,6 +31,7 @@ in haskell.packages.shellFor {
     pkgs.terraform_0_12
     pkgs.awscli
     pkgs.aws_shell
+    pkgs.pass
 
     # Extra dev packages acquired from elsewhere
     dev.packages.cabal-install
@@ -48,5 +50,8 @@ in haskell.packages.shellFor {
     # This breaks compilation of R on macOS. The latest version of R
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
+    pkgs.R
   ]);
+  # we have a local passwords store that we use for deployments etc.
+  PASSWORD_STORE_DIR = toString ./. + "/secrets";
 }

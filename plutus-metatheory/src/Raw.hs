@@ -6,7 +6,7 @@ module Raw where
 
 import           GHC.Natural
 
-import           Data.ByteString.Lazy         as BSL
+import           Data.ByteString              as BS
 import qualified Data.Text                    as T
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
@@ -29,7 +29,7 @@ data RType = RTyVar Integer
            deriving Show
 
 data RConstant = RConInt Integer
-               | RConBS BSL.ByteString
+               | RConBS BS.ByteString
                | RConStr T.Text
                | RConBool Bool
                | RConChar Char
@@ -51,21 +51,21 @@ data RTerm = RVar Integer
 unIndex :: Index -> Integer
 unIndex (Index n) = naturalToInteger n
 
-convP :: Program TyDeBruijn DeBruijn DefaultUni a -> RTerm
+convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni a -> RTerm
 convP (Program _ _ t) = conv t
 
 convK :: Kind a -> RKind
 convK (Type _)            = RKiStar
 convK (KindArrow _ _K _J) = RKiFun (convK _K) (convK _J)
 
-convT :: Type TyDeBruijn DefaultUni a -> RType
-convT (TyVar _ (TyDeBruijn x)) = RTyVar (unIndex (dbnIndex x))
-convT (TyFun _ _A _B)          = RTyFun (convT _A) (convT _B)
-convT (TyForall _ _ _K _A)     = RTyPi (convK _K) (convT _A)
-convT (TyLam _ _ _K _A)        = RTyLambda (convK _K) (convT _A)
-convT (TyApp _ _A _B)          = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin _ b)          = RTyCon b
-convT (TyIFix _ a b)           = RTyMu (convT a) (convT b)
+convT :: Type NamedTyDeBruijn DefaultUni a -> RType
+convT (TyVar _ (NamedTyDeBruijn x)) = RTyVar (unIndex (ndbnIndex x))
+convT (TyFun _ _A _B)               = RTyFun (convT _A) (convT _B)
+convT (TyForall _ _ _K _A)          = RTyPi (convK _K) (convT _A)
+convT (TyLam _ _ _K _A)             = RTyLambda (convK _K) (convT _A)
+convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
+convT (TyBuiltin _ b)               = RTyCon b
+convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 
 convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
@@ -75,8 +75,8 @@ convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
 convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 
-conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
-conv (Var _ x)                         = RVar (unIndex (dbnIndex x))
+conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni a -> RTerm
+conv (Var _ x)                         = RVar (unIndex (ndbnIndex x))
 conv (TyAbs _ _ _K t)                  = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)                   = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)                 = RLambda (convT _A) (conv t)
@@ -92,21 +92,21 @@ unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
-varTm :: Int -> DeBruijn
-varTm i = DeBruijn (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
+varTm :: Int -> NamedDeBruijn
+varTm i = NamedDeBruijn (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
 
-varTy :: Int -> DeBruijn
-varTy i = DeBruijn (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
+varTy :: Int -> NamedDeBruijn
+varTy i = NamedDeBruijn (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
 
 -- this should take a level and render levels as names
-unconvT :: Int -> RType -> Type TyDeBruijn DefaultUni ()
+unconvT :: Int -> RType -> Type NamedTyDeBruijn DefaultUni ()
 unconvT i (RTyVar x)        =
-  --TyVar () (TyDeBruijn (DeBruijn (T.pack (show (i,x))) (Index (naturalFromInteger x))))
-  TyVar () (TyDeBruijn (DeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
+  TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
-  TyForall () (TyDeBruijn (varTy (i+1))) (unconvK k) (unconvT (i+1) t)
-unconvT i (RTyLambda k t) = TyLam () (TyDeBruijn (varTy (i+1))) (unconvK k) (unconvT (i+1) t)
+  TyForall () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
+unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
+
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
 unconvT i (RTyCon c)        = TyBuiltin () c
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
@@ -123,35 +123,28 @@ tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
 tynames = ['A' .. 'Z']
 
-
-unconv :: Int -> Int -> RTerm -> Term TyDeBruijn DeBruijn DefaultUni ()
-unconv tyi tmi (RVar x)          =
-  Var () (DeBruijn (T.pack [tmnames !! (tmi - fromIntegral x)]) (Index (naturalFromInteger x)))
-unconv tyi tmi (RTLambda k tm)   = TyAbs () (TyDeBruijn (varTy (tyi+1))) (unconvK k) (unconv (tyi+1) tmi tm)
-unconv tyi tmi (RTApp t ty)      = TyInst () (unconv tyi tmi t) (unconvT tyi ty)
-unconv tyi tmi (RLambda ty tm)   = LamAbs () (varTm (tmi+1)) (unconvT tyi ty) (unconv tyi (tmi+1) tm)
-unconv tyi tmi (RApp t u)        = Apply () (unconv tyi tmi t) (unconv tyi tmi u)
-unconv tyi tmi (RCon c)          = Constant () (unconvC c)
-unconv tyi tmi (RError ty)       = Error () (unconvT tyi ty)
-unconv tyi tmi (RBuiltin b)      = Builtin () (StaticBuiltinName b)
-unconv tyi tmi (RWrap tyA tyB t) = IWrap () (unconvT tyi tyA) (unconvT tyi tyB) (unconv tyi tmi t)
-unconv tyi tmi (RUnWrap t)       = Unwrap () (unconv tyi tmi t)
+unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn DefaultUni ()
+unconv i (RVar x)          =
+  Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromIntegral x )]) (Index (naturalFromInteger x)))
+unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconv (i+1) tm)
+unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
+unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
+unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
+unconv i (RCon c)          = Constant () (unconvC c)
+unconv i (RError ty)       = Error () (unconvT i ty)
+unconv i (RBuiltin b)      = Builtin () (StaticBuiltinName b)
+unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)
+unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 
 -- I have put this here as it needs to be a .hs file so that it can be
 -- imported in multiple places
-data Error = TypeError
-           | KindEqError
-           | NotTypeError
-           | NotFunction
-           | NotPiError
-           | NotPat
-           | NameError
-           | TypeEqError
-           | TypeVarEqError
-           | TyConError
-           | BuiltinError
-           | UnwrapError
-           | ParseError
-           | ScopeError
-           | GasError
+
+data ERROR = TypeError
+           | ParseError (ParseError ())
+           | ScopeError ScopeError
+           | RuntimeError RuntimeError
+
+data ScopeError = DeBError|FreeVariableError FreeVariableError
+
+data RuntimeError = GasError
 
