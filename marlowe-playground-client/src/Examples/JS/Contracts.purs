@@ -1,5 +1,11 @@
 module Examples.JS.Contracts where
 
+example :: String
+example =
+  """
+const contract : Contract = Close
+"""
+
 escrow :: String
 escrow =
   """/* Parties */

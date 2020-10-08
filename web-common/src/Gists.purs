@@ -188,8 +188,4 @@ parseGistUrl str = do
     $ do
         matches <- match gistIdInLink str
         match <- NonEmptyArray.index matches 2
-<<<<<<< HEAD
         GistId <$> match
-=======
-        GistId <$> match
->>>>>>> Save entire workspace when saving to gist

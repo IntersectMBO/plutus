@@ -178,6 +178,15 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
+  webCommon = pkgs.lib.cleanSourceWith { 
+    filter = pkgs.lib.cleanSourceFilter;
+    src = lib.cleanSourceWith {
+      filter = (path: type: !(pkgs.lib.elem (baseNameOf path)
+                            [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode"]));
+      src = ./web-common;
+    };
+  };
+
   plutus-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
     server-invoker = let
@@ -206,7 +215,7 @@ in rec {
     client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
-        inherit easyPS;
+        inherit easyPS webCommon;
         psSrc = generated-purescript;
         src = ./plutus-playground-client;
         packageJSON = ./plutus-playground-client/package.json;
@@ -249,7 +258,7 @@ in rec {
     client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
-        inherit easyPS;
+        inherit easyPS webCommon;
         psSrc = generated-purescript;
         src = ./marlowe-playground-client;
         packageJSON = ./marlowe-playground-client/package.json;
@@ -292,7 +301,7 @@ in rec {
     client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
-        inherit easyPS;
+        inherit easyPS webCommon;
         psSrc = generated-purescript;
         src = ./plutus-scb-client;
         packageJSON = ./plutus-scb-client/package.json;
