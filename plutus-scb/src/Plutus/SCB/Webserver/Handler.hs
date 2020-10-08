@@ -75,8 +75,8 @@ getContractReport = do
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall t effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
-    => Eff effs (ChainReport t)
+       forall effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
+    => Eff effs ChainReport
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
     let ChainOverview { chainOverviewBlockchain

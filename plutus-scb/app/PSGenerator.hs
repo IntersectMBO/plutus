@@ -94,7 +94,7 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)

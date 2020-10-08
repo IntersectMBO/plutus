@@ -13,7 +13,7 @@ import Types (_getPubKeyHash, _propertyName)
 import Plutus.SCB.Webserver.Types (ChainReport(..))
 import Prelude ((<<<), (==))
 
-annotatedBlockchainPane :: forall t p. Chain.State -> ChainReport t -> HTML p Chain.Action
+annotatedBlockchainPane :: forall p. Chain.State -> ChainReport -> HTML p Chain.Action
 annotatedBlockchainPane chainState (ChainReport { relatedMetadata, annotatedBlockchain }) =
   card_
     [ cardHeader_
