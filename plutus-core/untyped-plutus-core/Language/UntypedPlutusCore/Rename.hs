@@ -1,7 +1,5 @@
 -- | The user-facing API of the untyped renamer.
 -- See Language.PlutusCore.Rename for details.
--- FIXME: Annoyingly, all that's needed here are the instances for Rename,
--- and they're orphans.
 
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
