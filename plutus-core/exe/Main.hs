@@ -1,9 +1,6 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module Main (main) where
@@ -80,7 +77,7 @@ typed = flag Untyped Typed (long "typed" <> short 't' <> help "Use typed Plutus 
 
 untyped :: Parser Typing
 untyped = flag Untyped Untyped (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
--- ^ NB: default is always Typed
+-- ^ NB: default is always Untyped
 
 typingMode :: Parser Typing
 typingMode = typed <|> untyped
@@ -275,8 +272,8 @@ getPlcInput (FileInput file) = readFile file
 getPlcInput StdInput         = getContents
 
 -- Read and parse a PLC source program
-parsePlcFile :: Typing -> Input -> IO (Program PLC.AlexPosn)
-parsePlcFile typing inp = do
+parsePlcInput :: Typing -> Input -> IO (Program PLC.AlexPosn)
+parsePlcInput typing inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getPlcInput inp
     case typing of
       Typed   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
@@ -286,17 +283,17 @@ parsePlcFile typing inp = do
                   Left errCheck        -> failWith errCheck
                   Right (Left errEval) -> failWith errEval
                   Right (Right p)      -> return $ wrapper p
-            failWith (err :: PlcParserError) = T.putStrLn (PLC.displayPlcDef err) >> exitFailure
+            failWith (err :: PlcParserError) =  T.putStrLn (PLC.displayPlcDef err) >> exitFailure
 
--- Read a PLC AST from a CBOR file
+
+-- Read a CBOR-encoded PLC AST
 getCborInput :: Input -> IO BSL.ByteString
 getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
-
--- Load a PLC AST from a CBOR file
-loadPlcFromCborFile :: Typing -> Input -> IO (Program ())
-loadPlcFromCborFile typing inp =
+-- Read and deserialise a CBOR-encoded AST
+loadASTfromCBOR :: Typing -> Input -> IO (Program ())
+loadASTfromCBOR typing inp =
     case typing of
          Typed   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
          Untyped -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
@@ -309,12 +306,12 @@ loadPlcFromCborFile typing inp =
 -- FIXME: should we be writing error messages to stdout or stderr?
 
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
-getProg :: Typing -> Input -> Format -> IO (Program PLC.AlexPosn)
-getProg typing inp fmt =
+getProgram :: Typing -> Input -> Format -> IO (Program PLC.AlexPosn)
+getProgram typing inp fmt =
     case fmt of
-      Plc  -> parsePlcFile typing inp
+      Plc  -> parsePlcInput typing inp
       Cbor -> do
-               prog <- loadPlcFromCborFile typing inp
+               prog <- loadASTfromCBOR typing inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
@@ -329,7 +326,7 @@ getPrintMethod = \case
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions typing inp mode) =
-    parsePlcFile typing inp >>= print . (getPrintMethod mode)
+    parsePlcInput typing inp >>= print . (getPrintMethod mode)
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -347,7 +344,7 @@ writeCBOR outp prog = do
 
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions typing inp outp) =
-  parsePlcFile typing inp >>= writeCBOR outp
+  parsePlcInput typing inp >>= writeCBOR outp
 
 
 ---------------- Convert a CBOR file to PLC source ----------------
@@ -361,7 +358,7 @@ writePlc outp mode prog = do
 
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions typing inp outp mode) =
-  loadPlcFromCborFile typing inp >>= writePlc outp mode
+  loadASTfromCBOR typing inp >>= writePlc outp mode
 
 
 ---------------- Examples ----------------
@@ -417,6 +414,7 @@ getAvailableExamples = do
 -- The implementation is a little hacky: we generate interesting examples when the list of examples
 -- is requsted and at each lookup of a particular example. I.e. each time we generate distinct
 -- terms. But types of those terms must not change across requests, so we're safe.
+
 runExample :: ExampleOptions -> IO ()
 runExample (ExampleOptions ExampleAvailable)     = do
     examples <- getAvailableExamples
@@ -432,12 +430,12 @@ runExample (ExampleOptions (ExampleSingle name)) = do
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-  TypedProgram prog <- getProg Typed inp fmt
+  TypedProgram prog <- getProgram Typed inp fmt
   case PLC.runQuoteT $ do
     types <- PLC.getStringBuiltinTypes ()
     PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.putStrLn (PLC.displayPlcDef e) >> exitFailure
+       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.putStrLn (PLC.displayPlcDef e)  >> exitFailure
        Right ty                                -> T.putStrLn (PLC.displayPlcDef ty) >> exitSuccess
 
 
@@ -446,31 +444,34 @@ runTypecheck (TypecheckOptions inp fmt) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions typing inp mode fmt printtime) =
     case typing of
+
       Typed -> do
-        TypedProgram prog <- getProg Typed inp fmt
+        TypedProgram prog <- getProgram Typed inp fmt
         let evaluate = case mode of
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
-        _ <-  Control.Exception.evaluate $ rnf body
+        () <-  Control.Exception.evaluate $ rnf body
         -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- getCPUTime
         case evaluate body of
               PLC.EvaluationSuccess v -> succeed start v
               PLC.EvaluationFailure   -> exitFailure
+
       Untyped ->
           case mode of
             CK  -> T.putStrLn "There is no CK machine for Untyped Plutus Core" >> exitFailure
             CEK -> do
-                  UntypedProgram prog <- getProg Untyped inp fmt
+                  UntypedProgram prog <- getProgram Untyped inp fmt
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
-                  _ <- Control.Exception.evaluate $ rnf body
+                  () <- Control.Exception.evaluate $ rnf body
                   start <- getCPUTime
                   case evaluate body of
                     UPLC.EvaluationSuccess v -> succeed start v
                     UPLC.EvaluationFailure   -> exitFailure
+
     where succeed start v = do
             end <- getCPUTime
             T.putStrLn $ PLC.displayPlcDef v
@@ -485,7 +486,7 @@ runEval (EvalOptions typing inp mode fmt printtime) =
 -- (ie, if we input text then output text; if we input CBOR then output CBOR)
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp outp fmt mode) = do
-  TypedProgram typedProg <- getProg Typed inp fmt
+  TypedProgram typedProg <- getProgram Typed inp fmt
   let untypedProg = UntypedProgram $ UPLC.eraseProgram typedProg
   case fmt of
     Plc  -> writePlc outp mode untypedProg
