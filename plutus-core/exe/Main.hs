@@ -98,7 +98,7 @@ fileInput = FileInput <$> strOption
 stdInput :: Parser Input
 stdInput = flag' StdInput
   (  long "stdin"
-  <> help "Read from stdin" )
+  <> help "Read from stdin (default)" )
 
 
 data Output = FileOutput FilePath | StdOutput
@@ -117,7 +117,7 @@ fileOutput = FileOutput <$> strOption
 stdOutput :: Parser Output
 stdOutput = flag' StdOutput
   (  long "stdout"
-  <> help "Write to stdout" )
+  <> help "Write to stdout (default)" )
 
 
 data Format = Plc | Cbor  -- Input/output format for programs
