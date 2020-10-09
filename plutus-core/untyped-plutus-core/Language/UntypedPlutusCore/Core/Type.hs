@@ -7,6 +7,7 @@
 
 module Language.UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
+    , TPLC.Version (..)
     , Term (..)
     , Program (..)
     , termAnn

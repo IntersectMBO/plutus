@@ -94,8 +94,8 @@ library
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         Language.PlutusCore.Generators.NEAT.Common
+        Language.PlutusCore.Generators.NEAT.Spec
         Language.PlutusCore.Generators.NEAT.Type
-        Language.PlutusCore.Generators.NEAT.PropTest
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
 
@@ -120,6 +120,7 @@ library
         Language.UntypedPlutusCore
         Language.UntypedPlutusCore.DeBruijn
         Language.UntypedPlutusCore.Evaluation.Machine.Cek
+        Language.UntypedPlutusCore.Parser
 
         PlutusPrelude
         Common
@@ -150,6 +151,7 @@ library
         Language.PlutusCore.Lexer.Type
         Language.PlutusCore.Eq
         Language.PlutusCore.Mark
+        Language.PlutusCore.Parser.Internal
         Language.PlutusCore.Pretty.Classic
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
@@ -208,6 +210,7 @@ library
         algebraic-graphs >= 0.3,
         base >=4.9 && <5,
         barbies -any,
+        bifunctors -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -367,6 +370,7 @@ benchmark plutus-core-bench
     build-depends:
         base -any,
         bytestring -any,
+        mtl -any,
         containers -any,
         criterion -any,
         plutus-core -any,

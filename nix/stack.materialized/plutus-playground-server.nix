@@ -41,6 +41,8 @@
       "library" = {
         depends = [
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."aws-lambda-haskell-runtime" or (errorHandler.buildDepError "aws-lambda-haskell-runtime"))
+          (hsPkgs."aws-lambda-haskell-runtime-wai" or (errorHandler.buildDepError "aws-lambda-haskell-runtime-wai"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
@@ -80,9 +82,12 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
+          (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
+          "Playground/Lambda"
           "Playground/Server"
           "Playground/Interpreter"
           "Playground/Usecases"
@@ -177,6 +182,7 @@
             (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+            (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
@@ -212,6 +218,7 @@
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."insert-ordered-containers" or (errorHandler.buildDepError "insert-ordered-containers"))
+            (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -226,6 +233,7 @@
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [

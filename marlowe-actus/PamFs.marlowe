@@ -70,14 +70,12 @@ Let "tmd_0"
                                                                              (When [
                                                                                 (Case
                                                                                    (Deposit
-                                                                                      (AccountId 0
-                                                                                         (Role "party"))
+                                                                                      (Role "party")
                                                                                       (Role "party")
                                                                                       (Token "" "")
                                                                                       (UseValue "payoff_1"))
                                                                                    (Pay
-                                                                                      (AccountId 0
-                                                                                         (Role "party"))
+                                                                                      (Role "party")
                                                                                       (Party
                                                                                          (Role "counterparty"))
                                                                                       (Token "" "")
@@ -132,15 +130,13 @@ Let "tmd_0"
                                                                                                                                    (When [
                                                                                                                                       (Case
                                                                                                                                          (Deposit
-                                                                                                                                            (AccountId 0
-                                                                                                                                               (Role "counterparty"))
+                                                                                                                                            (Role "counterparty")
                                                                                                                                             (Role "counterparty")
                                                                                                                                             (Token "" "")
                                                                                                                                             (NegValue
                                                                                                                                                (UseValue "payoff_2")))
                                                                                                                                          (Pay
-                                                                                                                                            (AccountId 0
-                                                                                                                                               (Role "counterparty"))
+                                                                                                                                            (Role "counterparty")
                                                                                                                                             (Party
                                                                                                                                                (Role "party"))
                                                                                                                                             (Token "" "")

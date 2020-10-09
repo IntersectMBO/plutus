@@ -164,8 +164,8 @@ documentationLinksPane =
   where
   links =
     [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-    , Tuple "Tutorial" "./tutorial"
-    , Tuple "API" "./haddock"
+    , Tuple "Tutorial" "./tutorial/index.html"
+    , Tuple "API" "./tutorial/haddock/index.html"
     , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 

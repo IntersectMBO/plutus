@@ -8,14 +8,13 @@ module Declarative.Examples where
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
-open import Declarative.Term
-open import Declarative.Term.RenamingSubstitution
-open import Declarative.Evaluation
+open import Declarative
+open import Declarative.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term
 open import Builtin.Signature
-open import Declarative.StdLib.Function
+open import Declarative.Examples.StdLib.Function
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
@@ -25,36 +24,26 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat
 open import Data.Unit
 
-import Declarative.StdLib.ChurchNat
+import Declarative.Examples.StdLib.ChurchNat
 \end{code}
 
 ## Examples
 
 \begin{code}
 module Builtins where
-  open Declarative.StdLib.ChurchNat
+  open Declarative.Examples.StdLib.ChurchNat
 
-  con2 : ∀{Γ} → Γ ⊢ con integer (size⋆ 8)
-  con2 = con (integer 8 (pos 2) (-≤+ ,, +≤+ (s≤s (s≤s (s≤s z≤n)))))
+  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+  con2 = con (integer (pos 2))
 
-  builtin2plus2 : ∅ ⊢ con integer (size⋆ 8)
+  builtin2plus2 : ∅ ⊢ con integer
   builtin2plus2 = builtin
     addInteger
-    (λ { Z → size⋆ 8 ; (S x) → ` x})
-    (con2 ,, con2 ,, tt)
+    `
+    (con2 ∷ (con2 ∷ []))
 
-  inc8 : ∅ ⊢ con integer (size⋆ 8) ⇒ con integer (size⋆ 8)
-  inc8 = ƛ (builtin
-    addInteger
-    (λ { Z → size⋆ 8 ; (S x) → ` x})
-    (con1 ,, ` Z ,, tt))
-
-  builtininc2 : ∅ ⊢ con integer (size⋆ 8)
-  builtininc2 = inc8 · con2
-
-  builtininc2' : ∅ ⊢ con integer (size⋆ 8)
-  builtininc2' = (inc ·⋆ size⋆ 8) · con2
-
+  builtininc2 : ∅ ⊢ con integer
+  builtininc2 = inc · con2
 \end{code}
 
 
@@ -77,7 +66,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
      : N → ∀ R . R → (N → R) → R
 
 
---
+-- v version with evaluation contexts
 
 \begin{code}
 {-
@@ -190,12 +179,12 @@ eval (gas 10000000) Scott.Two
 
 \begin{code}
 module Scott1 where
-  open import Declarative.StdLib.Nat
+  open import Declarative.Examples.StdLib.Nat
   
-  One : ∀{Γ} → Γ ⊢ N
+  One : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   One = Succ · Zero
   
-  Two : ∀{Γ} → Γ ⊢ N
+  Two : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   Two = Succ · One
 
   Three : ∅ ⊢ N
@@ -204,17 +193,17 @@ module Scott1 where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  case : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
   case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
 
-  TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
+  TwoPlus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
   TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
   TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
 
   -- Roman's more efficient version
-  Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
+  Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
   Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
@@ -226,7 +215,7 @@ module Scott1 where
 
 \begin{code}
 module Church where
-  open Declarative.StdLib.ChurchNat
+  open Declarative.Examples.StdLib.ChurchNat
   
   -- two plus two
   One : ∅ ⊢ N

@@ -3,12 +3,9 @@ module Examples.JS.Contracts where
 escrow :: String
 escrow =
   """/* Parties */
-const alice : Party = role("alice");
-const bob : Party = role("bob");
-const carol : Party = role("carol");
-
-/* Accounts */
-const alicesAccount : AccountId = accountId(0, alice);
+const alice : Party = Role("alice");
+const bob : Party = Role("bob");
+const carol : Party = Role("carol");
 
 /* Value under escrow */
 const price : SomeNumber = new bignumber.BigNumber(450);
@@ -18,23 +15,23 @@ const price : SomeNumber = new bignumber.BigNumber(450);
 const choiceName : string = "choice";
 
 const choiceIdBy = function (party : Party) : ChoiceId {
-                       return choiceId(choiceName, party);
+                       return ChoiceId(choiceName, party);
                    }
 
 const choiceBy = function(party : Party, bounds : [Bound]) : Action {
-                      return choice(choiceIdBy(party), bounds);
+                      return Choice(choiceIdBy(party), bounds);
                   };
 
 
 const choiceValueBy = function(party : Party) : Value {
-                          return choiceValue(choiceIdBy(party));
+                          return ChoiceValue(choiceIdBy(party));
                       };
 
 /* Names for choices */
 
-const pay : [Bound]    = [bound(0, 0)];
-const refund : [Bound] = [bound(1, 1)];
-const both : [Bound]   = [bound(0, 1)];
+const pay : [Bound]    = [Bound(0, 0)];
+const refund : [Bound] = [Bound(1, 1)];
+const both : [Bound]   = [Bound(0, 1)];
 
 /* Name choices according to person making choice and choice made */
 
@@ -58,25 +55,25 @@ const bobChosen : Value = choiceValueBy(bob);
 /* The contract to follow when Alice and Bob disagree, or if
    Carol has to intervene after a single choice from Alice or Bob. */
 
-const arbitrate : Contract = whenM([caseM(carolRefund, closeM),
-                                    caseM(carolPay, payM(alicesAccount, bob, ada, price, closeM))],
-                                   100, closeM);
+const arbitrate : Contract = When([Case(carolRefund, Close),
+                                   Case(carolPay, Pay(alice, Party(bob), ada, price, Close))],
+                                   100, Close);
 
 /* The contract to follow when Alice and Bob have made the same choice. */
 
-const agreement : Contract = ifM(valueEQ(aliceChosen, 0),
-                                 payM(alicesAccount, bob, ada, price, closeM),
-                                 closeM);
+const agreement : Contract = If(ValueEQ(aliceChosen, 0),
+                                Pay(alice, Party(bob), ada, price, Close),
+                                Close);
 
 /* Inner part of contract */
 
-const inner : Contract = whenM([caseM(aliceChoice,
-                           whenM([caseM(bobChoice,
-                                        ifM(valueEQ(aliceChosen, bobChosen),
-                                          agreement,
-                                          arbitrate))],
-                                 60, arbitrate))],
-                           40, closeM);
+const inner : Contract = When([Case(aliceChoice,
+                          When([Case(bobChoice,
+                                     If(ValueEQ(aliceChosen, bobChosen),
+                                        agreement,
+                                        arbitrate))],
+                                60, arbitrate))],
+                          40, Close);
 
 /* What does the vanilla contract look like?
   - if Alice and Bob choose
@@ -85,82 +82,90 @@ const inner : Contract = whenM([caseM(aliceChoice,
   - Carol also decides if timeout after one choice has been made;
   - refund if no choices are made. */
 
-const contract : Contract = whenM([caseM(deposit(alicesAccount, alice, ada, price), inner)],
-                                  10,
-                                  closeM)
+const contract : Contract = When([Case(Deposit(alice, alice, ada, price), inner)],
+                                 10,
+                                 Close)
 
 contract
+
 """
 
 zeroCouponBond :: String
 zeroCouponBond =
-  """const investor : Party = role("investor");
-const issuer : Party = role("issuer");
+  """const investor : Party = Role("investor");
+const issuer : Party = Role("issuer");
 
-const investorAcc : AccountId = accountId(0, investor);
-
-whenM([caseM(
-        deposit(investorAcc, investor, ada, 850),
-        payM(investorAcc, issuer, ada, 850,
-             whenM([ caseM(deposit(investorAcc, issuer, ada, 1000),
-                           payM(investorAcc, investor, ada, 1000, closeM))
-                   ],
-                   20,
-                   closeM)
-            ))],
+When([Case(
+        Deposit(investor, investor, ada, 850),
+        Pay(investor, Party(issuer), ada, 850,
+            When([ Case(Deposit(investor, issuer, ada, 1000),
+                        Pay(investor, Party(investor), ada, 1000, Close))
+                 ],
+                 20,
+                 Close)
+           ))],
       10,
-      closeM);
+      Close);
+
 """
 
 couponBondGuaranteed :: String
 couponBondGuaranteed =
-  """const issuer : Party = role("issuer");
-const guarantor : Party = role("guarantor");
-const investor : Party = role("investor");
-const investorAcc : AccountId = accountId(0, investor);
+  """const issuer : Party = Role("issuer");
+const guarantor : Party = Role("guarantor");
+const investor : Party = Role("investor");
 
-whenM([caseM(deposit(investorAcc, guarantor, ada, 1030),
-        (whenM([caseM(deposit(investorAcc, investor, ada, 1000),
-                payM(investorAcc, issuer, ada, 1000,
-                    (whenM([caseM(deposit( investorAcc, issuer, ada, 10),
-                            payM(investorAcc, investor, ada, 10,
-                                payM(investorAcc, guarantor, ada, 10,
-                                    (whenM([caseM(deposit(investorAcc, issuer, ada, 10),
-                                            payM(investorAcc, investor, ada, 10,
-                                                payM(investorAcc, guarantor, ada, 10,
-                                                    (whenM([caseM(deposit(investorAcc, issuer, ada, 1010),
-                                                            payM(investorAcc, investor, ada, 1010,
-                                                                payM(investorAcc, guarantor, ada, 1010, closeM)
-                                                            ))], 20, closeM)
-                                                    )
-                                                )
-                                            ))], 15, closeM)
-                                    )
-                                )
-                            ))], 10, closeM)
+When([
+    Case(Deposit(investor, guarantor, ada, 1030),
+         When([
+            Case(Deposit(investor, investor, ada, 1000),
+                 Pay(investor, Party(issuer), ada, 1000,
+                     When([
+                         Case(Deposit(investor, issuer, ada, 10),
+                              Pay(investor, Party(investor), ada, 10,
+                                  Pay(investor, Party(guarantor), ada, 10,
+                                      When([
+                                          Case(Deposit(investor, issuer, ada, 10),
+                                               Pay(investor, Party(investor), ada, 10,
+                                                   Pay(investor, Party(guarantor), ada, 10,
+                                                       When([
+                                                           Case(Deposit(investor, issuer, ada, 1010),
+                                                                Pay(investor, Party(investor), ada, 1010,
+                                                                    Pay(investor, Party(guarantor), ada, 1010, Close)
+                                                                   )
+                                                               )
+                                                            ], 20, Close)
+                                                      )
+                                                  )
+                                              )
+                                           ], 15, Close)
+                                     )
+                                 )
+                             )
+                          ], 10, Close)
                     )
-                ))], 5, closeM)
-        ))], 5, closeM)
+                )
+              ], 5, Close)
+        )
+     ], 5, Close)
 """
 
 swap :: String
 swap =
-  """const party1 : Party = role("party1");
-const party2 : Party = role("party2");
+  """const party1 : Party = Role("party1");
+const party2 : Party = Role("party2");
 const gracePeriod : SomeNumber = new bignumber.BigNumber(5);
 const date1 : SomeNumber = new bignumber.BigNumber(20);
-const acc1 : AccountId = accountId(1, party1);
-const acc2 : AccountId = accountId(2, party2);
 
-const contract : Contract = whenM([ caseM(deposit(acc1, party1, ada, 500),
-                                      /* when 1st party committed, wait for 2nd */
-                                      whenM([caseM(deposit(acc2, party2, ada, 300),
-                                                  payM(acc1, party2, ada, 500,
-                                                      payM(acc2, party1, ada, 300, closeM)))
+const contract : Contract = When([ Case(Deposit(party1, party1, ada, 500),
+                                     /* when 1st party committed, wait for 2nd */
+                                     When([Case(Deposit(party2, party2, ada, 300),
+                                                Pay(party1, Party(party2), ada, 500,
+                                                    Pay(party2, Party(party1), ada, 300, Close)))
                                           ], date1,
-                                      /* if a party dosn't commit, simply Close to the owner */
-                                      closeM))
-                                  ], date1.minus(gracePeriod), closeM);
+                                     /* if a party dosn't commit, simply Close to the owner */
+                                          Close))
+                                 ], date1.minus(gracePeriod), Close);
 
 contract
 """

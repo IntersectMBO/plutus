@@ -57,7 +57,7 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
@@ -276,7 +276,8 @@ handleGistAction settings PublishGist = do
     $ runMaybeT do
         currentContract <- lift editorGetValue
         oldContract <- use _oldContract
-        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
+        let
+          newGist = mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
         mGist <- use _createGistResult
         assign _createGistResult Loading
         newResult <-
@@ -295,6 +296,7 @@ handleGistAction _ (SetGistUrl newGistUrl) = do
   assign _gistUrl (Just newGistUrl)
 
 handleGistAction settings LoadGist = do
+  -- LoadGist in Simulation will soon be removed as it is being replaced by the Projects.purs
   res <-
     runExceptT
       $ do
@@ -307,14 +309,7 @@ handleGistAction settings LoadGist = do
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
           --
           -- Load the source, if available.
-          currentContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (currentSimulationMarloweGistFile gist)
-          let
-            oldContract = preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
-          state <- noteT "State not found in gist." (simulationState gist)
-          lift $ editorSetValue currentContract
-          liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
-          assign _oldContract oldContract
-          assign _marloweState state
+          ExceptT $ loadGist gist
           pure aGist
   assign _loadGistResult res
   where
@@ -326,6 +321,22 @@ handleGistAction settings LoadGist = do
   toEither x Loading = x
 
   toEither x NotAsked = x
+
+loadGist ::
+  forall m.
+  MonadAff m =>
+  MonadEffect m =>
+  Gist ->
+  HalogenM State Action ChildSlots Void m (Either String Unit)
+loadGist gist =
+  runExceptT do
+    currentContract <- noteT "Source not found in gist." $ view (_Just <<< gistFileContent) (currentSimulationMarloweGistFile gist)
+    let
+      oldContract = view (_Just <<< gistFileContent) (oldSimulationMarloweGistFile gist)
+    lift $ editorSetValue currentContract
+    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
+    assign _oldContract oldContract
+    assign _marloweState $ fromMaybe (NEL.singleton (emptyMarloweState zero)) $ simulationState gist
 
 runAjax ::
   forall m a.
@@ -713,13 +724,13 @@ marloweActionInput isEnabled f current =
     ]
 
 renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
-renderDeposit (AccountId accountNumber accountOwner) party tok money =
+renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
   , b_ [ spanText (showPrettyToken tok) ]
   , spanText " into Account "
-  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
+  , b_ [ spanText (show accountOwner) ]
   , spanText " as "
   , b_ [ spanText (show party) ]
   ]

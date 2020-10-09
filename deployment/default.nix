@@ -1,4 +1,4 @@
-{ pkgs, marlowe-playground, marlowe-symbolic-lambda, marlowe-playground-lambda }:
+{ pkgs, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
 with pkgs;
 let
   # 20.03 version of terraform is broken on some versions of OSX so I have copied the last 0_12 version from nixpkgs
@@ -34,40 +34,27 @@ let
       text = ''
         env="${env}"
         aws_region="${region}"
-      '' + (if pkgs.stdenv.isDarwin then
-      # On OSX you need to set the env vars with the locations of the lambda zip files e.g.
-      # export TF_VAR_symbolic_lambda_file=/path/to/marlowe-symbolic.zip
-      # export TF_VAR_playground_lambda_file=/path/to/marlowe-playground-lambda.zip
-        ""
-      else
-        ''
-          symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"
-          playground_lambda_file="${marlowe-playground-lambda}/marlowe-playground-lambda.zip"'');
+        symbolic_lambda_file="${marlowe-symbolic-lambda}/marlowe-symbolic.zip"
+        playground_lambda_file="${marlowe-playground-lambda}/marlowe-playground-lambda.zip"
+        plutus_playground_lambda_file="${plutus-playground-lambda}/plutus-playground-lambda.zip"'';
     };
-
-  runTerraform = env: region:
-    writeShellScript "terraform" ''
-      tmp_dir=$(mktemp -d)
-      ln -s ${./terraform}/* $tmp_dir
-      ln -s ${terraform-locals env}/* $tmp_dir
-      ln -s ${terraform-vars env region}/* $tmp_dir
-      cd $tmp_dir
-      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      ${terraform}/bin/terraform init
-      ${terraform}/bin/terraform workspace select ${env}
-      ${terraform}/bin/terraform apply -var-file=${env}.tfvars
-    '';
 
   syncS3 = env:
     writeShellScript "syncs3" ''
-    ${awscli}/bin/aws s3 sync --delete ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-    # We do a sync to delete any files that have been removed, just to keep things clean, then we do a recursive cp
-    # because sync doesn't update files with the same file size and timestamp
-    ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/'';
+      echo "sync with S3"
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
+      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
+      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial
+      '';
+  
+  syncPlutusTutorial = env:
+    writeShellScript "syncPlutusTutorial" ''
+      echo "sync plutus tutorial with S3"
+      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      '';
 
-  deploy = env: region:
+  applyTerraform = env: region:
     writeShellScript "deploy" ''
       set -e
       tmp_dir=$(mktemp -d)
@@ -86,31 +73,70 @@ let
       export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
       export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
       export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
+      export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
+      export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
       ${terraform}/bin/terraform apply -var-file=${env}.tfvars
-      api_id=$(${terraform}/bin/terraform output rest_api_id)
+      marlowe_api_id=$(${terraform}/bin/terraform output marlowe_rest_api_id)
+      plutus_api_id=$(${terraform}/bin/terraform output plutus_rest_api_id)
       region=$(${terraform}/bin/terraform output region)
 
-      echo "sync with S3"
-      ${syncS3 env}
-
       echo "deploy api"
-      ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $api_id --stage-name ${env}
+      ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $marlowe_api_id --stage-name ${env}
+      ${awscli}/bin/aws apigateway create-deployment --region $region --rest-api-id $plutus_api_id --stage-name ${env}
+    '';
 
+  deploy = env: region:
+    writeShellScript "deploy" ''
+      set -e
+      ${applyTerraform env region}
+      ${syncS3 env}
+      ${syncPlutusTutorial env}
       echo "done"
+      '';
+
+  destroy = env: region:
+    writeShellScript "destroy" ''
+      set -e
+      tmp_dir=$(mktemp -d)
+      echo "using tmp_dir $tmp_dir"
+
+      ln -s ${./terraform}/* $tmp_dir
+
+      # in case we have some tfvars around in ./terraform
+      rm $tmp_dir/*.tfvars | true
+
+      ln -s ${terraform-locals env}/* $tmp_dir
+      ln -s ${terraform-vars env region}/* $tmp_dir
+      cd $tmp_dir
+
+      echo "apply terraform"
+      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
+      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
+      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
+      export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
+      export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
+      ${terraform}/bin/terraform init
+      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform destroy -var-file=${env}.tfvars 
     '';
 
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
-    runTerraform = (runTerraform env region);
+    syncPlutusTutorial = (syncPlutusTutorial env);
+    applyTerraform = (applyTerraform env region);
     deploy = (deploy env region);
+    destroy = (destroy env region);
   };
 
   envs = {
     david = mkEnv "david" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
+    wyohack = mkEnv "wyohack" "us-west-2";
   };
 in envs // { inherit getCreds; }

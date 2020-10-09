@@ -20,7 +20,6 @@ import           Data.Proxy                            (Proxy (Proxy))
 import           Language.Marlowe                      (Contract, Slot (Slot), State, TransactionInput,
                                                         TransactionWarning)
 import           Language.Marlowe.Analysis.FSSemantics (warningsTraceCustom)
-import           Language.Marlowe.Pretty               (Pretty, pretty, prettyFragment)
 import           Marlowe.Symbolic.Types.Request        (Request (..))
 import           Marlowe.Symbolic.Types.Response       (Result (..))
 import           Servant                               ((:<|>) ((:<|>)), (:>), Application, Handler (Handler), JSON,
@@ -29,9 +28,6 @@ import           System.Process                        (system)
 import           Text.PrettyPrint.Leijen               (displayS, renderCompact)
 
 type API = "marlowe-analysis" :> ReqBody '[JSON] Request :> Post '[JSON] Result
-
-prettyToString :: Pretty a => a -> String
-prettyToString x = (displayS $ renderCompact $ prettyFragment x) ""
 
 makeResponse ::
   Either String (Maybe (Slot, [TransactionInput], [TransactionWarning])) ->
@@ -43,8 +39,8 @@ makeResponse (Right res) =
         Just (Slot sn, ti, tw) ->
           CounterExample
             { initialSlot = sn,
-              transactionList = prettyToString ti,
-              transactionWarning = prettyToString tw
+              transactionList = ti,
+              transactionWarning = tw
             }
 
 handlers :: Server API
@@ -58,7 +54,7 @@ handlers Request {..} =
     pure resp
 
 app :: Application
-app = serve (Proxy @API) $ handlers
+app = serve (Proxy @API) handlers
 
 initializeContext :: IO ()
 initializeContext = pure ()

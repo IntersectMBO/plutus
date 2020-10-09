@@ -40,7 +40,8 @@ let
   sphinxemoji = pkgs.python3Packages.callPackage ./nix/python/sphinxemoji.nix {};
 
   pkgsMusl = import ./nix/default.nix {
-    inherit system config sourcesOverride;
+    inherit config sourcesOverride;
+    system = "x86_64-linux";
     crossSystem = lib.systems.examples.musl64;
   };
 
@@ -217,6 +218,8 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
+    tutorial = docs.site;
+    haddock = docs.combined-haddock;
   });
 
   marlowe-playground = pkgs.recurseIntoAttrs (rec {
@@ -257,13 +260,19 @@ in rec {
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
+    
+    tutorial = docs.marlowe-tutorial;
   });
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
   
   marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
 
-  deployment = pkgs.callPackage ./deployment { inherit marlowe-playground marlowe-symbolic-lambda marlowe-playground-lambda; };
+  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
+
+  deployment = pkgs.callPackage ./deployment { 
+    inherit marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda; 
+  };
 
   inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
 

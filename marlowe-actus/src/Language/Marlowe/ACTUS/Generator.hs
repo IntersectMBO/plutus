@@ -13,8 +13,7 @@ import           Data.Maybe                                              (fromMa
 import           Data.Monoid
 import           Data.String                                             (IsString (fromString))
 import           Data.Time                                               (Day)
-import           Language.Marlowe                                        (AccountId (AccountId),
-                                                                          Action (Choice, Deposit), Bound (Bound),
+import           Language.Marlowe                                        (Action (Choice, Deposit), Bound (Bound),
                                                                           Case (Case), ChoiceId (ChoiceId),
                                                                           Contract (Close, Let, Pay, When), Observation,
                                                                           Party (Role), Payee (Party), Slot (..),
@@ -39,8 +38,8 @@ invoice from to amount timeout continue =
         counterparty = Role $ TokenName $ fromString to
     in  When
             [ Case
-                    (Deposit (AccountId 0 party) party ada amount)
-                    (Pay (AccountId 0 party)
+                    (Deposit party party ada amount)
+                    (Pay party
                         (Party counterparty)
                         ada
                         amount

@@ -1,50 +1,45 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 module Language.PlutusIR.Purity (isPure) where
 
 import           Language.PlutusIR
 
+import           Language.PlutusCore.Constant.Meaning
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Constant.Name
-import qualified Language.PlutusCore as PLC
 
 import           Data.Proxy
-import qualified Data.Map as Map
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
 
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
-data BuiltinApp tyname name uni fun a = BuiltinApp PLC.Builtin [Arg tyname name uni fun a]
+data BuiltinApp tyname name uni fun a = BuiltinApp fun [Arg tyname name uni fun a]
 
 saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme term args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
-saturatesScheme _ TypeSchemeResult{} = Just True
+saturatesScheme _ TypeSchemeResult{}                       = Just True
 -- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
 saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ _ k)   = saturatesScheme args (k Proxy)
 -- Under-applied, not saturated
-saturatesScheme [] TypeSchemeArrow{} = Just False
-saturatesScheme [] TypeSchemeAll{}   = Just False
+saturatesScheme [] TypeSchemeArrow{}                       = Just False
+saturatesScheme [] TypeSchemeAll{}                         = Just False
 -- These cases are only possible in case we have an ill-typed builtin application, so we can't give an answer.
-saturatesScheme (TypeArg _ : _) TypeSchemeArrow{} = Nothing
-saturatesScheme (TermArg _ : _) TypeSchemeAll{}   = Nothing
+saturatesScheme (TypeArg _ : _) TypeSchemeArrow{}          = Nothing
+saturatesScheme (TermArg _ : _) TypeSchemeAll{}            = Nothing
 
 -- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
-    :: forall tyname name uni fun a term
-    . (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => BuiltinMeanings term
-    -> BuiltinApp tyname name uni fun a
+    :: forall tyname name uni fun a dyn cost
+    . ToBuiltinMeaning uni fun dyn cost
+    => BuiltinApp tyname name uni fun a
     -> Maybe Bool
-isSaturated (BuiltinMeanings means) (BuiltinApp b args) = case b of
-    PLC.StaticBuiltin bn -> withTypedStaticBuiltin @uni @term bn $ \(TypedStaticBuiltin _ sch) -> saturatesScheme args sch
-    PLC.DynBuiltin bn -> case Map.lookup bn means of
-        Just (BuiltinMeaning sch _ _) -> saturatesScheme args sch
-        Nothing -> Nothing
+isSaturated (BuiltinApp fun args) =
+    case toBuiltinMeaning @uni @fun @dyn @cost @(Term TyName Name uni fun ()) fun of
+        BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
 asBuiltinApp :: Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)
@@ -68,14 +63,14 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- | Will evaluating this term have side effects (looping or error)?. This is slightly wider than the definition of a value, as
 -- it includes things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
-    :: (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => BuiltinMeanings term -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
-isPure means varStrictness = go
+    :: ToBuiltinMeaning uni fun dyn cost
+    => (name -> Strictness) -> Term tyname name uni fun a -> Bool
+isPure varStrictness = go
     where
         go = \case
             -- See Note [Purity, strictness, and variables]
             Var _ n -> case varStrictness n of
-                Strict -> True
+                Strict    -> True
                 NonStrict -> False
             -- These are syntactically values that won't reduce further
             LamAbs {} -> True
@@ -85,7 +80,7 @@ isPure means varStrictness = go
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
-                (case isSaturated means bapp of { Just b -> not b; Nothing -> False; })
+                (case isSaturated bapp of { Just b -> not b; Nothing -> False; })
                 &&
                 -- But all the arguments need to also be effect-free, since they will be evaluated
                 -- when we evaluate the application.

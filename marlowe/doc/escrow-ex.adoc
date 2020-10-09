@@ -28,14 +28,13 @@ When aliceChoice
 The contract is described using the _constructors_ of a Haskell data
 type. The outermost constructor `+When+` has two arguments: the first is
 an _observation_ and the second is another contract. The intended
-meaning of this is that _when_ the observation becomes true, the second
+meaning of this is that _when_ the action happens, the second
 contract is activated.
 
 The second contract is itself another `When` – asking for a decision from `+bob+` – but inside that, there is a _choice_: `If`
 `+alice+` and `+bob+` agree on what to do, it is done; if not,  `+carol+` is asked to arbitrate and make a decision.
 
-In fact, we can allow for the option of `+bob+` making the first choice, rather than `+alice+`, and so in general `When` offers a _list of cases_,footnote:[Lists in Marlowe are included in square brackets, as in `[2,3,4\]`.] each with an action and a corresponding contract that is triggered when that action happens:
-
+In general `When` offers a _list of cases_,footnote:[Lists in Marlowe are included in square brackets, as in `[2,3,4\]`.] each with an action and a corresponding contract that is triggered when that action happens. Using this we can allow for the option of `+bob+` making the first choice, rather than `+alice+`, like this:
 
 [source,haskell]
 ----
@@ -51,7 +50,7 @@ In fact, we can allow for the option of `+bob+` making the first choice, rather 
                               arbitrate) ]
        ]
 ----
-In this contract, either Alice or Bob can make the first choice; the other then makes a choice. If they agree, then that is done; if not, Carol arbitrates.
+In this contract, either Alice or Bob can make the first choice; the other then makes a choice. If they agree, then that is done; if not, Carol arbitrates. In the remainder of the tutorial we'll revert to the simpler version where `alice` chooses first.
 
 ____
 *Exercise*
@@ -76,7 +75,7 @@ Marlowe contracts incorporate extra constructs to ensure that they progress prop
 === Adding timeouts
 
 First, let us examine how to modify what we have written to take care of
-the case that the condition of the `+When+` never becomes true. So, we  add timeout and continuation values to each `+When+` occurring in the contract.
+the case that the condition of the `+When+` never becomes true. So, we add timeout and continuation values to each `+When+` occurring in the contract.
 
 [source,haskell]
 ----
@@ -86,24 +85,17 @@ the case that the condition of the `+When+` never becomes true. So, we  add time
                              agreement
                              arbitrate) ]
                     60            -- ADDED
-                    arbitrate),   -- ADDED
-        Case bobChoice
-              (When [ Case aliceChoice
-                          (If (aliceChosen `ValueEQ` bobChosen)
-                              agreement
-                              arbitrate) ]
-                    60            -- ADDED
                     arbitrate)    -- ADDED
         ]
-        40            -- ADDED
+        40           -- ADDED
         Close        -- ADDED
 ----
 
-The outermost `When` calls for the first choice to be made by Alice or Bob: if neither of them has made a choice by time `40`, the contract is closed and all the funds in the contract are refunded.
+The outermost `When` calls for the first choice to be made by Alice: if Alice has not made a choice by slot `40`, the contract is closed and all the funds in the contract are refunded.
 
-`Close` is typically the last step in every “path” through a Marlowe contract, and its effect is to refund the money in the contract to the participants; we will describe this in more detail in a later tutorial. In this particular case, refund will happen after `40` slots.
+`Close` is typically the last step in every “path” through a Marlowe contract, and its effect is to refund the money in the contract to the participants; we will describe this in more detail when we look at xref:marlowe-step-by-step#marlowe-step-by-step[Marlowe step by step] in a later tutorial. In this particular case, refund will happen at slot number `40`.
 
-Looking at the inner constructs, if a choice has been made, then we wait for a second one. If that is not forthcoming by slot `60`, then Carol is called upon to arbitrate.footnote:[Again, we will describe how `arbitrate` and `agreement` work in a later tutorial.]
+Looking at the inner constructs, if Alice's choice has been made, then we wait for one from Bob. If that is not forthcoming by slot `60`, then Carol is called upon to arbitrate.footnote:[Again, we will describe how `arbitrate` and `agreement` work in xref:embedded-marlowe#embedded-marlowe[embedded Marlowe].]
 
 === Adding commitments
 
@@ -119,25 +111,18 @@ contract.
                              agreement
                              arbitrate) ]
                     60
-                    arbitrate),
-        Case bobChoice
-              (When [ Case aliceChoice
-                          (If (aliceChosen `ValueEQ` bobChosen)
-                              agreement
-                              arbitrate) ]
-                    60
                     arbitrate)
         ]
         40
         Close)
     ]
-    10                                       -- ADDED
+    10                                      -- ADDED
     Close                                   -- ADDED
 ----
 
 A deposit of `price` is requested from `"alice"`: if it is given, then it is held in an account, also called `"alice"`. Accounts like this exist for the life of the contract only; each account belongs to a single contract.
 
-There is a timeout of `10` slots on making the deposit; if that is reached without a deposit being made, the contract is closed and all the money already in the contract is refunded. In this case, that is simply the end of the contract.
+There is a timeout at slot number `10` on making the deposit; if that is reached without a deposit being made, the contract is closed and all the money already in the contract is refunded. In this case, that is simply the end of the contract.
 
 
 === Definitions
@@ -170,6 +155,8 @@ these could be generated by users’ wallets in a version of Marlowe
 deployed on a blockchain.
 
 === Where to go to find out more
+
+These papers cover the original work on using functional programming to describe financial contracts.
 
 * https://www.microsoft.com/en-us/research/publication/composing-contracts-an-adventure-in-financial-engineering/[Composing
 contracts: an adventure in financial engineering]

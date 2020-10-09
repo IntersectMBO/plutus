@@ -5,31 +5,28 @@ module Language.PlutusIR.TypeCheck
     (
     -- * Configuration.
       BuiltinTypes (..)
-    , TypeCheckConfig (..)
+    , PirTCConfig (..)
     , tccBuiltinTypes
-    , PLC.defConfig
-    , PLC.dynamicBuiltinMeaningsToTypes
-    -- * Type inference/checking, extending the plc typechecker
+    , getDefTypeCheckConfig
+    -- * Type checking, extending the plc typechecker
     , inferType
     , checkType
     , inferTypeOfProgram
     , checkTypeOfProgram
-    -- * Kind inference/checking, taken directly from plc typechecker
-    , PLC.inferKind
-    , PLC.checkKind
     ) where
 
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
-import qualified Language.PlutusCore.TypeCheck          as PLC
-import qualified Language.PlutusCore.TypeCheck.Internal as PLC
+import qualified Language.PlutusCore.TypeCheck        as PLC
 import           Language.PlutusCore.Universe
 import           Language.PlutusIR
 import           Language.PlutusIR.Error
-import           Language.PlutusIR.Transform.Rename     ()
+import           Language.PlutusIR.Transform.Rename   ()
 import           Language.PlutusIR.TypeCheck.Internal
 
 import           Control.Monad.Except
+import           Data.Ix
 
 {- Note [Goal of PIR typechecker]
 
@@ -57,47 +54,65 @@ would be better written as `let (nonrec) x = 3 in`. In such cases we could signa
 - In general, as an extra source of (type) safety.
 -}
 
+-- | The default 'TypeCheckConfig'.
+getDefTypeCheckConfig
+    :: forall uni fun dyn cost m err ann.
+       ( MonadError err m, MonadQuote m
+       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+       , ToBuiltinMeaning uni fun dyn cost
+       , Bounded fun, Enum fun, Ix fun
+       )
+    => ann -> m (PirTCConfig uni fun)
+getDefTypeCheckConfig ann = do
+    configPlc <- PLC.getDefTypeCheckConfig ann
+    pure $ PirTCConfig configPlc YesEscape
 
 -- | Infer the type of a term.
+-- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferType
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, DefaultUni <: uni
+    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
-inferType config = rename >=> PLC.runTypeCheckM config . inferTypeM
+    => PirTCConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
 -- Infers the type of the term and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
+-- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkType
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, DefaultUni <: uni
+    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni
+    => PirTCConfig uni fun
     -> ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
     -> m ()
 checkType config ann term ty = do
     termRen <- rename term
-    PLC.runTypeCheckM config $ checkTypeM ann termRen ty
+    runTypeCheckM config $ checkTypeM ann termRen ty
 
 -- | Infer the type of a program.
+-- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferTypeOfProgram
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, DefaultUni <: uni
+    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => PirTCConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ term) = inferType config term
+
 
 -- | Check a program against a type.
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
+-- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkTypeOfProgram
-    :: (AsTypeError e (Term TyName Name uni fun ()) uni ann, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, DefaultUni <: uni
+    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann,
+        MonadError e m, MonadQuote m
+       , GShow uni, GEq uni, Ix fun
        )
-    => TypeCheckConfig uni
+    => PirTCConfig uni fun
     -> ann
     -> Program TyName Name uni fun ann
     -> Normalized (Type TyName uni ())

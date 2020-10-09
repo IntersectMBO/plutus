@@ -7,10 +7,13 @@ import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck                  (unsafeEvaluateCk)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.State
 import           Criterion.Main
 import           Crypto
 import qualified Data.ByteString                                            as BS
@@ -23,6 +26,9 @@ msg = ""
 
 traceBuiltins :: QuoteT (Either (Error DefaultUni () ())) (BuiltinTypes DefaultUni)
 traceBuiltins = getStringBuiltinTypes ()
+
+parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
+parse str = runQuote $ runExceptT $ flip evalStateT emptyIdentifierState $ parseProgram str
 
 main :: IO ()
 main =

@@ -45,6 +45,7 @@
           (hsPkgs."algebraic-graphs" or (errorHandler.buildDepError "algebraic-graphs"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+          (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -124,6 +125,7 @@
           "Language/PlutusCore/Lexer/Type"
           "Language/PlutusCore/Eq"
           "Language/PlutusCore/Mark"
+          "Language/PlutusCore/Parser/Internal"
           "Language/PlutusCore/Pretty/Classic"
           "Language/PlutusCore/Pretty/Default"
           "Language/PlutusCore/Pretty/Plc"
@@ -221,8 +223,8 @@
           "Language/PlutusCore/Generators/Interesting"
           "Language/PlutusCore/Generators/Test"
           "Language/PlutusCore/Generators/NEAT/Common"
+          "Language/PlutusCore/Generators/NEAT/Spec"
           "Language/PlutusCore/Generators/NEAT/Type"
-          "Language/PlutusCore/Generators/NEAT/PropTest"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
           "Language/PlutusIR"
@@ -245,6 +247,7 @@
           "Language/UntypedPlutusCore"
           "Language/UntypedPlutusCore/DeBruijn"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
+          "Language/UntypedPlutusCore/Parser"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Hash"
@@ -419,6 +422,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))

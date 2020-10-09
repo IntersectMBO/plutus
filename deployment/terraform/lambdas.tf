@@ -100,3 +100,31 @@ resource "aws_lambda_function" "marlowe_playground" {
     }
   }
 }
+
+resource "aws_lambda_function" "plutus_playground" {
+  function_name = "plutus_playground_${var.env}"
+  role          = "${aws_iam_role.marlowe_symbolic_lambda.arn}"
+  handler       = "src/Playground/Lambda.handler"
+
+  runtime = "provided"
+
+  # The lambda zip needs to be built and placed on your local filesystem
+  # TODO: This is only a temporary requirement and will be moved to the CD server soon
+  filename = "${var.plutus_playground_lambda_file}"
+  source_code_hash = filebase64sha256(var.plutus_playground_lambda_file)
+  
+  memory_size = 3008
+  timeout = 120
+  publish = true
+
+  environment {
+    variables = {
+      PATH = "/usr/local/bin:/usr/bin/:/bin:/opt/bin:."
+      GITHUB_CLIENT_ID = var.plutus_github_client_id
+      GITHUB_CLIENT_SECRET = var.plutus_github_client_secret
+      JWT_SIGNATURE = var.plutus_jwt_signature
+      GITHUB_REDIRECT_URL = "https://${var.env}.${var.plutus_tld}"
+      WEBGHC_URL = "https://${var.env}.${var.marlowe_tld}"
+    }
+  }
+}

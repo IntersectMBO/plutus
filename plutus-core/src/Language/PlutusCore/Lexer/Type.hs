@@ -20,20 +20,25 @@ import           Control.Monad.State
 import qualified Data.Map                 as M
 import qualified Data.Text                as T
 
--- | A keyword in Plutus Core.
+-- | A keyword in Plutus Core. Some of these are only for UPLC or TPLC, but it's simplest to share
+-- the lexer, so we have a joint enumeration of them.
 data Keyword
-    = KwAbs
-    | KwLam
-    | KwIFix
+    = KwLam
+    | KwProgram
+    | KwCon
+    | KwBuiltin
+    | KwError
+    -- UPLC only
+    | KwAbs
     | KwFun
     | KwAll
     | KwType
-    | KwProgram
-    | KwCon
+    | KwIFix
     | KwIWrap
-    | KwBuiltin
     | KwUnwrap
-    | KwError
+    -- UPLC only
+    | KwForce
+    | KwDelay
     deriving (Show, Eq, Enum, Bounded, Generic, NFData)
 
 -- | A special character. This type is only used internally between the lexer
@@ -85,6 +90,8 @@ instance Pretty Keyword where
     pretty KwBuiltin = "builtin"
     pretty KwUnwrap  = "unwrap"
     pretty KwError   = "error"
+    pretty KwForce   = "force"
+    pretty KwDelay   = "delay"
 
 instance Pretty (Token ann) where
     pretty (TkName _ n _)            = pretty n

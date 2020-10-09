@@ -27,7 +27,7 @@ import qualified Language.PlutusCore                as PLC
 import qualified Language.PlutusCore.MkPlc          as PLC
 import           Language.PlutusIR                  as PIR
 import qualified Language.PlutusIR.MkPir            as PIR
-import           PlutusPrelude                      (display)
+import           PlutusPrelude                      (Pretty, display)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 
@@ -120,7 +120,6 @@ inBraces = between lbrace rbrace
 
 reservedWords :: [T.Text]
 reservedWords =
-    map display PLC.allStaticBuiltins ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -159,11 +158,9 @@ reservedWord w = lexeme $ try $ do
     notFollowedBy (satisfy isIdentifierChar)
     return p
 
--- FIXME: can't parse dynamic names
-staticBuiltin :: Parser PLC.StaticBuiltin
-staticBuiltin = lexeme $ choice $ map parseBuiltin PLC.allStaticBuiltins
-    where parseBuiltin :: PLC.StaticBuiltin -> Parser PLC.StaticBuiltin
-          parseBuiltin builtin = try $ string (display builtin) >> pure builtin
+builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
+builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
+    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
 name :: Parser Name
 name = lexeme $ try $ do
@@ -178,9 +175,6 @@ var = name
 
 tyVar :: Parser TyName
 tyVar = TyName <$> name
-
-builtinVar :: Parser PLC.Builtin
-builtinVar = PLC.StaticBuiltin <$> staticBuiltin
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer
@@ -295,7 +289,7 @@ iwrapTerm :: Parametric
 iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
 builtinTerm :: Parametric
-builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinVar
+builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinFunction
 
 unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm

@@ -1,12 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Builtins where
 
@@ -123,111 +127,108 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 integerToInt :: Integer -> Int
 integerToInt = fromIntegral
 
-defaultFunMeaning
-    :: ( HasConstantIn uni term, GShow uni, GEq uni
-       , uni `IncludesAll` '[(), Bool, Integer, Char, String, BS.ByteString]
-       )
-    => DefaultFun -> BuiltinMeaning term DefaultFunDyn CostModel
-defaultFunMeaning AddInteger =
-    toStaticBuiltinMeaning
-        ((+) @Integer)
-        (runCostingFunTwoArguments . paramAddInteger)
-defaultFunMeaning SubtractInteger =
-    toStaticBuiltinMeaning
-        ((-) @Integer)
-        (runCostingFunTwoArguments . paramSubtractInteger)
-defaultFunMeaning MultiplyInteger =
-    toStaticBuiltinMeaning
-        ((*) @Integer)
-        (runCostingFunTwoArguments . paramMultiplyInteger)
-defaultFunMeaning DivideInteger =
-    toStaticBuiltinMeaning
-        (nonZeroArg div)
-        (runCostingFunTwoArguments . paramDivideInteger)
-defaultFunMeaning QuotientInteger =
-    toStaticBuiltinMeaning
-        (nonZeroArg quot)
-        (runCostingFunTwoArguments . paramQuotientInteger)
-defaultFunMeaning RemainderInteger =
-    toStaticBuiltinMeaning
-        (nonZeroArg rem)
-        (runCostingFunTwoArguments . paramRemainderInteger)
-defaultFunMeaning ModInteger =
-    toStaticBuiltinMeaning
-        (nonZeroArg mod)
-        (runCostingFunTwoArguments . paramModInteger)
-defaultFunMeaning LessThanInteger =
-    toStaticBuiltinMeaning
-        ((<) @Integer)
-        (runCostingFunTwoArguments . paramLessThanInteger)
-defaultFunMeaning LessThanEqInteger =
-    toStaticBuiltinMeaning
-        ((<=) @Integer)
-        (runCostingFunTwoArguments . paramLessThanEqInteger)
-defaultFunMeaning GreaterThanInteger =
-    toStaticBuiltinMeaning
-        ((>) @Integer)
-        (runCostingFunTwoArguments . paramGreaterThanInteger)
-defaultFunMeaning GreaterThanEqInteger =
-    toStaticBuiltinMeaning
-        ((>=) @Integer)
-        (runCostingFunTwoArguments . paramGreaterThanEqInteger)
-defaultFunMeaning EqInteger =
-    toStaticBuiltinMeaning
-        ((==) @Integer)
-        (runCostingFunTwoArguments . paramEqInteger)
-defaultFunMeaning Concatenate =
-    toStaticBuiltinMeaning
-        BS.append
-        (runCostingFunTwoArguments . paramConcatenate)
-defaultFunMeaning TakeByteString =
-    toStaticBuiltinMeaning
-        (BS.take . integerToInt)
-        (runCostingFunTwoArguments . paramTakeByteString)
-defaultFunMeaning DropByteString =
-    toStaticBuiltinMeaning
-        (BS.drop . integerToInt)
-        (runCostingFunTwoArguments . paramDropByteString)
-defaultFunMeaning SHA2 =
-    toStaticBuiltinMeaning
-        Hash.sha2
-        (runCostingFunOneArgument . paramSHA2)
-defaultFunMeaning SHA3 =
-    toStaticBuiltinMeaning
-        Hash.sha3
-        (runCostingFunOneArgument . paramSHA3)
-defaultFunMeaning VerifySignature =
-    toStaticBuiltinMeaning
-        (verifySignature @EvaluationResult)
-        (runCostingFunThreeArguments . paramVerifySignature)
-defaultFunMeaning EqByteString =
-    toStaticBuiltinMeaning
-        ((==) @BS.ByteString)
-        (runCostingFunTwoArguments . paramEqByteString)
-defaultFunMeaning LtByteString =
-    toStaticBuiltinMeaning
-        ((<) @BS.ByteString)
-        (runCostingFunTwoArguments . paramLtByteString)
-defaultFunMeaning GtByteString =
-    toStaticBuiltinMeaning
-        ((>) @BS.ByteString)
-        (runCostingFunTwoArguments . paramGtByteString)
-defaultFunMeaning IfThenElse =
-    toStaticBuiltinMeaning
-        ((\b x y -> if b then x else y) :: a ~ Opaque term (TyVarRep "a" 0) => Bool -> a -> a -> a)
-        (runCostingFunThreeArguments . paramIfThenElse)
-defaultFunMeaning CharToString =
-    toStaticBuiltinMeaning
-        (pure :: Char -> String)
-        mempty  -- TODO: budget.
-defaultFunMeaning Append =
-    toStaticBuiltinMeaning
-        ((++) :: String -> String -> String)
-        mempty  -- TODO: budget.
-defaultFunMeaning Trace =
-    toDynamicBuiltinMeaning
-        (\env -> unsafePerformIO . defaultFunDynTrace env)
-        mempty  -- TODO: budget.
+instance (GShow uni, GEq uni, uni `IncludesAll` '[(), Bool, Integer, Char, String, BS.ByteString]) =>
+            ToBuiltinMeaning uni DefaultFun DefaultFunDyn CostModel where
+    toBuiltinMeaning AddInteger =
+        toStaticBuiltinMeaning
+            ((+) @Integer)
+            (runCostingFunTwoArguments . paramAddInteger)
+    toBuiltinMeaning SubtractInteger =
+        toStaticBuiltinMeaning
+            ((-) @Integer)
+            (runCostingFunTwoArguments . paramSubtractInteger)
+    toBuiltinMeaning MultiplyInteger =
+        toStaticBuiltinMeaning
+            ((*) @Integer)
+            (runCostingFunTwoArguments . paramMultiplyInteger)
+    toBuiltinMeaning DivideInteger =
+        toStaticBuiltinMeaning
+            (nonZeroArg div)
+            (runCostingFunTwoArguments . paramDivideInteger)
+    toBuiltinMeaning QuotientInteger =
+        toStaticBuiltinMeaning
+            (nonZeroArg quot)
+            (runCostingFunTwoArguments . paramQuotientInteger)
+    toBuiltinMeaning RemainderInteger =
+        toStaticBuiltinMeaning
+            (nonZeroArg rem)
+            (runCostingFunTwoArguments . paramRemainderInteger)
+    toBuiltinMeaning ModInteger =
+        toStaticBuiltinMeaning
+            (nonZeroArg mod)
+            (runCostingFunTwoArguments . paramModInteger)
+    toBuiltinMeaning LessThanInteger =
+        toStaticBuiltinMeaning
+            ((<) @Integer)
+            (runCostingFunTwoArguments . paramLessThanInteger)
+    toBuiltinMeaning LessThanEqInteger =
+        toStaticBuiltinMeaning
+            ((<=) @Integer)
+            (runCostingFunTwoArguments . paramLessThanEqInteger)
+    toBuiltinMeaning GreaterThanInteger =
+        toStaticBuiltinMeaning
+            ((>) @Integer)
+            (runCostingFunTwoArguments . paramGreaterThanInteger)
+    toBuiltinMeaning GreaterThanEqInteger =
+        toStaticBuiltinMeaning
+            ((>=) @Integer)
+            (runCostingFunTwoArguments . paramGreaterThanEqInteger)
+    toBuiltinMeaning EqInteger =
+        toStaticBuiltinMeaning
+            ((==) @Integer)
+            (runCostingFunTwoArguments . paramEqInteger)
+    toBuiltinMeaning Concatenate =
+        toStaticBuiltinMeaning
+            BS.append
+            (runCostingFunTwoArguments . paramConcatenate)
+    toBuiltinMeaning TakeByteString =
+        toStaticBuiltinMeaning
+            (BS.take . integerToInt)
+            (runCostingFunTwoArguments . paramTakeByteString)
+    toBuiltinMeaning DropByteString =
+        toStaticBuiltinMeaning
+            (BS.drop . integerToInt)
+            (runCostingFunTwoArguments . paramDropByteString)
+    toBuiltinMeaning SHA2 =
+        toStaticBuiltinMeaning
+            Hash.sha2
+            (runCostingFunOneArgument . paramSHA2)
+    toBuiltinMeaning SHA3 =
+        toStaticBuiltinMeaning
+            Hash.sha3
+            (runCostingFunOneArgument . paramSHA3)
+    toBuiltinMeaning VerifySignature =
+        toStaticBuiltinMeaning
+            (verifySignature @EvaluationResult)
+            (runCostingFunThreeArguments . paramVerifySignature)
+    toBuiltinMeaning EqByteString =
+        toStaticBuiltinMeaning
+            ((==) @BS.ByteString)
+            (runCostingFunTwoArguments . paramEqByteString)
+    toBuiltinMeaning LtByteString =
+        toStaticBuiltinMeaning
+            ((<) @BS.ByteString)
+            (runCostingFunTwoArguments . paramLtByteString)
+    toBuiltinMeaning GtByteString =
+        toStaticBuiltinMeaning
+            ((>) @BS.ByteString)
+            (runCostingFunTwoArguments . paramGtByteString)
+    toBuiltinMeaning IfThenElse =
+        toStaticBuiltinMeaning
+            ((\b x y -> if b then x else y) :: a ~ Opaque term (TyVarRep "a" 0) => Bool -> a -> a -> a)
+            (runCostingFunThreeArguments . paramIfThenElse)
+    toBuiltinMeaning CharToString =
+        toStaticBuiltinMeaning
+            (pure :: Char -> String)
+            mempty  -- TODO: budget.
+    toBuiltinMeaning Append =
+        toStaticBuiltinMeaning
+            ((++) :: String -> String -> String)
+            mempty  -- TODO: budget.
+    toBuiltinMeaning Trace =
+        toDynamicBuiltinMeaning
+            (\env -> unsafePerformIO . defaultFunDynTrace env)
+            mempty  -- TODO: budget.
 
 -- See Note [Stable encoding of PLC]
 instance Serialise DefaultFun where

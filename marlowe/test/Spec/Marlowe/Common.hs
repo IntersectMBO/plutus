@@ -40,29 +40,14 @@ shrinkParty party = case party of
     _            -> []
 
 
-accountIdGen :: Gen AccountId
-accountIdGen = do accName <- oneof [ return 0
-                                   , return 1
-                                   ]
-                  owner <- partyGen
-                  return $ AccountId accName owner
-
-
-shrinkAccountId :: AccountId -> [AccountId]
-shrinkAccountId accId = case accId of
-    AccountId 1 owner -> AccountId 0 owner : [AccountId 1 x | x <- shrinkParty owner]
-    AccountId 0 owner -> [AccountId 0 x | x <- shrinkParty owner]
-    _                 -> []
-
-
 payeeGen :: Gen Payee
-payeeGen = oneof [ Account <$> accountIdGen
+payeeGen = oneof [ Account <$> partyGen
                  , Party <$> partyGen
                  ]
 
 
 shrinkPayee :: Payee -> [Payee]
-shrinkPayee (Account accId) = [Account x | x <- shrinkAccountId accId]
+shrinkPayee (Account accId) = [Account x | x <- shrinkParty accId]
 shrinkPayee (Party party)   = [Party x | x <- shrinkParty party]
 
 
@@ -131,7 +116,7 @@ rationalGen = do
 
 valueGenSized :: Int -> Gen (Value Observation)
 valueGenSized s
-  | s > 0 = oneof [ AvailableMoney <$> accountIdGen <*> tokenGen
+  | s > 0 = oneof [ AvailableMoney <$> partyGen <*> tokenGen
                   , Constant <$> simpleIntegerGen
                   , NegValue <$> valueGenSized (s - 1)
                   , AddValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
@@ -146,7 +131,7 @@ valueGenSized s
                   , return SlotIntervalEnd
                   , UseValue <$> valueIdGen
                   ]
-  | otherwise = oneof [ AvailableMoney <$> accountIdGen <*> tokenGen
+  | otherwise = oneof [ AvailableMoney <$> partyGen <*> tokenGen
                       , Constant <$> simpleIntegerGen
                       , return SlotIntervalStart
                       , return SlotIntervalEnd
@@ -163,7 +148,7 @@ shrinkValue value = case value of
     Constant x -> [Constant y | y <- shrinkSimpleInteger x]
     SlotIntervalStart -> [Constant 0]
     SlotIntervalEnd -> [Constant 0, SlotIntervalStart]
-    AvailableMoney accId tok -> Constant 0 : ([AvailableMoney x tok | x <- shrinkAccountId accId]
+    AvailableMoney accId tok -> Constant 0 : ([AvailableMoney x tok | x <- shrinkParty accId]
                ++ [AvailableMoney accId y | y <- shrinkToken tok])
     UseValue valId -> Constant 0 : [UseValue x | x <- shrinkValueId valId]
     ChoiceValue choId -> Constant 0 : [ChoiceValue x | x <- shrinkChoiceId choId]
@@ -256,7 +241,7 @@ boundListGen = do len <- listLengthGen
 
 actionGenSized :: Int -> Gen Action
 actionGenSized s =
-  oneof [ Deposit <$> accountIdGen <*> partyGen <*> tokenGen <*> valueGenSized (s - 1)
+  oneof [ Deposit <$> partyGen <*> partyGen <*> tokenGen <*> valueGenSized (s - 1)
         , Choice <$> choiceIdGen <*> boundListGen
         , Notify <$> observationGenSized (s - 1)
         ]
@@ -265,7 +250,7 @@ actionGenSized s =
 shrinkAction :: Action -> [Action]
 shrinkAction action = case action of
     Deposit accId party tok val -> Notify FalseObs : [Deposit accId party tok v | v <- shrinkValue val]
-        ++ [Deposit x party tok val | x <- shrinkAccountId accId]
+        ++ [Deposit x party tok val | x <- shrinkParty accId]
         ++ [Deposit accId y tok val | y <- shrinkParty party]
         ++ [Deposit accId party z val | z <- shrinkToken tok]
     Choice choId boundList -> Notify FalseObs
@@ -286,7 +271,7 @@ shrinkCase (Case act cont) = [Case act x | x <- shrinkContract cont]
 contractRelGenSized :: Int -> Integer -> Gen Contract
 contractRelGenSized s bn
   | s > 0 = oneof [ return Close
-                  , Pay <$> accountIdGen <*> payeeGen <*> tokenGen
+                  , Pay <$> partyGen <*> payeeGen <*> tokenGen
                         <*> valueGenSized (s `quot` 4)
                         <*> contractRelGenSized (s - 1) bn
                   , If <$> observationGenSized (s `quot` 4)
@@ -323,7 +308,7 @@ shrinkContract cont = case cont of
     Pay accId payee tok val cont ->
         Close:cont:([Pay accId payee tok val c | c <- shrinkContract cont]
               ++ [Pay accId payee tok v cont | v <- shrinkValue val]
-              ++ [Pay x payee tok val cont | x <- shrinkAccountId accId]
+              ++ [Pay x payee tok val cont | x <- shrinkParty accId]
               ++ [Pay accId y tok val cont | y <- shrinkPayee payee]
               ++ [Pay accId payee z val cont | z <- shrinkToken tok])
     If obs cont1 cont2 ->
@@ -345,13 +330,13 @@ shrinkContract cont = case cont of
 pangramContract :: Contract
 pangramContract = let
     alicePk = PK $ pubKeyHash $ walletPubKey $ Wallet 1
-    aliceAcc = AccountId 0 alicePk
+    aliceAcc = alicePk
     bobRole = Role "Bob"
     constant = Constant 100
     choiceId = ChoiceId "choice" alicePk
     token = Token (CurrencySymbol "aa") (TokenName "name")
     valueExpr = AddValue constant (SubValue constant (NegValue constant))
-    in When
+    in Assert TrueObs $ When
         [ Case (Deposit aliceAcc alicePk ada valueExpr)
             (Let (ValueId "x") valueExpr
                 (Pay aliceAcc (Party bobRole) ada (UseValue (ValueId "x")) Close))

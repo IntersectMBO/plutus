@@ -56,6 +56,7 @@
           "Scoped"
           "Opts"
           "MAlonzo/Code/Main"
+          "MAlonzo/Code/Algorithmic/Evaluation"
           "MAlonzo/Code/Agda/Builtin/Bool"
           "MAlonzo/Code/Agda/Builtin/Char"
           "MAlonzo/Code/Agda/Builtin/Equality"

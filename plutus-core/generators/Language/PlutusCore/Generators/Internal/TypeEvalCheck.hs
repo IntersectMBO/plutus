@@ -127,7 +127,7 @@ unsafeTypeEvalCheck
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
-    let bri = toBuiltinRuntimeInfos defaultFunMeaning mempty defaultCostModel
+    let bri = toBuiltinRuntimeInfos mempty defaultCostModel
     let errOrRes = typeEvalCheckBy (evaluateCek bri) termOfTbv
     case errOrRes of
         Left err         -> error $ concat

@@ -33,12 +33,10 @@ import Declarative
 import Declarative.RenamingSubstitution
 import Declarative.Erasure
 
---import Declarative.Examples
-
-import Declarative.StdLib.Function
-import Declarative.StdLib.ChurchNat
-import Declarative.StdLib.Nat
-
+import Declarative.Examples
+import Declarative.Examples.StdLib.Function
+import Declarative.Examples.StdLib.ChurchNat
+import Declarative.Examples.StdLib.Nat
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
@@ -47,7 +45,6 @@ import Algorithmic
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
---import Algorithmic.Examples
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
@@ -59,8 +56,7 @@ import Algorithmic.CEKD
 import Algorithmic.CEKC
 import Algorithmic.CEKV
 
---import AlgorithmicRed.Term
---import AlgorithmicRed.Term.RenamingSubstitution
+import Algorithmic.Examples
 
 -- Untyped terms, reduction and evaluation
 

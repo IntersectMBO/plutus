@@ -202,8 +202,8 @@ erase—→ {Γ = Γ} (A.β-Λ {N = N}{A = A})                          =
                             (sym (U.sub-id  (erase N))))
                      (lem[]⋆ N A))
               (U.β-ƛ (eraseVal (A.voidVal Γ))))
-erase—→ (A.β-wrap1 p)                                   = inj₂ refl
-erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
+erase—→ (A.β-wrap p)                                    = inj₂ refl
+erase—→ (A.ξ-unwrap p)                                  = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
 erase—→ {Γ = Γ} (A.β-builtin b σ ts vs)                 = inj₁ (subst
   (Untyped.builtin b (lemma≤ b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) U.—→_)

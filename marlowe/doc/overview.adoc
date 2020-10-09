@@ -27,10 +27,10 @@ number of assumptions about the infrastructure in which contracts will
 be run.
 . xref:embedded-marlowe#embedded-marlowe[]
 This tutorial shows how to use some simple features of Haskell to write
-Marlowe contracts that are more readable, maintainable and reusable, by
+Marlowe contracts that are more readable, maintainable and reusable, illustrated by
 revisiting the escrow contract.
 . xref:using-marlowe#using-marlowe[]
-This tutorial shows you how to use Marlowe from within Haskell, and in
+This tutorial shows you how to use Marlowe from the command line in ghci, and in
 particular shows how to exercise a contract using the semantics given earlier.
 . xref:playground-overview#playground-overview[]
 This tutorial introduces the Marlowe Playground, an online tool for
@@ -42,12 +42,18 @@ go wrong when executing contracts even if they have been written correctly.
 . xref:static-analysis#static-analysis[]
 Marlowe contracts can be analysed without running them, and so, for instance, we 
 can verify that a contract will always make the payments that it is required to, irrespective
-of the inputs that it receives. This tutoiral explains this, and how to run an analysis in the playground.
+of the inputs that it receives. This tutorial explains this, and how to run an analysis in the playground.
 . xref:actus-marlowe#actus-marlowe[]
 This tutorial gives an introduction to the general idea of the ACTUS
 taxonomy, plus examples implemented in Marlowe.
 . xref:migrating#migrating[]
 Here we explain how the current version of Marlowe is related to earlier versions, in particular version 1.3 and 2.0.
+. xref:wallets-simulation#wallets-simulation[]
+The wallets simulation present a view of a running contract from the perspective of a participant in that contract, rather than the ‘omniscient‘ view given in the simulation tab.
+. xref:actus-labs#actus-labs[]
+The Actus Labs support generation of different styles of Actus contract from the parameters that describe the particular contract instance.
+. xref:javascript-embedding#javascript-embedding[]
+Marlowe is also embedded in JavaScript, and here we show how Marlowe contracts can be created and edited in JavaScript.
 // . xref:escrow-step-by-step#escrow-step-by-step[] Escrow step by step NOT YET UPDATED
 // On this tutorial we build the escrow contract step by step. From a single contract with a single actor (Alice) to multiple actors (Alice,Bob,Carol) and multiple interactions. /This was the script for the example in the udemy class/.
 

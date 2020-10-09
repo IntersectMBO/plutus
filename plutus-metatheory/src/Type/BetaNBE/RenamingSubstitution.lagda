@@ -52,18 +52,32 @@ ren-nf σ A = trans
 \end{code}
 
 \begin{code}
-ren-nf-μ1 : ∀ {Φ Ψ}{K}
+ren-nf-μ : ∀ {Φ Ψ}{K}
   → (ρ⋆ : Ren Φ Ψ)
-  → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
-  → (arg  : Φ ⊢Nf⋆ K)
-  → renNf ρ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+  → (A  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+  → (B  : Φ ⊢Nf⋆ K)
+  → renNf ρ⋆
+    (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
     ≡
-    nf (embNf (renNf ρ⋆ pat)
-        · (μ1 · embNf (renNf ρ⋆ pat))
-        · embNf (renNf ρ⋆ arg))
-ren-nf-μ1 ρ⋆ pat arg = trans
-  (ren-nf ρ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg))
-  (sym (cong nf (cong₂ _·_ (cong₂ _·_ (ren-embNf ρ⋆ pat) (cong (μ1 ·_) (ren-embNf ρ⋆ pat))) (ren-embNf ρ⋆ arg))))
+    nf
+    (embNf (renNf ρ⋆ A) · ƛ (μ (embNf (weakenNf (renNf ρ⋆ A))) (` Z)) ·
+     embNf (renNf ρ⋆ B))
+ren-nf-μ ρ⋆ A B = trans
+  (ren-nf ρ⋆ (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
+  (trans
+    (cong₂
+      (λ X Y → nf (X · ƛ (μ (ren (ext ρ⋆) (embNf (weakenNf A))) (` Z)) · Y))
+      (sym (ren-embNf ρ⋆ A))
+      (sym (ren-embNf ρ⋆ B)))
+    (trans
+      (cong
+        (λ X → nf (embNf (renNf ρ⋆ A) · ƛ (μ (ren (ext ρ⋆) X) (` Z)) · embNf (renNf ρ⋆ B)))
+        (ren-embNf S A))
+      (cong
+        (λ X → nf (embNf (renNf ρ⋆ A) · ƛ (μ X (` Z)) · embNf (renNf ρ⋆ B)))
+        (trans
+          (sym (ren-comp (embNf A)))
+          (trans (sym (ren-embNf (S ∘ ρ⋆) A)) (cong embNf (renNf-comp A)))))))
 \end{code}
 
 \begin{code}
@@ -415,22 +429,35 @@ subst-nf-Π σ⋆ B = trans
 
 subst-nf-μ : ∀ {Φ Ψ}{K}
   → (σ⋆ : SubNf Φ Ψ)
-  → (pat  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
-  → (arg  : Φ ⊢Nf⋆ K)
-  → substNf σ⋆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+  → (A  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+  → (B  : Φ ⊢Nf⋆ K)
+  → substNf σ⋆ (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
     ≡
-    nf (embNf (substNf σ⋆ pat)
-        · (μ1 · embNf (substNf σ⋆ pat))
-        · embNf (substNf σ⋆ arg))
-subst-nf-μ σ⋆ pat arg = trans
-  (sym (substNf-nf σ⋆ (embNf pat · (μ1 · embNf pat) · embNf arg)))
+    nf
+    (embNf (substNf σ⋆ A) ·
+     ƛ (μ (embNf (weakenNf (substNf σ⋆ A))) (` Z))
+     · embNf (substNf σ⋆ B))
+subst-nf-μ σ⋆ A B = trans
+  (sym (substNf-nf σ⋆ (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)))
   (completeness
-     (·≡β
-       (·≡β
-         (soundness (subst (embNf ∘ σ⋆) (embNf pat)))
-         (·≡β
-           (refl≡β μ1)
-           (soundness (subst (embNf ∘ σ⋆) (embNf pat)))))
-       (soundness (subst (embNf ∘ σ⋆) (embNf arg)))))
+    {s = subst (embNf ∘ σ⋆) (embNf A) · ƛ (μ (subst (exts (embNf ∘ σ⋆)) (embNf (weakenNf A))) (` Z)) · subst (embNf ∘ σ⋆) (embNf B)}
+    {(embNf (substNf σ⋆ A) · ƛ (μ (embNf (weakenNf (substNf σ⋆ A))) (` Z)) · embNf (substNf σ⋆ B))}
+    (·≡β
+      (·≡β
+        (soundness (subst (embNf ∘ σ⋆) (embNf A)))
+        (ƛ≡β (μ≡β
+          (trans≡β
+            (trans≡β
+              (≡2β (cong (subst (exts (embNf ∘ σ⋆))) (ren-embNf S A)))
+              (trans≡β
+                (≡2β (sym (subst-ren (embNf A))))
+                (trans≡β
+                  (soundness (subst (weaken ∘ embNf ∘ σ⋆) (embNf A)))
+                  (≡2β
+                    (cong embNf {nf (subst (weaken ∘ embNf ∘ σ⋆) (embNf A))}{substNf (renNf S ∘ σ⋆) A}
+                    (cong nf (subst-cong (sym ∘ ren-embNf S ∘ σ⋆) (embNf A))))))))
+            (≡2β (cong embNf (renNf-substNf σ⋆ S A))))
+          (refl≡β (` Z)))))
+      (soundness (subst (embNf ∘ σ⋆) (embNf B)))))
 \end{code}
 

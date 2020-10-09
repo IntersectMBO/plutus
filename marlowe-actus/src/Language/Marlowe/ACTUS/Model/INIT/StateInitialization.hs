@@ -2,20 +2,15 @@
 module Language.Marlowe.ACTUS.Model.INIT.StateInitialization where
 
 import           Data.Maybe                                                 (fromMaybe)
-import           Data.Time                                                  (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP))
 import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractState)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
-                                                                             ContractType (LAM, PAM), ScheduleConfig)
+                                                                             ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_PAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
-import           Language.Marlowe.ACTUS.Model.Utility.DateShift             (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 
-
-shift :: ScheduleConfig -> Day -> ShiftedDay
-shift = applyBDCWithCfg
 
 inititializeState :: ContractTerms -> ContractState
 inititializeState terms@ContractTerms {..} =

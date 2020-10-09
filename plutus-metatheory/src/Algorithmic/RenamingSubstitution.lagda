@@ -93,14 +93,14 @@ ren ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
   refl
   (sym (ren[]Nf ρ⋆ B A))
   (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)
-ren ρ⋆ ρ (wrap1 pat arg term) = wrap1
-  (renNf ρ⋆ pat)
-  (renNf ρ⋆ arg)
-  (conv⊢ refl (ren-nf-μ1 ρ⋆ pat arg) (ren ρ⋆ ρ term))
-ren ρ⋆ ρ (unwrap1 {pat = pat}{arg} term) = conv⊢
+ren ρ⋆ ρ (wrap A B M) = wrap
+  (renNf ρ⋆ A)
+  (renNf ρ⋆ B)
+  (conv⊢ refl (ren-nf-μ ρ⋆ A B) (ren ρ⋆ ρ M))
+ren ρ⋆ ρ (unwrap {A = A}{B} M) = conv⊢
   refl
-  (sym (ren-nf-μ1 ρ⋆ pat arg))
-  (unwrap1 (ren ρ⋆ ρ term)) 
+  (sym (ren-nf-μ ρ⋆ A B))
+  (unwrap (ren ρ⋆ ρ M)) 
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
 ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
@@ -203,14 +203,14 @@ subst σ⋆ σ (_·⋆_ {B = B} L M) = conv⊢
   refl
   (sym (subst[]Nf' σ⋆ M B))
   (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
-subst σ⋆ σ (wrap1 pat arg term) = wrap1
-  (substNf σ⋆ pat)
-  (substNf σ⋆ arg)
-  (conv⊢ refl (subst-nf-μ σ⋆ pat arg) (subst σ⋆ σ term))
-subst σ⋆ σ (unwrap1 {pat = pat}{arg} term) = conv⊢
+subst σ⋆ σ (wrap A B M) = wrap
+  (substNf σ⋆ A)
+  (substNf σ⋆ B)
+  (conv⊢ refl (subst-nf-μ σ⋆ A B) (subst σ⋆ σ M))
+subst σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
   refl
-  (sym (subst-nf-μ σ⋆ pat arg))
-  (unwrap1 (subst σ⋆ σ term))
+  (sym (subst-nf-μ σ⋆ A B))
+  (unwrap (subst σ⋆ σ M))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
 subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl

@@ -23,7 +23,9 @@ import HaskellEditor.Types as HE
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
 import Network.RemoteData (RemoteData)
+import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Projects.Types as Projects
 import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
@@ -35,6 +37,8 @@ data HQuery a
 
 data HAction
   = Init
+  -- Home Page
+  | ShowHomePageInFuture Boolean
   -- Haskell Editor
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
@@ -52,11 +56,14 @@ data HAction
   | HandleActusBlocklyMessage AB.BlocklyMessage
   -- Wallet Actions
   | HandleWalletMessage Wallet.Message
+  | ProjectsAction Projects.Action
+  | NewProjectAction NewProject.Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent HAction where
   toEvent Init = Just $ defaultEvent "Init"
+  toEvent (ShowHomePageInFuture b) = Just $ (defaultEvent "ShowHomePageInFuture") { label = Just (show b) }
   toEvent (HaskellAction action) = toEvent action
   toEvent (JSHandleEditorMessage _) = Just $ defaultEvent "JSHandleEditorMessage"
   toEvent (SimulationAction action) = toEvent action
@@ -70,6 +77,8 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
+  toEvent (ProjectsAction action) = toEvent action
+  toEvent (NewProjectAction action) = toEvent action
 
 ------------------------------------------------------------
 type ChildSlots
@@ -105,12 +114,15 @@ _walletSlot = SProxy
 
 -----------------------------------------------------------
 data View
-  = HaskellEditor
+  = HomePage
+  | HaskellEditor
   | JSEditor
   | Simulation
   | BlocklyEditor
   | ActusBlocklyEditor
   | WalletEmulator
+  | Projects
+  | NewProject
 
 derive instance eqView :: Eq View
 
@@ -136,6 +148,9 @@ newtype FrontendState
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
   , simulationState :: Simulation.State
+  , showHomePage :: Boolean
+  , projects :: Projects.State
+  , newProject :: NewProject.State
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -172,6 +187,15 @@ _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
 
 _simulationState :: Lens' FrontendState Simulation.State
 _simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
+
+_showHomePage :: Lens' FrontendState Boolean
+_showHomePage = _Newtype <<< prop (SProxy :: SProxy "showHomePage")
+
+_projects :: Lens' FrontendState Projects.State
+_projects = _Newtype <<< prop (SProxy :: SProxy "projects")
+
+_newProject :: Lens' FrontendState NewProject.State
+_newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
 
 -- editable
 _timestamp ::

@@ -21,7 +21,7 @@ To achieve fungibility we have removed timeouts from individual constructs, and 
 
 We do, however, include _accounts_ to organise the money deposited into the contract. This makes it more transparent how money flows within the contract, and in particular identifies to whom money is _refunded_ when the contract terminates.
 
-Each account is identifier by a pair of a number (account number) and a participant; the participant indicates who will get the money in the account by default when `Close` is reached.
+Each account is identified by a participant; the participant indicates who will get the money in the account by default when `Close` is reached.
 
 The reason we chose to include accounts is that without them we found that we were essentially keeping track of the accounts manually. Additionally, in every leaf of the AST, we found ourselves calculating how much we must return to every participant, cluttering the tree with repetitious “boilerplate”. Thus, having money organised in accounts can make contracts easier to reason about and less prone to error.
 

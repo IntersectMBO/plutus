@@ -123,12 +123,15 @@ instance FromHttpApiData GistId where
 
 data Gist =
     Gist
-        { _gistId         :: !GistId
-        , _gistGitPushUrl :: !Text
-        , _gistHtmlUrl    :: !Text
-        , _gistOwner      :: !Owner
-        , _gistFiles      :: ![GistFile]
-        , _gistTruncated  :: !Bool
+        { _gistId          :: !GistId
+        , _gistGitPushUrl  :: !Text
+        , _gistHtmlUrl     :: !Text
+        , _gistOwner       :: !Owner
+        , _gistFiles       :: ![GistFile]
+        , _gistTruncated   :: !Bool
+        , _gistCreatedAt   :: !String
+        , _gistUpdatedAt   :: !String
+        , _gistDescription :: !String
         }
     deriving (Show, Eq, Generic, ToJSON)
 
@@ -142,6 +145,9 @@ instance FromJSON Gist where
             _gistFiles <-
                 Map.elems <$> ((o .: "files") :: Parser (Map String GistFile))
             _gistTruncated <- o .: "truncated"
+            _gistCreatedAt <- o .: "created_at"
+            _gistUpdatedAt <- o .: "updated_at"
+            _gistDescription <- o .: "description"
             pure Gist {..}
 
 data GistFile =

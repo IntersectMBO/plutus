@@ -119,11 +119,6 @@ holeText marloweType = "Found a hole of type " <> dropEnd 4 (show marloweType) <
   dropEnd n = fromCodePointArray <<< Array.dropEnd n <<< toCodePointArray
 
 marloweTypeMarkerText :: MarloweType -> String
-marloweTypeMarkerText AccountIdType =
-  """
-The Marlowe model allows for a contract to control money in a number of disjoint accounts: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a refund of any remaining funds in the account when the contract is closed. These accounts are local, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
-"""
-
 marloweTypeMarkerText ChoiceIdType =
   """
 Choices – of integers – are identified by ChoiceId which combines a name for the choice with the Party who had made the choice

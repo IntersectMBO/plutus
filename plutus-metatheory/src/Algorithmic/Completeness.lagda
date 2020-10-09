@@ -37,17 +37,18 @@ lemΠ B = cong Π (sym (substNf-lemma' B))
 
 open import Type.BetaNBE.Soundness
 
-lemXX : ∀{Φ K}(pat :  Φ ⊢⋆ _)(arg : Φ ⊢⋆ K) →
-  nf (pat · (μ1 · pat) · arg) ≡
-  nf
-  (embNf (nf pat) ·
-   (μ1 ·
-    embNf (nf pat))
-   · embNf (nf arg))
-lemXX {Γ} pat arg = completeness
+stability-μ : ∀{Φ K}(A :  Φ ⊢⋆ _)(B : Φ ⊢⋆ K) →
+  nf (A · ƛ (μ (weaken A) (` Z)) · B)
+  ≡
+  nf (embNf (nf A) · ƛ (μ (embNf (weakenNf (nf A))) (` Z)) · embNf (nf B))
+stability-μ A B = completeness
   (·≡β
-    (·≡β (soundness pat) (·≡β (refl≡β μ1) (soundness pat)))
-    (soundness arg))
+    (·≡β
+      (soundness A)
+      (ƛ≡β (μ≡β (trans≡β
+        (soundness (ren S A))
+        (≡2β (sym (cong embNf (ren-nf S A))))) (refl≡β (` Z)))))
+    (soundness B))
 
 open import Type.BetaNBE.Completeness
 open import Type.BetaNBE.Soundness
@@ -268,14 +269,14 @@ nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
   refl
   (lem[] A B)
   (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A)) 
-nfType (Syn.wrap1 pat arg t) = Norm.wrap1
-  (nf pat)
-  (nf arg)
-  (Norm.conv⊢ refl (lemXX pat arg) (nfType t))
-nfType (Syn.unwrap1 {pat = pat}{arg = arg} t) = Norm.conv⊢
+nfType (Syn.wrap A B t) = Norm.wrap
+  (nf A)
+  (nf B)
+  (Norm.conv⊢ refl (stability-μ A B) (nfType t))
+nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   refl
-  (sym (lemXX pat arg))
-  (Norm.unwrap1 (nfType t))
+  (sym (stability-μ A B))
+  (Norm.unwrap (nfType t))
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
 nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
 nfType {Γ} (Syn.builtin bn σ tel) = let

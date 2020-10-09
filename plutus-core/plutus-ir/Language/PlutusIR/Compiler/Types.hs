@@ -3,6 +3,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE MultiParamTypeClasses   #-}
 module Language.PlutusIR.Compiler.Types where
 
 import qualified Language.PlutusIR                     as PIR
@@ -14,6 +16,7 @@ import           Control.Monad.Reader
 
 import           Control.Lens
 
+import qualified Language.PlutusCore.TypeCheck.Internal as PLC
 import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
 import qualified Language.PlutusCore.Constant          as PLC
@@ -21,6 +24,22 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
 
 import qualified Data.Text                             as T
+
+-- | Extra flag to be passed in the TypeCheckM Reader context,
+-- to signal if the PIR expression currently being typechecked is at the top-level
+-- and thus its type can escape, or nested and thus not allowed to escape.
+data AllowEscape = YesEscape | NoEscape
+
+-- | extending theh plc typecheck config with AllowEscape
+data PirTCConfig uni fun = PirTCConfig {
+      _pirConfigTCConfig :: PLC.TypeCheckConfig uni fun
+      , _pirConfigAllowEscape :: AllowEscape
+     }
+makeLenses ''PirTCConfig
+
+-- pir config has inside a plc config so it can act like it
+instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
+    typeCheckConfig = pirConfigTCConfig
 
 newtype CompilationOpts = CompilationOpts {
     _coOptimize :: Bool
@@ -33,15 +52,15 @@ defaultCompilationOpts = CompilationOpts True
 
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts        :: CompilationOpts
-    , _ccBuiltinMeanings :: PLC.BuiltinMeanings (PIR.Term PLC.TyName PLC.Name uni fun ())
+--     , _ccBuiltinMeanings :: fun -> PLC.BuiltinMeaning (PIR.Term PLC.TyName PLC.Name uni fun ())
     , _ccEnclosing :: Provenance a
-    , _ccTypeCheckConfig :: PLC.TypeCheckConfig uni
+    , _ccTypeCheckConfig :: PirTCConfig uni fun
     }
 
 makeLenses ''CompilationCtx
 
-defaultCompilationCtx :: CompilationCtx uni fun a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance PLC.defConfig
+toDefaultCompilationCtx :: PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
+toDefaultCompilationCtx configPlc = CompilationCtx defaultCompilationOpts noProvenance (PirTCConfig configPlc YesEscape)
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -86,7 +105,7 @@ type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 type Compiling m e uni fun a =
     ( Monad m
     , MonadReader (CompilationCtx uni fun a) m
-    , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni (Provenance a)
+    , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun (Provenance a)
     , AsTypeErrorExt e uni (Provenance a)
     , AsError e uni fun (Provenance a)
     , MonadError e m

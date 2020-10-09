@@ -175,18 +175,6 @@ resource "aws_alb_target_group_attachment" "playground_b" {
   port             = "80"
 }
 
-resource "aws_route53_record" "playground_alb" {
-  zone_id = var.plutus_public_zone
-  name    = local.plutus_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_alb.plutus.dns_name
-    zone_id                = aws_alb.plutus.zone_id
-    evaluate_target_health = true
-  }
-}
-
 ## ALB rule for web-ghc
 resource "aws_alb_target_group" "webghc" {
   # ALB is taking care of SSL termination so we listen to port 80 here

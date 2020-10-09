@@ -5,6 +5,7 @@ packages:
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases
+- plutus-benchmark
 - playground-common
 - marlowe
 - marlowe-playground-server
@@ -177,7 +178,8 @@ ghc-options:
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
   # Disable all warnings, we're building with a newer version of GHC
-  iohk-monitoring: "-w"
+  iohk-monitoring: "-w" 
+  inline-r: "-XStandaloneKindSignatures"
 
 nix:
   shell-file: shell.nix

@@ -100,7 +100,7 @@ insertBuiltin
     -> DenotationContext (Term TyName Name uni DefaultFun ())
     -> DenotationContext (Term TyName Name uni DefaultFun ())
 insertBuiltin fun =
-    case defaultFunMeaning fun of
+    case toBuiltinMeaning fun of
         BuiltinMeaning sch meta _ ->
            case typeSchemeResult sch of
                AsKnownType ->

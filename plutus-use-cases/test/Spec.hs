@@ -15,6 +15,7 @@ import qualified Spec.Prism
 import qualified Spec.PubKey
 import qualified Spec.Rollup
 import qualified Spec.RPC
+import qualified Spec.Stablecoin
 import qualified Spec.TokenAccount
 import qualified Spec.Vesting
 import           Test.Tasty
@@ -47,5 +48,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.TokenAccount.tests,
     Spec.PingPong.tests,
     Spec.RPC.tests,
-    Spec.Prism.tests
+    Spec.Prism.tests,
+    Spec.Stablecoin.tests
     ]

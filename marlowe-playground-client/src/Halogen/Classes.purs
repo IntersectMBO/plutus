@@ -16,6 +16,8 @@ foreign import downloadIcon :: String
 
 foreign import blocklyIcon :: String
 
+foreign import blocklyIconColour :: String
+
 foreign import infoIcon :: String
 
 foreign import readMoreIconWhite :: String
@@ -32,6 +34,23 @@ foreign import greyCircle :: String
 
 foreign import selectButton :: String
 
+foreign import iohkLogo :: String
+
+foreign import haskellIcon :: String
+
+foreign import marloweLogo :: String
+
+foreign import marloweLogo2 :: String
+
+fullWidth :: ClassName
+fullWidth = ClassName "full-width"
+
+fullHeight :: ClassName
+fullHeight = ClassName "full-height"
+
+scroll :: ClassName
+scroll = ClassName "scroll"
+
 active :: ClassName
 active = ClassName "active"
 
@@ -46,6 +65,9 @@ aHorizontal = ClassName "a-horizontal"
 
 spaceLeft :: ClassName
 spaceLeft = ClassName "space-left"
+
+spaceRight :: ClassName
+spaceRight = ClassName "space-right"
 
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
@@ -204,5 +226,17 @@ footerPanelBg = ClassName "footer-panel-bg"
 analysisPanel :: ClassName
 analysisPanel = ClassName "analysis-panel"
 
+alignedButtonInTheMiddle :: ClassName
+alignedButtonInTheMiddle = ClassName "aligned-button-in-the-middle"
+
+alignedButtonLast :: ClassName
+alignedButtonLast = ClassName "aligned-button-last"
+
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
+
+rightArrow :: ClassName
+rightArrow = ClassName "right-arrow"
+
+horizontalFlip :: ClassName
+horizontalFlip = ClassName "flip"

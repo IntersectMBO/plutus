@@ -49,18 +49,21 @@ newtype BuiltinsRuntimeInfo fun term = BuiltinsRuntimeInfo
     { unBuiltinRuntimeInfo :: Array fun (BuiltinRuntimeInfo term)
     }
 
-universeMapping :: (Bounded a, Enum a, Ix a) => (a -> b) -> Array a b
-universeMapping f = listArray (minBound, maxBound) $ map f [minBound .. maxBound]
+tabulate :: (Bounded a, Enum a, Ix a) => (a -> b) -> Array a b
+tabulate f = listArray (minBound, maxBound) $ map f [minBound .. maxBound]
 
 toBuiltinRuntimeInfo :: dyn -> cost -> BuiltinMeaning term dyn cost -> BuiltinRuntimeInfo term
 toBuiltinRuntimeInfo dyn cost (BuiltinMeaning sch f exF) =
     BuiltinRuntimeInfo sch (getArity sch) (f dyn) (exF cost)
 
+class ToBuiltinMeaning uni fun dyn cost | fun -> dyn cost where
+    toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term dyn cost
+
 toBuiltinRuntimeInfos
-    :: (Bounded fun, Enum fun, Ix fun)
-    => (fun -> BuiltinMeaning term dyn cost) -> dyn -> cost -> BuiltinsRuntimeInfo fun term
-toBuiltinRuntimeInfos mean dyn cost =
-    BuiltinsRuntimeInfo . universeMapping $ toBuiltinRuntimeInfo dyn cost . mean
+    :: (HasConstantIn uni term, ToBuiltinMeaning uni fun dyn cost, Bounded fun, Enum fun, Ix fun)
+    => dyn -> cost -> BuiltinsRuntimeInfo fun term
+toBuiltinRuntimeInfos dyn cost =
+    BuiltinsRuntimeInfo . tabulate $ toBuiltinRuntimeInfo dyn cost . toBuiltinMeaning
 
 lookupBuiltin
     :: (MonadError (ErrorWithCause err term) m, AsMachineError err internal fun term, Ix fun)

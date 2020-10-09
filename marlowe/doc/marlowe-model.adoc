@@ -1,7 +1,7 @@
 ﻿[#marlowe-model]
 == The Marlowe model
 
-Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract.
+Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that can be combined to describe many different kinds of financial contract.
 
 Before we describe those constructs, we need to look at our general approach to modelling contracts in Marlowe, and the context in which Marlowe contracts are executed, the Cardano blockchain. In doing this we also introduce some of the terminology that we will use, indicating definitions by _italics_.
 
@@ -11,9 +11,13 @@ Contracts in Marlowe run on a blockchain, but need to interact with the off-chai
 
 Running a contract will also produce external _effects_, by making payments to parties in the contract.
 
+==== Participants and roles
+
+We should separate the notions of _participants_ and _roles_ in a Marlowe contract. The roles in a contract are fixed and immutable, and could be named `party`, `counterparty` etc. On the other hand, the participants that are bound to the contract roles can change during the execution of the particular _contract instance_. This allows roles in running contracts to be _traded_ between participants, through a mechanism of _tokenisation_. This will be available in the on-chain implementation of Marlowe, and in the wallet-style simulation, but the omniscient simulation simply presents contract roles.
+
 ==== Accounts
 
-The Marlowe model allows for a contract to control money in a number of disjoint _accounts_: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a _refund_ of any remaining funds in the account when the contract is closed.footnote:[A fully “fungible” model is supported by a contract with a single account, and with explicit allocation of any remaining funds on contract termination.] These accounts are _local_, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
+The Marlowe model allows for a contract to store assets. All parties that participate in the contract implicitly own an account with their name. All assets stored in the contract must be in the account of one of the parties, this way, when the contract is closed, all assets that remain in the contract are refunded to the respective owners. These accounts are local, in that they only exist during the execution of the contract, and during that time they are only accessible by parties to the contract.
 
 ==== Steps and states
 
@@ -25,7 +29,7 @@ In executing a contract we need to keep track of the _current contract_: after m
 
 While Marlowe is designed to work with blockchains in general,footnote:[Indeed, Marlowe could be modified to run off blockchain, or to work on a permissioned blockchain, too.] some details of how it interacts with the blockchain are relevant when describing the semantics and implementation of Marlowe.
 
-A UTxO-based blockchain is a chain of _blocks_, each of which contains a collection of transactions. Each _transaction_ has a set of inputs and outputs, and the blockchain is built by linking _unspent transaction outputs_ (UTxO) to the inputs of a new transaction. At most one block can be generated in each _slot_, which are 20 seconds long.
+A UTxO-based blockchain is a chain of _blocks_, each of which contains a collection of transactions. Each _transaction_ has a set of inputs and outputs, and the blockchain is built by linking _unspent transaction outputs_ (UTxO) to the inputs of a new transaction. At most one block can be generated in each _slot_, which are 1 second long.
 
 The mechanisms by which these blocks are generated, and by whom, are not relevant here, but contracts will be expressed in terms of _slot numbers_, counting from the starting (“genesis”) block of the blockchain.
 
@@ -35,15 +39,20 @@ Value on the blockchain resides in the UTxO, which are protected cryptographical
 
 It is through their wallets that users are able to interact with smart contracts - including Marlowe contracts – running on the blockchain. Deposits are made from users’ wallets, and payments received by them. Note, however, that these are definitely _off chain_ actions that need to be controlled by code running in the user’s wallet: they cannot be made to happen by the Marlowe contract itself.
 
+==== Omniscient and wallet-level simulation
+
+The Marlowe Playground supports two kinds of simulation.
+
+In an _omniscient_ simulation, the user is able to perform any action for any role, and thus can observe the execution from the perspective of all the users. The _“wallet”-style_ simulation explicitly models different wallets (i.e. different participants) and their participation in multiple roles in multiple contracts. This model thus presents a more faithful perspective of contract execution for a particular participant in the contract.
+
 ==== Value
 
 In previous examples, whenever a `Value` was required, we have exclusively used Ada.
 This makes a lot of sense, seeing as Ada is the fundamental currency supported by Cardano.
 
-Plutus offers a more general concept of _value_, though,
-supporting custom fungible, non-fungible, and mixed tokens
-
-What is a `Value` in Plutus?
+Marlowe offers a more general concept of _value_, though,
+supporting custom fungible, non-fungible, and mixed tokens. footnote:[This reflects the value model for Plutus.]
+What _is_ a `Value` in Marlowe?
 
 [source,haskell]
 ----
@@ -60,7 +69,7 @@ more exotic mixed cases:
 
 * Ada has the _empty bytestring_ as `CurrencySymbol` and `TokenName`.
 * A _fungible_ token is represented by a `CurrencySymbol` for which there is
-  exactly one `TokenSymbol` which can have an arbitrary non-negative integer quantity
+  exactly one `TokenName` which can have an arbitrary non-negative integer quantity
   (of which Ada is a special case).
 * A class of _non-fungible_ tokens is a `CurrencySymbol` with several ``TokenName``s,
   each of which has a quantity of one. Each of these names corresponds to one
@@ -68,21 +77,25 @@ more exotic mixed cases:
 * Mixed tokens are those with several ``TokenName``s _and_ quantities greater
   than one.
 
-Cardano and Plutus provide a simple way to introduce a new currency by _forging_ it using
+Cardano provides a simple way to introduce a new currency by _forging_ it using
 _monetary policy scripts_.
-This effectively embedds Ethereum ERC-20/ERC-721 standards as primitive values in Cardano.
+This effectively embeds Ethereum ERC-20/ERC-721 standards as primitive values in Cardano. We use custom tokens to represents participants in Marlowe contracts executing on chain.
 
 === Executing a Marlowe contract
 
-Executing a Marlowe contract on Cardano blockchain means constraining user-generated transactions according to the contract's logic. If a contract expects a deposit of 100 Ada from Alice, only such a transaction will succed, anything else will be rejected.
+Executing a Marlowe contract on Cardano blockchain means constraining user-generated transactions according to the contract's logic. If a contract expects a deposit of 100 Ada from Alice, only such a transaction will succeed, anything else will be rejected.
 
-A transaction contains an ordered list of _inputs_. Marlowe interpreter is executed during transaction validation.
+A transaction contains an ordered list of _inputs_ or _actions_. The Marlowe interpreter is executed during transaction validation.
 First, it evaluates the contract _step by step_ until it cannot be changed any further without processing any input, a condition that we call being _quiescent_.
 At this stage we progress through `When` with passed timeouts, `If`, `Let`, `Pay`, and `Close` constructs without consuming any _inputs_.
 
 The first input is then processed, and then the contract is single stepped again until quiescence, and this process is repeated until all the inputs are processed. At each step the current contact and the state will change, some input may be processed, and payments made.
 
 Such a _transaction_, as shown in the diagram below, is added to the blockchain. What we do next is to describe in detail what Marlowe contracts look like, and how they are evaluated step by step.
+
+We have shown,footnote:[In our paper https://iohk.io/en/research/library/papers/marloweimplementing-and-analysing-financial-contracts-on-blockchain/[Marlowe: implementing and analysing financial contracts on blockchain]] that the behaviour of a Marlowe is independent of how inputs are collected into transactions, and so when we simulate the action of a contract we don't need to group inputs into transactions explicitly. For concreteness we can think of each transaction having at most one input. While the semantics of a contract is independent of how inputs are grouped into transactions, the _costs of execution_ may be lower if multiple inputs can be grouped into a single transaction.
+
+In the _omniscient_ simulation available in the Marlowe playground we abstract away from transaction grouping, while in the role-based “wallet“ simulation transactions are explicit.
 
 .Building a transaction
 [#img-transaction]

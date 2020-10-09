@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
@@ -46,7 +46,6 @@ type HelperFunctions a
     , mkNotify :: Term Observation -> Action
     , mkChoiceId :: String -> Term Party -> ChoiceId
     , mkValueId :: String -> ValueId
-    , mkAccountId :: BigInteger -> Term Party -> AccountId
     , mkToken :: String -> String -> Token
     , mkPK :: String -> Party
     , mkRole :: String -> Party
@@ -99,7 +98,6 @@ helperFunctions =
   , mkNotify: Notify
   , mkChoiceId: ChoiceId
   , mkValueId: ValueId
-  , mkAccountId: AccountId
   , mkToken: Token
   , mkPK: PK
   , mkRole: Role
@@ -266,18 +264,7 @@ timeout = do
     (Term v pos) -> pure $ TermWrapper (Slot v) pos
 
 accountId :: Parser AccountId
-accountId = parens accountId'
-
-accountId' :: Parser AccountId
-accountId' = do
-  skipSpaces
-  void $ string "AccountId"
-  void someWhiteSpace
-  first <- bigInteger
-  void someWhiteSpace
-  second <- parseTerm $ parens party
-  skipSpaces
-  pure $ AccountId first second
+accountId = parseTerm $ parens party
 
 choiceId :: Parser ChoiceId
 choiceId = parens choiceId'
@@ -459,7 +446,7 @@ testString =
   """When [
   (Case
      (Deposit
-        (AccountId 0 "alice") "alice"
+        "alice" "alice"
         (Constant 450))
      (When [
            (Case
@@ -483,7 +470,7 @@ testString =
                                 (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close) Close)
                        (When [
@@ -497,7 +484,7 @@ testString =
                                    (ChoiceId "1" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -511,7 +498,7 @@ testString =
                              (ChoiceId "1" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close))] 100 Close)))
            ,
@@ -536,7 +523,7 @@ testString =
                                 (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close) Close)
                        (When [
@@ -550,7 +537,7 @@ testString =
                                    (ChoiceId "1" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob")
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -564,7 +551,7 @@ testString =
                              (ChoiceId "1" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob")
                              (Constant 450) Close))] 100 Close)))] 40 Close))] 10 Close"""
 
@@ -577,7 +564,7 @@ input =
     )
 
 accountIdValue :: Parser S.AccountId
-accountIdValue = parseToValue accountId
+accountIdValue = parseToValue (parens party)
 
 choiceIdValue :: Parser S.ChoiceId
 choiceIdValue = parseToValue choiceId
@@ -630,7 +617,7 @@ transactionInputList :: Parser (List TransactionInput)
 transactionInputList = haskellList transactionInput
 
 testTransactionInputParsing :: String
-testTransactionInputParsing = "[TransactionInput { txInterval = (2 , 8), txInputs = [ (IDeposit (AccountId 0 (Role \"investor\")) (Role \"investor\") (Token \"\" \"\") 850)]}]"
+testTransactionInputParsing = "[TransactionInput { txInterval = (2 , 8), txInputs = [ (IDeposit (Role \"investor\") (Role \"investor\") (Token \"\" \"\") 850)]}]"
 
 transactionWarning :: Parser TransactionWarning
 transactionWarning = do
@@ -658,8 +645,7 @@ testTransactionWarningParsing :: String
 testTransactionWarningParsing =
   """[
   (TransactionPartialPay
-    (AccountId 0
-      (Role "investor"))
+    (Role "investor")
     (Party
       (Role "investor"))
     (Token "" "") 1000 1300)]"""

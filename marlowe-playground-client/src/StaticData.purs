@@ -6,6 +6,7 @@ module StaticData
   , marloweBufferLocalStorageKey
   , marloweContract
   , marloweContracts
+  , showHomePageLocalStorageKey
   ) where
 
 import Data.Map (Map)
@@ -36,13 +37,12 @@ demoFiles =
 addHeader :: Contents -> Contents
 addHeader c =
   """import * as bignumber from 'bignumber.js';
-import { role, accountId, choiceId, token, ada, valueId, availableMoney, constant, 
-         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart, 
-         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE, 
-         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice, 
-         notify, caseM, closeM, payM, ifM, whenM, letM, assertM, Party, SomeNumber,
-         AccountId, ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action,
-         Payee, Case, Contract } from 'marlowe-js';
+import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+         SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
+         UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
+         ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
+         Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
+         ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract } from 'marlowe-js';
 
 /* === Code above this comment will be removed at compile time === */
 
@@ -84,3 +84,7 @@ jsBufferLocalStorageKey = LocalStorage.Key "JavascriptBuffer"
 marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
+
+showHomePageLocalStorageKey ::
+  LocalStorage.Key
+showHomePageLocalStorageKey = LocalStorage.Key "ShowHomePage"

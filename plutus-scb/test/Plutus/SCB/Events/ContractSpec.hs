@@ -15,6 +15,7 @@ import qualified Data.ByteString.Char8                           as BS
 import qualified Data.ByteString.Lazy                            as BSL
 import           Data.Proxy                                      (Proxy (Proxy))
 import           GHC.TypeLits                                    (symbolVal)
+import           Language.Plutus.Contract                        (BlockchainActions)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..),
                                                                   EndpointDescription (EndpointDescription))
 import qualified Language.Plutus.Contract.Schema                 as Schema
@@ -48,7 +49,7 @@ jsonTests =
                   runExceptT $ do
                       initialisationResponse <-
                           ExceptT $
-                            first BS.unpack <$> runCliCommand game Initialise
+                            first BS.unpack <$> runCliCommand (Proxy @BlockchainActions) game Initialise
                       result <-
                           except $ JSON.eitherDecode $ BSL.fromStrict initialisationResponse
                       pure

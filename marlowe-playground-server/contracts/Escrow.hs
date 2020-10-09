@@ -33,7 +33,7 @@ inner =
                     arbitrate)
         ]
         40
-        Close
+        arbitrate
 
 -- The contract to follow when Alice and Bob have made the same choice.
 

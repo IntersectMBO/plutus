@@ -84,3 +84,4 @@ plutus-scb/plutus-scb.yaml
 *.db-shm
 *.db-wal
 hie.yaml
+node-server.sock

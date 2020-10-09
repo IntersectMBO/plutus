@@ -9,7 +9,7 @@ import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
+import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import Simulation.State (_contract, _pendingInputs, _transactionError, applyTransactions, updateContractInState, updateMarloweState)
 import Simulation.Types (_marloweState, mkState)
 import Test.Unit (TestSuite, suite, test)
@@ -27,7 +27,7 @@ all =
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromInt 0) (Role alice)) (Role alice) ada (fromInt 450)
+        deposit = IDeposit (Role alice) (Role alice) ada (fromInt 450)
 
         choice = ChoiceId "choice"
 
