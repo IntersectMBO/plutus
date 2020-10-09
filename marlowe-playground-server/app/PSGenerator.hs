@@ -41,7 +41,8 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
                                                                    genForeign)
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
-import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond, contractForDifference)
+import           Marlowe.Contracts                                (contractForDifference, couponBondGuaranteed, escrow,
+                                                                   swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes

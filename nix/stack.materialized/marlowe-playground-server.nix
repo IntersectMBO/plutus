@@ -131,6 +131,7 @@
             "ZeroCouponBond"
             "Swap"
             "Option"
+            "ContractForDifference"
             ];
           hsSourceDirs = [ "app" "contracts" ];
           mainPath = [ "Main.hs" ];

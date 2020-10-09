@@ -1,23 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ContractForDifference where
 
+import           Data.String      (IsString (fromString))
 import           Language.Marlowe
-import           Data.String                                       (IsString (fromString))
-import           Prelude                                          hiding (Fractional, Num, (*), (<), (-), (/))
+import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<))
 
 main :: IO ()
 main = print . pretty $ contract
 
-party :: Party 
+party :: Party
 party = Role "party"
 
-partyAccount :: AccountId 
+partyAccount :: AccountId
 partyAccount = AccountId 0 party
 
 counterParty :: Party
 counterParty = Role "counterparty"
 
-counterPartyAccount :: AccountId 
+counterPartyAccount :: AccountId
 counterPartyAccount = AccountId 0 counterParty
 
 oracle :: Party
@@ -31,7 +31,7 @@ before = id
 
 orElse :: Contract -> Contract
 orElse = id
-            
+
 receiveValue :: String -> Action
 receiveValue val = (Choice (ChoiceId (fromString val) oracle) [Bound 0 100000])
 
@@ -52,7 +52,7 @@ elseDo = id
 
 letValue :: String -> (Value Observation) -> Contract -> Contract
 letValue val = Let (ValueId $ fromString val)
- 
+
 useValue :: String -> (Value Observation)
 useValue = UseValue . fromString
 
@@ -81,8 +81,8 @@ amountOf :: (Value Observation) -> (Value Observation)
 amountOf = id
 
 contract :: Contract
-contract = 
-    let 
+contract =
+    let
 
         partyCollateralToken = (Token "" "")
         partyCollateralAmount = value 1000
@@ -90,45 +90,45 @@ contract =
         counterPartyCollateralAmount = value 1000
         endDate = 1000
 
-        partyCollateralDeposit = 
+        partyCollateralDeposit =
             Deposit
                 partyAccount
                 party
                 partyCollateralToken
                 partyCollateralAmount
 
-        counterPartyCollateralDeposit = 
+        counterPartyCollateralDeposit =
             Deposit
                 counterPartyAccount
                 counterParty
                 counterPartyCollateralToken
                 counterPartyCollateralAmount
-                
+
         maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
-    in 
+    in
         waitForEvent partyCollateralDeposit (before 100) (orElse end) $
         waitForEvent counterPartyCollateralDeposit (before 100) (orElse end) $
-        waitForEvent (receiveValue "price1") (before 100) (orElse end) $ 
+        waitForEvent (receiveValue "price1") (before 100) (orElse end) $
         waitFor endDate $
         waitForEvent (receiveValue "price2") (before $ endDate + 100) (orElse end) $
         letValue "delta" (readValue "price1" - readValue "price2") $
-        checkIf (useValue "delta" < value 0) 
-            (thenDo $ 
+        checkIf (useValue "delta" < value 0)
+            (thenDo $
                 letValue "absdelta" (value 0 - useValue "delta") $
                 (let payoff = maxValue (useValue "absdelta") counterPartyCollateralAmount
-                in Pay 
+                in Pay
                     (from partyAccount)
-                    (to counterParty) 
+                    (to counterParty)
                     (with counterPartyCollateralToken)
                     (amountOf payoff)) $
                 end
             )
             (elseDo $
                 (let payoff = maxValue (useValue "delta") partyCollateralAmount
-                in Pay 
+                in Pay
                     (from counterPartyAccount)
-                    (to party) 
-                    (with partyCollateralToken) 
+                    (to party)
+                    (with partyCollateralToken)
                     (amountOf payoff)) $
                 end
             )
