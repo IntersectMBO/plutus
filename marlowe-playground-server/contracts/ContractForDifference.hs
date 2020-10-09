@@ -115,7 +115,7 @@ contract =
         checkIf (useValue "delta" < value 0)
             (thenDo $
                 letValue "absdelta" (value 0 - useValue "delta") $
-                (let payoff = maxValue (useValue "absdelta") counterPartyCollateralAmount
+                (let payoff = maxValue (useValue "absdelta") partyCollateralAmount
                 in Pay
                     (from partyAccount)
                     (to counterParty)
@@ -124,7 +124,7 @@ contract =
                 end
             )
             (elseDo $
-                (let payoff = maxValue (useValue "delta") partyCollateralAmount
+                (let payoff = maxValue (useValue "delta") counterPartyCollateralAmount
                 in Pay
                     (from counterPartyAccount)
                     (to party)
