@@ -23,13 +23,13 @@ import Monaco as Monaco
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState, HAction(..), JSCompilationState(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
+import Types (ChildSlots, FrontendState, Action(..), JSCompilationState(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
   forall m.
   MonadAff m =>
   FrontendState ->
-  Array (ComponentHTML HAction ChildSlots m)
+  Array (ComponentHTML Action ChildSlots m)
 render state =
   [ section [ classes [ panelSubHeader, aHorizontal ] ]
       [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
@@ -68,7 +68,7 @@ jsEditor ::
   forall m.
   MonadAff m =>
   FrontendState ->
-  ComponentHTML HAction ChildSlots m
+  ComponentHTML Action ChildSlots m
 jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditorMessage)
   where
   setup editor =
@@ -81,7 +81,7 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditor
 
   component = monacoComponent $ JSM.settings setup
 
-bottomPanel :: forall p. FrontendState -> HTML p HAction
+bottomPanel :: forall p. FrontendState -> HTML p Action
 bottomPanel state =
   div
     ( [ classes
@@ -123,7 +123,7 @@ bottomPanel state =
   where
   showingBottomPanel = state ^. _showBottomPanel
 
-resultPane :: forall p. FrontendState -> Array (HTML p HAction)
+resultPane :: forall p. FrontendState -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _jsCompilationResult state of
     JSCompiledSuccessfully (InterpreterResult result) ->
@@ -137,7 +137,7 @@ resultPane state =
   else
     [ text "" ]
 
-compilationErrorPane :: forall p. CompilationError -> HTML p HAction
+compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text error ]
 
 compilationErrorPane (CompilationError error) =

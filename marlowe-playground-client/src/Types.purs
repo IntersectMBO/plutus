@@ -11,6 +11,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
+import Gist (Gist)
 import Halogen (AttrName(..), ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
@@ -32,10 +33,10 @@ import Simulation.Types as Simulation
 import Wallet as Wallet
 
 ------------------------------------------------------------
-data HQuery a
+data Query a
   = ChangeRoute Route a
 
-data HAction
+data Action
   = Init
   -- Home Page
   | ShowHomePageInFuture Boolean
@@ -61,7 +62,7 @@ data HAction
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
-instance actionIsEvent :: IsEvent HAction where
+instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (ShowHomePageInFuture b) = Just $ (defaultEvent "ShowHomePageInFuture") { label = Just (show b) }
   toEvent (HaskellAction action) = toEvent action
@@ -151,6 +152,9 @@ newtype FrontendState
   , showHomePage :: Boolean
   , projects :: Projects.State
   , newProject :: NewProject.State
+  , gistUrl :: Maybe String
+  , createGistResult :: WebData Gist
+  , loadGistResult :: Either String (WebData Gist)
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -196,6 +200,15 @@ _projects = _Newtype <<< prop (SProxy :: SProxy "projects")
 
 _newProject :: Lens' FrontendState NewProject.State
 _newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
+
+_gistUrl :: Lens' FrontendState (Maybe String)
+_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+
+_createGistResult :: Lens' FrontendState (WebData Gist)
+_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
+
+_loadGistResult :: Lens' FrontendState (Either String (WebData Gist))
+_loadGistResult = _Newtype <<< prop (SProxy :: SProxy "loadGistResult")
 
 -- editable
 _timestamp ::

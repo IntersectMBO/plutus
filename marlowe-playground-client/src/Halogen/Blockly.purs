@@ -1,6 +1,6 @@
 module Halogen.Blockly where
 
-import Blockly (BlockDefinition, ElementId(..), getBlockById)
+import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
@@ -13,6 +13,7 @@ import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Data.Traversable (for, for_)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
@@ -46,6 +47,8 @@ data BlocklyQuery a
   = Resize a
   | SetCode String a
   | SetError String a
+  | GetWorkspace (XML -> a)
+  | LoadWorkspace XML a
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)
@@ -100,6 +103,23 @@ handleQuery (SetCode code next) = do
 
 handleQuery (SetError err next) = do
   assign _errorMessage $ Just err
+  pure $ Just next
+
+handleQuery (GetWorkspace f) = do
+  mState <- use _blocklyState
+  for mState \bs -> do
+    let
+      xml = Blockly.workspaceXML bs.blockly bs.workspace
+    pure $ f xml
+
+handleQuery (LoadWorkspace xml next) = do
+  mState <- use _blocklyState
+  for_ mState \state ->
+    pure
+      $ ST.run do
+          workspaceRef <- STRef.new state.workspace
+          Blockly.loadWorkspace state.blockly workspaceRef xml
+  assign _errorMessage Nothing
   pure $ Just next
 
 handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit

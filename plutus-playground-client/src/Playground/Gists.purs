@@ -9,11 +9,12 @@ module Playground.Gists
 import Cursor (Cursor)
 import Data.Array (catMaybes)
 import Data.Array as Array
+import Data.Lens (Traversal', view)
+import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Foreign.Generic (encodeJSON)
-import Gist (Gist, GistFile, NewGist(NewGist), NewGistFile(NewGistFile))
-import Gists (firstMatch)
+import Gist (Gist, GistFile, NewGist(NewGist), NewGistFile(NewGistFile), gistFiles, gistFileContent)
 import Language.Haskell.Interpreter (SourceCode)
 import Playground.Types (Simulation)
 import Prelude (($), (<$>), (<<<))
@@ -52,8 +53,8 @@ gistSourceFilename = "Playground.hs"
 gistSimulationFilename :: String
 gistSimulationFilename = "Simulation.json"
 
-playgroundGistFile :: Gist -> Maybe GistFile
-playgroundGistFile = firstMatch gistSourceFilename
+playgroundGistFile :: Traversal' Gist (Maybe String)
+playgroundGistFile = gistFiles <<< ix gistSourceFilename <<< gistFileContent
 
-simulationGistFile :: Gist -> Maybe GistFile
-simulationGistFile = firstMatch gistSimulationFilename
+simulationGistFile :: Traversal' Gist (Maybe String)
+simulationGistFile = gistFiles <<< ix gistSimulationFilename <<< gistFileContent

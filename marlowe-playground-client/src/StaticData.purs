@@ -77,7 +77,7 @@ marloweContract = "(Some Marlowe Code)"
 
 bufferLocalStorageKey ::
   LocalStorage.Key
-bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
+bufferLocalStorageKey = LocalStorage.Key "HaskellBuffer"
 
 jsBufferLocalStorageKey ::
   LocalStorage.Key
