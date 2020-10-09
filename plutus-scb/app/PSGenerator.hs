@@ -13,9 +13,8 @@ module PSGenerator
     ( generate
     ) where
 
-import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction,
-                                                                    PropertyDescription, PropertyKey, Subject,
-                                                                    SubjectProperties)
+import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction, Property,
+                                                                    PropertyKey, Subject, SubjectProperties)
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, view, (&))
 import           Control.Monad                                     (void)
@@ -85,7 +84,7 @@ myBridge =
 -- PureScript won't support, so we must drop it.
 metadataBridge :: BridgePart
 metadataBridge = do
-  (typeName ^== "PropertyDescription")
+  (typeName ^== "Property")
     <|> (typeName ^== "SubjectProperties")
     <|> (typeName ^== "AnnotatedSignature")
   typeModule ^== "Cardano.Metadata.Types"
@@ -154,7 +153,7 @@ myTypes =
     -- Metadata types
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Subject)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(SubjectProperties A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PropertyDescription A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Property A))
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))

@@ -30,6 +30,7 @@ import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
 import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
+import           Data.Traversable                                (for)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -76,10 +77,7 @@ getContractReport = do
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall effs.
-       ( Member ChainIndexEffect effs
-       , Member MetadataEffect effs
-       )
+       forall effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
     => Eff effs ChainReport
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
@@ -90,15 +88,15 @@ getChainReport = do
     let wallets = Wallet <$> [1 .. 10]
     relatedMetadata <-
         mconcat <$>
-        traverse
+        for wallets
             (\wallet -> do
-                 let subject = Metadata.toSubject . pubKeyHash . walletPubKey $ wallet
+                 let subject =
+                         Metadata.toSubject . pubKeyHash . walletPubKey $ wallet
                  result <- Metadata.getProperties subject
                  case result of
                      Just (SubjectProperties _ properties) ->
                          pure $ Map.singleton subject properties
                      Nothing -> pure mempty)
-            wallets
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport

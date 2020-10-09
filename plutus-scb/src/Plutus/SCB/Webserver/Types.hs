@@ -39,7 +39,7 @@ data ChainReport =
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
         , annotatedBlockchain :: [[AnnotatedTx]]
-        , relatedMetadata     :: Map Metadata.Subject [Metadata.PropertyDescription 'Metadata.AesonEncoding]
+        , relatedMetadata     :: Map Metadata.Subject [Metadata.Property 'Metadata.AesonEncoding]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -75,7 +75,7 @@ data StreamToClient
     | NewContractReport (ContractReport ContractExe)
     | NewChainEvents [ChainEvent ContractExe]
     | FetchedProperties (Maybe (Metadata.SubjectProperties 'Metadata.AesonEncoding))
-    | FetchedProperty Metadata.Subject (Maybe (Metadata.PropertyDescription 'Metadata.AesonEncoding))
+    | FetchedProperty Metadata.Subject (Maybe (Metadata.Property 'Metadata.AesonEncoding))
     | ErrorResponse Text
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

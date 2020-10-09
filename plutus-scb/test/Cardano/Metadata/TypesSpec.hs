@@ -9,7 +9,7 @@ module Cardano.Metadata.TypesSpec
     ( tests
     ) where
 
-import           Cardano.Metadata.Types (HashFunction, JSONEncoding (ExternalEncoding), PropertyDescription,
+import           Cardano.Metadata.Types (AnnotatedSignature, HashFunction, JSONEncoding (ExternalEncoding), Property,
                                          SubjectProperties)
 import           Control.Monad          (void)
 import           Data.Aeson             (FromJSON, eitherDecode, encode)
@@ -17,6 +17,8 @@ import qualified Data.ByteString.Lazy   as LBS
 import qualified Test.SmallCheck.Series as SC
 import           Test.Tasty             (TestTree, testGroup)
 import           Test.Tasty.HUnit       (HasCallStack, assertFailure, testCase)
+import           Test.Tasty.QuickCheck  ((===))
+import qualified Test.Tasty.QuickCheck  as QC
 import qualified Test.Tasty.SmallCheck  as SC
 
 tests :: TestTree
@@ -30,6 +32,8 @@ jsonTests =
               "JSON Encoding"
               [ SC.testProperty "Roundtrip encoding of HashFunction" $ \(h :: HashFunction) ->
                     Right h == eitherDecode (encode h)
+              , QC.testProperty "Roundtrip AnnotatedSignature" $ \(sig :: AnnotatedSignature 'ExternalEncoding) ->
+                    Right sig === eitherDecode (encode sig)
               ]
         , testGroup
               "Metadata Server Responses FromJSON"
@@ -38,22 +42,22 @@ jsonTests =
                     [ testCase "owner" $
                       void $
                       assertDecodes
-                          @(PropertyDescription 'ExternalEncoding)
+                          @(Property 'ExternalEncoding)
                           "test/Cardano/Metadata/property_owner.json"
                     , testCase "name" $
                       void $
                       assertDecodes
-                          @(PropertyDescription 'ExternalEncoding)
+                          @(Property 'ExternalEncoding)
                           "test/Cardano/Metadata/property_name.json"
                     , testCase "preImage" $
                       void $
                       assertDecodes
-                          @(PropertyDescription 'ExternalEncoding)
+                          @(Property 'ExternalEncoding)
                           "test/Cardano/Metadata/property_preimage.json"
                     , testCase "description" $
                       void $
                       assertDecodes
-                          @(PropertyDescription 'ExternalEncoding)
+                          @(Property 'ExternalEncoding)
                           "test/Cardano/Metadata/property_description.json"
                     ]
               , testCase "Subject query response" $
@@ -63,7 +67,6 @@ jsonTests =
                     "test/Cardano/Metadata/subject_response1.json"
               ]
         ]
-
 
 assertDecodes ::
        forall a. (FromJSON a, HasCallStack)

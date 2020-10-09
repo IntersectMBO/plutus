@@ -12,29 +12,40 @@
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
+-- | Maintainer's note: There are some types in this module where we'd
+-- like to have two different ways to encode JSON data; the 'native'
+-- aeson one and a 3rd-party defined one. We can do this by adding a
+-- phantom type parameter which specifies the encoding, and then having
+-- different typeclass instances for different choices of that parameter.
+--
+-- Since it's a phantom type, the underlying data representation is
+-- the same in every case, so you are allowed to use
+-- 'Data.Coerce.coerce' to freely switch between encodings.
 module Cardano.Metadata.Types where
 
-import           Control.Applicative       (Alternative, (<|>))
-import           Control.Monad.Freer.TH    (makeEffect)
-import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey, parseJSON, toJSON, withObject,
-                                            withText, (.:))
-import qualified Data.Aeson                as JSON
-import           Data.Aeson.Extras         (decodeByteString, encodeByteString)
-import           Data.Aeson.Types          (Parser)
-import qualified Data.ByteString           as BS
-import           Data.List.NonEmpty        (NonEmpty)
-import           Data.Text                 (Text)
-import qualified Data.Text                 as Text
-import           Data.Text.Encoding        (encodeUtf8)
-import           Data.Text.Prettyprint.Doc (Pretty, pretty, (<+>))
-import           GHC.Generics              (Generic)
-import           Ledger.Crypto             (PubKey (PubKey), PubKeyHash, Signature (Signature), getPubKey,
-                                            getPubKeyHash)
-import           LedgerBytes               (LedgerBytes)
+import           Control.Applicative               (Alternative, (<|>))
+import           Control.Monad.Freer.TH            (makeEffect)
+import           Data.Aeson                        (FromJSON, FromJSONKey, ToJSON, ToJSONKey, parseJSON, toJSON,
+                                                    withObject, withText, (.:), (.=))
+import qualified Data.Aeson                        as JSON
+import           Data.Aeson.Extras                 (decodeByteString, encodeByteString)
+import           Data.Aeson.Types                  (Parser)
+import qualified Data.ByteString                   as BS
+import           Data.List.NonEmpty                (NonEmpty)
+import           Data.Text                         (Text)
+import qualified Data.Text                         as Text
+import           Data.Text.Encoding                (encodeUtf8)
+import           Data.Text.Prettyprint.Doc         (Pretty, pretty, (<+>))
+import           GHC.Generics                      (Generic)
+import           Ledger.Crypto                     (PubKey (PubKey), PubKeyHash, Signature (Signature), getPubKey,
+                                                    getPubKeyHash, getSignature)
+import           LedgerBytes                       (LedgerBytes)
 import qualified LedgerBytes
-import           Plutus.SCB.Instances      ()
-import           Servant.API               (FromHttpApiData, ToHttpApiData)
-import           Servant.Client            (BaseUrl, ClientError)
+import           Plutus.SCB.Arbitrary              ()
+import           Plutus.SCB.Instances              ()
+import           Servant.API                       (FromHttpApiData, ToHttpApiData)
+import           Servant.Client                    (BaseUrl, ClientError)
+import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary)
 
 newtype MetadataConfig =
     MetadataConfig
@@ -55,6 +66,9 @@ newtype Subject =
                      , ToJSONKey
                      , FromJSONKey
                      )
+
+instance Arbitrary Subject where
+    arbitrary = genericArbitrary
 
 class ToSubject a where
     toSubject :: a -> Subject
@@ -77,33 +91,35 @@ newtype PropertyKey =
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToJSON, FromJSON, FromHttpApiData, ToHttpApiData, Pretty)
 
-newtype PropertyName =
-    PropertyName Text
-    deriving (Show, Eq, Generic)
-    deriving newtype (ToJSON, FromJSON, Pretty)
-
-type role SubjectProperties phantom
-
 data SubjectProperties (encoding :: k) =
-    SubjectProperties Subject [PropertyDescription encoding]
+    SubjectProperties Subject [Property encoding]
     deriving (Show, Eq, Generic)
 
-deriving anyclass instance ToJSON (SubjectProperties 'AesonEncoding)
-deriving anyclass instance FromJSON (SubjectProperties 'AesonEncoding)
+instance Arbitrary (SubjectProperties encoding) where
+    arbitrary = genericArbitrary
+
+deriving anyclass instance
+         ToJSON (SubjectProperties 'AesonEncoding)
+
+deriving anyclass instance
+         FromJSON (SubjectProperties 'AesonEncoding)
 
 instance FromJSON (SubjectProperties 'ExternalEncoding) where
     parseJSON =
         withObject "SubjectProperties" $ \o -> do
             subject <- o .: "subject"
             SubjectProperties subject <$>
-                accumulateSuccesses
+                (accumulateSuccesses :: [Parser a] -> Parser [a])
                     [ parseName o
                     , parseDescription o
                     , parsePreimage o
                     , parseOwner o
                     ]
 
--- | Accumulate the results from _every_ matching parser.
+-- | Collect alternatives, ignoring failures.
+-- For example, accumulate the results of every parser that succeeds,
+-- ignoring the ones that failed. Useful when the same data can be
+-- parsed more than one way.
 accumulateSuccesses ::
        ( Alternative f
        , Applicative m
@@ -113,9 +129,9 @@ accumulateSuccesses ::
        )
     => g (f a)
     -> f (m a)
-accumulateSuccesses = foldMap (\parser -> (pure <$> parser) <|> pure mempty)
+accumulateSuccesses = foldMap (\f -> (pure <$> f) <|> pure mempty)
 
-parseName :: JSON.Object -> Parser (PropertyDescription 'ExternalEncoding)
+parseName :: JSON.Object -> Parser (Property 'ExternalEncoding)
 parseName =
     parseAtKey
         "name"
@@ -125,7 +141,8 @@ parseName =
                  subObject .: "anSignatures"
              pure $ Name value signatures)
 
-parseDescription :: JSON.Object -> Parser (PropertyDescription 'ExternalEncoding)
+parseDescription ::
+       JSON.Object -> Parser (Property 'ExternalEncoding)
 parseDescription =
     parseAtKey
         "description"
@@ -134,7 +151,7 @@ parseDescription =
              signatures <- description .: "anSignatures"
              pure $ Description value signatures)
 
-parsePreimage :: JSON.Object -> Parser (PropertyDescription 'ExternalEncoding)
+parsePreimage :: JSON.Object -> Parser (Property 'ExternalEncoding)
 parsePreimage =
     parseAtKey
         "preImage"
@@ -143,13 +160,12 @@ parsePreimage =
              hex <- preImage .: "hex"
              pure $ Preimage hash hex)
 
-parseOwner :: JSON.Object -> Parser (PropertyDescription 'ExternalEncoding)
+parseOwner :: JSON.Object -> Parser (Property 'ExternalEncoding)
 parseOwner subObject = do
     sig <- subObject .: "owner"
     pure $ Other "owner" (JSON.Object subObject) (pure sig)
 
-parseAtKey ::
-       Text -> (JSON.Object -> Parser a) -> JSON.Object -> Parser a
+parseAtKey :: Text -> (JSON.Object -> Parser a) -> JSON.Object -> Parser a
 parseAtKey key parser o = do
     subValue <- o .: key
     withObject (Text.unpack key) parser subValue
@@ -170,12 +186,21 @@ instance ToJSON HashFunction where
     toJSON SHA256     = JSON.String "SHA256"
     toJSON Blake2B256 = JSON.String "blake2b-256"
 
+instance Arbitrary HashFunction where
+    arbitrary = genericArbitrary
+
 data AnnotatedSignature (encoding :: k) =
     AnnotatedSignature PubKey Signature
     deriving (Show, Eq, Ord, Generic)
 
-deriving anyclass instance ToJSON (AnnotatedSignature 'AesonEncoding)
-deriving anyclass instance FromJSON (AnnotatedSignature 'AesonEncoding)
+deriving anyclass instance
+         ToJSON (AnnotatedSignature 'AesonEncoding)
+
+deriving anyclass instance
+         FromJSON (AnnotatedSignature 'AesonEncoding)
+
+instance Arbitrary (AnnotatedSignature encoding) where
+    arbitrary = genericArbitrary
 
 instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
     parseJSON =
@@ -188,25 +213,60 @@ instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
                 Right pubKey -> pure $ AnnotatedSignature pubKey sig
                 Left err     -> fail (show (err, pubKeyRaw))
 
-data JSONEncoding = ExternalEncoding | AesonEncoding
+instance ToJSON (AnnotatedSignature 'ExternalEncoding) where
+    toJSON (AnnotatedSignature pubKey sig) =
+        JSON.object
+            [ "signature" .= (encodeByteString (getSignature sig))
+            , "publicKey" .= getPubKey pubKey
+            ]
 
-data PropertyDescription (encoding :: k)
+data JSONEncoding
+    = ExternalEncoding
+    | AesonEncoding
+
+data Property (encoding :: k)
     = Preimage HashFunction LedgerBytes
     | Name Text (NonEmpty (AnnotatedSignature encoding))
     | Description Text (NonEmpty (AnnotatedSignature encoding))
     | Other Text JSON.Value (NonEmpty (AnnotatedSignature encoding))
     deriving (Show, Eq, Generic)
 
-deriving anyclass instance ToJSON (PropertyDescription 'AesonEncoding)
-deriving anyclass instance FromJSON (PropertyDescription 'AesonEncoding)
+instance Arbitrary (Property encoding) where
+    arbitrary = genericArbitrary
 
-instance FromJSON (PropertyDescription 'ExternalEncoding) where
+deriving anyclass instance
+         ToJSON (Property 'AesonEncoding)
+
+deriving anyclass instance
+         FromJSON (Property 'AesonEncoding)
+
+instance ToJSON (Property 'ExternalEncoding) where
+    toJSON (Preimage hash bytes) =
+        JSON.object
+            ["preImage" .= JSON.object ["hashFn" .= hash, "hex" .= bytes]]
+    toJSON (Name value signatures) =
+        JSON.object
+            [ "name" .=
+              JSON.object ["value" .= value, "anSignatures" .= signatures]
+            ]
+    toJSON (Description value signatures) =
+        JSON.object
+            [ "description" .=
+              JSON.object ["value" .= value, "anSignatures" .= signatures]
+            ]
+    toJSON (Other name value signatures) =
+        JSON.object
+            [ name.=
+              JSON.object ["value" .= value, "anSignatures" .= signatures]
+            ]
+
+instance FromJSON (Property 'ExternalEncoding) where
     parseJSON =
-        withObject "PropertyDescription" $ \o ->
+        withObject "Property" $ \o ->
             parseName o <|> parseDescription o <|> parsePreimage o <|>
             parseOwner o
 
-toPropertyKey :: PropertyDescription encoding -> PropertyKey
+toPropertyKey :: Property encoding -> PropertyKey
 toPropertyKey (Preimage _ _)    = PropertyKey "preimage"
 toPropertyKey (Name _ _)        = PropertyKey "name"
 toPropertyKey (Description _ _) = PropertyKey "description"
@@ -214,16 +274,20 @@ toPropertyKey (Other name _ _)  = PropertyKey name
 
 ------------------------------------------------------------
 data MetadataEffect r where
-    GetProperties :: Subject -> MetadataEffect (Maybe (SubjectProperties 'AesonEncoding))
-    GetProperty :: Subject -> PropertyKey -> MetadataEffect (Maybe (PropertyDescription 'AesonEncoding))
+    GetProperties
+        :: Subject -> MetadataEffect (Maybe (SubjectProperties 'AesonEncoding))
+    GetProperty
+        :: Subject
+        -> PropertyKey
+        -> MetadataEffect (Maybe (Property 'AesonEncoding))
 
 makeEffect ''MetadataEffect
 
 ------------------------------------------------------------
-data MetadataError
-    = MetadataClientError ClientError
+newtype MetadataError =
+    MetadataClientError ClientError
     deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (ToJSON, FromJSON)
 
 data MetadataLogMessage
     = FetchingSubject Subject

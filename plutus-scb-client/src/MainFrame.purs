@@ -7,7 +7,7 @@ module MainFrame
 
 import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
-import Cardano.Metadata.Types (PropertyDescription, PropertyKey, Subject, SubjectProperties(..))
+import Cardano.Metadata.Types (Property, PropertyKey, Subject, SubjectProperties(..))
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
@@ -128,23 +128,23 @@ handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = case msg of
   NewChainEvents events -> assign _events (Success events)
   ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
   FetchedProperty _ Nothing -> pure unit
-  FetchedProperty subject (Just propertyDescription) -> do
+  FetchedProperty subject (Just property) -> do
     log $ "Websocket fetch property: " <> show msg
-    modifying _metadata (upsertProperty subject propertyDescription)
+    modifying _metadata (upsertProperty subject property)
   FetchedProperties Nothing -> pure unit
-  FetchedProperties (Just (SubjectProperties subject propertyDescriptions)) -> do
+  FetchedProperties (Just (SubjectProperties subject properties)) -> do
     log $ "Websocket fetch properties: " <> show msg
-    modifying _metadata (\m -> foldr (upsertProperty subject) m propertyDescriptions)
+    modifying _metadata (\m -> foldr (upsertProperty subject) m properties)
 
 handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessage $ Stream.Failure $ DecodingError err
 
 handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
   assign _webSocketStatus (WebSocketClosed (Just closeEvent))
 
-upsertProperty :: Subject -> PropertyDescription -> Map Subject (Map PropertyKey PropertyDescription) -> Map Subject (Map PropertyKey PropertyDescription)
-upsertProperty subject propertyDescription =
+upsertProperty :: Subject -> Property -> Map Subject (Map PropertyKey Property) -> Map Subject (Map PropertyKey Property)
+upsertProperty subject property =
   Map.insertWith append subject
-    $ Map.singleton (toPropertyKey propertyDescription) propertyDescription
+    $ Map.singleton (toPropertyKey property) property
 
 handleAction ::
   forall m.

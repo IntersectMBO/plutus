@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -71,7 +72,7 @@ import           Plutus.SCB.Types                   (Config (Config), ContractEx
                                                      dbConfig, metadataServerConfig, nodeServerConfig,
                                                      signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Webserver.Types         (WebSocketLogMsg)
-import           Servant.Client                     (ClientEnv, ClientError, mkClientEnv)
+import           Servant.Client                     (BaseUrl, ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                        (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                     (readProcessWithExitCode)
 import           Wallet.API                         (WalletAPIError)
@@ -210,7 +211,7 @@ runAppBackend trace loggingConfig config action = do
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
 
-mkEnv :: (MonadUnliftIO m, MonadLogger m) => Config -> m Env
+mkEnv :: forall m. (MonadUnliftIO m, MonadLogger m) => Config -> m Env
 mkEnv Config { dbConfig
              , nodeServerConfig
              , metadataServerConfig
@@ -227,6 +228,7 @@ mkEnv Config { dbConfig
     dbConnection <- dbConnect dbConfig
     pure Env {..}
   where
+    clientEnv :: BaseUrl -> m ClientEnv
     clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure baseUrl
 
     mkManager =
