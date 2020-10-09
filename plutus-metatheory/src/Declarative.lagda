@@ -114,9 +114,15 @@ data _≤L_ {A : Set} : List A → List A → Set where
 []≤L []       = base
 []≤L (a ∷ as) = skip ([]≤L as)
 
-data _≤C_ : Ctx⋆ → Ctx⋆ → Set where
- base : ∀{Φ} → Φ ≤C Φ
- skip : ∀{Φ Φ' K} → Φ ≤C Φ' → Φ ≤C (Φ' ,⋆ K)
+data _≤C⋆_ : Ctx⋆ → Ctx⋆ → Set where
+ base : ∀{Φ} → Φ ≤C⋆ Φ
+ skip : ∀{Φ Φ' K} → Φ ≤C⋆ Φ' → Φ ≤C⋆ (Φ' ,⋆ K)
+
+data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
+ 
 
 
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
@@ -130,20 +136,29 @@ sig2type ∅        C = C
 sig2type (Γ ,⋆ J) C = sig2type Γ (Π C) 
 sig2type (Γ , A)  C = sig2type Γ (A ⇒ C)
 
-apply2 : ∀ Ψ (As : List (Ψ ⊢⋆ *))(As' : List (Ψ ⊢⋆ *))(p : As' ≤L As)(C : Ψ ⊢⋆ *) → Ψ ⊢⋆ *
-apply2 Ψ As       .As base     C = C
-apply2 Ψ (A ∷ As) As' (skip p) C = apply2 Ψ As As' p (A ⇒ C)
+abstract2 : ∀ Ψ (As : List (Ψ ⊢⋆ *))(As' : List (Ψ ⊢⋆ *))(p : As' ≤L As)(C : Ψ ⊢⋆ *) → Ψ ⊢⋆ *
+abstract2 Ψ As       .As base     C = C
+abstract2 Ψ (A ∷ As) As' (skip p) C = abstract2 Ψ As As' p (A ⇒ C)
 
-apply1 : ∀ Ψ Ψ' (p : Ψ' ≤C Ψ)(C : Ψ ⊢⋆ *) → Ψ' ⊢⋆ *
-apply1 Ψ        Ψ  base     C = C
-apply1 (Ψ ,⋆ _) Ψ' (skip p) C = apply1 Ψ Ψ' p (Π C)
+abstract1 : ∀ Ψ Ψ' (p : Ψ' ≤C⋆ Ψ)(C : Ψ ⊢⋆ *) → Ψ' ⊢⋆ *
+abstract1 Ψ        Ψ  base     C = C
+abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
 
 open import Data.Sum
 
-apply3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
-apply3 Φ Ψ Ψ' As [] (inj₁ (p ,, refl)) C σ =
-  subst σ (apply1 Ψ Ψ' p (apply2 Ψ As [] ([]≤L As) C)) 
-apply3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (apply2 Ψ As As' p C)
+abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
+abstract3 Φ Ψ Ψ' As [] (inj₁ (p ,, refl)) C σ =
+  subst σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
+abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (abstract2 Ψ As As' p C)
+
+apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
+  → (Δ' ≤C Δ)
+  → (C : Ψ ⊢⋆ *)
+  → (σ⋆ : Sub Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
+  → Φ ⊢⋆ *
+apply⋆ Φ Γ Ψ .Ψ Δ .Δ base C σ⋆ σ = subst σ⋆ C
+apply⋆ Φ Γ .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ Δ' p (Π C) σ⋆ σ 
+apply⋆ Φ Γ Ψ Ψ' (_ , A) Δ' (skip p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ _ p (A ⇒ C) σ⋆ σ
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
@@ -211,9 +226,9 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       ∀ Ψ' → 
       (σ : Sub Ψ' Φ)
     → (As' : List (Ψ' ⊢⋆ *))
-    → (p : (Ψ' ≤C Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
+    → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
     → Tel Γ Ψ' σ As'
-    → Γ ⊢ apply3 Φ Ψ Ψ' As As' p C σ
+    → Γ ⊢ abstract3 Φ Ψ Ψ' As As' p C σ
 
   ibuiltin : 
       (b : Builtin)
@@ -221,6 +236,16 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       (σ⋆ : Sub Ψ Φ)
     → (σ : ITel Δ Γ σ⋆)
     → Γ ⊢ subst σ⋆ C
+
+  ipbuiltin : 
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      ∀ Ψ'
+    → (Δ' : Ctx Ψ')
+    → (p : Δ' ≤C Δ)
+      (σ⋆ : Sub Ψ' Φ)
+    → (σ : ITel Δ' Γ σ⋆)
+    → Γ ⊢ apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
