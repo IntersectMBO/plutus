@@ -16,7 +16,7 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 
-open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
+open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Agda.Builtin.Int
 open import Data.Integer renaming (_*_ to _**_)
 open import Data.Empty
@@ -102,7 +102,49 @@ application.
 
 \begin{code}
 data Tel {Φ} Γ Δ (σ : Sub Δ Φ) : List (Δ ⊢⋆ *) → Set
-  
+
+-- this is just a synonym for a substitution
+ITel : ∀ {Φ}{Ψ} Γ Δ → Sub Φ Ψ → Set
+
+data _≤L_ {A : Set} : List A → List A → Set where
+ base : ∀{as} → as ≤L as
+ skip : ∀{as as' a} → as ≤L as' → as ≤L (a ∷ as')
+
+[]≤L : {A : Set}(as : List A) → [] ≤L as
+[]≤L []       = base
+[]≤L (a ∷ as) = skip ([]≤L as)
+
+data _≤C_ : Ctx⋆ → Ctx⋆ → Set where
+ base : ∀{Φ} → Φ ≤C Φ
+ skip : ∀{Φ Φ' K} → Φ ≤C Φ' → Φ ≤C (Φ' ,⋆ K)
+
+
+ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
+ISIG addInteger = _ ,, (∅ , con integer) ,, con integer
+--ISIG ifThenElse = _ ,, (∅ ,⋆ * , con bool , ` Z) ,, ` Z
+ISIG ifThenElse = _ ,, ∅ , con bool ,⋆ * , ` Z ,, ` Z
+ISIG _ = _ ,, ∅ ,, con bool
+
+sig2type : ∀ {Φ} → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
+sig2type ∅        C = C
+sig2type (Γ ,⋆ J) C = sig2type Γ (Π C) 
+sig2type (Γ , A)  C = sig2type Γ (A ⇒ C)
+
+apply2 : ∀ Ψ (As : List (Ψ ⊢⋆ *))(As' : List (Ψ ⊢⋆ *))(p : As' ≤L As)(C : Ψ ⊢⋆ *) → Ψ ⊢⋆ *
+apply2 Ψ As       .As base     C = C
+apply2 Ψ (A ∷ As) As' (skip p) C = apply2 Ψ As As' p (A ⇒ C)
+
+apply1 : ∀ Ψ Ψ' (p : Ψ' ≤C Ψ)(C : Ψ ⊢⋆ *) → Ψ' ⊢⋆ *
+apply1 Ψ        Ψ  base     C = C
+apply1 (Ψ ,⋆ _) Ψ' (skip p) C = apply1 Ψ Ψ' p (Π C)
+
+open import Data.Sum
+
+apply3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
+apply3 Φ Ψ Ψ' As [] (inj₁ (p ,, refl)) C σ =
+  subst σ (apply1 Ψ Ψ' p (apply2 Ψ As [] ([]≤L As) C)) 
+apply3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (apply2 Ψ As As' p C)
+
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   ` : {A : Φ ⊢⋆ *}
@@ -159,15 +201,37 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : Sub Δ Φ) -- substitutes for new vars introduced by the Sig
-    → Tel Γ Δ σ As     -- a telescope of terms M_i typed in subst σ
+    → Tel Γ Δ σ As  -- a telescope of terms M_i typed in subst σ
     -----------------------------
     → Γ ⊢ subst σ C
 
+  pbuiltin :
+      (b :  Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      ∀ Ψ' → 
+      (σ : Sub Ψ' Φ)
+    → (As' : List (Ψ' ⊢⋆ *))
+    → (p : (Ψ' ≤C Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
+    → Tel Γ Ψ' σ As'
+    → Γ ⊢ apply3 Φ Ψ Ψ' As As' p C σ
+
+  ibuiltin : 
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      (σ⋆ : Sub Ψ Φ)
+    → (σ : ITel Δ Γ σ⋆)
+    → Γ ⊢ subst σ⋆ C
+
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
+
 
 data Tel {Φ} Γ Δ σ where
   []  : Tel Γ Δ σ []
   _∷_ : ∀{A As} → Γ ⊢ subst σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
+
+
+ITel {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ subst σ A
+
 \end{code}
 
 \begin{code}
