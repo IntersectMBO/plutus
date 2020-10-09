@@ -39,6 +39,8 @@ import           Language.Haskell.Interpreter                     (CompilationEr
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
 import           Language.Marlowe.Semantics
+import           Language.PlutusTx.AssocMap                       (Map)
+import qualified Language.PlutusTx.AssocMap                       as Map
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
                                                                    mkSumType, psTypeParameters, typeModule, typeName,
@@ -188,9 +190,9 @@ writePangramJson outputDir = do
         encodedPangram = encode pangram
         state =
             State
-            { accounts: Map.singleton (Tuple aliceAcc token) (fromIntegral 12)
+            { accounts: Map.singleton (aliceAcc, token) (fromIntegral 12)
             , choices: Map.singleton choiceId (fromIntegral 42)
-            , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromIntegral 1), Tuple (ValueId "y") (fromIntegral 2) ]
+            , boundValues: Map.fromFoldable [ ((ValueId "x"), (fromIntegral 1)), ((ValueId "y"), (fromIntegral 2)) ]
             , minSlot: (Slot $ fromIntegral 123)
             }
         encodedState = encode state
