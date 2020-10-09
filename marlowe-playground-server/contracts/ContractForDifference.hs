@@ -128,7 +128,7 @@ contract =
                 in Pay
                     (from counterPartyAccount)
                     (to party)
-                    (with counterpPartyCollateralToken)
+                    (with counterPartyCollateralToken)
                     (amountOf payoff)) $
                 end
             )
