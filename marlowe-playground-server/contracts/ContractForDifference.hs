@@ -11,14 +11,8 @@ main = print . pretty $ contract
 party :: Party
 party = Role "party"
 
-partyAccount :: AccountId
-partyAccount = AccountId 0 party
-
 counterParty :: Party
 counterParty = Role "counterparty"
-
-counterPartyAccount :: AccountId
-counterPartyAccount = AccountId 0 counterParty
 
 oracle :: Party
 oracle = Role "oracle"
@@ -92,14 +86,14 @@ contract =
 
         partyCollateralDeposit =
             Deposit
-                partyAccount
+                party
                 party
                 partyCollateralToken
                 partyCollateralAmount
 
         counterPartyCollateralDeposit =
             Deposit
-                counterPartyAccount
+                counterParty
                 counterParty
                 counterPartyCollateralToken
                 counterPartyCollateralAmount
@@ -117,7 +111,7 @@ contract =
                 letValue "absdelta" (value 0 - useValue "delta") $
                 (let payoff = maxValue (useValue "absdelta") partyCollateralAmount
                 in Pay
-                    (from partyAccount)
+                    (from party)
                     (to counterParty)
                     (with partyCollateralToken)
                     (amountOf payoff)) $
@@ -126,7 +120,7 @@ contract =
             (elseDo $
                 (let payoff = maxValue (useValue "delta") counterPartyCollateralAmount
                 in Pay
-                    (from counterPartyAccount)
+                    (from counterParty)
                     (to party)
                     (with counterPartyCollateralToken)
                     (amountOf payoff)) $
