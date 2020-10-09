@@ -88,8 +88,8 @@ serializationTest =
       json = encodeJSON contract
 
       jsonState = encodeJSON state
-    expectedJson <- liftEffect $ FS.readTextFile UTF8 "test/contract.json"
-    expectedStateJson <- liftEffect $ FS.readTextFile UTF8 "test/state.json"
+    expectedJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/contract.json"
+    expectedStateJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/state.json"
     let
       rx = unsafeRegex "\\s+" (RegexFlags { global: true, ignoreCase: true, multiline: true, sticky: false, unicode: true })
 

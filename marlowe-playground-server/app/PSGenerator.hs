@@ -23,6 +23,7 @@ import qualified Auth
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
 import           Control.Monad.Reader                             (MonadReader)
+import           Data.Aeson                                       (encode)
 import qualified Data.ByteString                                  as BS
 import qualified Data.ByteString.Char8                            as BS8
 import           Data.Monoid                                      ()
@@ -37,6 +38,7 @@ import           Language.Haskell.Interpreter                     (CompilationEr
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
+import           Language.Marlowe.Semantics
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
                                                                    mkSumType, psTypeParameters, typeModule, typeName,
@@ -164,6 +166,39 @@ writeUsecases outputDir = do
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
+writePangramJson :: FilePath -> IO ()
+writePangramJson outputDir = do
+    let pangram =         
+        Assert TrueObs
+          ( When
+              [ Case (Deposit aliceAcc alicePk ada valueExpr)
+                  ( Let (ValueId "x") valueExpr
+                      (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
+                  )
+              , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
+                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
+                      (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
+                      Close
+                  )
+              , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
+              ]
+              (Slot (fromIntegral 100))
+              Close
+          )
+        encodedPangram = encode pangram
+        state =
+            State
+            { accounts: Map.singleton (Tuple aliceAcc token) (fromIntegral 12)
+            , choices: Map.singleton choiceId (fromIntegral 42)
+            , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromIntegral 1), Tuple (ValueId "y") (fromIntegral 2) ]
+            , minSlot: (Slot $ fromIntegral 123)
+            }
+        encodedState = encode state
+    BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
+    BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
+        
+
+
 generate :: FilePath -> IO ()
 generate outputDir = do
     writeAPIModuleWithSettings
@@ -173,3 +208,4 @@ generate outputDir = do
         (Proxy @(API.API :<|> Auth.FrontendAPI))
     writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir
+    writePangramJson outputDir
