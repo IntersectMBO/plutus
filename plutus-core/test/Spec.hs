@@ -30,6 +30,7 @@ import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                                       as BSL
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
+import qualified Flat                                                       as Flat
 import           Hedgehog                                                   hiding (Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
@@ -96,6 +97,11 @@ propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
+propFlat :: Property
+propFlat = property $ do
+    prog <- forAllPretty $ runAstGen genProgram
+    Hedgehog.tripping prog Flat.flat Flat.unflat
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -136,7 +142,8 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
   testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip" propCBOR
+    , testProperty "serialization round-trip (CBOR)" propCBOR
+    , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
