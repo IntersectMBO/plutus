@@ -25,48 +25,54 @@ benchCek program =
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f =
-  benchCek (Clausify.mkClausifyTerm 1 f)
+  benchCek $ Clausify.mkClausifyTerm 1 f
 
-benchPrime :: [Integer] -> Benchmark
-benchPrime ns =
-  bench (" " <> show ns) $ benchCek (Prime.mkPrimeTerm ns)
+benchPrime :: Prime.PrimeID -> Benchmarkable
+benchPrime pid =
+  benchCek $ Prime.mkPrimeTerm pid
+
+benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
+benchQueens sz alg =
+  benchCek $ Queens.mkQueensTerm sz alg
+
+benchKnights :: Integer -> Integer -> Benchmarkable
+benchKnights depth sz =
+  benchCek $ Knights.mkKnightsTerm depth sz
 
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
-  , jsonFile = Just "report.json"
+  , jsonFile   = Just "report.json"
+  , timeLimit  = 60.0  -- Run each benchmark for at least one minute
   }
 
 main :: IO ()
 main = defaultMainWith config [
-    bgroup "clausify" [ bench " Formula 3" $ (benchClausify Clausify.F3)
-                      , bench " Formula 4" $ (benchClausify Clausify.F4)
-                      , bench " Formula 5"  $ (benchClausify Clausify.F5)
-                      , bench " Formula 5A" $ (benchClausify Clausify.F5A)
-                      , bench " Formula 6" $ (benchClausify Clausify.F6)
+    bgroup "clausify" [ bench "formula3" $ benchClausify Clausify.F3
+                      , bench "formula4" $ benchClausify Clausify.F4
+                      , bench "formula5" $ benchClausify Clausify.F5
+                      , bench "formula6" $ benchClausify Clausify.F6
+                      , bench "formula7" $ benchClausify Clausify.F7
                       ]
-  , bgroup "queens" [ bench " 5x5 with bt, bm, bjbt, bjbt' and Fc" $
-                        benchCek ( Queens.mkQueensTerm 5
-                                 [ Queens.Bt
-                                 , Queens.Bm
-                                 , Queens.Bjbt
-                                 , Queens.Bjbt'
-                                 , Queens.Fc ]
-                                 ) ]
-  , bgroup "knights" [ bench " 150 depth, 5x5 board" $
-                         benchCek ( Knights.mkKnightsTerm 150 5 ) ]
-  , bgroup "primes" [ benchPrime [115756986668303657898962467957]
-                    , benchPrime [8987964267331664557]
-                    , benchPrime [444, 4, 17331, 17, 1929475734529795, 95823752743877]
-                    , benchPrime [9576890767]
-                    , benchPrime [40206835204840513073]
-                    , benchPrime [115756986668303657898962467957]
-                    , benchPrime [671998030559713968361666935769]
-                    , benchPrime [4125636888562548868221559797461449]
-                    , benchPrime [5991810554633396517767024967580894321153]
-                    , benchPrime [22953686867719691230002707821868552601124472329079]
-                    , benchPrime [48705091355238882778842909230056712140813460157899]
-                    , benchPrime [511704374946917490638851104912462284144240813125071454126151]
-                    , benchPrime [511704374946917490638851104912462284144240813125071454126151]
+  , bgroup "primetest" [ bench "P10" $ benchPrime Prime.P10  -- 10 digits
+                       , bench "P20" $ benchPrime Prime.P20  -- 20 digits
+                       , bench "P30" $ benchPrime Prime.P30  -- 30 digits
+                       , bench "P40" $ benchPrime Prime.P40  -- 40 digits
+                       , bench "P50" $ benchPrime Prime.P50  -- 50 digits
+                       , bench "P60" $ benchPrime Prime.P60  -- 60 digits
+                       ]
+  , bgroup "queens" [ -- N-queens problem on a 5x5 board
+                      bench "bt"    $ benchQueens 5 Queens.Bt
+                    , bench "bm"    $ benchQueens 5 Queens.Bm
+                    , bench "bjbt"  $ benchQueens 5 Queens.Bjbt
+                    , bench "bjbt1" $ benchQueens 5 Queens.Bjbt1
+                    , bench "fc"    $ benchQueens 5 Queens.Fc
                     ]
-  ]
+  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd
+                       bench "4x4" $ benchKnights 150 4
+                     , bench "5x5" $ benchKnights 150 5
+                     , bench "6x6" $ benchKnights 150 6
+                     , bench "7x7" $ benchKnights 150 7
+                     , bench "8x8" $ benchKnights 150 8
+                     ]
+       ]

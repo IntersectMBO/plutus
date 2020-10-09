@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Plutus.Benchmark.Clausify where
@@ -149,29 +150,31 @@ formula5 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Sym 1))
                     (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula5a #-}  -- One execution takes about 2s and 1 GB
-formula5a :: Formula  -- (a = b = c) = (d = e) = (f = g)
-formula5a = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+{-# INLINABLE formula6 #-}  -- One execution takes about 2s and 1 GB
+formula6 :: Formula  -- (a = b = c) = (d = e) = (f = g)
+formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
                (Eqv (Eqv (Sym 4) (Sym 5))
                     (Eqv (Sym 6) (Sym 7)))
 
-{-# INLINABLE formula6 #-}  -- One execution takes about 11s and 5 GB
-formula6 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
-formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+{-# INLINABLE formula7 #-}  -- One execution takes about 11s and 5 GB
+formula7 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
+formula7 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                     (Eqv (Sym 1) (Sym 1)))
 
-data StaticFormula = F1 | F2 | F3 | F4 | F5 | F5A | F6
+data StaticFormula = F1 | F2 | F3 | F4 | F5 | F6 | F7
 
 {-# INLINABLE getFormula #-}
 getFormula :: StaticFormula -> Formula
-getFormula F1  = formula1
-getFormula F2  = formula2
-getFormula F3  = formula3
-getFormula F4  = formula4
-getFormula F5  = formula5
-getFormula F5A = formula5a
-getFormula F6  = formula6
+getFormula =
+    \case
+     F1 -> formula1
+     F2 -> formula2
+     F3 -> formula3
+     F4 -> formula4
+     F5 -> formula5
+     F6 -> formula6
+     F7 -> formula7
 
 {-# INLINABLE mkClausifyTerm #-}
 mkClausifyTerm :: Integer -> StaticFormula -> Term Name DefaultUni ()

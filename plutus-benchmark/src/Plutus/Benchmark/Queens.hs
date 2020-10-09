@@ -36,7 +36,7 @@ import           Language.UntypedPlutusCore
    of times on an 8x8 board in a few seconds.
 
    Compiling into Plutus, I tried to run all five algorithms one after the other
-   (in a sinlge run of the program) on a 5x5 board on the CEK machine on an 8 GB
+   (in a single run of the program) on a 5x5 board on the CEK machine on an 8 GB
    machine.  The program was just able to complete in about 23s, but with some
    swapping.
 
@@ -68,16 +68,16 @@ algorithms = [bm]
 data Algorithm = Bt
                | Bm
                | Bjbt
-               | Bjbt'
+               | Bjbt1
                | Fc
-               deriving (Show)
+               deriving (Show, Read)
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
 lookupAlgorithm Bt    = bt
 lookupAlgorithm Bm    = bm
 lookupAlgorithm Bjbt  = bjbt
-lookupAlgorithm Bjbt' = bjbt'
+lookupAlgorithm Bjbt1 = bjbt'
 lookupAlgorithm Fc    = fc
 
 -- The main input parameter used by the Plutus version, the size of the board (n).
@@ -88,14 +88,13 @@ boardSize = 5
 nqueens :: Integer -> Labeler -> Integer
 nqueens n algorithm = length (search algorithm (queens n))
 
-mkQueensTerm :: Integer -> [Algorithm] -> Term Name DefaultUni ()
-mkQueensTerm sz algs =
+mkQueensTerm :: Integer -> Algorithm -> Term Name DefaultUni ()
+mkQueensTerm sz alg =
   let (Program _ _ code) =
         Tx.getPlc $ $$(Tx.compile [||
-          \sz algs -> map (nqueens sz)
-                          (map lookupAlgorithm algs) ||])
+          \sz alg -> nqueens sz (lookupAlgorithm alg) ||])
           `Tx.applyCode` Tx.liftCode sz
-          `Tx.applyCode` Tx.liftCode algs
+          `Tx.applyCode` Tx.liftCode alg
   in code
 
 main2 :: IO()  -- Haskell version

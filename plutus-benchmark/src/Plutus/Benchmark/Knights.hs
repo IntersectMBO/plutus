@@ -88,9 +88,6 @@ depthSearch depth q growFn finFn
 unindent :: PLC.Doc ann -> [String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
-testlist :: [Integer]
-testlist = [a+b | a <- [1,2,3,4,5], b <- [11,22,33,44,55]]
-
 {-# INLINABLE boardSize #-}
 boardSize :: Integer
 boardSize = 8

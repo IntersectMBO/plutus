@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 -- Primality testing functions taken from nofib/spectral/primetest
@@ -225,40 +226,47 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 input :: [Integer]
 input = [115756986668303657898962467957]
 
--- input = [179,179, 77595795]
--- input = [8987964267331664557] -- Composite: 61ms, 68 MB
--- input = [444, 4, 17331, 17, 1929475734529795, 95823752743877]  -- 740ms, 210 MB
+data PrimeID = P10 | P20 | P30 | P40 | P50 | P60
+     deriving (Read, Show)
 
--- Some large primes and the time and space required to check them
--- input = [9576890767]                                                   -- 10 digits: 2.4s,  0.9 GB
--- input = [40206835204840513073]                                         -- 20 digits: 4.7s,  1.8 GB
--- input = [115756986668303657898962467957]                               -- 30 digits: 7.3s,  3.3 GB
--- input = [671998030559713968361666935769]                               -- 30 digits: 7.5s,  3.3 GB
--- input = [4125636888562548868221559797461449]                           -- 34 digits: 7.5s,  3.2 GB
--- input = [5991810554633396517767024967580894321153]                     -- 40 digits: 11s,   5.2 GB
--- input = [22953686867719691230002707821868552601124472329079]           -- 50 digits: 10s,   4.6 GB
--- input = [48705091355238882778842909230056712140813460157899]           -- 50 digits: 10.8s, 4.7 GB
--- input = [511704374946917490638851104912462284144240813125071454126151] -- 60 digits: 15s,   7.5 GB
--- input = [7595009151080016652449223792726748985452052945413160073645842090827711]  -- 70 digits: 16s, 7.7 GB (swapping on an 8GB machine)
--- input = [40979218404449071854385509743772465043384063785613460568705289173181846900181503] -- 80 digits: process killed by OS.
--- input = [23785274372342411111117777171111111111111111711111111111111111111111111111111111111111111111111111111111111]
---input = [533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207]
---  ^ 150 digits: far too big for the CEK machine, 40s and 94 MB on the CK machine.
--- input = [58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839]
--- ^ 200 digits.  55s and 97 MB on the CK machine.
+{-# INLINABLE getPrime #-}
+getPrime :: PrimeID -> Integer
+getPrime =
+    \case
+     P10 -> 9576890767
+     P20 -> 40206835204840513073
+     P30 -> 671998030559713968361666935769
+     P40 -> 5991810554633396517767024967580894321153
+     P50 -> 22953686867719691230002707821868552601124472329079
+     P60 -> 511704374946917490638851104912462284144240813125071454126151
+            
+{- Some large primes and the time and space required to check them.
 
+  9576890767                                                   -- 10 digits: 2.4s,  0.9 GB
+  40206835204840513073                                         -- 20 digits: 4.7s,  1.8 GB
+  115756986668303657898962467957                               -- 30 digits: 7.3s,  3.3 GB
+  671998030559713968361666935769                               -- 30 digits: 7.5s,  3.3 GB
+  4125636888562548868221559797461449                           -- 34 digits: 7.5s,  3.2 GB
+  5991810554633396517767024967580894321153                     -- 40 digits: 11s,   5.2 GB
+  22953686867719691230002707821868552601124472329079           -- 50 digits: 10s,   4.6 GB
+  48705091355238882778842909230056712140813460157899           -- 50 digits: 10.8s, 4.7 GB
+  511704374946917490638851104912462284144240813125071454126151 -- 60 digits: 15s,   7.5 GB
+  7595009151080016652449223792726748985452052945413160073645842090827711  -- 70 digits: 16s, 7.7 GB (swapping on an 8GB machine)
+  40979218404449071854385509743772465043384063785613460568705289173181846900181503 -- 80 digits: process killed by OS.
+  23785274372342411111117777171111111111111111711111111111111111111111111111111111111111111111111111111111111
+  533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207
+  -- ^ 150 digits: far too big for the CEK machine, 40s and 94 MB on the CK machine.
+  58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839
+  -- ^ 200 digits.  55s and 97 MB on the CK machine.
 
+  8987964267331664557 -- Composite: 61ms, 68 MB
+
+-}
+          
 -- Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Prelude.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
-type Result = Tx.Bool
-
-composite :: Result
-composite = Tx.False
-
-probablyPrime :: Result
-probablyPrime = Tx.True
 
 -- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
 {-# INLINABLE numTests #-}
@@ -270,20 +278,40 @@ numTests = 100
 initState :: RNGstate
 initState = initRNG 111 47
 
-mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
-mkPrimeTerm inputs =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| \inputs' -> process inputs' initState ||])
-        `Tx.applyCode` Tx.liftCode inputs
-  in code
+type Result = Tx.Bool
 
--- The @process@ function takes a list of input numbers
+composite :: Result
+composite = Tx.False
+
+probablyPrime :: Result
+probablyPrime = Tx.True
+
+-- The @processList@ function takes a list of input numbers
 -- and produces a list of output results.
-{-# INLINABLE process #-}
-process :: [Integer] -> RNGstate -> [Result]
-process input r =
+{-# INLINABLE processList #-}
+processList :: [Integer] -> RNGstate -> [Result]
+processList input r =
     case input of
       [] -> []
       n:ns -> case multiTest numTests r n
-              of (True, r')  -> {-Tx.trace "   Probably prime" $ -}probablyPrime : process ns r'
-                 (False, r') -> {-Tx.trace "   Composite" $ -}composite : process ns r'
+              of (True, r')  -> probablyPrime : processList ns r'
+                 (False, r') -> composite : processList ns r'
+
+-- The @process@ function takes a single input number and produces a single result.
+{-# INLINABLE process #-}
+process :: Integer -> RNGstate -> Integer
+process n r =
+    case fst $ multiTest numTests r n
+    of False ->  0
+       True  ->  1
+
+
+mkPrimeTerm :: PrimeID -> Term Name DefaultUni ()
+mkPrimeTerm pid =
+  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
+        [|| \n -> process n initState ||])
+        `Tx.applyCode` Tx.liftCode (getPrime pid)
+  in code
+
+
+                 
