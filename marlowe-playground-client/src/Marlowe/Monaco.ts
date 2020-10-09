@@ -174,7 +174,6 @@ const marloweLexer = moo.compile({
         'Cond',
         'Scale',
       ],
-      ACCOUNT_ID: ['AccountId'],
       TOKEN: ['Token'],
       PAYEE: ['Account', 'Party'],
       PARTY: ['PK', 'Role'],

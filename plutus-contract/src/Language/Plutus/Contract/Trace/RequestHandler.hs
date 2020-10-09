@@ -23,6 +23,8 @@ module Language.Plutus.Contract.Trace.RequestHandler(
     , handleUtxoQueries
     , handleTxConfirmedQueries
     , handleNextTxAtQueries
+    , handleOwnInstanceIdQueries
+    , handleContractNotifications
     -- * Misc. types
     , MaxIterations(..)
     , defaultMaxIterations
@@ -37,6 +39,8 @@ import           Control.Monad.Freer
 import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Freer.NonDet                        (NonDet)
 import qualified Control.Monad.Freer.NonDet                        as NonDet
+import           Control.Monad.Freer.Reader                        (Reader, ask)
+import           Data.Aeson                                        (FromJSON (..), ToJSON (..))
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Monoid                                       (Alt (..), Ap (..))
@@ -48,18 +52,22 @@ import           Language.Plutus.Contract.Resumable                (Request (..)
 
 import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
                                                                     surroundDebug)
+import           GHC.Generics                                      (Generic)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 import           Ledger                                            (Address, PubKey, Slot, Tx, TxId)
 import           Ledger.AddressMap                                 (AddressMap (..))
 import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
 import           Wallet.API                                        (WalletAPIError)
-import           Wallet.Effects                                    (AddressChangeRequest (..), AddressChangeResponse,
-                                                                    ChainIndexEffect, SigningProcessEffect,
-                                                                    WalletEffect)
+import           Wallet.Effects                                    (ChainIndexEffect, ContractRuntimeEffect,
+                                                                    SigningProcessEffect, WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
+import           Wallet.Types                                      (AddressChangeRequest, AddressChangeResponse,
+                                                                    Notification, NotificationError)
+import           Wallet.Types                                      (AddressChangeRequest (..), ContractInstanceId)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -163,20 +171,47 @@ handleTxConfirmedQueries = RequestHandler $ \txid ->
 handleNextTxAtQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs AddressChangeRequest AddressChangeResponse
 handleNextTxAtQueries = RequestHandler $ \req ->
     surroundDebug @Text "handleNextTxAtQueries" $ do
-        sl <- Wallet.Effects.walletSlot
-        guard (sl >= acreqSlot req)
+        current <- Wallet.Effects.walletSlot
+        let target = acreqSlot req
+        logDebug $ HandleNextTxAt current target
+        -- If we ask the chain index for transactions that were confirmed in
+        -- the current slot, we always get an empty list, because the chain
+        -- index only learns about those transactions at the beginning of the
+        -- next slot. So we need to make sure that we are past the current
+        -- slot.
+        guard (current > target)
         Wallet.Effects.nextTx req
+
+handleOwnInstanceIdQueries ::
+    forall effs.
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member (Reader ContractInstanceId) effs
+    )
+    => RequestHandler effs OwnIdRequest ContractInstanceId
+handleOwnInstanceIdQueries = RequestHandler $ \_ ->
+    surroundDebug @Text "handleOwnInstanceIdQueries" ask
+
+handleContractNotifications ::
+    forall effs.
+    ( Member (LogObserve (LogMessage Text)) effs
+    , Member ContractRuntimeEffect effs
+    )
+    => RequestHandler effs Notification (Maybe NotificationError)
+handleContractNotifications = RequestHandler $
+    surroundDebug @Text "handleContractNotifications" . Wallet.Effects.sendNotification
 
 -- | Maximum number of times request handlers are run before waiting for more
 --   blockchain events
 newtype MaxIterations = MaxIterations Natural
-    deriving (Eq, Ord, Show)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving newtype (ToJSON, FromJSON)
 
 -- | The default for 'MaxIterations' is twenty.
 defaultMaxIterations :: MaxIterations

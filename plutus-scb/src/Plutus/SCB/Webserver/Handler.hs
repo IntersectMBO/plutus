@@ -18,24 +18,22 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
+import           Cardano.Metadata.Types                          (MetadataEffect)
+import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import qualified Data.Aeson                                      as JSON
-import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
-import           Data.Text.Prettyprint.Doc                       (Pretty, pretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Ledger                                          (PubKeyHash)
+import           Ledger                                          (pubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
-import           Plutus.SCB.App                                  (ContractExeLogMsg (..), UnStringifyJSONLog,
-                                                                  parseStringifiedJSON)
-import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
@@ -45,12 +43,14 @@ import           Plutus.SCB.Effects.UUID                         (UUIDEffect)
 import           Plutus.SCB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
                                                                   ContractInstanceState (ContractInstanceState),
                                                                   csContractDefinition)
+import           Plutus.SCB.ParseStringifiedJSON                 (UnStringifyJSONLog, parseStringifiedJSON)
 import qualified Plutus.SCB.Query                                as Query
+import           Plutus.SCB.SCBLogMsg                            (ContractExeLogMsg (..))
 import           Plutus.SCB.Types
 import           Plutus.SCB.Webserver.Types
 import           Servant                                         ((:<|>) ((:<|>)))
 import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
-import           Wallet.Emulator.Wallet                          (Wallet)
+import           Wallet.Emulator.Wallet                          (Wallet (Wallet), walletPubKey)
 import qualified Wallet.Rollup                                   as Rollup
 
 healthcheck :: Monad m => m ()
@@ -75,22 +75,27 @@ getContractReport = do
     pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
-       forall t effs. Member ChainIndexEffect effs
-    => Eff effs (ChainReport t)
+       forall effs. (Member ChainIndexEffect effs, Member MetadataEffect effs)
+    => Eff effs ChainReport
 getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
     let ChainOverview { chainOverviewBlockchain
                       , chainOverviewUnspentTxsById
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
-    let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
+    let wallets = Wallet <$> [1 .. 10]
+    relatedMetadata <-
+        mconcat <$>
+        traverse
+            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
+            wallets
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport
             { transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex
             , annotatedBlockchain
-            , walletMap
+            , relatedMetadata
             }
 
 getEvents ::
@@ -103,6 +108,7 @@ getFullReport ::
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Ord t
        )
     => Eff effs (FullReport t)
@@ -121,8 +127,10 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
-    ContractSignatureResponse csContractDefinition <$> exportSchema csContractDefinition
+    ContractInstanceState {csContractDefinition} <-
+        getContractInstanceState @t contractId
+    ContractSignatureResponse csContractDefinition <$>
+        exportSchema csContractDefinition
 
 activateContract ::
        forall t effs.
@@ -154,11 +162,9 @@ getContractInstanceState contractId = do
 invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
-       , Member (ContractEffect t) effs
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , Member (LogObserve (LogMessage Text)) effs
        , Pretty t
        )
     => EndpointDescription
@@ -169,7 +175,11 @@ invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $ InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $ EndpointInvocationResponse $ fmap pretty newState
+    logInfo $
+        EndpointInvocationResponse $
+        fmap
+            (renderStrict . layoutPretty defaultLayoutOptions . pretty)
+            newState
     getContractInstanceState contractId
 
 parseContractId ::
@@ -184,18 +194,18 @@ handler ::
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
+       , Member MetadataEffect effs
        , Member UUIDEffect effs
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
-       , Member (LogObserve (LogMessage Text)) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
              :<|> (ContractExe -> Eff effs (ContractInstanceState ContractExe))
-                   :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                                 :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
+             :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
+                           :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
 handler =
     healthcheck :<|> getFullReport :<|>
     (activateContract :<|> byContractInstanceId)

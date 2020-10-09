@@ -21,7 +21,7 @@
           }
           (lam a (con integer) (lam ds (con integer) a))
         ]
-        (lam ipv (con integer) (con 2))
+        (lam ipv (con integer) (con integer 2))
       ]
     )
   )

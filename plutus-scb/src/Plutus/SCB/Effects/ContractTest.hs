@@ -40,16 +40,18 @@ import           Plutus.SCB.Utils                                  (tshow)
 import           Control.Monad.Freer.Extra.Log                     (LogMsg, logDebug)
 
 import           Language.Plutus.Contract                          (BlockchainActions, Contract, ContractError)
+import           Language.Plutus.Contract.Effects.RPC              (RPCClient)
 import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
 import           Language.Plutus.Contract.State                    (ContractRequest, ContractResponse (..))
 import qualified Language.Plutus.Contract.State                    as ContractState
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Contracts.Currency
 import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
+import qualified Language.PlutusTx.Coordination.Contracts.RPC      as Contracts.RPC
 import           Playground.Schema                                 (endpointsToSchemas)
 import qualified Plutus.SCB.Effects.ContractTest.AtomicSwap        as Contracts.AtomicSwap
 import qualified Plutus.SCB.Effects.ContractTest.PayToWallet       as Contracts.PayToWallet
 
-data TestContracts = Game | Currency | AtomicSwap | PayToWallet
+data TestContracts = Game | Currency | AtomicSwap | PayToWallet | RPCClient | RPCServer
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -78,21 +80,30 @@ handleContractTest = interpret $ \case
         Currency    -> doContractInit currency
         AtomicSwap  -> doContractInit swp
         PayToWallet -> doContractInit payToWallet
+        RPCClient   -> doContractInit rpcClient
+        RPCServer   -> doContractInit rpcServer
     InvokeContract (UpdateContract c p) -> fmap ContractHandlersResponse <$> case c of
         Game        -> doContractUpdate game p
         Currency    -> doContractUpdate currency p
         AtomicSwap  -> doContractUpdate swp p
         PayToWallet -> doContractUpdate payToWallet p
+        RPCClient   -> doContractUpdate rpcClient p
+        RPCServer   -> doContractUpdate rpcServer p
     ExportSchema t -> case t of
         Game        -> pure $ endpointsToSchemas @(Contracts.Game.GameSchema .\\ BlockchainActions)
         Currency    -> pure $ endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
         AtomicSwap  -> pure $ endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema .\\ BlockchainActions)
         PayToWallet -> pure $ endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
+        RPCClient   -> pure adderSchema
+        RPCServer   -> pure adderSchema
     where
         game = first tshow $ Contracts.Game.game @ContractError
         currency = first tshow $ void Contracts.Currency.forgeCurrency
         swp = first tshow Contracts.AtomicSwap.atomicSwap
         payToWallet = first tshow Contracts.PayToWallet.payToWallet
+        rpcClient = first tshow $ void Contracts.RPC.callAdder
+        rpcServer = first tshow $ void Contracts.RPC.respondAdder
+        adderSchema = endpointsToSchemas @(Contracts.RPC.AdderSchema .\\ (BlockchainActions .\/ RPCClient Contracts.RPC.Adder))
 
 doContractInit ::
     forall schema effs.
@@ -103,7 +114,7 @@ doContractInit ::
     => Contract schema Text ()
     -> Eff effs (PartiallyDecodedResponse ContractSCBRequest)
 doContractInit contract = either throwError pure $ do
-    value <- first OtherError $ ContractState.initialiseContract contract
+    let value = ContractState.initialiseContract contract
     fromString $ fmap (fmap unContractHandlersResponse) $ JSON.eitherDecode $ JSON.encode value
 
 doContractUpdate ::
@@ -126,23 +137,22 @@ doContractUpdate contract payload = do
         $ fromString
         $ traverse (JSON.parseEither JSON.parseJSON) payload
     logDebug $ Request $ pretty request
-    response <-
-        either (throwError . OtherError) (pure . mkResponse)
-        $ ContractState.insertAndUpdateContract contract request
+    let response = mkResponse $ ContractState.insertAndUpdateContract contract request
     logDebug $ Response response
     pure response
 
 mkResponse ::
-    forall schema.
+    forall schema err.
     ( Forall (Output schema) ToJSON
     , Forall (Input schema) ToJSON
     )
-    => ContractResponse (Event schema) (Handlers schema)
+    => ContractResponse err (Event schema) (Handlers schema)
     -> PartiallyDecodedResponse ContractSCBRequest
-mkResponse ContractResponse{newState, hooks} =
+mkResponse ContractResponse{newState, hooks, logs} =
     C.PartiallyDecodedResponse
         { C.newState = fmap JSON.toJSON newState
         , C.hooks    = fmap (fmap (encodeRequest @schema)) hooks
+        , C.logs     = logs
         }
 
 encodeRequest ::

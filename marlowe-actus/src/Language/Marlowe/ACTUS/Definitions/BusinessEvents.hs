@@ -1,5 +1,4 @@
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
-import           Data.Time (Day)
 
 
 data EventType =
@@ -7,9 +6,8 @@ data EventType =
     deriving (Eq, Show)
 
 data RiskFactors = RiskFactors
-    { o_rf_CURS  :: Double
-    , o_rf_RRMO  :: Double
-    , o_rf_SCMO  :: Double
-    , pp_payoff  :: Double
-    , creditDate :: Day
+    { o_rf_CURS :: Double
+    , o_rf_RRMO :: Double
+    , o_rf_SCMO :: Double
+    , pp_payoff :: Double
     } deriving (Show)

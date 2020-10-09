@@ -3,6 +3,7 @@ module Schema.Types where
 import Prelude
 import Chain.Types (_value)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
 import Data.Foldable (fold, foldMap)
 import Data.Functor.Foldable (Fix(..))
 import Data.Generic.Rep (class Generic)
@@ -55,6 +56,7 @@ instance showFormEvent :: Show FormEvent where
 
 data FieldEvent
   = SetIntField (Maybe Int)
+  | SetBigIntegerField (Maybe BigInteger)
   | SetBoolField Boolean
   | SetStringField String
   | SetHexField String
@@ -69,9 +71,9 @@ instance showFieldEvent :: Show FieldEvent where
 
 data ActionEvent
   = AddAction (ContractCall FormArgument)
-  | AddWaitAction Int
+  | AddWaitAction BigInteger
   | RemoveAction Int
-  | SetWaitTime Int Int
+  | SetWaitTime Int BigInteger
   | SetWaitUntilTime Int Slot
   | SetPayToWalletValue Int ValueEvent
   | SetPayToWalletRecipient Int Wallet
@@ -99,6 +101,8 @@ toArgument initialValue = ana algebra
   algebra FormSchemaBool = FormBoolF false
 
   algebra FormSchemaInt = FormIntF Nothing
+
+  algebra FormSchemaInteger = FormIntegerF Nothing
 
   algebra FormSchemaString = FormStringF Nothing
 
@@ -137,6 +141,8 @@ formArgumentToJson = cata algebra
 
   algebra (FormIntF n) = encode <$> n
 
+  algebra (FormIntegerF n) = encode <$> n
+
   algebra (FormStringF str) = encode <$> str
 
   algebra (FormRadioF _ option) = encode <$> option
@@ -168,7 +174,7 @@ formArgumentToJson = cata algebra
 
   algebra (FormUnsupportedF _) = Nothing
 
-mkInitialValue :: Array KnownCurrency -> Int -> Value
+mkInitialValue :: Array KnownCurrency -> BigInteger -> Value
 mkInitialValue currencies initialBalance = Value { getValue: value }
   where
   value =
@@ -195,6 +201,8 @@ handleFormEvent ::
 handleFormEvent initialValue event = cata (Fix <<< algebra event)
   where
   algebra (SetField (SetIntField n)) (FormIntF _) = FormIntF n
+
+  algebra (SetField (SetBigIntegerField n)) (FormIntegerF _) = FormIntegerF n
 
   algebra (SetField (SetBoolField n)) (FormBoolF _) = FormBoolF n
 

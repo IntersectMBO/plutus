@@ -1,0 +1,53 @@
+[#javascript-embedding]
+== Marlowe in JavaScript
+
+In this tutorial show how we can _embed_  Marlowe in JavaScript to make more readable, modular
+and reusable descriptions of Marlowe contracts. JavaScript is edited in the JS pane of the Marlowe Playground, as shown here.
+
+image:js-editor.png[The JavaScript editing pane]
+
+The editor supports syntax highlighting, completion, and 'squiggly line' feedback. Mousing over defined elements will reveal their types, and over types their definitions.
+
+The form of the code in the code editor should be
+
+[source,typescript]
+----
+import * as bignumber from 'bignumber.js';
+import { role, choiceId, party, token, ada, valueId, availableMoney, constant,
+         negValue, addValue, subValue, mulValue, scale, choiceValue, slotIntervalStart,
+         slotIntervalEnd, useValue, cond, andObs, orObs, notObs, choseSomething, valueGE,
+         valueGT, valueLT, valueLE, valueEQ, trueObs, falseObs, bound, deposit, choice,
+         notify, caseM, closeM, payM, ifM, whenM, letM, assertM, Party, SomeNumber,
+         ChoiceId, Token, ValueId, Value, EValue, Observation, Bound, Action,
+         Payee, Case, Contract } from 'marlowe-js';
+
+/* === Code above this comment will be removed at compile time === */
+
+const alice : Party = {"pk_hash":"alice"} ;
+const bob : Party   = {"pk_hash":"bob" };
+
+const payAB = payM(alice,party(bob),ada,10,closeM);
+
+payAB
+----
+
+The imports above the comment line import the JS embedding of Marlowe, and using mouseover gives types and type definitions, as noted earlier.
+
+The contract being defined is the last expression in the buffer, which should be of type `Contract`: here it is the constant `payAB`. In defining this expression, any of the other JS definitions can be used: here `alice` and `bob` are first defined, then used in defining `payAB` itself.
+
+To construct contracts we provide _smart constructors_ – JavaScript functions – that construct contracts from their components. These mirror the definition of Marlowe: for instance `ifM` mirrors `If` in Marlowe.
+
+[source,typescript]
+----
+export const ifM =
+    function (obs : Observation, contThen : Contract, contElse : Contract) : Contract {
+        /* === Code implementing the constructor === */
+    };
+----
+
+
+In this example the contact is built from two contracts for the ‘then’ and ‘else’ cases, corresponding to the result of evaluating the `Observation`.
+
+=== Compilation and Simulation
+
+Contracts written in JavaScript are _compiled_ to Marlowe by selecting the *Compile* button. If compilation is successful, then the contract can be transferred to the simulation pane to be analysed and simulated by selecting the *Send to Simulator* button.

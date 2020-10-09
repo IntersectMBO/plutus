@@ -13,9 +13,12 @@ module PSGenerator
     ( generate
     ) where
 
+import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction, Property,
+                                                                    PropertyDescription, PropertyKey, Subject)
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Control.Monad                                     (void)
+import           Control.Monad.Freer.Log                           (LogLevel, LogMessage)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Proxy                                        (Proxy (Proxy))
@@ -23,6 +26,7 @@ import           Language.Plutus.Contract.Checkpoint               (CheckpointKe
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint, EndpointValue)
+import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
@@ -41,9 +45,9 @@ import           Plutus.SCB.Core                                   (activateCont
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest, csContract)
-import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
-                                                                    ContractInstanceState, ContractResponse,
-                                                                    IterationID, PartiallyDecodedResponse)
+import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceState,
+                                                                    ContractResponse, IterationID,
+                                                                    PartiallyDecodedResponse)
 import           Plutus.SCB.Events.Node                            (NodeEvent)
 import           Plutus.SCB.Events.User                            (UserEvent)
 import           Plutus.SCB.Events.Wallet                          (WalletEvent)
@@ -90,10 +94,9 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
@@ -127,6 +130,19 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnIdRequest)
+
+    -- Logging types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @LogLevel)
+
+    -- Metadata types
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Subject)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Property)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PropertyDescription)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedSignature)
     ]
 
 mySettings :: Settings
@@ -153,7 +169,7 @@ writeTestData outputDir = do
                             @TestContracts
                             (csContract currencyInstance1)
                             "Create native token"
-                            SimpleMPS {tokenName = "TestCurrency", amount = 10000}
+                            SimpleMPS {tokenName = "TestCurrency", amount = 10000000000}
                     --
                     report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-

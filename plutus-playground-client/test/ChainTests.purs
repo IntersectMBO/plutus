@@ -5,6 +5,7 @@ module ChainTests
 import Prelude
 import Chain (extractAmount)
 import Data.Array (mapWithIndex)
+import Data.BigInteger as BigInteger
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Language.PlutusTx.AssocMap as AssocMap
@@ -23,15 +24,31 @@ extractAmountsTests :: TestSuite
 extractAmountsTests =
   suite "extractAmount" do
     test "All present"
-      $ equal [ Just 10, Just 40, Just 70 ]
+      $ equal
+          [ Just (BigInteger.fromInt 10)
+          , Just (BigInteger.fromInt 40)
+          , Just (BigInteger.fromInt 70)
+          ]
           (map (extractAmount (currencies /\ usdToken)) wallets)
     test "All missing"
-      $ equal [ Nothing, Nothing, Nothing ]
+      $ equal
+          [ Nothing
+          , Nothing
+          , Nothing
+          ]
           (map (extractAmount (currencies /\ adaToken)) wallets)
     test "Mixed" do
-      equal [ Just 20, Just 50, Nothing ]
+      equal
+        [ Just (BigInteger.fromInt 20)
+        , Just (BigInteger.fromInt 50)
+        , Nothing
+        ]
         (map (extractAmount (currencies /\ eurToken)) wallets)
-      equal [ Nothing, Just 30, Just 60 ]
+      equal
+        [ Nothing
+        , Just (BigInteger.fromInt 30)
+        , Just (BigInteger.fromInt 60)
+        ]
         (map (extractAmount (ada /\ adaToken)) wallets)
 
 wallets :: Array SimulatorWallet
@@ -39,7 +56,7 @@ wallets =
   mapWithIndex
     ( \id value ->
         SimulatorWallet
-          { simulatorWalletWallet: Wallet { getWallet: id }
+          { simulatorWalletWallet: Wallet { getWallet: BigInteger.fromInt id }
           , simulatorWalletBalance: value
           }
     )
@@ -52,29 +69,29 @@ values =
         AssocMap.fromTuples
           [ currencies
               /\ AssocMap.fromTuples
-                  [ usdToken /\ 10
-                  , eurToken /\ 20
+                  [ usdToken /\ BigInteger.fromInt 10
+                  , eurToken /\ BigInteger.fromInt 20
                   ]
           ]
       }
   , Value
       { getValue:
         AssocMap.fromTuples
-          [ ada /\ AssocMap.fromTuples [ adaToken /\ 30 ]
+          [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 30 ]
           , currencies
               /\ AssocMap.fromTuples
-                  [ usdToken /\ 40
-                  , eurToken /\ 50
+                  [ usdToken /\ BigInteger.fromInt 40
+                  , eurToken /\ BigInteger.fromInt 50
                   ]
           ]
       }
   , Value
       { getValue:
         AssocMap.fromTuples
-          [ ada /\ AssocMap.fromTuples [ adaToken /\ 60 ]
+          [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 60 ]
           , currencies
               /\ AssocMap.fromTuples
-                  [ usdToken /\ 70
+                  [ usdToken /\ BigInteger.fromInt 70
                   ]
           ]
       }

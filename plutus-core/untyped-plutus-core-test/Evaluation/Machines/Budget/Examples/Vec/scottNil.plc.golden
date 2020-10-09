@@ -1,0 +1,8 @@
+( (Right (delay (delay (\f -> \z -> z))))
+, ({ tally: ({ BAST causes ({ cpu: 0
+| mem: 3
+})})
+| budget: ({ cpu: 0
+| mem: 3
+})
+}) )

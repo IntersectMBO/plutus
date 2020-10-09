@@ -6,6 +6,7 @@ where
 import           Data.Aeson                                       (decode, encode)
 import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
+import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
 import           Language.Marlowe.Pretty
@@ -78,6 +79,8 @@ contractTerms = ContractTerms {
         , ct_FEAC  = Nothing
         , ct_FEB = FEB_N
         , ct_FER = 0.03 -- fee rate
+        , ct_CURS = False
+        , constraints = Nothing
     }
 
 pamProjected :: IO ()

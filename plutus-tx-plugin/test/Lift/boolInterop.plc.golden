@@ -1,9 +1,3 @@
-(abs
-  out_GHC_Types_Bool_6
-  (type)
-  (lam
-    case_GHC_Types_True_7
-    out_GHC_Types_Bool_6
-    (lam case_GHC_Types_False_8 out_GHC_Types_Bool_6 case_GHC_Types_True_7)
-  )
+(delay
+  (lam case_GHC_Types_True_7 (lam case_GHC_Types_False_8 case_GHC_Types_True_7))
 )

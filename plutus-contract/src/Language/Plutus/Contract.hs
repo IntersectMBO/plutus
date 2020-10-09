@@ -14,6 +14,7 @@ module Language.Plutus.Contract(
     , (>>)
     , mapError
     , throwError
+    , runError
     -- * Dealing with time
     , HasAwaitSlot
     , AwaitSlot
@@ -25,6 +26,7 @@ module Language.Plutus.Contract(
     , collectUntil
     -- * Endpoints
     , HasEndpoint
+    , EndpointDescription(..)
     , Endpoint
     , endpoint
     , endpointWithMeta
@@ -43,6 +45,12 @@ module Language.Plutus.Contract(
     , HasOwnPubKey
     , OwnPubKey
     , ownPubKey
+    -- * Contract instance Id
+    , HasOwnId
+    , ContractInstanceId
+    , ownInstanceId
+    -- * Notifications
+    , notify
     -- * Transactions
     , HasWriteTx
     , WriteTx
@@ -63,6 +71,11 @@ module Language.Plutus.Contract(
     , checkpoint
     , AsCheckpointError(..)
     , CheckpointError(..)
+    -- * Logging
+    , logDebug
+    , logInfo
+    , logWarn
+    , logError
     -- * Row-related things
     , HasType
     , ContractRow
@@ -70,11 +83,14 @@ module Language.Plutus.Contract(
     , type Empty
     ) where
 
+import           Data.Aeson                                        (ToJSON (toJSON))
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
+import           Language.Plutus.Contract.Effects.Instance
+import           Language.Plutus.Contract.Effects.Notify
 import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
@@ -84,9 +100,10 @@ import           Language.Plutus.Contract.Request                  (ContractRow)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
 import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
                                                                     CheckpointError (..), Contract (..),
-                                                                    ContractError (..), checkpoint, mapError, select,
-                                                                    selectEither, throwError)
+                                                                    ContractError (..), checkpoint, mapError, runError,
+                                                                    select, selectEither, throwError)
 
+import qualified Control.Monad.Freer.Log                           as L
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)
 
@@ -99,6 +116,8 @@ type BlockchainActions =
   .\/ UtxoAt
   .\/ OwnPubKey
   .\/ TxConfirmation
+  .\/ ContractInstanceNotify
+  .\/ OwnId
 
 type HasBlockchainActions s =
   ( HasAwaitSlot s
@@ -107,6 +126,8 @@ type HasBlockchainActions s =
   , HasUtxoAt s
   , HasOwnPubKey s
   , HasTxConfirmation s
+  , HasContractNotify s
+  , HasOwnId s
   )
 
 -- | Execute both contracts in any order
@@ -114,3 +135,19 @@ both :: Contract s e a -> Contract s e b -> Contract s e (a, b)
 both a b =
   let swap (b_, a_) = (a_, b_) in
   ((,) <$> a <*> b) `select` (fmap swap ((,) <$> b <*> a))
+
+-- | Log a message at the 'Debug' level
+logDebug :: ToJSON a => a -> Contract s e ()
+logDebug = Contract . L.logDebug . toJSON
+
+-- | Log a message at the 'Info' level
+logInfo :: ToJSON a => a -> Contract s e ()
+logInfo = Contract . L.logInfo . toJSON
+
+-- | Log a message at the 'Warning' level
+logWarn :: ToJSON a => a -> Contract s e ()
+logWarn = Contract . L.logWarn . toJSON
+
+-- | Log a message at the 'Error' level
+logError :: ToJSON a => a -> Contract s e ()
+logError = Contract . L.logError . toJSON

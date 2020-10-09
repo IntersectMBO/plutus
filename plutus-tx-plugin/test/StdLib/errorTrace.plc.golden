@@ -19,6 +19,6 @@
       (vardecl traceError (all a (type) (fun (con string) a)))
       (abs a (type) (lam str (con string) [ { error a } [ trace str ] ]))
     )
-    [ { traceError (con integer) } (con "") ]
+    [ { traceError (con integer) } (con string "") ]
   )
 )

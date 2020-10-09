@@ -32,6 +32,7 @@ flag defer-plugin-errors
 
 library
     exposed-modules:
+        Playground.Lambda
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
@@ -56,6 +57,8 @@ library
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         aeson -any,
+        aws-lambda-haskell-runtime -any,
+        aws-lambda-haskell-runtime-wai -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
@@ -94,7 +97,9 @@ library
         text -any,
         time -any,
         time-units -any,
-        transformers -any
+        transformers -any,
+        wai-cors -any,
+        web-ghc -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -208,6 +213,7 @@ executable plutus-playground-server
         recursion-schemes -any,
         row-types -any,
         warp -any,
+        web-ghc -any,
         yaml -any
 
     if !(impl(ghcjs) || os(ghcjs))
@@ -235,6 +241,7 @@ test-suite plutus-playground-server-test
         tasty-hunit -any,
         tasty-golden -any,
         insert-ordered-containers -any,
+        newtype-generics -any,
         playground-common -any,
         iots-export -any,
         mtl -any,
@@ -248,7 +255,8 @@ test-suite plutus-playground-server-test
         text -any,
         time-units -any,
         transformers -any,
-        plutus-ledger -any
+        plutus-ledger -any,
+        web-ghc -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

@@ -41,10 +41,10 @@ import qualified Ledger.Value                        as Value
 import           Prelude                             as P
 import           Servant.API                         (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                          as WAPI
-import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, Payment (..),
-                                                      WalletEffect (..))
+import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
 import qualified Wallet.Effects                      as W
 import           Wallet.Emulator.LogMessages         (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Types                        (Payment (..))
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }

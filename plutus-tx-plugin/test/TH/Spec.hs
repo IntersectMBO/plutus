@@ -15,6 +15,7 @@
 module TH.Spec (tests) where
 
 import           Common
+import           Lib
 import           PlcTestUtils
 import           PlutusPrelude                (view)
 
@@ -31,9 +32,11 @@ import           Language.PlutusTx.TH
 
 import qualified Language.PlutusIR            as PIR
 
-import           Language.PlutusCore
+import qualified Language.PlutusCore          as PLC
 import           Language.PlutusCore.Pretty
 import qualified Language.PlutusCore.Universe as PLC
+import           Language.UntypedPlutusCore
+import qualified Language.UntypedPlutusCore   as UPLC
 
 import           Control.Exception
 import           Control.Lens.Combinators     (_1)
@@ -42,30 +45,24 @@ import           Control.Monad.Except
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
-instance uni ~ PLC.DefaultUni => GetProgram (CompiledCode uni a) uni where
-    getProgram = catchAll . getPlc
-
-goldenPir :: String -> CompiledCode PLC.DefaultUni a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
-
-runPlcCek :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO (Plain Term PLC.DefaultUni)
+runPlcCek :: ToUPlc a PLC.DefaultUni => [a] -> ExceptT SomeException IO (Term PLC.Name PLC.DefaultUni ())
 runPlcCek values = do
-     ps <- Haskell.traverse getProgram values
-     let p = foldl1 applyProgram ps
+     ps <- Haskell.traverse toUPlc values
+     let p = foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: GetProgram a PLC.DefaultUni => [a] -> ExceptT SomeException IO ([String], ExTally, (Plain Term PLC.DefaultUni))
+runPlcCekTrace :: ToUPlc a PLC.DefaultUni => [a] -> ExceptT SomeException IO ([String], CekExTally, (Term PLC.Name PLC.DefaultUni ()))
 runPlcCekTrace values = do
-     ps <- Haskell.traverse getProgram values
-     let p = foldl1 applyProgram ps
+     ps <- Haskell.traverse toUPlc values
+     let p = foldl1 UPLC.applyProgram ps
      let (logOut, tally, result) = evaluateCekTrace p
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 
-goldenEvalCek :: GetProgram a PLC.DefaultUni => String -> [a] -> TestNested
+goldenEvalCek :: ToUPlc a PLC.DefaultUni => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
-goldenEvalCekLog :: GetProgram a PLC.DefaultUni => String -> [a] -> TestNested
+goldenEvalCekLog :: ToUPlc a PLC.DefaultUni => String -> [a] -> TestNested
 goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested

@@ -20,6 +20,7 @@ import           Control.Lens                               (itraverse, set, (&)
 import           Control.Monad                              (void)
 import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
+import           Control.Monad.Except.Extras                (mapError)
 import qualified Control.Monad.Freer.Log                    as Log
 import           Control.Monad.IO.Class                     (MonadIO)
 import qualified Crowdfunding
@@ -38,6 +39,7 @@ import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
+import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
@@ -53,11 +55,11 @@ import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
                                                              ContractDemo (ContractDemo), Evaluation (Evaluation),
                                                              EvaluationResult, FunctionSchema, KnownCurrency,
-                                                             PlaygroundError, Simulation (Simulation), SimulatorAction,
-                                                             SimulatorWallet, contractDemoContext,
-                                                             contractDemoEditorContents, contractDemoName,
-                                                             contractDemoSimulations, functionSchema, iotsSpec,
-                                                             knownCurrencies, program, simulationActions,
+                                                             PlaygroundError (InterpreterError),
+                                                             Simulation (Simulation), SimulatorAction, SimulatorWallet,
+                                                             contractDemoContext, contractDemoEditorContents,
+                                                             contractDemoName, contractDemoSimulations, functionSchema,
+                                                             iotsSpec, knownCurrencies, program, simulationActions,
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
@@ -73,11 +75,14 @@ import           System.FilePath                            ((</>))
 import qualified Vesting
 import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
+import           Wallet.Effects                             (AddressChangeRequest)
 import qualified Wallet.Emulator.Chain                      as EM
 import qualified Wallet.Emulator.ChainIndex                 as EM
+import           Wallet.Emulator.ChainIndex.Index           (ChainIndexItem)
 import qualified Wallet.Emulator.LogMessages                as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
+import           Wallet.Emulator.Notify                     (EmulatorNotifyLogMsg)
 import qualified Wallet.Emulator.Wallet                     as EM
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
                                                              SequenceId, TxKey)
@@ -114,7 +119,10 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
-    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
+    , (genericShow <*> mkSumType) (Proxy @ChainIndexItem)
+    , (genericShow <*> mkSumType) (Proxy @AddressChangeRequest)
+    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent')
+    , (genericShow <*> mkSumType) (Proxy @(EM.EmulatorTimeEvent A))
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @Log.LogLevel)
     , (genericShow <*> mkSumType) (Proxy @(Log.LogMessage A))
@@ -135,6 +143,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.RequestHandlerLogMsg)
     , (genericShow <*> mkSumType) (Proxy @EM.TxBalanceMsg)
     , (genericShow <*> mkSumType) (Proxy @UnbalancedTx)
+    , (genericShow <*> mkSumType) (Proxy @EmulatorNotifyLogMsg)
     ]
 
 mySettings :: Settings
@@ -213,7 +222,9 @@ runSimulation sourceCode Simulation {simulationActions, simulationWallets} = do
                 , program =
                       toJSON . encodeToText $ toExpression <$> simulationActions
                 }
-    interpreterResult <- PI.evaluateSimulation maxInterpretationTime evaluation
+    expr <- PI.evaluationToExpr evaluation
+    result <- mapError InterpreterError $ Webghc.compile maxInterpretationTime False (SourceCode expr)
+    interpreterResult <- PI.decodeEvaluation result
     pure $ JSON.encodePretty interpreterResult
 
 encodeToText :: ToJSON a => a -> Text

@@ -6,11 +6,11 @@ module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
 
 import           Prelude                   hiding (fail)
 
+import           Control.Monad.Fail
 import           Data.Bifunctor            (bimap)
 import           Data.Bitraversable        (bitraverse)
-import           Data.ByteString.Lazy      as BSL
-
-import           Control.Monad.Fail
+import           Data.ByteString           as BS
+import qualified Data.ByteString.Lazy      as BSL
 
 import qualified Codec.CBOR.Term           as CBOR
 import qualified Codec.Serialise           as Serialise
@@ -30,7 +30,7 @@ data Data =
     | Map [(Data, Data)]
     | List [Data]
     | I Integer
-    | B BSL.ByteString
+    | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic)
 
 instance Pretty Data where
@@ -61,10 +61,10 @@ viewMap (CBOR.TMap m)  = Just m
 viewMap (CBOR.TMapI m) = Just m
 viewMap _              = Nothing
 
-viewBytes :: CBOR.Term -> Maybe BSL.ByteString
-viewBytes (CBOR.TBytes b)  = Just (BSL.fromStrict b)
-viewBytes (CBOR.TBytesI b) = Just b
-viewBytes _                = Nothing
+viewBytes :: CBOR.Term -> Maybe BS.ByteString
+viewBytes (CBOR.TBytes b)   = Just b
+viewBytes (CBOR.TBytesI lb) = Just $ BSL.toStrict lb
+viewBytes _                 = Nothing
 
 viewInteger :: CBOR.Term -> Maybe Integer
 viewInteger (CBOR.TInt i)     = Just (fromIntegral i)
@@ -86,7 +86,7 @@ fromTerm = \case
 toTerm :: Data -> CBOR.Term
 toTerm = \case
     I i -> CBOR.TInteger i
-    B b -> CBOR.TBytes $ BSL.toStrict b
+    B b -> CBOR.TBytes b
     Map entries -> CBOR.TMap (fmap (bimap toTerm toTerm) entries)
     List ts -> CBOR.TList (fmap toTerm ts)
     Constr i entries -> CBOR.TTagged (fromIntegral i) $ CBOR.TList $ fmap toTerm entries

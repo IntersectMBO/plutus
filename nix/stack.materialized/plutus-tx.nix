@@ -43,9 +43,10 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-          (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+          (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))

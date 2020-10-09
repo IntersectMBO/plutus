@@ -43,27 +43,32 @@ module Schema
     , formArgumentToJson
     ) where
 
-import           Crypto.Hash                (Digest, SHA256)
-import           Data.Aeson                 (FromJSON, ToJSON, toJSON)
-import qualified Data.Aeson                 as JSON
-import           Data.Bifunctor             (first)
-import           Data.Eq.Deriving           (deriveEq1)
-import           Data.Functor.Foldable      (Fix (Fix), cata)
-import qualified Data.HashMap.Strict        as HashMap
+import           Crypto.Hash                          (Digest, SHA256)
+import           Data.Aeson                           (FromJSON, ToJSON, toJSON)
+import qualified Data.Aeson                           as JSON
+import           Data.Bifunctor                       (first)
+import           Data.Eq.Deriving                     (deriveEq1)
+import           Data.Functor.Foldable                (Fix (Fix), cata)
+import qualified Data.HashMap.Strict                  as HashMap
 import qualified Data.Map
-import           Data.Proxy                 (Proxy)
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import           GHC.Generics               ((:*:) ((:*:)), (:+:) (L1, R1), C1, Constructor, D1, Generic, K1 (K1),
-                                             M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord, conName, from, selName)
+import           Data.Proxy                           (Proxy)
+import           Data.Text                            (Text)
+import qualified Data.Text                            as Text
+import           Data.UUID                            (UUID)
+import           GHC.Generics                         ((:*:) ((:*:)), (:+:) (L1, R1), C1, Constructor, D1, Generic,
+                                                       K1 (K1), M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord,
+                                                       conName, from, selName)
+import           Language.Plutus.Contract.Effects.RPC (RPCParams)
 import qualified Language.PlutusTx.AssocMap
-import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Ada, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash, RedeemerHash,
-                                             Signature, Slot, SlotRange, TokenName, ValidatorHash, Value)
-import           LedgerBytes                (LedgerBytes)
-import           Wallet.Emulator.Wallet     (Wallet)
+import qualified Language.PlutusTx.Prelude            as P
+import           Ledger                               (Ada, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash,
+                                                       RedeemerHash, Signature, Slot, SlotRange, TokenName,
+                                                       ValidatorHash, Value)
+import           LedgerBytes                          (LedgerBytes)
+import           Wallet.Emulator.Wallet               (Wallet)
+import           Wallet.Types                         (ContractInstanceId)
 
-import           Text.Show.Deriving         (deriveShow1)
+import           Text.Show.Deriving                   (deriveShow1)
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: Text)
         #-}
@@ -72,6 +77,7 @@ data FormSchema
     = FormSchemaUnit
     | FormSchemaBool
     | FormSchemaInt
+    | FormSchemaInteger
     | FormSchemaString
     | FormSchemaHex
       -- ^ A string that may only contain @0-9a-fA-F@
@@ -96,6 +102,7 @@ data FormArgumentF a
     = FormUnitF
     | FormBoolF Bool
     | FormIntF (Maybe Int)
+    | FormIntegerF (Maybe Integer)
     | FormStringF (Maybe String)
     | FormHexF (Maybe String)
     | FormRadioF [String] (Maybe String)
@@ -120,7 +127,8 @@ formArgumentToJson = cata algebra
     algebra FormUnitF = justJSON ()
     algebra (FormBoolF v) = justJSON v
     algebra (FormIntF v) = justJSON v
-    algebra (FormStringF v) = justJSON v
+    algebra (FormIntegerF v) = justJSON v
+    algebra (FormStringF v) = justJSON (show v)
     algebra (FormHexF v) = justJSON v
     algebra (FormRadioF _ v) = justJSON v
     algebra (FormArrayF _ v) = justJSON v
@@ -208,10 +216,10 @@ instance ToArgument Int where
     toArgument = Fix . FormIntF . Just
 
 instance ToSchema Integer where
-    toSchema = FormSchemaInt
+    toSchema = FormSchemaInteger
 
 instance ToArgument Integer where
-    toArgument = Fix . FormIntF . Just . fromIntegral
+    toArgument = Fix . FormIntegerF . Just
 
 instance ToSchema Text where
     toSchema = FormSchemaString
@@ -356,6 +364,9 @@ instance ToArgument Value where
 instance ToSchema LedgerBytes where
     toSchema = toSchema @String
 
+instance ToSchema UUID where
+    toSchema = toSchema @String
+
 instance ToSchema SlotRange where
     toSchema = FormSchemaSlotRange
 
@@ -384,3 +395,7 @@ deriving anyclass instance ToSchema Wallet
 deriving anyclass instance ToArgument Wallet
 
 deriving anyclass instance ToArgument Ada
+
+deriving anyclass instance ToSchema ContractInstanceId
+
+deriving anyclass instance ToSchema a => ToSchema (RPCParams a)

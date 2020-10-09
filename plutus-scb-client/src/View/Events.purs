@@ -32,7 +32,7 @@ utxoIndexPane utxoIndex =
     ]
 
 utxoEntryPane :: forall p. (TxOutRef /\ TxOut) -> HTML p HAction
-utxoEntryPane (txOutRef /\ txOut) = ChainAction <$> Chain.txOutOfView false mempty txOut Nothing
+utxoEntryPane (txOutRef /\ txOut) = ChainAction <$> Chain.txOutOfView (const Nothing) false txOut Nothing
 
 eventsPane :: forall p i. Array (ChainEvent ContractExe) -> HTML p i
 eventsPane events =

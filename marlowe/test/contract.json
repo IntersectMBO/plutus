@@ -1,266 +1,146 @@
 {
-  "contents": [
-    [
-      [
-        {
-          "contents": [
-            [
-              0,
-              {
-                "contents": "deadbeef",
-                "tag": "PK"
-              }
-            ],
-            {
-              "contents": "deadbeef",
-              "tag": "PK"
-            },
-            "ada",
-            {
-              "contents": [
-                {
-                  "contents": 100,
-                  "tag": "Constant"
-                },
-                {
-                  "contents": [
-                    {
-                      "contents": 100,
-                      "tag": "Constant"
-                    },
-                    {
-                      "contents": {
-                        "contents": 100,
-                        "tag": "Constant"
-                      },
-                      "tag": "NegValue"
-                    }
-                  ],
-                  "tag": "SubValue"
-                }
-              ],
-              "tag": "AddValue"
-            }
-          ],
-          "tag": "Deposit"
-        },
-        {
-          "contents": [
-            "x",
-            {
-              "contents": [
-                {
-                  "contents": 100,
-                  "tag": "Constant"
-                },
-                {
-                  "contents": [
-                    {
-                      "contents": 100,
-                      "tag": "Constant"
-                    },
-                    {
-                      "contents": {
-                        "contents": 100,
-                        "tag": "Constant"
-                      },
-                      "tag": "NegValue"
-                    }
-                  ],
-                  "tag": "SubValue"
-                }
-              ],
-              "tag": "AddValue"
-            },
-            {
-              "contents": [
-                [
-                  0,
-                  {
-                    "contents": "deadbeef",
-                    "tag": "PK"
-                  }
-                ],
-                {
-                  "contents": {
-                    "contents": "Bob",
-                    "tag": "Role"
-                  },
-                  "tag": "Party"
-                },
-                "ada",
-                {
-                  "contents": "x",
-                  "tag": "UseValue"
-                },
-                {
-                  "tag": "Close"
-                }
-              ],
-              "tag": "Pay"
-            }
-          ],
-          "tag": "Let"
-        }
-      ],
-      [
-        {
-          "contents": [
-            [
-              "choice",
-              {
-                "contents": "deadbeef",
-                "tag": "PK"
-              }
-            ],
-            [
-              [
-                0,
-                1
-              ]
-            ]
-          ],
-          "tag": "Choice"
-        },
-        {
-          "contents": [
-            {
-              "contents": [
-                {
-                  "contents": [
-                    "choice",
-                    {
-                      "contents": "deadbeef",
-                      "tag": "PK"
-                    }
-                  ],
-                  "tag": "ChoseSomething"
-                },
-                {
-                  "contents": [
-                    {
-                      "contents": [
-                        "choice",
-                        {
-                          "contents": "deadbeef",
-                          "tag": "PK"
-                        }
-                      ],
-                      "tag": "ChoiceValue"
-                    },
-                    {
-                      "contents": [
-                        [
-                          1,
-                          10
-                        ],
-                        {
-                          "contents": 100,
-                          "tag": "Constant"
-                        }
-                      ],
-                      "tag": "Scale"
-                    }
-                  ],
-                  "tag": "ValueEQ"
-                }
-              ],
-              "tag": "OrObs"
-            },
-            {
-              "contents": [
-                [
-                  0,
-                  {
-                    "contents": "deadbeef",
-                    "tag": "PK"
-                  }
-                ],
-                {
-                  "contents": [
-                    0,
-                    {
-                      "contents": "deadbeef",
-                      "tag": "PK"
-                    }
-                  ],
-                  "tag": "Account"
-                },
-                {
-                  "token": {
-                    "unTokenName": "name"
-                  },
-                  "currency": {
-                    "unCurrencySymbol": "aa"
-                  }
-                },
-                {
-                  "contents": [
-                    [
-                      0,
-                      {
-                        "contents": "deadbeef",
-                        "tag": "PK"
-                      }
-                    ],
-                    {
-                      "token": {
-                        "unTokenName": "name"
-                      },
-                      "currency": {
-                        "unCurrencySymbol": "aa"
-                      }
-                    }
-                  ],
-                  "tag": "AvailableMoney"
-                },
-                {
-                  "tag": "Close"
-                }
-              ],
-              "tag": "Pay"
-            },
-            {
-              "tag": "Close"
-            }
-          ],
-          "tag": "If"
-        }
-      ],
-      [
-        {
-          "contents": {
-            "contents": [
-              {
-                "contents": [
-                  {
-                    "tag": "SlotIntervalStart"
-                  },
-                  {
-                    "tag": "SlotIntervalEnd"
-                  }
-                ],
-                "tag": "ValueLT"
-              },
-              {
-                "tag": "TrueObs"
-              }
-            ],
-            "tag": "AndObs"
+  "then": {
+    "timeout_continuation": "close",
+    "when": [
+      {
+        "case": {
+          "of_token": {
+            "token_name": "",
+            "currency_symbol": ""
           },
-          "tag": "Notify"
+          "deposits": {
+            "and": {
+              "minus": {
+                "negate": 100
+              },
+              "value": 100
+            },
+            "add": 100
+          },
+          "into_account": {
+            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+          },
+          "party": {
+            "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+          }
         },
-        {
-          "tag": "Close"
+        "then": {
+          "be": {
+            "and": {
+              "minus": {
+                "negate": 100
+              },
+              "value": 100
+            },
+            "add": 100
+          },
+          "then": {
+            "pay": {
+              "use_value": "x"
+            },
+            "to": {
+              "party": {
+                "role_token": "Bob"
+              }
+            },
+            "token": {
+              "token_name": "",
+              "currency_symbol": ""
+            },
+            "from_account": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            },
+            "then": "close"
+          },
+          "let": "x"
         }
-      ]
+      },
+      {
+        "case": {
+          "for_choice": {
+            "choice_name": "choice",
+            "choice_owner": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            }
+          },
+          "choose_between": [
+            {
+              "to": 1,
+              "from": 0
+            },
+            {
+              "to": 20,
+              "from": 10
+            }
+          ]
+        },
+        "then": {
+          "if": {
+            "either": {
+              "chose_something_for": {
+                "choice_name": "choice",
+                "choice_owner": {
+                  "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+                }
+              }
+            },
+            "or": {
+              "value": {
+                "value_of_choice": {
+                  "choice_name": "choice",
+                  "choice_owner": {
+                    "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+                  }
+                }
+              },
+              "equal_to": {
+                "multiply": 100,
+                "divide_by": 10,
+                "times": 1
+              }
+            }
+          },
+          "then": {
+            "pay": {
+              "amount_of_token": {
+                "token_name": "name",
+                "currency_symbol": "6161"
+              },
+              "in_account": {
+                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              }
+            },
+            "to": {
+              "account": {
+                "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+              }
+            },
+            "token": {
+              "token_name": "name",
+              "currency_symbol": "6161"
+            },
+            "from_account": {
+              "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+            },
+            "then": "close"
+          },
+          "else": "close"
+        }
+      },
+      {
+        "case": {
+          "notify_if": {
+            "and": true,
+            "both": {
+              "value": "slot_interval_start",
+              "lt": "slot_interval_end"
+            }
+          }
+        },
+        "then": "close"
+      }
     ],
-    {
-      "getSlot": 100
-    },
-    {
-      "tag": "Close"
-    }
-  ],
-  "tag": "When"
+    "timeout": 100
+  },
+  "assert": true
 }

@@ -2,6 +2,7 @@ let
   plutus = import ../../. {};
   serverTemplate = import ./server.nix;
   prometheusTemplate = import ./prometheus.nix;
+  webghc = import ./webghc.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
   overlays = import ./overlays.nix;
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
@@ -9,7 +10,6 @@ let
   deploymentConfigDir = plutus.pkgs.copyPathToStore ../nixops ;
   deploymentServer = plutus.haskell.packages.deployment-server.components.exes.deployment-server-exe;
   plutusUrl = "https://${machines.environment}.${machines.plutusTld}";
-  marloweUrl = "https://${machines.environment}.${machines.marloweTld}";
   mkConfig = ghsecrets: redirectUrl: callbackUrl: name: plutus.pkgs.writeTextFile {
     name = name;
     text = ''
@@ -31,7 +31,6 @@ let
     '';
   };
   playgroundConfig = mkConfig secrets.plutus plutusUrl "" "playground.yaml";
-  marlowePlaygroundConfig = callbackUrl: mkConfig secrets.marlowe marloweUrl callbackUrl "marlowe.yaml";
   stdOverlays = [ overlays.journalbeat ];
   nixpkgsLocation = https://github.com/NixOS/nixpkgs/archive/5272327b81ed355bbed5659b8d303cf2979b6953.tar.gz;
   nixosLocation = "/root/.nix-defexpr/channels/nixos";
@@ -40,11 +39,6 @@ let
   deploymentName = "playgrounds";
   options = { inherit stdOverlays machines defaultMachine plutus secrets nixpkgsLocation nixosLocation slackChannel nixopsStateFile deploymentName; };
   defaultMachine = (import ./default-machine.nix) options;
-  marlowePlaygroundOptions = callbackUrl: options // { serviceConfig = marlowePlaygroundConfig callbackUrl;
-                                                       serviceName = "marlowe-playground";
-                                                       server-invoker = plutus.marlowe-playground.server-invoker;
-                                                       client = plutus.marlowe-playground.client;
-                                                       };
   playgroundOptions = options // { serviceConfig = playgroundConfig;
                                    serviceName = "plutus-playground";
                                    server-invoker = plutus.plutus-playground.server-invoker;
@@ -52,12 +46,12 @@ let
                                    };
   playgroundA = serverTemplate.mkInstance playgroundOptions machines.playgroundA;
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
-  marlowePlaygroundA = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-a/api")) machines.marlowePlaygroundA;
-  marlowePlaygroundB = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-b/api")) machines.marlowePlaygroundB;
+  webGhcA = webghc.mkInstance (options // {web-ghc = plutus.web-ghc; }) machines.webGhcA;
+  webGhcB = webghc.mkInstance (options // {web-ghc = plutus.web-ghc; }) machines.webGhcA;
   nixops = prometheusTemplate.mkInstance 
             (options // {configDir = deploymentConfigDir; inherit deploymentServer enableGithubHooks;}) 
             {dns = "nixops.internal.${machines.environment}.${machines.plutusTld}";
              ip = "127.0.0.1";
              name = "nixops"; };
 in
-  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops; }
+  { inherit playgroundA playgroundB nixops webGhcA webGhcB; }

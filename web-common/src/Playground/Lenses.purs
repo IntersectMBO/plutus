@@ -2,11 +2,10 @@
 module Playground.Lenses where
 
 import Data.Function ((<<<))
-import Data.Json.JsonMap (_JsonMap)
+import Data.Map (Map)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Map (Map)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Ledger.Index (UtxoIndex, _UtxoIndex)
@@ -45,7 +44,7 @@ _txId :: Lens' TxId String
 _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 
 _utxoIndexEntries :: Lens' UtxoIndex (Map TxOutRef TxOut)
-_utxoIndexEntries = _UtxoIndex <<< prop (SProxy :: SProxy "getIndex") <<< _JsonMap
+_utxoIndexEntries = _UtxoIndex <<< prop (SProxy :: SProxy "getIndex")
 
 _aeDescription :: forall s r a. Newtype s { aeDescription :: a | r } => Lens' s a
 _aeDescription = _Newtype <<< prop (SProxy :: SProxy "aeDescription")

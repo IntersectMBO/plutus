@@ -50,7 +50,7 @@ data ScriptInstance (a :: Type) =
         --   is run in this transaction
         , instanceMPS     :: MonetaryPolicy
         }
-    deriving (Eq, Generic, ToJSON, FromJSON)
+    deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 -- | The 'ScriptInstance' of a validator script and its wrapper.
 validator ::
@@ -62,7 +62,7 @@ validator ::
 validator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
         hsh = validatorHash val
-        mps = mkMonetaryPolicy hsh
+        mps = forwardingMPS hsh
     in Validator
         { instanceScript  = val
         , instanceHash    = hsh
@@ -86,7 +86,7 @@ validatorScript = instanceScript
 fromValidator :: Validator -> ScriptInstance Any
 fromValidator vl =
     let vh = validatorHash vl
-        mps = mkMonetaryPolicy vh
+        mps = forwardingMPS vh
     in
     Validator
         { instanceScript  = vl

@@ -9,28 +9,11 @@
         (vardecl Inst (fun (con integer) RBasicDataBool))
       )
     )
-    (datatypebind
-      (datatype
-        (tyvardecl Unit (fun (type) (type)))
-        (tyvardecl a (type))
-        Unit_match
-        (vardecl Unit (fun a [Unit a]))
-      )
-    )
     (lam
       ds
       RBasicDataBool
       [
-        {
-          [
-            { Unit_match (con integer) }
-            [
-              { [ RConsBasicDataBool_match ds ] [Unit (con integer)] }
-              (lam i (con integer) [ { Unit (con integer) } i ])
-            ]
-          ]
-          (con integer)
-        }
+        { [ RConsBasicDataBool_match ds ] (con integer) }
         (lam i (con integer) i)
       ]
     )

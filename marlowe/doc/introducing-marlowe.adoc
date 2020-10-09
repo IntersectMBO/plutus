@@ -45,7 +45,9 @@ https://www.haskell.org[Haskell] programming language. While it is
 possible to use “pure” Marlowe if we wish, being embedded in a
 general-purpose language allows contract writers to selectively exploit
 features of Haskell in writing Marlowe contracts, making them easier to
-read, supporting re-use and so forth.
+read and supporting re-use. In fact, Marlowe is not tied to Haskell, and we
+are developing an experimental JavaScript environment for Marlowe too. You will find a 
+prototype of this in the Marlowe Playground too.
 
 === Marlowe in a nutshell
 
@@ -57,7 +59,7 @@ implemented on the Cardano blockchain, but
 could equally well be implemented on Ethereum or other
 blockchain platforms; in this respect it is “platform agnostic” just
 like modern programming languages like Java and C++. The Marlowe
-Playground online emulator tool allows you to experiment with, develop, simulate and analyse Marlowe contracts in your web browser, without having
+Playground online simulation allows you to experiment with, develop, simulate and analyse Marlowe contracts in your web browser, without having
 to install any software.
 
 What does a Marlowe contract look like? It is built by combining a small
@@ -88,24 +90,27 @@ to happen: all it can do is to request a deposit or choice from a participant. I
 === Marlowe in action
 
 We are working on a production release of Marlowe on the Cardano
-blockchain early in 2020. From today, you are able to explore
+blockchain early in 2021. From today, you are able to explore
 Marlowe for yourself, either by downloading it and using the Haskell
 implementation directly, or by using the online Marlowe Playground
 simulation tool; these are both covered in subsequent tutorials. These
 will also cover the details of Marlowe, introduce a series of examples,
 look deeper into the tools for Marlowe.
 
-In the next six months we will be polishing the language design itself
-and developing a set of templates for popular financial instruments. Because Marlowe is a DSL we can work out how Marlowe contracts will behave without running them: this means that we can provide valuable diagnostics to potential participants before they commit to a contract, using _static analysis_. We can also use logic tools to _formally prove properties_ of Marlowe
+We have also worked on developing a set of templates for popular financial instruments taken from the Actus standard, and are able to generate particular contracts from these templates according to the various parameters and options that can be set.
+
+Because Marlowe is a DSL we can work out how Marlowe contracts will behave without running them: this means that we can provide valuable diagnostics to potential participants before they commit to a contract, using _static analysis_. We can also use logic tools to _formally prove properties_ of Marlowe
 contracts, giving users the highest level of assurance that their
 contracts behave as intended.
 
 === Where to go to find out more
 
-This tutorial covers the latest version of Marlowe, while all but the
-first of these links covers Marlowe 1.3, which is very close to Marlowe
-3.0 in conception but which differs in a number of detailed ways.
+This tutorial covers the latest version of Marlowe, while some of these links cover earlier versions of the language and the playground.
 
-* https://github.com/input-output-hk/marlowe[The Marlowe github repository]
-* https://api.zotero.org/groups/478201/items/L65KWDLX/file/view?key=Qcjdk4erSuUZ8jvAah59Asef[The Marlowe paper]
-* https://www.youtube.com/watch?v=rSpFOADHLqw[Marlowe video from PlutusFest, December 2018]
+* https://alpha.marlowe.iohkdev.io/[The Marlowe Playground] an in-browser development, analysis and simulation environment.
+* https://github.com/input-output-hk/marlowe[The Marlowe github repository] from which you can download Marlowe.
+* https://iohk.io/en/research/library/papers/marlowefinancial-contracts-on-blockchain/[Marlowe: financial contracts on blockchain] The paper that introduces an earlier version of the Marlowe language. Nevertheless, it explains the principles and rationale behind its design and implementation.
+* https://iohk.io/en/research/library/papers/marloweimplementing-and-analysing-financial-contracts-on-blockchain/[Marlowe: implementing and analysing financial contracts on blockchain] This paper describes the implementation of Marlowe on the Cardano blockchain, and the analysis supported by the Marlowe Playground web-based development and simulation environment.
+* YouTube playlist: https://www.youtube.com/playlist?list=PLqu19-ygE4ofUgGpslOs5zCr9Z6zCMibq[Marlowe: financial contracts on blockchain]. A general introduction to Marlowe from April 2020.
+* YouTube playlist: https://www.youtube.com/playlist?list=PLqu19-ygE4ofEeRfUiA-DYKRk9I3V9c1Q[The Marlowe Playground] An introduction to the playground; some features have changed, and others have been added, since these videos were made in April 2020. 
+

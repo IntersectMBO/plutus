@@ -36,10 +36,14 @@
                   [[Tuple2 (con integer)] (con integer)]
                 }
                 [
-                  [ { { Tuple2 (con integer) } (con integer) } (con 1) ] (con 2)
+                  [ { { Tuple2 (con integer) } (con integer) } (con integer 1) ]
+                  (con integer 2)
                 ]
               ]
-              [ [ { { Tuple2 (con integer) } (con integer) } (con 3) ] (con 4) ]
+              [
+                [ { { Tuple2 (con integer) } (con integer) } (con integer 3) ]
+                (con integer 4)
+              ]
             ]
           ]
         ]

@@ -39,7 +39,7 @@
           (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."ghc" or (errorHandler.buildDepError "ghc"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
-          (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+          (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -73,7 +73,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -104,6 +104,7 @@
             "StdLib/Spec"
             "TH/Spec"
             "TH/TestTH"
+            "Lib"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

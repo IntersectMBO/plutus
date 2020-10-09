@@ -12,6 +12,9 @@
 @import './table.css';
 @import './animations.css';
 @import './github-input.css';
+@import './home.css';
+@import './projects.css';
+@import './new-project.css';
 
 .ace_editor {
     height: 100%;
@@ -27,6 +30,11 @@
 }
 
 .blockly-workspace {
+    height: 80vh;
+    width: 100%;
+}
+
+.actus-blockly-workspace {
     height: 80vh;
     width: 100%;
 }

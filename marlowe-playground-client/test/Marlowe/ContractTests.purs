@@ -3,13 +3,13 @@ module Marlowe.ContractTests where
 import Prelude
 import Control.Monad.State (runState)
 import Data.Array (snoc)
-import Data.Integral (fromIntegral)
+import Data.BigInteger (fromInt)
 import Data.Lens (over, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
-import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
+import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import Simulation.State (_contract, _pendingInputs, _transactionError, applyTransactions, updateContractInState, updateMarloweState)
 import Simulation.Types (_marloweState, mkState)
 import Test.Unit (TestSuite, suite, test)
@@ -27,21 +27,21 @@ all =
 
         bob = "bob"
 
-        deposit = IDeposit (AccountId (fromIntegral 0) (Role alice)) (Role alice) ada (fromIntegral 450)
+        deposit = IDeposit (Role alice) (Role alice) ada (fromInt 450)
 
         choice = ChoiceId "choice"
 
-        choice1 = IChoice (choice (Role alice)) (fromIntegral 0)
+        choice1 = IChoice (choice (Role alice)) (fromInt 0)
 
-        choice2 = IChoice (choice (Role bob)) (fromIntegral 0)
+        choice2 = IChoice (choice (Role bob)) (fromInt 0)
 
         (Tuple _ finalState) =
           (flip runState mkState) do
             updateContractInState Contracts.escrow
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit (Just alice))))
+            updateMarloweState (over _pendingInputs ((flip snoc) deposit))
             applyTransactions
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 (Just alice))))
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 (Just bob))))
+            updateMarloweState (over _pendingInputs ((flip snoc) choice1))
+            updateMarloweState (over _pendingInputs ((flip snoc) choice2))
             applyTransactions
 
         finalContract = finalState ^. _marloweState <<< _Head <<< _contract

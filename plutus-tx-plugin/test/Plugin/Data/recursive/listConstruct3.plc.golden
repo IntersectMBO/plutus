@@ -10,10 +10,10 @@
       )
     )
     [
-      [ { Cons (con integer) } (con 1) ]
+      [ { Cons (con integer) } (con integer 1) ]
       [
-        [ { Cons (con integer) } (con 2) ]
-        [ [ { Cons (con integer) } (con 3) ] { Nil (con integer) } ]
+        [ { Cons (con integer) } (con integer 2) ]
+        [ [ { Cons (con integer) } (con integer 3) ] { Nil (con integer) } ]
       ]
     ]
   )

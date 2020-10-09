@@ -30,17 +30,10 @@ inner =
                              agreement
                              arbitrate) ]
                     60
-                    arbitrate),
-        Case bobChoice
-              (When [ Case aliceChoice
-                          (If (aliceChosen `ValueEQ` bobChosen)
-                              agreement
-                              arbitrate) ]
-                    60
                     arbitrate)
         ]
         40
-        Close
+        arbitrate
 
 -- The contract to follow when Alice and Bob have made the same choice.
 

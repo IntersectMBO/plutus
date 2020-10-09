@@ -13,8 +13,8 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
-import Foreign (unsafeToForeign)
-import Foreign.Generic (class Encode, Foreign, SumEncoding(..), defaultOptions, encode, genericEncode)
+import Foreign (unsafeFromForeign, unsafeToForeign)
+import Foreign.Generic (class Decode, class Encode, Foreign, SumEncoding(..), defaultOptions, encode, genericEncode)
 import Foreign.Object (Object)
 import Foreign.Object as Object
 import Web.HTML (HTMLElement)
@@ -119,9 +119,21 @@ instance ordCompletionItemKind :: Ord CompletionItemKind where
 
 foreign import data MarkerSeverity :: Type
 
+instance encodeMarkerSeverity :: Encode MarkerSeverity where
+  encode = encode <<< unsafeToForeign
+
+instance decodeMarkerSeverity :: Decode MarkerSeverity where
+  decode = pure <<< unsafeFromForeign
+
 foreign import data TokensProvider :: Type
 
 foreign import data Uri :: Type
+
+instance encodeUri :: Encode Uri where
+  encode = encode <<< unsafeToForeign
+
+instance decodeUri :: Decode Uri where
+  decode = pure <<< unsafeFromForeign
 
 type IMarkdownString
   = { value :: String
@@ -215,6 +227,8 @@ foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMa
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
+foreign import addExtraLibsJS_ :: EffectFn1 Monaco Unit
+
 foreign import getModel_ :: EffectFn1 Editor ITextModel
 
 foreign import getEditorId_ :: Fn1 Editor String
@@ -280,6 +294,9 @@ defineTheme = runEffectFn2 defineTheme_
 
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
+
+addExtraLibsJS :: Monaco -> Effect Unit
+addExtraLibsJS = runEffectFn1 addExtraLibsJS_
 
 getModel :: Editor -> Effect ITextModel
 getModel = runEffectFn1 getModel_

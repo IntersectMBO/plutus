@@ -32,7 +32,11 @@
         (abs
           a
           (type)
-          (lam c (fun (con integer) (fun a a)) (lam n a [ [ c (con 1) ] n ]))
+          (lam
+            c
+            (fun (con integer) (fun a a))
+            (lam n a [ [ c (con integer 1) ] n ])
+          )
         )
       ]
     )

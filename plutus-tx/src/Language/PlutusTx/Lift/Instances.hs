@@ -19,7 +19,7 @@ import           Language.PlutusTx.Lift.Class
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
 
-import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString as BS
 import           Data.Proxy
 
 -- Derived instances
@@ -67,10 +67,10 @@ instance uni `PLC.Includes` Integer => Typeable uni Integer where
 instance uni `PLC.Includes` Integer => Lift uni Integer where
     lift = liftBuiltin
 
-instance uni `PLC.Includes` BSL.ByteString => Typeable uni BSL.ByteString where
+instance uni `PLC.Includes` BS.ByteString => Typeable uni BS.ByteString where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.Includes` BSL.ByteString => Lift uni BSL.ByteString where
+instance uni `PLC.Includes` BS.ByteString => Lift uni BS.ByteString where
     lift = liftBuiltin
 
 -- Standard types

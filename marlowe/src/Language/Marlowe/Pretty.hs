@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 module Language.Marlowe.Pretty where
 
-import qualified Data.ByteString.Lazy    as BSL
+import qualified Data.ByteString         as BS
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
@@ -106,15 +106,6 @@ instance (Pretty a) => Pretty [a] where
     Thus, we require @PureScript.parse . Haskell.pretty == id
  -}
 
-instance  (Show a) => Show (P.Ratio a) where
-    -- Adapted from Data.Ratio in the base library
-    showsPrec p r = showParen (p > ratioPrec) $
-                    showsPrec ratioPrec1 (P.numerator r) .
-                    showString " % " .
-                    showsPrec ratioPrec1 (P.denominator r)
-       where ratioPrec = 7  -- This refers to the operator precedence level of %
-             ratioPrec1 = ratioPrec + 1
-
 instance (Show a) => Pretty (P.Ratio a) where
     prettyFragment = text . show
 
@@ -124,8 +115,8 @@ instance Pretty Slot where
 instance Pretty PubKeyHash where
     prettyFragment (PubKeyHash bs) = prettyFragment bs
 
-instance Pretty BSL.ByteString where
-    prettyFragment = text . show . BSL.toStrict
+instance Pretty BS.ByteString where
+    prettyFragment = text . show
 
 instance Pretty Ada where
     prettyFragment x = prettyFragment (getLovelace x)

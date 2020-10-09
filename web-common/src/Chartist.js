@@ -2,6 +2,8 @@
 'use strict';
 
 var Chartist = require('chartist');
+require('chartist-plugin-tooltips');
+require('chartist-plugin-axistitle');
 
 exports.tooltipPlugin = Chartist.plugins.tooltip();
 

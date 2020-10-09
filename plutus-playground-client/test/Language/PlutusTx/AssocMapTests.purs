@@ -3,6 +3,9 @@ module Language.PlutusTx.AssocMapTests
   ) where
 
 import Prelude
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
+import Data.Json.JsonTuple (JsonTuple)
 import Data.Lens (preview, set)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -38,19 +41,19 @@ eur = TokenName { unTokenName: "EUR" }
 gbp :: TokenName
 gbp = TokenName { unTokenName: "GBP" }
 
-baseValue :: Map CurrencySymbol (Map TokenName Int)
-baseValue = Map [ wrap $ Tuple currencies (Map [ wrap $ Tuple usd 10 ]) ]
+baseValue :: Map CurrencySymbol (Map TokenName BigInteger)
+baseValue = Map [ wrap $ Tuple currencies (Map [ wrap $ Tuple usd $ BigInteger.fromInt 10 ]) ]
 
 indexTests :: TestSuite
 indexTests =
   suite "Index" do
     test "simple gets" do
-      equal (Just 10) (preview (ix currencies <<< ix usd) baseValue)
+      equal (Just (BigInteger.fromInt 10)) (preview (ix currencies <<< ix usd) baseValue)
       equal Nothing (preview (ix currencies <<< ix eur) baseValue)
     test "simple sets" do
-      equal (Just 20)
+      equal (Just (BigInteger.fromInt 20))
         ( baseValue
-            # set (ix currencies <<< ix usd) 20
+            # set (ix currencies <<< ix usd) (BigInteger.fromInt 20)
             # preview (ix currencies <<< ix usd)
         )
 
@@ -62,12 +65,12 @@ atTests =
         baseValue
         ( Map []
             # set (at currencies) (Just (Map []))
-            # set (ix currencies <<< at usd) (Just 10)
+            # set (ix currencies <<< at usd) (Just (BigInteger.fromInt 10))
         )
     test "modify" do
-      equal (Just 20)
+      equal (Just (BigInteger.fromInt 20))
         ( baseValue
-            # set (ix currencies <<< at usd) (Just 20)
+            # set (ix currencies <<< at usd) (Just (BigInteger.fromInt 20))
             # preview (ix currencies <<< ix usd)
         )
     test "delete" do
@@ -120,53 +123,33 @@ unionWithCurrenciesTests =
   suite "unionWith - currencies" do
     let
       valueA =
-        ( Map
-            [ wrap
-                $ Tuple currencies
-                    ( Map
-                        [ wrap $ Tuple usd 10
-                        , wrap $ Tuple eur 20
-                        ]
-                    )
+        ( mkMap currencies
+            [ Tuple usd 10
+            , Tuple eur 20
             ]
         )
 
       valueB =
-        ( Map
-            [ wrap
-                $ Tuple currencies
-                    ( Map
-                        [ wrap $ Tuple eur 30
-                        , wrap $ Tuple gbp 40
-                        ]
-                    )
+        ( mkMap currencies
+            [ Tuple eur 30
+            , Tuple gbp 40
             ]
         )
     test "addition"
       $ equalGenericShow
-          ( Map
-              [ wrap
-                  $ Tuple currencies
-                      ( Map
-                          [ wrap $ Tuple usd 10
-                          , wrap $ Tuple eur 50
-                          , wrap $ Tuple gbp 40
-                          ]
-                      )
+          ( mkMap currencies
+              [ Tuple usd 10
+              , Tuple eur 50
+              , Tuple gbp 40
               ]
           )
           (unionWith (unionWith (+)) valueA valueB)
     test "choice"
       $ equalGenericShow
-          ( Map
-              [ wrap
-                  $ Tuple currencies
-                      ( Map
-                          [ wrap $ Tuple usd 10
-                          , wrap $ Tuple eur 20
-                          , wrap $ Tuple gbp 40
-                          ]
-                      )
+          ( mkMap currencies
+              [ Tuple usd 10
+              , Tuple eur 20
+              , Tuple gbp 40
               ]
           )
           (unionWith (unionWith const) valueA valueB)
@@ -176,43 +159,36 @@ sumTests =
   suite "sum" do
     let
       valueA =
-        ( Map
-            [ wrap
-                $ Tuple currencies
-                    ( Map
-                        [ wrap $ Tuple usd 10
-                        , wrap $ Tuple eur 20
-                        ]
-                    )
-            ]
-        )
+        mkValue currencies
+          [ Tuple usd 10
+          , Tuple eur 20
+          ]
 
       valueB =
-        ( Map
-            [ wrap
-                $ Tuple currencies
-                    ( Map
-                        [ wrap $ Tuple eur 30
-                        , wrap $ Tuple gbp 40
-                        ]
-                    )
-            ]
-        )
+        mkValue currencies
+          [ Tuple eur 30
+          , Tuple gbp 40
+          ]
     test "sum"
       $ equalGenericShow
-          ( Value
-              { getValue:
-                ( Map
-                    [ wrap
-                        $ Tuple currencies
-                            ( Map
-                                [ wrap $ Tuple usd 10
-                                , wrap $ Tuple eur 50
-                                , wrap $ Tuple gbp 40
-                                ]
-                            )
-                    ]
-                )
-              }
+          ( mkValue currencies
+              ( [ Tuple usd 10
+                , Tuple eur 50
+                , Tuple gbp 40
+                ]
+              )
           )
-          (sum (Value { getValue: valueA }) (Value { getValue: valueB }))
+          (sum valueA valueB)
+
+mkValue :: CurrencySymbol -> Array (Tuple TokenName Int) -> Value
+mkValue symbol pairs =
+  Value
+    { getValue: mkMap symbol pairs }
+
+mkMap :: CurrencySymbol -> Array (Tuple TokenName Int) -> Map CurrencySymbol (Map TokenName BigInteger)
+mkMap symbol pairs =
+  Map
+    [ wrap $ Tuple symbol (Map (mkTokenAmount <$> pairs)) ]
+  where
+  mkTokenAmount :: Tuple TokenName Int -> JsonTuple TokenName BigInteger
+  mkTokenAmount (Tuple token amount) = wrap $ Tuple token (BigInteger.fromInt amount)

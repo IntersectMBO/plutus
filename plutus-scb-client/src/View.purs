@@ -1,9 +1,16 @@
 module View (render) where
 
 import Bootstrap (col12_, col5_, col7_, container_, row_)
+import Cardano.Metadata.Types (PropertyDescription)
+import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
+import Data.Array as Array
+import Data.Foldable (findMap)
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
 import Halogen.HTML.Properties (class_, classes)
@@ -13,7 +20,7 @@ import Network.StreamData as Stream
 import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport)
-import Prelude (($), (<$>), (<<<), (<>))
+import Prelude (bind, ($), (<$>), (<<<), (<>))
 import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
@@ -24,7 +31,7 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage }) =
+render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage, metadata }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -42,6 +49,20 @@ render (State { currentView, chainState, contractSignatures, chainReport, events
                 events
         ]
     ]
+
+nameIfAvailable ::
+  forall k.
+  Map Metadata.Subject (Map k PropertyDescription) -> String -> String
+nameIfAvailable metadata key =
+  fromMaybe key
+    $ do
+        properties <- Map.lookup (Metadata.Subject key) metadata
+        findMap
+          ( case _ of
+              Metadata.Name name _ -> Just name
+              _ -> Nothing
+          )
+          (Array.fromFoldable (Map.values properties))
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
@@ -89,12 +110,12 @@ webSocketStatusIcon webSocketStatus =
   webSocketStatusClass = ClassName "web-socket-status"
 
 mainPane ::
-  forall p t.
+  forall p.
   View ->
   ContractStates ->
   Chain.State ->
   WebStreamData ContractSignatures ->
-  ChainReport t ->
+  ChainReport ->
   Array (ChainEvent ContractExe) ->
   HTML p HAction
 mainPane currentView contractStates chainState contractSignatures chainReport events =
@@ -132,10 +153,10 @@ activeContractPane currentView contractSignatures contractStates =
       ]
 
 blockchainPane ::
-  forall p t.
+  forall p.
   View ->
   Chain.State ->
-  ChainReport t -> HTML p HAction
+  ChainReport -> HTML p HAction
 blockchainPane currentView chainState chainReport =
   viewContainer currentView Blockchain
     [ row_
@@ -143,7 +164,7 @@ blockchainPane currentView chainState chainReport =
         ]
     ]
 
-eventLogPane :: forall p t. View -> Array (ChainEvent ContractExe) -> ChainReport t -> HTML p HAction
+eventLogPane :: forall p. View -> Array (ChainEvent ContractExe) -> ChainReport -> HTML p HAction
 eventLogPane currentView events chainReport =
   viewContainer currentView EventLog
     [ row_

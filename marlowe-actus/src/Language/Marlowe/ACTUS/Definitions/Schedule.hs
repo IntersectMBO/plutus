@@ -6,7 +6,7 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 data ShiftedDay = ShiftedDay {
     paymentDay     :: Day,
     calculationDay :: Day
-} deriving (Eq, Ord)
+} deriving (Eq, Ord, Show)
 
 type ShiftedSchedule = [ShiftedDay]
 

@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
@@ -43,6 +44,7 @@ module Language.PlutusTx.Coordination.Contracts.Future(
 import           Control.Lens                                          (makeClassyPrisms, prism', review)
 import           Control.Monad                                         (void)
 import           Control.Monad.Error.Lens                              (throwing)
+import           Data.Aeson                                            (FromJSON, ToJSON)
 import           GHC.Generics                                          (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Util                         (loopM)
@@ -97,7 +99,8 @@ data Future =
 
 -- | The two roles involved in the contract.
 data Role = Long | Short
-    deriving (Generic, Show)
+    deriving stock (Generic, Show)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Role where
     Long == Long = True
@@ -118,7 +121,8 @@ data FutureAccounts =
         , ftoShortAccount :: ValidatorHash
         -- ^ Address of the 'TokenAccount' validator script for 'ftoShort'. The
         --   comment on 'ftoLongAccount' applies to this as well.
-        } deriving (Haskell.Show, Generic)
+        } deriving stock (Haskell.Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 -- | The two margins.
 data Margins =
@@ -205,7 +209,8 @@ data FutureSetup =
         , contractStart :: Slot
         -- ^ Start of the futures contract itself. By this time the setup code
         --   has to be finished, otherwise the contract is void.
-        } deriving (Haskell.Show)
+        } deriving stock (Haskell.Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 {- note [Futures in Plutus]
 

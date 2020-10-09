@@ -63,6 +63,8 @@
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
+          (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+          (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -72,10 +74,12 @@
           "Data/Row/Extras"
           "Data/Text/Extras"
           "Language/Plutus/Contract"
-          "Language/Plutus/Contract/App"
           "Language/Plutus/Contract/Effects/AwaitSlot"
           "Language/Plutus/Contract/Effects/AwaitTxConfirmed"
+          "Language/Plutus/Contract/Effects/Instance"
+          "Language/Plutus/Contract/Effects/RPC"
           "Language/Plutus/Contract/Effects/ExposeEndpoint"
+          "Language/Plutus/Contract/Effects/Notify"
           "Language/Plutus/Contract/Effects/OwnPubKey"
           "Language/Plutus/Contract/Effects/UtxoAt"
           "Language/Plutus/Contract/Effects/WatchAddress"
@@ -106,6 +110,7 @@
           "Wallet/Emulator/Error"
           "Wallet/Emulator/LogMessages"
           "Wallet/Emulator/NodeClient"
+          "Wallet/Emulator/Notify"
           "Wallet/Emulator/MultiAgent"
           "Wallet/Emulator/SigningProcess"
           "Wallet/Emulator/Wallet"
@@ -116,6 +121,7 @@
           "Wallet/API"
           "Wallet/Effects"
           "Wallet/Graph"
+          "Wallet/Types"
           "Control/Monad/Freer/Extras"
           "Control/Monad/Freer/Log"
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "Language/Plutus/Contract/Test";
@@ -127,7 +133,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))

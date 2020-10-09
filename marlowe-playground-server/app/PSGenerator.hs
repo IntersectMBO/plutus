@@ -1,13 +1,10 @@
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -17,7 +14,6 @@ module PSGenerator
     ( generate
     ) where
 
-import           API                                              (RunResult)
 import qualified API
 import qualified Auth
 import           Control.Applicative                              ((<|>))
@@ -31,9 +27,7 @@ import           Data.Proxy                                       (Proxy (Proxy)
 import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
-import           Data.Time                                        as DT
 import qualified Escrow
-import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
@@ -48,21 +42,22 @@ import           Language.PureScript.Bridge                       (BridgePart, L
 import           Language.PureScript.Bridge.Builder               (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
                                                                    genForeign)
-import           Language.PureScript.Bridge.PSTypes               (psNumber)
+import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import qualified Option
 import qualified PSGenerator.Common
-import           Servant                                          ((:<|>))
+import           Servant                                          ((:<|>), (:>))
 import           Servant.PureScript                               (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                    defaultSettings, languageBridge,
                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
 import qualified Swap
 import           System.Directory                                 (createDirectoryIfMissing)
 import           System.FilePath                                  ((</>))
-import           WebSocket                                        (WebSocketRequestMessage, WebSocketResponseMessage)
+import qualified Webghc.Server                                    as Webghc
 import qualified ZeroCouponBond
 
 
@@ -77,8 +72,44 @@ contractBridge = do
     typeModule ^== "Language.Marlowe.Semantics"
     psContract
 
+psState :: MonadReader BridgeData m => m PSType
+psState =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "State" <$>
+    psTypeParameters
+
+stateBridge :: BridgePart
+stateBridge = do
+    typeName ^== "State"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psState
+
+psTransactionInput :: MonadReader BridgeData m => m PSType
+psTransactionInput =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "TransactionInput" <$>
+    psTypeParameters
+
+transactionInputBridge :: BridgePart
+transactionInputBridge = do
+    typeName ^== "TransactionInput"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psTransactionInput
+
+psTransactionWarning :: MonadReader BridgeData m => m PSType
+psTransactionWarning =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "TransactionWarning" <$>
+    psTypeParameters
+
+transactionWarningBridge :: BridgePart
+transactionWarningBridge = do
+    typeName ^== "TransactionWarning"
+    typeModule ^== "Language.Marlowe.Semantics"
+    psTransactionWarning
+
 doubleBridge :: BridgePart
 doubleBridge = typeName ^== "Double" >> return psNumber
+
+dayBridge :: BridgePart
+dayBridge = typeName ^== "Day" >> return psString
 
 myBridge :: BridgePart
 myBridge =
@@ -88,7 +119,11 @@ myBridge =
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
     doubleBridge <|>
+    dayBridge <|>
     contractBridge <|>
+    stateBridge <|>
+    transactionInputBridge <|>
+    transactionWarningBridge <|>
     defaultBridge
 
 data MyBridge
@@ -99,23 +134,18 @@ myBridgeProxy = Proxy
 instance HasBridge MyBridge where
     languageBridge _ = buildBridge myBridge
 
-deriving instance Generic DT.Day
-
 myTypes :: [SumType 'Haskell]
 myTypes =
     PSGenerator.Common.ledgerTypes <>
     PSGenerator.Common.walletTypes <>
     PSGenerator.Common.playgroundTypes <>
-    [ mkSumType (Proxy @RunResult)
-    , mkSumType (Proxy @SourceCode)
+    [ mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @InterpreterError)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
-    , mkSumType (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
-    , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
     , mkSumType (Proxy @CT.PYTP)
     , mkSumType (Proxy @CT.PREF)
@@ -131,8 +161,10 @@ myTypes =
     , mkSumType (Proxy @CT.FEB)
     , mkSumType (Proxy @CT.ContractRole)
     , mkSumType (Proxy @CT.ContractType)
-    , (genericShow <*> mkSumType) (Proxy @WebSocketRequestMessage)
-    , (genericShow <*> mkSumType) (Proxy @WebSocketResponseMessage)
+    , mkSumType (Proxy @CT.Assertion)
+    , mkSumType (Proxy @CT.Assertions)
+    , mkSumType (Proxy @CT.AssertionContext)
+    , mkSumType (Proxy @Webghc.CompileRequest)
     ]
 
 mySettings :: Settings
@@ -199,7 +231,7 @@ writePangramJson outputDir = do
     BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
     BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
         
-
+type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API :<|> Webghc.FrontendAPI
 
 generate :: FilePath -> IO ()
 generate outputDir = do
@@ -207,7 +239,7 @@ generate outputDir = do
         mySettings
         outputDir
         myBridgeProxy
-        (Proxy @(API.API :<|> Auth.FrontendAPI))
+        (Proxy @Web)
     writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
     writeUsecases outputDir
     writePangramJson outputDir

@@ -19,14 +19,14 @@ resource "aws_security_group" "nixops" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}"]
+    cidr_blocks = var.public_subnet_cidrs
   }
 
   ingress {
     from_port   = "${local.nixops_nginx_port}"
     to_port     = "${local.nixops_nginx_port}"
     protocol    = "TCP"
-    cidr_blocks = ["${var.public_subnet_cidrs}", "${var.private_subnet_cidrs}"]
+    cidr_blocks = concat(var.public_subnet_cidrs, var.private_subnet_cidrs)
   }
 
   ## outgoing: all
@@ -48,7 +48,7 @@ data "template_file" "nixops_ssh_keys" {
   template = "$${ssh_key}"
   count    = "${length(var.nixops_ssh_keys["${var.env}"])}"
 
-  vars {
+  vars = {
     ssh_key = "${var.ssh_keys["${element(var.nixops_ssh_keys["${var.env}"], count.index)}"]}"
   }
 }
@@ -71,7 +71,7 @@ resource "aws_instance" "nixops" {
     "${aws_security_group.nixops.id}",
   ]
 
-  root_block_device = {
+  root_block_device {
     volume_size = 100
   }
 

@@ -72,6 +72,10 @@ instance validationFormArgument :: Validation (Fix FormArgumentF) where
 
     algebra (FormIntF Nothing) = [ noPath Required ]
 
+    algebra (FormIntegerF (Just _)) = []
+
+    algebra (FormIntegerF Nothing) = [ noPath Required ]
+
     algebra (FormStringF (Just _)) = []
 
     algebra (FormStringF Nothing) = [ noPath Required ]

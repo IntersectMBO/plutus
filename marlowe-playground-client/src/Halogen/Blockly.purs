@@ -7,7 +7,6 @@ import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
-import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, use)
@@ -56,11 +55,8 @@ data BlocklyAction
 data BlocklyMessage
   = CurrentCode String
 
-type Slots
-  = ()
-
 type DSL m a
-  = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
+  = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
 
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
@@ -83,11 +79,9 @@ handleQuery (Resize next) = do
   case mState of
     Just state ->
       pure
-        $ ST.run
-            ( do
-                workspaceRef <- STRef.new state.workspace
-                Blockly.resize state.blockly workspaceRef
-            )
+        $ ST.run do
+            workspaceRef <- STRef.new state.workspace
+            Blockly.resize state.blockly workspaceRef
     Nothing -> pure unit
   pure $ Just next
 
@@ -122,7 +116,8 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  modify_ _ { blocklyState = Just blocklyState, generator = Just generator }
+  assign _blocklyState (Just blocklyState)
+  assign _generator (Just generator)
 
 handleAction (SetData _) = pure unit
 
@@ -136,7 +131,7 @@ handleAction GetCode = do
 
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
+      code <- except <<< lmap unexpected $ blockToCode block generator
       except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
   case res of
     Left e -> assign _errorMessage $ Just e
@@ -144,7 +139,7 @@ handleAction GetCode = do
       assign _errorMessage Nothing
       raise <<< CurrentCode <<< show <<< pretty $ contract
   where
-  unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

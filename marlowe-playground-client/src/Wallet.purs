@@ -49,10 +49,10 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import Web.DOM.Document as D
@@ -121,8 +121,8 @@ data Action
   | ApplyTransaction
   | ChangeRoleOwner Int Party String
   | SelectWallet Wallet
-  | AddInput (Maybe PubKey) Input (Array Bound)
-  | RemoveInput (Maybe PubKey) Input
+  | AddInput Input (Array Bound)
+  | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
   | ChangeCurrencyInput Token BigInteger
   | AddCurrency Token
@@ -145,8 +145,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
   toEvent (ChangeRoleOwner _ _ _) = Just $ defaultEvent "ChangeRoleOwner"
   toEvent (SelectWallet _) = Just $ defaultEvent "SelectWallet"
-  toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
+  toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
+  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent (ChangeCurrencyInput _ _) = Just $ defaultEvent "ChangeCurrencyInput"
   toEvent (AddCurrency _) = Just $ defaultEvent "AddCurrency"
@@ -452,7 +452,7 @@ handleAction (SelectWallet wallet) = do
     _ -> pure unit
   assign _view $ WalletView $ wallet ^. _name
 
-handleAction (AddInput person input@(IDeposit _ _ token amount) bounds) = do
+handleAction (AddInput input@(IDeposit _ _ token amount) bounds) = do
   assign _addInputError Nothing
   mWalletAmount <- peruse (_openWallet <<< _Just <<< _assets <<< ix token)
   case mWalletAmount of
@@ -460,31 +460,31 @@ handleAction (AddInput person input@(IDeposit _ _ token amount) bounds) = do
     Just walletAmount ->
       if walletAmount >= amount then do
         assign (_openWallet <<< _Just <<< _assets <<< ix token) (walletAmount - amount)
-        updateMarloweState (over _pendingInputs ((flip snoc) (Tuple input person)))
+        updateMarloweState (over _pendingInputs ((flip snoc) input))
       else
         assign _addInputError $ Just "Insufficient funds to add this input"
 
-handleAction (AddInput person input bounds) = do
+handleAction (AddInput input bounds) = do
   assign _addInputError Nothing
   let
     validChoice = case input of
       (IChoice _ chosenNum) -> inBounds chosenNum bounds
       _ -> true
   if validChoice then
-    updateMarloweState (over _pendingInputs ((flip snoc) (Tuple input person)))
+    updateMarloweState (over _pendingInputs ((flip snoc) input))
   else
     assign _addInputError $ Just "Invalid Choice"
 
-handleAction (RemoveInput person input@(IDeposit _ _ token amount)) = do
+handleAction (RemoveInput input@(IDeposit _ _ token amount)) = do
   assign _addInputError Nothing
   modifying (_openWallet <<< _Just <<< _assets <<< ix token) (\v -> v + amount)
-  updateMarloweState (over _pendingInputs (delete (Tuple input person)))
+  updateMarloweState (over _pendingInputs (delete input))
 
-handleAction (RemoveInput person input) = do
+handleAction (RemoveInput input) = do
   assign _addInputError Nothing
-  updateMarloweState (over _pendingInputs (delete (Tuple input person)))
+  updateMarloweState (over _pendingInputs (delete input))
 
-handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
+handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -694,6 +694,7 @@ renderActions state =
       $ state
       ^? ( _currentLoadedMarloweState
             <<< _possibleActions
+            <<< to unwrap
             <<< to (Map.filterKeys walletKeys)
             <<< to Map.values
             <<< to (map Map.toUnfoldable)
@@ -796,11 +797,11 @@ renderCurrentState state =
   div [ classes [ Classes.panelContents, active, ClassName "wallet-composer-state" ] ]
     [ div [ classes [ rTable, rTable4cols ] ]
         ( warningsRow <> errorRow
-            <> dataRow "Expiration Block" (state ^. (_currentLoadedMarloweState <<< _contract <<< to contractMaxTime))
+            <> dataRow "Expiration Slot" (state ^. (_currentLoadedMarloweState <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
-                , columns: ("Account ID" /\ "Participant" /\ "Assets")
+                , columns: ("Participant" /\ "Assets" /\ mempty)
                 , rowData: accountsData
                 }
             <> tableRow
@@ -826,7 +827,11 @@ renderCurrentState state =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) =
+    let
+      t = (_.maxTime <<< unwrap <<< timeouts) contract
+    in
+      if t == zero then "Closed" else show t
 
   warnings = state ^. (_currentLoadedMarloweState <<< _transactionWarnings)
 
@@ -855,7 +860,7 @@ renderCurrentState state =
     let
       (accounts :: Array _) = state ^. (_currentLoadedMarloweState <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
-      asTuple (Tuple (Tuple (AccountId accountNumber accountOwner) token) value) = show accountNumber /\ stripParens (show accountOwner) /\ (show value <> " " <> shortTokenString token)
+      asTuple (Tuple (Tuple accountOwner token) value) = stripParens (show accountOwner) /\ (show value <> " " <> shortTokenString token) /\ mempty
     in
       map asTuple accounts
 
@@ -922,22 +927,20 @@ renderCurrentState state =
     , div [ classes [ rTableCell, rTableDataRow ] ] [ text message ]
     ]
 
-  displayWarning' (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
+  displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
     , div [ class_ rTableCell ]
         [ text $ "Party " <> show party <> " is asked to deposit " <> show amount
             <> " units of "
             <> show tok
-            <> " into account "
-            <> show accNum
-            <> " of "
+            <> " into account of "
             <> show owner
             <> "."
         ]
     ]
 
-  displayWarning' (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
+  displayWarning' (TransactionNonPositivePay owner payee tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositivePay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
@@ -945,20 +948,18 @@ renderCurrentState state =
             <> show amount
             <> " units of "
             <> show tok
-            <> " from account "
-            <> show accNum
-            <> " of "
+            <> " from account of "
             <> show owner
             <> " to "
             <> ( case payee of
-                  (Account (AccountId accNum2 owner2)) -> "account " <> show accNum2 <> " of " <> show owner2
+                  (Account owner2) -> "account of " <> show owner2
                   (Party dest) -> "party " <> show dest
               )
             <> "."
         ]
     ]
 
-  displayWarning' (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
+  displayWarning' (TransactionPartialPay owner payee tok amount expected) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionPartialPay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
@@ -966,13 +967,11 @@ renderCurrentState state =
             <> show expected
             <> " units of "
             <> show tok
-            <> " from account "
-            <> show accNum
-            <> " of "
+            <> " from account of "
             <> show owner
             <> " to "
             <> ( case payee of
-                  (Account (AccountId accNum2 owner2)) -> ("account " <> show accNum2 <> " of " <> show owner2)
+                  (Account owner2) -> ("account of " <> show owner2)
                   (Party dest) -> ("party " <> show dest)
               )
             <> " but there is only "
@@ -1107,7 +1106,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
         [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
-            $ AddInput (Just person) (IDeposit accountId party token value) []
+            $ AddInput (IDeposit accountId party token value) []
         ]
         [ text "+" ]
     ]
@@ -1117,7 +1116,8 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
     [ classes [ aHorizontal, ClassName "flex-wrap", ClassName "choice-row" ] ]
     ( [ div []
           [ p [ class_ (ClassName "choice-input") ]
-              [ spanText "Choice "
+              [ b_ [ spanText (show choiceOwner) ]
+              , spanText " make choice "
               , b_ [ spanText (show choiceName <> ":") ]
               , br_
               , spanText "Choose value "
@@ -1134,7 +1134,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
       [ button
           [ classes [ plusBtn, smallBtn ]
           , onClick $ const $ Just
-              $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+              $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
           [ text "+" ]
       ]
@@ -1155,10 +1155,12 @@ inputItem isEnabled person NotifyInput =
         [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
-            $ AddInput (Just person) INotify []
+            $ AddInput INotify []
         ]
         [ text "+" ]
     ]
+
+inputItem _ _ _ = text mempty
 
 marloweActionInput :: forall p a action. Show a => Boolean -> (BigInteger -> action) -> a -> HTML p action
 marloweActionInput isEnabled f current =
@@ -1172,13 +1174,13 @@ marloweActionInput isEnabled f current =
     ]
 
 renderDeposit :: forall p a. AccountId -> S.Party -> Token -> BigInteger -> Array (HTML p a)
-renderDeposit (AccountId accountNumber accountOwner) party tok money =
+renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
   , b_ [ spanText (show tok) ]
   , spanText " into Account "
-  , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
+  , b_ [ spanText (show accountOwner) ]
   , spanText " as "
   , b_ [ spanText (show party) ]
   ]
@@ -1212,9 +1214,9 @@ transaction state =
 transactionRow ::
   forall p.
   State ->
-  Tuple Input (Maybe PubKey) ->
+  Input ->
   HTML p Action
-transactionRow state (Tuple input@(IDeposit (AccountId accountNumber accountOwner) party token money) person) =
+transactionRow state input@(IDeposit accountOwner party token money) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Deposit "
@@ -1222,18 +1224,18 @@ transactionRow state (Tuple input@(IDeposit (AccountId accountNumber accountOwne
         , text " units of "
         , strong_ [ text (show token) ]
         , text " into account "
-        , strong_ [ text (show accountOwner <> " (" <> show accountNumber <> ")") ]
+        , strong_ [ text (show accountOwner) ]
         , text " as "
         , strong_ [ text (show party) ]
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person input
+        , onClick $ const $ Just $ RemoveInput input
         ]
         [ text "-" ]
     ]
 
-transactionRow state (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
+transactionRow state input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Participant "
@@ -1245,19 +1247,19 @@ transactionRow state (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) cho
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person input
+        , onClick $ const $ Just $ RemoveInput input
         ]
         [ text "-" ]
     ]
 
-transactionRow state (Tuple INotify person) =
+transactionRow state INotify =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Notification"
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person INotify
+        , onClick $ const $ Just $ RemoveInput INotify
         ]
         [ text "-" ]
     ]
@@ -1274,7 +1276,7 @@ rightPanel state =
         ]
     , ul []
         [ li [] [ text ((state ^. (_runningContracts <<< _MaxIndex <<< to show)) <> " contracts running") ]
-        , li [] [ text $ "Current Block: " <> show currentBlock ]
+        , li [] [ text $ "Current Slot: " <> show currentBlock ]
         , li [ classes [ bold, pointer ] ]
             [ a
                 [ onClick $ const $ Just ResetContract

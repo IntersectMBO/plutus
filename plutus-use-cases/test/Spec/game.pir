@@ -191,11 +191,6 @@
           )
           (termbind
             (strict)
-            (vardecl sha2_ (fun (con bytestring) (con bytestring)))
-            (builtin sha2_256)
-          )
-          (termbind
-            (strict)
             (vardecl
               validateGuess
               (fun (con bytestring) (fun (con bytestring) (fun ValidatorCtx Bool)))
@@ -206,7 +201,11 @@
               (lam
                 ds
                 (con bytestring)
-                (lam ds ValidatorCtx [ [ equalsByteString ds ] [ sha2_ ds ] ])
+                (lam
+                  ds
+                  ValidatorCtx
+                  [ [ equalsByteString ds ] [ (builtin sha2_256) ds ] ]
+                )
               )
             )
           )

@@ -1,4 +1,7 @@
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -16,6 +19,7 @@ module Language.Plutus.Contract.StateMachine(
     , SM.StateMachine(..)
     , SM.StateMachineInstance(..)
     , SM.State(..)
+    , OnChainState
     -- * Constructing the machine instance
     , SM.mkValidator
     , SM.mkStateMachine
@@ -28,18 +32,23 @@ module Language.Plutus.Contract.StateMachine(
     , runInitialise
     , getOnChainState
     , waitForUpdate
+    -- * Lower-level API
+    , StateMachineTransition(..)
+    , mkStep
     -- * Re-exports
     , Void
     ) where
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
+import           Data.Aeson                                    (FromJSON, ToJSON)
 import           Data.Either                                   (rights)
 import           Data.Map                                      (Map)
 import qualified Data.Map                                      as Map
 import           Data.Text                                     (Text)
 import qualified Data.Text                                     as Text
 import           Data.Void                                     (Void, absurd)
+import           GHC.Generics                                  (Generic)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..),
@@ -95,7 +104,8 @@ data SMContractError s i =
     | NonZeroValueAllocatedInFinalState
     | ChooserError Text
     | SMCContractError ContractError
-    deriving (Show)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''SMContractError
 
@@ -149,7 +159,10 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
 -- | Wait until the on-chain state of the state machine instance has changed,
---   and return the new state.
+--   and return the new state, or return 'Nothing' if the instance has been
+--   terminated. If 'waitForUpdate' is called before the instance has even
+--   started then it returns the first state of the instance as soon as it
+--   has started.
 waitForUpdate ::
     ( AsSMContractError e state i
     , AsContractError e
@@ -157,7 +170,7 @@ waitForUpdate ::
     , HasAwaitSlot schema
     , HasWatchAddress schema)
     => StateMachineClient state i
-    -> Contract schema e (OnChainState state i)
+    -> Contract schema e (Maybe (OnChainState state i))
 waitForUpdate StateMachineClient{scInstance, scChooser} = do
     let addr = Scripts.scriptAddress $ validatorInstance scInstance
         outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
@@ -167,7 +180,9 @@ waitForUpdate StateMachineClient{scInstance, scChooser} = do
                 $ Tx.unspentOutputsTx t
     txns <- nextTransactionsAt addr
     let states = txns >>= getStates scInstance . outputsMap
-    either (throwing _SMContractError) pure (scChooser states)
+    case states of
+        [] -> pure Nothing
+        xs -> either (throwing _SMContractError) (pure . Just) (scChooser xs)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.
@@ -187,17 +202,10 @@ runGuardedStep ::
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract schema e (Either a state)
 runGuardedStep smc input guard = mapError (review _SMContractError) $ do
-    let StateMachineInstance{stateMachine} = scInstance smc
-    (newConstraints, State{stateData=os}, State{stateData=ns, stateValue=v}, inp, lookups) <- mkStep smc input
+    StateMachineTransition{smtConstraints,smtOldState=State{stateData=os}, smtNewState=State{stateData=ns}, smtLookups} <- mkStep smc input
     pk <- ownPubKey
-    let lookups' = lookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
-        txConstraints =
-            if smFinal stateMachine ns
-                then newConstraints { txOwnInputs = [inp], txOwnOutputs = [] }
-                else
-                    let output = OutputConstraint{ocDatum = ns, ocValue = v}
-                    in  newConstraints { txOwnInputs = [inp], txOwnOutputs = [output] }
-    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups' txConstraints)
+    let lookups = smtLookups { Constraints.slOwnPubkey = Just $ pubKeyHash pk }
+    utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups smtConstraints)
     case guard utx os ns of
         Nothing -> do
             submitTxConfirmed utx
@@ -247,8 +255,18 @@ runInitialise StateMachineClient{scInstance} initialState initialValue = mapErro
     submitTxConfirmed utx
     pure initialState
 
-type StateMachineTypedTx state input = (TxConstraints Void Void, State state, State state, InputConstraint input, ScriptLookups (StateMachine state input))
+-- | Constraints & lookups needed to transition a state machine instance
+data StateMachineTransition state input =
+    StateMachineTransition
+        { smtConstraints :: TxConstraints (Scripts.RedeemerType (StateMachine state input)) (Scripts.DatumType (StateMachine state input))
+        , smtOldState    :: State state
+        , smtNewState    :: State state
+        , smtLookups     :: ScriptLookups (StateMachine state input)
+        }
 
+-- | Given a state machine client and an input to apply to
+--   the client's state machine instance, compute the 'StateMachineTransition'
+--   that can produce an actual transaction performing the transition
 mkStep ::
     forall e state schema input.
     ( AsSMContractError e state input
@@ -257,17 +275,32 @@ mkStep ::
     )
     => StateMachineClient state input
     -> input
-    -> Contract schema e (StateMachineTypedTx state input)
+    -> Contract schema e (StateMachineTransition state input)
 mkStep client@StateMachineClient{scInstance} input = do
     let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
     (onChainState, utxo) <- getOnChainState client
     let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
         oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut}
+        inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }]
 
     case smTransition oldState input of
         Just (newConstraints, newState)  ->
             let lookups =
                     Constraints.scriptInstanceLookups validatorInstance
                     <> Constraints.unspentOutputs utxo
-            in pure (newConstraints, oldState, newState, InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }, lookups)
+                outputConstraints =
+                    if smFinal (SM.stateMachine scInstance) (stateData newState)
+                        then []
+                        else [OutputConstraint{ocDatum = stateData newState, ocValue = stateValue newState }]
+            in pure
+                StateMachineTransition
+                    { smtConstraints =
+                        newConstraints
+                            { txOwnInputs = inputConstraints
+                            , txOwnOutputs = outputConstraints
+                            }
+                    , smtOldState = oldState
+                    , smtNewState = newState
+                    , smtLookups = lookups
+                    }
         Nothing -> throwing _InvalidTransition (currentState, input)

@@ -1,4 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
@@ -28,6 +31,9 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     ) where
 
 import           Control.Lens                          (makeClassyPrisms)
+import           Control.Monad                         (forever)
+import           Data.Aeson                            (FromJSON, ToJSON)
+import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
@@ -69,7 +75,8 @@ data Payment = Payment
     , paymentDeadline  :: Slot
     -- ^ Time until the required amount of signatures has to be collected.
     }
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Payment where
     {-# INLINABLE (==) #-}
@@ -252,9 +259,8 @@ contract ::
     )
     => Params
     -> Contract MultiSigSchema e ()
-contract params = go where
+contract params = forever endpoints where
     theClient = client params
-    go = endpoints >> go
     endpoints = lock `select` propose `select` cancel `select` addSignature `select` pay
     propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel

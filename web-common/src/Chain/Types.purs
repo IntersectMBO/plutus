@@ -2,12 +2,13 @@ module Chain.Types where
 
 import Prelude
 import Clipboard (Action) as Clipboard
+import Data.BigInteger (BigInteger)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Json.JsonMap (JsonMap)
 import Data.Lens (Fold', Iso', Lens', Prism', Traversal', filtered, preview, prism', traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
@@ -83,7 +84,7 @@ _value = _Newtype <<< prop (SProxy :: SProxy "getValue")
 _txIdOf :: Lens' AnnotatedTx TxId
 _txIdOf = _Newtype <<< prop (SProxy :: SProxy "txId")
 
-_balances :: Lens' AnnotatedTx (JsonMap BeneficialOwner Value)
+_balances :: Lens' AnnotatedTx (Map BeneficialOwner Value)
 _balances = _Newtype <<< prop (SProxy :: SProxy "balances")
 
 _tx :: Lens' AnnotatedTx Tx
@@ -98,7 +99,7 @@ _txForge = _Newtype <<< prop (SProxy :: SProxy "txForge")
 _txValidRange :: Lens' Tx (Interval Slot)
 _txValidRange = _Newtype <<< prop (SProxy :: SProxy "txValidRange")
 
-_txSignatures :: Lens' Tx (JsonMap PubKey Signature)
+_txSignatures :: Lens' Tx (Map PubKey Signature)
 _txSignatures = _Newtype <<< prop (SProxy :: SProxy "txSignatures")
 
 _txInputs :: Lens' Tx (Array TxIn)
@@ -116,7 +117,7 @@ _txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
 _txKeyTxId :: Lens' TxKey TxId
 _txKeyTxId = _TxKey <<< prop (SProxy :: SProxy "_txKeyTxId")
 
-_txKeyTxOutRefIdx :: Lens' TxKey Int
+_txKeyTxOutRefIdx :: Lens' TxKey BigInteger
 _txKeyTxOutRefIdx = _TxKey <<< prop (SProxy :: SProxy "_txKeyTxOutRefIdx")
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
@@ -131,7 +132,7 @@ _findTx focussedTxId = (_AnnotatedBlocks <<< filtered isAnnotationOf)
   isAnnotationOf (AnnotatedTx { txId }) = txId == focussedTxId
 
 -- | Where is this output consumed?
-findConsumptionPoint :: Int -> TxId -> AnnotatedBlockchain -> Maybe AnnotatedTx
+findConsumptionPoint :: BigInteger -> TxId -> AnnotatedBlockchain -> Maybe AnnotatedTx
 findConsumptionPoint outputIndex txId = preview (_AnnotatedBlocks <<< filtered isMatchingTx)
   where
   isMatchingTx :: AnnotatedTx -> Boolean

@@ -578,6 +578,22 @@
       };
     }
     {
+      name = "bignumber.js___bignumber.js_9.0.0.tgz";
+      path = fetchurl {
+        name = "bignumber.js___bignumber.js_9.0.0.tgz";
+        url  = "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.0.tgz";
+        sha1 = "805880f84a329b5eac6e7cb6f8274b6d82bdf075";
+      };
+    }
+    {
+      name = "bignumber___bignumber_1.1.0.tgz";
+      path = fetchurl {
+        name = "bignumber___bignumber_1.1.0.tgz";
+        url  = "https://registry.yarnpkg.com/bignumber/-/bignumber-1.1.0.tgz";
+        sha1 = "e6ab0a743da5f3ea018e5c17597d121f7868c159";
+      };
+    }
+    {
       name = "binary_extensions___binary_extensions_1.12.0.tgz";
       path = fetchurl {
         name = "binary_extensions___binary_extensions_1.12.0.tgz";
@@ -2975,6 +2991,14 @@
         name = "http___registry.npmjs.org_jsesc___jsesc_0.5.0.tgz";
         url  = "http://registry.npmjs.org/jsesc/-/jsesc-0.5.0.tgz";
         sha1 = "e7dee66e35d6fc16f710fe91d5cf69f70f08911d";
+      };
+    }
+    {
+      name = "json_bigint___json_bigint_1.0.0.tgz";
+      path = fetchurl {
+        name = "json_bigint___json_bigint_1.0.0.tgz";
+        url  = "https://registry.yarnpkg.com/json-bigint/-/json-bigint-1.0.0.tgz";
+        sha1 = "ae547823ac0cad8398667f8cd9ef4730f5b01ff1";
       };
     }
     {
@@ -5535,6 +5559,14 @@
         name = "utils_merge___utils_merge_1.0.1.tgz";
         url  = "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz";
         sha1 = "9f95710f50a267947b2ccc124741c1028427e713";
+      };
+    }
+    {
+      name = "uuid_validate___uuid_validate_0.0.3.tgz";
+      path = fetchurl {
+        name = "uuid_validate___uuid_validate_0.0.3.tgz";
+        url  = "https://registry.yarnpkg.com/uuid-validate/-/uuid-validate-0.0.3.tgz";
+        sha1 = "e30617f75dc742a0e4f95012a11540faf9d39ab4";
       };
     }
     {

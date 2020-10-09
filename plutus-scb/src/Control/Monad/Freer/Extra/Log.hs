@@ -4,7 +4,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Control.Monad.Freer.Extra.Log(

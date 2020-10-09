@@ -10,7 +10,6 @@ import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 
 import qualified GhcPlugins                       as GHC
-import qualified Kind                             as GHC
 
 import qualified Language.PlutusCore              as PLC
 

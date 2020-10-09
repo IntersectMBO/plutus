@@ -13,8 +13,10 @@ import           Codec.Serialise.Class                              (Serialise)
 import           Crypto.Hash                                        (SHA256, hash)
 import           Data.Aeson                                         (FromJSON, ToJSON)
 import qualified Data.ByteArray                                     as BA
+import qualified Data.ByteString                                    as BS
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
+import           Data.Typeable
 
 import           Cardano.Prelude                                    (NoUnexpectedThunks)
 import           GHC.Generics
@@ -28,6 +30,7 @@ import qualified Ouroboros.Network.Protocol.ChainSync.Codec         as ChainSync
 import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmission
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
+import           Ouroboros.Network.Util.ShowProxy
 
 import           Ledger                                             (Block, Tx (..), TxId (..))
 import           LedgerBytes                                        (LedgerBytes (..))
@@ -36,7 +39,7 @@ import           LedgerBytes                                        (LedgerBytes
 type Tip = Block
 
 -- | The node protocols require a block header type.
-newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
+newtype BlockId = BlockId { getBlockId :: BS.ByteString }
   deriving (Eq, Ord, Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise, NoUnexpectedThunks)
@@ -45,7 +48,6 @@ newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
 -- | A hash of the block's contents.
 blockId :: Block -> BlockId
 blockId = BlockId
-        . BSL.fromStrict
         . BA.convert
         . hash @_ @SHA256
         . BSL.toStrict
@@ -55,6 +57,12 @@ blockId = BlockId
 type instance HeaderHash Tx = TxId
 type instance HeaderHash Block = BlockId
 deriving instance StandardHash Tx
+
+-- TODO: Is this the best place for these instances?
+instance ShowProxy Char
+instance ShowProxy Tx where
+instance ShowProxy a => ShowProxy [a] where
+  showProxy _ = "[" ++ showProxy (Proxy @a) ++ "]"
 
 deriving instance StandardHash Block
 deriving newtype instance NoUnexpectedThunks TxId
@@ -72,9 +80,9 @@ maximumMiniProtocolLimits =
 nodeApplication
   :: RunMiniProtocol appType bytes m a b
   -> RunMiniProtocol appType bytes m a b
-  -> OuroborosApplication appType bytes m a b
+  -> OuroborosApplication appType addr bytes m a b
 nodeApplication chainSync txSubmission =
-    OuroborosApplication [
+    OuroborosApplication $ \_connectionId _shouldStopSTM -> [
       MiniProtocol {
         miniProtocolNum = MiniProtocolNum 2,
         miniProtocolLimits = maximumMiniProtocolLimits,

@@ -20,7 +20,7 @@ import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
 import Monaco as Monaco
-import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, ($), (>>=))
+import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, when, ($), (==), (>>=))
 
 data KeyBindings
   = DefaultBindings
@@ -67,6 +67,7 @@ type State
 data Query a
   = SetText String a
   | GetText (String -> a)
+  | GetModel (Monaco.ITextModel -> a)
   | SetPosition IPosition a
   | Resize a
   | SetTheme String a
@@ -83,7 +84,7 @@ data Message
 
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
-    , theme :: Theme
+    , theme :: Maybe Theme
     , monarchTokensProvider :: Maybe MonarchLanguage
     , tokensProvider :: Maybe TokensProvider
     , hoverProvider :: Maybe HoverProvider
@@ -135,8 +136,9 @@ handleAction settings Init = do
       let
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
+        when (languageId == "typescript") $ Monaco.addExtraLibsJS monaco
         Monaco.registerLanguage monaco settings.languageExtensionPoint
-        Monaco.defineTheme monaco settings.theme
+        for_ settings.theme $ Monaco.defineTheme monaco
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
         for_ settings.tokensProvider $ Monaco.setTokensProvider monaco languageId
         for_ settings.hoverProvider $ Monaco.registerHoverProvider monaco languageId
@@ -184,6 +186,11 @@ handleQuery (GetText f) = do
     let
       s = Monaco.getValue model
     pure $ f s
+
+handleQuery (GetModel f) = do
+  withEditor \editor -> do
+    m <- liftEffect $ Monaco.getModel editor
+    pure $ f m
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do

@@ -21,7 +21,9 @@ module Language.PlutusTx.Coordination.Contracts.PingPong(
     PingPongSchema,
     runPing,
     runPong,
-    initialise
+    initialise,
+    runStop,
+    runWaitForUpdate
     ) where
 
 import           Control.Lens
@@ -34,11 +36,12 @@ import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Tx                       (tyTxOutData)
 
 import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), State (..), Void)
+import           Language.Plutus.Contract.StateMachine (OnChainState)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
 
-data PingPongState = Pinged | Ponged
+data PingPongState = Pinged | Ponged | Stopped
     deriving stock Show
 
 instance Eq PingPongState where
@@ -46,7 +49,7 @@ instance Eq PingPongState where
     Ponged == Ponged = True
     _ == _ = False
 
-data Input = Ping | Pong
+data Input = Ping | Pong | Stop
     deriving stock Show
 
 type PingPongSchema =
@@ -54,10 +57,13 @@ type PingPongSchema =
         .\/ Endpoint "initialise" ()
         .\/ Endpoint "ping" ()
         .\/ Endpoint "pong" ()
+        .\/ Endpoint "stop" () -- Transition the state machine instance to the final state
+        .\/ Endpoint "wait" () -- Wait for a change to the on-chain state of the machine
 
 data PingPongError =
     PingPongContractError ContractError
     | PingPongSMError (SM.SMContractError PingPongState Input)
+    | StoppedUnexpectedly
     deriving stock (Show)
 
 makeClassyPrisms ''PingPongError
@@ -71,6 +77,7 @@ instance AsContractError PingPongError where
 {-# INLINABLE transition #-}
 transition :: State PingPongState -> Input -> Maybe (TxConstraints Void Void, State PingPongState)
 transition State{stateData=oldData,stateValue} input = case (oldData, input) of
+    (_,      Stop) -> Just (mempty, State{stateData=Stopped, stateValue=mempty})
     (Pinged, Pong) -> Just (mempty, State{stateData=Ponged, stateValue})
     (Ponged, Ping) -> Just (mempty, State{stateData=Pinged, stateValue})
     _              -> Nothing
@@ -78,7 +85,8 @@ transition State{stateData=oldData,stateValue} input = case (oldData, input) of
 {-# INLINABLE machine #-}
 machine :: SM.StateMachine PingPongState Input
 machine = SM.mkStateMachine transition isFinal where
-    isFinal _ = False
+    isFinal Stopped = True
+    isFinal _       = False
 
 {-# INLINABLE mkValidator #-}
 mkValidator :: Scripts.ValidatorType (SM.StateMachine PingPongState Input)
@@ -107,16 +115,23 @@ run ::
 run expectedState action = do
     (st, _) <- SM.getOnChainState client
     let extractState = tyTxOutData . fst
-        go currentState
+        go Nothing = throwError StoppedUnexpectedly
+        go (Just currentState)
             | extractState currentState == expectedState = action
             | otherwise = SM.waitForUpdate client >>= go
-    go st
+    go (Just st)
 
 runPing :: Contract PingPongSchema PingPongError ()
 runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))
 
 runPong :: Contract PingPongSchema PingPongError ()
 runPong = run Pinged (endpoint @"pong" >> void (SM.runStep client Pong))
+
+runStop :: Contract PingPongSchema PingPongError ()
+runStop = endpoint @"stop" >> void (SM.runStep client Stop)
+
+runWaitForUpdate :: Contract PingPongSchema PingPongError (Maybe (OnChainState PingPongState Input))
+runWaitForUpdate = SM.waitForUpdate client
 
 PlutusTx.makeIsData ''PingPongState
 PlutusTx.makeLift ''PingPongState

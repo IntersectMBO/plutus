@@ -25,19 +25,19 @@ yearFraction DCC_A_AISDA startDay endDay _
             (firstFractionDays / d1YearFraction)
               + (secondFractionDays / d2YearFraction)
   | otherwise
-  = error "Year fraction error: second date must be more recent"
+  = 0.0
 
 yearFraction DCC_A_360 startDay endDay _
   | startDay <= endDay
   = let daysDiff = fromIntegral (diffDays endDay startDay) in daysDiff / 360.0
   | otherwise
-  = error "Year fraction error: second date must be more recent"
+  = 0.0
 
 yearFraction DCC_A_365 startDay endDay _
   | startDay <= endDay
   = let daysDiff = fromIntegral (diffDays endDay startDay) in daysDiff / 365.0
   | otherwise
-  = error "Year fraction error: second date must be more recent"
+  = 0.0
 
 yearFraction DCC_E30_360ISDA startDay endDay maturityDate
   | startDay <= endDay
@@ -60,7 +60,7 @@ yearFraction DCC_E30_360ISDA startDay endDay maturityDate
         )
         / 360.0
   | otherwise
-  = error "Year fraction error: second date must be more recent"
+  = 0.0
 
 yearFraction DCC_E30_360 startDay endDay _
   | startDay <= endDay
@@ -76,7 +76,7 @@ yearFraction DCC_E30_360 startDay endDay _
         )
           / 360.0
   | otherwise
-  = error "Year fraction error: second date must be more recent"
+  = 0.0
 
 yearFraction dcc _ _ _ =
   error $ "Unsupported day count convention: " ++ show dcc

@@ -1,0 +1,93 @@
+cabal-version: 2.0
+name: web-ghc
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: david.smith@tweag.io
+author: David Smith
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
+description:
+    Please see the README on GitHub at <https://github.com/input-output-hk/plutus/web-ghc#readme>
+build-type: Simple
+data-files:
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
+library
+    exposed-modules:
+        Interpreter
+        Webghc.Server
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    ghc-options: -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints
+    build-depends:
+        base >=4.7 && <5,
+        aeson -any,
+        servant,
+        servant-server,
+        exceptions,
+        newtype-generics,
+        regex-compat,
+        time-units,
+        filepath,
+        temporary,
+        mtl,
+        playground-common,
+        text
+
+executable web-ghc-server
+    main-is: Main.hs
+    hs-source-dirs: app
+    other-modules:
+        Webserver
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.7 && <5,
+        data-default-class,
+        exceptions,
+        http-types,
+        monad-logger,
+        mtl,
+        optparse-applicative,
+        playground-common,
+        prometheus < 2.2,
+        servant-server,
+        servant,
+        text,
+        wai-cors,
+        wai-extra,
+        wai,
+        warp,
+        yaml,
+        web-ghc
+
+test-suite web-ghc-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints
+                 -fprint-potential-instances
+    build-depends:
+        base >=4.7 && <5,
+        tasty,
+        web-ghc

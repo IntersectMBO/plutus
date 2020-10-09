@@ -40,7 +40,7 @@ import           Language.Plutus.Contract.Request           (ContractRow, reques
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Types             (AsContractError, Contract)
 import           Language.Plutus.Contract.Util              (loopM)
-import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
+import           Wallet.Types                               (AddressChangeRequest (..), AddressChangeResponse (..))
 
 type AddressSymbol = "address"
 

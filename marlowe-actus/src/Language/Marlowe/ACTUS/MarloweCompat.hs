@@ -26,8 +26,11 @@ useval name t = UseValue $ ValueId $ fromString $ name ++ "_" ++ show t
 letval :: String -> Integer -> Value Observation -> Contract -> Contract
 letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
+toMarloweFixedPoint :: Double -> Integer
+toMarloweFixedPoint = round <$> (fromIntegral marloweFixedPoint *)
+
 constnt :: Double -> Value Observation
-constnt = Constant . round <$> (fromIntegral marloweFixedPoint *)
+constnt = Constant . toMarloweFixedPoint
 
 enum :: a -> a
 enum = id
@@ -92,7 +95,7 @@ cardanoEpochStart = 100
 dayToSlotNumber :: Day -> Integer
 dayToSlotNumber d =
     let (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
-    in  fromIntegral secs - cardanoEpochStart `mod` 20
+    in  (fromIntegral secs) - cardanoEpochStart
 
 marloweDate :: Day -> Value Observation
 marloweDate = Constant . fromInteger . dayToSlotNumber

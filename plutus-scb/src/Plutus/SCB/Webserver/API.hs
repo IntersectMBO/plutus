@@ -4,6 +4,7 @@
 module Plutus.SCB.Webserver.API
     ( API
     , WSAPI
+    , DocumentationAPI
     ) where
 
 import qualified Data.Aeson                 as JSON
@@ -21,3 +22,6 @@ type API t
                                                                                   :<|> "endpoint" :> Capture "endpoint-name" String :> ReqBody '[ JSON] JSON.Value :> Post '[ JSON] (ContractInstanceState t))))
 
 type WSAPI = "ws" :> WebSocketPending
+
+type DocumentationAPI t
+     = "api" :> "healthcheck" :> Get '[ JSON] ()

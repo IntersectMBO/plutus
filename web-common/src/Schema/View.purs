@@ -1,12 +1,10 @@
 module Playground.Schema (actionArgumentForm) where
 
-import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, row_, textMuted, validFeedback_, wasValidated)
-import Data.Tuple.Nested ((/\))
-import Halogen.HTML.Properties (IProp, InputType(..), checked, class_, classes, for, id_, name, placeholder, required, type_, value)
 import Prelude hiding (div)
-import Schema.Types (FieldEvent(..), FormArgument, FormEvent(..), SimulationAction(..))
+import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, row_, textMuted, validFeedback_, wasValidated)
 import Bootstrap as Bootstrap
 import Data.Array as Array
+import Data.BigInteger as BigInteger
 import Data.Functor.Foldable (Fix(..))
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int as Int
@@ -14,10 +12,12 @@ import Data.Json.JsonTuple (JsonTuple(..))
 import Data.Lens (Lens', over, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String as String
+import Data.Tuple.Nested ((/\))
 import Halogen (ClassName(..))
 import Halogen.HTML (HTML, button, code_, div, div_, input, label, small, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChecked, onClick, onValueInput)
+import Halogen.HTML.Properties (IProp, InputType(..), checked, class_, classes, for, id_, name, placeholder, required, type_, value)
 import Halogen.HTML.Properties as HP
 import Icons (Icon(..), icon)
 import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
@@ -25,6 +25,7 @@ import Ledger.Interval (Extended(..), Interval, _Interval)
 import Ledger.Slot (Slot(..))
 import Prim.TypeError (class Warn, Text)
 import Schema (FormArgumentF(..))
+import Schema.Types (FieldEvent(..), FormArgument, FormEvent(..))
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 
@@ -76,6 +77,19 @@ actionArgumentField ancestors _ arg@(Fix (FormIntF n)) =
         , required true
         , placeholder "Int"
         , onValueInput (Just <<< SetField <<< SetIntField <<< Int.fromString)
+        ]
+    , validationFeedback (joinPath ancestors <$> validate arg)
+    ]
+
+actionArgumentField ancestors _ arg@(Fix (FormIntegerF n)) =
+  div_
+    [ input
+        [ type_ InputNumber
+        , classes (Array.cons formControl (actionArgumentClass ancestors))
+        , value $ maybe "" show n
+        , required true
+        , placeholder "Integer"
+        , onValueInput (Just <<< SetField <<< SetBigIntegerField <<< BigInteger.fromString)
         ]
     , validationFeedback (joinPath ancestors <$> validate arg)
     ]
@@ -266,7 +280,7 @@ actionArgumentField ancestors isNested (Fix (FormSlotRangeF interval)) =
           $ case view extensionLens interval of
               Finite (Slot slot) -> show slot.getSlot
               _ -> mempty
-      , onValueInput $ map (\n -> SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval))) <<< Int.fromString
+      , onValueInput $ map (\n -> SetField (SetSlotRangeField (set extensionLens (Finite (Slot { getSlot: n })) interval))) <<< BigInteger.fromString
       ]
 
 actionArgumentField ancestors isNested (Fix (FormValueF value)) =

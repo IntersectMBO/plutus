@@ -9,6 +9,7 @@ module Plugin.Data.Spec where
 
 import           Common
 import           PlcTestUtils
+import           Lib
 import           Plugin.Lib
 
 import qualified Language.PlutusTx.Builtins as Builtins
@@ -18,9 +19,6 @@ import           Language.PlutusTx.Plugin
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
-
--- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
 
 datat :: TestNested
 datat = testNested "Data" [
@@ -38,11 +36,11 @@ monoData = testNested "monomorphic" [
   , goldenPir "monoConstructor" monoConstructor
   , goldenPir "monoConstructed" monoConstructed
   , goldenPir "monoCase" monoCase
-  , goldenEval "monoConstDest" [ getProgram monoCase, getProgram monoConstructed ]
+  , goldenUEval "monoConstDest" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "defaultCase" defaultCase
   , goldenPir "irrefutableMatch" irrefutableMatch
   , goldenPir "atPattern" atPattern
-  , goldenEval "monoConstDestDefault" [ getProgram monoCase, getProgram monoConstructed ]
+  , goldenUEval "monoConstDestDefault" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "monoRecord" monoRecord
   , goldenPir "recordNewtype" recordNewtype
   , goldenPir "nonValueCase" nonValueCase
@@ -130,7 +128,7 @@ newtypes = testNested "newtypes" [
    , goldenPir "newtypeId" newtypeId
    , goldenPir "newtypeCreate2" newtypeCreate2
    , goldenPir "nestedNewtypeMatch" nestedNewtypeMatch
-   , goldenEval "newtypeCreatDest" [ getProgram $ newtypeMatch, getProgram $ newtypeCreate2 ]
+   , goldenUEval "newtypeCreatDest" [ toUPlc $ newtypeMatch, toUPlc $ newtypeCreate2 ]
    , goldenPir "paramNewtype" paramNewtype
    ]
 
@@ -168,15 +166,15 @@ recursiveTypes = testNested "recursive" [
     , goldenPir "listConstruct2" listConstruct2
     , goldenPir "listConstruct3" listConstruct3
     , goldenPir "listMatch" listMatch
-    , goldenEval "listConstDest" [ getProgram listMatch, getProgram listConstruct ]
-    , goldenEval "listConstDest2" [ getProgram listMatch, getProgram listConstruct2 ]
+    , goldenUEval "listConstDest" [ toUPlc listMatch, toUPlc listConstruct ]
+    , goldenUEval "listConstDest2" [ toUPlc listMatch, toUPlc listConstruct2 ]
     , goldenPir "ptreeConstruct" ptreeConstruct
     , goldenPir "ptreeMatch" ptreeMatch
-    , goldenEval "ptreeConstDest" [ getProgram ptreeMatch, getProgram ptreeConstruct ]
-    , goldenEval "polyRecEval" [ getProgram polyRec, getProgram ptreeConstruct ]
-    , goldenEval "ptreeFirstEval" [ getProgram ptreeFirst, getProgram ptreeConstruct ]
-    , goldenEval "sameEmptyRoseEval" [ getProgram sameEmptyRose, getProgram emptyRoseConstruct ]
-    , goldenPlc "sameEmptyRose" sameEmptyRose
+    , goldenUEval "ptreeConstDest" [ toUPlc ptreeMatch, toUPlc ptreeConstruct ]
+    , goldenUEval "polyRecEval" [ toUPlc polyRec, toUPlc ptreeConstruct ]
+    , goldenUEval "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
+    , goldenUEval "sameEmptyRoseEval" [ toUPlc sameEmptyRose, toUPlc emptyRoseConstruct ]
+    , goldenUPlc "sameEmptyRose" sameEmptyRose
   ]
 
 listConstruct :: CompiledCode PLC.DefaultUni [Integer]
@@ -246,7 +244,7 @@ typeFamilies = testNested "families" [
     , goldenPir "associated" associated
     , goldenPir "associatedParam" associatedParam
     , goldenPir "basicData" basicData
-    , goldenPlcCatch "irreducible" irreducible
+    , goldenUPlcCatch "irreducible" irreducible
   ]
 
 type family BasicClosed a where

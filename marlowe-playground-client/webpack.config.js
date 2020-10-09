@@ -32,6 +32,12 @@ module.exports = {
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'
+            },
+            "/runghc": {
+                target: 'http://localhost:8080'
+            },
+            "/marlowe-analysis": {
+                target: 'http://localhost:8080'
             }
         }
     },
@@ -127,7 +133,8 @@ module.exports = {
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
         }),
         new MonacoWebpackPlugin({
-            languages: [],
+            // note that you have to include typescript if you want javascript to work!
+            languages: ['javascript', 'typescript'],
         })
     ].concat(plugins)
 };

@@ -10,4 +10,6 @@ global.EmacsExtension = EmacsExtension;
 import { initVimMode } from 'monaco-vim';
 global.initVimMode = initVimMode;
 
+import { BigNumber } from 'bignumber';
+
 import './src/Main.purs';

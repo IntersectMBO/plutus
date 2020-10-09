@@ -39,7 +39,7 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+          (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
@@ -48,6 +48,7 @@
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
         buildable = true;
         modules = [
@@ -63,38 +64,25 @@
           "Language/PlutusTx/Coordination/Contracts/MultiSig"
           "Language/PlutusTx/Coordination/Contracts/MultiSigStateMachine"
           "Language/PlutusTx/Coordination/Contracts/PingPong"
+          "Language/PlutusTx/Coordination/Contracts/Prism"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Credential"
+          "Language/PlutusTx/Coordination/Contracts/Prism/CredentialManager"
+          "Language/PlutusTx/Coordination/Contracts/Prism/STO"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Mirror"
+          "Language/PlutusTx/Coordination/Contracts/Prism/StateMachine"
+          "Language/PlutusTx/Coordination/Contracts/Prism/Unlock"
           "Language/PlutusTx/Coordination/Contracts/PubKey"
-          "Language/PlutusTx/Coordination/Contracts/Vesting"
+          "Language/PlutusTx/Coordination/Contracts/RPC"
+          "Language/PlutusTx/Coordination/Contracts/Stablecoin"
           "Language/PlutusTx/Coordination/Contracts/Swap"
+          "Language/PlutusTx/Coordination/Contracts/Vesting"
           ];
         hsSourceDirs = [ "src" ];
-        };
-      exes = {
-        "contract-guessing-game" = {
-          depends = [
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "exe/game" ];
-          mainPath = [ "Main.hs" ];
-          };
-        "contract-crowdfunding" = {
-          depends = [
-            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            ];
-          buildable = true;
-          hsSourceDirs = [ "exe/crowdfunding" ];
-          mainPath = [ "Main.hs" ];
-          };
         };
       tests = {
         "plutus-use-cases-test" = {
           depends = [
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
@@ -112,6 +100,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
@@ -127,7 +116,10 @@
             "Spec/MultiSigStateMachine"
             "Spec/PingPong"
             "Spec/PubKey"
+            "Spec/Prism"
             "Spec/Rollup"
+            "Spec/RPC"
+            "Spec/Stablecoin"
             "Spec/TokenAccount"
             "Spec/Vesting"
             ];
@@ -141,7 +133,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))

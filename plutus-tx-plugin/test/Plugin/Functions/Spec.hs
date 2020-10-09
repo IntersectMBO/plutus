@@ -7,6 +7,7 @@
 module Plugin.Functions.Spec where
 
 import           Common
+import           Lib
 import           PlcTestUtils
 import           Plugin.Lib
 
@@ -20,9 +21,6 @@ import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
--- this module does lots of weird stuff deliberately
-{-# ANN module ("HLint: ignore"::String) #-}
-
 functions :: TestNested
 functions = testNested "Functions" [
     recursiveFunctions
@@ -32,12 +30,12 @@ functions = testNested "Functions" [
 recursiveFunctions :: TestNested
 recursiveFunctions = testNested "recursive" [
     goldenPir "fib" fib
-    , goldenEval "fib4" [ getProgram fib, getProgram $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
     , goldenPir "sum" sumDirect
-    , goldenEval "sumList" [ getProgram sumDirect, getProgram listConstruct3 ]
+    , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
     , goldenPir "even" evenMutual
-    , goldenEval "even3" [ getProgram evenMutual, getProgram $ plc (Proxy @"3") (3::Integer) ]
-    , goldenEval "even4" [ getProgram evenMutual, getProgram $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
+    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
   ]
 
 fib :: CompiledCode PLC.DefaultUni (Integer -> Integer)

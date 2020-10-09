@@ -1,5 +1,0 @@
-=== `metatheory`
-
-This folder contains the Agda formalization of the Plutus Core metatheory,
-including a `plc-agda` executable that is the equivalent of the `plc` executable
-from `language-plutus-core`. This is used for some basic tests.

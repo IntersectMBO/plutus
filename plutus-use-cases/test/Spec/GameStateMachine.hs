@@ -81,7 +81,7 @@ w2 = EM.Wallet 2
 w3 :: EM.Wallet
 w3 = EM.Wallet 3
 
-successTrace :: MonadEmulator (TraceError e) m => ContractTrace GameStateMachineSchema e m a ()
+successTrace :: ContractTrace GameStateMachineSchema e a ()
 successTrace = do
     callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
     handleBlockchainEvents w1

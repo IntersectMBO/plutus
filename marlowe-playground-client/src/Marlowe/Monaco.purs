@@ -68,7 +68,7 @@ refLabel = RefLabel "marloweEditor"
 settings :: forall m. (Editor -> m Unit) -> Settings m
 settings setup =
   { languageExtensionPoint
-  , theme: daylightTheme
+  , theme: Just daylightTheme
   , monarchTokensProvider: Nothing
   , tokensProvider: Just tokensProvider
   , hoverProvider: Just hoverProvider

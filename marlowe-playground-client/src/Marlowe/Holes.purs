@@ -1,6 +1,7 @@
 module Marlowe.Holes where
 
 import Prelude
+import Control.Monad.Except.Extra (noteT)
 import Data.Array (foldMap)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -13,6 +14,7 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', over)
 import Data.Lens.Record (prop)
+import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -24,6 +26,8 @@ import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Foreign (readString)
+import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
 import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
@@ -34,8 +38,7 @@ import Type.Proxy (Proxy(..))
 
 -- | These are Marlowe types that can be represented as holes
 data MarloweType
-  = AccountIdType
-  | ChoiceIdType
+  = ChoiceIdType
   | ValueIdType
   | ActionType
   | PayeeType
@@ -69,12 +72,18 @@ instance boundedEnumMarloweType :: BoundedEnum MarloweType where
   toEnum = genericToEnum
   fromEnum = genericFromEnum
 
+instance encodeMarloweType :: Encode MarloweType where
+  encode = encode <<< show
+
+instance decodeMarloweType :: Decode MarloweType where
+  decode t = do
+    s <- readString t
+    noteT (NEL.singleton (ForeignError (s <> " is not a valid MarloweType"))) $ readMarloweType s
+
 allMarloweTypes :: Array MarloweType
 allMarloweTypes = upFromIncluding bottom
 
 readMarloweType :: String -> Maybe MarloweType
-readMarloweType "AccountIdType" = Just AccountIdType
-
 readMarloweType "ChoiceIdType" = Just ChoiceIdType
 
 readMarloweType "ValueIdType" = Just ValueIdType
@@ -117,22 +126,20 @@ data Argument
   | GenArg MarloweType
 
 getMarloweConstructors :: MarloweType -> Map String (Array Argument)
-getMarloweConstructors AccountIdType = Map.singleton "AccountId" [ DefaultNumber zero, DataArg PartyType ]
-
 getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" [ DefaultString "choiceNumber", DataArg PartyType ]
 
 getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
+    [ (Tuple "Deposit" [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
     , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg ObservationType ])
     ]
 
 getMarloweConstructors PayeeType =
   Map.fromFoldable
-    [ (Tuple "Account" [ GenArg AccountIdType ])
+    [ (Tuple "Account" [ DataArg PartyType ])
     , (Tuple "Party" [ DataArg PartyType ])
     ]
 
@@ -140,7 +147,7 @@ getMarloweConstructors CaseType = Map.singleton "Case" [ DataArg ActionType, Dat
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" [ GenArg AccountIdType, DataArg TokenType ])
+    [ (Tuple "AvailableMoney" [ DataArg PartyType, DataArg TokenType ])
     , (Tuple "Constant" [ DefaultNumber zero ])
     , (Tuple "NegValue" [ DataArg ValueType ])
     , (Tuple "AddValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
@@ -172,7 +179,7 @@ getMarloweConstructors ObservationType =
 getMarloweConstructors ContractType =
   Map.fromFoldable
     [ (Tuple "Close" [])
-    , (Tuple "Pay" [ GenArg AccountIdType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
+    , (Tuple "Pay" [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
     , (Tuple "If" [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
     , (Tuple "When" [ EmptyArrayArg, DefaultNumber zero, DataArg ContractType ])
     , (Tuple "Let" [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
@@ -379,12 +386,12 @@ instance fromTermRational :: FromTerm Rational Rational where
   fromTerm = pure
 
 -- a concrete type for holes only
-data MarloweHole
+newtype MarloweHole
   = MarloweHole
-    { name :: String
-    , marloweType :: MarloweType
-    , range :: Range
-    }
+  { name :: String
+  , marloweType :: MarloweType
+  , range :: Range
+  }
 
 derive instance genericMarloweHole :: Generic MarloweHole _
 
@@ -395,6 +402,10 @@ instance ordMarloweHole :: Ord MarloweHole where
 
 instance showMarloweHole :: Show MarloweHole where
   show = genericShow
+
+derive newtype instance encodeMarloweHole :: Encode MarloweHole
+
+derive newtype instance decodeMarloweHole :: Decode MarloweHole
 
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
@@ -461,6 +472,12 @@ instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
 
 derive newtype instance monoidHoles :: Monoid Holes
+
+instance encodeHoles :: Encode Holes where
+  encode (Holes ps) = encode ps
+
+instance decodeHoles :: Decode Holes where
+  decode f = Holes <$> decode f
 
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _) m = m
@@ -537,37 +554,8 @@ instance partyHasMarloweHoles :: HasMarloweHoles Party where
 instance partyHasContractData :: HasContractData Party where
   gatherContractData party s = over _parties (Set.insert party) s
 
-data AccountId
-  = AccountId BigInteger (Term Party)
-
-derive instance genericAccountId :: Generic AccountId _
-
-derive instance eqAccountId :: Eq AccountId
-
-derive instance ordAccountId :: Ord AccountId
-
-instance showAccountId :: Show AccountId where
-  show v = genericShow v
-
-instance prettyAccountId :: Pretty AccountId where
-  pretty = genericPretty
-
-instance hasArgsAccountId :: Args AccountId where
-  hasArgs = genericHasArgs
-  hasNestedArgs = genericHasNestedArgs
-
-instance accountIdFromTerm :: FromTerm AccountId S.AccountId where
-  fromTerm (AccountId b (Term c _)) = S.AccountId <$> pure b <*> fromTerm c
-  fromTerm _ = Nothing
-
-instance accountIdIsMarloweType :: IsMarloweType AccountId where
-  marloweType _ = AccountIdType
-
-instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles (AccountId a b) m = m <> getHoles b m
-
-instance accountIdHasContractData :: HasContractData AccountId where
-  gatherContractData (AccountId _ party) s = gatherContractData party s
+type AccountId
+  = Term Party
 
 data Token
   = Token String String

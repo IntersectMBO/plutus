@@ -4,9 +4,10 @@ import Prelude hiding (div, min)
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Int as Int
 import Data.Lens (view)
 import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
@@ -19,7 +20,7 @@ import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
 import Playground.Lenses (_currencySymbol, _tokenName)
 
 data ValueEvent
-  = SetBalance CurrencySymbol TokenName Int
+  = SetBalance CurrencySymbol TokenName BigInteger
 
 derive instance genericValueEvent :: Generic ValueEvent _
 
@@ -35,7 +36,7 @@ currencyRow ::
   forall p i.
   (ValueEvent -> i) ->
   Int ->
-  Tuple CurrencySymbol (AssocMap.Map TokenName Int) ->
+  Tuple CurrencySymbol (AssocMap.Map TokenName BigInteger) ->
   Array (Tuple String (HTML p i))
 currencyRow handler currencyIndex (Tuple currencySymbol tokenBalances) = mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst $ AssocMap.toTuples tokenBalances)
 
@@ -45,7 +46,7 @@ balanceRow ::
   Int ->
   CurrencySymbol ->
   Int ->
-  Tuple TokenName Int ->
+  Tuple TokenName BigInteger ->
   Tuple String (HTML p i)
 balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amount) =
   (show currencyIndex <> "-" <> show tokenIndex)
@@ -74,7 +75,7 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
                       , min zero
                       , onValueInput
                           $ \str -> do
-                              newAmount <- Int.fromString str
+                              newAmount <- BigInteger.fromString str
                               pure $ handler $ SetBalance currencySymbol tokenName newAmount
                       ]
                   ]

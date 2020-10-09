@@ -20,8 +20,8 @@
       (abs a (type) (lam ds [Param a] (lam x a x)))
     )
     [
-      [ { paramId (con integer) } [ { Param (con integer) } (con 1) ] ]
-      [ fNumInteger_cfromInteger (con 1) ]
+      [ { paramId (con integer) } [ { Param (con integer) } (con integer 1) ] ]
+      [ fNumInteger_cfromInteger (con integer 1) ]
     ]
   )
 )

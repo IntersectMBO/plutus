@@ -24,7 +24,7 @@
         [
           [
             { [ MyEnum_match ds ] (fun Unit (con integer)) }
-            (lam thunk Unit (con 1))
+            (lam thunk Unit (con integer 1))
           ]
           (lam thunk Unit [ { error (con integer) } Unit ])
         ]

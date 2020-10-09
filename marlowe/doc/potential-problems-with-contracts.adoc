@@ -111,18 +111,18 @@ Consider the following contract:
                            Close
                      ]
                 10
-                (Pay (AccountId 1 (Role "bob")) (Party (Role "alice"))
+                (Pay (Role "bob") (Party (Role "alice"))
                      ada
                      (Constant 10)
-                     Close 
+                     Close
                 )
             )
          ]
          10
-         Close 
+         Close
 ----
 
-There is nothing wrong in principle with this contract, but if `(Role "alice")` makes her choice on block `9`, it will be virtually impossible for `bob` to make his choice on time and get the refund of the money in his account `(AccountId 1 (Role "bob"))`. Unless, this is part of a game and that is an intended effect, this is likely an unfair contract for `(Role "bob")`.
+There is nothing wrong in principle with this contract, but if `(Role "alice")` makes her choice on block `9`, it will be virtually impossible for `bob` to make his choice on time and get the refund of the money in his account `(Role "bob")`. Unless, this is part of a game and that is an intended effect, this is likely an unfair contract for `(Role "bob")`.
 
 In general, it is a good practice to ensure that `When` constructs have increasing timeouts, and that the increase between timeouts is reasonable for the different parties to issue and get their transactions accepted by the blockchain. There are many reasons why the participation of a party may be delayed: an energy supply failure, a sudden peak in the number of pending transactions in the blockchain, network attacks, etc. So it is important to allow plenty of time, and to be generous with timeouts and with increases in timeouts.
 
@@ -130,7 +130,7 @@ In general, it is a good practice to ensure that `When` constructs have increasi
 
 Finally, even if a contract is perfectly written. Users may use it incorrectly, and we call those incorrect usages errors.
 
-In all cases, whenever a transaction causes an error, the transaction will have no effect on the `Contract` or on its `State`. In fact, the wallet of a user will know in advance whether a transaction is going to produce an error, because transactions are deterministic, so users should never need to send an erroneous transaction to the blockchain. 
+In all cases, whenever a transaction causes an error, the transaction will have no effect on the `Contract` or on its `State`. In fact, the wallet of a user will know in advance whether a transaction is going to produce an error, because transactions are deterministic, so users should never need to send an erroneous transaction to the blockchain.
 
 ==== Ambiguous interval
 

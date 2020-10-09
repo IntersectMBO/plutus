@@ -13,7 +13,7 @@ import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Class (class MonadState)
 import Control.Monad.State.Trans (StateT)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
-import Data.Json.JsonEither (JsonEither)
+import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
@@ -53,10 +53,10 @@ class
   --
   getOauthStatus :: m (WebData AuthStatus)
   getGistByGistId :: GistId -> m (WebData Gist)
-  postEvaluation :: Evaluation -> m (WebData (JsonEither PlaygroundError EvaluationResult))
+  postEvaluation :: Evaluation -> m (WebData (Either PlaygroundError EvaluationResult))
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
-  postContract :: SourceCode -> m (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
+  postContract :: SourceCode -> m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
   resizeBalancesChart :: m Unit
 
 newtype HalogenApp m a

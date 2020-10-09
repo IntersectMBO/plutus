@@ -32,13 +32,6 @@
         )
       )
     )
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
-    )
     (let
       (rec)
       (termbind
@@ -51,11 +44,18 @@
             [
               [
                 {
-                  [ Bool_match [ [ equalsInteger n ] (con 0) ] ] (fun Unit Bool)
+                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                  (fun Unit Bool)
                 }
                 (lam thunk Unit True)
               ]
-              (lam thunk Unit [ oddDirect [ [ subtractInteger n ] (con 1) ] ])
+              (lam
+                thunk
+                Unit
+                [
+                  oddDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
+                ]
+              )
             ]
             Unit
           ]
@@ -71,17 +71,24 @@
             [
               [
                 {
-                  [ Bool_match [ [ equalsInteger n ] (con 0) ] ] (fun Unit Bool)
+                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                  (fun Unit Bool)
                 }
                 (lam thunk Unit False)
               ]
-              (lam thunk Unit [ evenDirect [ [ subtractInteger n ] (con 1) ] ])
+              (lam
+                thunk
+                Unit
+                [
+                  evenDirect [ [ (builtin subtractInteger) n ] (con integer 1) ]
+                ]
+              )
             ]
             Unit
           ]
         )
       )
-      [ evenDirect (con 4) ]
+      [ evenDirect (con integer 4) ]
     )
   )
 )

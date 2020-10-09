@@ -1,19 +1,26 @@
 module Reachability (startReachabilityAnalysis, updateWithResponse) where
 
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (runReaderT)
 import Data.Function (flip)
+import Data.Lens (assign)
 import Data.List (List(..), concatMap, foldl, fromFoldable, length, reverse, snoc, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
-import Foreign.Generic (encodeJSON)
+import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
-import Halogen as H
+import Marlowe (SPParams_)
+import Marlowe as Server
 import Marlowe.Semantics (AccountId, Case(..), Contract(..), Observation(..), Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
+import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
-import Prelude (Unit, bind, discard, map, pure, unit, ($), (+), (/=))
-import Simulation.Types (Action, ContractPathStep(..), ContractPath, ReachabilityAnalysisData(..), State)
-import Types (ChildSlots, Message(..))
-import WebSocket (WebSocketRequestMessage(..))
+import Network.RemoteData as RemoteData
+import Prelude (Unit, Void, bind, discard, map, pure, unit, ($), (+), (/=), (<$>))
+import Servant.PureScript.Ajax (AjaxError(..))
+import Servant.PureScript.Settings (SPSettings_)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
+import Types (ChildSlots)
 
 data ContractZipper
   = PayZip AccountId Payee Token Value ContractZipper
@@ -109,8 +116,20 @@ zipperToContractPathAux HeadZip p = p
 zipperToContractPath :: ContractZipper -> ContractPath
 zipperToContractPath zipper = zipperToContractPathAux zipper Nil
 
-checkContractForReachability :: forall m. String -> String -> HalogenM State Action ChildSlots Message m Unit
-checkContractForReachability contract state = H.raise $ WebSocketMessage $ CheckForWarnings (encodeJSON true) contract state
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
+
+checkContractForReachability ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Contract ->
+  S.State ->
+  HalogenM State Action ChildSlots Void m (WebData Result)
+checkContractForReachability settings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract: contract, state: state }))
 
 expandSubproblem :: ContractZipper -> (ContractPath /\ Contract)
 expandSubproblem z = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)
@@ -150,37 +169,51 @@ nullifyAsserts (Assert obs cont) = Assert TrueObs cont
 generateSubproblems :: Contract -> List (Unit -> ContractPath /\ Contract)
 generateSubproblems contract = reverse (foldBreadthContractWithZipper generateSubproblem Nil (nullifyAsserts contract))
 
-startReachabilityAnalysis :: forall m. Contract -> S.State -> HalogenM State Action ChildSlots Message m ReachabilityAnalysisData
-startReachabilityAnalysis contract state = do
+startReachabilityAnalysis ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Contract ->
+  S.State -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
+startReachabilityAnalysis settings contract state = do
   case subproblemList of
     Cons head tail -> do
       let
         path /\ subcontract = head unit
-      checkContractForReachability (encodeJSON subcontract) (encodeJSON state)
-      pure
-        ( InProgress
-            { currPath: path
-            , currContract: subcontract
-            , originalState: state
-            , subproblems: tail
-            , numSubproblems: 1 + length tail
-            , numSolvedSubproblems: 0
-            }
-        )
+      let
+        progress =
+          ( InProgress
+              { currPath: path
+              , currContract: subcontract
+              , originalState: state
+              , subproblems: tail
+              , numSubproblems: 1 + length tail
+              , numSolvedSubproblems: 0
+              }
+          )
+      assign _analysisState (ReachabilityAnalysis progress)
+      response <- checkContractForReachability settings subcontract state
+      result <- updateWithResponse settings progress response
+      pure result
     Nil -> pure AllReachable
   where
   subproblemList = generateSubproblems contract
 
-updateWithResponse :: forall m. ReachabilityAnalysisData -> RemoteData String Result -> HalogenM State Action ChildSlots Message m ReachabilityAnalysisData
-updateWithResponse (InProgress _) (Failure err) = pure (ReachabilityFailure err)
+updateWithResponse ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  ReachabilityAnalysisData ->
+  WebData Result -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
+updateWithResponse _ (InProgress _) (Failure (AjaxError err)) = pure (ReachabilityFailure "connection error")
 
-updateWithResponse (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
+updateWithResponse _ (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
 
-updateWithResponse (InProgress { currPath: path }) (Success Valid) = pure (UnreachableSubcontract path)
+updateWithResponse _ (InProgress { currPath: path }) (Success Valid) = pure (UnreachableSubcontract path)
 
-updateWithResponse (InProgress { subproblems: Nil }) (Success (CounterExample _)) = pure AllReachable
+updateWithResponse _ (InProgress { subproblems: Nil }) (Success (CounterExample _)) = pure AllReachable
 
-updateWithResponse ( InProgress
+updateWithResponse settings ( InProgress
     ( rad@{ originalState: state
     , subproblems: (Cons head tail)
     , numSolvedSubproblems: n
@@ -189,9 +222,9 @@ updateWithResponse ( InProgress
 ) (Success (CounterExample _)) = do
   let
     path /\ subcontract = head unit
-  checkContractForReachability (encodeJSON subcontract) (encodeJSON state)
-  pure
-    ( InProgress
+  let
+    progress =
+      InProgress
         ( rad
             { currPath = path
             , currContract = subcontract
@@ -199,7 +232,9 @@ updateWithResponse ( InProgress
             , numSolvedSubproblems = n + 1
             }
         )
-    )
+  assign _analysisState (ReachabilityAnalysis progress)
+  response <- checkContractForReachability settings subcontract state
+  updateWithResponse settings progress response
 
-updateWithResponse rad _ = pure rad
+updateWithResponse _ rad _ = pure rad
  -- ToDo: nullify assertions

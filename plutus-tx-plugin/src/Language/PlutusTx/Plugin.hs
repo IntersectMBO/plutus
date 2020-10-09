@@ -2,7 +2,6 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -12,6 +11,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
+import           Data.Bifunctor
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Compiler.Builtins
 import           Language.PlutusTx.Compiler.Error
@@ -29,6 +29,8 @@ import qualified Panic                                  as GHC
 import qualified Language.PlutusCore                    as PLC
 import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
+
+import qualified Language.UntypedPlutusCore             as UPLC
 
 import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler             as PIR
@@ -282,9 +284,9 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc args) shown
             -- this will actually terminate compilation
             else failCompilation shown
-        Right (pirP, plcP) -> do
+        Right (pirP, uplcP) -> do
             bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
-            bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise plcP
+            bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise uplcP
 
             builder <- GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
@@ -298,16 +300,26 @@ runCompiler
     :: forall uni m . (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
-    -> m (PIRProgram uni, PLCProgram uni)
+    -> m (PIRProgram uni, UPLCProgram uni)
 runCompiler opts expr = do
-    let (ctx :: PIR.CompilationCtx uni ()) = PIR.defaultCompilationCtx
-                    & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-                    & set (PIR.ccBuiltinMeanings) PLC.getStringBuiltinMeanings
+    -- trick here to take out the concrete plc.error
+    tcConfigConcrete <-
+        runExceptT (PLC.TypeCheckConfig <$> PLC.getStringBuiltinTypes PIR.noProvenance)
 
-    (pirT::PIRTerm PLC.DefaultUni) <- PIR.runDefT () $ compileExprWithDefs expr
+    -- turn the concrete plc.error into our compileerror monad
+    stringBuiltinTCConfig <- liftEither $ first (view (re PIR._PLCError)) tcConfigConcrete
+
+    let ctx = PIR.defaultCompilationCtx
+              & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+              & set PIR.ccBuiltinMeanings PLC.getStringBuiltinMeanings
+              & set PIR.ccTypeCheckConfig (PIR.PirTCConfig stringBuiltinTCConfig PIR.YesEscape)
+
+    pirT <- PIR.runDefT () $ compileExprWithDefs expr
+
 
     -- We manually run a simplifier+floating pass here before dumping/storing the PIR
-    pirT' <- flip runReaderT ctx $ PIR.compileToReadable pirT
+    -- FIXME: pir compilationcontext needs a podoTypecheck knob as well
+    pirT' <- flip runReaderT ctx $ PIR.compileToReadable True pirT
     let pirP = PIR.Program () . void $ pirT'
 
     when (poDumpPir opts) . liftIO . print . PP.pretty $ pirP
@@ -316,7 +328,11 @@ runCompiler opts expr = do
     when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
+    -- again trick to take out the concrete plc.error and lift it into our compileeerror
     when (poDoTypecheck opts) . void $ do
-        stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
-        PLC.typecheckPipeline (PLC.TypeCheckConfig stringBuiltinTypes) plcP
-    pure (pirP, plcP)
+        tcConcrete <- runExceptT $ PLC.typecheckPipeline stringBuiltinTCConfig plcP
+        -- also wrap the PLC Error annotations into Original provenances, to match our expected compileerror
+        liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) tcConcrete
+
+    let uplcP = UPLC.eraseProgram plcP
+    pure (pirP, uplcP)

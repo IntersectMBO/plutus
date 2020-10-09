@@ -120,7 +120,8 @@
             [
               [ bad_name [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ] ]
               [
-                [ greaterThanInteger [ [ { age p } dPersonLike ] p ] ] (con 30)
+                [ greaterThanInteger [ [ { age p } dPersonLike ] p ] ]
+                (con integer 30)
               ]
             ]
           )
@@ -141,7 +142,10 @@
       (lam
         ds
         Person
-        [ [ { [ Person_match ds ] (con integer) } (con 35) ] (con 30) ]
+        [
+          [ { [ Person_match ds ] (con integer) } (con integer 35) ]
+          (con integer 30)
+        ]
       )
     )
     (termbind

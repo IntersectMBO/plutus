@@ -35,7 +35,5 @@ signingProcessConfig:
   spWallet:
     getWallet: 1
 
-# Optional EKG Server Config
-# ----
-# monitoringConfig:
-#   monitoringPort: 8090
+metadataServerConfig:
+  mdBaseUrl: http://localhost:8085

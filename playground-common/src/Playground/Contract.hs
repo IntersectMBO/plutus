@@ -26,7 +26,6 @@ module Playground.Contract
     , FunctionSchema
     , FormSchema
     , Generic
-    , ByteString
     , printSchemas
     , printJson
     , IO
@@ -63,10 +62,6 @@ module Playground.Contract
 
 import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Aeson                                      as JSON
-import           Data.ByteArray                                  (ByteArrayAccess)
-import qualified Data.ByteArray                                  as BA
-import           Data.ByteString.Lazy                            (ByteString)
-import qualified Data.ByteString.Lazy                            as BSL
 import qualified Data.ByteString.Lazy.Char8                      as LBC8
 import           Data.List.NonEmpty                              (NonEmpty ((:|)))
 import           Data.Text                                       (Text)
@@ -93,14 +88,6 @@ import           Playground.Types                                (Expression, Fu
 import           Schema                                          (FormSchema, ToArgument, ToSchema)
 import           Wallet.Emulator                                 (addBlocksAndNotify)
 import           Wallet.Emulator.Types                           (Wallet (..))
-
--- We need to work with lazy 'ByteString's in contracts,
--- but 'ByteArrayAccess' (which we need for hashing) is only defined for strict
--- ByteStrings. With this orphan instance we can use lazy ByteStrings
--- throughout.
-instance ByteArrayAccess ByteString where
-    length = BA.length . BSL.toStrict
-    withByteArray ba = BA.withByteArray (BSL.toStrict ba)
 
 printSchemas :: ([FunctionSchema FormSchema], [KnownCurrency], Text) -> IO ()
 printSchemas (userSchemas, currencies, iotsDefinitions) =

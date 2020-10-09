@@ -2,7 +2,7 @@
 == The Marlowe Playground
 
 This tutorial gives an overview of the Marlowe Playground, an online
-tool that allows users to create, to analyse, to interact with and to simulate the 
+tool that allows users to create, to analyse, to interact with and to simulate the
 operation of
 embedded Marlowe contracts. It is available at {marloweplayground}.
 // https://alpha.marlowe.iohkdev.io/[https://alpha.marlowe.iohkdev.io/]
@@ -19,19 +19,23 @@ contract in the browser-based tool, the Marlowe Playground, a web tool
 that supports the interactive construction, revision, and simulation of
 smart-contracts written in Marlowe.
 
-The playground has three top-level tabs,
+The playground has six top-level tabs. Three that we look at in this section, 
 
 * The Haskell Editor
 * The Simulator
 * Blockly, the visual editor
 
-and we look at these three in turn now.
+and, in later sections, three *experimental* features *under active deveopment*
+
+* xref:javascript-embedding#javascript-embedding[JavaScript Editor]
+* xref:actus-labs#actus-labs[Actus Labs] 
+* xref:wallets-simulation#wallets-simulation[Wallet-level simulation]
 
 We use *bold* type for buttons and other components in what follows.
 
 === The Haskell Editor: developing embedded contracts
 
-The editor supports the development of Marlowe contracts, described in Haskell. We can use Haskell to make contract definitions more readable by using Haskell definitions for sub-components, abbreviations, and simple template functions. The Haskell editor tab is shown in the following image. 
+The editor supports the development of Marlowe contracts, described in Haskell. We can use Haskell to make contract definitions more readable by using Haskell definitions for sub-components, abbreviations, and simple template functions. The Haskell editor tab is shown in the following image.
 
 image:haskell-editor.png[The Haskell editor]
 
@@ -40,7 +44,7 @@ The figure shows that the tool is in the Haskell editor pane (number 1 in the di
 === Simulating Marlowe contracts
 
 The second tab in the Marlowe Playground allows users to simulate
-Marlowe contracts transaction by transaction. Typically these are 
+Marlowe contracts transaction by transaction. Typically these are
 contracts developed in the Haskell editor or within Blockly, but they can also be entered and modified in the editor pane here too.
 
 image:simulation-tab.png[The Simulation tab]
@@ -84,11 +88,11 @@ Moving back to the simulation tab, and selecting the _Escrow_ contract we see
 
 image:sim-1.png[Simulation step 1]
 
-Here we focus on the input composer, which at each stage shows only those inputs that will make the contract progress. In this case we require Alice to deposit 450 Ada. We can do that with the *+* button next to this input. After doing that we see 
+Here we focus on the input composer, which at each stage shows only those inputs that will make the contract progress. In this case we require Alice to deposit 450 lovelace. We can do that with the *+* button next to this input. After doing that we see
 
 image:sim-2.png[Simulation step 2]
 
-with the input as part of the transaction to perform. We can then add this transaction to the blockchain by selecting *Apply*, but note that we can also use the other controls to *Undo* the last step (here to move the input out of the transaction), to *Reset* to the initial state, or to move to the *Next block*. 
+with the input as part of the transaction to perform. We can then add this transaction to the blockchain by selecting *Apply*, but note that we can also use the other controls to *Undo* the last step (here to move the input out of the transaction), to *Reset* to the initial state, or to move to the *Next block*.
 
 Assuming that we do select *Apply* we then see at the foot of the screen that the deposit has taken place
 
@@ -109,7 +113,7 @@ The static analysis of a contract is performed by selecting the *Static analysis
 
 image:static-analysis.png[Static analysis]
 
-Clicking the *Analyse* button results in the current contract _in the current state_ being analysed. The result is either to say that the contract passed all the tests, or to explain how it fails, and giving the sequence of transactions that lead to the error. As an exercise try this with the `Escrow` contract, changing the initial deposit from Alice to something smaller than 450 Ada.
+Clicking the *Analyse* button results in the current contract _in the current state_ being analysed. The result is either to say that the contract passed all the tests, or to explain how it fails, and giving the sequence of transactions that lead to the error. As an exercise try this with the `Escrow` contract, changing the initial deposit from Alice to something smaller than 450 lovelace.
 
 
 [caption=""]

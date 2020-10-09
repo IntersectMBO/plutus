@@ -63,7 +63,7 @@ module.exports = {
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')
         },
-        extensions: ['.purs', '.js']
+        extensions: ['.purs', '.js', '.ts']
     },
 
     resolveLoader: {

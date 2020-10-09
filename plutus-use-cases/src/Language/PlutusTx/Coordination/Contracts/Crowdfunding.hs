@@ -48,11 +48,13 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
 import           Control.Applicative               (Applicative (..))
 import           Control.Monad                     (void)
 import           Data.Aeson                        (FromJSON, ToJSON)
+import Data.Text (Text)
+import qualified Data.Text as Text
 import           GHC.Generics                      (Generic)
 import           IOTS                              (IotsType)
 
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Trace    (ContractTrace, MonadEmulator, TraceError)
+import           Language.Plutus.Contract.Trace    (ContractTrace)
 import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
@@ -164,7 +166,7 @@ validCollection campaign txinfo =
 {-# INLINABLE mkValidator #-}
 -- | The validator script is of type 'CrowdfundingValidator', and is
 -- additionally parameterized by a 'Campaign' definition. This argument is
--- provided by the Plutus client, using 'Ledger.applyScript'.
+-- provided by the Plutus client, using 'PlutusTx.applyCode'.
 -- As a result, the 'Campaign' definition is part of the script address,
 -- and different campaigns have different addresses. The Campaign{..} syntax
 -- means that all fields of the 'Campaign' value are in scope
@@ -206,6 +208,7 @@ theCampaign = Campaign
 contribute :: Campaign -> Contract CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
+    logInfo @Text $ "Contributing " <> Text.pack (show contribValue)
     contributor <- ownPubKey
     let inst = scriptInstance cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
@@ -223,7 +226,9 @@ contribute cmp = do
                 <> Constraints.mustValidateIn (refundRange cmp)
                 <> Constraints.mustBeSignedBy (pubKeyHash contributor)
     if Constraints.modifiesUtxoSet tx'
-    then void (submitTxConstraintsSpending inst utxo tx')
+    then do
+        logInfo @Text "Claiming refund"
+        void (submitTxConstraintsSpending inst utxo tx')
     else pure ()
 
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
@@ -237,29 +242,29 @@ scheduleCollection cmp = do
     -- campaign. (This endpoint isn't technically necessary, we could just
     -- run the 'trg' action right away)
     () <- endpoint @"schedule collection"
+    logInfo @Text "Campaign started. Waiting for campaign deadline to collect funds."
 
     _ <- awaitSlot (campaignDeadline cmp)
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
 
     let tx = Typed.collectFromScript unspentOutputs Collect
             <> Constraints.mustValidateIn (collectionRange cmp)
+
+    logInfo @Text "Collecting funds"
     void $ submitTxConstraintsSpending inst unspentOutputs tx
 
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
-startCampaign
-    :: ( MonadEmulator (TraceError ContractError) m  )
-    => ContractTrace CrowdfundingSchema ContractError m () ()
+startCampaign :: ContractTrace CrowdfundingSchema ContractError () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
         >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator (TraceError ContractError) m )
-    => Wallet
+    :: Wallet
     -> Value
-    -> ContractTrace CrowdfundingSchema ContractError m () ()
+    -> ContractTrace CrowdfundingSchema ContractError () ()
 makeContribution w v =
     Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
@@ -267,8 +272,7 @@ makeContribution w v =
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator (TraceError ContractError) m )
-    => ContractTrace CrowdfundingSchema ContractError m () ()
+    :: ContractTrace CrowdfundingSchema ContractError () ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)

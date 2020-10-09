@@ -16,7 +16,6 @@ import           Criterion.Main
 import           Crypto.Hash                                           hiding (Context)
 import qualified Data.ByteArray                                        as BA
 import qualified Data.ByteString                                       as BS
-import qualified Data.ByteString.Lazy                                  as BSL
 import qualified Language.PlutusTx.Coordination.Contracts.Future       as FT
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSig     as MS
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey       as PK
@@ -199,10 +198,7 @@ validators = bgroup "validators" [ trivial, multisig ]
 
 -- | The trivial validator script that just returns 'True'.
 trivial :: Benchmark
-trivial = bgroup "trivial" [
-        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitDatum, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitDatum, unitRedeemer)
-    ]
+trivial = bench "trivial" $ nf runScript' (validationData1, validator, unitDatum, unitRedeemer)
     where
         validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
 
@@ -210,22 +206,22 @@ trivial = bgroup "trivial" [
 -- Note that multisig also does some signature verification!
 multisig :: Benchmark
 multisig = bgroup "multisig" [
-        bench "1of1" $ nf runScriptNoCheck
+        bench "1of1" $ nf runScript'
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of1
             , unitDatum
             , unitRedeemer),
-        bench "1of2" $ nf runScriptNoCheck
+        bench "1of2" $ nf runScript'
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of2
             , unitDatum
             , unitRedeemer),
-        bench "2of2" $ nf runScriptNoCheck
+        bench "2of2" $ nf runScript'
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen2of2
             , unitDatum
             , unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck
+        bench "typecheck" $ nf runScript'
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of1
             , unitDatum
@@ -239,12 +235,10 @@ multisig = bgroup "multisig" [
 -- Test functions and data
 
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
-verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
+verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BA.convert m) s
 
-runScriptNoCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
-runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
-runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
+runScript' :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
+runScript' (vd, v, d, r) = runScript vd v d r
 
 privk1 :: PrivateKey
 privk1 = Crypto.knownPrivateKeys !! 0

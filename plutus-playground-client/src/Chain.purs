@@ -11,9 +11,10 @@ import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toC
 import Chartist as Chartist
 import Data.Array as Array
 import Data.Array.Extra (collapse)
-import Data.Int as Int
-import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
-import Data.Lens.At (at)
+import Data.BigInteger (BigInteger)
+import Data.BigInteger as BigInteger
+import Data.Lens (_2, preview, to, toListOf, traversed, view)
+import Data.Lens.Index (ix)
 import Data.List (List)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
@@ -37,7 +38,8 @@ import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
 import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
-import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
+import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
@@ -49,11 +51,7 @@ evaluationPane ::
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ ChainAction
-        <$> chainView
-            state
-            (AssocMap.toDataMap (AssocMap.Map walletKeys))
-            (wrap resultRollup)
+    [ ChainAction <$> chainView namingFn state (wrap resultRollup)
     , br_
     , div_
         [ h2_ [ text "Logs" ]
@@ -62,7 +60,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             logs ->
               div
                 [ class_ $ ClassName "logs" ]
-                (emulatorEventPane <$> Array.reverse logs)
+                ((emulatorEventPane <<< eveEvent) <$> Array.reverse logs)
         , h2_ [ text "Trace" ]
         , code_ [ pre_ [ text emulatorTrace ] ]
         ]
@@ -77,8 +75,13 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             (Just <<< HandleBalancesChartMessage)
         ]
     ]
+  where
+  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet #" <> show n)) (AssocMap.Map walletKeys)
 
-emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
+eveEvent :: forall a. MultiAgent.EmulatorTimeEvent a -> a
+eveEvent (MultiAgent.EmulatorTimeEvent { _eteEvent }) = _eteEvent
+
+emulatorEventPane :: forall i p. EmulatorEvent' -> HTML p i
 emulatorEventPane (ChainIndexEvent _ (ReceiveBlockNotification numTransactions)) =
   div_
     [ text $ "Chain index receive block notification. " <> show numTransactions <> " transactions." ]
@@ -87,6 +90,10 @@ emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
   div_
     [ text $ "Submitting transaction: " <> show address ]
 
+emulatorEventPane (ChainIndexEvent _ (HandlingAddressChangeRequest rq _)) =
+  div_
+    [ text $ "Handling address change request: " <> show rq ]
+
 emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
@@ -94,6 +101,10 @@ emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
 emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
+
+emulatorEventPane (NotificationEvent notificationEvent) =
+  div_
+    [ text $ "Notification event:" <> show notificationEvent ]
 
 emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
   div [ class_ $ ClassName "error" ]
@@ -119,15 +130,13 @@ emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
 formatWalletId :: SimulatorWallet -> String
 formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
-extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe Int
+extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe BigInteger
 extractAmount (Tuple currencySymbol tokenName) =
   preview
     ( _simulatorWalletBalance
         <<< _value
-        <<< at currencySymbol
-        <<< _Just
-        <<< at tokenName
-        <<< _Just
+        <<< ix currencySymbol
+        <<< ix tokenName
     )
 
 balancesToChartistData :: Array SimulatorWallet -> ChartistData
@@ -142,10 +151,10 @@ balancesToChartistData wallets = toChartistData $ toChartistItem <$> wallets
   toChartistPoint :: SimulatorWallet -> Tuple CurrencySymbol TokenName -> ChartistPoint
   toChartistPoint wallet key =
     { meta: view (_2 <<< _tokenName) key
-    , value: Int.toNumber $ fromMaybe zero $ extractAmount key wallet
+    , value: BigInteger.toNumber $ fromMaybe zero $ extractAmount key wallet
     }
 
-  allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
+  allValues :: List (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName BigInteger))
   allValues =
     toListOf
       ( traversed

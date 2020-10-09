@@ -53,6 +53,7 @@ import           Wallet
 import qualified Wallet.API                 as W
 import qualified Wallet.Emulator.Chain      as Chain
 import qualified Wallet.Emulator.Generators as Gen
+import           Wallet.Emulator.MultiAgent (EmulatorEvent' (..), eteEvent)
 import qualified Wallet.Emulator.NodeClient as NC
 import           Wallet.Emulator.Types
 import qualified Wallet.Emulator.Wallet     as Wallet
@@ -198,7 +199,7 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert (case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
+    Hedgehog.assert (case fmap (view (logMessageContent . eteEvent)) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
         _                                                                           -> False)
 
@@ -234,7 +235,7 @@ invalidScript = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert $ case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
+    Hedgehog.assert $ case fmap (view (logMessageContent . eteEvent)) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd{}) : ChainEvent (Chain.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
             -> True
         _

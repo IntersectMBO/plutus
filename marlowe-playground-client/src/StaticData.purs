@@ -1,10 +1,21 @@
-module StaticData (bufferLocalStorageKey, demoFiles, marloweBufferLocalStorageKey, marloweContract, marloweContracts) where
+module StaticData
+  ( bufferLocalStorageKey
+  , jsBufferLocalStorageKey
+  , demoFiles
+  , demoFilesJS
+  , marloweBufferLocalStorageKey
+  , marloweContract
+  , marloweContracts
+  , showHomePageLocalStorageKey
+  ) where
 
 import Data.Map (Map)
 import Data.Map as Map
+import Data.Semigroup ((<>))
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Examples.Marlowe.Contracts (escrow, zeroCouponBond, option, swap) as ME
+import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
 import LocalStorage as LocalStorage
 
 type Label
@@ -21,6 +32,31 @@ demoFiles =
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
+    ]
+
+addHeader :: Contents -> Contents
+addHeader c =
+  """import * as bignumber from 'bignumber.js';
+import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+         SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
+         UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
+         ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
+         Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
+         ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract } from 'marlowe-js';
+
+/* === Code above this comment will be removed at compile time === */
+
+"""
+    <> c
+
+demoFilesJS ::
+  Map Label Contents
+demoFilesJS =
+  Map.fromFoldable
+    [ "Escrow" /\ addHeader JSE.escrow
+    , "ZeroCouponBond" /\ addHeader JSE.zeroCouponBond
+    , "CouponBondGuaranteed" /\ addHeader JSE.couponBondGuaranteed
+    , "Swap" /\ addHeader JSE.swap
     ]
 
 marloweContracts ::
@@ -41,6 +77,14 @@ bufferLocalStorageKey ::
   LocalStorage.Key
 bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
 
+jsBufferLocalStorageKey ::
+  LocalStorage.Key
+jsBufferLocalStorageKey = LocalStorage.Key "JavascriptBuffer"
+
 marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
+
+showHomePageLocalStorageKey ::
+  LocalStorage.Key
+showHomePageLocalStorageKey = LocalStorage.Key "ShowHomePage"

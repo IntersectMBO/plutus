@@ -15,7 +15,6 @@ import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
 import Control.Monad.State.Class (class MonadState, get)
 import Cursor as Cursor
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (Lens', _1, assign, preview, set, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
@@ -62,7 +61,7 @@ type World
     , editorContents :: Maybe SourceCode
     , localStorage :: Map String String
     , evaluationResult :: WebData EvaluationResult
-    , compilationResult :: (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult)))
+    , compilationResult :: (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
     }
 
 _gists :: forall r a. Lens' { gists :: a | r } a
@@ -241,9 +240,9 @@ evalTests =
 loadCompilationResponse1 ::
   forall m.
   MonadEffect m =>
-  m (Either String (WebData (JsonEither InterpreterError (InterpreterResult CompilationResult))))
+  m (Either String (WebData (Either InterpreterError (InterpreterResult CompilationResult))))
 loadCompilationResponse1 = do
   contents <- liftEffect $ FS.readTextFile UTF8 "generated/compilation_response.json"
   case runExcept $ decodeJSON contents of
     Left err -> pure $ Left $ show err
-    Right value -> pure $ Right $ Success $ JsonEither $ Right value
+    Right value -> pure $ Right $ Success $ Right value

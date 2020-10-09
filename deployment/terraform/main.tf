@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 0.11.0"
+  required_version = "~> 0.12.20"
 
   backend "s3" {
     bucket = "plutus-playground-tf"
@@ -11,6 +11,6 @@ terraform {
 
 provider "aws" {
   region  = "${var.aws_region}"
-  version = "~> 2.0.0"
+  version = "~> 3.0"
   profile = "plutus-playground"
 }

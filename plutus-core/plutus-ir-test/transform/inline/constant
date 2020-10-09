@@ -1,0 +1,5 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl x (con integer)) (con integer 1))
+  x
+)

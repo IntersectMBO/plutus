@@ -1,6 +1,8 @@
 /*eslint-env node*/
 'use strict';
 
+var JSONbig = require('json-bigint');
+
 exports.createBlocklyInstance_ = function () {
     return require('node-blockly/browser');
 }
@@ -44,7 +46,7 @@ exports.addBlockType_ = function (blocklyRef, name, block) {
     return function () {
         var blockly = blocklyRef.value;
         // we really don't want to be mutating the input object, it is not supposed to be state
-        var clone = JSON.parse(JSON.stringify(block));
+        var clone = JSONbig.parse(JSONbig.stringify(block));
         removeUndefinedFields(clone);
         removeEmptyArrayFields(clone);
         blockly.Blocks[name] = {

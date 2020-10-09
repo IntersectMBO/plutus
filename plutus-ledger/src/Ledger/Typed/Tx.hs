@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE DerivingStrategies        #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -24,27 +25,20 @@
 --   validation time.
 module Ledger.Typed.Tx where
 
-import           Ledger.Address             hiding (scriptAddress)
+import           Ledger.Address            hiding (scriptAddress)
 import           Ledger.Crypto
 import           Ledger.Scripts
 import           Ledger.Tx
 import           Ledger.TxId
 import           Ledger.Typed.Scripts
-import qualified Ledger.Value               as Value
-
-import qualified Language.PlutusCore        as PLC
-import qualified Language.PlutusCore.Pretty as PLC
+import qualified Ledger.Value              as Value
 
 import           Language.PlutusTx
-import           Language.PlutusTx.Lift     as Lift
 
-import qualified Language.PlutusIR.Compiler as PIR
-
-import           Data.Aeson                 (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
-import           Data.Aeson.Types           (typeMismatch)
-import           Data.Proxy
-import           Data.Text.Prettyprint.Doc  (Pretty (pretty), viaShow, (<+>))
-import           GHC.Generics               (Generic)
+import           Data.Aeson                (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
+import           Data.Aeson.Types          (typeMismatch)
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), viaShow, (<+>))
+import           GHC.Generics              (Generic)
 
 import           Control.Monad.Except
 
@@ -157,7 +151,8 @@ data ConnectionError =
     | WrongDatumType
     | NoDatum TxId DatumHash
     | UnknownRef
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty ConnectionError where
     pretty = \case
@@ -175,18 +170,6 @@ checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptIn
 checkValidatorAddress ct actualAddr = do
     let expectedAddr = scriptAddress ct
     unless (expectedAddr == actualAddr) $ throwError $ WrongValidatorAddress expectedAddr actualAddr
-
--- | Checks that the given validator script has the right type.
-checkValidatorScript
-    :: forall a m
-    . (MonadError ConnectionError m)
-    => ScriptInstance a
-    -> Validator
-    -> m (CompiledCode PLC.DefaultUni WrappedValidatorType)
-checkValidatorScript _ (unValidatorScript -> (Script prog)) =
-    case PLC.runQuote $ runExceptT @(PIR.Error PLC.DefaultUni (PIR.Provenance ())) $ Lift.typeCode (Proxy @WrappedValidatorType) prog of
-        Right code -> pure code
-        Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 
 -- | Checks that the given redeemer script has the right type.
 checkRedeemer
@@ -222,10 +205,11 @@ typeScriptTxIn
     -> TxIn
     -> m (TypedScriptTxIn inn)
 typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
-    (vs, rs, ds) <- case txInType of
-        ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
-        x                             -> throwError $ WrongInType x
-    _ <- checkValidatorScript si vs
+    (rs, ds) <- case txInType of
+        ConsumeScriptAddress _ rs ds -> pure (rs, ds)
+        x                            -> throwError $ WrongInType x
+    -- It would be nice to typecheck the validator script here (we used to do that when we
+    -- had typed on-chain code), but we can't do that with untyped code!
     rsVal <- checkRedeemer si rs
     _ <- checkDatum si ds
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef

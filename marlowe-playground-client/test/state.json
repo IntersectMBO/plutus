@@ -1,16 +1,13 @@
 {
-  "minSlot": {
-    "getSlot": 123
-  },
+  "minSlot": 123,
   "choices": [
     [
-      [
-        "choice",
-        {
-          "contents": "deadbeef",
-          "tag": "PK"
-        }
-      ],
+      {
+        "choice_owner": {
+          "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+        },
+        "choice_name": "choice"
+      },
       42
     ]
   ],
@@ -27,20 +24,12 @@
   "accounts": [
     [
       [
-        [
-          0,
-          {
-            "contents": "deadbeef",
-            "tag": "PK"
-          }
-        ],
         {
-          "token": {
-            "unTokenName": "name"
-          },
-          "currency": {
-            "unCurrencySymbol": "aa"
-          }
+          "pk_hash": "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+        },
+        {
+          "token_name": "name",
+          "currency_symbol": "aa"
         }
       ],
       12

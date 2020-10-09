@@ -1,5 +1,4 @@
 variable "aws_region" {
-  default = "eu-west-1"
 }
 
 variable "project" {
@@ -8,9 +7,13 @@ variable "project" {
 
 variable "env" {}
 
-variable "nixops_root" {}
+variable "nixops_root" {
+  default = "../nixops"
+}
 
-variable "ssh_config_root" {}
+variable "ssh_config_root" {
+  default = "~/.ssh"
+}
 
 variable "plutus_tld" {
   default = "plutus.iohkdev.io"
@@ -47,8 +50,9 @@ variable "monitoring_full_domain" {
 variable "monitoring_public_zone" {
   default = "Z2Y3TWJMJ0Q6Z7"
 }
-variable "marlowe_instance_type" {
-  default = "t3.small"
+
+variable "webghc_instance_type" {
+  default = "t3.large"
 }
 
 variable "playground_instance_type" {
@@ -59,39 +63,42 @@ variable "nixops_instance_type" {
   default = "t2.large"
 }
 variable "bastion_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    wyohack = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access any machine, changing the value for a particular environment will cause the bastion machines to be re-created, this is not a problem but it may take some time."
 }
 
 variable "nixops_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging" ]
+    wyohack = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access the nixops machine, changing the value for a particular environment will cause the nixops machine to be re-created, this is not a problem but it may take some time."
 }
 
 variable "playground_ssh_keys" {
-  default {
+  default = {
     alpha = ["david", "pablo"]
     patrick = ["david", "kris"]
     david   = ["david"]
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    wyohack = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access the playground machines"
@@ -139,15 +146,55 @@ variable "aws_amis" {
   }
 }
 
+variable "amis_20_03" {
+  default = {
+    "ap-east-1" = "ami-0d18fdd309cdefa86"
+    "ap-northeast-1" = "ami-093d9cc49c191eb6c"
+    "ap-northeast-2" = "ami-0087df91a7b6ebd45"
+    "ap-south-1" = "ami-0a1a6b569af04af9d"
+    "ap-southeast-1" = "ami-0dbf353e168d155f7"
+    "ap-southeast-2" = "ami-04c0f3a75f63daddd"
+    "ca-central-1" = "ami-02365684a173255c7"
+    "eu-central-1" = "ami-0a1a94722dcbff94c"
+    "eu-north-1" = "ami-02699abfacbb6464b"
+    "eu-west-1" = "ami-02c34db5766cc7013"
+    "eu-west-2" = "ami-0e32bd8c7853883f1"
+    "eu-west-3" = "ami-061edb1356c1d69fd"
+    "sa-east-1" = "ami-09859378158ae971d"
+    "us-east-1" = "ami-0c5e7760748b74e85"
+    "us-east-2" = "ami-030296bb256764655"
+    "us-west-1" = "ami-050be818e0266b741"
+    "us-west-2" = "ami-06562f78dca68eda2"
+  }
+}
+
 variable "azs" {
   default = ["a", "b"]
 }
 
-variable "zerotier_network_id" {}
-
-variable "zerotier_subnet_cidrs" {
-  default = []
+variable "symbolic_lambda_file" {
 }
 
-variable "lambda_filename" {
+variable "playground_lambda_file" {
+}
+
+variable "plutus_playground_lambda_file" {
+}
+
+variable "marlowe_github_client_id" {
+}
+
+variable "marlowe_github_client_secret" {
+}
+
+variable "marlowe_jwt_signature" {
+}
+
+variable "plutus_github_client_id" {
+}
+
+variable "plutus_github_client_secret" {
+}
+
+variable "plutus_jwt_signature" {
 }

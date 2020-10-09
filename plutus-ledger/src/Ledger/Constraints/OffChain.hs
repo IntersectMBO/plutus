@@ -24,10 +24,12 @@ module Ledger.Constraints.OffChain(
     , otherData
     , ownPubKeyHash
     -- * Constraints resolution
+    , SomeLookupsAndConstraints(..)
     , UnbalancedTx(..)
     , emptyUnbalancedTx
     , MkTxError(..)
     , mkTx
+    , mkSomeTx
     ) where
 
 import           Control.Lens
@@ -78,7 +80,8 @@ data ScriptLookups a =
         -- ^ The script instance with the typed validator hash & actual compiled program
         , slOwnPubkey      :: Maybe PubKeyHash
         -- ^ The contract's public key address, used for depositing tokens etc.
-        }
+        } deriving stock (Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 instance Semigroup (ScriptLookups a) where
     l <> r =
@@ -176,6 +179,41 @@ initialState = ConstraintProcessingState{ cpsUnbalancedTx = emptyUnbalancedTx, c
 
 makeLensesFor [("cpsUnbalancedTx", "unbalancedTx"), ("cpsValueSpentActual", "valueSpentActual"), ("cpsValueSpentRequired", "valueSpentRequired")] ''ConstraintProcessingState
 
+-- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
+--   into an 'UnbalancedTx'.
+data SomeLookupsAndConstraints where
+    SomeLookupsAndConstraints :: forall a. (IsData (DatumType a), IsData (RedeemerType a)) => ScriptLookups a -> TxConstraints (RedeemerType a) (DatumType a) -> SomeLookupsAndConstraints
+
+-- | Given a list of 'SomeLookupsAndConstraints' describing the constraints
+--   for several scripts, build a single transaction that runs all the scripts.
+mkSomeTx
+    :: [SomeLookupsAndConstraints]
+    -> Either MkTxError UnbalancedTx
+mkSomeTx xs =
+    let process = \case
+            SomeLookupsAndConstraints lookups constraints -> processLookupsAndConstraints lookups constraints
+    in fmap cpsUnbalancedTx
+        $ runExcept
+        $ execStateT (traverse process xs) initialState
+
+-- | Resolve some 'TxConstraints' by modifying the 'UnbalancedTx' in the
+--   'ConstraintProcessingState'
+processLookupsAndConstraints
+    :: ( IsData (DatumType a)
+       , IsData (RedeemerType a)
+       , MonadState ConstraintProcessingState m
+       , MonadError MkTxError m
+       )
+    => ScriptLookups a
+    -> TxConstraints (RedeemerType a) (DatumType a)
+    -> m ()
+processLookupsAndConstraints lookups TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} =
+        flip runReaderT lookups $ do
+            traverse_ processConstraint txConstraints
+            traverse_ addOwnInput txOwnInputs
+            traverse_ addOwnOutput txOwnOutputs
+            addMissingValueSpent
+
 -- | Turn a 'TxConstraints' value into an unbalanced transaction that satisfies
 --   the constraints. To use this in a contract, see
 --   'Language.Plutus.Contract.Effects.WriteTx.submitTxConstraints'
@@ -186,13 +224,7 @@ mkTx
     => ScriptLookups a
     -> TxConstraints (RedeemerType a) (DatumType a)
     -> Either MkTxError UnbalancedTx
-mkTx lookups txc = fmap cpsUnbalancedTx $ runExcept $ runReaderT (execStateT go initialState) lookups where
-    TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} = txc
-    go = do
-        traverse_ processConstraint txConstraints
-        traverse_ addOwnInput txOwnInputs
-        traverse_ addOwnOutput txOwnOutputs
-        addMissingValueSpent
+mkTx lookups txc = mkSomeTx [SomeLookupsAndConstraints lookups txc]
 
 addMissingValueSpent
     :: ( MonadReader (ScriptLookups a) m
@@ -262,7 +294,8 @@ data MkTxError =
     | OwnPubKeyMissing
     | ScriptInstanceMissing
     | DatumWrongHash DatumHash Datum
-    deriving (Eq, Show)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty MkTxError where
     pretty = \case
