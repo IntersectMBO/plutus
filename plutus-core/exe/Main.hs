@@ -38,6 +38,7 @@ import           Data.Text.Prettyprint.Doc
 import           Options.Applicative
 import           System.CPUTime                                             (getCPUTime)
 import           System.Exit
+import           System.IO
 import           Text.Printf
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
@@ -51,7 +52,6 @@ import           Text.Printf
    CBOR with arbitrary annotation types: fixing the annotation type to be () is
    the simplest thing to do and fits our use case.
  -}
-
 
 type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni a
 type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni a
@@ -70,17 +70,17 @@ type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
 
 ---------------- Option parsers ----------------
 
-data Typing = Typed | Untyped
+data Language = TypedPLC | UntypedPLC
 
-typed :: Parser Typing
-typed = flag Untyped Typed (long "typed" <> short 't' <> help "Use typed Plutus Core")
+typedPLC :: Parser Language
+typedPLC = flag UntypedPLC TypedPLC (long "typed" <> short 't' <> help "Use typed Plutus Core")
 
-untyped :: Parser Typing
-untyped = flag Untyped Untyped (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
--- ^ NB: default is always Untyped
+untypedPLC :: Parser Language
+untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Use untyped Plutus Core (default)")
+-- ^ NB: default is always UntypedPLC
 
-typingMode :: Parser Typing
-typingMode = typed <|> untyped
+languageMode :: Parser Language
+languageMode = typedPLC <|> untypedPLC
 
 data Input = FileInput FilePath | StdInput
 
@@ -142,16 +142,16 @@ timing = flag NoTiming Timing
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
-data PlcToCborOptions = PlcToCborOptions Typing Input Output
-data CborToPlcOptions = CborToPlcOptions Typing Input Output PrintMode
+data PlcToCborOptions = PlcToCborOptions Language Input Output
+data CborToPlcOptions = CborToPlcOptions Language Input Output PrintMode
 data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
-data PrintOptions = PrintOptions Typing Input PrintMode
+data PrintOptions = PrintOptions Language Input PrintMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
 data EraseOptions = EraseOptions Input Output Format PrintMode
 data EvalMode = CK | CEK deriving (Show, Read)
-data EvalOptions = EvalOptions Typing Input EvalMode Format Timing
+data EvalOptions = EvalOptions Language Input EvalMode Format Timing
 
 -- Main commands
 data Command = Typecheck TypecheckOptions
@@ -218,13 +218,13 @@ printMode = option auto
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> typingMode <*> input <*> printMode
+printOpts = PrintOptions <$> languageMode <*> input <*> printMode
 
 plcToCborOpts :: Parser PlcToCborOptions
-plcToCborOpts = PlcToCborOptions <$> typingMode <*> input <*> output
+plcToCborOpts = PlcToCborOptions <$> languageMode <*> input <*> output
 
 cborToPlcOpts :: Parser CborToPlcOptions
-cborToPlcOpts = CborToPlcOptions <$> typingMode <*> input <*> output <*> printMode
+cborToPlcOpts = CborToPlcOptions <$> languageMode <*> input <*> output <*> printMode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -258,7 +258,7 @@ evalMode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> typingMode <*> input <*> evalMode <*> format <*> timing
+evalOpts = EvalOptions <$> languageMode <*> input <*> evalMode <*> format <*> timing
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> output <*> format <*> printMode
@@ -272,18 +272,18 @@ getPlcInput (FileInput file) = readFile file
 getPlcInput StdInput         = getContents
 
 -- Read and parse a PLC source program
-parsePlcInput :: Typing -> Input -> IO (Program PLC.AlexPosn)
-parsePlcInput typing inp = do
+parsePlcInput :: Language -> Input -> IO (Program PLC.AlexPosn)
+parsePlcInput language inp = do
     bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getPlcInput inp
-    case typing of
-      Typed   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
-      Untyped -> handleResult UntypedProgram $ PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents)
+    case language of
+      TypedPLC   -> handleResult TypedProgram   $ PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents)
+      UntypedPLC -> handleResult UntypedProgram $ PLC.runQuoteT $ runExceptT (UPLC.parseScoped bsContents)
       where handleResult wrapper =
                 \case
                   Left errCheck        -> failWith errCheck
                   Right (Left errEval) -> failWith errEval
                   Right (Right p)      -> return $ wrapper p
-            failWith (err :: PlcParserError) =  T.putStrLn (PLC.displayPlcDef err) >> exitFailure
+            failWith (err :: PlcParserError) =  T.hPutStrLn stderr (PLC.displayPlcDef err) >> exitFailure
 
 
 -- Read a CBOR-encoded PLC AST
@@ -292,26 +292,24 @@ getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
 -- Read and deserialise a CBOR-encoded AST
-loadASTfromCBOR :: Typing -> Input -> IO (Program ())
-loadASTfromCBOR typing inp =
-    case typing of
-         Typed   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         Untyped -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+loadASTfromCBOR :: Language -> Input -> IO (Program ())
+loadASTfromCBOR language inp =
+    case language of
+         TypedPLC   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
+         UntypedPLC -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                 Left (DeserialiseFailure offset msg) ->
-                  putStrLn ("Deserialisation failure at offset " ++ show offset ++ ": " ++ msg) >> exitFailure
+                    hPutStrLn stderr ("Deserialisation failure at offset " ++ show offset ++ ": " ++ msg) >> exitFailure
                 Right r -> return $ wrapper r
 
--- FIXME: should we be writing error messages to stdout or stderr?
-
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
-getProgram :: Typing -> Input -> Format -> IO (Program PLC.AlexPosn)
-getProgram typing inp fmt =
+getProgram :: Language -> Input -> Format -> IO (Program PLC.AlexPosn)
+getProgram language inp fmt =
     case fmt of
-      Plc  -> parsePlcInput typing inp
+      Plc  -> parsePlcInput language inp
       Cbor -> do
-               prog <- loadASTfromCBOR typing inp
+               prog <- loadASTfromCBOR language inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
@@ -325,8 +323,8 @@ getPrintMethod = \case
       ReadableDebug -> PLC.prettyPlcReadableDebug
 
 runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions typing inp mode) =
-    parsePlcInput typing inp >>= print . (getPrintMethod mode)
+runPrint (PrintOptions language inp mode) =
+    parsePlcInput language inp >>= print . (getPrintMethod mode)
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -343,8 +341,8 @@ writeCBOR outp prog = do
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
 
 runPlcToCbor :: PlcToCborOptions -> IO ()
-runPlcToCbor (PlcToCborOptions typing inp outp) =
-  parsePlcInput typing inp >>= writeCBOR outp
+runPlcToCbor (PlcToCborOptions language inp outp) =
+  parsePlcInput language inp >>= writeCBOR outp
 
 
 ---------------- Convert a CBOR file to PLC source ----------------
@@ -357,8 +355,8 @@ writePlc outp mode prog = do
         StdOutput       -> print . printMethod $ prog
 
 runCborToPlc :: CborToPlcOptions -> IO ()
-runCborToPlc (CborToPlcOptions typing inp outp mode) =
-  loadASTfromCBOR typing inp >>= writePlc outp mode
+runCborToPlc (CborToPlcOptions language inp outp mode) =
+  loadASTfromCBOR language inp >>= writePlc outp mode
 
 
 ---------------- Examples ----------------
@@ -430,23 +428,23 @@ runExample (ExampleOptions (ExampleSingle name)) = do
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-  TypedProgram prog <- getProgram Typed inp fmt
+  TypedProgram prog <- getProgram TypedPLC inp fmt
   case PLC.runQuoteT $ do
     types <- PLC.getStringBuiltinTypes ()
     PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.putStrLn (PLC.displayPlcDef e)  >> exitFailure
+       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.hPutStrLn stderr (PLC.displayPlcDef e) >> exitFailure
        Right ty                                -> T.putStrLn (PLC.displayPlcDef ty) >> exitSuccess
 
 
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions typing inp mode fmt printtime) =
-    case typing of
+runEval (EvalOptions language inp mode fmt printtime) =
+    case language of
 
-      Typed -> do
-        TypedProgram prog <- getProgram Typed inp fmt
+      TypedPLC -> do
+        TypedProgram prog <- getProgram TypedPLC inp fmt
         let evaluate = case mode of
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
@@ -459,11 +457,11 @@ runEval (EvalOptions typing inp mode fmt printtime) =
               PLC.EvaluationSuccess v -> succeed start v
               PLC.EvaluationFailure   -> exitFailure
 
-      Untyped ->
+      UntypedPLC ->
           case mode of
-            CK  -> T.putStrLn "There is no CK machine for Untyped Plutus Core" >> exitFailure
+            CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
-                  UntypedProgram prog <- getProgram Untyped inp fmt
+                  UntypedProgram prog <- getProgram UntypedPLC inp fmt
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
                   () <- Control.Exception.evaluate $ rnf body
@@ -486,7 +484,7 @@ runEval (EvalOptions typing inp mode fmt printtime) =
 -- (ie, if we input text then output text; if we input CBOR then output CBOR)
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp outp fmt mode) = do
-  TypedProgram typedProg <- getProgram Typed inp fmt
+  TypedProgram typedProg <- getProgram TypedPLC inp fmt
   let untypedProg = UntypedProgram $ UPLC.eraseProgram typedProg
   case fmt of
     Plc  -> writePlc outp mode untypedProg
