@@ -152,20 +152,50 @@ When([
 
 swap :: String
 swap =
-  """const party1 : Party = Role("party1");
-const party2 : Party = Role("party2");
-const gracePeriod : SomeNumber = new bignumber.BigNumber(5);
-const date1 : SomeNumber = new bignumber.BigNumber(20);
+  """const lovelacePerAda : SomeNumber = new bignumber.BigNumber("1000000");
+const amountOfAda : SomeNumber = new bignumber.BigNumber("1000");
+const amountOfLovelace : SomeNumber = lovelacePerAda.times(amountOfAda);
+const amountOfDollars : SomeNumber = new bignumber.BigNumber("100");
 
-const contract : Contract = When([ Case(Deposit(party1, party1, ada, 500),
-                                     /* when 1st party committed, wait for 2nd */
-                                     When([Case(Deposit(party2, party2, ada, 300),
-                                                Pay(party1, Party(party2), ada, 500,
-                                                    Pay(party2, Party(party1), ada, 300, Close)))
-                                          ], date1,
-                                     /* if a party dosn't commit, simply Close to the owner */
-                                          Close))
-                                 ], date1.minus(gracePeriod), Close);
+const dollars : Token = Token("85bb65", "dollar")
 
-contract
+type SwapParty = {
+ party: Party;
+ currency: Token;
+ amount: SomeNumber;
+};
+
+const alice : SwapParty = {
+   party: Role("alice"),
+   currency: ada,
+   amount: amountOfLovelace
+}
+
+const bob : SwapParty = {
+   party: Role("bob"),
+   currency: dollars,
+   amount: amountOfDollars
+}
+
+const makeDeposit = function(src : SwapParty, timeout : SomeNumber,
+                             continuation : Contract) : Contract
+{
+   return When([Case(Deposit(src.party, src.party, src.currency, src.amount),
+                     continuation)],
+               timeout,
+               Close);
+}
+
+const makePayment = function(src : SwapParty, dest : SwapParty,
+                             continuation : Contract) : Contract
+{
+   return Pay(src.party, Party(dest.party), src.currency, src.amount,
+              continuation);
+}
+
+makeDeposit(alice, 10,
+   makeDeposit(bob, 20,
+       makePayment(alice, bob,
+           makePayment(bob, alice,
+               Close))))
 """
