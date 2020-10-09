@@ -13,8 +13,8 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Semigroup ((<>))
 import Data.Tuple.Nested ((/\), type (/\))
-import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
-import Examples.Marlowe.Contracts (escrow, zeroCouponBond, option, swap) as ME
+import Examples.Haskell.Contracts (contractForDifference, escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
+import Examples.Marlowe.Contracts (contractForDifference, escrow, zeroCouponBond, option, swap) as ME
 import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
 import LocalStorage as LocalStorage
 
@@ -32,6 +32,7 @@ demoFiles =
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
+    , "CFD" /\ HE.contractForDifference
     ]
 
 addHeader :: Contents -> Contents
@@ -66,6 +67,7 @@ marloweContracts =
   , "ZeroCouponBond" /\ ME.zeroCouponBond
   , "Option" /\ ME.option
   , "Swap" /\ ME.swap
+  , "CFD" /\ ME.contractForDifference
   , "Empty" /\ "?empty_contract"
   ]
 
