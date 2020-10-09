@@ -98,7 +98,7 @@ contract =
                 counterPartyCollateralToken
                 counterPartyCollateralAmount
 
-        maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
+        minValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in
         waitForEvent partyCollateralDeposit (before 100) (orElse end) $
         waitForEvent counterPartyCollateralDeposit (before 100) (orElse end) $
@@ -109,7 +109,7 @@ contract =
         checkIf (useValue "delta" < value 0)
             (thenDo $
                 letValue "absdelta" (value 0 - useValue "delta") $
-                (let payoff = maxValue (useValue "absdelta") partyCollateralAmount
+                (let payoff = minValue (useValue "absdelta") partyCollateralAmount
                 in Pay
                     (from party)
                     (to counterParty)
@@ -118,7 +118,7 @@ contract =
                 end
             )
             (elseDo $
-                (let payoff = maxValue (useValue "delta") counterPartyCollateralAmount
+                (let payoff = minValue (useValue "delta") counterPartyCollateralAmount
                 in Pay
                     (from counterParty)
                     (to party)
