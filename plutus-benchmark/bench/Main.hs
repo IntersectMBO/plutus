@@ -46,6 +46,19 @@ config = defaultConfig
   , timeLimit  = 60.0  -- Run each benchmark for at least one minute
   }
 
+
+{- This runs all of the benchmarks, which will take a long time.
+   To run an individual benmark, try, for example,
+
+     stack bench plutus-benchmark -ba queens/bjbt
+
+   Better results will be obtained with more repetitions of the benchmark.  Set
+   the minimum time for the benchmarking process (in seconds) with the -L
+   option. For example,
+
+     stack bench plutus-benchmark -ba "queens/bjbt -L300"
+-}
+
 main :: IO ()
 main = defaultMainWith config [
     bgroup "clausify" [ bench "formula3" $ benchClausify Clausify.F3
@@ -54,12 +67,12 @@ main = defaultMainWith config [
                       , bench "formula6" $ benchClausify Clausify.F6
                       , bench "formula7" $ benchClausify Clausify.F7
                       ]
-  , bgroup "primetest" [ bench "P10" $ benchPrime Prime.P10  -- 10 digits
-                       , bench "P20" $ benchPrime Prime.P20  -- 20 digits
-                       , bench "P30" $ benchPrime Prime.P30  -- 30 digits
-                       , bench "P40" $ benchPrime Prime.P40  -- 40 digits
-                       , bench "P50" $ benchPrime Prime.P50  -- 50 digits
-                       , bench "P60" $ benchPrime Prime.P60  -- 60 digits
+  , bgroup "primetest" [ bench "10-digits" $ benchPrime Prime.P10
+                       , bench "20-digits" $ benchPrime Prime.P20
+                       , bench "30-digits" $ benchPrime Prime.P30
+                       , bench "40-digits" $ benchPrime Prime.P40
+                       , bench "50-digits" $ benchPrime Prime.P50
+                       , bench "60-digits" $ benchPrime Prime.P60
                        ]
   , bgroup "queens" [ -- N-queens problem on a 5x5 board
                       bench "bt"    $ benchQueens 5 Queens.Bt
