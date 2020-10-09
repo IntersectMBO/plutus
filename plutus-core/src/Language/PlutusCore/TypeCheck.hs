@@ -50,17 +50,15 @@ builtinMeaningsToTypes ann mean =
             pure <$> normalizeType ty
 
 getDefTypeCheckConfig
-    :: forall term uni fun dyn cost m err ann.
+    :: forall term uni fun m err ann.
        ( MonadError err m, MonadQuote m
        , uni ~ UniOf term, HasConstant term
        , AsTypeError err term uni fun ann
-       , ToBuiltinMeaning uni fun dyn cost
+       , ToBuiltinMeaning uni fun
        , Bounded fun, Enum fun, Ix fun
        )
     => ann -> m (TypeCheckConfig uni fun)
-getDefTypeCheckConfig ann =
-    fmap TypeCheckConfig . builtinMeaningsToTypes ann $
-        toBuiltinMeaning @uni @fun @_ @_ @term
+getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann toBuiltinMeaning
 
 -- | Infer the kind of a type.
 inferKind

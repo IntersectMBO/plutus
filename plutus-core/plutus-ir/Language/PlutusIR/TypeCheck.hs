@@ -56,11 +56,10 @@ would be better written as `let (nonrec) x = 3 in`. In such cases we could signa
 
 -- | The default 'TypeCheckConfig'.
 getDefTypeCheckConfig
-    :: forall uni fun dyn cost m err ann.
+    :: forall uni fun m err ann.
        ( MonadError err m, MonadQuote m
        , AsTypeError err (Term TyName Name uni fun ()) uni fun ann
-       , ToBuiltinMeaning uni fun dyn cost
-       , Bounded fun, Enum fun, Ix fun
+       , ToBuiltinMeaning uni fun, Bounded fun, Enum fun, Ix fun
        )
     => ann -> m (PirTCConfig uni fun)
 getDefTypeCheckConfig ann = do

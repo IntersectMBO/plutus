@@ -1,29 +1,30 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE MultiParamTypeClasses   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeOperators         #-}
 module Language.PlutusIR.Compiler.Types where
 
-import qualified Language.PlutusIR                     as PIR
-import           Language.PlutusIR.Error
+import qualified Language.PlutusIR                      as PIR
 import           Language.PlutusIR.Compiler.Provenance
+import           Language.PlutusIR.Error
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import           Control.Lens
 
-import qualified Language.PlutusCore.TypeCheck.Internal as PLC
-import qualified Language.PlutusCore                   as PLC
-import qualified Language.PlutusCore.MkPlc             as PLC
-import qualified Language.PlutusCore.Constant          as PLC
+import qualified Language.PlutusCore                    as PLC
+import qualified Language.PlutusCore.Constant           as PLC
+import qualified Language.PlutusCore.MkPlc              as PLC
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Type       as Types
+import qualified Language.PlutusCore.StdLib.Type        as Types
+import qualified Language.PlutusCore.TypeCheck.Internal as PLC
 
-import qualified Data.Text                             as T
+import           Data.Ix
+import qualified Data.Text                              as T
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -32,7 +33,7 @@ data AllowEscape = YesEscape | NoEscape
 
 -- | extending theh plc typecheck config with AllowEscape
 data PirTCConfig uni fun = PirTCConfig {
-      _pirConfigTCConfig :: PLC.TypeCheckConfig uni fun
+      _pirConfigTCConfig      :: PLC.TypeCheckConfig uni fun
       , _pirConfigAllowEscape :: AllowEscape
      }
 makeLenses ''PirTCConfig
@@ -51,9 +52,8 @@ defaultCompilationOpts :: CompilationOpts
 defaultCompilationOpts = CompilationOpts True
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts        :: CompilationOpts
---     , _ccBuiltinMeanings :: fun -> PLC.BuiltinMeaning (PIR.Term PLC.TyName PLC.Name uni fun ())
-    , _ccEnclosing :: Provenance a
+    _ccOpts              :: CompilationOpts
+    , _ccEnclosing       :: Provenance a
     , _ccTypeCheckConfig :: PirTCConfig uni fun
     }
 
@@ -112,7 +112,7 @@ type Compiling m e uni fun a =
     , MonadQuote m
     , Ord a
     , PLC.GShow uni, PLC.GEq uni
-    , PLC.DefaultUni PLC.<: uni
+    , Ix fun, PLC.ToBuiltinMeaning uni fun
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)

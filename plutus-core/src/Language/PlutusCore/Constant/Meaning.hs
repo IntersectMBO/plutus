@@ -56,11 +56,18 @@ toBuiltinRuntimeInfo :: dyn -> cost -> BuiltinMeaning term dyn cost -> BuiltinRu
 toBuiltinRuntimeInfo dyn cost (BuiltinMeaning sch f exF) =
     BuiltinRuntimeInfo sch (getArity sch) (f dyn) (exF cost)
 
-class ToBuiltinMeaning uni fun dyn cost | fun -> dyn cost where
-    toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term dyn cost
+class ToBuiltinMeaning uni fun where
+    type DynamicPart uni fun
+    type CostingPart uni fun
+    toBuiltinMeaning
+        :: HasConstantIn uni term
+        => fun -> BuiltinMeaning term (DynamicPart uni fun) (CostingPart uni fun)
 
 toBuiltinRuntimeInfos
-    :: (HasConstantIn uni term, ToBuiltinMeaning uni fun dyn cost, Bounded fun, Enum fun, Ix fun)
+    :: ( dyn ~ DynamicPart uni fun, cost ~ CostingPart uni fun
+       , HasConstantIn uni term, ToBuiltinMeaning uni fun
+       , Bounded fun, Enum fun, Ix fun
+       )
     => dyn -> cost -> BuiltinsRuntimeInfo fun term
 toBuiltinRuntimeInfos dyn cost =
     BuiltinsRuntimeInfo . tabulate $ toBuiltinRuntimeInfo dyn cost . toBuiltinMeaning

@@ -33,12 +33,12 @@ saturatesScheme (TermArg _ : _) TypeSchemeAll{}            = Nothing
 
 -- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
-    :: forall tyname name uni fun a dyn cost
-    . ToBuiltinMeaning uni fun dyn cost
+    :: forall tyname name uni fun a
+    . ToBuiltinMeaning uni fun
     => BuiltinApp tyname name uni fun a
     -> Maybe Bool
 isSaturated (BuiltinApp fun args) =
-    case toBuiltinMeaning @uni @fun @dyn @cost @(Term TyName Name uni fun ()) fun of
+    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
@@ -63,7 +63,7 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- | Will evaluating this term have side effects (looping or error)?. This is slightly wider than the definition of a value, as
 -- it includes things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
-    :: ToBuiltinMeaning uni fun dyn cost
+    :: ToBuiltinMeaning uni fun
     => (name -> Strictness) -> Term tyname name uni fun a -> Bool
 isPure varStrictness = go
     where

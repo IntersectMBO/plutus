@@ -17,11 +17,10 @@ module Language.PlutusIR.Compiler (
     CompilationCtx,
     ccOpts,
     ccEnclosing,
-    ccBuiltinMeanings,
     ccTypeCheckConfig,
     PirTCConfig(..),
     AllowEscape(..),
-    defaultCompilationCtx) where
+    toDefaultCompilationCtx) where
 
 import           Language.PlutusIR
 
@@ -46,18 +45,12 @@ import           PlutusPrelude
 
 -- | Perform some simplification of a 'Term'.
 simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ \t -> do
-    means <- asks _ccBuiltinMeanings
-    pure $ Inline.inline means $ DeadCode.removeDeadBindings means t
+simplifyTerm = runIfOpts $ pure . Inline.inline . DeadCode.removeDeadBindings
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
 floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-floatTerm = runIfOpts letFloat
-    where
-        letFloat t = do
-            means <- asks _ccBuiltinMeanings
-            pure $ LetFloat.floatTerm means t
+floatTerm = runIfOpts $ pure . LetFloat.floatTerm
 
 -- | Perform typechecking of a PIR Term.
 -- Note: assumes globally unique names

@@ -9,7 +9,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Builtins where
@@ -128,7 +127,9 @@ integerToInt :: Integer -> Int
 integerToInt = fromIntegral
 
 instance (GShow uni, GEq uni, uni `IncludesAll` '[(), Bool, Integer, Char, String, BS.ByteString]) =>
-            ToBuiltinMeaning uni DefaultFun DefaultFunDyn CostModel where
+            ToBuiltinMeaning uni DefaultFun where
+    type DynamicPart uni DefaultFun = DefaultFunDyn
+    type CostingPart uni DefaultFun = CostModel
     toBuiltinMeaning AddInteger =
         toStaticBuiltinMeaning
             ((+) @Integer)

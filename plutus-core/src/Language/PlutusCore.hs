@@ -10,7 +10,7 @@ module Language.PlutusCore
     , parseTerm
     , parseType
     , parseScoped
-    -- * Universe
+    -- * Builtins
     , Some (..)
     , TypeIn (..)
     , ValueOf (..)
