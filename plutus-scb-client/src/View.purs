@@ -110,12 +110,12 @@ webSocketStatusIcon webSocketStatus =
   webSocketStatusClass = ClassName "web-socket-status"
 
 mainPane ::
-  forall p t.
+  forall p.
   View ->
   ContractStates ->
   Chain.State ->
   WebStreamData ContractSignatures ->
-  ChainReport t ->
+  ChainReport ->
   Array (ChainEvent ContractExe) ->
   HTML p HAction
 mainPane currentView contractStates chainState contractSignatures chainReport events =
@@ -153,10 +153,10 @@ activeContractPane currentView contractSignatures contractStates =
       ]
 
 blockchainPane ::
-  forall p t.
+  forall p.
   View ->
   Chain.State ->
-  ChainReport t -> HTML p HAction
+  ChainReport -> HTML p HAction
 blockchainPane currentView chainState chainReport =
   viewContainer currentView Blockchain
     [ row_
@@ -164,7 +164,7 @@ blockchainPane currentView chainState chainReport =
         ]
     ]
 
-eventLogPane :: forall p t. View -> Array (ChainEvent ContractExe) -> ChainReport t -> HTML p HAction
+eventLogPane :: forall p. View -> Array (ChainEvent ContractExe) -> ChainReport -> HTML p HAction
 eventLogPane currentView events chainReport =
   viewContainer currentView EventLog
     [ row_

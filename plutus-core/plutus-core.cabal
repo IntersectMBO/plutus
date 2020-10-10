@@ -121,6 +121,7 @@ library
         Language.UntypedPlutusCore.DeBruijn
         Language.UntypedPlutusCore.Evaluation.Machine.Cek
         Language.UntypedPlutusCore.Parser
+        Language.UntypedPlutusCore.Rename
 
         PlutusPrelude
         Common
@@ -200,9 +201,14 @@ library
         Language.UntypedPlutusCore.Core.Instance.Pretty.Classic
         Language.UntypedPlutusCore.Core.Instance.Pretty.Plc
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
+        Language.UntypedPlutusCore.Core.Instance.Recursive
         Language.UntypedPlutusCore.Core.Instance.CBOR
         Language.UntypedPlutusCore.Core.Type
         Language.UntypedPlutusCore.Core.Plated
+        Language.UntypedPlutusCore.Analysis.Definitions
+        Language.UntypedPlutusCore.Check.Uniques
+        Language.UntypedPlutusCore.Mark
+        Language.UntypedPlutusCore.Rename.Internal
         Language.UntypedPlutusCore.Size
         Language.UntypedPlutusCore.Subst
 

@@ -34,7 +34,7 @@ data ContractReport t =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-data ChainReport t =
+data ChainReport =
     ChainReport
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
@@ -47,7 +47,7 @@ data ChainReport t =
 data FullReport t =
     FullReport
         { contractReport :: ContractReport t
-        , chainReport    :: ChainReport t
+        , chainReport    :: ChainReport
         , events         :: [ChainEvent t]
         }
     deriving (Show, Eq, Generic)
@@ -72,7 +72,7 @@ deriving via (Tagged "stream_to_server" StreamToServer) instance
          StructuredLog StreamToServer
 
 data StreamToClient
-    = NewChainReport (ChainReport ContractExe)
+    = NewChainReport ChainReport
     | NewContractReport (ContractReport ContractExe)
     | NewChainEvents [ChainEvent ContractExe]
     | FetchedProperties [Metadata.Property]

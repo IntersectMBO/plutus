@@ -268,17 +268,17 @@ unindent :: PLC.Doc ann -> [Prelude.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
--- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
-{-# INLINABLE numTests #-}
-numTests :: Integer
-numTests = 100
-
 -- Initialise the RNG
 {-# INLINABLE initState #-}
 initState :: RNGstate
 initState = initRNG 111 47
 
 type Result = Tx.Bool
+
+-- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
+{-# INLINABLE numTests #-}
+numTests :: Integer
+numTests = 100
 
 composite :: Result
 composite = Tx.False
@@ -312,6 +312,3 @@ mkPrimeTerm pid =
         [|| \n -> process n initState ||])
         `Tx.applyCode` Tx.liftCode (getPrime pid)
   in code
-
-
-                 

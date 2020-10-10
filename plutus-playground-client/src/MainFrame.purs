@@ -33,7 +33,7 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
-import Data.Lens (Traversal', _Just, _Right, assign, modifying, over, to, traversed, use)
+import Data.Lens (Traversal', _Right, assign, modifying, over, to, traversed, use, view)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -47,7 +47,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
-import Gist (_GistId, gistFileContent, gistId)
+import Gist (_GistId, gistId)
 import Gists (GistAction(..))
 import Gists as Gists
 import Halogen (Component, hoist)
@@ -434,14 +434,14 @@ handleGistAction LoadGist =
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
         -- Load the source, if available.
-        content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
+        content <- noteT "Source not found in gist." $ view playgroundGistFile gist
         lift $ editorSetContents (SourceCode content) (Just 1)
         lift $ saveBuffer content
         assign _simulations Cursor.empty
         assign _evaluationResult NotAsked
         --
         -- Load the simulation, if available.
-        simulationString <- noteT "Simulation not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (simulationGistFile gist)
+        simulationString <- noteT "Simulation not found in gist." $ view simulationGistFile gist
         simulations <- mapExceptT (pure <<< unwrap) $ withExceptT renderForeignErrors $ decodeJSON simulationString
         assign _simulations simulations
   where

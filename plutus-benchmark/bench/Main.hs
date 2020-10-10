@@ -6,6 +6,7 @@ import qualified Data.Map                                                   as M
 
 import           Language.PlutusCore                                        (Name (..))
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Universe
 import           Language.UntypedPlutusCore
@@ -18,9 +19,11 @@ import qualified Plutus.Benchmark.Queens                                    as Q
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
 
+
+
 benchCek :: Term Name DefaultUni () -> Benchmarkable
 benchCek program =
-  nf (unsafeEvaluateCek emptyBuiltins defaultCostModel)
+  nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel)
      program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable

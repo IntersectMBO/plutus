@@ -219,7 +219,7 @@ executable plutus-scb
         mtl -any,
         optparse-applicative -any,
         playground-common -any,
-        plutus-scb -any,
+        plutus-scb,
         plutus-ledger -any,
         plutus-contract -any,
         plutus-use-cases -any,
@@ -248,7 +248,7 @@ executable plutus-game
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-scb -any,
+        plutus-scb,
         plutus-use-cases -any
 
 executable plutus-currency
@@ -261,7 +261,7 @@ executable plutus-currency
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-scb -any,
+        plutus-scb,
         plutus-use-cases -any
 
 executable plutus-atomic-swap
@@ -274,7 +274,7 @@ executable plutus-atomic-swap
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-scb -any
+        plutus-scb
 
 executable plutus-pay-to-wallet
     main-is: Main.hs
@@ -286,7 +286,7 @@ executable plutus-pay-to-wallet
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         base >=4.9 && <5,
-        plutus-scb -any
+        plutus-scb
 
 test-suite plutus-scb-test
     default-language: Haskell2010
@@ -312,7 +312,7 @@ test-suite plutus-scb-test
         monad-logger -any,
         mtl -any,
         plutus-contract -any,
-        plutus-scb -any,
+        plutus-scb,
         plutus-use-cases -any,
         plutus-ledger -any,
         quickcheck-instances -any,

@@ -47,7 +47,7 @@ clausifyOptions =
                                 help "How many times you want the formula replicated")
            P.<*> argument (eitherReader clausifyFormulaReader)
                           (metavar "FORMULA" P.<>
-                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 5A or 6")
+                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 6 or 7")
 
 queensOptions :: Parser Command
 queensOptions =

@@ -16,7 +16,7 @@ import           Test.Tasty                     (TestTree, testGroup)
 import           Test.Tasty.QuickCheck          (testProperty, (===))
 
 tests :: TestTree
-tests = testGroup "SCB.Relation" [innerJoinTests, outerJoinTests]
+tests = testGroup "Plutus.SCB.Relation" [innerJoinTests, outerJoinTests]
 
 innerJoinTests :: TestTree
 innerJoinTests =

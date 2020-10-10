@@ -1,5 +1,6 @@
 module Types where
 
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Prelude
 import Cardano.Metadata.Types (PropertyDescription(..), PropertyKey(..))
 import Cardano.Metadata.Types as Metadata
@@ -21,7 +22,6 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
@@ -94,7 +94,7 @@ newtype State
   = State
   { currentView :: View
   , contractSignatures :: WebStreamData ContractSignatures
-  , chainReport :: WebData (ChainReport ContractExe)
+  , chainReport :: WebData ChainReport
   , events :: WebData (Array (ChainEvent ContractExe))
   , chainState :: Chain.State
   , contractStates :: ContractStates
@@ -136,10 +136,10 @@ _metadata ::
     )
 _metadata = _Newtype <<< prop (SProxy :: SProxy "metadata")
 
-_annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
+_annotatedBlockchain :: forall t. Lens' ChainReport (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
-_transactionMap :: forall t. Lens' (ChainReport t) (Map TxId Tx)
+_transactionMap :: forall t. Lens' ChainReport (Map TxId Tx)
 _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 
 _webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
@@ -151,7 +151,7 @@ _webSocketStatus = _Newtype <<< prop (SProxy :: SProxy "webSocketStatus")
 _contractReport :: forall s a r. Newtype s { contractReport :: a | r } => Lens' s a
 _contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
 
-_utxoIndex :: forall t. Lens' (ChainReport t) UtxoIndex
+_utxoIndex :: forall t. Lens' ChainReport UtxoIndex
 _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 
 _crAvailableContracts :: forall t. Lens' (ContractReport t) (Array (ContractSignatureResponse t))
