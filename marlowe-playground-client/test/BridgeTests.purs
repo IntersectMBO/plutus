@@ -102,7 +102,6 @@ serializationTest =
     equal (Right contract) (runExcept $ decodeJSON bridgedJson)
     equal (Right state) (runExcept $ decodeJSON bridgedStateJson)
 
-
 assertRight :: forall a. Either MultipleErrors a -> Test
 assertRight (Left err) = failure (show err)
 
