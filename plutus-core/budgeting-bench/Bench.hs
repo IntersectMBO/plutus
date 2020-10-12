@@ -33,6 +33,7 @@ runTermBench name term = env
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
 
+-- Copying the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: StaticBuiltinName -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
@@ -55,6 +56,7 @@ createTwoTermBuiltinBench name as bs =
 benchComparison :: [Benchmark]
 benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (createRecursiveTerm n)) <$> [1..20]
 
+-- Creates a cheap builtin operation to measure the base cost of executing one.
 createRecursiveTerm :: Integer -> Plain Term DefaultUni
 createRecursiveTerm d = mkIterApp () (staticBuiltinNameAsTerm AddInteger) [(mkConstant () (1::Integer)), if d == 0 then (mkConstant () (1::Integer)) else (createRecursiveTerm (d - 1))]
 
