@@ -9,6 +9,7 @@ import           Language.Marlowe                                      (Observat
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (ContractRole, DCC)
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
+import           Agda.Syntax.Concrete                                  (Expr(..))
 
 marloweFixedPoint :: Integer
 marloweFixedPoint = 1000
