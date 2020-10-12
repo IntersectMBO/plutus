@@ -22,6 +22,7 @@ import           Control.Monad.Reader                             (MonadReader)
 import           Data.Aeson                                       (encode)
 import qualified Data.ByteString                                  as BS
 import qualified Data.ByteString.Char8                            as BS8
+import qualified Data.ByteString.Lazy.Char8                       as Char8
 import           Data.Monoid                                      ()
 import           Data.Proxy                                       (Proxy (Proxy))
 import qualified Data.Set                                         as Set ()
@@ -232,7 +233,7 @@ writePangramJson outputDir = do
                     (Slot 100)
                     Close
                 )
-        encodedPangram = BS8.pack $ show $ encode pangram
+        encodedPangram = BS8.pack . Char8.unpack $ encode pangram
         state =
             State
             { accounts = Map.singleton (alicePk, token) 12
@@ -240,7 +241,7 @@ writePangramJson outputDir = do
             , boundValues = Map.fromList [ ((ValueId "x"), 1), ((ValueId "y"), 2) ]
             , minSlot = Slot 123
             }
-        encodedState = BS8.pack $ show $ encode state
+        encodedState = BS8.pack . Char8.unpack $ encode state
     createDirectoryIfMissing True (outputDir </> "JSON")
     BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
     BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
