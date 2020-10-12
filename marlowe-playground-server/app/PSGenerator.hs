@@ -241,6 +241,7 @@ writePangramJson outputDir = do
             , minSlot = Slot 123
             }
         encodedState = BS8.pack $ show $ encode state
+    createDirectoryIfMissing True (outputDir </> "JSON")
     BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
     BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
         
