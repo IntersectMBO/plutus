@@ -37,3 +37,8 @@ signingProcessConfig:
 
 metadataServerConfig:
   mdBaseUrl: http://localhost:8085
+
+# Optional EKG Server Config
+# ----
+# monitoringConfig:
+#   monitoringPort: 8090

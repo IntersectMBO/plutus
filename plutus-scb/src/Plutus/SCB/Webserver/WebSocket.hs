@@ -33,8 +33,8 @@ import           Plutus.SCB.Events              (ChainEvent)
 import           Plutus.SCB.SCBLogMsg           (SCBLogMsg)
 import           Plutus.SCB.Types               (Config, ContractExe, SCBError)
 import           Plutus.SCB.Webserver.Handler   (getChainReport, getContractReport, getEvents)
-import           Plutus.SCB.Webserver.Types     (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport, Pong),
-                                                 StreamToServer (FetchProperties, FetchProperty, Ping),
+import           Plutus.SCB.Webserver.Types     (StreamToClient (ErrorResponse, FetchedProperties, FetchedProperty, NewChainEvents, NewChainReport, NewContractReport),
+                                                 StreamToServer (FetchProperties, FetchProperty),
                                                  WebSocketLogMsg (ClosedConnection, CreatedConnection, ReceivedWebSocketRequest, SendingWebSocketResponse))
 import           Wallet.Effects                 (ChainIndexEffect)
 
@@ -131,8 +131,7 @@ queryHandlerThread connection =
     handler (FetchProperties subject) =
         FetchedProperties <$> Metadata.getProperties subject
     handler (FetchProperty subject propertyKey) =
-        FetchedProperty <$> Metadata.getProperty subject propertyKey
-    handler Ping = pure Pong
+        FetchedProperty subject <$> Metadata.getProperty subject propertyKey
 
 ------------------------------------------------------------
 -- Plumbing

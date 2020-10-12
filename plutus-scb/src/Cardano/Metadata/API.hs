@@ -1,13 +1,14 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds      #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeOperators  #-}
 
 module Cardano.Metadata.API
     ( API
     ) where
 
-import           Cardano.Metadata.Types (Property, PropertyKey, Subject)
+import           Cardano.Metadata.Types (JSONEncoding, Property, PropertyKey, Subject, SubjectProperties)
 import           Servant.API            ((:<|>), (:>), Capture, Get, JSON)
 
-type API
-     = "metadata" :> Capture "subject" Subject :> ("properties" :> Get '[ JSON] [Property]
-                                                   :<|> "property" :> Capture "property" PropertyKey :> Get '[ JSON] Property)
+type API (encoding :: JSONEncoding)
+     = "metadata" :> Capture "subject" Subject :> ("properties" :> Get '[ JSON] (Maybe (SubjectProperties encoding))
+                                                   :<|> "property" :> Capture "property" PropertyKey :> Get '[ JSON] (Maybe (Property encoding)))

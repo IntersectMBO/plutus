@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -18,7 +19,7 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect)
+import           Cardano.Metadata.Types                          (MetadataEffect, SubjectProperties (SubjectProperties))
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
@@ -29,6 +30,7 @@ import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
 import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
+import           Data.Traversable                                (for)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -86,9 +88,15 @@ getChainReport = do
     let wallets = Wallet <$> [1 .. 10]
     relatedMetadata <-
         mconcat <$>
-        traverse
-            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
-            wallets
+        for wallets
+            (\wallet -> do
+                 let subject =
+                         Metadata.toSubject . pubKeyHash . walletPubKey $ wallet
+                 result <- Metadata.getProperties subject
+                 case result of
+                     Just (SubjectProperties _ properties) ->
+                         pure $ Map.singleton subject properties
+                     Nothing -> pure mempty)
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport
