@@ -149,7 +149,6 @@ data TermG tyname name
     deriving (Typeable, Eq, Show)
 
 deriveBifunctor ''TermG
-deriveEnumerable ''StaticBuiltinName
 deriveEnumerable ''TermG
 
 type ClosedTermG = TermG Z Z
@@ -157,28 +156,11 @@ type ClosedTermG = TermG Z Z
 
 -- * Converting types
 
-<<<<<<< HEAD
-
--- NOTE: The errors we need to handle in property based testing are
---       when the generator generates garbage or we encounter an
---       actual type error in testing.
-
-data GenError
- =  forall n. Show n => Gen (TypeG n) (Kind ())
-
-data ErrorP ann
- = TypeErrorP (TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni ann)
- | AgdaErrorP ()
- | GenErrorP GenError
- | FVErrorP FreeVariableError
-
-=======
 -- |Convert generated builtin types to Plutus builtin types.
 convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
 convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
 convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
->>>>>>> 4e92b959b8e501591dc53e772bf27f3d58557557
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -247,7 +229,7 @@ convertTerm
   -> NameState name     -- ^ Name environment with fresh name stream
   -> TypeG tyname       -- ^ Type of term below
   -> TermG tyname name  -- ^ Term to convert
-  -> m (Term TyName Name DefaultUni ())
+  -> m (Term TyName Name DefaultUni fun ())
 convertTerm _tns ns _ty (VarG i) =
   return (Var () (nameOf ns i))
 convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
@@ -270,7 +252,7 @@ convertClosedTerm
   -> Stream.Stream Text.Text
   -> ClosedTypeG
   -> ClosedTermG
-  -> m (Term TyName Name DefaultUni ())
+  -> m (Term TyName Name DefaultUni fun ())
 convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
 

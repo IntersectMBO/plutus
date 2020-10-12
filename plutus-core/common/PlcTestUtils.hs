@@ -26,21 +26,19 @@ import           PlutusPrelude
 
 import           Common
 
-import qualified Language.PlutusCore                                        as TPLC
+import qualified Language.PlutusCore                               as TPLC
 import           Language.PlutusCore.DeBruijn
-import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as TPLC
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import qualified Language.PlutusCore.Evaluation.Machine.Cek        as TPLC
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import qualified Language.UntypedPlutusCore                                 as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
+import qualified Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Data.Text.Prettyprint.Doc                                  as PP
+import qualified Data.Text.Prettyprint.Doc                         as PP
 import           System.IO.Unsafe
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
@@ -73,26 +71,22 @@ rethrow :: ExceptT SomeException IO a -> IO a
 rethrow = fmap (either throw id) . runExceptT
 
 runTPlc
-    :: ( ToTPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage,
-         uni `Everywhere` PrettyConst, Typeable uni, Typeable fun
-       )
-    => [a] -> ExceptT SomeException IO (TPLC.EvaluationResult (TPLC.Term TPLC.TyName TPLC.Name uni fun ()))
+    :: ToTPlc a DefaultUni TPLC.DefaultFun
+    => [a]
+    -> ExceptT SomeException IO (TPLC.EvaluationResult (TPLC.Term TPLC.TyName TPLC.Name DefaultUni TPLC.DefaultFun ()))
 runTPlc values = do
     ps <- traverse toTPlc values
     let (TPLC.Program _ _ t) = foldl1 TPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCek mempty defaultCostModel t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCek TPLC.defBuiltinsRuntimeInfo t
 
 runUPlc
-    :: ( ToUPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage,
-         uni `Everywhere` PrettyConst, Typeable uni, Typeable fun
-       )
-    => [a] -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term TPLC.Name uni fun ()))
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
+    => [a]
+    -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term TPLC.Name DefaultUni TPLC.DefaultFun ()))
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCek mempty defaultCostModel t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCek TPLC.defBuiltinsRuntimeInfo t
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
@@ -101,61 +95,49 @@ ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 
 goldenTPlc
-    :: (ToTPlc a uni fun, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
-     => String -> a -> TestNested
+    :: ToTPlc a DefaultUni TPLC.DefaultFun
+    => String -> a -> TestNested
 goldenTPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toTPlc value
     withExceptT toException $ deBruijnProgram p
 
 goldenTPlcCatch
-    :: (ToTPlc a uni fun, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
+    :: ToTPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenTPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toTPlc value
     withExceptT toException $ deBruijnProgram p
 
 goldenUPlc
-    :: (ToUPlc a uni fun, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
      => String -> a -> TestNested
 goldenUPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toUPlc value
     withExceptT toException $ UPLC.deBruijnProgram p
 
 goldenUPlcCatch
-    :: (ToUPlc a uni fun, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenUPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toUPlc value
     withExceptT toException $ UPLC.deBruijnProgram p
 
 goldenTEval
-    :: ( ToTPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst
-       , Typeable uni, Typeable fun
-       )
+    :: ToTPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenTEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runTPlc values)
 
 goldenUEval
-    :: ( ToUPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst
-       , Typeable uni, Typeable fun
-       )
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runUPlc values)
 
 goldenTEvalCatch
-    :: ( ToTPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst
-       , Typeable uni, Typeable fun
-       )
+    :: ToTPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenTEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runTPlc values
 
 goldenUEvalCatch
-    :: ( ToUPlc a uni fun, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst
-       , Typeable uni, Typeable fun
-       )
+    :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc values

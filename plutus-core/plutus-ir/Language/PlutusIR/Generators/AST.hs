@@ -15,8 +15,8 @@ module Language.PlutusIR.Generators.AST
 
 import           Language.PlutusIR
 
-import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind,
-                                                               genStaticBuiltin, genVersion, runAstGen, simpleRecursive)
+import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion,
+                                                               runAstGen, simpleRecursive)
 import qualified Language.PlutusCore.Generators.AST as PLC
 import qualified Language.PlutusCore.Universe       as PLC
 

@@ -8,33 +8,31 @@
 
 module Main (main) where
 
-import qualified Language.PlutusCore                                        as PLC
-import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
-import qualified Language.PlutusCore.Generators                             as PLC
-import qualified Language.PlutusCore.Generators.Interesting                 as PLC
-import qualified Language.PlutusCore.Generators.Test                        as PLC
-import qualified Language.PlutusCore.Pretty                                 as PLC
-import qualified Language.PlutusCore.StdLib.Data.Bool                       as PLC
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as PLC
-import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
-import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
+import qualified Language.PlutusCore                        as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
+import qualified Language.PlutusCore.Generators             as PLC
+import qualified Language.PlutusCore.Generators.Interesting as PLC
+import qualified Language.PlutusCore.Generators.Test        as PLC
+import qualified Language.PlutusCore.Pretty                 as PLC
+import qualified Language.PlutusCore.StdLib.Data.Bool       as PLC
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
+import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
+import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
 import           Codec.Serialise
-import           Control.DeepSeq                                            (rnf)
+import           Control.DeepSeq                            (rnf)
 import           Control.Monad
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import           Data.Bifunctor                                             (second)
-import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Foldable                                              (traverse_)
-import qualified Data.Text                                                  as T
-import           Data.Text.Encoding                                         (encodeUtf8)
-import qualified Data.Text.IO                                               as T
+import           Control.Monad.Trans.Except                 (runExceptT)
+import           Data.Bifunctor                             (second)
+import qualified Data.ByteString.Lazy                       as BSL
+import           Data.Foldable                              (traverse_)
+import qualified Data.Text                                  as T
+import           Data.Text.Encoding                         (encodeUtf8)
+import qualified Data.Text.IO                               as T
 import           Data.Text.Prettyprint.Doc
 import           Options.Applicative
-import           System.CPUTime                                             (getCPUTime)
+import           System.CPUTime                             (getCPUTime)
 import           System.Exit
 import           Text.Printf
 
@@ -54,8 +52,8 @@ import           Text.Printf
  -}
 
 
-type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () ()
-type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () PLC.AlexPosn
+type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 type PlcParserError = PLC.Error PLC.DefaultUni () PLC.AlexPosn
 
 
@@ -275,10 +273,10 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
   prog <- getProg inp fmt
   case PLC.runQuoteT $ do
-    types <- PLC.getStringBuiltinTypes ()
-    PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
+    tcConfig <- PLC.getDefTypeCheckConfig ()
+    PLC.typecheckPipeline tcConfig (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni () ()) -> do
+       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> do
            putStrLn $ PLC.displayPlcDef e
            exitFailure
        Right ty -> do
@@ -292,8 +290,8 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt printtime) = do
   prog <- getProg inp fmt
   let evalFn = case mode of
-                 CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni ()))
-                 CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni ())) PLC.defaultCostModel
+                 CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntimeInfo
+                 CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntimeInfo
       body = void . PLC.toTerm $ prog
       _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
   start <- getCPUTime
@@ -352,7 +350,7 @@ runCborToPlc (CborToPlcOptions inp outp mode) = do
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
 data TermExample = TermExample
     (PLC.Type PLC.TyName PLC.DefaultUni ())
-    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())
+    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
@@ -366,14 +364,18 @@ prettyExample (SomeTypeExample (TypeExample _ ty))   = PLC.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
     PLC.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () () -> TermExample
+toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
-    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
-        Left (err :: PLC.Error PLC.DefaultUni () ()) -> error $ PLC.displayPlcDef err
-        Right vTy                                    -> PLC.unNormalized vTy
+    ty =
+        case PLC.runQuote . runExceptT $ do
+            tcConfig <- PLC.getDefTypeCheckConfig ()
+            PLC.typecheckPipeline tcConfig program
+        of
+          Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> error $ PLC.displayPlcDef err
+          Right vTy                                                -> PLC.unNormalized vTy
 
-getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () ())]
+getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]
 getInteresting =
     sequence $ PLC.fromInterestingTermGens $ \name gen -> do
         PLC.TermOf term _ <- PLC.getSampleTermValue gen

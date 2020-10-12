@@ -63,13 +63,13 @@ class ToBuiltinMeaning uni fun where
         :: HasConstantIn uni term
         => fun -> BuiltinMeaning term (DynamicPart uni fun) (CostingPart uni fun)
 
-toBuiltinRuntimeInfos
+toBuiltinsRuntimeInfo
     :: ( dyn ~ DynamicPart uni fun, cost ~ CostingPart uni fun
        , HasConstantIn uni term, ToBuiltinMeaning uni fun
        , Bounded fun, Enum fun, Ix fun
        )
     => dyn -> cost -> BuiltinsRuntimeInfo fun term
-toBuiltinRuntimeInfos dyn cost =
+toBuiltinsRuntimeInfo dyn cost =
     BuiltinsRuntimeInfo . tabulate $ toBuiltinRuntimeInfo dyn cost . toBuiltinMeaning
 
 lookupBuiltin

@@ -16,6 +16,7 @@ module Language.PlutusCore.Builtins where
 import           Language.PlutusCore.Constant.Meaning
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Universe
@@ -25,12 +26,12 @@ import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Control.DeepSeq
 import           Crypto
-import qualified Data.ByteString                                    as BS
-import qualified Data.ByteString.Hash                               as Hash
+import qualified Data.ByteString                                            as BS
+import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Hashable
 import           Data.Ix
 import           Data.Text.Prettyprint.Doc
-import           Debug.Trace                                        (traceIO)
+import           Debug.Trace                                                (traceIO)
 import           GHC.Generics
 import           System.IO.Unsafe
 
@@ -126,8 +127,10 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 integerToInt :: Integer -> Int
 integerToInt = fromIntegral
 
-instance (GShow uni, GEq uni, uni `IncludesAll` '[(), Bool, Integer, Char, String, BS.ByteString]) =>
-            ToBuiltinMeaning uni DefaultFun where
+defBuiltinsRuntimeInfo :: HasConstantIn DefaultUni term => BuiltinsRuntimeInfo DefaultFun term
+defBuiltinsRuntimeInfo = toBuiltinsRuntimeInfo mempty defaultCostModel
+
+instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type DynamicPart uni DefaultFun = DefaultFunDyn
     type CostingPart uni DefaultFun = CostModel
     toBuiltinMeaning AddInteger =

@@ -9,7 +9,6 @@ module Language.PlutusCore.Generators.AST
     , genName
     , genTyName
     , genKind
-    , genStaticBuiltin
     , genBuiltin
     , genConstant
     , genType
@@ -60,9 +59,7 @@ genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
     let isKeyword n = n `elem` fmap display allKeywords
-        isBuiltin n = n `elem` fmap display allStaticBuiltins
-        isReserved t = isKeyword t || isBuiltin t
-        genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
+        genText = Gen.filterT (not . isKeyword) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
         text <- genText
         return $ Name text uniq
@@ -78,11 +75,8 @@ genKind = simpleRecursive nonRecursive recursive where
     nonRecursive = pure <$> sequence [Type] ()
     recursive = [KindArrow () <$> genKind <*> genKind]
 
-genStaticBuiltin :: AstGen StaticBuiltin
-genStaticBuiltin = Gen.element allStaticBuiltins
-
-genBuiltin :: AstGen Builtin
-genBuiltin = StaticBuiltin <$> genStaticBuiltin
+genBuiltin :: (Bounded fun, Enum fun) => AstGen fun
+genBuiltin = Gen.element [minBound .. maxBound]
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice

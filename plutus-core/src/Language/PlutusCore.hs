@@ -10,6 +10,7 @@ module Language.PlutusCore
     , parseTerm
     , parseType
     , parseScoped
+    , nullAlexPosn
     -- * Builtins
     , Some (..)
     , TypeIn (..)
@@ -90,6 +91,7 @@ module Language.PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
+    , defBuiltinsRuntimeInfo
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
