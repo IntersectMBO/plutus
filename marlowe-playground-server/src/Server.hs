@@ -54,19 +54,19 @@ type Web = "api" :> (API :<|> Auth.API)
 mkHandlers :: (MonadIO m) => AppConfig -> m (Server Web)
 mkHandlers AppConfig {..} = do
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
-  pure $ (mhandlers :<|> liftedAuthServer githubEndpoints authConfig)
+  pure (mhandlers :<|> liftedAuthServer githubEndpoints authConfig)
 
 mhandlers :: Server API
 mhandlers = genActusContract :<|> genActusContractStatic
 
 app :: Server Web -> Application
 app handlers =
-  cors (const $ Just policy) . serve (Proxy @Web) $ handlers
+  cors (const $ Just policy) $ serve (Proxy @Web) handlers
   where
     policy =
       simpleCorsResourcePolicy
 
-data AppConfig = AppConfig {authConfig :: Auth.Config}
+newtype AppConfig = AppConfig {authConfig :: Auth.Config}
 
 initializeContext :: IO AppConfig
 initializeContext = do

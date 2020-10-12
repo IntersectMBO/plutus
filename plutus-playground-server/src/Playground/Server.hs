@@ -92,7 +92,7 @@ mkHandlers AppConfig {..} = do
 
 app :: Server Web -> Application
 app handlers =
-  cors (const $ Just policy) . serve (Proxy @Web) $ handlers
+  cors (const $ Just policy) $ serve (Proxy @Web) handlers
   where
     policy =
       simpleCorsResourcePolicy

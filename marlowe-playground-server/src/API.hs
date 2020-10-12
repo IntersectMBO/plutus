@@ -1,9 +1,6 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TypeOperators      #-}
 
 module API where
 
