@@ -308,8 +308,107 @@ makes it rather difficult to see what the code is actually doing, and
 the performance may be very device-dependent, so we may need different
 cost models for different architectures.
 
+\subsection*{ByteString Operations}
+
+In this part, we'll talk about the builtins which work with bytestrings.
+
+\subsubsection*{EqByteString \& LtByteString \& GtByteString}
+
+The figure for bytestring equality \ref{fig:EqByteString} shows a similar a
+strict correlation as integer equality. Plotted here is only the case where both
+strings are the same size. In all other cases, the equality comparison shortcuts
+effectively. So only this data is used to fit the model. The model is the same
+as for integer equality.  
+
+Not shown here are LtByteString and GtByteString, but their worst case is always
+equality, assuming they compare bytewise. So the same model as EqByteString can
+be used.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/EqByteString.png}
+  \caption{Execution times for \texttt{EqByteString}: small inputs, logarithm of inputs}
+  \label{fig:EqByteString}
+\end{figure}
+
+\subsubsection*{Concatenate}
+
+The distribution for Concatenate looks just like the one for AddInteger. So the
+same model is applied, which results in \ref{fig:ConcatenateFullModel}.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/ConcatenateFullModel.png}
+  \caption{Model for \texttt{Concatenate}. Blue is predicted, orange is measured.}
+  \label{fig:ConcatenateFullModel}
+\end{figure}
+
+However, this model underpredicts the values of larger values by quite a bit. A
+better approach is that use only the values below
+\ref{fig:ConcatenateSmallModel}, which only uses the values below 2000 for the
+model creation. A better solution would be to penalize underestimation over
+overestimation, see SCP-1250.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/ConcatenateSmallModel.png}
+  \caption{Model for \texttt{Concatenate}, with values of <2000 considered for the model}
+  \label{fig:ConcatenateSmallModel}
+\end{figure}
+
+\subsubsection*{TakeByteString \& DropByteString}
+
+Originally, I assumed the actual value of the amount of bytes fetched would be
+relevant. However, no such correlation is shown in the data. There are a lot of
+data points where the size of the drop/take integer argument is of size ExMemory
+1. These are $x^2$ where $x$ is $1..16$. So a lot of the small numbers are
+included, but they distribute randomly.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/TakeByteString.png}
+  \caption{Execution times for \texttt{TakeByteString}: small inputs, logarithm of inputs}
+  \label{fig:TakeByteString}
+\end{figure}
+
+\subsubsection*{SHA2 \& SHA3}
+
+The SHA2/SHA3 is clearly linear \ref{fig:SHA2}.
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/SHA2.png}
+  \caption{Execution times for \texttt{SHA2}: small inputs, logarithm of inputs}
+  \label{fig:SHA2}
+\end{figure}
+
+\subsubsection*{VerifySignature}
+
+The VerifySignature builtin has three arguments: content, signature, key. The
+size of signature and key are static, and a cryptographic operation should
+always take a constant time, independent if the signature is correct or not. So
+we only have to observe the size of the content argument.
+
+The operation time itself \ref{fig:VerifySignature} is similarly distributed to
+TakeByteString, so the average cost is used here as well. 
+
+\begin{figure}
+\centering
+  \includegraphics[width=0.8\textwidth]{figures/VerifySignature.png}
+  \caption{Execution times for \texttt{VerifySignature}: small inputs, logarithm of inputs}
+  \label{fig:VerifySignature}
+\end{figure}
 
 \subsection{Memory Models}
+
+For builtins, we make the base assumption that we don't count allocations which
+are only used within the builtin function and then freed again. The memory
+models are created against overusing resources in the executing node. So we
+don't have to count resources which cannot be used more than once at the same
+time, since it's not possible to stack said resource usage when executing the
+instruction twice in a row.
+
+\subsubsection*{Integer Operations}
 
 The first approach to measuring memory consumption of a builtin was similar to
 the CPU approach - measuring it via benchmarking. The tool for the job was
@@ -333,5 +432,13 @@ To avoid this complexity, the interpreter budgets for the worst possible case,
 and then calculates the actual usage to inform future operations. The offset is
 usually only one byte for integer operations, so this tradeoff was considered to
 be acceptable.
+
+\subsubsection*{ByteString Operations}
+
+Of the strict Bytestring operations, only \verb|Concatenate| will allocate new
+memory. The two buffers get copied into a new one for better memory coherence.
+Both \verb|TakeByteString| and \verb|DropByteString| don't allocate any more
+memory, as they reuse the existing buffers. The other bytestring operations
+return a bool, which has a static size.
 
 \end{document}
