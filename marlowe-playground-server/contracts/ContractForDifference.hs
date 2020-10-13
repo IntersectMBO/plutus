@@ -3,7 +3,7 @@ module ContractForDifference where
 
 import           Data.String      (IsString (fromString))
 import           Language.Marlowe
-import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<))
+import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<), (==))
 
 main :: IO ()
 main = print . pretty $ contract
