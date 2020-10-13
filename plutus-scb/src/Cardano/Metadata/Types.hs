@@ -216,7 +216,7 @@ instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
 instance ToJSON (AnnotatedSignature 'ExternalEncoding) where
     toJSON (AnnotatedSignature pubKey sig) =
         JSON.object
-            [ "signature" .= (encodeByteString (getSignature sig))
+            [ "signature" .= encodeByteString (getSignature sig)
             , "publicKey" .= getPubKey pubKey
             ]
 
