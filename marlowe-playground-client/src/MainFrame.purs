@@ -247,7 +247,7 @@ handleAction s (SimulationAction action) = do
   toSimulation (Simulation.handleAction s action)
   case action of
     ST.SetBlocklyCode -> do
-      mSource <- HaskellEditor.editorGetValue
+      mSource <- Simulation.editorGetValue
       for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
       selectView BlocklyEditor
     ST.GistAction gistAction -> handleGistAction s gistAction
