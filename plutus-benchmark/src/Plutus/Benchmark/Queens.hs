@@ -77,7 +77,7 @@ lookupAlgorithm :: Algorithm -> Labeler
 lookupAlgorithm Bt    = bt
 lookupAlgorithm Bm    = bm
 lookupAlgorithm Bjbt  = bjbt
-lookupAlgorithm Bjbt1 = bjbt'
+lookupAlgorithm Bjbt1 = bjbt'  -- bjbt' problematic on command line
 lookupAlgorithm Fc    = fc
 
 -- The main input parameter used by the Plutus version, the size of the board (n).

@@ -226,13 +226,15 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 input :: [Integer]
 input = [115756986668303657898962467957]
 
-data PrimeID = P10 | P20 | P30 | P40 | P50 | P60
+data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60
      deriving (Read, Show)
 
 {-# INLINABLE getPrime #-}
 getPrime :: PrimeID -> Integer
 getPrime =
     \case
+     P5  -> 56123
+     P8  -> 81241579
      P10 -> 9576890767
      P20 -> 40206835204840513073
      P30 -> 671998030559713968361666935769
@@ -242,6 +244,8 @@ getPrime =
             
 {- Some large primes and the time and space required to check them.
 
+  56123
+  81241579
   9576890767                                                   -- 10 digits: 2.4s,  0.9 GB
   40206835204840513073                                         -- 20 digits: 4.7s,  1.8 GB
   115756986668303657898962467957                               -- 30 digits: 7.3s,  3.3 GB

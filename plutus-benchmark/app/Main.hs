@@ -76,13 +76,15 @@ lastpieceOptions :: Parser Command
 lastpieceOptions = P.pure LastPiece
 
 primeIdReader :: String -> Either String Prime.PrimeID
+primeIdReader "5"  = Right Prime.P5
+primeIdReader "8"  = Right Prime.P8
 primeIdReader "10" = Right Prime.P10
 primeIdReader "20" = Right Prime.P20
 primeIdReader "30" = Right Prime.P30
 primeIdReader "40" = Right Prime.P40
 primeIdReader "50" = Right Prime.P50
 primeIdReader "60" = Right Prime.P60
-primeIdReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 10, 20, 30, 40, 50, or 60."
+primeIdReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 5, 8, 10, 20, 30, 40, 50, or 60."
 
 primeOptions :: Parser Command
 primeOptions =

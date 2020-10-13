@@ -46,6 +46,7 @@ config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
   , jsonFile   = Just "report.json"
+  , template   = "./default.tpl"
   , timeLimit  = 60.0  -- Run each benchmark for at least one minute
   }
 
@@ -70,12 +71,14 @@ main = defaultMainWith config [
                       , bench "formula6" $ benchClausify Clausify.F6
                       , bench "formula7" $ benchClausify Clausify.F7
                       ]
-  , bgroup "primetest" [ bench "10-digits" $ benchPrime Prime.P10
-                       , bench "20-digits" $ benchPrime Prime.P20
-                       , bench "30-digits" $ benchPrime Prime.P30
-                       , bench "40-digits" $ benchPrime Prime.P40
-                       , bench "50-digits" $ benchPrime Prime.P50
-                       , bench "60-digits" $ benchPrime Prime.P60
+  , bgroup "primetest" [ bench "5digits"  $ benchPrime Prime.P5
+                       , bench "8digits"  $ benchPrime Prime.P8
+                       , bench "10digits" $ benchPrime Prime.P10
+                       , bench "20digits" $ benchPrime Prime.P20
+                       , bench "30digits" $ benchPrime Prime.P30
+                       , bench "40digits" $ benchPrime Prime.P40
+                       , bench "50digits" $ benchPrime Prime.P50
+                       , bench "60digits" $ benchPrime Prime.P60
                        ]
   , bgroup "queens" [ -- N-queens problem on a 5x5 board
                       bench "bt"    $ benchQueens 5 Queens.Bt
@@ -84,7 +87,7 @@ main = defaultMainWith config [
                     , bench "bjbt1" $ benchQueens 5 Queens.Bjbt1
                     , bench "fc"    $ benchQueens 5 Queens.Fc
                     ]
-  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd
+  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd or N=4
                        bench "4x4" $ benchKnights 150 4
                      , bench "5x5" $ benchKnights 150 5
                      , bench "6x6" $ benchKnights 150 6
