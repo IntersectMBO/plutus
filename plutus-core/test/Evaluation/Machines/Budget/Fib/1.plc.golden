@@ -8,13 +8,13 @@
 | BVar causes ({ cpu: 13
 | mem: 13
 })
+| BBuiltin LessThanEqInteger causes ({ cpu: 15
+| mem: 1
+})
 | BIWrap causes ({ cpu: 1
 | mem: 1
 })
-| BBuiltin (StaticBuiltin LessThanEqInteger) causes ({ cpu: 15
-| mem: 1
-})
-| BBuiltin (StaticBuiltin IfThenElse) causes ({ cpu: 1
+| BBuiltin IfThenElse causes ({ cpu: 1
 | mem: 1
 })
 | BUnwrap causes ({ cpu: 2

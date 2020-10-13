@@ -28,7 +28,6 @@ import           Control.DeepSeq
 import           Crypto
 import qualified Data.ByteString                                            as BS
 import qualified Data.ByteString.Hash                                       as Hash
-import           Data.Hashable
 import           Data.Ix
 import           Data.Text.Prettyprint.Doc
 import           Debug.Trace                                                (traceIO)
@@ -127,8 +126,8 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 integerToInt :: Integer -> Int
 integerToInt = fromIntegral
 
-defBuiltinsRuntimeInfo :: HasConstantIn DefaultUni term => BuiltinsRuntimeInfo DefaultFun term
-defBuiltinsRuntimeInfo = toBuiltinsRuntimeInfo mempty defaultCostModel
+defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defBuiltinsRuntime = toBuiltinsRuntime mempty defaultCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type DynamicPart uni DefaultFun = DefaultFunDyn

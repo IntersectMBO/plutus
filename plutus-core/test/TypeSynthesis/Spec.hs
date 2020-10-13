@@ -6,7 +6,10 @@ module TypeSynthesis.Spec
     ( test_typecheck
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
@@ -20,14 +23,22 @@ import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-kindcheck :: MonadError (Error uni () ()) m => Type TyName uni () -> m (Type TyName uni ())
+kindcheck
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind defConfig ty
+    _ <- runQuoteT $ do
+        tcConfig <- getDefTypeCheckConfig ()
+        inferKind tcConfig ty
     return ty
 
-typecheck :: (MonadError (Error DefaultUni () ()) m) => Term TyName Name DefaultUni DefaultFun () -> m ()
+typecheck
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    => Term TyName Name uni fun () -> m ()
 typecheck term = do
-    _ <- runQuoteT $ inferType defConfig term
+    _ <- runQuoteT $ do
+        tcConfig <- getDefTypeCheckConfig ()
+        inferType tcConfig term
     return ()
 
 -- | Assert a 'Type' is well-kinded.
@@ -77,20 +88,20 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckStaticBuiltin :: StaticBuiltin -> TestTree
-test_typecheckStaticBuiltin name = goldenVsDoc testName path doc where
+test_typecheckDefaultFun :: DefaultFun -> TestTree
+test_typecheckDefaultFun name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfStaticBuiltin @DefaultUni name
+    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
 
-test_typecheckStaticBuiltins :: TestTree
-test_typecheckStaticBuiltins =
-    testGroup "built-in name" $ map test_typecheckStaticBuiltin allStaticBuiltins
+test_typecheckDefaultFuns :: TestTree
+test_typecheckDefaultFuns =
+    testGroup "built-in name" $ map test_typecheckDefaultFun enumeration
 
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
-        [ test_typecheckStaticBuiltins
+        [ test_typecheckDefaultFuns
         , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

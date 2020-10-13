@@ -103,7 +103,7 @@ instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
 newtype CkEnv uni fun = CkEnv
-    { ckEnvRuntimeInfo :: BuiltinsRuntimeInfo fun (CkValue uni fun)
+    { ckEnvRuntime :: BuiltinsRuntime fun (CkValue uni fun)
     }
 
 type CkM uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationException uni fun))
@@ -221,7 +221,7 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-    BuiltinRuntimeInfo _ arity _ _ <- ask >>= lookupBuiltin bn . ckEnvRuntimeInfo
+    BuiltinRuntime _ arity _ _ <- ask >>= lookupBuiltin bn . ckEnvRuntime
     stack <| VBuiltin bn arity arity [] []
 stack |> c@Constant{}          = stack <| VCon c
 _     |> _err@Error{}          =
@@ -318,7 +318,7 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    BuiltinRuntimeInfo sch _ f exF <- ask >>= lookupBuiltin bn . ckEnvRuntimeInfo
+    BuiltinRuntime sch _ f exF <- ask >>= lookupBuiltin bn . ckEnvRuntime
     result <- applyTypeSchemed bn sch f exF args
     case result of
         EvaluationSuccess t -> stack <| t
@@ -328,7 +328,7 @@ applyBuiltin stack bn args = do
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 evaluateCk
     :: (GShow uni, GEq uni, Ix fun)
-    => BuiltinsRuntimeInfo fun (CkValue uni fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
 evaluateCk bri term = runReaderT ([] |> term) $ CkEnv bri
@@ -339,7 +339,7 @@ unsafeEvaluateCk
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
        , Pretty fun, Ix fun
        )
-    => BuiltinsRuntimeInfo fun (CkValue uni fun)
+    => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
 unsafeEvaluateCk bri = either throw id . extractEvaluationResult . evaluateCk bri

@@ -1,7 +1,7 @@
 module Evaluation.DynamicBuiltins (test_dynamicBuiltins) where
 
-import           Evaluation.Builtins.Definition (test_definition)
-import           Evaluation.Builtins.MakeRead   (test_dynamicMakeRead)
+import           Evaluation.DynamicBuiltins.Definition (test_definition)
+import           Evaluation.DynamicBuiltins.MakeRead   (test_dynamicMakeRead)
 
 import           Test.Tasty
 

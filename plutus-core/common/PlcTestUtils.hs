@@ -77,7 +77,7 @@ runTPlc
 runTPlc values = do
     ps <- traverse toTPlc values
     let (TPLC.Program _ _ t) = foldl1 TPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCek TPLC.defBuiltinsRuntimeInfo t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCek TPLC.defBuiltinsRuntime t
 
 runUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
@@ -86,7 +86,7 @@ runUPlc
 runUPlc values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
-    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCek TPLC.defBuiltinsRuntimeInfo t
+    liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCek TPLC.defBuiltinsRuntime t
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

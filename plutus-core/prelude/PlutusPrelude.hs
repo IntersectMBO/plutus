@@ -64,6 +64,8 @@ module PlutusPrelude
     , mtraverse
     , foldMapM
     , reoption
+    , enumeration
+    , tabulate
     , (?)
     , ensure
     -- * Pretty-printing
@@ -89,6 +91,7 @@ import           Control.DeepSeq           (NFData)
 import           Control.Exception         (Exception, throw)
 import           Control.Lens
 import           Control.Monad             (guard, join, (<=<), (>=>))
+import           Data.Array
 import           Data.Bifunctor            (first, second)
 import           Data.Bool                 (bool)
 import           Data.Coerce               (Coercible, coerce)
@@ -96,6 +99,7 @@ import           Data.Either               (fromRight, isRight)
 import           Data.Foldable             (fold, toList)
 import           Data.Function             (on)
 import           Data.Functor              (void, ($>))
+import           Data.Functor.Compose
 import           Data.List                 (foldl')
 import           Data.List.NonEmpty        (NonEmpty (..))
 import           Data.Maybe                (fromMaybe, isJust, isNothing)
@@ -109,8 +113,6 @@ import           GHC.Generics
 import           GHC.Natural               (Natural)
 import           Text.PrettyBy.Default
 import           Text.PrettyBy.Internal
-
-import           Data.Functor.Compose
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
@@ -158,6 +160,12 @@ foldMapM f xs = foldr step return xs mempty where
 -- 'listToMaybe' and other such functions.
 reoption :: (Foldable f, Alternative g) => f a -> g a
 reoption = foldr (const . pure) empty
+
+enumeration :: (Bounded a, Enum a) => [a]
+enumeration = [minBound .. maxBound]
+
+tabulate :: (Bounded a, Enum a, Ix a) => (a -> b) -> Array a b
+tabulate f = listArray (minBound, maxBound) $ map f enumeration
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)

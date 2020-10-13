@@ -290,8 +290,8 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt printtime) = do
   prog <- getProg inp fmt
   let evalFn = case mode of
-                 CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntimeInfo
-                 CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntimeInfo
+                 CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
+                 CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
       body = void . PLC.toTerm $ prog
       _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
   start <- getCPUTime

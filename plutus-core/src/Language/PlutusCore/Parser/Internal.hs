@@ -31,7 +31,7 @@ parseError = throwError . Unexpected
 
 parseBuiltinFunction :: (Bounded fun, Enum fun, Pretty fun) => T.Text -> Maybe fun
 parseBuiltinFunction name =
-    foldr (\fun r -> if display fun == name then Just fun else r) Nothing [minBound .. maxBound]
+    foldr (\fun r -> if display fun == name then Just fun else r) Nothing enumeration
 
 --- Parsing built-in types and constants ---
 

@@ -10,7 +10,7 @@ module Language.PlutusCore
     , parseTerm
     , parseType
     , parseScoped
-    , nullAlexPosn
+    , topAlexPosn
     -- * Builtins
     , Some (..)
     , TypeIn (..)
@@ -91,7 +91,7 @@ module Language.PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
-    , defBuiltinsRuntimeInfo
+    , defBuiltinsRuntime
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
@@ -126,8 +126,8 @@ import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                      as BSL
 import qualified Data.Text                                 as T
 
-nullAlexPosn :: AlexPosn
-nullAlexPosn = AlexPn 0 0 0
+topAlexPosn :: AlexPosn
+topAlexPosn = AlexPn 0 0 0
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
@@ -156,7 +156,7 @@ printType
     -> m T.Text
 printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
-    config <- getDefTypeCheckConfig nullAlexPosn
+    config <- getDefTypeCheckConfig topAlexPosn
     inferTypeOfProgram config scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within

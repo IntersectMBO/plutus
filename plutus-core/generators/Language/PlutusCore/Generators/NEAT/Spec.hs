@@ -115,12 +115,12 @@ prop_typePreservation tyG tmG = do
 
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
-  tmCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntimeInfo tm
+  tmCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
 
-  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntimeInfo tm
+  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
   withExceptT
     (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
     (checkType tcConfig () tmCEK (Normalized ty))
@@ -148,8 +148,8 @@ prop_agree_Ck_Cek tyG tmG = do
 
   -- check if CK and CEK give the same output
 
-  tmCek <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntimeInfo tm
-  tmCk <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntimeInfo tm
+  tmCek <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
+  tmCk <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...

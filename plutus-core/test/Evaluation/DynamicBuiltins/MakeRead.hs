@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Evaluation.Builtins.MakeRead
+module Evaluation.DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
     ) where
 
@@ -13,7 +13,7 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
-import           Evaluation.Builtins.Common
+import           Evaluation.DynamicBuiltins.Common
 
 import           Hedgehog                                         hiding (Size, Var)
 import qualified Hedgehog.Gen                                     as Gen
@@ -31,7 +31,7 @@ readMakeHetero
     => a -> EvaluationResult b
 readMakeHetero x = do
     xTerm <- makeKnown @(Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCek mempty xTerm of
+    case extractEvaluationResult <$> typecheckReadKnownCek defBuiltinsRuntime xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res

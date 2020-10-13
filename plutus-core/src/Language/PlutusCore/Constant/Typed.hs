@@ -105,34 +105,6 @@ type family FoldArgsEx args where
     FoldArgsEx '[]           = ExBudget
     FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
 
--- TODO: talk about costing.
-{- Note [BuiltinMeaning]
-We represent the meaning of a 'Builtin' as a 'TypeScheme' and a Haskell denotation.
-We need both while evaluating a 'Builtin', because 'TypeScheme' is required for
-well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
-actually computes. We do not need denotations for type checking, nor strongly typed 'TypeScheme'
-is required, however analogously to static built-ins, we compute the types of dynamic built-ins from
-their 'TypeScheme's. This way we only define a 'TypeScheme', which we anyway need, and then compute
-the corresponding 'Type' from it. And we can't go the other way around -- from untyped to typed --
-of course. Therefore a typed thing has to go before the corresponding untyped thing and in the
-final pipeline one has to supply a 'BuiltinMeaning' for each of the 'Builtin's.
--}
-
--- -- See Note [BuiltinMeaning].
--- -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
--- -- and its Haskell denotation.
--- data BuiltinMeaning term dyn cost =
---     forall args res. BuiltinMeaning
---         (TypeScheme term args res)
---         (dyn -> FoldArgs args res)
---         (cost -> FoldArgsEx args)
-
--- class ToBuiltinMeaning uni fun where
---     toBuiltinMeaning :: HasConstantIn uni term => fun -> BuiltinMeaning term
-
-
-
-
 {- Note [Motivation for polymorphic built-in functions]
 We need to support polymorphism for built-in functions for these reasons:
 

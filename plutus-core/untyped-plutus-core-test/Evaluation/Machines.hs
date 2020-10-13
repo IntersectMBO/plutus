@@ -13,9 +13,9 @@ import           PlutusPrelude
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
-import qualified Language.PlutusCore                                        as Plc
+import qualified Language.PlutusCore                               as Plc
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.FsTree
@@ -24,22 +24,22 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Language.PlutusCore.Examples.Everything                    (examples)
-import           Language.PlutusCore.StdLib.Everything                      (stdLib)
+import           Language.PlutusCore.Examples.Everything           (examples)
+import           Language.PlutusCore.StdLib.Everything             (stdLib)
 
 import           Common
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
-import           Hedgehog                                                   hiding (Size, Var, eval)
+import           Hedgehog                                          hiding (Size, Var, eval)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 testMachine
     :: (Pretty internal, PrettyPlc termErr)
     => String
-    -> (Term Name DefaultUni () () ->
-            Either (EvaluationException internal user termErr) (Term Name DefaultUni () ()))
+    -> (Term Name DefaultUni DefaultFun () ->
+            Either (EvaluationException internal user DefaultFun termErr) (Term Name DefaultUni DefaultFun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
@@ -53,7 +53,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK" $ evaluateCek mempty defaultCostModel
+        [ testMachine "CEK" $ evaluateCek defBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -67,14 +67,14 @@ test_memory =
         $  stdLib
         <> examples
 
-testBudget :: TestName -> Term Name DefaultUni () () -> TestNested
+testBudget :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostModel term)
+        prettyPlcReadableDef $ runCek defBuiltinsRuntime (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
 
-bunchOfFibs :: PlcFolderContents DefaultUni ()
+bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
 bunchOfFibs =
     let
         fibFile i = plcTermFile (show i) (naiveFib i)
@@ -90,12 +90,12 @@ test_budget =
                                  (\name -> testBudget name . erase)
         $ examples <> bunchOfFibs
 
-testCounting :: TestName -> Term Name DefaultUni () () -> TestNested
+testCounting :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name
     (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
-        prettyPlcReadableDef $ runCekCounting mempty defaultCostModel term)
+        prettyPlcReadableDef $ runCekCounting defBuiltinsRuntime term)
 
 test_counting :: TestTree
 test_counting =

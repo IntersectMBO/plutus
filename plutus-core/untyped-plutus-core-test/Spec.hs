@@ -1,6 +1,6 @@
 module Main where
 
-import           Evaluation.ApplyBuiltin (test_applyStaticBuiltin)
+import           Evaluation.ApplyBuiltinName (test_applyStaticBuiltin)
 import           Evaluation.Machines
 
 import           Test.Tasty

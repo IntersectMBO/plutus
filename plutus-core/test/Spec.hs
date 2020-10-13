@@ -8,30 +8,29 @@ module Main
 
 import           PlutusPrelude
 
-import qualified Check.Spec                                                 as Check
-import           Evaluation.Spec                                            (test_evaluation)
+import qualified Check.Spec                                 as Check
+import           Evaluation.Spec                            (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
-import           TypeSynthesis.Spec                                         (test_typecheck)
+import           TypeSynthesis.Spec                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST                         as AST
+import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
-import qualified Language.PlutusCore.Generators.NEAT.Spec                   as NEAT
+import qualified Language.PlutusCore.Generators.NEAT.Spec   as NEAT
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.Text                                                  as T
-import           Data.Text.Encoding                                         (encodeUtf8)
-import           Hedgehog                                                   hiding (Var)
-import qualified Hedgehog.Gen                                               as Gen
+import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.Text                                  as T
+import           Data.Text.Encoding                         (encodeUtf8)
+import           Hedgehog                                   hiding (Var)
+import qualified Hedgehog.Gen                               as Gen
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -53,7 +52,7 @@ compareTyName :: TyName -> TyName -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'
 
 compareTerm
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
     => Term TyName Name uni fun a -> Term TyName Name uni fun a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
@@ -81,7 +80,7 @@ compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && com
 compareType _ _                                       = False
 
 compareProgram
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
     => Program TyName Name uni fun a -> Program TyName Name uni fun a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
@@ -102,7 +101,7 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni AlexPosn) p)
+    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni DefaultFun AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do
@@ -126,7 +125,7 @@ propDeBruijn gen = property . generalizeT $ do
     let
         forward = deBruijnTerm
         backward
-            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni () a)
+            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
             -> Except FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
@@ -156,7 +155,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     ]
 
 
-type TestFunction a = BSL.ByteString -> Either (Error DefaultUni () a) T.Text
+type TestFunction a = BSL.ByteString -> Either (Error DefaultUni DefaultFun a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -170,10 +169,10 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error DefaultUni () AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (Error DefaultUni DefaultFun AlexPosn) T.Text
 evalFile contents =
     second displayPlcDef $
-        unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
+        unsafeEvaluateCek defBuiltinsRuntime . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree
 testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)

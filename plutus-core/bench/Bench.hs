@@ -24,7 +24,7 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 msg = ""
 
-traceBuiltins :: QuoteT (Either (Error DefaultUni () ())) (BuiltinTypes DefaultUni)
+traceBuiltins :: QuoteT (Either (Error DefaultUni DefaultFun ())) (BuiltinTypes DefaultUni)
 traceBuiltins = getStringBuiltinTypes ()
 
 parse :: BSL.ByteString -> Either (ParseError AlexPosn) (Program TyName Name DefaultUni AlexPosn)
@@ -53,7 +53,7 @@ main =
                       ]
 
                 , env sampleScript $ \ f ->
-                  let typeCheckConcrete :: Program TyName Name DefaultUni DefaultFun () -> Either (Error DefaultUni () ()) (Normalized (Type TyName DefaultUni ()))
+                  let typeCheckConcrete :: Program TyName Name DefaultUni DefaultFun () -> Either (Error DefaultUni DefaultFun ()) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete p = runQuoteT $ do
                             bis <- traceBuiltins
                             inferTypeOfProgram (defConfig { _tccBuiltinTypes = bis }) p

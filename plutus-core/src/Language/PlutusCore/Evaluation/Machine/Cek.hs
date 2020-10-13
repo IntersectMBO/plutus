@@ -68,7 +68,6 @@ import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
 import           Data.Array
-import           Data.Hashable
 import           Data.HashMap.Monoidal
 import           Data.Text.Prettyprint.Doc
 
@@ -115,8 +114,8 @@ type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni fun = CekEnv
-    { cekEnvRuntimeInfo :: BuiltinsRuntimeInfo fun (CekValue uni fun)
-    , cekEnvBudgetMode  :: ExBudgetMode
+    { cekEnvRuntime    :: BuiltinsRuntime fun (CekValue uni fun)
+    , cekEnvBudgetMode :: ExBudgetMode
     }
 
 data CekUserError
@@ -357,7 +356,7 @@ computeCek ctx _ (Constant ex val) =
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx env (Builtin ex bn) = do
     -- TODO: budget?
-  BuiltinRuntimeInfo _ arity _ _ <- ask >>= lookupBuiltin bn . cekEnvRuntimeInfo
+  BuiltinRuntime _ arity _ _ <- ask >>= lookupBuiltin bn . cekEnvRuntime
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _ _ (Error _ ty) =
@@ -499,7 +498,7 @@ applyBuiltin ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
   let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
-  BuiltinRuntimeInfo sch _ f exF <- ask >>= lookupBuiltin bn . cekEnvRuntimeInfo
+  BuiltinRuntime sch _ f exF <- ask >>= lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   case result of
     EvaluationSuccess t -> returnCek ctx t
@@ -517,7 +516,7 @@ runCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntimeInfo fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> ExBudgetMode
     -> Plain Term uni fun
     -> (Either (CekEvaluationException uni fun) (Plain Term uni fun), CekExBudgetState fun)
@@ -535,7 +534,7 @@ runCekCounting
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntimeInfo fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> (Either (CekEvaluationException uni fun) (Plain Term uni fun), CekExBudgetState fun)
 runCekCounting means = runCek means Counting
@@ -545,7 +544,7 @@ evaluateCek
     :: ( GShow uni, GEq uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntimeInfo fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> Either (CekEvaluationException uni fun) (Plain Term uni fun)
 evaluateCek means = fst . runCekCounting means
@@ -556,7 +555,7 @@ unsafeEvaluateCek
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Hashable fun, Ix fun, Pretty fun, Typeable fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntimeInfo fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> EvaluationResult (Plain Term uni fun)
 unsafeEvaluateCek means = either throw id . extractEvaluationResult . evaluateCek means
@@ -567,7 +566,7 @@ readKnownCek
        , KnownType (Plain Term uni fun) a
        , Hashable fun, Ix fun, ExMemoryUsage fun
        )
-    => BuiltinsRuntimeInfo fun (CekValue uni fun)
+    => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> Either (CekEvaluationException uni fun) a
 readKnownCek means = evaluateCek means >=> readKnown

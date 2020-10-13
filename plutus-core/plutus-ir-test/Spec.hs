@@ -80,7 +80,7 @@ serialization = testNested "serialization"
     , "serializeListMatch"
     ]
 
-roundTripPirTerm :: Term TyName Name PLC.DefaultUni () a -> Term TyName Name PLC.DefaultUni () ()
+roundTripPirTerm :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a -> Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
 roundTripPirTerm = deserialise . serialise . void
 
 errors :: TestNested

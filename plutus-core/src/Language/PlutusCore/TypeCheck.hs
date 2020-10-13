@@ -21,6 +21,8 @@ module Language.PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
@@ -37,28 +39,19 @@ import           Data.Ix
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'BuiltinMeanings'.
 builtinMeaningsToTypes
-    :: ( uni ~ UniOf term, AsTypeError err term uni fun ann
-       , MonadError err m, MonadQuote m
-       , Bounded fun, Enum fun, Ix fun
-       )
-    => ann -> (fun -> BuiltinMeaning term dyn cost) -> m (BuiltinTypes uni fun)
-builtinMeaningsToTypes ann mean =
-    fmap (BuiltinTypes . Just) . sequence . tabulate $ \fun -> case mean fun of
-        BuiltinMeaning sch _ _ -> do
-            let ty = typeSchemeToType sch
-            _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
-            pure <$> normalizeType ty
+    :: (AsTypeError err term uni fun ann, MonadError err m, ToBuiltinMeaning uni fun)
+    => ann -> m (BuiltinTypes uni fun)
+builtinMeaningsToTypes ann =
+    runQuoteT . fmap (BuiltinTypes . Just) . sequence . tabulate $ \fun -> do
+        let ty = typeOfBuiltinFunction fun
+        _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
+        pure <$> normalizeType ty
 
 getDefTypeCheckConfig
     :: forall term uni fun m err ann.
-       ( MonadError err m, MonadQuote m
-       , uni ~ UniOf term, HasConstant term
-       , AsTypeError err term uni fun ann
-       , ToBuiltinMeaning uni fun
-       , Bounded fun, Enum fun, Ix fun
-       )
+       (MonadError err m, AsTypeError err term uni fun ann, ToBuiltinMeaning uni fun)
     => ann -> m (TypeCheckConfig uni fun)
-getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann toBuiltinMeaning
+getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann
 
 -- | Infer the kind of a type.
 inferKind

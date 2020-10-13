@@ -102,6 +102,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
+    , Hashable
     )
 where
 
