@@ -74,8 +74,8 @@ data StreamToClient
     = NewChainReport ChainReport
     | NewContractReport (ContractReport ContractExe)
     | NewChainEvents [ChainEvent ContractExe]
-    | FetchedProperties (Maybe (Metadata.SubjectProperties 'Metadata.AesonEncoding))
-    | FetchedProperty Metadata.Subject (Maybe (Metadata.Property 'Metadata.AesonEncoding))
+    | FetchedProperties (Metadata.SubjectProperties 'Metadata.AesonEncoding)
+    | FetchedProperty Metadata.Subject (Metadata.Property 'Metadata.AesonEncoding)
     | ErrorResponse Text
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

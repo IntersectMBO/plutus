@@ -300,6 +300,7 @@ test-suite plutus-scb-test
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
         Plutus.SCB.Events.ContractSpec
+        Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
 
     build-depends:

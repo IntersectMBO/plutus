@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -19,18 +20,19 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect, SubjectProperties (SubjectProperties))
+import           Cardano.Metadata.Types                          (MetadataEffect, Subject,
+                                                                  SubjectProperties (SubjectProperties), batchQuery)
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
 import qualified Data.Aeson                                      as JSON
+import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
 import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
-import           Data.Traversable                                (for)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -86,17 +88,16 @@ getChainReport = do
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
     let wallets = Wallet <$> [1 .. 10]
+        subjects = Metadata.toSubject . pubKeyHash . walletPubKey <$> wallets
+        toMap :: SubjectProperties (encoding :: Metadata.JSONEncoding) -> Map Subject [Metadata.Property encoding]
+        toMap (SubjectProperties subject properties) = Map.singleton subject properties
     relatedMetadata <-
-        mconcat <$>
-        for wallets
-            (\wallet -> do
-                 let subject =
-                         Metadata.toSubject . pubKeyHash . walletPubKey $ wallet
-                 result <- Metadata.getProperties subject
-                 case result of
-                     Just (SubjectProperties _ properties) ->
-                         pure $ Map.singleton subject properties
-                     Nothing -> pure mempty)
+        foldMap toMap <$>
+        batchQuery
+            (Metadata.QuerySubjects
+                 { Metadata.subjects = Set.fromList subjects
+                 , Metadata.properties = Nothing
+                 })
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport

@@ -303,6 +303,7 @@
             "Plutus/SCB/CoreSpec"
             "Plutus/SCB/RelationSpec"
             "Plutus/SCB/Events/ContractSpec"
+            "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
             ];
           hsSourceDirs = [ "test" ];
