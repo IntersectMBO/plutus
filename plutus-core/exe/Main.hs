@@ -8,23 +8,25 @@ module Main (main) where
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
+import qualified Language.PlutusCore.DeBruijn                               as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
-import qualified Language.PlutusCore.Generators                             as PLC
-import qualified Language.PlutusCore.Generators.Interesting                 as PLC
-import qualified Language.PlutusCore.Generators.Test                        as PLC
-import qualified Language.PlutusCore.Pretty                                 as PLC
-import qualified Language.PlutusCore.StdLib.Data.Bool                       as PLC
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as PLC
-import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
-import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
+import qualified Language.PlutusCore.Generators                             as Gen
+import qualified Language.PlutusCore.Generators.Interesting                 as Gen
+import qualified Language.PlutusCore.Generators.Test                        as Gen
+import qualified Language.PlutusCore.Pretty                                 as PP
+import qualified Language.PlutusCore.StdLib.Data.Bool                       as StdLib
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Integer                    as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Unit                       as StdLib
 import qualified Language.UntypedPlutusCore                                 as UPLC
+import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 
 import           Codec.Serialise
 import           Control.DeepSeq                                            (rnf)
-import qualified Control.Exception                                          (evaluate)
+import qualified Control.Exception                                          as Exn (evaluate)
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import           Data.Bifunctor                                             (second)
@@ -34,12 +36,13 @@ import           Data.Functor                                               ((<&
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import qualified Data.Text.IO                                               as T
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc                                  (Doc, pretty, (<+>))
 import           Options.Applicative
 import           System.CPUTime                                             (getCPUTime)
-import           System.Exit
+import           System.Exit                                                (exitFailure, exitSuccess)
 import           System.IO
-import           Text.Printf
+import           System.Mem                                                 (performGC)
+import           Text.Printf                                                (printf)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -53,6 +56,9 @@ import           Text.Printf
    the simplest thing to do and fits our use case.
  -}
 
+
+-- | Our internal representation of programs is as ASTs over the Name type.
+-- We may change this to ASTs with nameless deBruijn indices/levels at some point
 type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni a
 type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni a
 
@@ -61,9 +67,18 @@ data Program a =
     | UntypedProgram (UntypedProgram a)
     deriving (Functor)
 
-instance (PLC.PrettyBy PLC.PrettyConfigPlc (Program a)) where
-    prettyBy cfg (TypedProgram p)   = PLC.prettyBy cfg p
-    prettyBy cfg (UntypedProgram p) = PLC.prettyBy cfg p
+instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
+    prettyBy cfg (TypedProgram p)   = PP.prettyBy cfg p
+    prettyBy cfg (UntypedProgram p) = PP.prettyBy cfg p
+
+type TypedProgramDeBruijn a = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni a
+type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni a
+
+data ProgramDeBruijn a =
+      TypedProgramDeBruijn (TypedProgramDeBruijn a)
+    | UntypedProgramDeBruijn (UntypedProgramDeBruijn a)
+    deriving (Functor)
+
 
 type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
 
@@ -120,16 +135,44 @@ stdOutput = flag' StdOutput
   <> help "Write to stdout (default)" )
 
 
-data Format = Plc | Cbor  -- Input/output format for programs
+data Format = Plc | CborFull | CborDeBruijn -- Input/output format for programs
+instance Prelude.Show Format where
+    show Plc          = "plc"
+    show CborFull     = "cbor-full"
+    show CborDeBruijn = "cbor-deBruijn"
 
-format :: Parser Format
-format = flag Plc Cbor
-  ( long "cbor"
-  <> long "CBOR"
-  <> short 'c'
-  <> help "Input ()-annotated CBOR (default: input textual PLC source)"
-  )
+inputformat :: Parser Format
+inputformat = option (maybeReader formatReader)
+  (  long "if"
+  <> long "input-format"
+  <> metavar "FORMAT"
+  <> value Plc
+  <> showDefault
+  <> help ("Input format: " ++ formatHelp))
 
+outputformat :: Parser Format
+outputformat = option (maybeReader formatReader)
+  (  long "of"
+  <> long "output-format"
+  <> metavar "FORMAT"
+  <> value Plc
+  <> showDefault
+  <> help ("Output format: " ++ formatHelp))
+
+formatHelp :: String
+formatHelp = "plc, cbor (deBruijn indices), or cbor-full (names)"
+
+formatReader :: String -> Maybe Format
+formatReader s =
+    if s `elem` ["plc", "PLC"]
+    then Just Plc
+    else
+        if s `elem` ["CBOR-full", "cbor-full"]
+         then Just CborFull
+         else
+             if s `elem` ["CBOR", "cbor","cbor-deBruijn"]
+             then Just CborDeBruijn
+             else Nothing
 
 data Timing = NoTiming | Timing deriving (Eq)  -- Report program execution time?
 
@@ -142,21 +185,19 @@ timing = flag NoTiming Timing
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
-data PlcToCborOptions = PlcToCborOptions Language Input Output
-data CborToPlcOptions = CborToPlcOptions Language Input Output PrintMode
+data ConvertOptions = ConvertOptions Language Input Format Output Format PrintMode
 data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 data PrintOptions = PrintOptions Language Input PrintMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data EraseOptions = EraseOptions Input Output Format PrintMode
+data EraseOptions = EraseOptions Input Format Output Format PrintMode
 data EvalMode = CK | CEK deriving (Show, Read)
-data EvalOptions = EvalOptions Language Input EvalMode Format Timing
+data EvalOptions = EvalOptions Language Input Format EvalMode Timing
 
 -- Main commands
 data Command = Typecheck TypecheckOptions
-             | PlcToCbor PlcToCborOptions
-             | CborToPlc CborToPlcOptions
+             | Convert ConvertOptions
              | Print PrintOptions
              | Example ExampleOptions
              | Erase EraseOptions
@@ -182,12 +223,9 @@ plutusOpts = hsubparser (
        command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
-    <> command "plc-to-cbor"
-           (info (PlcToCbor <$> plcToCborOpts)
-            (progDesc "Convert a PLC source file to ()-annotated CBOR."))
-    <> command "cbor-to-plc"
-           (info (CborToPlc <$> cborToPlcOpts)
-            (progDesc "Convert a ()-annotated CBOR file to PLC source."))
+    <> command "convert"
+           (info (Convert <$> convertoptions)
+            (progDesc "Convert PLC programs between various formats"))
     <> command "example"
            (info (Example <$> exampleOpts)
             (progDesc $ "Show a typed Plutus Core program example. "
@@ -206,7 +244,7 @@ plutusOpts = hsubparser (
   )
 
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> format
+typecheckOpts = TypecheckOptions <$> input <*> inputformat
 
 printMode :: Parser PrintMode
 printMode = option auto
@@ -220,11 +258,9 @@ printMode = option auto
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> languageMode <*> input <*> printMode
 
-plcToCborOpts :: Parser PlcToCborOptions
-plcToCborOpts = PlcToCborOptions <$> languageMode <*> input <*> output
 
-cborToPlcOpts :: Parser CborToPlcOptions
-cborToPlcOpts = CborToPlcOptions <$> languageMode <*> input <*> output <*> printMode
+convertoptions :: Parser ConvertOptions
+convertoptions = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printMode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -258,11 +294,31 @@ evalMode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languageMode <*> input <*> evalMode <*> format <*> timing
+evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalMode <*> timing
 
 eraseOpts :: Parser EraseOptions
-eraseOpts = EraseOptions <$> input <*> output <*> format <*> printMode
+eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printMode
 
+---------------- Name conversions ----------------
+
+toDeBruijn :: Program a -> IO (ProgramDeBruijn a)
+toDeBruijn = \case
+             TypedProgram _   -> error "No deBruijn conversions for typed PLC"
+             UntypedProgram prog -> do
+                 r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+                 case r of
+                   Left e  -> hPutStrLn stderr (show e) >> exitFailure
+                   Right p -> return $ UntypedProgramDeBruijn $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
+
+
+fromDeBruijn :: ProgramDeBruijn a -> IO (Program a)
+fromDeBruijn = \case
+             TypedProgramDeBruijn _   -> error "No deBruijn conversions for typed PLC"
+             UntypedProgramDeBruijn prog -> do
+               let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
+               case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+                 Left e  -> hPutStrLn stderr (show e) >> exitFailure
+                 Right p -> return $ UntypedProgram p
 
 ---------------- Reading programs from files ----------------
 
@@ -283,7 +339,7 @@ parsePlcInput language inp = do
                   Left errCheck        -> failWith errCheck
                   Right (Left errEval) -> failWith errEval
                   Right (Right p)      -> return $ wrapper p
-            failWith (err :: PlcParserError) =  T.hPutStrLn stderr (PLC.displayPlcDef err) >> exitFailure
+            failWith (err :: PlcParserError) =  T.hPutStrLn stderr (PP.displayPlcDef err) >> exitFailure
 
 
 -- Read a CBOR-encoded PLC AST
@@ -300,7 +356,18 @@ loadASTfromCBOR language inp =
     where handleResult wrapper =
               \case
                 Left (DeserialiseFailure offset msg) ->
-                    hPutStrLn stderr ("Deserialisation failure at offset " ++ show offset ++ ": " ++ msg) >> exitFailure
+                    hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
+                Right r -> return $ wrapper r
+
+loadASTfromCBOR2 :: Language -> Input -> IO (ProgramDeBruijn ())
+loadASTfromCBOR2 language inp =
+    case language of
+         TypedPLC   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgramDeBruijn
+         UntypedPLC -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgramDeBruijn
+    where handleResult wrapper =
+              \case
+                Left (DeserialiseFailure offset msg) ->
+                    hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
                 Right r -> return $ wrapper r
 
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
@@ -308,19 +375,23 @@ getProgram :: Language -> Input -> Format -> IO (Program PLC.AlexPosn)
 getProgram language inp fmt =
     case fmt of
       Plc  -> parsePlcInput language inp
-      Cbor -> do
+      CborFull -> do
                prog <- loadASTfromCBOR language inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
+      CborDeBruijn -> do
+               prog <- loadASTfromCBOR2 language inp
+               prog' <- fromDeBruijn prog
+               return $ PLC.AlexPn 0 0 0 <$ prog'
 
 
 ---------------- Parse and print a PLC source file ----------------
 
-getPrintMethod :: PLC.PrettyPlc a => PrintMode -> (a -> Doc ann)
+getPrintMethod :: PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
 getPrintMethod = \case
-      Classic       -> PLC.prettyPlcClassicDef
-      Debug         -> PLC.prettyPlcClassicDebug
-      Readable      -> PLC.prettyPlcReadableDef
-      ReadableDebug -> PLC.prettyPlcReadableDebug
+      Classic       -> PP.prettyPlcClassicDef
+      Debug         -> PP.prettyPlcClassicDebug
+      Readable      -> PP.prettyPlcReadableDef
+      ReadableDebug -> PP.prettyPlcReadableDebug
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions language inp mode) =
@@ -340,9 +411,20 @@ writeCBOR outp prog = do
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
 
-runPlcToCbor :: PlcToCborOptions -> IO ()
-runPlcToCbor (PlcToCborOptions language inp outp) =
-  parsePlcInput language inp >>= writeCBOR outp
+serialiseProgram2 :: Serialise a => ProgramDeBruijn a -> BSL.ByteString
+serialiseProgram2 (TypedProgramDeBruijn p)   = serialise p
+serialiseProgram2 (UntypedProgramDeBruijn p) = serialise p
+
+writeCBOR2 :: Output -> ProgramDeBruijn a -> IO ()
+writeCBOR2 outp prog = do
+  let cbor = serialiseProgram2 (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+  case outp of
+    FileOutput file -> BSL.writeFile file cbor
+    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
+
+--runPlcToCbor :: PlcToCborOptions -> IO ()
+--runPlcToCbor (PlcToCborOptions language inp outp) =
+--  parsePlcInput language inp >>= writeCBOR outp
 
 
 ---------------- Convert a CBOR file to PLC source ----------------
@@ -351,12 +433,26 @@ writePlc :: Output -> PrintMode -> Program a -> IO ()
 writePlc outp mode prog = do
   let printMethod = getPrintMethod mode
   case outp of
-        FileOutput file -> writeFile file . show . printMethod $ prog
+        FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
 
-runCborToPlc :: CborToPlcOptions -> IO ()
-runCborToPlc (CborToPlcOptions language inp outp mode) =
-  loadASTfromCBOR language inp >>= writePlc outp mode
+--runCborToPlc :: CborToPlcOptions -> IO ()
+--runCborToPlc (CborToPlcOptions language inp outp mode) =
+--  loadASTfromCBOR language inp >>= writePlc outp mode
+
+
+writeProgram :: Output -> Format -> PrintMode -> Program a -> IO ()
+writeProgram outp Plc mode prog       = writePlc outp mode prog
+writeProgram outp CborFull _ prog     = writeCBOR outp prog
+writeProgram outp CborDeBruijn _ prog = do
+  p <- toDeBruijn prog
+  writeCBOR2 outp p
+
+---------------- Conversions ----------------
+runConvert :: ConvertOptions -> IO ()
+runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
+    program <- getProgram lang inp ifmt
+    writeProgram outp ofmt mode program
 
 
 ---------------- Examples ----------------
@@ -369,39 +465,39 @@ data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
 prettySignature name (SomeTypeExample (TypeExample kind _)) =
-    pretty name <+> "::" <+> PLC.prettyPlcDef kind
+    pretty name <+> "::" <+> PP.prettyPlcDef kind
 prettySignature name (SomeTermExample (TermExample ty _)) =
-    pretty name <+> ":"  <+> PLC.prettyPlcDef ty
+    pretty name <+> ":"  <+> PP.prettyPlcDef ty
 
 prettyExample :: SomeExample -> Doc ann
-prettyExample (SomeTypeExample (TypeExample _ ty))   = PLC.prettyPlcDef ty
+prettyExample (SomeTypeExample (TypeExample _ ty))   = PP.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
-    PLC.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
+    PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
 toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
-        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.displayPlcDef err
+        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PP.displayPlcDef err
         Right vTy                                 -> PLC.unNormalized vTy
 
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())]
 getInteresting =
-    sequence $ PLC.fromInterestingTermGens $ \name gen -> do
-        PLC.TermOf term _ <- PLC.getSampleTermValue gen
+    sequence $ Gen.fromInterestingTermGens $ \name gen -> do
+        Gen.TermOf term _ <- Gen.getSampleTermValue gen
         pure (T.pack name, term)
 
 simpleExamples :: [(ExampleName, SomeExample)]
 simpleExamples =
-    [ ("succInteger", SomeTermExample $ toTermExample PLC.succInteger)
-    , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.unit)
-    , ("unitval"    , SomeTermExample $ toTermExample PLC.unitval)
-    , ("bool"       , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.bool)
-    , ("true"       , SomeTermExample $ toTermExample PLC.true)
-    , ("false"      , SomeTermExample $ toTermExample PLC.false)
-    , ("churchNat"  , SomeTypeExample $ TypeExample (PLC.Type ()) PLC.churchNat)
-    , ("churchZero" , SomeTermExample $ toTermExample PLC.churchZero)
-    , ("churchSucc" , SomeTermExample $ toTermExample PLC.churchSucc)
+    [ ("succInteger", SomeTermExample $ toTermExample StdLib.succInteger)
+    , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.unit)
+    , ("unitval"    , SomeTermExample $ toTermExample StdLib.unitval)
+    , ("bool"       , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.bool)
+    , ("true"       , SomeTermExample $ toTermExample StdLib.true)
+    , ("false"      , SomeTermExample $ toTermExample StdLib.false)
+    , ("churchNat"  , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.churchNat)
+    , ("churchZero" , SomeTermExample $ toTermExample StdLib.churchZero)
+    , ("churchSucc" , SomeTermExample $ toTermExample StdLib.churchSucc)
     ]
 
 getAvailableExamples :: IO [(ExampleName, SomeExample)]
@@ -416,12 +512,12 @@ getAvailableExamples = do
 runExample :: ExampleOptions -> IO ()
 runExample (ExampleOptions ExampleAvailable)     = do
     examples <- getAvailableExamples
-    traverse_ (T.putStrLn . PLC.render . uncurry prettySignature) examples
+    traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
 runExample (ExampleOptions (ExampleSingle name)) = do
     examples <- getAvailableExamples
     T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
-        Just ex -> PLC.render $ prettyExample ex
+        Just ex -> PP.render $ prettyExample ex
 
 
 ---------------- Typechecking ----------------
@@ -433,14 +529,14 @@ runTypecheck (TypecheckOptions inp fmt) = do
     types <- PLC.getStringBuiltinTypes ()
     PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.hPutStrLn stderr (PLC.displayPlcDef e) >> exitFailure
-       Right ty                                -> T.putStrLn (PLC.displayPlcDef ty) >> exitSuccess
+       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.hPutStrLn stderr (PP.displayPlcDef e) >> exitFailure
+       Right ty                                -> T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp mode fmt printtime) =
+runEval (EvalOptions language inp fmt mode printtime) =
     case language of
 
       TypedPLC -> do
@@ -449,10 +545,10 @@ runEval (EvalOptions language inp mode fmt printtime) =
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
-        () <-  Control.Exception.evaluate $ rnf body
+        () <-  Exn.evaluate $ rnf body
         -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
-        start <- getCPUTime
+        start <- performGC >> getCPUTime
         case evaluate body of
               PLC.EvaluationSuccess v -> succeed start v
               PLC.EvaluationFailure   -> exitFailure
@@ -464,7 +560,7 @@ runEval (EvalOptions language inp mode fmt printtime) =
                   UntypedProgram prog <- getProgram UntypedPLC inp fmt
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
-                  () <- Control.Exception.evaluate $ rnf body
+                  () <- Exn.evaluate $ rnf body
                   start <- getCPUTime
                   case evaluate body of
                     UPLC.EvaluationSuccess v -> succeed start v
@@ -472,7 +568,7 @@ runEval (EvalOptions language inp mode fmt printtime) =
 
     where succeed start v = do
             end <- getCPUTime
-            T.putStrLn $ PLC.displayPlcDef v
+            T.putStrLn $ PP.displayPlcDef v
             let ms = 1e9 :: Double
                 diff = (fromIntegral (end - start)) / ms
             when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
@@ -480,15 +576,17 @@ runEval (EvalOptions language inp mode fmt printtime) =
 
 ---------------- Erasure ----------------
 
--- | Input a program, erase the types, then output it in the same format
--- (ie, if we input text then output text; if we input CBOR then output CBOR)
+-- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
-runErase (EraseOptions inp outp fmt mode) = do
-  TypedProgram typedProg <- getProgram TypedPLC inp fmt
-  let untypedProg = UntypedProgram $ UPLC.eraseProgram typedProg
-  case fmt of
-    Plc  -> writePlc outp mode untypedProg
-    Cbor -> writeCBOR outp untypedProg
+runErase (EraseOptions inp ifmt outp ofmt mode) = do
+  TypedProgram typedProg <- getProgram TypedPLC inp ifmt
+  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
+  case ofmt of
+    Plc          -> writePlc outp mode untypedProg
+    CborFull     -> writeCBOR outp untypedProg
+    CborDeBruijn -> do
+              dbProg <- toDeBruijn untypedProg
+              writeCBOR2 outp dbProg
 
 
 ---------------- Driver ----------------
@@ -502,5 +600,4 @@ main = do
         Example   opts -> runExample   opts
         Erase     opts -> runErase     opts
         Print     opts -> runPrint     opts
-        PlcToCbor opts -> runPlcToCbor opts
-        CborToPlc opts -> runCborToPlc opts
+        Convert   opts -> runConvert   opts
