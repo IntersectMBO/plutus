@@ -32,10 +32,11 @@ import           Data.Aeson.Extras                 (decodeByteString, encodeByte
 import           Data.Aeson.Types                  (Parser)
 import qualified Data.ByteString                   as BS
 import           Data.List.NonEmpty                (NonEmpty)
+import           Data.Set                          (Set)
 import           Data.Text                         (Text)
 import qualified Data.Text                         as Text
 import           Data.Text.Encoding                (encodeUtf8)
-import           Data.Text.Prettyprint.Doc         (Pretty, pretty, (<+>))
+import           Data.Text.Prettyprint.Doc         (Pretty, pretty, viaShow, (<+>))
 import           GHC.Generics                      (Generic)
 import           Ledger.Crypto                     (PubKey (PubKey), PubKeyHash, Signature (Signature), getPubKey,
                                                     getPubKeyHash, getSignature)
@@ -216,7 +217,7 @@ instance FromJSON (AnnotatedSignature 'ExternalEncoding) where
 instance ToJSON (AnnotatedSignature 'ExternalEncoding) where
     toJSON (AnnotatedSignature pubKey sig) =
         JSON.object
-            [ "signature" .= (encodeByteString (getSignature sig))
+            [ "signature" .= encodeByteString (getSignature sig)
             , "publicKey" .= getPubKey pubKey
             ]
 
@@ -272,26 +273,41 @@ toPropertyKey (Name _ _)        = PropertyKey "name"
 toPropertyKey (Description _ _) = PropertyKey "description"
 toPropertyKey (Other name _ _)  = PropertyKey name
 
+data Query =
+    QuerySubjects
+        { subjects   :: Set Subject
+        , properties :: Maybe (Set PropertyKey)
+        }
+    deriving (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty Query where
+    pretty = viaShow
+
 ------------------------------------------------------------
 data MetadataEffect r where
     GetProperties
-        :: Subject -> MetadataEffect (Maybe (SubjectProperties 'AesonEncoding))
+        :: Subject -> MetadataEffect (SubjectProperties 'AesonEncoding)
     GetProperty
         :: Subject
         -> PropertyKey
-        -> MetadataEffect (Maybe (Property 'AesonEncoding))
+        -> MetadataEffect (Property 'AesonEncoding)
+    BatchQuery :: Query -> MetadataEffect [SubjectProperties 'AesonEncoding]
 
 makeEffect ''MetadataEffect
 
 ------------------------------------------------------------
-newtype MetadataError =
-    MetadataClientError ClientError
+data MetadataError
+    = MetadataClientError ClientError
+    | SubjectNotFound Subject
+    | SubjectPropertyNotFound Subject PropertyKey
     deriving (Show, Eq, Generic)
-    deriving newtype (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON)
 
 data MetadataLogMessage
     = FetchingSubject Subject
     | FetchingProperty Subject PropertyKey
+    | Querying Query
 
 instance Pretty MetadataLogMessage where
     pretty =
@@ -300,3 +316,6 @@ instance Pretty MetadataLogMessage where
             FetchingProperty subject propertyKey ->
                 "Fetching property:" <+>
                 pretty subject <> "/" <> pretty propertyKey
+            Querying query ->
+                "Running query:" <+>
+                pretty query

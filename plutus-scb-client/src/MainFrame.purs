@@ -127,12 +127,10 @@ handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = case msg of
       (view _crActiveContractStates report)
   NewChainEvents events -> assign _events (Success events)
   ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
-  FetchedProperty _ Nothing -> pure unit
-  FetchedProperty subject (Just property) -> do
+  FetchedProperty subject property -> do
     log $ "Websocket fetch property: " <> show msg
     modifying _metadata (upsertProperty subject property)
-  FetchedProperties Nothing -> pure unit
-  FetchedProperties (Just (SubjectProperties subject properties)) -> do
+  FetchedProperties (SubjectProperties subject properties) -> do
     log $ "Websocket fetch properties: " <> show msg
     modifying _metadata (\m -> foldr (upsertProperty subject) m properties)
 
