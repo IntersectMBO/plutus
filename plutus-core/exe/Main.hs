@@ -168,7 +168,7 @@ formatReader s =
     if s `elem` ["plc", "PLC"]
     then Just Plc
     else
-        if s `elem` ["CBOR-full", "cbor-full"]
+        if s `elem` ["CBOR-named", "cbor-named"]
          then Just (Cbor Named)
          else
              if s `elem` ["CBOR", "cbor","cbor-deBruijn"]
@@ -253,7 +253,7 @@ printMode = option auto
   <> metavar "MODE"
   <> value Classic
   <> showDefault
-  <> help ("Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
+  <> help ("Print mode for plc output (ignored elsewhere): Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
@@ -300,6 +300,7 @@ evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalMode <
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printMode
 
+
 ---------------- Name conversions ----------------
 
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
@@ -316,6 +317,7 @@ fromDeBruijn prog = do
     case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> hPutStrLn stderr (show e) >> exitFailure
       Right p -> return p
+
 
 ---------------- Reading programs from files ----------------
 
@@ -407,10 +409,6 @@ writeCBOR outp cborMode prog = do
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
 
---runPlcToCbor :: PlcToCborOptions -> IO ()
---runPlcToCbor (PlcToCborOptions language inp outp) =
---  parsePlcInput language inp >>= writeCBOR outp
-
 
 ---------------- Convert a CBOR file to PLC source ----------------
 
@@ -431,11 +429,11 @@ writeProgram outp Plc mode prog          = writePlc outp mode prog
 writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
 
 ---------------- Conversions ----------------
+
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
     program <- getProgram lang inp ifmt
     writeProgram outp ofmt mode program
-
 
 ---------------- Examples ----------------
 

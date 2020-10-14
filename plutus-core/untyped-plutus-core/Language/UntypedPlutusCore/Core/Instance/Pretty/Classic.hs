@@ -32,7 +32,7 @@ instance (PrettyClassicBy configName name, GShow uni, Closed uni, uni `Everywher
         go (Apply _ fun arg)    = brackets' $ vsep' [go fun, go arg]
         go (Delay _ term)       = parens' ("delay" </> go term)
         go (Force _ term)       = parens' ("force" </> go term)
-        go (Error _)            = "error"
+        go (Error _)            = parens' "error"
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
