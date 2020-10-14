@@ -134,12 +134,13 @@ stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
 
+data CborMode = Named | DeBruijn
 
-data Format = Plc | CborFull | CborDeBruijn -- Input/output format for programs
+data Format = Plc | Cbor CborMode -- Input/output format for programs
 instance Prelude.Show Format where
-    show Plc          = "plc"
-    show CborFull     = "cbor-full"
-    show CborDeBruijn = "cbor-deBruijn"
+    show Plc             = "plc"
+    show (Cbor Named)    = "cbor-named"
+    show (Cbor DeBruijn) = "cbor-deBruijn"
 
 inputformat :: Parser Format
 inputformat = option (maybeReader formatReader)
@@ -160,7 +161,7 @@ outputformat = option (maybeReader formatReader)
   <> help ("Output format: " ++ formatHelp))
 
 formatHelp :: String
-formatHelp = "plc, cbor (deBruijn indices), or cbor-full (names)"
+formatHelp = "plc, cbor (deBruijn indices), or cbor-named (names)"
 
 formatReader :: String -> Maybe Format
 formatReader s =
@@ -168,10 +169,10 @@ formatReader s =
     then Just Plc
     else
         if s `elem` ["CBOR-full", "cbor-full"]
-         then Just CborFull
+         then Just (Cbor Named)
          else
              if s `elem` ["CBOR", "cbor","cbor-deBruijn"]
-             then Just CborDeBruijn
+             then Just (Cbor DeBruijn)
              else Nothing
 
 data Timing = NoTiming | Timing deriving (Eq)  -- Report program execution time?
@@ -301,24 +302,20 @@ eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <
 
 ---------------- Name conversions ----------------
 
-toDeBruijn :: Program a -> IO (ProgramDeBruijn a)
-toDeBruijn = \case
-             TypedProgram _   -> error "No deBruijn conversions for typed PLC"
-             UntypedProgram prog -> do
-                 r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
-                 case r of
-                   Left e  -> hPutStrLn stderr (show e) >> exitFailure
-                   Right p -> return $ UntypedProgramDeBruijn $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
+toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
+toDeBruijn prog = do
+  r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+  case r of
+    Left e  -> hPutStrLn stderr (show e) >> exitFailure
+    Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 
-fromDeBruijn :: ProgramDeBruijn a -> IO (Program a)
-fromDeBruijn = \case
-             TypedProgramDeBruijn _   -> error "No deBruijn conversions for typed PLC"
-             UntypedProgramDeBruijn prog -> do
-               let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-               case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
-                 Left e  -> hPutStrLn stderr (show e) >> exitFailure
-                 Right p -> return $ UntypedProgram p
+fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
+fromDeBruijn prog = do
+    let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
+    case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+      Left e  -> hPutStrLn stderr (show e) >> exitFailure
+      Right p -> return p
 
 ---------------- Reading programs from files ----------------
 
@@ -347,41 +344,34 @@ getCborInput :: Input -> IO BSL.ByteString
 getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
--- Read and deserialise a CBOR-encoded AST
-loadASTfromCBOR :: Language -> Input -> IO (Program ())
-loadASTfromCBOR language inp =
-    case language of
-         TypedPLC   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         UntypedPLC -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
-    where handleResult wrapper =
-              \case
-                Left (DeserialiseFailure offset msg) ->
-                    hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
-                Right r -> return $ wrapper r
 
-loadASTfromCBOR2 :: Language -> Input -> IO (ProgramDeBruijn ())
-loadASTfromCBOR2 language inp =
-    case language of
-         TypedPLC   -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgramDeBruijn
-         UntypedPLC -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgramDeBruijn
+-- ### We only need deBruijn-named programs for input and output, and then only for
+-- untyped PLC.  So loadASTfromCBOR and writeCBOR probably need a flag telling them to
+-- do the conversion.
+
+-- Read and deserialise a CBOR-encoded AST
+loadASTfromCBOR :: Language -> CborMode -> Input -> IO (Program ())
+loadASTfromCBOR language cborMode inp =
+    case (language, cborMode) of
+         (TypedPLC, Named)      -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
+         (TypedPLC, DeBruijn)   -> hPutStrLn stderr "No CBOR for typed PLC" >> exitFailure
+         (UntypedPLC, Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getCborInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
-                Left (DeserialiseFailure offset msg) ->
-                    hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
-                Right r -> return $ wrapper r
+               Left (DeserialiseFailure offset msg) ->
+                   hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
+               Right r -> return $ wrapper r
+
 
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
 getProgram :: Language -> Input -> Format -> IO (Program PLC.AlexPosn)
 getProgram language inp fmt =
     case fmt of
       Plc  -> parsePlcInput language inp
-      CborFull -> do
-               prog <- loadASTfromCBOR language inp
+      Cbor cborMode -> do
+               prog <- loadASTfromCBOR language cborMode inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
-      CborDeBruijn -> do
-               prog <- loadASTfromCBOR2 language inp
-               prog' <- fromDeBruijn prog
-               return $ PLC.AlexPn 0 0 0 <$ prog'
 
 
 ---------------- Parse and print a PLC source file ----------------
@@ -404,20 +394,15 @@ serialiseProgram :: Serialise a => Program a -> BSL.ByteString
 serialiseProgram (TypedProgram p)   = serialise p
 serialiseProgram (UntypedProgram p) = serialise p
 
-writeCBOR :: Output -> Program a -> IO ()
-writeCBOR outp prog = do
-  let cbor = serialiseProgram (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-  case outp of
-    FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
-
-serialiseProgram2 :: Serialise a => ProgramDeBruijn a -> BSL.ByteString
-serialiseProgram2 (TypedProgramDeBruijn p)   = serialise p
-serialiseProgram2 (UntypedProgramDeBruijn p) = serialise p
-
-writeCBOR2 :: Output -> ProgramDeBruijn a -> IO ()
-writeCBOR2 outp prog = do
-  let cbor = serialiseProgram2 (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+writeCBOR :: Output -> CborMode -> Program a -> IO ()
+writeCBOR outp cborMode prog = do
+  cbor <- case cborMode of
+            Named -> pure $ serialiseProgram (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+            DeBruijn -> case prog of
+                          TypedProgram _ -> error "No CBOR for typed PLC"
+                          UntypedProgram p -> do
+                                dbProg <- toDeBruijn p
+                                pure $ serialise (() <$ dbProg)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
@@ -442,11 +427,8 @@ writePlc outp mode prog = do
 
 
 writeProgram :: Output -> Format -> PrintMode -> Program a -> IO ()
-writeProgram outp Plc mode prog       = writePlc outp mode prog
-writeProgram outp CborFull _ prog     = writeCBOR outp prog
-writeProgram outp CborDeBruijn _ prog = do
-  p <- toDeBruijn prog
-  writeCBOR2 outp p
+writeProgram outp Plc mode prog          = writePlc outp mode prog
+writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
 
 ---------------- Conversions ----------------
 runConvert :: ConvertOptions -> IO ()
@@ -582,11 +564,8 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   TypedProgram typedProg <- getProgram TypedPLC inp ifmt
   let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
   case ofmt of
-    Plc          -> writePlc outp mode untypedProg
-    CborFull     -> writeCBOR outp untypedProg
-    CborDeBruijn -> do
-              dbProg <- toDeBruijn untypedProg
-              writeCBOR2 outp dbProg
+    Plc           -> writePlc outp mode untypedProg
+    Cbor cborMode -> writeCBOR outp cborMode untypedProg
 
 
 ---------------- Driver ----------------
