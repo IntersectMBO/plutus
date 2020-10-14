@@ -275,8 +275,8 @@ toPropertyKey (Other name _ _)  = PropertyKey name
 
 data Query =
     QuerySubjects
-        { subjects   :: Set Subject
-        , properties :: Maybe (Set PropertyKey)
+        { subjects      :: Set Subject
+        , propertyNames :: Maybe (Set PropertyKey)
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)

@@ -139,10 +139,10 @@ handleMetadata =
                 Nothing ->
                     throwError $ SubjectPropertyNotFound subject propertyKey
                 Just result -> pure result
-        BatchQuery query@QuerySubjects {subjects, properties} -> do
+        BatchQuery query@QuerySubjects {subjects, propertyNames} -> do
             logInfo $ Querying query
             pure .
-                fmap (filterSubjectProperties properties) .
+                fmap (filterSubjectProperties propertyNames) .
                 fromMaybe [] . traverse fetchSubject $
                 Set.toList subjects
 
