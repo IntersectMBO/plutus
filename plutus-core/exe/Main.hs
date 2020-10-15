@@ -102,7 +102,7 @@ data ConvertOptions   = ConvertOptions Language Input Format Output Format Print
 data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Language Input Format EvalMode Timing
+data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
 
 -- Main commands
 data Command = Typecheck TypecheckOptions
@@ -197,8 +197,8 @@ timing = flag NoTiming Timing
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input <*> inputformat
 
-printMode :: Parser PrintMode
-printMode = option auto
+printmode :: Parser PrintMode
+printmode = option auto
   (  long "print-mode"
   <> metavar "MODE"
   <> value Classic
@@ -207,10 +207,10 @@ printMode = option auto
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> languageMode <*> input <*> printMode
+printOpts = PrintOptions <$> languageMode <*> input <*> printmode
 
 convertoptions :: Parser ConvertOptions
-convertoptions = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printMode
+convertoptions = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -234,8 +234,11 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
-evalMode :: Parser EvalMode
-evalMode = option auto
+eraseOpts :: Parser EraseOptions
+eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+
+evalmode :: Parser EvalMode
+evalmode = option auto
   (  long "mode"
   <> short 'm'
   <> metavar "MODE"
@@ -244,10 +247,7 @@ evalMode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalMode <*> timing
-
-eraseOpts :: Parser EraseOptions
-eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printMode
+evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <*> printmode <*> timing
 
 helpText :: String
 helpText =
@@ -346,7 +346,7 @@ loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
          (TypedPLC,   Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
          (UntypedPLC, Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
-         (TypedPLC,   DeBruijn) -> hPutStrLn stderr "No CBOR for typed de Bruijn-named PLC" >> exitFailure
+         (TypedPLC,   DeBruijn) -> hPutStrLn stderr "No CBOR for typed de-Bruijn-named PLC" >> exitFailure
          (UntypedPLC, DeBruijn) -> getCborInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
@@ -373,7 +373,7 @@ serialiseProgram (UntypedProgram p) = serialise p
 
 -- | Convert names to de Bruijn indices and then serialise
 serialiseDbProgram :: Serialise a => Program a -> IO (BSL.ByteString)
-serialiseDbProgram (TypedProgram _)   = hPutStrLn stderr "No CBOR for typed de Bruijn-named PLC" >> exitFailure
+serialiseDbProgram (TypedProgram _)   = hPutStrLn stderr "No CBOR for typed de-Bruijn-named PLC" >> exitFailure
 serialiseDbProgram (UntypedProgram p) = serialise <$> toDeBruijn p
 
 writeCBOR :: Output -> CborMode -> Program a -> IO ()
@@ -504,15 +504,27 @@ runTypecheck (TypecheckOptions inp fmt) = do
        Right ty                                -> T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 
+---------------- Erasure ----------------
+
+-- | Input a program, erase the types, then output it
+runErase :: EraseOptions -> IO ()
+runErase (EraseOptions inp ifmt outp ofmt mode) = do
+  TypedProgram typedProg <- getProgram TypedPLC inp ifmt
+  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
+  case ofmt of
+    Plc           -> writePlc outp mode untypedProg
+    Cbor cborMode -> writeCBOR outp cborMode untypedProg
+
+
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp fmt mode printtime) =
+runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
     case language of
 
       TypedPLC -> do
-        TypedProgram prog <- getProgram TypedPLC inp fmt
-        let evaluate = case mode of
+        TypedProgram prog <- getProgram TypedPLC inp ifmt
+        let evaluate = case evalMode of
                           CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
                           CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
@@ -525,10 +537,10 @@ runEval (EvalOptions language inp fmt mode printtime) =
               PLC.EvaluationFailure   -> exitFailure
 
       UntypedPLC ->
-          case mode of
+          case evalMode of
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
-                  UntypedProgram prog <- getProgram UntypedPLC inp fmt
+                  UntypedProgram prog <- getProgram UntypedPLC inp ifmt
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
@@ -539,23 +551,11 @@ runEval (EvalOptions language inp fmt mode printtime) =
 
     where succeed start v = do
             end <- getCPUTime
-            T.putStrLn $ PP.displayPlcDef v
+            putStrLn $ show (getPrintMethod printMode v)
             let ms = 1e9 :: Double
                 diff = (fromIntegral (end - start)) / ms
             when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
             exitSuccess
-
-
----------------- Erasure ----------------
-
--- | Input a program, erase the types, then output it
-runErase :: EraseOptions -> IO ()
-runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  TypedProgram typedProg <- getProgram TypedPLC inp ifmt
-  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
-  case ofmt of
-    Plc           -> writePlc outp mode untypedProg
-    Cbor cborMode -> writeCBOR outp cborMode untypedProg
 
 
 ---------------- Driver ----------------
