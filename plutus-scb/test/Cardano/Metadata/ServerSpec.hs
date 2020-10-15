@@ -11,7 +11,7 @@ import           Cardano.Metadata.Server   (annotatedSignature1, handleMetadata,
 import           Cardano.Metadata.Types    (HashFunction (SHA256), MetadataEffect, MetadataError, MetadataLogMessage,
                                             Property (Name, Preimage), PropertyKey (PropertyKey), Query (QuerySubjects),
                                             SubjectProperties (SubjectProperties), batchQuery, getProperties,
-                                            getProperty, properties, subjects, toSubject)
+                                            getProperty, propertyNames, subjects, toSubject)
 import           Control.Monad.Freer       (Eff, runM)
 import           Control.Monad.Freer.Error (Error, runError)
 import           Control.Monad.Freer.Log   (LogMsg, handleLogTrace)
@@ -52,7 +52,7 @@ queryTests =
               (batchQuery
                    (QuerySubjects
                         { subjects = Set.fromList [toSubject script1]
-                        , properties = Nothing
+                        , propertyNames = Nothing
                         }))
         , assertReturns
               "Query by Subjects/Properties"
@@ -64,7 +64,7 @@ queryTests =
               (batchQuery
                    (QuerySubjects
                         { subjects = Set.fromList [toSubject script1]
-                        , properties = Just (Set.fromList [PropertyKey "name"])
+                        , propertyNames = Just (Set.fromList [PropertyKey "name"])
                         }))
         ]
 

@@ -96,7 +96,7 @@ getChainReport = do
         batchQuery
             (Metadata.QuerySubjects
                  { Metadata.subjects = Set.fromList subjects
-                 , Metadata.properties = Nothing
+                 , Metadata.propertyNames = Nothing
                  })
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
