@@ -62,9 +62,9 @@ compileAndMaybeTypecheck
     => Bool
     -> Term TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
-compileAndMaybeTypecheck doTypecheck pir = runQuoteT $ do
+compileAndMaybeTypecheck doTypecheck pir = do
     tcConfig <- PLC.getDefTypeCheckConfig noProvenance
-    flip runReaderT (toDefaultCompilationCtx tcConfig) $ do
+    flip runReaderT (toDefaultCompilationCtx tcConfig) $ runQuoteT $ do
         compiled <- compileTerm doTypecheck pir
         when doTypecheck $ do
             -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.

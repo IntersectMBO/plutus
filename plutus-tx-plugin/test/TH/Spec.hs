@@ -45,13 +45,13 @@ import           Control.Monad.Except
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty
 
-runPlcCek :: ToUPlc a PLC.DefaultUni () => [a] -> ExceptT SomeException IO (Term PLC.Name PLC.DefaultUni () ())
+runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- Haskell.traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
      either (throwError . SomeException) Haskell.pure $ evaluateCek p
 
-runPlcCekTrace :: ToUPlc a PLC.DefaultUni () => [a] -> ExceptT SomeException IO ([String], CekExTally, (Term PLC.Name PLC.DefaultUni () ()))
+runPlcCekTrace :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO ([String], CekExTally PLC.DefaultFun, (Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()))
 runPlcCekTrace values = do
      ps <- Haskell.traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
@@ -59,10 +59,10 @@ runPlcCekTrace values = do
      res <- either (throwError . SomeException) Haskell.pure result
      Haskell.pure (logOut, tally, res)
 
-goldenEvalCek :: ToUPlc a PLC.DefaultUni () => String -> [a] -> TestNested
+goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug Haskell.<$> (rethrow $ runPlcCek values)
 
-goldenEvalCekLog :: ToUPlc a PLC.DefaultUni () => String -> [a] -> TestNested
+goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCekLog name values = nestedGoldenVsDocM name $ (pretty . (view _1)) Haskell.<$> (rethrow $ runPlcCekTrace values)
 
 tests :: TestNested
@@ -79,29 +79,29 @@ tests = testNested "TH" [
     , nestedGoldenVsDoc "someData" (pretty $ show someData)
   ]
 
-simple :: CompiledCode PLC.DefaultUni () (Bool -> Integer)
+simple :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Bool -> Integer)
 simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: CompiledCode PLC.DefaultUni () (Integer -> Integer)
+powerPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Integer -> Integer)
 powerPlc = $$(compile [|| $$(power (4::Integer)) ||])
 
-andPlc :: CompiledCode PLC.DefaultUni () Bool
+andPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
-allPlc :: CompiledCode PLC.DefaultUni () Bool
+allPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
-convertString :: CompiledCode PLC.DefaultUni () Builtins.String
+convertString :: CompiledCode PLC.DefaultUni PLC.DefaultFun Builtins.String
 convertString = $$(compile [|| "test" ||])
 
-traceDirect :: CompiledCode PLC.DefaultUni () ()
+traceDirect :: CompiledCode PLC.DefaultUni PLC.DefaultFun ()
 traceDirect = $$(compile [|| Builtins.trace "test" ||])
 
-tracePrelude :: CompiledCode PLC.DefaultUni () Integer
+tracePrelude :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
 tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])
 
-traceRepeatedly :: CompiledCode PLC.DefaultUni () Integer
+traceRepeatedly :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
 traceRepeatedly = $$(compile
      [||
                let i1 = trace "Making my first int" (1::Integer)

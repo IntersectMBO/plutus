@@ -71,11 +71,11 @@ data Error uni fun a = PLCError (PLC.Error uni fun a)
                      deriving Typeable
 makeClassyPrisms ''Error
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a) =>
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1 fun) (PIR.Term PIR.TyName PIR.Name uni2 fun ()) uni2 (PIR.Provenance ()) where
+instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1 fun) (PIR.Term PIR.TyName PIR.Name uni2 fun ()) uni2 fun (PIR.Provenance ()) where
     _TypeError = _NoContext . _PIRError . PIR._TypeError
 
 instance uni1 ~ uni2 => PIR.AsTypeErrorExt (CompileError uni1 fun) uni2 (PIR.Provenance ()) where
@@ -90,7 +90,7 @@ instance PLC.AsUniqueError (CompileError uni fun) () where
 instance uni1 ~ uni2 => PIR.AsError (CompileError uni1 fun) uni2 fun (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a) =>
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a) where
     prettyBy config = \case
         PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]

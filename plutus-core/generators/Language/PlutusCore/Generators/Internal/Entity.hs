@@ -78,7 +78,7 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
-data IterAppValue uni fun head arg r = IterAppValue
+data IterAppValue uni fun head arg r = KnownType arg r => IterAppValue
     { _iterTerm :: Plain Term uni fun  -- ^ As a PLC 'Term'.
     , _iterApp  :: IterApp head arg    -- ^ As an 'IterApp'.
     , _iterTbv  :: r                   -- ^ As a Haskell value.

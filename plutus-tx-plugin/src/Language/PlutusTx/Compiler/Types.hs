@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusTx.Compiler.Types where
@@ -12,10 +13,10 @@ import           Language.PlutusTx.PLCTypes
 
 import           Language.PlutusIR.Compiler.Definitions
 
+import qualified Language.PlutusCore.Builtins           as PLC
+import qualified Language.PlutusCore.Constant           as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.Universe           as PLC
-import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
 
 import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
@@ -41,8 +42,7 @@ data CompileContext uni fun = CompileContext {
     ccFamInstEnvs     :: GHC.FamInstEnvs,
     ccBuiltinNameInfo :: BuiltinNameInfo,
     ccScopes          :: ScopeStack uni fun,
-    ccBlackholed      :: Set.Set GHC.Name,
-    ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PLC.Term PLC.TyName PLC.Name uni fun ())
+    ccBlackholed      :: Set.Set GHC.Name
     }
 
 data CompileState = CompileState {}
@@ -120,8 +120,19 @@ type Compiling uni fun m =
     , MonadReader (CompileContext uni fun) m
     , MonadState CompileState m
     , MonadDefs LexName uni fun () m
-    , PLC.DefaultUni PLC.<: uni
-    , PLC.GShow uni, PLC.GEq uni)
+    , PLC.GShow uni, PLC.GEq uni
+    , PLC.ToBuiltinMeaning uni fun
+    )
+
+-- Packing up equality constraints gives us a nice way of writing type signatures as this way
+-- we don't need to write 'PLC.DefaultUni' everywhere (in 'PIRTerm', 'PIRType' etc) and instead
+-- can write the short @uni@ and know that it actually means 'PLC.DefaultUni'. Same regarding
+-- 'DefaultFun'.
+type CompilingDefault uni fun m =
+    ( uni ~ PLC.DefaultUni
+    , fun ~ PLC.DefaultFun
+    , Compiling uni fun m
+    )
 
 blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})

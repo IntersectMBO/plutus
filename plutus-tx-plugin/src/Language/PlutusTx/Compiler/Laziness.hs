@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 -- | Simulating laziness.
 module Language.PlutusTx.Compiler.Laziness where
@@ -39,7 +40,7 @@ delayVar (PIR.VarDecl () n ty) = do
     pure $ PIR.VarDecl () n ty'
 
 force
-    :: Compiling uni fun m
+    :: CompilingDefault uni fun m
     => PIRTerm uni fun -> m (PIRTerm uni fun)
 force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
 
@@ -53,6 +54,6 @@ maybeDelayType :: Compiling uni fun m => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
 maybeForce
-    :: Compiling uni fun m
+    :: CompilingDefault uni fun m
     => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeForce yes t = if yes then force t else pure t

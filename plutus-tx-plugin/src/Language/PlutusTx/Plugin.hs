@@ -27,7 +27,6 @@ import qualified GhcPlugins                             as GHC
 import qualified Panic                                  as GHC
 
 import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant.Dynamic   as PLC
 import           Language.PlutusCore.Quote
 
 import qualified Language.UntypedPlutusCore             as UPLC
@@ -248,7 +247,7 @@ compileMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni () a
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni PLC.DefaultFun a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
@@ -263,7 +262,6 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             ccFlags=flags,
             ccFamInstEnvs=famEnvs,
             ccBuiltinNameInfo=nameInfo,
-            ccBuiltinMeanings=PLC.getStringBuiltinMeanings,
             ccScopes=initialScopeStack,
             ccBlackholed=mempty
             }
@@ -298,21 +296,19 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 `GHC.App` bsLitPir
 
 runCompiler
-    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ (), MonadReader (CompileContext uni fun) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
+    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
     -> m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler opts expr = do
     -- trick here to take out the concrete plc.error
-    tcConfigConcrete <-
-        runExceptT (PLC.TypeCheckConfig <$> PLC.getStringBuiltinTypes PIR.noProvenance)
+    let tcConfigConcrete = PLC.getDefTypeCheckConfig PIR.noProvenance
 
     -- turn the concrete plc.error into our compileerror monad
     stringBuiltinTCConfig <- liftEither $ first (view (re PIR._PLCError)) tcConfigConcrete
 
-    let ctx = PIR.defaultCompilationCtx
+    let ctx = PIR.toDefaultCompilationCtx stringBuiltinTCConfig
               & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-              & set PIR.ccBuiltinMeanings PLC.getStringBuiltinMeanings
               & set PIR.ccTypeCheckConfig (PIR.PirTCConfig stringBuiltinTCConfig PIR.YesEscape)
 
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
@@ -325,7 +321,7 @@ runCompiler opts expr = do
 
     when (poDumpPir opts) . liftIO . print . PP.pretty $ pirP
 
-    (plcP::PLCProgram PLC.DefaultUni ()) <- PLC.Program () (PLC.defaultVersion ()) . void <$> (flip runReaderT ctx $ PIR.compileReadableToPlc pirT')
+    (plcP::PLCProgram PLC.DefaultUni PLC.DefaultFun) <- PLC.Program () (PLC.defaultVersion ()) . void <$> (flip runReaderT ctx $ PIR.compileReadableToPlc pirT')
     when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump

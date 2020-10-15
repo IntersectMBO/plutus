@@ -15,6 +15,7 @@ import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
@@ -26,7 +27,7 @@ laziness = testNested "Laziness" [
     , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
-joinErrorPir :: CompiledCode PLC.DefaultUni () (Bool -> Bool -> ())
+joinErrorPir :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Bool -> Bool -> ())
 joinErrorPir = plc (Proxy @"joinError") joinError
 
 {-# NOINLINE monoId #-}
@@ -38,5 +39,5 @@ monoId x = x
 aByteString :: Builtins.ByteString
 aByteString = monoId Builtins.emptyByteString
 
-lazyDepUnit :: CompiledCode PLC.DefaultUni () Builtins.ByteString
+lazyDepUnit :: CompiledCode PLC.DefaultUni PLC.DefaultFun Builtins.ByteString
 lazyDepUnit = plc (Proxy @"lazyDepUnit") aByteString

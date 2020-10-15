@@ -19,6 +19,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
 import           Codec.CBOR.Decoding
@@ -29,7 +30,6 @@ import           Crypto
 import qualified Data.ByteString                                            as BS
 import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Ix
-import           Data.Text.Prettyprint.Doc
 import           Debug.Trace                                                (traceIO)
 import           GHC.Generics
 import           System.IO.Unsafe
@@ -72,7 +72,7 @@ data DefaultFun
     | CharToString
     | Append
     | Trace
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
 
 -- TODO: do we really want function names to be pretty-printed differently to what they are named as
 -- constructors of 'DefaultFun'?
@@ -126,7 +126,9 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 integerToInt :: Integer -> Int
 integerToInt = fromIntegral
 
-defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defBuiltinsRuntime
+    :: (HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni)
+    => BuiltinsRuntime DefaultFun term
 defBuiltinsRuntime = toBuiltinsRuntime mempty defaultCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
