@@ -77,8 +77,7 @@ library
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
     Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
-  other-modules:
-    Language.Marlowe.ACTUS.Ops
+    Language.Marlowe.ACTUS.Ops 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-orphans       #-}
 
 module Language.Marlowe.ACTUS.AgdaOps where
 
@@ -13,17 +14,17 @@ import           Language.Marlowe.ACTUS.Ops
 import           Agda.Syntax.Concrete                                  (Expr(..))
 
 instance ActusNum Expr where
-    a + b       = a Prelude.+ b
-    a - b       = a Prelude.- b
-    a * b       = a Prelude.* b
-    a / b       = a Prelude./ b
+    a + b       = undefined
+    a - b       = undefined
+    a * b       = undefined
+    a / b       = undefined
 
 instance DateOps Expr Expr where
     _lt a b = undefined
 
-instance YearFractionOps Day Double where
+instance YearFractionOps Day Expr where
     _y = undefined
 
-instance RoleSignOps Double where
+instance RoleSignOps Expr where
     _r = undefined
 
