@@ -8,7 +8,6 @@ module Main (main) where
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
-import qualified Language.PlutusCore.DeBruijn                               as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
@@ -58,7 +57,6 @@ import           Text.Printf                                                (pri
 
 
 -- | Our internal representation of programs is as ASTs over the Name type.
--- We may change this to ASTs with nameless deBruijn indices/levels at some point
 type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni a
 type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni a
 
@@ -71,21 +69,51 @@ instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
     prettyBy cfg (TypedProgram p)   = PP.prettyBy cfg p
     prettyBy cfg (UntypedProgram p) = PP.prettyBy cfg p
 
-type TypedProgramDeBruijn a = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni a
+-- | Untyped AST with names consisting solely of De Bruijn indices. This is
+-- currently only used for intermediate values during CBOR
+-- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
+-- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
+-- support for this is lacking elsewhere at the moment.
 type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni a
-
-data ProgramDeBruijn a =
-      TypedProgramDeBruijn (TypedProgramDeBruijn a)
-    | UntypedProgramDeBruijn (UntypedProgramDeBruijn a)
-    deriving (Functor)
-
 
 type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
 
 
----------------- Option parsers ----------------
+---------------- Types for commands and arguments ----------------
 
-data Language = TypedPLC | UntypedPLC
+data Input       = FileInput FilePath | StdInput
+data Output      = FileOutput FilePath | StdOutput
+data Language    = TypedPLC | UntypedPLC
+data Timing      = NoTiming | Timing deriving (Eq)  -- Report program execution time?
+data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
+type ExampleName = T.Text
+data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
+data EvalMode    = CK | CEK deriving (Show, Read)
+data CborMode    = Named | DeBruijn
+
+data Format = Plc | Cbor CborMode -- Input/output format for programs
+instance Show Format where
+    show Plc             = "plc"
+    show (Cbor Named)    = "cbor-named"
+    show (Cbor DeBruijn) = "cbor-deBruijn"
+
+data TypecheckOptions = TypecheckOptions Input Format
+data ConvertOptions   = ConvertOptions Language Input Format Output Format PrintMode
+data PrintOptions     = PrintOptions Language Input PrintMode
+data ExampleOptions   = ExampleOptions ExampleMode
+data EraseOptions     = EraseOptions Input Format Output Format PrintMode
+data EvalOptions      = EvalOptions Language Input Format EvalMode Timing
+
+-- Main commands
+data Command = Typecheck TypecheckOptions
+             | Convert ConvertOptions
+             | Print PrintOptions
+             | Example ExampleOptions
+             | Erase EraseOptions
+             | Eval EvalOptions
+
+
+---------------- Option parsers ----------------
 
 typedPLC :: Parser Language
 typedPLC = flag UntypedPLC TypedPLC (long "typed" <> short 't' <> help "Use typed Plutus Core")
@@ -96,8 +124,6 @@ untypedPLC = flag UntypedPLC UntypedPLC (long "untyped" <> short 'u' <> help "Us
 
 languageMode :: Parser Language
 languageMode = typedPLC <|> untypedPLC
-
-data Input = FileInput FilePath | StdInput
 
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 input :: Parser Input
@@ -115,9 +141,6 @@ stdInput = flag' StdInput
   (  long "stdin"
   <> help "Read from stdin (default)" )
 
-
-data Output = FileOutput FilePath | StdOutput
-
 -- | Parser for an output stream. If none is specified, default to stdout: this makes use in pipelines easier
 output :: Parser Output
 output = fileOutput <|> stdOutput <|> pure StdOutput
@@ -134,13 +157,17 @@ stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
 
-data CborMode = Named | DeBruijn
+formatHelp :: String
+formatHelp = "plc, cbor (de Bruijn indices), or cbor-named (names)"
 
-data Format = Plc | Cbor CborMode -- Input/output format for programs
-instance Prelude.Show Format where
-    show Plc             = "plc"
-    show (Cbor Named)    = "cbor-named"
-    show (Cbor DeBruijn) = "cbor-deBruijn"
+formatReader :: String -> Maybe Format
+formatReader =
+    \case
+         "plc"           -> Just Plc
+         "cbor-named"    -> Just (Cbor Named)
+         "cbor"          -> Just (Cbor DeBruijn)
+         "cbor-deBruijn" -> Just (Cbor DeBruijn)
+         _               -> Nothing
 
 inputformat :: Parser Format
 inputformat = option (maybeReader formatReader)
@@ -160,88 +187,11 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
-formatHelp :: String
-formatHelp = "plc, cbor (deBruijn indices), or cbor-named (names)"
-
-formatReader :: String -> Maybe Format
-formatReader s =
-    if s `elem` ["plc", "PLC"]
-    then Just Plc
-    else
-        if s `elem` ["CBOR-named", "cbor-named"]
-         then Just (Cbor Named)
-         else
-             if s `elem` ["CBOR", "cbor","cbor-deBruijn"]
-             then Just (Cbor DeBruijn)
-             else Nothing
-
-data Timing = NoTiming | Timing deriving (Eq)  -- Report program execution time?
-
 timing :: Parser Timing
 timing = flag NoTiming Timing
   ( long "time-execution"
   <> short 'x'
   <> help "Report execution time of program"
-  )
-
-data NormalizationMode = Required | NotRequired deriving (Show, Read)
-data TypecheckOptions = TypecheckOptions Input Format
-data ConvertOptions = ConvertOptions Language Input Format Output Format PrintMode
-data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
-data PrintOptions = PrintOptions Language Input PrintMode
-type ExampleName = T.Text
-data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-newtype ExampleOptions = ExampleOptions ExampleMode
-data EraseOptions = EraseOptions Input Format Output Format PrintMode
-data EvalMode = CK | CEK deriving (Show, Read)
-data EvalOptions = EvalOptions Language Input Format EvalMode Timing
-
--- Main commands
-data Command = Typecheck TypecheckOptions
-             | Convert ConvertOptions
-             | Print PrintOptions
-             | Example ExampleOptions
-             | Erase EraseOptions
-             | Eval EvalOptions
-
-
-helpText :: String
-helpText =
-    "This program provides a number of utilities for dealing with "
-    ++ "Plutus Core programs, including typechecking, evaluation, and conversion "
-    ++ "between various formats.  The program also provides a number of example "
-    ++ "typed Plutus Core programs.  Some commands read or write Plutus Core abstract "
-    ++ "syntax trees serialised in CBOR format: ASTs are always written with "
-    ++ "unit annotations, and any CBOR-encoded AST supplied as input must also be "
-    ++ "equipped with unit annotations.  Attempting to read a CBOR AST with any "
-    ++ "non-unit annotation type will cause an error."
-
-plutus :: ParserInfo Command
-plutus = info (plutusOpts <**> helper) (fullDesc <> header "Plutus Core tool" <> progDesc helpText)
-
-plutusOpts :: Parser Command
-plutusOpts = hsubparser (
-       command "print"
-           (info (Print <$> printOpts)
-            (progDesc "Parse a program then prettyprint it."))
-    <> command "convert"
-           (info (Convert <$> convertoptions)
-            (progDesc "Convert PLC programs between various formats"))
-    <> command "example"
-           (info (Example <$> exampleOpts)
-            (progDesc $ "Show a typed Plutus Core program example. "
-                     ++ "Usage: first request the list of available examples (optional step), "
-                     ++ "then request a particular example by the name of a type/term. "
-                     ++ "Note that evaluating a generated example may result in 'Failure'."))
-    <> command "typecheck"
-           (info (Typecheck <$> typecheckOpts)
-            (progDesc "Typecheck a typed Plutus Core program."))
-    <> command "erase"
-           (info (Erase <$> eraseOpts)
-            (progDesc "Convert a typed Plutus Core program to an untyped one."))
-    <> command "evaluate"
-           (info (Eval <$> evalOpts)
-            (progDesc "Evaluate a Plutus Core program."))
   )
 
 typecheckOpts :: Parser TypecheckOptions
@@ -258,7 +208,6 @@ printMode = option auto
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> languageMode <*> input <*> printMode
-
 
 convertoptions :: Parser ConvertOptions
 convertoptions = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printMode
@@ -300,9 +249,51 @@ evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalMode <
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printMode
 
+helpText :: String
+helpText =
+    "This program provides a number of utilities for dealing with "
+    ++ "Plutus Core programs, including typechecking, evaluation, and conversion "
+    ++ "between various formats.  The program also provides a number of example "
+    ++ "typed Plutus Core programs.  Some commands read or write Plutus Core abstract "
+    ++ "syntax trees serialised in CBOR format: ASTs are always written with "
+    ++ "unit annotations, and any CBOR-encoded AST supplied as input must also be "
+    ++ "equipped with unit annotations.  Attempting to read a CBOR AST with any "
+    ++ "non-unit annotation type will cause an error."
+
+plutus :: ParserInfo Command
+plutus = info (plutusOpts <**> helper) (fullDesc <> header "Plutus Core tool" <> progDesc helpText)
+
+plutusOpts :: Parser Command
+plutusOpts = hsubparser (
+       command "print"
+           (info (Print <$> printOpts)
+            (progDesc "Parse a program then prettyprint it."))
+    <> command "convert"
+           (info (Convert <$> convertoptions)
+            (progDesc "Convert PLC programs between various formats"))
+    <> command "example"
+           (info (Example <$> exampleOpts)
+            (progDesc $ "Show a typed Plutus Core program example. "
+                     ++ "Usage: first request the list of available examples (optional step), "
+                     ++ "then request a particular example by the name of a type/term. "
+                     ++ "Note that evaluating a generated example may result in 'Failure'."))
+    <> command "typecheck"
+           (info (Typecheck <$> typecheckOpts)
+            (progDesc "Typecheck a typed Plutus Core program."))
+    <> command "erase"
+           (info (Erase <$> eraseOpts)
+            (progDesc "Convert a typed Plutus Core program to an untyped one."))
+    <> command "evaluate"
+           (info (Eval <$> evalOpts)
+            (progDesc "Evaluate a Plutus Core program."))
+  )
+
 
 ---------------- Name conversions ----------------
 
+-- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
+-- We don't support this for typed programs because we only want CBOR for on-chain
+-- programs (and some of the functionality we'd need isn't available anyway).
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
   r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
@@ -311,6 +302,9 @@ toDeBruijn prog = do
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 
+-- | Convert an untyped de-Bruijn-indexed program to one with standard names.
+-- We have nothing to base the names on, so every variable is named "v" (but
+-- with a Unique for disambiguation).  Again, we don't support typed programs.
 fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
@@ -346,18 +340,13 @@ getCborInput :: Input -> IO BSL.ByteString
 getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
-
--- ### We only need deBruijn-named programs for input and output, and then only for
--- untyped PLC.  So loadASTfromCBOR and writeCBOR probably need a flag telling them to
--- do the conversion.
-
 -- Read and deserialise a CBOR-encoded AST
 loadASTfromCBOR :: Language -> CborMode -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
-         (TypedPLC, Named)      -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         (TypedPLC, DeBruijn)   -> hPutStrLn stderr "No CBOR for typed PLC" >> exitFailure
+         (TypedPLC,   Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
          (UntypedPLC, Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+         (TypedPLC,   DeBruijn) -> hPutStrLn stderr "No CBOR for typed de Bruijn-named PLC" >> exitFailure
          (UntypedPLC, DeBruijn) -> getCborInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
@@ -376,7 +365,28 @@ getProgram language inp fmt =
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
----------------- Parse and print a PLC source file ----------------
+---------------- Convert a PLC source file to CBOR ----------------
+
+serialiseProgram :: Serialise a => Program a -> BSL.ByteString
+serialiseProgram (TypedProgram p)   = serialise p
+serialiseProgram (UntypedProgram p) = serialise p
+
+-- | Convert names to de Bruijn indices and then serialise
+serialiseDbProgram :: Serialise a => Program a -> IO (BSL.ByteString)
+serialiseDbProgram (TypedProgram _)   = hPutStrLn stderr "No CBOR for typed de Bruijn-named PLC" >> exitFailure
+serialiseDbProgram (UntypedProgram p) = serialise <$> toDeBruijn p
+
+writeCBOR :: Output -> CborMode -> Program a -> IO ()
+writeCBOR outp cborMode prog = do
+  cbor <- case cborMode of
+            Named    -> pure $ serialiseProgram (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+            DeBruijn -> serialiseDbProgram (() <$ prog)
+  case outp of
+    FileOutput file -> BSL.writeFile file cbor
+    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
+
+
+---------------- Convert a CBOR file to PLC source ----------------
 
 getPrintMethod :: PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
 getPrintMethod = \case
@@ -385,33 +395,6 @@ getPrintMethod = \case
       Readable      -> PP.prettyPlcReadableDef
       ReadableDebug -> PP.prettyPlcReadableDebug
 
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions language inp mode) =
-    parsePlcInput language inp >>= print . (getPrintMethod mode)
-
-
----------------- Convert a PLC source file to CBOR ----------------
-
-serialiseProgram :: Serialise a => Program a -> BSL.ByteString
-serialiseProgram (TypedProgram p)   = serialise p
-serialiseProgram (UntypedProgram p) = serialise p
-
-writeCBOR :: Output -> CborMode -> Program a -> IO ()
-writeCBOR outp cborMode prog = do
-  cbor <- case cborMode of
-            Named -> pure $ serialiseProgram (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-            DeBruijn -> case prog of
-                          TypedProgram _ -> error "No CBOR for typed PLC"
-                          UntypedProgram p -> do
-                                dbProg <- toDeBruijn p
-                                pure $ serialise (() <$ dbProg)
-  case outp of
-    FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
-
-
----------------- Convert a CBOR file to PLC source ----------------
-
 writePlc :: Output -> PrintMode -> Program a -> IO ()
 writePlc outp mode prog = do
   let printMethod = getPrintMethod mode
@@ -419,21 +402,29 @@ writePlc outp mode prog = do
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
 
---runCborToPlc :: CborToPlcOptions -> IO ()
---runCborToPlc (CborToPlcOptions language inp outp mode) =
---  loadASTfromCBOR language inp >>= writePlc outp mode
-
-
 writeProgram :: Output -> Format -> PrintMode -> Program a -> IO ()
 writeProgram outp Plc mode prog          = writePlc outp mode prog
 writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
 
+
 ---------------- Conversions ----------------
 
+-- | Convert between textual and CBOR representations.  This subsumes the
+-- `print` command: for example, `plc convert -i prog.plc -t --fmt Readable`
+-- will read a typed plc file and print it in the Readable format.  Having
+-- the separate `print` option may be more user-friendly though.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
     program <- getProgram lang inp ifmt
     writeProgram outp ofmt mode program
+
+
+---------------- Parse and print a PLC source file ----------------
+
+runPrint :: PrintOptions -> IO ()
+runPrint (PrintOptions language inp mode) =
+    parsePlcInput language inp >>= print . (getPrintMethod mode)
+
 
 ---------------- Examples ----------------
 
@@ -553,6 +544,7 @@ runEval (EvalOptions language inp fmt mode printtime) =
                 diff = (fromIntegral (end - start)) / ms
             when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
             exitSuccess
+
 
 ---------------- Erasure ----------------
 
