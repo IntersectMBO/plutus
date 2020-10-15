@@ -28,7 +28,7 @@ contract = When
                         (Choice
                             (ChoiceId
                                 "exercise"
-                                (Role "buyer")
+                                (Role "party")
                             )
                             [Bound 0 1]
                         )
@@ -56,7 +56,7 @@ contract = When
                             )
                             (Pay
                                 (Role "party")
-                                (Party (Role "party"))
+                                (Party (Role "counterparty"))
                                 (Token "" "")
                                 (Constant 100)
                                 Close 
