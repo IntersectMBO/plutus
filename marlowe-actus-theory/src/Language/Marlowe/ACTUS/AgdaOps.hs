@@ -11,13 +11,21 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (Contract
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
 import           Language.Marlowe.ACTUS.Ops
-import           Agda.Syntax.Concrete                                  (Expr(..))
+import           Agda.Syntax.Common                                    (noPlaceholder, defaultNamedArg)
+import           Agda.Syntax.Position                                  (Range'(..))
+import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..))
+import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
+import qualified Data.Set                                              as S
+import           Data.List.NonEmpty                                    (NonEmpty(..))
+
+quickname op = Name NoRange NotInScope $ (Id op) :| []
+quickarg e = defaultNamedArg $ noPlaceholder $ Ordinary $ e
 
 instance ActusNum Expr where
-    a + b       = undefined
-    a - b       = undefined
-    a * b       = undefined
-    a / b       = undefined
+    a + b       = OpApp NoRange (QName $ quickname "+") (S.empty) $ (quickarg a) :| [quickarg b]
+    a - b       = OpApp NoRange (QName $ quickname "-") (S.empty) $ (quickarg a) :| [quickarg b]
+    a * b       = OpApp NoRange (QName $ quickname "*") (S.empty) $ (quickarg a) :| [quickarg b]
+    a / b       = OpApp NoRange (QName $ quickname "/") (S.empty) $ (quickarg a) :| [quickarg b]
 
 instance DateOps Expr Expr where
     _lt a b = undefined
