@@ -86,3 +86,20 @@ benchmark large-plc-cek
     , plutus-core -any
     , containers -any
     , criterion -any
+
+
+benchmark validation
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      bench-validation
+  build-depends:
+      base >=4.7 && <5
+    , plutus-core -any
+    , bytestring -any
+    , containers -any
+    , criterion -any
+    , filepath -any
+    , serialise -any
+    , transformers -any
