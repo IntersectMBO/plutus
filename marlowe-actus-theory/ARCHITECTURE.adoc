@@ -1,0 +1,3 @@
+=== `marlowe-actus-theory`
+
+This package contains formalisation of ACTUS standard in Agda

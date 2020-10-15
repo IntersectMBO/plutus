@@ -1,0 +1,69 @@
+cabal-version: 2.2
+name: marlowe-actus-theory
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+build-type: Simple
+maintainer: dmytro.kondratiuk@iohk.io
+stability: experimental
+author: Dmytro Kondratiuk
+synopsis:
+  Marlowe ACTUS theory: formalisations of ACTUS standard
+description:
+  Provides a generator of ACTUS-definitions for Agda
+category: Language
+extra-doc-files: README.md
+
+source-repository head
+  type: git
+  location: https://github.com/input-output-hk/plutus
+
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
+library
+  hs-source-dirs: src
+  build-depends:
+    aeson -any,
+    base -any,
+    bytestring,
+    containers -any,
+    deriving-aeson -any,
+    mtl,
+    newtype-generics,
+    template-haskell -any,
+    plutus-tx -any,
+    plutus-contract -any,
+    plutus-ledger,
+    text,
+    vector,
+    sbv >= 8.4,
+    wl-pprint -any,
+    freer-simple -any,
+    marlowe -any,
+    time -any,
+    loch-th -any,
+    sort -any,
+    Agda -any,
+    marlowe-actus
+  default-language: Haskell2010
+  default-extensions: ExplicitForAll ScopedTypeVariables
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  exposed-modules:
+  other-modules:
+    Language.Marlowe.ACTUS.AgdaOps
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+    -Wredundant-constraints -Widentities
+    -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+
+  build-tool-depends: unlit:unlit -any
+

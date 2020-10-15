@@ -48,8 +48,7 @@ library
     marlowe -any,
     time -any,
     loch-th -any,
-    sort -any,
-    Agda -any
+    sort -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift

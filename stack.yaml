@@ -10,6 +10,7 @@ packages:
 - marlowe
 - marlowe-playground-server
 - marlowe-actus
+- marlowe-actus-theory
 - plutus-metatheory
 - plutus-ledger
 - plutus-playground-server
