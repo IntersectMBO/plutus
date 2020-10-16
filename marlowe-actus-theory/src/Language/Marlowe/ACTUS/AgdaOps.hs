@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# OPTIONS_GHC -fno-warn-orphans       #-}
+{-# OPTIONS_GHC -fno-warn-orphans  #-}
 
-module Language.Marlowe.ACTUS.AgdaOps where
+module Language.Marlowe.ACTUS.AgdaOps() where
 
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
 import           Language.Marlowe.ACTUS.Ops
@@ -20,11 +20,21 @@ quickname op = Name NoRange NotInScope $ (Id op) :| []
 quickarg :: Expr -> NamedArg (MaybePlaceholder (OpApp Expr))
 quickarg e = defaultNamedArg $ noPlaceholder $ Ordinary e
 
+zero :: Expr
+zero = Lit NoRange $ LitNat 0
+
 one :: Expr
-one = Lit NoRange $ LitNat 1
+one = Lit NoRange $ LitNat 0
 
 minusone :: Expr
 minusone = Lit NoRange $ LitNat (- 1)
+
+instance ActusOps Expr where
+    _min a b = App NoRange (App NoRange (Ident $ QName $ quickname "min") (defaultNamedArg a)) (defaultNamedArg b)
+    _max a b = App NoRange (App NoRange (Ident $ QName $ quickname "max") (defaultNamedArg a)) (defaultNamedArg b)
+    _zero = zero
+    _one  = one
+
 
 instance ActusNum Expr where
     a + b       = OpApp NoRange (QName $ quickname "+") (S.empty) $ (quickarg a) :| [quickarg b]
