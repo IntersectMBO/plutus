@@ -4,22 +4,27 @@
 
 module Language.Marlowe.ACTUS.AgdaOps where
 
-import           Data.Time                                             (Day)
-import           Language.Marlowe                                      (Observation (ValueGT, ValueLT), Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
-                                                                        (%))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (ContractRole, DCC)
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
-import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
 import           Language.Marlowe.ACTUS.Ops
-import           Agda.Syntax.Common                                    (noPlaceholder, defaultNamedArg)
+import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, noPlaceholder, defaultNamedArg)
 import           Agda.Syntax.Position                                  (Range'(..))
+import           Agda.Syntax.Literal                                   (Literal(..))
 import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..))
 import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
 import qualified Data.Set                                              as S
 import           Data.List.NonEmpty                                    (NonEmpty(..))
 
+quickname :: String -> Name
 quickname op = Name NoRange NotInScope $ (Id op) :| []
-quickarg e = defaultNamedArg $ noPlaceholder $ Ordinary $ e
+
+quickarg :: Expr -> NamedArg (MaybePlaceholder (OpApp Expr))
+quickarg e = defaultNamedArg $ noPlaceholder $ Ordinary e
+
+one :: Expr
+one = Lit NoRange $ LitNat 1
+
+minusone :: Expr
+minusone = Lit NoRange $ LitNat (- 1)
 
 instance ActusNum Expr where
     a + b       = OpApp NoRange (QName $ quickname "+") (S.empty) $ (quickarg a) :| [quickarg b]
@@ -28,11 +33,13 @@ instance ActusNum Expr where
     a / b       = OpApp NoRange (QName $ quickname "/") (S.empty) $ (quickarg a) :| [quickarg b]
 
 instance DateOps Expr Expr where
-    _lt a b = undefined
+    _lt a b = 
+        App NoRange (App NoRange (Ident $ QName $ quickname "pseudoLt") (defaultNamedArg a)) (defaultNamedArg b)  
 
-instance YearFractionOps Day Expr where
-    _y = undefined
+instance YearFractionOps Expr Expr where
+    _y _ start end maturity = 
+        App NoRange (App NoRange (App NoRange (Ident $ QName $ quickname "yearFraction") (defaultNamedArg start)) (defaultNamedArg end)) (defaultNamedArg maturity)
 
 instance RoleSignOps Expr where
-    _r = undefined
+    _r role = if (contractRoleSign role > 0) then one else minusone
 
