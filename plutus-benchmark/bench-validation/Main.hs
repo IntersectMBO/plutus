@@ -13,6 +13,7 @@ import qualified Data.ByteString.Lazy                                       as B
 import           Data.Functor                                               ((<&>))
 import qualified Data.Map                                                   as Map
 import           System.FilePath
+import           Text.Printf                                                (printf)
 
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
@@ -59,32 +60,33 @@ dataDir = "bench-validation" </> "data"
 
 {- Construct an applied validator.  We assume that relevant validators, datum
    scripts, redeemers and contexts are stored in CBOR format under `<progName>`
-   in the `data` directory.  These should have names like "Redeemer1.cbor", "Context3.cbor",
-   and so on. This function returnes a Criterion environment to be fed to the relevant
-   benchmark, to keep the IO overhead out of the benchmark itself. -}
+   in the `data` directory.  These should have names like "Redeemer01.cbor",
+   "Context03.cbor", and so on. This function returnes a Criterion environment
+   to be fed to the relevant benchmark, to keep the IO overhead out of the
+   benchmark itself. -}
 getAppliedScript :: String -> Int -> Int -> Int -> Int -> IO (Term ())
 getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumber = do
   let dataPath = dataDir </> progName
       loadScript base suffix = do
-          let file = dataPath </> (base ++ show suffix ++ cborSuffix)
+          let file = dataPath </> (base ++ printf "%02d" suffix ++ cborSuffix)
           loadPlc file
   validator <- loadScript "Validator" validatorNumber
-  datum     <- loadScript "Datum" datumNumber
-  redeemer  <- loadScript "Redeemer" redeemerNumber
-  context   <- loadScript "Context" contextNumber
+  datum     <- loadScript "Datum"     datumNumber
+  redeemer  <- loadScript "Redeemer"  redeemerNumber
+  context   <- loadScript "Context"   contextNumber
   let appliedValidator = validator `UPLC.applyProgram` datum `UPLC.applyProgram` redeemer `UPLC.applyProgram` context
   pure $ void . UPLC.toTerm $ appliedValidator
 
 
-{- Create a benchmark called something like "crowdfunding/5" by applying
-   validator number v to datum d, redeemer r, and context c in the directory
+{- Create a benchmark with a name like "crowdfunding/5" by applying validator
+   number v to datum d, redeemer r, and context c in the directory
    data/<dirname>.  The 'id' argument is just to give the indvidual benchmarks
-   more readable names.  -}
+   more readable names. -}
 mkBM :: String -> (Int, (Int, Int, Int, Int)) -> Benchmark
 mkBM dirname (id, (v,d,r,c)) =
     env (getAppliedScript dirname v d r c) $ \ ~ script -> bench (show id) $ benchCek script
 
--- Make a bgroup collecting together a number of benchmarks for the same contract
+-- Make a `bgroup` collecting together a number of benchmarks for the same contract
 mkBgroup :: String -> [(Int, (Int, Int, Int, Int))] -> Benchmark
 mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
 
@@ -107,5 +109,34 @@ main = defaultMainWith config
          , (5, (3,5,3,5))
          , (6, (3,4,4,6))
          , (7, (3,4,3,7))
+         ]
+       , mkBgroup
+         "multisigSM"
+         [ (1,  (1,1,1,1))
+         , (2,  (1,2,2,2))
+         , (3,  (1,3,3,3))
+         , (4,  (1,4,4,4))
+         , (5,  (1,5,5,5))
+         , (6,  (1,1,1,6))
+         , (7,  (1,2,2,7))
+         , (8,  (1,3,3,8))
+         , (9,  (1,4,4,9))
+         , (10, (1,5,5,10))
+         ]
+       , mkBgroup
+         "vesting"
+         [ (1,  (1,1,1,1))
+         , (2,  (2,1,1,2))
+         , (3,  (3,1,1,1))
+         ]
+       , mkBgroup
+         "marlowe/trustfund"
+         [ (1,  (1,1,1,1))
+         , (2,  (1,2,2,2))
+         ]
+       , mkBgroup
+         "marlowe/zerocoupon"
+         [ (1,  (1,1,1,1))
+         , (2,  (1,2,2,2))
          ]
        ]
