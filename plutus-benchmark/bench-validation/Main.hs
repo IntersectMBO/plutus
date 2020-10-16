@@ -41,7 +41,7 @@ type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
-  , template = "./default.tpl"  -- Include total number of iterations in HTML report
+  , template = "./default.tpl"  -- Include total number of iterations in HTML
   }
 
 fromDeBruijn ::  UPLC.Program UPLC.DeBruijn PLC.DefaultUni a ->  IO (Program a)
@@ -90,20 +90,21 @@ getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumb
   let appliedValidator = validator `UPLC.applyProgram` datum `UPLC.applyProgram` redeemer `UPLC.applyProgram` context
   pure $ void . UPLC.toTerm $ appliedValidator
 
-
 {- Create a benchmark with a name like "crowdfunding/5" by applying validator
    number v to datum number d, redeemer number r, and context number c in the
    directory data/<dirname>.  The 'id' argument is just to make the names of the
    indvidual benchmarks more readable and more easily typed. -}
 mkBM :: String -> (Int, (Int, Int, Int, Int)) -> Benchmark
 mkBM dirname (id, (v,d,r,c)) =
-    env (getAppliedScript dirname v d r c) $ \ ~ script -> bench (show id) $ benchCek script
+    env (getAppliedScript dirname v d r c) $ \script -> bench (show id) $ benchCek script
 
 -- Make a `bgroup` collecting together a number of benchmarks for the same contract
 mkBgroup :: String -> [(Int, (Int, Int, Int, Int))] -> Benchmark
 mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
 
--- See the README files in the data directories for the combinations of scripts
+{- See the README files in the data directories for the combinations of scripts.
+   you can run specific benchmarks by typing things like
+   `stack bench -- plutus-benchmark:validation --ba crowdfunding/2`. -}
 main :: IO ()
 main = defaultMainWith config
        [ mkBgroup
