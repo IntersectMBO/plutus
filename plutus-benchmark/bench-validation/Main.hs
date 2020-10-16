@@ -24,44 +24,45 @@ import qualified Language.UntypedPlutusCore                                 as U
 import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 
-emptyBuiltins :: DynamicBuiltinNameMeanings (UPLC.CekValue PLC.DefaultUni)
-emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
+type Term a    = UPLC.Term PLC.Name PLC.DefaultUni a
+type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
 
+-- Generate an HTML report.  If run via stack/cabal this will be written to the
+-- `plutus-benchmark` directory.
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
-  , jsonFile = Just "report.json"
   }
 
-fromDeBruijn ::  UPLC.Program UPLC.DeBruijn PLC.DefaultUni a ->  IO (UPLC.Program PLC.Name PLC.DefaultUni a)
+fromDeBruijn ::  UPLC.Program UPLC.DeBruijn PLC.DefaultUni a ->  IO (Program a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
     case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> error $ show e
       Right p -> return p
 
-loadPlc :: Serialise a => FilePath -> IO (UPLC.Program PLC.Name PLC.DefaultUni a)
+loadPlc :: Serialise a => FilePath -> IO (Program a)
 loadPlc file = do
   BSL.readFile file <&> deserialiseOrFail >>= mapM fromDeBruijn >>= \case
                Left (DeserialiseFailure offset msg) ->
                    error ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg)
                Right r -> return r
 
-benchCek :: UPLC.Term PLC.Name PLC.DefaultUni () -> Benchmarkable
+benchCek :: Term () -> Benchmarkable
 benchCek program = nf (UPLC.unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel) program
 
 cborSuffix :: String
 cborSuffix = ".cbor"
 
 dataDir :: String
-dataDir = "/home/kwxm/plutus/plutus/plutus-benchmark/bench-validation" </> "data"
-
+dataDir = "bench-validation" </> "data"
 
 {- Construct an applied validator.  We assume that relevant validators, datum
    scripts, redeemers and contexts are stored in CBOR format under `<progName>`
    in the `data` directory.  These should have names like "Redeemer1.cbor", "Context3.cbor",
    and so on. This function returnes a Criterion environment to be fed to the relevant
    benchmark, to keep the IO overhead out of the benchmark itself. -}
+getAppliedScript :: String -> Int -> Int -> Int -> Int -> IO (Term ())
 getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumber = do
   let dataPath = dataDir </> progName
       loadScript base suffix = do
@@ -75,26 +76,36 @@ getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumb
   pure $ void . UPLC.toTerm $ appliedValidator
 
 
+{- Create a benchmark called something like "crowdfunding/5" by applying
+   validator number v to datum d, redeemer r, and context c in the directory
+   data/<dirname>.  The 'id' argument is just to give the indvidual benchmarks
+   more readable names.  -}
+mkBM :: String -> (Int, (Int, Int, Int, Int)) -> Benchmark
+mkBM dirname (id, (v,d,r,c)) =
+    env (getAppliedScript dirname v d r c) $ \ ~ script -> bench (show id) $ benchCek script
+
+-- Make a bgroup collecting together a number of benchmarks for the same contract
+mkBgroup :: String -> [(Int, (Int, Int, Int, Int))] -> Benchmark
+mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
 
 main :: IO ()
 main = defaultMainWith config
-       [
-         bgroup "crowdfunding" [
-                      env (getAppliedScript "Crowdfunding" 1 1 1 1) $ \ ~ script -> bench "Crowdfunding1" $ benchCek script
-                    , env (getAppliedScript "Crowdfunding" 1 2 1 2) $ \ ~ script -> bench "Crowdfunding2" $ benchCek script
-                    , env (getAppliedScript "Crowdfunding" 1 3 1 3) $ \ ~ script -> bench "Crowdfunding3" $ benchCek script
-                    , env (getAppliedScript "Crowdfunding" 1 3 1 4) $ \ ~ script -> bench "Crowdfunding4" $ benchCek script
-                    , env (getAppliedScript "Crowdfunding" 1 1 2 5) $ \ ~ script -> bench "Crowdfunding5" $ benchCek script
-                    , env (getAppliedScript "Crowdfunding" 1 3 2 5) $ \ ~ script -> bench "CrowdfundingX" $ benchCek script
-                    ]
-       , bgroup "Future" [
-                      env (getAppliedScript "Future" 1 1 1 1) $ \ ~ script -> bench "Future1" $ benchCek script
-                    , env (getAppliedScript "Future" 2 2 1 2) $ \ ~ script -> bench "Future2" $ benchCek script
-                    , env (getAppliedScript "Future" 2 3 1 4) $ \ ~ script -> bench "Future3" $ benchCek script
-                    , env (getAppliedScript "Future" 3 4 2 4) $ \ ~ script -> bench "Future4" $ benchCek script
-                    , env (getAppliedScript "Future" 3 5 3 5) $ \ ~ script -> bench "Future5" $ benchCek script
-                    , env (getAppliedScript "Future" 3 4 4 6) $ \ ~ script -> bench "Future6" $ benchCek script
-                    , env (getAppliedScript "Future" 3 4 3 7) $ \ ~ script -> bench "Future7" $ benchCek script
-                    , env (getAppliedScript "Future" 3 5 4 7) $ \ ~ script -> bench "FutureX" $ benchCek script
-                    ]
+       [ mkBgroup
+         "crowdfunding"
+         [ (1, (1,1,1,1))
+         , (2, (1,2,1,2))
+         , (3, (1,3,1,3))
+         , (4, (1,3,1,4))
+         , (5, (1,1,2,5))
+         ]
+       , mkBgroup
+         "future"
+         [ (1, (1,1,1,1))
+         , (2, (2,2,1,2))
+         , (3, (2,3,1,3))
+         , (4, (3,4,2,4))
+         , (5, (3,5,3,5))
+         , (6, (3,4,4,6))
+         , (7, (3,4,3,7))
+         ]
        ]
