@@ -35,7 +35,6 @@ instance ActusOps Expr where
     _zero = zero
     _one  = one
 
-
 instance ActusNum Expr where
     a + b       = OpApp NoRange (QName $ quickname "+") (S.empty) $ (quickarg a) :| [quickarg b]
     a - b       = OpApp NoRange (QName $ quickname "-") (S.empty) $ (quickarg a) :| [quickarg b]
