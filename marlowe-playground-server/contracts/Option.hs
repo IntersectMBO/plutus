@@ -51,7 +51,7 @@ contract = When
                                     (Party (Role "counterparty"))
                                     (Token "" "")
                                     (Constant 1000)
-                                    Close 
+                                    Close
                                 )
                             )
                             (Pay
@@ -59,11 +59,11 @@ contract = When
                                 (Party (Role "counterparty"))
                                 (Token "" "")
                                 (Constant 100)
-                                Close 
+                                Close
                             )
                         )]
-                    1000 Close 
+                    1000 Close
                 )]
-            10 Close 
+            10 Close
         )]
-    10 Close 
+    10 Close
