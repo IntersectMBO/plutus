@@ -147,9 +147,21 @@ abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
 open import Data.Sum
 
 abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
-abstract3 Φ Ψ Ψ' As [] (inj₁ (p ,, refl)) C σ =
-  subst σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
 abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (abstract2 Ψ As As' p C)
+abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
+  subst σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
+
+abstract3-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Ren Φ Φ') →
+  abstract3 Φ' Ψ Ψ' As As' p
+  C (λ x → ren ρ⋆ (σ x)) 
+  ≡
+  ren ρ⋆
+  (abstract3 Φ Ψ Ψ' As As' p
+   C σ)
+abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
+  ren-subst (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
+abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
+  ren-subst (abstract2 Ψ As As' p C)
 
 apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
   → (Δ' ≤C Δ)

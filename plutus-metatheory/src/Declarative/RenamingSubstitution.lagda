@@ -81,6 +81,21 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ Δ σ As
  → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
 
+apply⋆-ren : (Φ Φ' : Ctx⋆)(Γ : Ctx Φ)(Γ' : Ctx Φ')(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
+  → (p : Δ' ≤C Δ)
+  → (C : Ψ ⊢⋆ *)
+  → (σ⋆ : ⋆.Sub Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
+  → (ρ⋆ : ⋆.Ren Φ Φ')
+  → (ρ : Ren Γ Γ' ρ⋆)
+  → 
+  apply⋆ _ _ Ψ Ψ' Δ Δ' p
+  C (λ x → ⋆.ren ρ⋆ (σ⋆ x))
+  (λ {A} x → conv⊢ refl (sym (⋆.ren-subst A)) (ren ρ⋆ ρ (σ x)))
+  ≡
+  ⋆.ren ρ⋆
+  (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
+
+
 renTel _ ρ {As = []}     []       = []
 renTel _ ρ {As = A ∷ As} (M ∷ Ms) =
   conv⊢ refl (sym (⋆.ren-subst A)) (ren _ ρ M) ∷ renTel _ ρ Ms
@@ -112,7 +127,28 @@ ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
   refl
   (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
   (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
+ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
+  refl
+  (abstract3-ren _ _ _ _ _ As' p _ σ ρ⋆)
+  (pbuiltin b Ψ' (⋆.ren ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
+ren ρ⋆ ρ (ibuiltin b σ⋆ σ) = conv⊢
+  refl
+  (⋆.ren-subst (proj₂ (proj₂ (ISIG b))))
+  (ibuiltin
+    b
+    (⋆.ren ρ⋆ ∘ σ⋆)
+    (λ {A = A} → conv⊢ refl (sym (⋆.ren-subst A)) ∘ ren ρ⋆ ρ ∘ σ))
+ren ρ⋆ ρ (ipbuiltin b Ψ' Δ' p σ⋆ σ) = conv⊢
+  refl
+  (apply⋆-ren _ _ _ _ _ _ _ _ p _ σ⋆ σ ρ⋆ ρ)
+  (ipbuiltin b Ψ' Δ' p (⋆.ren ρ⋆ ∘ σ⋆)
+    (λ {A = A} → conv⊢ refl (sym (⋆.ren-subst A)) ∘ ren ρ⋆ ρ ∘ σ)) 
 ren _ ρ (error A) = error (⋆.ren _ A)
+
+apply⋆-ren Φ Φ' Γ Γ' Ψ .Ψ Δ .Δ base C σ⋆ σ ρ⋆ ρ = ⋆.ren-subst C
+apply⋆-ren Φ Φ' Γ Γ' .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ ρ⋆ ρ = apply⋆-ren _ _ _ _ _ _ _ _ p (Π C) σ⋆ σ ρ⋆ ρ
+apply⋆-ren Φ Φ' Γ Γ' Ψ Ψ' .(_ , _) Δ' (skip p) C σ⋆ σ ρ⋆ ρ = apply⋆-ren _ _ _ _ _ _ _ _ p (_ ⇒ C) σ⋆ σ ρ⋆ ρ
+
 \end{code}
 
 \begin{code}
