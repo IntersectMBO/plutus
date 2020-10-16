@@ -25,11 +25,19 @@ import qualified Language.UntypedPlutusCore                                 as U
 import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 
+{-- | This set of benchmarks is based on validations occurring in the tests in
+  plutus-use-cases.  Those tests are run on the blockchain simulator, and a
+  modified version of Ledger.Scripts was used to extract validator scripts and
+  their arguments.  These are stored in the `data` directory in CBOR form, along
+  with README files explaining which scripts were involved in each validation
+  during the tests.  --}
+
 type Term a    = UPLC.Term PLC.Name PLC.DefaultUni a
 type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
 
--- Generate an HTML report.  If run via stack/cabal this will be written to the
--- `plutus-benchmark` directory.
+{- Generate an HTML report.  If run via stack/cabal this will be written to the
+   `plutus-benchmark` directory by default.  The -o option can be used to change this,
+   but an absolute path will  probably be required (eg, "-o=$PWD/report.html") . -}
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
@@ -53,9 +61,13 @@ loadPlc file = do
 benchCek :: Term () -> Benchmarkable
 benchCek program = nf (UPLC.unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel) program
 
-cborSuffix :: String
-cborSuffix = ".cbor"
 
+cborSuffix :: String
+cborSuffix = "cbor"
+
+-- The directory containing the scripts.  This will be relative to the working
+-- directory, which will be `plutus-benchmark` if the benchmarks are being run
+-- via cabal or stack.
 dataDir :: String
 dataDir = "bench-validation" </> "data"
 
@@ -68,8 +80,8 @@ dataDir = "bench-validation" </> "data"
 getAppliedScript :: String -> Int -> Int -> Int -> Int -> IO (Term ())
 getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumber = do
   let dataPath = dataDir </> progName
-      loadScript base suffix = do
-          let file = dataPath </> (base ++ printf "%02d" suffix ++ cborSuffix)
+      loadScript base scriptNumber = do
+          let file = dataPath </> (base ++ printf "%02d" scriptNumber) <.> cborSuffix
           loadPlc file
   validator <- loadScript "Validator" validatorNumber
   datum     <- loadScript "Datum"     datumNumber
@@ -80,9 +92,9 @@ getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumb
 
 
 {- Create a benchmark with a name like "crowdfunding/5" by applying validator
-   number v to datum d, redeemer r, and context c in the directory
-   data/<dirname>.  The 'id' argument is just to give the indvidual benchmarks
-   more readable names. -}
+   number v to datum number d, redeemer number r, and context number c in the
+   directory data/<dirname>.  The 'id' argument is just to make the names of the
+   indvidual benchmarks more readable and more easily typed. -}
 mkBM :: String -> (Int, (Int, Int, Int, Int)) -> Benchmark
 mkBM dirname (id, (v,d,r,c)) =
     env (getAppliedScript dirname v d r c) $ \ ~ script -> bench (show id) $ benchCek script
@@ -91,6 +103,7 @@ mkBM dirname (id, (v,d,r,c)) =
 mkBgroup :: String -> [(Int, (Int, Int, Int, Int))] -> Benchmark
 mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
 
+-- See the README files in the data directories for the combinations of scripts
 main :: IO ()
 main = defaultMainWith config
        [ mkBgroup
