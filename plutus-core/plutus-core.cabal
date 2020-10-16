@@ -408,8 +408,6 @@ executable plc
         base <5,
         bytestring -any,
         deepseq -any,
-        lens -any,
-        mtl -any,
         optparse-applicative -any,
         plutus-core -any,
         prettyprinter -any,

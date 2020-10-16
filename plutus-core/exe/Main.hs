@@ -551,7 +551,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
 
     where succeed start v = do
             end <- getCPUTime
-            putStrLn $ show (getPrintMethod printMode v)
+            print $ getPrintMethod printMode v
             let ms = 1e9 :: Double
                 diff = (fromIntegral (end - start)) / ms
             when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
