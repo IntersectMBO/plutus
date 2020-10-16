@@ -33,6 +33,7 @@ type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
+  , template = "./default.tpl"  -- Include total number of iterations in HTML report
   }
 
 fromDeBruijn ::  UPLC.Program UPLC.DeBruijn PLC.DefaultUni a ->  IO (Program a)
