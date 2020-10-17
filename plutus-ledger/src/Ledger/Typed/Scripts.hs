@@ -54,9 +54,9 @@ data ScriptInstance (a :: Type) =
 
 -- | The 'ScriptInstance' of a validator script and its wrapper.
 validator ::
-    CompiledCode PLC.DefaultUni () (ValidatorType a)
+    CompiledCode PLC.DefaultUni PLC.DefaultFun (ValidatorType a)
     -- ^ Validator script (compiled)
-    -> CompiledCode PLC.DefaultUni () (ValidatorType a -> WrappedValidatorType)
+    -> CompiledCode PLC.DefaultUni PLC.DefaultFun (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
     -> ScriptInstance a
 validator vc wrapper =
