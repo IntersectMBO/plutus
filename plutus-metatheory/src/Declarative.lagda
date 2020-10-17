@@ -126,10 +126,26 @@ data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
 
 
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-ISIG addInteger = _ ,, (∅ , con integer) ,, con integer
---ISIG ifThenElse = _ ,, (∅ ,⋆ * , con bool , ` Z) ,, ` Z
-ISIG ifThenElse = _ ,, ∅ , con bool ,⋆ * , ` Z ,, ` Z
-ISIG _ = _ ,, ∅ ,, con bool
+ISIG addInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG subtractInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG multiplyInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG divideInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG quotientInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG remainderInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG modInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG lessThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG lessThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG greaterThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG greaterThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG equalsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG concatenate = _ ,, (∅ , con bytestring , con bytestring) ,, con bytestring
+ISIG takeByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
+ISIG dropByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
+ISIG sha2-256 = _ ,, (∅ , con bytestring) ,, con bytestring
+ISIG sha3-256 = _ ,, (∅ , con bytestring) ,, con bytestring
+ISIG verifySignature = _ ,, (∅ , con bytestring , con bytestring , con bytestring) ,, con bool
+ISIG equalsByteString = _ ,, (∅ , con bytestring , con bytestring) ,, con bool
+ISIG ifThenElse = _ ,, (∅ , con bool ,⋆ * , ` Z , ` Z) ,, ` Z
 
 sig2type : ∀ {Φ} → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
 sig2type ∅        C = C

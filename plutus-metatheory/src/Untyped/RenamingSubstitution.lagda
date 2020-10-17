@@ -29,6 +29,7 @@ ren ρ (ƛ t)            = ƛ (ren (lift ρ) t)
 ren ρ (t · u)          = ren ρ t · ren ρ u
 ren ρ (con tcn)        = con tcn
 ren ρ (builtin b p ts) = builtin b p (renTel ρ ts)
+ren ρ (ibuiltin b p σ) = ibuiltin b p (ren ρ ∘ σ)
 ren ρ error            = error
 
 renTel ρ []       = []
@@ -37,6 +38,7 @@ renTel ρ (t ∷ ts) = ren ρ t ∷ renTel ρ ts
 weaken : ∀{n} → n ⊢ → suc n ⊢
 weaken t = ren suc t
 
+{-
 lift-cong : ∀{m n}{ρ ρ' : Ren m n}
   → (∀ x → ρ x ≡ ρ' x)
   → (x : Fin (suc m))
@@ -104,8 +106,9 @@ ren-comp ρ ρ' (ƛ t)            = cong ƛ (trans
 ren-comp ρ ρ' (t · u)          = cong₂ _·_ (ren-comp ρ ρ' t) (ren-comp ρ ρ' u)
 ren-comp ρ ρ' (con c)          = refl
 ren-comp ρ ρ' (builtin b p ts) = cong (builtin b p) (renTel-comp ρ ρ' ts)
+ren-comp ρ ρ' (ibuiltin b p σ) = cong (ibuiltin b p) {!ren-comp ρ ρ'!}
 ren-comp ρ ρ' error            = refl 
-
+-}
 --
 
 Sub : ℕ → ℕ → Set
@@ -123,6 +126,7 @@ sub σ (ƛ t)            = ƛ (sub (lifts σ) t)
 sub σ (t · u)          = sub σ t · sub σ u
 sub σ (con tcn)        = con tcn
 sub σ (builtin b p ts) = builtin b p (subTel σ ts)
+sub σ (ibuiltin b p σ') = ibuiltin b p (sub σ ∘ σ')
 sub σ error            = error
 
 subTel σ []       = []
@@ -135,6 +139,7 @@ extend σ t (suc x) = σ x
 _[_] : ∀{n} → suc n ⊢ → n ⊢ → n ⊢
 t [ u ] = sub (extend ` u) t
 
+{-
 lifts-cong : ∀{m n}{σ σ' : Sub m n}
   → (∀ x → σ x ≡ σ' x)
   → (x : Fin (suc m))
@@ -257,4 +262,5 @@ subTel:< : {l m n : ℕ}(σ : Sub m n)
   → subTel σ (ts :< t) ≡ subTel σ ts :< sub σ t
 subTel:< σ []       t = refl
 subTel:< σ (_ ∷ ts) t = cong (_ ∷_) (subTel:< σ ts t)
+-}
 \end{code}
