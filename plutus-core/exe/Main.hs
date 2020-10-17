@@ -90,6 +90,7 @@ type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
 data CborMode    = Named | DeBruijn
+type Files       = [FilePath]
 
 data Format = Plc | Cbor CborMode -- Input/output format for programs
 instance Show Format where
@@ -103,14 +104,16 @@ data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
+data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
 
 -- Main commands
-data Command = Typecheck TypecheckOptions
-             | Convert ConvertOptions
-             | Print PrintOptions
-             | Example ExampleOptions
-             | Erase EraseOptions
-             | Eval EvalOptions
+data Command = Apply     ApplyOptions
+             | Typecheck TypecheckOptions
+             | Convert   ConvertOptions
+             | Print     PrintOptions
+             | Example   ExampleOptions
+             | Erase     EraseOptions
+             | Eval      EvalOptions
 
 
 ---------------- Option parsers ----------------
@@ -194,6 +197,12 @@ timing = flag NoTiming Timing
   <> help "Report execution time of program"
   )
 
+files :: Parser Files
+files = some (argument str (metavar "[FILES...]"))
+
+applyOpts :: Parser ApplyOptions
+applyOpts = ApplyOptions <$> languageMode <*> files <*> inputformat <*> output <*> outputformat <*> printmode
+
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input <*> inputformat
 
@@ -209,8 +218,8 @@ printmode = option auto
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> languageMode <*> input <*> printmode
 
-convertoptions :: Parser ConvertOptions
-convertoptions = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
+convertOpts :: Parser ConvertOptions
+convertOpts = ConvertOptions <$> languageMode <*> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -265,11 +274,15 @@ plutus = info (plutusOpts <**> helper) (fullDesc <> header "Plutus Core tool" <>
 
 plutusOpts :: Parser Command
 plutusOpts = hsubparser (
-       command "print"
+       command "apply"
+           (info (Apply <$> applyOpts)
+            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
+            ++ "for example, 'plc apply --if cbor Validator.cbor Datum.cbor Redeemer.cbor Context.cbor --of cbor -o Script.cbor'"))
+    <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
     <> command "convert"
-           (info (Convert <$> convertoptions)
+           (info (Convert <$> convertOpts)
             (progDesc "Convert PLC programs between various formats"))
     <> command "example"
            (info (Example <$> exampleOpts)
@@ -356,8 +369,8 @@ loadASTfromCBOR language cborMode inp =
 
 
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
-getProgram :: Language -> Input -> Format -> IO (Program PLC.AlexPosn)
-getProgram language inp fmt =
+getProgram :: Language -> Format -> Input  -> IO (Program PLC.AlexPosn)
+getProgram language fmt inp =
     case fmt of
       Plc  -> parsePlcInput language inp
       Cbor cborMode -> do
@@ -415,7 +428,7 @@ writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
 -- the separate `print` option may be more user-friendly though.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
-    program <- getProgram lang inp ifmt
+    program <- getProgram lang ifmt inp
     writeProgram outp ofmt mode program
 
 
@@ -424,6 +437,26 @@ runConvert (ConvertOptions lang inp ifmt outp ofmt mode) = do
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions language inp mode) =
     parsePlcInput language inp >>= print . (getPrintMethod mode)
+
+
+---------------- Script application ----------------
+
+
+-- | Apply one script to a list of others.
+runApply :: ApplyOptions -> IO ()
+runApply (ApplyOptions language inputfiles ifmt outp ofmt mode) = do
+  scripts <- mapM (getProgram language ifmt) (map FileInput inputfiles)
+  let appliedScript =
+          case language of  -- Annoyingly, we've got a list which could in principle contain both typed and untyped programs
+            TypedPLC ->
+                case map (\case TypedProgram p -> () <$ p;  _ -> error "unexpected program type mismatch") scripts of
+                  []          -> error "No input files"
+                  progAndargs -> TypedProgram $ foldl1 PLC.applyProgram progAndargs
+            UntypedPLC ->
+                case map (\case UntypedProgram p -> () <$ p; _ -> error "unexpected program type mismatch") scripts of
+                  []          -> error "No input files"
+                  progAndArgs -> UntypedProgram $ foldl1 UPLC.applyProgram progAndArgs
+  writeProgram outp ofmt mode appliedScript
 
 
 ---------------- Examples ----------------
@@ -495,7 +528,7 @@ runExample (ExampleOptions (ExampleSingle name)) = do
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-  TypedProgram prog <- getProgram TypedPLC inp fmt
+  TypedProgram prog <- getProgram TypedPLC fmt inp
   case PLC.runQuoteT $ do
     types <- PLC.getStringBuiltinTypes ()
     PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
@@ -509,7 +542,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  TypedProgram typedProg <- getProgram TypedPLC inp ifmt
+  TypedProgram typedProg <- getProgram TypedPLC ifmt inp
   let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
@@ -523,10 +556,11 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
     case language of
 
       TypedPLC -> do
-        TypedProgram prog <- getProgram TypedPLC inp ifmt
-        let evaluate = case evalMode of
-                          CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
-                          CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
+        TypedProgram prog <- getProgram TypedPLC ifmt inp
+        let evaluate =
+                case evalMode of
+                  CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
+                  CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
         -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -540,7 +574,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
           case evalMode of
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
-                  UntypedProgram prog <- getProgram UntypedPLC inp ifmt
+                  UntypedProgram prog <- getProgram UntypedPLC ifmt inp
                   let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
@@ -564,6 +598,7 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plutus
     case options of
+        Apply     opts -> runApply     opts
         Typecheck opts -> runTypecheck opts
         Eval      opts -> runEval      opts
         Example   opts -> runExample   opts
