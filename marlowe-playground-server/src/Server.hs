@@ -23,6 +23,7 @@ import           Data.Aeson                                       (ToJSON, eithe
 import           Data.Proxy                                       (Proxy (Proxy))
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
+import           Git                                              (gitRev)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
 import           Language.Marlowe.Pretty                          (pretty)
@@ -56,8 +57,11 @@ mkHandlers AppConfig {..} = do
   githubEndpoints <- liftIO Auth.mkGithubEndpoints
   pure (mhandlers :<|> liftedAuthServer githubEndpoints authConfig)
 
+version :: Applicative m => m Text
+version = pure gitRev
+
 mhandlers :: Server API
-mhandlers = genActusContract :<|> genActusContractStatic
+mhandlers = version :<|> genActusContract :<|> genActusContractStatic
 
 app :: Server Web -> Application
 app handlers =
