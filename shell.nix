@@ -32,6 +32,7 @@ in haskell.packages.shellFor {
     pkgs.awscli
     pkgs.aws_shell
     pkgs.pass
+    pkgs.yubikey-manager
 
     # Extra dev packages acquired from elsewhere
     dev.packages.cabal-install
