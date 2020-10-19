@@ -30,6 +30,7 @@ import           Ledger.Validation                                     (PolicyCt
 import           Ledger.Value                                          (TokenName, Value)
 import qualified Ledger.Value                                          as Value
 import qualified Prelude                                               as Haskell
+import           Schema                                                (ToSchema)
 
 -- | Entity that is authorised to forge credential tokens
 newtype CredentialAuthority =
@@ -37,7 +38,7 @@ newtype CredentialAuthority =
         { unCredentialAuthority :: PubKeyHash
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show, Haskell.Ord)
-    deriving anyclass (ToJSON, FromJSON, Hashable)
+    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
 
 -- | Named credential issued by a credential authority
 data Credential =
@@ -46,7 +47,7 @@ data Credential =
         , credName      :: TokenName
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show, Haskell.Ord)
-    deriving anyclass (ToJSON, FromJSON, Hashable)
+    deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
 
 -- | The forging policy script validating the creation of credential tokens
 {-# INLINABLE validateForge #-}
