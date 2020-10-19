@@ -41,6 +41,7 @@ import           Control.Monad.Except
 import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal    (Doc (Text))
+import           ErrorCode
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.
@@ -158,7 +159,8 @@ instance ( Pretty ann
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty fun, Pretty term) =>
             PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
-    prettyBy config (KindMismatch ann ty k k')          =
+    prettyBy config e@(KindMismatch ann ty k k')          =
+        pretty (errorCode e) <> ":" <+>
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
@@ -188,3 +190,33 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Prett
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
+
+instance HasErrorCode (ParseError _a) where
+    errorCode InvalidBuiltinConstant {} = ErrorCode 10
+    errorCode UnknownBuiltinFunction {} = ErrorCode 9
+    errorCode UnknownBuiltinType {}     = ErrorCode 8
+    errorCode Unexpected {}             = ErrorCode 7
+    errorCode LexErr {}                 = ErrorCode 6
+
+instance HasErrorCode (UniqueError _a) where
+      errorCode FreeVariable {}    = ErrorCode 21
+      errorCode IncoherentUsage {} = ErrorCode 12
+      errorCode MultiplyDefined {} = ErrorCode 11
+
+instance HasErrorCode (NormCheckError _a _b _c _d _e) where
+      errorCode BadTerm {} = ErrorCode 14
+      errorCode BadType {} = ErrorCode 13
+
+instance HasErrorCode (TypeError _a _b _c _d) where
+    errorCode FreeVariableE {}           = ErrorCode 20
+    errorCode FreeTypeVariableE {}       = ErrorCode 19
+    errorCode TypeMismatch {}            = ErrorCode 16
+    errorCode KindMismatch {}            = ErrorCode 15
+    errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
+
+instance HasErrorCode (Error _a _b _c) where
+    errorCode (ParseErrorE e)           = errorCode e
+    errorCode (UniqueCoherencyErrorE e) = errorCode e
+    errorCode (TypeErrorE e)            = errorCode e
+    errorCode (NormCheckErrorE e)       = errorCode e
+    errorCode (FreeVariableErrorE e)    = errorCode e

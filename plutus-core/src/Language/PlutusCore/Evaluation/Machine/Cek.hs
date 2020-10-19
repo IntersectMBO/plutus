@@ -27,6 +27,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
+    , CekUserError(..)
     , ExBudget(..)
     , ExBudgetCategory(..)
     , ExBudgetMode(..)
@@ -67,6 +68,7 @@ import           Control.Monad.State.Strict
 import           Data.Array
 import           Data.HashMap.Monoidal
 import           Data.Text.Prettyprint.Doc
+import           ErrorCode
 
 {- Note [Scoping]
    The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
@@ -118,6 +120,10 @@ data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
+
+instance HasErrorCode CekUserError where
+      errorCode        CekEvaluationFailure {} = ErrorCode 37
+      errorCode        CekOutOfExError {}      = ErrorCode 36
 
 {- Note [Being generic over @term@ in 'CekM']
 We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a

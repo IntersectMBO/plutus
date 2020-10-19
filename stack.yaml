@@ -12,6 +12,7 @@ packages:
 - plutus-benchmark
 - plutus-contract
 - plutus-core
+- plutus-errors
 - plutus-ledger
 - plutus-ledger-api
 - plutus-metatheory

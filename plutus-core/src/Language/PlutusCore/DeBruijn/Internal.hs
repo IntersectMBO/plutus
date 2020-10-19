@@ -50,6 +50,7 @@ import           Data.Typeable
 import           Numeric.Natural
 
 import           Control.DeepSeq            (NFData)
+import           ErrorCode
 import           GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
@@ -173,6 +174,10 @@ instance Pretty FreeVariableError where
     pretty (FreeUnique u) = "Free unique:" <+> pretty u
     pretty (FreeIndex i)  = "Free index:" <+> pretty i
 makeClassyPrisms ''FreeVariableError
+
+instance HasErrorCode FreeVariableError where
+    errorCode  FreeIndex {}  = ErrorCode 23
+    errorCode  FreeUnique {} = ErrorCode 22
 
 -- | Get the 'Index' corresponding to a given 'Unique'.
 getIndex :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Unique -> m Index
