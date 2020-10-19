@@ -19,7 +19,7 @@ locals {
     ip   = "${element(concat(aws_instance.playground_b.*.private_ip, list("")), 0)}"
     dns  = "playground-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
-  
+
   webghcA = {
     name = "webghcA"
     ip   = "${element(concat(aws_instance.webghc_a.*.private_ip, list("")), 0)}"
@@ -67,11 +67,11 @@ locals {
 }
 
 resource "local_file" "bastion_machines" {
-  content  = "${jsonencode(local.bastionMachines)}"
+  content  = jsonencode(local.bastionMachines)
   filename = "${pathexpand(var.nixops_root)}/bastion_machines.json"
 }
 
 resource "local_file" "machines" {
-  content  = "${jsonencode(local.machines)}"
+  content  = jsonencode(local.machines)
   filename = "${pathexpand(var.nixops_root)}/machines.json"
 }
