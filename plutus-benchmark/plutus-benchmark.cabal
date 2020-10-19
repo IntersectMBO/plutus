@@ -13,6 +13,15 @@ description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
 build-type: Simple
 
+data-files:
+        bench-validation/data/crowdfunding/*.plc
+        bench-validation/data/future/*.plc
+        bench-validation/data/multisigSM/*.plc
+        bench-validation/data/vesting/*.plc
+        bench-validation/data/marlowe/trustfund/*.plc
+        bench-validation/data/marlowe/zerocoupon/*.plc
+        templates/*.tpl
+
 source-repository head
     type: git
     location: https://github.com/iohk/plutus
@@ -94,6 +103,8 @@ benchmark validation
   main-is: Main.hs
   hs-source-dirs:
       bench-validation
+  other-modules:
+      Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
     , plutus-core -any
