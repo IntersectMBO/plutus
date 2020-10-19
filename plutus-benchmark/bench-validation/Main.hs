@@ -1,39 +1,44 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
-
-import           Criterion.Main
-import           Criterion.Types                                            (Config (..))
-
-import           Codec.Serialise
-import           Control.Monad
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Functor                                               ((<&>))
-import qualified Data.Map                                                   as Map
-import           System.FilePath
-import           Text.Printf                                                (printf)
 
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import qualified Language.PlutusCore.Pretty                                 as PP
+
 import qualified Language.PlutusCore.Universe                               as PLC
 import qualified Language.UntypedPlutusCore                                 as UPLC
 import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 
+import           Criterion.Main
+import           Criterion.Types                                            (Config (..))
+
+import           Control.Monad
+import           Control.Monad.Trans.Except                                 (runExceptT)
+import qualified Data.ByteString.Lazy                                       as BSL
+import           Data.Functor                                               (($>), (<&>))
+import qualified Data.Map                                                   as Map
+import qualified Data.Text.IO                                               as T
+import           System.FilePath
+import           Text.Printf                                                (printf)
+
 {-- | This set of benchmarks is based on validations occurring in the tests in
   plutus-use-cases.  Those tests are run on the blockchain simulator, and a
   modified version of Ledger.Scripts was used to extract validator scripts and
-  their arguments.  These are stored in the `data` directory in CBOR form, along
-  with README files explaining which scripts were involved in each validation
-  during the tests.  --}
+  their arguments.  These are stored in the `data` directory as Plutus Core
+  source code, along with README files explaining which scripts were involved in
+  each validation during the tests.  --}
 
 type Term a    = UPLC.Term PLC.Name PLC.DefaultUni a
 type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
+type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
+
 
 {- Generate an HTML report.  If run via stack/cabal this will be written to the
    `plutus-benchmark` directory by default.  The -o option can be used to change this,
@@ -44,26 +49,19 @@ config = defaultConfig
   , template = "./default.tpl"  -- Include total number of iterations in HTML
   }
 
-fromDeBruijn ::  UPLC.Program UPLC.DeBruijn PLC.DefaultUni a ->  IO (Program a)
-fromDeBruijn prog = do
-    let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
-      Left e  -> error $ show e
-      Right p -> return p
-
-loadPlc :: Serialise a => FilePath -> IO (Program a)
-loadPlc file = do
-  BSL.readFile file <&> deserialiseOrFail >>= mapM fromDeBruijn >>= \case
-               Left (DeserialiseFailure offset msg) ->
-                   error ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg)
-               Right r -> return r
+loadPlcSource :: FilePath -> IO (Program ())
+loadPlcSource file = do
+  contents <- BSL.readFile file
+  PLC.runQuoteT $ runExceptT (UPLC.parseScoped contents) >>= \case
+     Left (err::PlcParserError) -> error $ "Parser error: " ++ PP.displayPlcDef err
+     Right p                    -> return $ () <$ p
 
 benchCek :: Term () -> Benchmarkable
 benchCek program = nf (UPLC.unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel) program
 
 
-cborSuffix :: String
-cborSuffix = "cbor"
+plcSuffix :: String
+plcSuffix = "plc"
 
 -- The directory containing the scripts.  This will be relative to the working
 -- directory, which will be `plutus-benchmark` if the benchmarks are being run
@@ -81,8 +79,8 @@ getAppliedScript :: String -> Int -> Int -> Int -> Int -> IO (Term ())
 getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumber = do
   let dataPath = dataDir </> progName
       loadScript base scriptNumber = do
-          let file = dataPath </> (base ++ printf "%02d" scriptNumber) <.> cborSuffix
-          loadPlc file
+          let file = dataPath </> (base ++ printf "%02d" scriptNumber) <.> plcSuffix
+          loadPlcSource file
   validator <- loadScript "Validator" validatorNumber
   datum     <- loadScript "Datum"     datumNumber
   redeemer  <- loadScript "Redeemer"  redeemerNumber

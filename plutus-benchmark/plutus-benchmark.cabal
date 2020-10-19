@@ -101,5 +101,5 @@ benchmark validation
     , containers -any
     , criterion -any
     , filepath -any
-    , serialise -any
+    , text -any
     , transformers -any
