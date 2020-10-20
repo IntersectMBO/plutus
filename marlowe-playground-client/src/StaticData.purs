@@ -37,8 +37,7 @@ demoFiles =
 
 addHeader :: Contents -> Contents
 addHeader c =
-  """import * as bignumber from 'bignumber.js';
-import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+  """import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
          SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
          UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
          ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
