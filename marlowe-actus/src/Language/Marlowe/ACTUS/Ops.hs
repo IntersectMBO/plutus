@@ -31,8 +31,8 @@ class YearFractionOps a b where
 class DateOps a b where
     _lt :: a -> a -> b --returns pseudo-boolean
 
-class RoleSignOps a where
-    _r :: ContractRole -> a
+class RoleSignOps a b where
+    _r :: a -> b
 
 instance ActusOps Double where
     _min  = min
@@ -52,7 +52,7 @@ instance DateOps Day Double where
 instance YearFractionOps Day Double where
     _y = yearFraction
 
-instance RoleSignOps Double where
+instance RoleSignOps ContractRole Double where
     _r = contractRoleSign
 
 instance ActusOps (Value Observation) where
@@ -64,7 +64,7 @@ instance ActusOps (Value Observation) where
 instance DateOps (Value Observation) (Value Observation) where
     _lt a b = Cond (ValueLT a b) _one _zero
 
-instance RoleSignOps (Value Observation) where
+instance RoleSignOps ContractRole (Value Observation) where
     _r x = Constant $ (round $ contractRoleSign x) Prelude.* marloweFixedPoint
 
 

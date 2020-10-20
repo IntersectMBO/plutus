@@ -4,7 +4,6 @@
 
 module Language.Marlowe.ACTUS.AgdaOps() where
 
-import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
 import           Language.Marlowe.ACTUS.Ops
 import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, noPlaceholder, defaultNamedArg)
 import           Agda.Syntax.Position                                  (Range'(..))
@@ -49,6 +48,7 @@ instance YearFractionOps Expr Expr where
     _y _ start end maturity = 
         App NoRange (App NoRange (App NoRange (Ident $ QName $ quickname "yearFraction") (defaultNamedArg start)) (defaultNamedArg end)) (defaultNamedArg maturity)
 
-instance RoleSignOps Expr where
-    _r role = if (contractRoleSign role > 0) then one else minusone
+instance RoleSignOps Expr Expr where
+    _r role = 
+        App NoRange (Ident $ QName $ quickname "roleSign") (defaultNamedArg role)
 

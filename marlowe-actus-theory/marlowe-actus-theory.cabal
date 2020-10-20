@@ -59,6 +59,7 @@ library
   exposed-modules:
   other-modules:
     Language.Marlowe.ACTUS.AgdaOps
+    Language.Marlowe.ACTUS.AgdaGen
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
