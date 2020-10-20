@@ -1221,7 +1221,7 @@ let
         name = "unsafe-reference";
         version = "v3.0.1";
         src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-unsafe-reference";
+          url = "https://github.com/purescript-contrib/purescript-unsafe-reference.git";
           rev = "79d7de7b9351346a73e6c060d80532c95ba1c7c1";
           sha256 = "0q758dz59qz0li4s3w1qcg921xp5i5rh6i1l611iv7rr8cbj11al";
         };
