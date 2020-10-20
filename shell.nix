@@ -53,6 +53,7 @@ in haskell.packages.shellFor {
     pkgs.rPackages.plotly # for generating R plots locally
     pkgs.R
   ]);
+
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
 }

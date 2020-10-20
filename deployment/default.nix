@@ -69,16 +69,26 @@ let
       ln -s ${terraform-vars env region}/* $tmp_dir
       cd $tmp_dir
 
+      echo "read secrets"
+      TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
+      TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
+      TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
+      TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
+      TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
+
+      export TF_VAR_marlowe_github_client_id
+      export TF_VAR_marlowe_github_client_secret
+      export TF_VAR_marlowe_jwt_signature
+      export TF_VAR_plutus_github_client_id
+      export TF_VAR_plutus_github_client_secret
+      export TF_VAR_plutus_jwt_signature
+
       echo "apply terraform"
-      export TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
-      export TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
-      export TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
-      export TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
-      export TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
-      export TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
       ${terraform}/bin/terraform init
       ${terraform}/bin/terraform workspace select ${env}
       ${terraform}/bin/terraform apply -var-file=${env}.tfvars
+
       marlowe_api_id=$(${terraform}/bin/terraform output marlowe_rest_api_id)
       plutus_api_id=$(${terraform}/bin/terraform output plutus_rest_api_id)
       region=$(${terraform}/bin/terraform output region)
