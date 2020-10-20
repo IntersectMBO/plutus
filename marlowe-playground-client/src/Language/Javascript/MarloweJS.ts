@@ -3,7 +3,7 @@ import bignumber = require("bignumber.js")
 type Party = { "pk_hash" : string }
            | { "role_token" : string };
 
-type SomeNumber = bignumber.BigNumber | number | string | bigint;
+type SomeNumber = number | string | bigint;
 
 function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
     if (typeof(n) == 'string') {
@@ -16,7 +16,7 @@ function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
         }
         return new bignumber.BigNumber(n);
     } else {
-        return n;
+        throw(new Error('Not a valid number'))
     }
 }
 

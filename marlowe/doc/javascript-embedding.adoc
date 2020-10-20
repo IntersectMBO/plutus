@@ -54,7 +54,7 @@ There is one important type that is not present in the Haskell definition of Mar
 
 [source,typescript]
 ----
-type SomeNumber = bignumber.BigNumber | string | number | bigint
+type SomeNumber = string | number | bigint
 ----
 
 The reason we have this type is that the native type for numbers in JavaScript and TypeScript loses precision when used with large integer numbers. This is because its implementation relies on floating point numbers.
@@ -77,10 +77,6 @@ We therefore recommend the use of `bigint` type. But we support three ways of re
 * String representation:
   - Notation just requires adding quotes around the numbers
   - You cannot use standard operators directly, e.g: `"32" + "57" = "3257"`
-  - They do not lose precision
-* `BigNumber` library:
-  - They support algebraic operations as methods.
-  - Notation is more cumbersome than native numbers, e.g: `new bignumber.BigNumber(450);`
   - They do not lose precision
 * `bigint` type:
   - They are straightforward to use (just add `n` after number literals)
@@ -111,7 +107,6 @@ We can remove everything under the line and start coding our own contract. The i
 
 [source,typescript]
 ----
-import * as bignumber from 'bignumber.js';
 import { Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
         SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
         UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
