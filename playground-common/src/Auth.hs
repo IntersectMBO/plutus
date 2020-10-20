@@ -60,11 +60,8 @@ import           Data.Time.Clock.POSIX       (POSIXTime, utcTimeToPOSIXSeconds)
 import           GHC.Generics                (Generic)
 import           Gist                        (Gist, GistId, NewGist)
 import qualified Gist
-import           Network.HTTP.Client         (managerModifyRequest)
 import           Network.HTTP.Client.Conduit (getUri)
-import           Network.HTTP.Client.TLS     (tlsManagerSettings)
-import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
-                                              setQueryString)
+import           Network.HTTP.Conduit        (Request, parseRequest, responseBody, responseStatus, setQueryString)
 import           Network.HTTP.Simple         (addRequestHeader)
 import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
 import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
@@ -334,6 +331,7 @@ createSessionCookie signer token now =
 getGists ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -345,6 +343,7 @@ getGists header = withGithubToken header (\token -> Gist.getGists $ Just token)
 createNewGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -358,6 +357,7 @@ createNewGist header newGist =
 getGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -371,6 +371,7 @@ getGist header gistId =
 updateGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -388,6 +389,7 @@ withGithubToken ::
        ( MonadNow m
        , MonadLogger m
        , MonadError ServerError m
+       , MonadWeb m
        , MonadIO m
        , MonadReader Env m
        )
@@ -398,10 +400,7 @@ withGithubToken cookieHeader action = do
     baseUrl <- view (_1 . githubEndpointsApiBaseUrl)
     jwtSignature <- view (_2 . configJWTSignature)
     logDebugN "Initialising connection manager."
-    manager <-
-        liftIO $
-        newManager $
-        tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
+    manager <- makeManager
     let clientEnv = mkClientEnv manager baseUrl
     now <- getPOSIXTime
     logDebugN "Extracting token."
