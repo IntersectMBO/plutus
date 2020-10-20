@@ -8,7 +8,7 @@ const bob : Party = Role("bob");
 const carol : Party = Role("carol");
 
 /* Value under escrow */
-const price : SomeNumber = new bignumber.BigNumber(450);
+const price : SomeNumber = 450n;
 
 /* helper function to build Actions */
 
@@ -29,9 +29,9 @@ const choiceValueBy = function(party : Party) : Value {
 
 /* Names for choices */
 
-const pay : [Bound]    = [Bound(0, 0)];
-const refund : [Bound] = [Bound(1, 1)];
-const both : [Bound]   = [Bound(0, 1)];
+const pay : [Bound]    = [Bound(0n, 0n)];
+const refund : [Bound] = [Bound(1n, 1n)];
+const both : [Bound]   = [Bound(0n, 1n)];
 
 /* Name choices according to person making choice and choice made */
 
@@ -57,11 +57,11 @@ const bobChosen : Value = choiceValueBy(bob);
 
 const arbitrate : Contract = When([Case(carolRefund, Close),
                                    Case(carolPay, Pay(alice, Party(bob), ada, price, Close))],
-                                   100, Close);
+                                   100n, Close);
 
 /* The contract to follow when Alice and Bob have made the same choice. */
 
-const agreement : Contract = If(ValueEQ(aliceChosen, 0),
+const agreement : Contract = If(ValueEQ(aliceChosen, 0n),
                                 Pay(alice, Party(bob), ada, price, Close),
                                 Close);
 
@@ -72,8 +72,8 @@ const inner : Contract = When([Case(aliceChoice,
                                      If(ValueEQ(aliceChosen, bobChosen),
                                         agreement,
                                         arbitrate))],
-                                60, arbitrate))],
-                          40, Close);
+                                60n, arbitrate))],
+                          40n, Close);
 
 /* What does the vanilla contract look like?
   - if Alice and Bob choose
@@ -83,11 +83,8 @@ const inner : Contract = When([Case(aliceChoice,
   - refund if no choices are made. */
 
 const contract : Contract = When([Case(Deposit(alice, alice, ada, price), inner)],
-                                 10,
+                                 10n,
                                  Close)
-
-contract
-
 """
 
 zeroCouponBond :: String
@@ -95,18 +92,17 @@ zeroCouponBond =
   """const investor : Party = Role("investor");
 const issuer : Party = Role("issuer");
 
-When([Case(
-        Deposit(investor, investor, ada, 850),
-        Pay(investor, Party(issuer), ada, 850,
-            When([ Case(Deposit(investor, issuer, ada, 1000),
-                        Pay(investor, Party(investor), ada, 1000, Close))
-                 ],
-                 20,
-                 Close)
-           ))],
-      10,
-      Close);
-
+const contract : Contract = When([Case(
+                                    Deposit(investor, investor, ada, 850n),
+                                    Pay(investor, Party(issuer), ada, 850n,
+                                        When([ Case(Deposit(investor, issuer, ada, 1000n),
+                                                    Pay(investor, Party(investor), ada, 1000n, Close))
+                                             ],
+                                             20n,
+                                             Close)
+                                       ))],
+                                  10n,
+                                  Close);
 """
 
 couponBondGuaranteed :: String
@@ -115,47 +111,47 @@ couponBondGuaranteed =
 const guarantor : Party = Role("guarantor");
 const investor : Party = Role("investor");
 
-When([
-    Case(Deposit(investor, guarantor, ada, 1030),
-         When([
-            Case(Deposit(investor, investor, ada, 1000),
-                 Pay(investor, Party(issuer), ada, 1000,
-                     When([
-                         Case(Deposit(investor, issuer, ada, 10),
-                              Pay(investor, Party(investor), ada, 10,
-                                  Pay(investor, Party(guarantor), ada, 10,
-                                      When([
-                                          Case(Deposit(investor, issuer, ada, 10),
-                                               Pay(investor, Party(investor), ada, 10,
-                                                   Pay(investor, Party(guarantor), ada, 10,
-                                                       When([
-                                                           Case(Deposit(investor, issuer, ada, 1010),
-                                                                Pay(investor, Party(investor), ada, 1010,
-                                                                    Pay(investor, Party(guarantor), ada, 1010, Close)
-                                                                   )
-                                                               )
-                                                            ], 20, Close)
-                                                      )
-                                                  )
-                                              )
-                                           ], 15, Close)
-                                     )
-                                 )
-                             )
-                          ], 10, Close)
-                    )
-                )
-              ], 5, Close)
-        )
-     ], 5, Close)
+const contract : Contract = When([
+                                Case(Deposit(investor, guarantor, ada, 1030n),
+                                    When([
+                                        Case(Deposit(investor, investor, ada, 1000n),
+                                            Pay(investor, Party(issuer), ada, 1000n,
+                                                When([
+                                                    Case(Deposit(investor, issuer, ada, 10n),
+                                                        Pay(investor, Party(investor), ada, 10n,
+                                                            Pay(investor, Party(guarantor), ada, 10n,
+                                                                When([
+                                                                    Case(Deposit(investor, issuer, ada, 10n),
+                                                                        Pay(investor, Party(investor), ada, 10n,
+                                                                            Pay(investor, Party(guarantor), ada, 10n,
+                                                                                When([
+                                                                                    Case(Deposit(investor, issuer, ada, 1010n),
+                                                                                            Pay(investor, Party(investor), ada, 1010n,
+                                                                                                Pay(investor, Party(guarantor), ada, 1010n, Close)
+                                                                                            )
+                                                                                        )
+                                                                                        ], 20n, Close)
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    ], 15n, Close)
+                                                                )
+                                                            )
+                                                        )
+                                                    ], 10n, Close)
+                                                )
+                                            )
+                                        ], 5n, Close)
+                                    )
+                                ], 5n, Close)
 """
 
 swap :: String
 swap =
-  """const lovelacePerAda : SomeNumber = new bignumber.BigNumber("1000000");
-const amountOfAda : SomeNumber = new bignumber.BigNumber("1000");
-const amountOfLovelace : SomeNumber = lovelacePerAda.times(amountOfAda);
-const amountOfDollars : SomeNumber = new bignumber.BigNumber("100");
+  """const lovelacePerAda : SomeNumber = 1000000n;
+const amountOfAda : SomeNumber = 1000n;
+const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
+const amountOfDollars : SomeNumber = 100n;
 
 const dollars : Token = Token("85bb65", "dollar")
 
@@ -193,9 +189,9 @@ const makePayment = function(src : SwapParty, dest : SwapParty,
               continuation);
 }
 
-makeDeposit(alice, 10,
-   makeDeposit(bob, 20,
-       makePayment(alice, bob,
-           makePayment(bob, alice,
-               Close))))
+const contract : Contract = makeDeposit(alice, 10n,
+                               makeDeposit(bob, 20n,
+                                   makePayment(alice, bob,
+                                       makePayment(bob, alice,
+                                           Close))))
 """
