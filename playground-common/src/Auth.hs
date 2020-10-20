@@ -165,8 +165,10 @@ redirect ::
 redirect a = addHeader a NoContent
 
 githubRedirect ::
-       MonadReader Env m => m (Headers '[ Header "Location" Text] NoContent)
+       (MonadLogger m, MonadReader Env m)
+    => m (Headers '[ Header "Location" Text] NoContent)
 githubRedirect = do
+    logDebugN "Processing github redirect."
     _configRedirectUrl <- view (_2 . configRedirectUrl)
     _githubEndpointsCallbackUri <- view (_1 . githubEndpointsCallbackUri)
     _configGithubClientId <- view (_2 . configGithubClientId)
@@ -181,6 +183,7 @@ githubRedirect = do
                 , param "client_id" (unpack _configGithubClientId)
                 ] $
             _githubEndpointsAuthLocation
+    logDebugN $ "Redirecting to: " <> showText githubRedirectUrl
     pure $ redirect githubRedirectUrl
   where
     oauthScopes = "gist"
@@ -201,12 +204,15 @@ authStatus cookieHeader = do
     now <- getPOSIXTime
     _authStatusAuthRole <-
         case extractGithubToken jwtSignature now cookieHeader of
-            Right _ -> pure GithubUser
+            Right _ -> do
+              pure GithubUser
             Left err -> do
                 logDebugN $
                     "Failed to extract github token at step: " <> showText err
                 pure Anonymous
-    pure AuthStatus {..}
+    let authStatusResult = AuthStatus {..}
+    logDebugN $ "Authentication status is:" <> showText authStatusResult
+    pure authStatusResult
 
 extractGithubToken ::
        JWT.Signer -> POSIXTime -> Maybe Text -> Either Text (Token 'Github)
@@ -391,25 +397,30 @@ withGithubToken ::
 withGithubToken cookieHeader action = do
     baseUrl <- view (_1 . githubEndpointsApiBaseUrl)
     jwtSignature <- view (_2 . configJWTSignature)
+    logDebugN "Initialising connection manager."
     manager <-
         liftIO $
         newManager $
         tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
     let clientEnv = mkClientEnv manager baseUrl
     now <- getPOSIXTime
+    logDebugN "Extracting token."
     case extractGithubToken jwtSignature now cookieHeader of
         Left err -> do
             logErrorN $
                 "Failed to extract github token at step: " <> showText err
             throwError err401
         Right token -> do
+            logDebugN "Making github request with token."
             response <- liftIO $ flip runClientM clientEnv $ action token
             case response of
                 Left err -> do
                     logErrorN $
                         "Failed to read github endpoint: " <> showText err
                     throwError err500
-                Right result -> pure result
+                Right result -> do
+                  logDebugN "Github request successful."
+                  pure result
 
 server ::
        ( MonadNow m
