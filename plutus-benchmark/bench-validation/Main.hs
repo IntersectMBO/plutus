@@ -93,10 +93,11 @@ mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
    will probably be required (eg, "-o=$PWD/report.html") . -}
 main = do
   templateDir <- getDataFileName "templates"
-  let template = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
+  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
       config = defaultConfig {
-                 template = template,
-                 reportFile = Just "report.html" }
+                 template = templateFile,
+                 reportFile = Just "report.html"
+               }
   defaultMainWith config
        [ mkBgroup
          "crowdfunding"
