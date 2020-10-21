@@ -19,7 +19,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Control.Exception
 import           Control.Monad.IO.Class
 import           Hedgehog                                                   hiding (Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
