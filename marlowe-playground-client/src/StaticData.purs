@@ -15,7 +15,7 @@ import Data.Semigroup ((<>))
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (contractForDifference, escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Examples.Marlowe.Contracts (contractForDifference, escrow, zeroCouponBond, option, swap) as ME
-import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
+import Examples.JS.Contracts (cfd, escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
 import LocalStorage as LocalStorage
 
 type Label

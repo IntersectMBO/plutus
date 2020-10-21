@@ -210,11 +210,11 @@ const counterParty = Role("counterparty")
 
 const oracle: Party = Role("oracle")
 
-function waitForEvent (action : Action, timeout : number,  alternative : Contract): (_: Contract) => Contract {
+function waitForEvent (action : Action, timeout : SomeNumber,  alternative : Contract): (_: Contract) => Contract {
     return cont => When([Case(action, cont)], timeout, alternative)
 } 
 
-function before(time: number): number {
+function before(time: SomeNumber): SomeNumber {
     return time
 }    
 function orElse(contract: Contract): Contract {
@@ -229,7 +229,7 @@ function readValue(val : string): Value {
     return ChoiceValue(ChoiceId(val, oracle))
 }
 
-function waitFor(delay: number): (_: Contract) => Contract {
+function waitFor(delay: SomeNumber): (_: Contract) => Contract {
     return cont => When([], delay, cont)
 }
 
@@ -254,7 +254,7 @@ function useValue(name: string): Value {
     return UseValue(name)
 }
 
-function value(v: number): Value {
+function value(v: SomeNumber): Value {
     return Constant(v)
 }
 
@@ -299,10 +299,10 @@ function Do(actions: Array<(_: Contract) => Contract>, last: Contract): Contract
 
 const contract = (() => {
     const partyCollateralToken = Token("", "")
-    const partyCollateralAmount = value(1000)
+    const partyCollateralAmount = value(1000n)
     const counterPartyCollateralToken = Token("", "")
-    const counterPartyCollateralAmount = value(1000)
-    const endDate = 1000
+    const counterPartyCollateralAmount = value(1000n)
+    const endDate = 1000n
     const partyCollateralDeposit = Deposit(party, party, partyCollateralToken, partyCollateralAmount)
 
     const counterPartyCollateralDeposit = Deposit(counterParty, counterParty, counterPartyCollateralToken, counterPartyCollateralAmount)
@@ -311,11 +311,11 @@ const contract = (() => {
     const minValue = (val1: Value, val2: Value) => Cond(ValueGE(val1, val2), val2, val1)
 
     return Do([
-        waitForEvent(partyCollateralDeposit, before(100), orElse(end)),
-        waitForEvent(counterPartyCollateralDeposit, before(100), orElse(end)),
-        waitForEvent(receiveValue("price1"), before(100), orElse(end)),
+        waitForEvent(partyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(counterPartyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(receiveValue("price1"), before(100n), orElse(end)),
         waitFor(endDate),
-        waitForEvent(receiveValue("price2"), before(endDate + 100), orElse(end)),
+        waitForEvent(receiveValue("price2"), before(endDate + 100n), orElse(end)),
         letValue("delta", minus(readValue("price1"), readValue("price2")))
     ],  checkIf(ValueEQ(useValue("delta"), value(0)), 
             thenDo(end),
