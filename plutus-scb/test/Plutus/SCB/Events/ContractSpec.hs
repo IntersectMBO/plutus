@@ -10,7 +10,7 @@ module Plutus.SCB.Events.ContractSpec
 import           Control.Monad.Except                            (ExceptT (ExceptT), runExceptT)
 import           Control.Monad.Trans.Except                      (except)
 import qualified Data.Aeson                                      as JSON
-import           Data.Bifunctor                                  (first, second)
+import           Data.Bifunctor                                  (first)
 import qualified Data.ByteString.Char8                           as BS
 import qualified Data.ByteString.Lazy                            as BSL
 import           Data.Proxy                                      (Proxy (Proxy))
@@ -27,7 +27,7 @@ import           Test.Tasty                                      (TestTree, test
 import           Test.Tasty.HUnit                                (assertFailure, testCase)
 
 tests :: TestTree
-tests = testGroup "SCB.Events.Contract" [jsonTests]
+tests = testGroup "Plutus.SCB.Events.Contract" [jsonTests]
 
 jsonTests :: TestTree
 jsonTests =

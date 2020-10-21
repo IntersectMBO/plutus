@@ -90,7 +90,7 @@ in yarn2nix-moretea.mkYarnPackage {
     ln -s ${webCommon} ../web-common
     ln -s ${playgroundCommon} ../playground-common
 
-    # Ask spago to make the PureScript packages available..
+    # Ask spago to make the PureScript packages available.
     sh ${spagoPackages.installSpagoStyle}
 
     # Compile everything.

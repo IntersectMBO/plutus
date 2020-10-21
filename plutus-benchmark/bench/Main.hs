@@ -6,6 +6,7 @@ import qualified Data.Map                                                   as M
 
 import           Language.PlutusCore                                        (Name (..))
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
+import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Universe
 import           Language.UntypedPlutusCore
@@ -18,9 +19,11 @@ import qualified Plutus.Benchmark.Queens                                    as Q
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
 
+
+
 benchCek :: Term Name DefaultUni () -> Benchmarkable
 benchCek program =
-  nf (unsafeEvaluateCek emptyBuiltins defaultCostModel)
+  nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel)
      program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
@@ -39,11 +42,11 @@ config = defaultConfig
 
 main :: IO ()
 main = defaultMainWith config [
-    bgroup "clausify" [ bench " Formula 3" $ (benchClausify Clausify.F3)
-                      , bench " Formula 4" $ (benchClausify Clausify.F4)
-                      , bench " Formula 5"  $ (benchClausify Clausify.F5)
-                      , bench " Formula 5A" $ (benchClausify Clausify.F5A)
-                      , bench " Formula 6" $ (benchClausify Clausify.F6)
+    bgroup "clausify" [ bench "formula3" $ (benchClausify Clausify.F3)
+                      , bench "formula4" $ (benchClausify Clausify.F4)
+                      , bench "formula5" $ (benchClausify Clausify.F5)
+                      , bench "formula6" $ (benchClausify Clausify.F6)
+                      , bench "formula7" $ (benchClausify Clausify.F7)
                       ]
   , bgroup "queens" [ bench " 5x5 with bt, bm, bjbt, bjbt' and Fc" $
                         benchCek ( Queens.mkQueensTerm 5
@@ -68,5 +71,5 @@ main = defaultMainWith config [
                     , benchPrime [48705091355238882778842909230056712140813460157899]
                     , benchPrime [511704374946917490638851104912462284144240813125071454126151]
                     , benchPrime [511704374946917490638851104912462284144240813125071454126151]
-                    ]
+                  ]
   ]

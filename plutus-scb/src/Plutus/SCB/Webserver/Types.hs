@@ -34,12 +34,12 @@ data ContractReport t =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-data ChainReport t =
+data ChainReport =
     ChainReport
         { transactionMap      :: Map TxId Tx
         , utxoIndex           :: UtxoIndex
         , annotatedBlockchain :: [[AnnotatedTx]]
-        , relatedMetadata     :: [Metadata.Property]
+        , relatedMetadata     :: Map Metadata.Subject [Metadata.Property 'Metadata.AesonEncoding]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -47,7 +47,7 @@ data ChainReport t =
 data FullReport t =
     FullReport
         { contractReport :: ContractReport t
-        , chainReport    :: ChainReport t
+        , chainReport    :: ChainReport
         , events         :: [ChainEvent t]
         }
     deriving (Show, Eq, Generic)
@@ -62,8 +62,7 @@ data ContractSignatureResponse t =
     deriving anyclass (FromJSON, ToJSON)
 
 data StreamToServer
-    = Ping
-    | FetchProperties Metadata.Subject
+    = FetchProperties Metadata.Subject
     | FetchProperty Metadata.Subject Metadata.PropertyKey
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -72,12 +71,11 @@ deriving via (Tagged "stream_to_server" StreamToServer) instance
          StructuredLog StreamToServer
 
 data StreamToClient
-    = NewChainReport (ChainReport ContractExe)
+    = NewChainReport ChainReport
     | NewContractReport (ContractReport ContractExe)
     | NewChainEvents [ChainEvent ContractExe]
-    | FetchedProperties [Metadata.Property]
-    | FetchedProperty Metadata.Property
-    | Pong
+    | FetchedProperties (Metadata.SubjectProperties 'Metadata.AesonEncoding)
+    | FetchedProperty Metadata.Subject (Metadata.Property 'Metadata.AesonEncoding)
     | ErrorResponse Text
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

@@ -96,5 +96,18 @@ pkgs.recurseIntoAttrs (rec {
 
       echo Done
     '');
+
+    updateMetadataSamples = pkgs.writeScriptBin "update-metadata-samples" ''
+      SERVER=https://api.cardano.org/staging
+      SUBJECT=7f71940915ea5fe85e840f843c929eba467e6f050475bad1f10b9c274d1888c0
+      DATA_DIR=plutus-scb/test/Cardano/Metadata
+
+      ${pkgs.curl}/bin/curl -o $DATA_DIR/subject_response1.json $SERVER/metadata/$SUBJECT
+
+      for PROPERTY in name owner preImage description
+      do
+        ${pkgs.curl}/bin/curl -o $DATA_DIR/property_$PROPERTY.json $SERVER/metadata/$SUBJECT/properties/$PROPERTY
+      done
+    '';
   };
 })

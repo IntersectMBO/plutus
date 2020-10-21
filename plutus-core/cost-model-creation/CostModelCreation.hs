@@ -11,7 +11,9 @@ import           Barbies
 import           Control.Applicative
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
+import qualified Data.ByteString.Hash                               as PlutusHash
 import qualified Data.ByteString.Lazy                               as BSL
+import           Data.Coerce
 import           Data.Csv
 import           Data.Default
 import           Data.Either.Extra
@@ -23,6 +25,7 @@ import           Foreign.R
 import           GHC.Generics
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.R
 
 {- See Note [Creation of the Cost Model]
@@ -73,28 +76,28 @@ createCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR
     -- TODO: refactor with barbies
-    paramAddInteger <- addInteger (getConst $ paramAddInteger models)
-    paramSubtractInteger <- subtractInteger (getConst $ paramSubtractInteger models)
-    paramMultiplyInteger <- multiplyInteger (getConst $ paramMultiplyInteger models)
-    paramDivideInteger <- divideInteger (getConst $ paramDivideInteger models)
-    paramQuotientInteger <- quotientInteger (getConst $ paramQuotientInteger models)
-    paramRemainderInteger <- remainderInteger (getConst $ paramRemainderInteger models)
-    paramModInteger <- modInteger (getConst $ paramModInteger models)
-    paramLessThanInteger <- lessThanInteger (getConst $ paramLessThanInteger models)
-    paramGreaterThanInteger <- greaterThanInteger (getConst $ paramGreaterThanInteger models)
-    paramLessThanEqInteger <- lessThanEqInteger (getConst $ paramLessThanEqInteger models)
+    paramAddInteger           <- addInteger (getConst $ paramAddInteger models)
+    paramSubtractInteger      <- subtractInteger (getConst $ paramSubtractInteger models)
+    paramMultiplyInteger      <- multiplyInteger (getConst $ paramMultiplyInteger models)
+    paramDivideInteger        <- divideInteger (getConst $ paramDivideInteger models)
+    paramQuotientInteger      <- quotientInteger (getConst $ paramQuotientInteger models)
+    paramRemainderInteger     <- remainderInteger (getConst $ paramRemainderInteger models)
+    paramModInteger           <- modInteger (getConst $ paramModInteger models)
+    paramLessThanInteger      <- lessThanInteger (getConst $ paramLessThanInteger models)
+    paramGreaterThanInteger   <- greaterThanInteger (getConst $ paramGreaterThanInteger models)
+    paramLessThanEqInteger    <- lessThanEqInteger (getConst $ paramLessThanEqInteger models)
     paramGreaterThanEqInteger <- greaterThanEqInteger (getConst $ paramGreaterThanEqInteger models)
-    paramEqInteger <- eqInteger (getConst $ paramEqInteger models)
-    paramConcatenate <- concatenate (getConst $ paramConcatenate models)
-    paramTakeByteString <- takeByteString (getConst $ paramTakeByteString models)
-    paramDropByteString <- dropByteString (getConst $ paramDropByteString models)
-    paramSHA2 <- sHA2 (getConst $ paramSHA2 models)
-    paramSHA3 <- sHA3 (getConst $ paramSHA3 models)
-    paramVerifySignature <- verifySignature (getConst $ paramVerifySignature models)
-    paramEqByteString <- eqByteString (getConst $ paramEqByteString models)
-    paramLtByteString <- ltByteString (getConst $ paramLtByteString models)
-    paramGtByteString <- gtByteString (getConst $ paramGtByteString models)
-    paramIfThenElse <- ifThenElse (getConst $ paramIfThenElse models)
+    paramEqInteger            <- eqInteger (getConst $ paramEqInteger models)
+    paramConcatenate          <- concatenate (getConst $ paramConcatenate models)
+    paramTakeByteString       <- takeByteString (getConst $ paramTakeByteString models)
+    paramDropByteString       <- dropByteString (getConst $ paramDropByteString models)
+    paramSHA2                 <- sHA2 (getConst $ paramSHA2 models)
+    paramSHA3                 <- sHA3 (getConst $ paramSHA3 models)
+    paramVerifySignature      <- verifySignature (getConst $ paramVerifySignature models)
+    paramEqByteString         <- eqByteString (getConst $ paramEqByteString models)
+    paramLtByteString         <- ltByteString (getConst $ paramLtByteString models)
+    paramGtByteString         <- gtByteString (getConst $ paramGtByteString models)
+    paramIfThenElse           <- ifThenElse (getConst $ paramIfThenElse models)
 
     pure $ CostModel {..}
 
@@ -167,6 +170,15 @@ readModelMultiSizes model = (pure . uncurry ModelMultiSizes) =<< unsafeReadModel
 readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> m ModelSplitConst
 readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, I(x_mem * y_mem), 0)" model
 
+readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m Integer
+readModelConstantCost model = (\(i, _i) -> pure $ ceiling i) =<< unsafeReadModelFromR "(Intercept)" model
+
+readModelLinear :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
+readModelLinear model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope ModelOrientationX) =<< unsafeReadModelFromR "x_mem" model
+
+boolMemModel :: ModelTwoArguments
+boolMemModel = ModelTwoArgumentsConstantCost 1
+
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
@@ -214,45 +226,68 @@ remainderInteger = quotientInteger
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the size of the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanInteger = lessThanInteger
 
 lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
 greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanEqInteger = lessThanEqInteger
 
 eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the output Bool
-  let memModel = ModelTwoArgumentsConstantCost 1
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+
+eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+eqByteString cpuModelR = do
+  cpuModel <- readModelMinSize cpuModelR
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+
+ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+ltByteString cpuModelR = do
+  cpuModel <- readModelMinSize cpuModelR
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) boolMemModel
+
+gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+gtByteString = ltByteString
 
 concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-concatenate _ = pure def
+concatenate cpuModelR = do
+  cpuModel <- readModelAddedSizes cpuModelR
+  -- The buffer gets reallocated
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
+
 takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-takeByteString _ = pure def
+takeByteString cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  -- The buffer gets reused.
+  let memModel = ModelTwoArgumentsConstantCost 2
+  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
 dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-dropByteString _ = pure def
+dropByteString cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  -- The buffer gets reused.
+  let memModel = ModelTwoArgumentsConstantCost 2
+  pure $ CostingFun (ModelTwoArgumentsConstantCost cpuModel) memModel
+
 sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA2 _ = pure def
+sHA2 cpuModelR = do
+  cpuModel <- readModelLinear cpuModelR
+  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha2 "")
+  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-sHA3 _ = pure def
+sHA3 cpuModelR = do
+  cpuModel <- readModelLinear cpuModelR
+  let memModel = ModelOneArgumentConstantCost (coerce $ memoryUsage $ PlutusHash.sha3 "")
+  pure $ CostingFun (ModelOneArgumentLinearCost cpuModel) memModel
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-verifySignature _ = pure def
-eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-eqByteString _ = pure def
-ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-ltByteString _ = pure def
-gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-gtByteString _ = pure def
+verifySignature cpuModelR = do
+  cpuModel <- readModelConstantCost cpuModelR
+  pure $ CostingFun (ModelThreeArgumentsConstantCost cpuModel) (ModelThreeArgumentsConstantCost 1)
 ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse _ = pure def

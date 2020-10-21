@@ -224,11 +224,9 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 -- the times aren't much worse (maybe 10-20% greater).
 input :: [Integer]
 input = [115756986668303657898962467957]
-
 -- input = [179,179, 77595795]
 -- input = [8987964267331664557] -- Composite: 61ms, 68 MB
 -- input = [444, 4, 17331, 17, 1929475734529795, 95823752743877]  -- 740ms, 210 MB
-
 -- Some large primes and the time and space required to check them
 -- input = [9576890767]                                                   -- 10 digits: 2.4s,  0.9 GB
 -- input = [40206835204840513073]                                         -- 20 digits: 4.7s,  1.8 GB
@@ -242,7 +240,7 @@ input = [115756986668303657898962467957]
 -- input = [7595009151080016652449223792726748985452052945413160073645842090827711]  -- 70 digits: 16s, 7.7 GB (swapping on an 8GB machine)
 -- input = [40979218404449071854385509743772465043384063785613460568705289173181846900181503] -- 80 digits: process killed by OS.
 -- input = [23785274372342411111117777171111111111111111711111111111111111111111111111111111111111111111111111111111111]
---input = [533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207]
+-- input = [533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207]
 --  ^ 150 digits: far too big for the CEK machine, 40s and 94 MB on the CK machine.
 -- input = [58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839]
 -- ^ 200 digits.  55s and 97 MB on the CK machine.
@@ -260,22 +258,15 @@ composite = Tx.False
 probablyPrime :: Result
 probablyPrime = Tx.True
 
--- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
-{-# INLINABLE numTests #-}
-numTests :: Integer
-numTests = 100
-
 -- Initialise the RNG
 {-# INLINABLE initState #-}
 initState :: RNGstate
 initState = initRNG 111 47
 
-mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
-mkPrimeTerm inputs =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| \inputs' -> process inputs' initState ||])
-        `Tx.applyCode` Tx.liftCode inputs
-  in code
+-- Parameter for multiTest: how many rounds of the main primality test do we want to perform?
+{-# INLINABLE numTests #-}
+numTests :: Integer
+numTests = 100
 
 -- The @process@ function takes a list of input numbers
 -- and produces a list of output results.
@@ -287,3 +278,12 @@ process input r =
       n:ns -> case multiTest numTests r n
               of (True, r')  -> {-Tx.trace "   Probably prime" $ -}probablyPrime : process ns r'
                  (False, r') -> {-Tx.trace "   Composite" $ -}composite : process ns r'
+
+
+mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
+mkPrimeTerm inputs =
+  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
+        [|| \inputs' -> process inputs' initState ||])
+        `Tx.applyCode` Tx.liftCode inputs
+  in code
+
