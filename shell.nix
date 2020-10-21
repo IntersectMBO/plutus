@@ -14,6 +14,7 @@ in haskell.packages.shellFor {
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
+    pkgs.shellcheck
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
