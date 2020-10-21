@@ -406,16 +406,14 @@ executable plc
     hs-source-dirs: exe
     build-depends:
         base <5,
-        deepseq -any,
-        plutus-core -any,
-        transformers -any,
         bytestring -any,
         deepseq -any,
+        optparse-applicative -any,
+        plutus-core -any,
+        prettyprinter -any,
         serialise -any,
         text -any,
-        lens -any,
-        prettyprinter -any,
-        optparse-applicative -any
+        transformers -any
 
 benchmark plutus-core-budgeting-bench
     import: lang
