@@ -274,7 +274,11 @@ in rec {
     inherit marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda; 
   };
 
-  inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
+  inherit (haskell.packages.plutus-scb.components.exes)
+    plutus-game
+    plutus-currency
+    plutus-atomic-swap
+    plutus-pay-to-wallet;
 
   plutus-scb = pkgs.recurseIntoAttrs (rec {
     server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
@@ -300,6 +304,8 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
+      demo-scripts = (dbPath: pkgs.callPackage ./pab-demo-scripts.nix { inherit pkgs dbPath plutus-scb; scb-exes = haskell.packages.plutus-scb.components.exes; });
+            
   });
 
   docker = rec {

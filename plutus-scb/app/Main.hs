@@ -160,6 +160,7 @@ commandParser =
     mconcat
         [ migrationParser
         , allServersParser
+        , clientServicesParser
         , mockWalletParser
         , scbWebserverParser
         , psGeneratorCommandParser
@@ -257,6 +258,21 @@ allServersParser =
                   , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
+
+clientServicesParser :: Mod CommandFields Command
+clientServicesParser =
+    command "client-services" $
+    info
+        (pure
+             (ForkCommands
+                  [ ChainIndex
+                  , Metadata
+                  , MockWallet
+                  , SCBWebserver
+                  , SigningProcess
+                  , ProcessAllContractOutboxes
+                  ]))
+        (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 
 signingProcessParser :: Mod CommandFields Command
 signingProcessParser =
