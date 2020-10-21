@@ -195,3 +195,149 @@ const contract : Contract = makeDeposit(alice, 10n,
                                        makePayment(bob, alice,
                                            Close))))
 """
+
+cfd :: String
+cfd =
+  """
+
+const party : Party = Role("party")
+
+const counterParty = Role("counterparty")
+
+const oracle: Party = Role("oracle")
+
+function waitForEvent (action : Action, timeout : SomeNumber,  alternative : Contract): (_: Contract) => Contract {
+    return cont => When([Case(action, cont)], timeout, alternative)
+} 
+
+function before(time: SomeNumber): SomeNumber {
+    return time
+}    
+function orElse(contract: Contract): Contract {
+    return contract
+}
+
+function receiveValue(val: string): Action {
+    return Choice(ChoiceId(val, oracle), [Bound(0, 100)])
+}
+
+function readValue(val : string): Value {
+    return ChoiceValue(ChoiceId(val, oracle))
+}
+
+function waitFor(delay: SomeNumber): (_: Contract) => Contract {
+    return cont => When([], delay, cont)
+}
+
+function checkIf(obs: Observation, c1: Contract, c2: Contract): Contract {
+    return If(obs, c1, c2)
+}
+
+function thenDo(c: Contract): Contract {
+    return c
+}
+
+function elseDo(c: Contract): Contract {
+    return c
+}
+
+
+function letValue(name: string, v: Value): (_: Contract) => Contract {
+    return cont => Let (ValueId(name), v, cont)
+}
+
+function useValue(name: string): Value {
+    return UseValue(name)
+}
+
+function value(v: SomeNumber): Value {
+    return Constant(v)
+}
+
+function fromParty(a: AccountId): AccountId {
+    return a
+}
+
+function toParty(p: Party): Payee {
+    return Party(p)
+} 
+
+function withToken(tkn: Token): Token {
+    return tkn
+}
+
+const end: Contract = Close
+
+function amountOf(amount: Value): Value {
+    return amount
+}
+
+function minus(v1: Value, v2: Value): Value {
+    return SubValue(v1, v2)
+}
+
+function sendPayment(fromParty: Party, toCounterParty: Payee, tkn: Token, payoff: Value): (_: Contract) => Contract {
+    return cont => Pay(fromParty, toCounterParty, tkn, payoff, cont)
+}
+
+function Do(actions: Array<(_: Contract) => Contract>, last: Contract): Contract {
+    const foldRight = <A, B>(xs: Array<A>, zero: B) => (f: (b: B, a: A) => B): B => {
+        const len = xs.length;
+        if (len === 0) return zero;
+        else {
+            const last = xs[len - 1];
+            const inits = xs.slice(0, len - 1);
+            return foldRight(inits, f(zero, last))(f);
+        }
+    }
+    return foldRight(actions, last)((b, a) => a(b))
+}
+
+const contract = (() => {
+    const partyCollateralToken = Token("", "")
+    const partyCollateralAmount = value(1000n)
+    const counterPartyCollateralToken = Token("", "")
+    const counterPartyCollateralAmount = value(1000n)
+    const endDate = 1000n
+    const partyCollateralDeposit = Deposit(party, party, partyCollateralToken, partyCollateralAmount)
+
+    const counterPartyCollateralDeposit = Deposit(counterParty, counterParty, counterPartyCollateralToken, counterPartyCollateralAmount)
+
+
+    const minValue = (val1: Value, val2: Value) => Cond(ValueGE(val1, val2), val2, val1)
+
+    return Do([
+        waitForEvent(partyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(counterPartyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(receiveValue("price1"), before(100n), orElse(end)),
+        waitFor(endDate),
+        waitForEvent(receiveValue("price2"), before(endDate + 100n), orElse(end)),
+        letValue("delta", minus(readValue("price1"), readValue("price2")))
+    ],  checkIf(ValueEQ(useValue("delta"), value(0)), 
+            thenDo(end),
+            elseDo(
+                checkIf(ValueLT(useValue("delta"), value(0)),
+                    thenDo(
+                        Do([
+                            letValue("absdelta", minus(value(0), useValue("delta"))),
+                            (() => {
+                                const payoff = minValue(useValue("absdelta"), partyCollateralAmount)
+                                return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
+                            })()
+                        ], end)
+                    ),
+                    elseDo(
+                        Do([
+                            (() => {
+                                const payoff = minValue(useValue("delta"), partyCollateralAmount)
+                                return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
+                            })()
+                        ], end)
+                    )
+                )
+            )
+        )
+    )
+})()
+
+"""
