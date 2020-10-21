@@ -19,7 +19,7 @@ exports.eval_ = function (left, right, model) {
                           var slices = javascript.split(/^.*\/\* === Code above this comment will be removed at compile time === \*\/$/gm);
                           var takeSlice = 0;
                           if (slices.length > 1) { takeSlice = 1 };
-                          var justCode = 'function () {' + slices.slice(takeSlice).join('') + '\n return contract; }';
+                          var justCode = 'function () { \n' + slices.slice(takeSlice).join('') + '\n if (typeof contract !== \'undefined\') { return contract } else { throw new Error("Variable \'contract\' not defined. Please, assign the resulting contract to the variable \'contract\'.") } }';
                           let res = safeEval(justCode, context)();
                           return right(JSON.stringify(res));
                         } catch (error) {
