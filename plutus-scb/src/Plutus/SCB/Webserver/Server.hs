@@ -22,15 +22,13 @@ import           Data.Bifunctor                  (first)
 import qualified Data.ByteString.Lazy.Char8      as LBS
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
-import           Plutus.SCB.Swagger              (Swagger)
-import qualified Plutus.SCB.Swagger              as Swagger
-
 import qualified Data.Text.Encoding              as Text
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.SCB.App                  (App, runApp)
 import           Plutus.SCB.Arbitrary            ()
 import           Plutus.SCB.SCBLogMsg            (ContractExeLogMsg (StartingSCBBackendServer), SCBLogMsg)
-import           Plutus.SCB.Swagger              (SwaggerAPI)
+import           Plutus.SCB.Swagger              (Swagger, SwaggerAPI)
+import qualified Plutus.SCB.Swagger              as Swagger
 import           Plutus.SCB.Types                (Config, ContractExe, SCBError (InvalidUUIDError), baseUrl,
                                                   scbWebserverConfig, staticDir)
 import           Plutus.SCB.Webserver.API        (API, DocumentationAPI, WSAPI)

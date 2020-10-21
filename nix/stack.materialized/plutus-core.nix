@@ -167,9 +167,14 @@
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
+          "Language/UntypedPlutusCore/Core/Instance/Recursive"
           "Language/UntypedPlutusCore/Core/Instance/CBOR"
           "Language/UntypedPlutusCore/Core/Type"
           "Language/UntypedPlutusCore/Core/Plated"
+          "Language/UntypedPlutusCore/Analysis/Definitions"
+          "Language/UntypedPlutusCore/Check/Uniques"
+          "Language/UntypedPlutusCore/Mark"
+          "Language/UntypedPlutusCore/Rename/Internal"
           "Language/UntypedPlutusCore/Size"
           "Language/UntypedPlutusCore/Subst"
           "Data/Aeson/THReader"
@@ -248,6 +253,7 @@
           "Language/UntypedPlutusCore/DeBruijn"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "Language/UntypedPlutusCore/Parser"
+          "Language/UntypedPlutusCore/Rename"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Hash"
@@ -283,15 +289,14 @@
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
           hsSourceDirs = [ "exe" ];

@@ -83,4 +83,11 @@ cradle:
   - path: ./web-ghc/test
     config: { cradle: { cabal: { component: "web-ghc:web-ghc-test" } } }
 
+  - path: ./plutus-benchmark/lib
+    config: { cradle: {cabal: {component: "lib:plutus-benchmark" } } }
+  - path: ./plutus-benchmark/bench
+    config: { cradle: {cabal: {component: "plutus-benchmark:large-plc-cek" } } }
+  - path: ./plutus-benchmark/bench-validation
+    config: { cradle: {cabal: {component: "plutus-benchmark:validation" } } }
+
 # Add more as needed, I'm too lazy

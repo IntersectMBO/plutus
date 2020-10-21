@@ -108,6 +108,10 @@ type family GetArgs a :: [GHC.Type] where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
+-- This is an inference masterpiece:
+--
+-- 1. TODO
+--
 -- | A class that allows to derive a 'Monotype' for a builtin.
 class KnownMonotype term args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme term args res

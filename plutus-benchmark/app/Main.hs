@@ -32,15 +32,14 @@ data Command =
   | Prime [P.Integer]
 
 clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
-clausifyFormulaReader "1"  = Right Clausify.F1
-clausifyFormulaReader "2"  = Right Clausify.F2
-clausifyFormulaReader "3"  = Right Clausify.F3
-clausifyFormulaReader "4"  = Right Clausify.F4
-clausifyFormulaReader "5"  = Right Clausify.F5
-clausifyFormulaReader "5A" = Right Clausify.F5A
-clausifyFormulaReader "5a" = Right Clausify.F5A
-clausifyFormulaReader "6"  = Right Clausify.F6
-clausifyFormulaReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 5A or 6."
+clausifyFormulaReader "1" = Right Clausify.F1
+clausifyFormulaReader "2" = Right Clausify.F2
+clausifyFormulaReader "3" = Right Clausify.F3
+clausifyFormulaReader "4" = Right Clausify.F4
+clausifyFormulaReader "5" = Right Clausify.F5
+clausifyFormulaReader "6" = Right Clausify.F6
+clausifyFormulaReader "7" = Right Clausify.F7
+clausifyFormulaReader f   = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 6 or 7."
 
 clausifyOptions :: Parser Command
 clausifyOptions =
@@ -48,7 +47,7 @@ clausifyOptions =
                                 help "How many times you want the formula replicated")
            P.<*> argument (eitherReader clausifyFormulaReader)
                           (metavar "FORMULA" P.<>
-                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 5A or 6")
+                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 6 or 7")
 
 queensOptions :: Parser Command
 queensOptions =

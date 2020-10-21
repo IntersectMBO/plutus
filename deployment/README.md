@@ -19,8 +19,6 @@ A website is served from AWS API Gateway which will proxy to the following parts
 
 If you are using OSX then you cannot build the lambdas locally, therefore if you want to update the infrastructure you will need to build the lambdas on a remote builder with system type "x86_64-linux". You can do this by adding such a build machine to your `/etc/nix/machines` file, nix will try to use this machine to build the lambdas.
 
-If you have not setup AWS authentication but you have enabled MFA then you can run `eval $($(nix-build -A deployment.getCreds) user.name 123456)` (where 123456 is the current MFA code) before you run any other command to setup temporary credentials that are valid for 24 hours. Notice that you use `$()` to evaluate the result of the nix build (which is a shell script) and then you use `eval $()` around that result to evaluate the output of the script.
-
 The scripts produce files for use with nixops (until we get rid of the legacy infra) and so you should provide the location where you want these files to go by setting another terraform variable, e.g. `export TF_VAR_nixops_root=$(pwd)/deployment/nixops`.
 
 The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.
@@ -34,6 +32,49 @@ The infrastructure is based around multiple environments, for example `alpha`, `
 Once you have setup an environment with `$(nix-build -A deployment.david.deploy)` you will probably want to stick to using `$(nix-build -A deployment.david.applyTerraform)` and `$(nix-build -A deployment.david.syncS3)` only, avoiding dealing with the large plutus tutorial.
 
 The scripts require some secrets which are stored encrypted in this repository. To access them you will need to provide your gpg public key to someone who already has access to the secrets.
+
+## Multi-Factor Authentication (MFA)
+
+If you have not setup AWS authentication but you have enabled MFA then you can run `eval $($(nix-build -A deployment.getCreds) <user.name> 123456)` (where 123456 is the current MFA code) before you run any other command to setup temporary credentials that are valid for 24 hours. Notice that you use `$()` to evaluate the result of the nix build (which is a shell script) and then you use `eval $()` around that result to evaluate the output of the script.
+
+
+### YubiKey
+
+Yubikeys don't work seamlessly with `awscli`, but they do work. To set them up:
+
+#### Setup
+
+1. Log into the the AWS console and navigate to the "My Security Credentials" page.
+2. Add your Yubikey as a "Virtual MFA device".
+
+    _Note: AWS offers special support for U2F security keys like Yubikeys. Don't choose that option. It works for the web login, won't work with `awscli`. If you already added your Yubikey as a "U2F security key", remove it and start again._
+
+3. The webpage will prompt you for a QR code. Instead, click the "Show secret key" link below that prompt.
+4. Copy that secret key, and from your command line call:
+
+    ```sh
+    ykman oath add -t <LABEL> <SECRET_KEY>
+    ```
+
+    (`ykman` is provided by the Plutus `shell.nix`, so it should already be available on the command line.)
+
+You're now set up to use your Yubikey as passcode-generation device for `awscli`.
+
+For more details [see this guide](https://scalesec.com/blog/why-your-yubikey-wont-work-with-aws-cli/).
+
+#### In Use
+
+To generate a code, insert your Yubikey and type:
+
+```sh
+ykman oath code <LABEL>
+```
+
+It will prompt you to tap the key, and then print a One Time Passcode (OPT). You then use that code (as detailed above) with:
+
+``` sh
+eval $($(nix-build -A deployment.getCreds) <user.name> <CODE>)
+```
 
 ## Legacy Infrastructure
 

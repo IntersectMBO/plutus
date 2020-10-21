@@ -14,6 +14,7 @@ in haskell.packages.shellFor {
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
+    pkgs.shellcheck
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
@@ -32,6 +33,7 @@ in haskell.packages.shellFor {
     pkgs.awscli
     pkgs.aws_shell
     pkgs.pass
+    pkgs.yubikey-manager
 
     # Extra dev packages acquired from elsewhere
     dev.packages.cabal-install
@@ -45,12 +47,21 @@ in haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
+    dev.scripts.updateMetadataSamples
   ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
     # This breaks compilation of R on macOS. The latest version of R
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
     pkgs.R
   ]);
+
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
+
+  shellHook = ''
+    # Work around https://github.com/NixOS/nix/issues/3345, which makes
+    # tests etc. run single-threaded in a nix-shell.
+    # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
+    taskset -pc 0-1000 $$ 
+  '';
 }

@@ -22,7 +22,7 @@ import           System.IO.Unsafe
 --
 -- This function does not stream values lazily. There is a version that allows for lazy streaming,
 -- but we do not have it here because it's way too convoluted.
--- See https://github.com/input-output-hk/plutus/pull/336 if you need lazy streaming.
+-- See https://github.com/input-output-hk/plutus/pull/336 if you do need lazy streaming.
 withEmit :: ((a -> IO ()) -> IO b) -> IO ([a], b)
 withEmit k = do
     xsVar <- newIORef id

@@ -2,7 +2,6 @@ module Gists
   ( GistAction(..)
   , gistControls
   , parseGistUrl
-  , firstMatch
   , idPublishGist
   , idLoadGist
   ) where
@@ -190,6 +189,3 @@ parseGistUrl str = do
         matches <- match gistIdInLink str
         match <- NonEmptyArray.index matches 2
         GistId <$> match
-
-firstMatch :: String -> Gist -> Maybe GistFile
-firstMatch filename = findOf (gistFiles <<< traversed) (\gistFile -> view gistFileFilename gistFile == filename)

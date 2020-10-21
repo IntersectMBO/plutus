@@ -56,7 +56,7 @@ handleAction _ (ChangeKeyBindings bindings) = do
   void $ query _haskellEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction settings Compile = do
-  mContents <- query _haskellEditorSlot unit (Monaco.GetText identity)
+  mContents <- editorGetValue
   case mContents of
     Nothing -> pure unit
     Just code -> do
@@ -74,12 +74,12 @@ handleAction _ (LoadScript key) = do
   case Map.lookup key StaticData.demoFiles of
     Nothing -> pure unit
     Just contents -> do
-      void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
+      editorSetValue contents
       assign _activeHaskellDemo key
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
-  void $ query _haskellEditorSlot unit (Monaco.Resize unit)
+  editorResize
   pure unit
 
 handleAction _ SendResultToSimulator = pure unit
@@ -98,6 +98,15 @@ runAjax ::
   ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
   HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)
+
+editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
+editorSetValue contents = void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
+
+editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
+editorGetValue = query _haskellEditorSlot unit (Monaco.GetText identity)
 
 toMarkers :: InterpreterError -> Array IMarkerData
 toMarkers (TimeoutError _) = []

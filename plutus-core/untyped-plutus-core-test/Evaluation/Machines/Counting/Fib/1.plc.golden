@@ -14,10 +14,10 @@
 | BVar causes ({ cpu: 13
 | mem: 13
 })
-| BBuiltin LessThanEqInteger causes ({ cpu: 15
+| BBuiltin LessThanEqInteger causes ({ cpu: 7
 | mem: 1
 })})
-| budget: ({ cpu: 53
+| budget: ({ cpu: 45
 | mem: 79
 })
 }) )

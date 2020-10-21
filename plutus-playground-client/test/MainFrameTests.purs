@@ -30,7 +30,7 @@ import Editor as Editor
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
-import Gist (Gist, GistId, gistFileContent, gistFiles, gistId)
+import Gist (Gist, GistId, gistId)
 import Gists (GistAction(..))
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(..))
 import MainFrame (handleAction, mkInitialState)
@@ -39,6 +39,7 @@ import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
+import Playground.Gists (playgroundGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (CompilationResult, ContractDemo, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
@@ -207,7 +208,7 @@ evalTests =
             equal
               2
               (Cursor.length (view _simulations finalState))
-            case view (gistFiles <<< ix 0 <<< gistFileContent) gist of
+            case view playgroundGistFile gist of
               Nothing -> failure "Could not read gist content. Sample test data may be incorrect."
               Just sourceFile -> do
                 equal' "Editor gets updated."

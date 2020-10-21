@@ -16,11 +16,14 @@ module PSGenerator
 
 import qualified API
 import qualified Auth
+import qualified ContractForDifference
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
 import           Control.Monad.Reader                             (MonadReader)
+import           Data.Aeson                                       (encode)
 import qualified Data.ByteString                                  as BS
 import qualified Data.ByteString.Char8                            as BS8
+import qualified Data.ByteString.Lazy.Char8                       as Char8
 import           Data.Monoid                                      ()
 import           Data.Proxy                                       (Proxy (Proxy))
 import qualified Data.Set                                         as Set ()
@@ -29,8 +32,9 @@ import qualified Data.Text.IO                                     as T ()
 import qualified Escrow
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
+import           Language.Marlowe
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
-import           Language.Marlowe.Pretty                          (pretty)
+import qualified Language.PlutusTx.AssocMap                       as Map
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
                                                                    TypeInfo (TypeInfo), buildBridge, genericShow,
                                                                    mkSumType, psTypeParameters, typeModule, typeName,
@@ -40,7 +44,8 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
                                                                    genForeign)
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
-import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
+import           Marlowe.Contracts                                (contractForDifference, couponBondGuaranteed, escrow,
+                                                                   swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -182,6 +187,7 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
          <> multilineString "swap" swap
+         <> multilineString "contractForDifference" contractForDifference
         haskellUsecasesModule = psModule "Examples.Haskell.Contracts" haskellUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Haskell")
     BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
@@ -191,19 +197,68 @@ writeUsecases outputDir = do
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
          <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)
+         <> multilineString "contractForDifference" (contractToString ContractForDifference.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
     BS.writeFile (outputDir </> "Examples" </> "Marlowe" </> "Contracts.purs") marloweUsecasesModule
     putStrLn outputDir
 
+writePangramJson :: FilePath -> IO ()
+writePangramJson outputDir = do
+
+    let
+
+        alicePk = PK "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
+
+        bobRole = Role "Bob"
+
+        const100 = Constant 100
+
+        choiceId = ChoiceId "choice" alicePk
+
+        valueExpr = AddValue const100 (SubValue const100 (NegValue const100))
+
+        token = Token "aa" "name"
+
+    let pangram =
+            Assert TrueObs
+                (When
+                    [ Case (Deposit alicePk alicePk ada valueExpr)
+                        ( Let (ValueId "x") valueExpr
+                            (Pay alicePk (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
+                        )
+                    , Case (Choice choiceId [ Bound 0 1 ])
+                        ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (1 % 10) const100))
+                            (Pay alicePk (Account alicePk) token (AvailableMoney alicePk token) Close)
+                            Close
+                        )
+                    , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
+                    ]
+                    (Slot 100)
+                    Close
+                )
+        encodedPangram = BS8.pack . Char8.unpack $ encode pangram
+        state =
+            State
+            { accounts = Map.singleton (alicePk, token) 12
+            , choices = Map.singleton choiceId 42
+            , boundValues = Map.fromList [ ((ValueId "x"), 1), ((ValueId "y"), 2) ]
+            , minSlot = Slot 123
+            }
+        encodedState = BS8.pack . Char8.unpack $ encode state
+    createDirectoryIfMissing True (outputDir </> "JSON")
+    BS.writeFile (outputDir </> "JSON" </> "contract.json") encodedPangram
+    BS.writeFile (outputDir </> "JSON" </> "state.json") encodedState
+
 type Web = ("api" :> (API.API :<|> Auth.FrontendAPI)) :<|> MS.API :<|> Webghc.FrontendAPI
 
 generate :: FilePath -> IO ()
 generate outputDir = do
-  writeAPIModuleWithSettings
-    mySettings
-    outputDir
-    myBridgeProxy
-    (Proxy @Web)
-  writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
-  writeUsecases outputDir
+    writeAPIModuleWithSettings
+        mySettings
+        outputDir
+        myBridgeProxy
+        (Proxy @Web)
+    writePSTypesWith (defaultSwitch <> genForeign (ForeignOptions True)) outputDir (buildBridge myBridge) myTypes
+    writeUsecases outputDir
+    writePangramJson outputDir

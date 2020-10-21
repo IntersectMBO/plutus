@@ -80,6 +80,7 @@ type State
     , helpContext :: HelpContext
     , editorKeybindings :: KeyBindings
     , authStatus :: WebData AuthStatus
+    -- TODO: gist state is duplicated until SCP-1256, these 3 fields should be removed as part of that
     , gistUrl :: Maybe String
     , createGistResult :: WebData Gist
     , loadGistResult :: Either String (WebData Gist)

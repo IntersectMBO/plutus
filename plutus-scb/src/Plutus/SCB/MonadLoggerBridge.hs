@@ -1,6 +1,4 @@
-{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE LambdaCase           #-}
@@ -70,7 +68,7 @@ instance FromJSON MonadLoggerMsg where
         MonadLoggerMsg
             <$> o .: "location"
             <*> o .: "source"
-            <*> (fmap fromString (o .: "message"))
+            <*> fmap fromString (o .: "message")
     parseJSON invalid = typeMismatch "Object" invalid
 
 

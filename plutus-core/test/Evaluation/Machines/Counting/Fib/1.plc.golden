@@ -8,7 +8,7 @@
 | BVar causes ({ cpu: 13
 | mem: 13
 })
-| BBuiltin LessThanEqInteger causes ({ cpu: 15
+| BBuiltin LessThanEqInteger causes ({ cpu: 7
 | mem: 1
 })
 | BIWrap causes ({ cpu: 1
@@ -23,7 +23,7 @@
 | BAST causes ({ cpu: 0
 | mem: 118
 })})
-| budget: ({ cpu: 56
+| budget: ({ cpu: 48
 | mem: 160
 })
 }) )

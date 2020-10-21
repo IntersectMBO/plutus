@@ -14,9 +14,9 @@ module PSGenerator
     ) where
 
 import           Cardano.Metadata.Types                            (AnnotatedSignature, HashFunction, Property,
-                                                                    PropertyDescription, PropertyKey, Subject)
+                                                                    PropertyKey, Subject, SubjectProperties)
 import           Control.Applicative                               ((<|>))
-import           Control.Lens                                      (set, (&))
+import           Control.Lens                                      (set, view, (&))
 import           Control.Monad                                     (void)
 import           Control.Monad.Freer.Log                           (LogLevel, LogMessage)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
@@ -34,8 +34,9 @@ import           Language.Plutus.Contract.Resumable                (Request, Req
 import           Language.Plutus.Contract.State                    (ContractRequest, State)
 import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
-                                                                    buildBridge, equal, genericShow, mkSumType, order,
-                                                                    writePSTypesWith)
+                                                                    TypeInfo (TypeInfo), buildBridge, equal,
+                                                                    genericShow, haskType, mkSumType, order, typeModule,
+                                                                    typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
                                                                     unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters         (A)
@@ -76,7 +77,20 @@ myBridge =
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
+    metadataBridge <|>
     defaultBridge
+
+-- Some of the metadata types have a datakind type parameter that
+-- PureScript won't support, so we must drop it.
+metadataBridge :: BridgePart
+metadataBridge = do
+  (typeName ^== "Property")
+    <|> (typeName ^== "SubjectProperties")
+    <|> (typeName ^== "AnnotatedSignature")
+  typeModule ^== "Cardano.Metadata.Types"
+  moduleName <- view (haskType . typeModule)
+  name <- view (haskType . typeName)
+  pure $ TypeInfo "plutus-scb" moduleName name []
 
 data MyBridge
 
@@ -94,7 +108,7 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ChainReport)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
@@ -138,11 +152,11 @@ myTypes =
 
     -- Metadata types
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Subject)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Property)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PropertyDescription)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(SubjectProperties A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Property A))
     , (order <*> (genericShow <*> mkSumType)) (Proxy @PropertyKey)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @HashFunction)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedSignature)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(AnnotatedSignature A))
     ]
 
 mySettings :: Settings

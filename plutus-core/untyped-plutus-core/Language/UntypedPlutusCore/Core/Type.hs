@@ -10,6 +10,7 @@ module Language.UntypedPlutusCore.Core.Type
     , TPLC.Version (..)
     , Term (..)
     , Program (..)
+    , toTerm
     , termAnn
     , erase
     , eraseProgram
@@ -76,6 +77,9 @@ deriving via GenericExMemoryUsage (Term name uni fun ann) instance
     ( ExMemoryUsage name, ExMemoryUsage fun, ExMemoryUsage ann
     , Closed uni, uni `Everywhere` ExMemoryUsage
     ) => ExMemoryUsage (Term name uni fun ann)
+
+toTerm :: Program name uni fun ann -> Term name uni fun ann
+toTerm (Program _ _ term) = term
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann
