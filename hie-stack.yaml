@@ -216,7 +216,7 @@ cradle:
 
   - path: ./plutus-benchmark/bench
     config:
-      cradle
+      cradle:
         stack:
           component: "plutus-benchmark:large-plc-cek"
 
