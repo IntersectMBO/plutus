@@ -94,7 +94,7 @@ data TypeScheme term (args :: [GHC.Type]) res where
 -- >>> :kind! FoldArgs [Char, Bool] Integer
 -- FoldArgs [Char, Bool] Integer :: *
 -- = Char -> Bool -> Integer
-type family FoldArgs args r where
+type family FoldArgs args res where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 

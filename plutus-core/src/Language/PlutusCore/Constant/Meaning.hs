@@ -123,7 +123,7 @@ instance (KnownType term arg, KnownMonotype term args res a) =>
 type family Delete x xs :: [a] where
     Delete _ '[]       = '[]
     Delete x (x ': xs) = Delete x xs
-    Delete x (y ': xs) = y ': Delete y xs
+    Delete x (y ': xs) = y ': Delete x xs
 
 type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
@@ -134,12 +134,13 @@ type family ToBinds (x :: a) :: [(Symbol, Nat)]
 type instance ToBinds (TyVarRep name uniq) = '[ '(name, uniq) ]
 type instance ToBinds (TyAppRep fun arg) = TypeError ('Text "Not supported yet")
 
-type family ArgToBinds (a :: GHC.Type) :: [(Symbol, Nat)] where
-    ArgToBinds (Opaque _ rep) = ToBinds rep
-    ArgToBinds _              = '[]
+type family TypeToBinds (a :: GHC.Type) :: [(Symbol, Nat)] where
+    TypeToBinds (Opaque _ rep) = ToBinds rep
+    TypeToBinds _              = '[]
 
-type instance ToBinds '[]           = '[]
-type instance ToBinds (arg ': args) = Merge (ArgToBinds arg) (ToBinds args)
+type instance ToBinds (TypeScheme term '[]           res) = TypeToBinds res
+type instance ToBinds (TypeScheme term (arg ': args) res) =
+    Merge (TypeToBinds arg) (ToBinds (TypeScheme term args res))
 
 -- | A class that allows to derive a 'Polytype' for a builtin.
 class KnownPolytype (binds :: [(Symbol, Nat)]) term args res a | args res -> a, a -> res where
@@ -155,7 +156,7 @@ instance (KnownSymbol name, KnownNat uniq, KnownPolytype binds term args res a) 
 
 toDynamicBuiltinMeaning
     :: forall a term dyn cost binds args res.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds args
+       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
        , KnownPolytype binds term args res a
        )
     => (dyn -> a) -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
@@ -163,7 +164,7 @@ toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeSc
 
 toStaticBuiltinMeaning
     :: forall a term dyn cost binds args res.
-       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds args
+       ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
        , KnownPolytype binds term args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost

@@ -16,9 +16,9 @@ import           System.IO.Unsafe
 -- If the tracing function is used in pure code via 'unsafePerformIO' and a @b@ returned by the
 -- continuation is not forced inside the continuation, then no traced values will be collected as
 -- no computation will occur. It is however not too late to force the resulting @b@ outside of the
--- continuation and retrieve the list of traced value afterwards. We don't attempt to force anything
--- ourselves, because the caller may want to force the resulting @b@ to WHNF or to NF or not to
--- force at all and just not trace anything if the result of the continuation is not used.
+-- continuation and reference the list of traced value afterwards. We don't attempt to force
+-- anything ourselves, because the caller may want to force the resulting @b@ to WHNF or to NF or
+-- not to force at all and just not trace anything if the result of the continuation is not used.
 --
 -- This function does not stream values lazily. There is a version that allows for lazy streaming,
 -- but we do not have it here because it's way too convoluted.
@@ -30,7 +30,7 @@ withEmit k = do
     -- since values get collected in a difference list (i.e. a function) anyway.
     y <- k $ \x -> atomicModifyIORef xsVar $ \ds -> (ds . (x :), ())
     -- We need the 'unsafeInterleaveIO' in order to support this: "It is however not too late to
-    -- force the resulting @b@ outside of the continuation and retrieve the list of traced value
+    -- force the resulting @b@ outside of the continuation and reference the list of traced value
     -- afterwards".
     ds <- unsafeInterleaveIO $ readIORef xsVar
     return (ds [], y)

@@ -131,7 +131,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime mempty (defaultCostModel, mempty)
 data ListRep a
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (ListRep a) = ArgToBinds a
+type instance ToBinds (ListRep a) = TypeToBinds a
 
 data TyForallStarRep text unique a
 instance (KnownTypeAst uni (TyVarRep text unique), KnownTypeAst uni a) =>
