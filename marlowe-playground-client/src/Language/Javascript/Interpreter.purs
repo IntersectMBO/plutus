@@ -12,9 +12,9 @@ import Monaco (ITextModel)
 
 data CompilationError
   = RawError String
+  | JSONParsingError String
   | CompilationError
-    { filename :: String
-    , row :: Int
+    { row :: Int
     , column :: Int
     , text :: Array String
     }
@@ -37,6 +37,6 @@ eval model = do
     ( case res of
         Left err -> Left (RawError err)
         Right result -> case runExcept (decodeJSON result) of
-          Left err -> Left (RawError (show err))
+          Left err -> Left (JSONParsingError (show err))
           Right contract -> Right (InterpreterResult { warnings: [], result: contract })
     )

@@ -1,5 +1,6 @@
 module JSEditor where
 
+import Data.Array ((:))
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
@@ -138,12 +139,14 @@ resultPane state =
     [ text "" ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
-compilationErrorPane (RawError error) = div_ [ text error ]
+compilationErrorPane (RawError error) = div_ [ text "There was an error when running the JavaScript code:", code_ [ pre_ [ text $ error ] ] ]
+
+compilationErrorPane (JSONParsingError error) = div_ [ text "There was an error when parsing the resulting JSON:", code_ [ pre_ [ text $ error ] ] ]
 
 compilationErrorPane (CompilationError error) =
   div
     [ class_ $ ClassName "compilation-error"
     ]
-    [ text $ "Line " <> show error.row <> ", Column " <> show error.column <> ":"
+    [ text $ "There is a syntax error in line " <> show error.row <> ", column " <> show error.column <> ":"
     , code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ]
     ]

@@ -68,6 +68,7 @@ data Query a
   = SetText String a
   | GetText (String -> a)
   | GetModel (Monaco.ITextModel -> a)
+  | GetModelMarkers (Array IMarker -> a)
   | SetPosition IPosition a
   | Resize a
   | SetTheme String a
@@ -191,6 +192,14 @@ handleQuery (GetModel f) = do
   withEditor \editor -> do
     m <- liftEffect $ Monaco.getModel editor
     pure $ f m
+
+handleQuery (GetModelMarkers f) = do
+  withEditor \editor ->
+    liftEffect do
+      monaco <- Monaco.getMonaco
+      model <- Monaco.getModel editor
+      markers <- Monaco.getModelMarkers monaco model
+      pure $ f markers
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do
