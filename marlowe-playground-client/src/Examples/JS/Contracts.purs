@@ -296,7 +296,7 @@ function Do(actions: Array<(_: Contract) => Contract>, last: Contract): Contract
     return foldRight(actions, last)((b, a) => a(b))
 }
 
-const contract = () => {
+const contract = (() => {
     const partyCollateralToken = Token("", "")
     const partyCollateralAmount = value(1000)
     const counterPartyCollateralToken = Token("", "")
@@ -341,8 +341,6 @@ const contract = () => {
             )
         )
     )
-}
-
-contract()
+})()
 
 """

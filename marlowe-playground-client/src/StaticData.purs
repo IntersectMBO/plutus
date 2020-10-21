@@ -58,6 +58,7 @@ demoFilesJS =
     , "ZeroCouponBond" /\ addHeader JSE.zeroCouponBond
     , "CouponBondGuaranteed" /\ addHeader JSE.couponBondGuaranteed
     , "Swap" /\ addHeader JSE.swap
+    , "CFD" /\ addHeader JSE.cfd
     ]
 
 marloweContracts ::
