@@ -284,6 +284,19 @@ data Query =
 instance Pretty Query where
     pretty = viaShow
 
+newtype QueryResult (encoding :: k) =
+    QueryResult
+        { results :: [SubjectProperties encoding]
+        }
+    deriving (Show, Eq, Generic)
+
+deriving newtype instance FromJSON (QueryResult 'AesonEncoding)
+deriving newtype instance ToJSON (QueryResult 'AesonEncoding)
+
+instance FromJSON (QueryResult 'ExternalEncoding) where
+    parseJSON =
+        withObject "QueryResult" $ \o -> QueryResult <$> o .: "subjects"
+
 ------------------------------------------------------------
 data MetadataEffect r where
     GetProperties
@@ -292,7 +305,7 @@ data MetadataEffect r where
         :: Subject
         -> PropertyKey
         -> MetadataEffect (Property 'AesonEncoding)
-    BatchQuery :: Query -> MetadataEffect [SubjectProperties 'AesonEncoding]
+    BatchQuery :: Query -> MetadataEffect (QueryResult 'AesonEncoding)
 
 makeEffect ''MetadataEffect
 

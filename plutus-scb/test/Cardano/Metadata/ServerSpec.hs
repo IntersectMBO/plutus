@@ -10,8 +10,8 @@ module Cardano.Metadata.ServerSpec
 import           Cardano.Metadata.Server   (annotatedSignature1, handleMetadata, script1)
 import           Cardano.Metadata.Types    (HashFunction (SHA256), MetadataEffect, MetadataError, MetadataLogMessage,
                                             Property (Name, Preimage), PropertyKey (PropertyKey), Query (QuerySubjects),
-                                            SubjectProperties (SubjectProperties), batchQuery, getProperties,
-                                            getProperty, propertyNames, subjects, toSubject)
+                                            QueryResult (QueryResult), SubjectProperties (SubjectProperties),
+                                            batchQuery, getProperties, getProperty, propertyNames, subjects, toSubject)
 import           Control.Monad.Freer       (Eff, runM)
 import           Control.Monad.Freer.Error (Error, runError)
 import           Control.Monad.Freer.Log   (LogMsg, handleLogTrace)
@@ -43,12 +43,13 @@ queryTests =
         , assertReturns
               "Query by Subjects"
               (Right
-                   [ SubjectProperties
-                         (toSubject script1)
-                         [ Preimage SHA256 script1
-                         , Name "Fred's Script" (annotatedSignature1 :| [])
-                         ]
-                   ])
+                   (QueryResult
+                        [ SubjectProperties
+                              (toSubject script1)
+                              [ Preimage SHA256 script1
+                              , Name "Fred's Script" (annotatedSignature1 :| [])
+                              ]
+                        ]))
               (batchQuery
                    (QuerySubjects
                         { subjects = Set.fromList [toSubject script1]
@@ -57,14 +58,16 @@ queryTests =
         , assertReturns
               "Query by Subjects/Properties"
               (Right
-                   [ SubjectProperties
-                         (toSubject script1)
-                         [Name "Fred's Script" (annotatedSignature1 :| [])]
-                   ])
+                   (QueryResult
+                        [ SubjectProperties
+                              (toSubject script1)
+                              [Name "Fred's Script" (annotatedSignature1 :| [])]
+                        ]))
               (batchQuery
                    (QuerySubjects
                         { subjects = Set.fromList [toSubject script1]
-                        , propertyNames = Just (Set.fromList [PropertyKey "name"])
+                        , propertyNames =
+                              Just (Set.fromList [PropertyKey "name"])
                         }))
         ]
 
