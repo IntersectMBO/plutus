@@ -7,7 +7,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-
 module Language.PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
@@ -78,6 +77,22 @@ data Version ann
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
+
+-- For conviently mapping over the set of built-in functions.
+-- @deriveBifunctor@ fails (because of types and kinds over which we have to map with 'fmap'),
+-- hence writing everything out manually.
+instance Bifunctor (Term tyname name uni) where
+    bimap g f = go where
+        go (LamAbs ann name ty body)  = LamAbs (f ann) name (f <$> ty) (go body)
+        go (TyAbs ann name kind body) = TyAbs (f ann) name (f <$> kind) (go body)
+        go (IWrap ann pat arg term)   = IWrap (f ann) (f <$> pat) (f <$> arg) (go term)
+        go (Apply ann fun arg)        = Apply (f ann) (go fun) (go arg)
+        go (Unwrap ann term)          = Unwrap (f ann) (go term)
+        go (Error ann ty)             = Error (f ann) (f <$> ty)
+        go (TyInst ann term ty)       = TyInst (f ann) (go term) (f <$> ty)
+        go (Var ann name)             = Var (f ann) name
+        go (Constant ann con)         = Constant (f ann) con
+        go (Builtin ann fun)          = Builtin (f ann) (g fun)
 
 -- | Extract the universe from a type.
 type family UniOf a :: * -> *

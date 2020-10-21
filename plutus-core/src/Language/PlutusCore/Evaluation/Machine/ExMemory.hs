@@ -103,6 +103,11 @@ instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUs
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
+deriving via (GenericExMemoryUsage (Either a b)) instance
+    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (Either a b)
+deriving via (GenericExMemoryUsage (a, b)) instance
+    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
+
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
 deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
     (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)

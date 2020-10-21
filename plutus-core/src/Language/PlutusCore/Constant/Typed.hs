@@ -21,8 +21,6 @@ module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
     , FoldArgs
     , FoldArgsEx
---     , BuiltinMeaning (..)
---     , ToBuiltinMeaning (..)
     , unliftConstant
     , TyVarRep
     , TyAppRep

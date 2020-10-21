@@ -123,7 +123,7 @@ instance (KnownType term arg, KnownMonotype term args res a) =>
 type family Delete x xs :: [a] where
     Delete _ '[]       = '[]
     Delete x (x ': xs) = Delete x xs
-    Delete x (y ': xs) = x ': Delete y xs
+    Delete x (y ': xs) = y ': Delete y xs
 
 type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
