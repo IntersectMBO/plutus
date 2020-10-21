@@ -40,6 +40,8 @@ let
       };
     modules = [
         {
+          compiler.nix-name = pkgs.lib.mkForce "ghc8102-experimental";
+
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427
           # This corresponds to the set of packages that comes with GHC. We are
           # here saying that we must get them from GHC itself, rather than trying

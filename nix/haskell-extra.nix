@@ -5,7 +5,7 @@
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
 { pkgs, index-state, checkMaterialization, sources }:
-let compiler-nix-name = "ghc8102";
+let compiler-nix-name = "ghc8102-experimental";
 in {
   Agda = pkgs.haskell-nix.hackage-package {
     name = "Agda";
