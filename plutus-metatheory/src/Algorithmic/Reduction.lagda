@@ -5,6 +5,7 @@ module Algorithmic.Reduction where
 ## Imports
 
 \begin{code}
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
@@ -14,10 +15,11 @@ open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List hiding ([_]; take; drop)
+open import Data.List hiding (take; drop; concat) renaming ([_] to [_]ₗ)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
+import Debug.Trace as Debug
 
 
 open import Type
@@ -127,7 +129,7 @@ BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con 
 BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i ≟ j) (con (bool true)) (con (bool false))
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  con (bytestring (append b b'))
+  con (bytestring (concat b b'))
 BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   con (bytestring (take i b))
 BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -140,6 +142,10 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con 
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
 BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
 BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
+BUILTIN charToString _ (_ ∷ []) (V-con (char c) ,, tt) = con (string (primStringFromList [ c ]ₗ))
+BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) ,, V-con (string t) ,, tt) =
+  con (string (primStringAppend s t))
+BUILTIN trace _ (_ ∷ []) (V-con (string s) ,, tt) = con (Debug.trace s unit)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -150,7 +156,7 @@ data Any {Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}(P : ∀ {�
   there : ∀ {A}{As}{t}{ts} → Value t → Any P ts → Any P {As = A ∷ As} (t ∷ ts)
 data _—→T_ {Φ}{Γ : Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J} : {As : List (Δ ⊢Nf⋆ *)}
   → Tel Γ Δ σ As → Tel Γ Δ σ As → Set
-  
+
 infix 2 _—→_
 
 data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
@@ -193,7 +199,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → {M M' : Γ ⊢ μ A B}
     → M —→ M'
     → unwrap M —→ unwrap M'
-    
+
   ξ-wrap : ∀{Φ Γ K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
@@ -209,7 +215,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
     → builtin bn σ tel —→ BUILTIN bn σ tel vtel
-    
+
   ξ-builtin : ∀{Φ Γ} → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -232,7 +238,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
   E-wrap : ∀{Φ Γ K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
-    → wrap A B (error _) —→ error {Γ = Γ} (μ A B) 
+    → wrap A B (error _) —→ error {Γ = Γ} (μ A B)
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -294,7 +300,7 @@ data TelProgress
   step : {ts' : Tel Γ Δ σ As}
     → ts —→T ts'
     → TelProgress ts
-    
+
   error : Any Error ts → TelProgress ts
 \end{code}
 
@@ -338,7 +344,7 @@ progress-builtin bn σ tel (done vtel)                       =
 progress-builtin bn σ tel (step p) = step (ξ-builtin bn σ p)
 progress-builtin bn σ tel (error p) = step (E-builtin bn σ tel p)
 
-NoVar : ∀{Φ} → Ctx Φ → Set 
+NoVar : ∀{Φ} → Ctx Φ → Set
 NoVar ∅        = ⊤
 NoVar (Γ ,⋆ J) = NoVar Γ
 NoVar (Γ ,  A) = ⊥
@@ -445,7 +451,7 @@ vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(A
   → vtel ≡ vtel'
 vTelUniq Γ Δ σ [] [] vtel vtel' = refl
 vTelUniq Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
-  cong₂ _,,_ (valUniq t v v') (vTelUniq Γ Δ σ As tel vtel vtel') 
+  cong₂ _,,_ (valUniq t v v') (vTelUniq Γ Δ σ As tel vtel vtel')
 
 -- exclusive or
 _xor_ : Set → Set → Set
@@ -531,7 +537,7 @@ vTel++ : ∀ {Φ Γ Δ}
   → VTel Γ Δ σ As' ts'
   → VTel Γ Δ σ (As ++ As') (ts ++T ts')
 vTel++ []       ts' vs        vs' = vs'
-vTel++ (t ∷ ts) ts' (v ,, vs) vs' = v ,, vTel++ ts ts' vs vs' 
+vTel++ (t ∷ ts) ts' (v ,, vs) vs' = v ,, vTel++ ts ts' vs vs'
 
 vTel:< : ∀ {Φ Γ Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}

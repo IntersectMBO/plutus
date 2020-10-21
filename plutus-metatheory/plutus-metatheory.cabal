@@ -218,6 +218,7 @@ library
         MAlonzo.Code.Codata.Thunk
         MAlonzo.Code.Data.BoundedVec
         MAlonzo.Code.Data.BoundedVec.Inefficient
+        MAlonzo.Code.Debug.Trace
         MAlonzo.Code.IO.Primitive
         MAlonzo.Code.Relation.Binary.Construct.FromRel
         MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
@@ -399,10 +400,11 @@ library
         MAlonzo.Code.Codata.Thunk
         MAlonzo.Code.Data.BoundedVec
         MAlonzo.Code.Data.BoundedVec.Inefficient
+        MAlonzo.Code.Debug.Trace
         MAlonzo.Code.IO.Primitive
         MAlonzo.Code.Relation.Binary.Construct.FromRel
         MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
-                       
+
 executable plc-agda
   import: stuff
   hs-source-dirs: exe
@@ -410,7 +412,7 @@ executable plc-agda
   build-depends:
     base -any,
     plutus-metatheory
-    
+
 test-suite test1
   import: stuff
   build-tool-depends: plutus-core:plc
@@ -436,7 +438,7 @@ test-suite test2
     plutus-metatheory,
     process -any,
     text -any
-    
+
 test-suite test3
   import: stuff
   hs-source-dirs: test

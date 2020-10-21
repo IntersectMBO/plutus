@@ -8,13 +8,16 @@ open import Untyped.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type hiding (length)
 
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
+open import Data.List renaming ([_] to [_]ₗ) using ()
 open import Data.Vec using (Vec;[];_∷_;_++_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
+import Debug.Trace as Debug
 open import Function
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Utils
@@ -67,7 +70,7 @@ data Any {p} (P : A → Set p) : ∀ {n} → Vec A n → Set (a ⊔ p) where
 
 data Any {n : ℕ}(P : n ⊢ → Set) : ∀{m} → Tel m n → Set where
   here  : ∀{m t}{ts : Tel m n} → P t → Any P (t ∷ ts)
-  there : ∀{m t}{ts : Tel m n} → Value t → Any P ts → Any P (t ∷ ts)  
+  there : ∀{m t}{ts : Tel m n} → Value t → Any P ts → Any P (t ∷ ts)
 
 -- this also goes beyond membership of `Vec` by ensuring the prefix is
 -- made of values
@@ -97,8 +100,8 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-builtin : (b : Builtin)
               {ts ts' : Tel (arity b) n}
             → ts —→T ts'
-            → builtin b ≤‴-refl ts —→ builtin b ≤‴-refl ts'  
-  
+            → builtin b ≤‴-refl ts —→ builtin b ≤‴-refl ts'
+
   β-builtin : {b : Builtin}
               (ts : Tel (arity b) n)
             → (vs : VTel (arity b) n ts)
@@ -141,8 +144,8 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 
 \begin{code}
 VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
-VERIFYSIG (just Bool.false) = plc_false 
-VERIFYSIG (just Bool.true)  = plc_true 
+VERIFYSIG (just Bool.false) = plc_false
+VERIFYSIG (just Bool.true)  = plc_true
 VERIFYSIG nothing           = error
 
 BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
@@ -160,17 +163,17 @@ BUILTIN remainderInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j)
 BUILTIN modInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
   = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (mod i j)))
 BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i <? j) plc_true plc_false 
+  decIf (i <? j) plc_true plc_false
 BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≤? j) plc_true plc_false 
+  decIf (i ≤? j) plc_true plc_false
 BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.>? j) plc_true plc_false 
+  decIf (i Builtin.Constant.Type.>? j) plc_true plc_false
 BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.≥? j) plc_true plc_false 
+  decIf (i Builtin.Constant.Type.≥? j) plc_true plc_false
 BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≟ j) plc_true plc_false 
+  decIf (i ≟ j) plc_true plc_false
 BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  con (bytestring (append b b'))
+  con (bytestring (concat b b'))
 BUILTIN takeByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
   con (bytestring (take i b))
 BUILTIN dropByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
@@ -182,6 +185,10 @@ BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestr
   con (bool (equals b b'))
 BUILTIN ifThenElse (_ ∷ _ ∷ t ∷ _ ∷ []) (_ , V-con (bool true)  , vt , _ , tt) = t
 BUILTIN ifThenElse (_ ∷ _ ∷ _ ∷ u ∷ []) (_ , V-con (bool false) , _ , vu , tt) = u
+BUILTIN charToString (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList [ c ]ₗ))
+BUILTIN append (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
+  con (string (primStringAppend s t))
+BUILTIN trace (_ ∷ []) (V-con (string s) , tt) = con (Debug.trace s unit)
 BUILTIN _ _ _ = error
 
 data ProgTel {l n}(tel : Tel l n) : Set where
@@ -240,8 +247,8 @@ progress (t · u)      = progress-· (progress t) (progress u)
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ≤‴-refl ts) with progressTel ts
 progress (builtin b ≤‴-refl ts) | done vs = step (β-builtin ts vs)
-progress (builtin b ≤‴-refl ts) | step p = step (ξ-builtin b p) 
-progress (builtin b ≤‴-refl ts) | error p = step (E-builtin b ts p) 
+progress (builtin b ≤‴-refl ts) | step p = step (ξ-builtin b p)
+progress (builtin b ≤‴-refl ts) | error p = step (E-builtin b ts p)
 progress (builtin b (≤‴-step p) ts) = done (V-F (V-builtin b ts p))
 progress error       = error E-error
 \end{code}
@@ -277,7 +284,7 @@ err-red E-error (_ , ())
 
 errT-redT : ∀{m n}{ts : Tel m n} → Any Error ts → ¬ (Σ (Tel m n)  (ts —→T_))
 errT-redT (here p)    (.(_ ∷ _) , here q)    = err-red p (_ , q)
-errT-redT (here p)    (.(_ ∷ _) , there v q) = val-err v p 
+errT-redT (here p)    (.(_ ∷ _) , there v q) = val-err v p
 errT-redT (there v p) (.(_ ∷ _) , here q)    = val-red v (_ , q)
 errT-redT (there v p) (.(_ ∷ _) , there w q) = errT-redT p (_ , q)
 
@@ -286,8 +293,8 @@ valT-errT {ts = t ∷ ts} (v , vs) (here p)    = val-err v p
 valT-errT {ts = t ∷ ts} (v , vs) (there w p) = valT-errT vs p
 
 valT-redT : ∀{m n}{ts : Tel m n} → VTel m n ts → ¬ (Σ (Tel m n)  (ts —→T_))
-valT-redT {ts = []} _ (ts' , ()) 
-valT-redT {ts = t ∷ ts} (v , vs) (._ , here p)     = val-red v (_ , p) 
+valT-redT {ts = []} _ (ts' , ())
+valT-redT {ts = t ∷ ts} (v , vs) (._ , here p)     = val-red v (_ , p)
 valT-redT {ts = t ∷ ts} (v , vs) (._ , there v' p) = valT-redT vs (_ , p)
 
 valUniq : ∀{n}{t : n ⊢}(v v' : Value t) → v ≡ v'
@@ -306,14 +313,14 @@ detT : ∀{m n}{ts ts' ts'' : Tel m n}
 det : ∀{n}{t t' t'' : n ⊢}(p : t —→ t')(q : t —→ t'') → t' ≡ t''
 
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
-det (ξ-·₁ p) (ξ-·₂ v q) = ⊥-elim (val-red (V-F v) (_ , p)) 
-det (ξ-·₁ p) (E-·₂ v) = ⊥-elim (val-red (V-F v) (_ , p)) 
-det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q)) 
+det (ξ-·₁ p) (ξ-·₂ v q) = ⊥-elim (val-red (V-F v) (_ , p))
+det (ξ-·₁ p) (E-·₂ v) = ⊥-elim (val-red (V-F v) (_ , p))
+det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q))
 det (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (det p q)
-det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (val-red w (_ , p)) 
-det (ξ-·₂ v p) (sat-builtin w q) = ⊥-elim (val-red w (_ , p)) 
+det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (val-red w (_ , p))
+det (ξ-·₂ v p) (sat-builtin w q) = ⊥-elim (val-red w (_ , p))
 det (ξ-·₂ () p) E-con
-det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q)) 
+det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q))
 det (β-ƛ v) (β-ƛ w) = refl
 det (β-ƛ (V-F ())) (E-·₂ v)
 det (E-·₂ v) (β-ƛ (V-F ()))
@@ -323,11 +330,11 @@ det (ξ-builtin b p) (E-builtin .b e q) = ⊥-elim (errT-redT q (_ , p))
 det (β-builtin ts vs) (ξ-builtin b q) = ⊥-elim (valT-redT vs (_ , q))
 det (β-builtin ts vs) (β-builtin .ts ws) = cong (BUILTIN _ ts) (valTUniq vs ws)
 det (β-builtin ts vs) (E-builtin b v q) = ⊥-elim (valT-errT vs q)
-det (sat-builtin v p) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q)) 
+det (sat-builtin v p) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q))
 det (sat-builtin v p) (sat-builtin w .p) = refl
 det (sat-builtin (V-F ()) p) (E-·₂ w)
 det E-·₁ E-·₁ = refl
-det (E-·₂ v) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q)) 
+det (E-·₂ v) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q))
 det (E-·₂ v) (sat-builtin (V-F ()) p)
 det (E-·₂ v) (E-·₂ w) = refl
 det (E-·₂ ()) E-con
@@ -356,7 +363,7 @@ vTel:< (t' ∷ ts) (v' , vs) t v = v' , (vTel:< ts vs t v)
 
 vTel++ : ∀{l l' n}
   → (ts : Tel l n)
-  → VTel l n ts 
+  → VTel l n ts
   → (ts' : Tel l' n)
   → VTel l' n ts'
   → VTel (l Data.Nat.+ l') n (ts ++ ts')
