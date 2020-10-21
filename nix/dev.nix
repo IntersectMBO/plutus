@@ -17,6 +17,9 @@ pkgs.recurseIntoAttrs (rec {
     updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
 
     fixStylishHaskell = pkgs.writeScriptBin "fix-stylish-haskell" ''
+      #!${pkgs.runtimeShell}
+      set -eou pipefail
+
       ${pkgs.git}/bin/git diff > pre-stylish.diff
       ${pkgs.fd}/bin/fd \
         --extension hs \
@@ -24,8 +27,7 @@ pkgs.recurseIntoAttrs (rec {
         --exclude '*/docs/*' \
         --exec ${packages.stylish-haskell}/bin/stylish-haskell -i {}
       ${pkgs.git}/bin/git diff > post-stylish.diff
-      diff pre-stylish.diff post-stylish.diff > /dev/null
-      if [ $? != 0 ]
+      if (diff pre-stylish.diff post-stylish.diff > /dev/null)
       then
         echo "Changes by stylish have been made. Please commit them."
       else
@@ -36,6 +38,9 @@ pkgs.recurseIntoAttrs (rec {
     '';
 
     fixPurty = pkgs.writeScriptBin "fix-purty" ''
+      #!${pkgs.runtimeShell}
+      set -eou pipefail
+
       ${pkgs.git}/bin/git diff > pre-purty.diff
       ${pkgs.fd}/bin/fd \
         --extension purs \
@@ -45,8 +50,7 @@ pkgs.recurseIntoAttrs (rec {
         --exclude '*/generated/*' \
         --exec ${packages.purty}/bin/purty --write {}
       ${pkgs.git}/bin/git diff > post-purty.diff
-      diff pre-purty.diff post-purty.diff > /dev/null
-      if [ $? != 0 ]
+      if (diff pre-purty.diff post-purty.diff > /dev/null)
       then
         echo "Changes by purty have been made. Please commit them."
       else
@@ -58,6 +62,7 @@ pkgs.recurseIntoAttrs (rec {
 
     # See note on 'easyPS' in 'default.nix'
     updateClientDeps = pkgs.lib.meta.addMetaAttrs { platforms = pkgs.lib.platforms.linux; } (pkgs.writeScriptBin "update-client-deps" ''
+      #!${pkgs.runtimeShell}
       set -eou pipefail
 
       export PATH=${pkgs.gccStdenv.lib.makeBinPath [
@@ -96,6 +101,9 @@ pkgs.recurseIntoAttrs (rec {
     '');
 
     updateMetadataSamples = pkgs.writeScriptBin "update-metadata-samples" ''
+      #!${pkgs.runtimeShell}
+      set -eou pipefail
+
       SERVER=https://api.cardano.org/staging
       SUBJECT=7f71940915ea5fe85e840f843c929eba467e6f050475bad1f10b9c274d1888c0
       DATA_DIR=plutus-scb/test/Cardano/Metadata
