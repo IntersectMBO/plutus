@@ -201,7 +201,8 @@ makeDeposit(alice, 10,
 """
 
 cfd :: String
-cfd = """
+cfd =
+  """
 
 const party : Party = Role("party")
 
