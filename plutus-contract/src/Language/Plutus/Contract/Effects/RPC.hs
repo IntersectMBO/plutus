@@ -115,6 +115,8 @@ callRPC retries targetInstance requestArgs =
             case rpcResult of
                 Left (e@(RPCCallError (EndpointNotAvailable _ _))) -> do
                     unless (i < maxRetries) (throwError e)
+                    -- TODO: The wait is currently linear, but we should change
+                    -- it to exponential if this becomes a problem
                     mapError RPCOtherError (waitNSlots 2) >> go (i + 1)
                 Left e -> throwError e
                 Right r -> pure r
