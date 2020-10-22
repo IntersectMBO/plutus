@@ -5,8 +5,7 @@ import           Criterion.Types                                            (Con
 import qualified Data.Map                                                   as Map
 
 import           Language.PlutusCore                                        (Name (..))
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
-import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Universe
 import           Language.UntypedPlutusCore
@@ -16,14 +15,10 @@ import qualified Plutus.Benchmark.Knights                                   as K
 import qualified Plutus.Benchmark.Prime                                     as Prime
 import qualified Plutus.Benchmark.Queens                                    as Queens
 
-emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
-emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
 
-
-
-benchCek :: Term Name DefaultUni () -> Benchmarkable
+benchCek :: Term Name DefaultUni DefaultFun () -> Benchmarkable
 benchCek program =
-  nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel)
+  nf (unsafeEvaluateCek defBuiltinsRuntime)
      program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable

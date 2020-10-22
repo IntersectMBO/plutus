@@ -12,6 +12,7 @@ import qualified Prelude                      (String)
 import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
@@ -280,10 +281,9 @@ process input r =
                  (False, r') -> {-Tx.trace "   Composite" $ -}composite : process ns r'
 
 
-mkPrimeTerm :: [Integer] -> Term Name DefaultUni ()
+mkPrimeTerm :: [Integer] -> Term Name DefaultUni DefaultFun ()
 mkPrimeTerm inputs =
   let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
         [|| \inputs' -> process inputs' initState ||])
         `Tx.applyCode` Tx.liftCode inputs
   in code
-

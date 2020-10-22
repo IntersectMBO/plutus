@@ -16,6 +16,7 @@ import qualified Prelude
 import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
@@ -88,7 +89,7 @@ boardSize = 5
 nqueens :: Integer -> Labeler -> Integer
 nqueens n algorithm = length (search algorithm (queens n))
 
-mkQueensTerm :: Integer -> [Algorithm] -> Term Name DefaultUni ()
+mkQueensTerm :: Integer -> [Algorithm] -> Term Name DefaultUni DefaultFun ()
 mkQueensTerm sz algs =
   let (Program _ _ code) =
         Tx.getPlc $ $$(Tx.compile [||

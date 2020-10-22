@@ -7,7 +7,7 @@ import           System.Environment
 import           Control.Monad                                              ()
 import qualified Data.Map                                                   as Map
 import           Language.PlutusCore                                        (Name (..))
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Evaluation.Machine.Cek                 ()
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import qualified Language.PlutusCore.Pretty                                 as PLC
@@ -88,12 +88,8 @@ options = hsubparser
     command "lastpiece" (info lastpieceOptions (progDesc "Run the lastpiece benchmark")) P.<>
     command "prime" (info primeOptions (progDesc "Run the primes benchmark")) )
 
-emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
-emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
-
-evaluateWithCek :: Term Name DefaultUni () -> EvaluationResult (Term Name DefaultUni ())
-evaluateWithCek term =
-  unsafeEvaluateCek emptyBuiltins defaultCostModel term
+evaluateWithCek :: Term Name DefaultUni DefaultFun () -> EvaluationResult (Term Name DefaultUni DefaultFun ())
+evaluateWithCek = unsafeEvaluateCek defBuiltinsRuntime
 
 main :: IO ()
 main = do
@@ -105,5 +101,5 @@ main = do
           Knights depth boardSize -> Knights.mkKnightsTerm depth boardSize
           LastPiece               -> LastPiece.mkLastPieceTerm
           Prime input             -> Prime.mkPrimeTerm input
-  let result = unsafeEvaluateCek emptyBuiltins defaultCostModel program
+  let result = evaluateWithCek program
   print . PLC.prettyPlcClassicDebug $ result

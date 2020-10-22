@@ -16,6 +16,7 @@ module Plutus.Benchmark.LastPiece where
 
 import           Data.Char                    (isSpace)
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import           Language.PlutusTx            as PlutusTx
@@ -293,7 +294,7 @@ bPiece = P 'b'  [ [(0,1),(0,2),(1,2)],
 unindent :: PLC.Doc ann -> [PLC.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
-mkLastPieceTerm :: Term Name DefaultUni ()
+mkLastPieceTerm :: Term Name DefaultUni DefaultFun ()
 mkLastPieceTerm =
   let (Program _ _ code) = getPlc $ $$(compile
         [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
@@ -308,4 +309,3 @@ mkLastPieceTerm =
 
 -- -- Number of correct solutions: 3
 -- -- Number including failures: 59491
-
