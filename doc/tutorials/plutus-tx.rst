@@ -60,12 +60,12 @@ The Plutus Tx compiler compiles Haskell *expressions* (not values!), so
 naturally it takes a quote (representing an expression) as an argument.
 The result is a new quote, this time for a Haskell program that
 represents the *compiled* program. In Haskell, the type of :hsobj:`Language.PlutusTx.TH.compile`
-is ``TExpQ a → TExpQ (CompiledCode PLC.DefaultUni () a)``. This is just
+is ``TExpQ a → TExpQ (CompiledCode PLC.DefaultUni PLC.DefaultFun a)``. This is just
 what we already said:
 
 -  ``TExpQ a`` is a quoted representing a program of type ``a``.
 
--  ``TExprQ (CompiledCode PLC.DefaultUni () a)`` is quote representing a
+-  ``TExprQ (CompiledCode PLC.DefaultUni PLC.DefaultFun a)`` is quote representing a
    compiled Plutus Core program.
 
 .. note::
@@ -103,7 +103,7 @@ This simple program just evaluates to the integer ``1``.
    :end-before: BLOCK3
 
 We can see how the metaprogramming works: the Haskell program ``1``
-was turned into a ``CompiledCode PLC.DefaultUni () Integer`` at compile
+was turned into a ``CompiledCode PLC.DefaultUni PLC.DefaultFun Integer`` at compile
 time, which we spliced into our Haskell program. We can inspect at runtime
 to see the generated Plutus Core (or to put it on the blockchain).
 

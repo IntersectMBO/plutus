@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 module BasicPolicies where
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 import           Language.PlutusTx
 import           Language.PlutusTx.Lift
@@ -35,7 +36,7 @@ oneAtATimePolicy ctx =
 -- We can use 'compile' to turn a forging policy into a compiled Plutus Core program,
 -- just as for validator scripts. We also provide a 'wrapMonetaryPolicy' function
 -- to handle the boilerplate.
-oneAtATimeCompiled :: CompiledCode PLC.DefaultUni () (Data -> ())
+oneAtATimeCompiled :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Data -> ())
 oneAtATimeCompiled = $$(compile [|| wrapMonetaryPolicy oneAtATimePolicy ||])
 -- BLOCK2
 singleSignerPolicy :: PolicyCtx -> Bool
