@@ -14,5 +14,5 @@ table.  For example
 
 ```
   plc apply Validator01.plc Datum03.plc Redeemer02.plc Context04.plc -o Validation3.plc
-``
+```
 
