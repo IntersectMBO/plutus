@@ -67,8 +67,8 @@ knightsOptions =
 queensAlgorithmReader :: String -> Either String Queens.Algorithm
 queensAlgorithmReader "bt"    = Right Queens.Bt
 queensAlgorithmReader "bm"    = Right Queens.Bm
-queensAlgorithmReader "bjbt"  = Right Queens.Bjbt
 queensAlgorithmReader "bjbt1" = Right Queens.Bjbt1
+queensAlgorithmReader "bjbt2" = Right Queens.Bjbt2
 queensAlgorithmReader "fc"    = Right Queens.Fc
 queensAlgorithmReader alg     = Left $ "Unknown algorithm: " <> alg <> ". I know of: bt, bm, bjbt, bjbt1 or fc."
 

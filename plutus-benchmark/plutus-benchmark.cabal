@@ -14,12 +14,12 @@ description:
 build-type: Simple
 
 data-files:
-        bench-validation/data/crowdfunding/*.plc
-        bench-validation/data/future/*.plc
-        bench-validation/data/multisigSM/*.plc
-        bench-validation/data/vesting/*.plc
-        bench-validation/data/marlowe/trustfund/*.plc
-        bench-validation/data/marlowe/zerocoupon/*.plc
+        validation/data/crowdfunding/*.plc
+        validation/data/future/*.plc
+        validation/data/multisigSM/*.plc
+        validation/data/vesting/*.plc
+        validation/data/marlowe/trustfund/*.plc
+        validation/data/marlowe/zerocoupon/*.plc
         templates/*.tpl
 
 source-repository head
@@ -50,7 +50,7 @@ library
       Plutus.Benchmark.LastPiece
       Plutus.Benchmark.Prime
   hs-source-dirs:
-      src
+      nofib/src
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
@@ -67,11 +67,11 @@ library
   other-extensions:
     NoImplicitPrelude
 
-executable plutus-benchmark
+executable nofib-exe
   import: lang
   main-is: Main.hs
   hs-source-dirs:
-      app
+      nofib/exe
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -81,12 +81,12 @@ executable plutus-benchmark
     , containers -any
     , optparse-applicative -any
 
-benchmark large-plc-cek
+benchmark nofib
   import: lang
   type: exitcode-stdio-1.0
   main-is: Main.hs
   hs-source-dirs:
-    bench
+    nofib/bench
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -102,7 +102,7 @@ benchmark validation
   type: exitcode-stdio-1.0
   main-is: Main.hs
   hs-source-dirs:
-      bench-validation
+      validation
   other-modules:
       Paths_plutus_benchmark
   build-depends:

@@ -72,14 +72,19 @@ main = defaultMainWith config [
                       , bench "formula4" $ benchClausify Clausify.F4
                       , bench "formula5" $ benchClausify Clausify.F5
                       ]
+  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd or N=4
+                       bench "4x4" $ benchKnights 150 4
+                     , bench "6x6" $ benchKnights 150 6
+                     , bench "8x8" $ benchKnights 150 8
+                     ]
   , bgroup "primetest" [ bench "05digits" $ benchPrime Prime.P5
                        , bench "08digits" $ benchPrime Prime.P8
                        , bench "10digits" $ benchPrime Prime.P10
                        , bench "20digits" $ benchPrime Prime.P20
                        , bench "30digits" $ benchPrime Prime.P30
                        , bench "40digits" $ benchPrime Prime.P40
-                       , bench "50digits" $ benchPrime Prime.P50
-                       , bench "60digits" $ benchPrime Prime.P60
+--                       , bench "50digits" $ benchPrime Prime.P50
+--                       , bench "60digits" $ benchPrime Prime.P60
                        ]
   , bgroup "queens4x4" [ -- N-queens problem on a 4x4 board
                       bench "bt"    $ benchQueens 4 Queens.Bt
@@ -95,9 +100,4 @@ main = defaultMainWith config [
                     , bench "bjbt2" $ benchQueens 5 Queens.Bjbt2
                     , bench "fc"    $ benchQueens 5 Queens.Fc
                     ]
-  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd or N=4
-                       bench "4x4" $ benchKnights 150 4
-                     , bench "6x6" $ benchKnights 150 6
-                     , bench "8x8" $ benchKnights 150 8
-                     ]
        ]
