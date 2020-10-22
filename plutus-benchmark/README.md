@@ -32,7 +32,7 @@ This directory contains two sets of benchmarks:
        * `cabal v2-bench plutus-benchmark:validation`
        * `cabal v2-bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
 
-See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md.](./validation/README.md.).
+See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md.](./validation/README.md).
 
 ### Criterion output
 
