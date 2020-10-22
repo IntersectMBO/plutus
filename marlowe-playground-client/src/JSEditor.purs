@@ -1,6 +1,5 @@
 module JSEditor where
 
-import Data.Array ((:))
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))

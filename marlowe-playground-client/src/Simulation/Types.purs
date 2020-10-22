@@ -146,7 +146,7 @@ _oldContract = prop (SProxy :: SProxy "oldContract")
 mkState :: State
 mkState =
   { showRightPanel: true
-  , marloweState: NEL.singleton (emptyMarloweState zero)
+  , marloweState: NEL.singleton emptyMarloweState
   , activeDemo: mempty
   , helpContext: MarloweHelp
   , editorKeybindings: DefaultBindings
@@ -181,6 +181,7 @@ data Action
   | CheckAuthStatus
   | GistAction GistAction
   -- marlowe actions
+  | StartSimulation
   | MoveSlot Slot
   | SetSlot Slot
   | AddInput Input (Array Bound)
@@ -215,6 +216,7 @@ instance isEventAction :: IsEvent Action where
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (SetEditorText _) = Just $ defaultEvent "SetEditorText"
+  toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
   toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"
   toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"

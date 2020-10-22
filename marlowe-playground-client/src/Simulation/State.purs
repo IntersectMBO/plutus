@@ -6,7 +6,7 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
-import Data.Lens (Getter', Lens', Traversal', has, lens, modifying, over, preview, set, to, view, (^.))
+import Data.Lens (Getter', Lens', Traversal', _Just, has, lens, modifying, over, preview, set, to, view, (^.))
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -140,19 +140,15 @@ _moveToAction = lens get' set'
     in
       set (_Newtype <<< at otherActionsParty) m p
 
-type MarloweState
+type ExecutionState
   = { possibleActions :: Parties
     , pendingInputs :: Array Input
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
+    , log :: Array MarloweEvent
     , state :: State
     , slot :: Slot
     , moneyInContract :: Assets
-    , contract :: Maybe Contract
-    , editorErrors :: Array IMarker
-    , editorWarnings :: Array IMarker
-    , holes :: Holes
-    , log :: Array MarloweEvent
     }
 
 _possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
@@ -176,6 +172,39 @@ _slot = prop (SProxy :: SProxy "slot")
 _moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
 _moneyInContract = prop (SProxy :: SProxy "moneyInContract")
 
+_log :: forall s a. Lens' { log :: a | s } a
+_log = prop (SProxy :: SProxy "log")
+
+_payments :: forall s. Getter' { log :: Array MarloweEvent | s } (Array Payment)
+_payments = _log <<< to (mapMaybe f)
+  where
+  f (InputEvent _) = Nothing
+
+  f (OutputEvent _ payment) = Just payment
+
+emptyExecutionStateWithSlot :: Slot -> ExecutionState
+emptyExecutionStateWithSlot sn =
+  { possibleActions: mempty
+  , pendingInputs: mempty
+  , transactionError: Nothing
+  , transactionWarnings: []
+  , log: []
+  , state: emptyState sn
+  , slot: sn
+  , moneyInContract: mempty
+  }
+
+type MarloweState
+  = { executionState :: Maybe ExecutionState
+    , contract :: Maybe Contract
+    , editorErrors :: Array IMarker
+    , editorWarnings :: Array IMarker
+    , holes :: Holes
+    }
+
+_executionState :: forall s a. Lens' { executionState :: a | s } a
+_executionState = prop (SProxy :: SProxy "executionState")
+
 _contract :: forall s a. Lens' { contract :: a | s } a
 _contract = prop (SProxy :: SProxy "contract")
 
@@ -192,30 +221,22 @@ _holes = prop (SProxy :: SProxy "holes")
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_log :: forall s a. Lens' { log :: a | s } a
-_log = prop (SProxy :: SProxy "log")
-
-_payments :: forall s. Getter' { log :: Array MarloweEvent | s } (Array Payment)
-_payments = _log <<< to (mapMaybe f)
-  where
-  f (InputEvent _) = Nothing
-
-  f (OutputEvent _ payment) = Just payment
-
-emptyMarloweState :: Slot -> MarloweState
-emptyMarloweState sn =
-  { possibleActions: mempty
-  , pendingInputs: mempty
-  , transactionError: Nothing
-  , transactionWarnings: []
-  , state: emptyState sn
-  , slot: sn
-  , moneyInContract: mempty
-  , contract: Nothing
+emptyMarloweState :: MarloweState
+emptyMarloweState =
+  { contract: Nothing
   , editorErrors: mempty
   , editorWarnings: mempty
   , holes: mempty
-  , log: []
+  , executionState: Nothing
+  }
+
+emptyMarloweStateWithSlot :: Slot -> MarloweState
+emptyMarloweStateWithSlot sn =
+  { contract: Nothing
+  , editorErrors: mempty
+  , editorWarnings: mempty
+  , holes: mempty
+  , executionState: Just $ emptyExecutionStateWithSlot sn
   }
 
 -- We have a special person for notifications
@@ -226,7 +247,7 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
     let
-      lintResult = lint state.state parsedContract
+      lintResult = lint marloweState parsedContract
 
       mContract = fromTerm parsedContract
     in
@@ -238,17 +259,21 @@ updateContractInStateP text state = case parseContract text of
             holes = view L._holes lintResult
           (set _holes holes) state
   Left error -> (set _holes mempty) state
+  where
+  marloweState = case state.executionState of
+    Just s -> s.state
+    Nothing -> emptyState zero
 
 updatePossibleActions :: MarloweState -> MarloweState
-updatePossibleActions oldState =
+updatePossibleActions oldState@{ executionState: Just executionState } =
   let
     contract = fromMaybe Close (oldState ^. _contract)
 
-    state = oldState ^. _state
+    state = executionState ^. _state
 
-    currentSlot = oldState ^. _slot
+    currentSlot = executionState ^. _slot
 
-    txInput = stateToTxInput oldState
+    txInput = stateToTxInput executionState
 
     (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
 
@@ -259,10 +284,12 @@ updatePossibleActions oldState =
     actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
 
     moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
+
+    newExecutionState =
+      executionState # over _possibleActions (updateActions actionInputs)
+        # set (_possibleActions <<< _moveToAction) moveTo
   in
-    oldState
-      # over _possibleActions (updateActions actionInputs)
-      # set (_possibleActions <<< _moveToAction) moveTo
+    oldState # set _executionState (Just newExecutionState)
   where
   removeUseless :: Action -> Maybe Action
   removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
@@ -302,41 +329,55 @@ updatePossibleActions oldState =
       Nothing -> def
     Nothing -> def
 
+updatePossibleActions oldState = oldState
+
 updateStateP :: MarloweState -> MarloweState
-updateStateP oldState = actState
+updateStateP oldState@{ executionState: Just executionState } = actState
   where
-  txInput@(TransactionInput txIn) = stateToTxInput oldState
+  txInput@(TransactionInput txIn) = stateToTxInput executionState
 
-  actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
+  actState = case computeTransaction txInput (executionState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
     (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
-      ( set _transactionError Nothing
-          <<< set _transactionWarnings (fromFoldable txOutWarnings)
-          <<< set _pendingInputs mempty
-          <<< set _state txOutState
-          <<< set _contract (Just txOutContract)
-          <<< set _moneyInContract (moneyInContract txOutState)
-          <<< over _log (append (fromFoldable (map (OutputEvent txIn.interval) txOutPayments)))
-          <<< over _log (append [ InputEvent txInput ])
-      )
-        oldState
+      let
+        newExecutionState =
+          ( set _transactionError Nothing
+              <<< set _transactionWarnings (fromFoldable txOutWarnings)
+              <<< set _pendingInputs mempty
+              <<< set _state txOutState
+              <<< set _moneyInContract (moneyInContract txOutState)
+              <<< over _log (append (fromFoldable (map (OutputEvent txIn.interval) txOutPayments)))
+              <<< over _log (append [ InputEvent txInput ])
+          )
+            executionState
+      in
+        ( set _executionState (Just newExecutionState)
+            <<< set _contract (Just txOutContract)
+        )
+          oldState
     (Error txError) ->
-      ( set _transactionError (Just txError)
-          -- apart from setting the error, we also removing the pending inputs
-          
-          -- otherwise there can be hidden pending inputs in the simulation
-          
-          <<< set _pendingInputs mempty
-      )
-        oldState
+      let
+        newExecutionState =
+          ( set _transactionError (Just txError)
+              -- apart from setting the error, we also removing the pending inputs
+              
+              -- otherwise there can be hidden pending inputs in the simulation
+              
+              <<< set _pendingInputs mempty
+          )
+            executionState
+      in
+        set _executionState (Just newExecutionState) oldState
 
-stateToTxInput :: MarloweState -> TransactionInput
-stateToTxInput ms =
+updateStateP oldState = oldState
+
+stateToTxInput :: ExecutionState -> TransactionInput
+stateToTxInput executionState =
   let
-    slot = ms ^. _slot
+    slot = executionState ^. _slot
 
     interval = SlotInterval slot slot
 
-    inputs = ms ^. _pendingInputs
+    inputs = executionState ^. _pendingInputs
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
 
@@ -363,35 +404,37 @@ applyInput ::
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   (Array Input -> Array Input) ->
   m Unit
-applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over _pendingInputs inputs)))
+applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over (_executionState <<< _Just <<< _pendingInputs) inputs)))
 
 moveToSignificantSlot ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   Slot ->
   m Unit
-moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _slot slot)))
+moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set (_executionState <<< _Just <<< _slot) slot)))
 
 moveToSlot ::
   forall s m.
   MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
   Slot ->
   m Unit
-moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set _slot slot)))
+moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set (_executionState <<< _Just <<< _slot) slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
 hasHistory state = has (_marloweState <<< _Tail) state
 
 evalObservation :: MarloweState -> Observation -> Boolean
-evalObservation state observation =
+evalObservation state@{ executionState: Just executionState } observation =
   let
-    txInput = stateToTxInput state
+    txInput = stateToTxInput executionState
   in
-    case fixInterval (unwrap txInput).interval (state ^. _state) of
+    case fixInterval (unwrap txInput).interval (executionState ^. _state) of
       IntervalTrimmed env state' -> S.evalObservation env state' observation
       -- if there is an error in the state we will say that the observation is false. 
       -- Nothing should happen anyway because applying the input will fail later
       IntervalError _ -> false
+
+evalObservation state observation = false
 
 nextSignificantSlot :: MarloweState -> Maybe Slot
 nextSignificantSlot state =
