@@ -94,7 +94,7 @@ search square sex board ps
                  os <- oss]
 
 {-# INLINABLE prune #-}
---% An attempt to cut down on the size of the result (not in the original program)
+-- % An attempt to cut down on the size of the result (not in the original program)
 prune :: [Solution] -> Solution
 prune ss =
     case filter nonFailure ss of
@@ -183,7 +183,7 @@ pickOne xs0 = go id xs0
 --      The initial setup
 
 {-# INLINABLE fromJust #-}
---% Library functions is not inlinable
+-- % Library functions is not inlinable
 fromJust :: Maybe a -> a
 fromJust Nothing  = Tx.error ()
 fromJust (Just x) = x

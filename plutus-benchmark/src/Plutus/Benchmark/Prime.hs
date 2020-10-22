@@ -1,9 +1,9 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
---% Primality testing functions taken from nofib/spectral/primetest
---% Most of the literate Haskell stuff has been removed and everything's
---% been put into one file for simplicity.
+-- % Primality testing functions taken from nofib/spectral/primetest
+-- Most of the literate Haskell stuff has been removed and everything's
+-- been put into one file for simplicity.
 
 module Plutus.Benchmark.Prime where
 
@@ -114,9 +114,9 @@ initRNG s1 s2 =
     else {-Tx.trace "randomInts: Bad first seed." $-} Tx.error () -- error "randomInts: Bad first seed."
 
 
---% Make a single random integer, returning that and the updated state.  In the
---% original version this was an infinite list of random numbers, but that's not
---% a good idea in the strict world.
+-- % Make a single random integer, returning that and the updated state.  In the
+-- original version this was an infinite list of random numbers, but that's not
+-- a good idea in the strict world.
 {-# INLINABLE getRandom #-}
 getRandom :: RNGstate -> (Integer, RNGstate)
 getRandom (RNGstate s1 s2) =
@@ -132,7 +132,7 @@ getRandom (RNGstate s1 s2) =
    in  if z < 1 then (z + 2147483562, newState)
        else (z, newState)
 
---% Produce a list of n random numbers, also returning the updated RNG state.
+-- % Produce a list of n random numbers, also returning the updated RNG state.
 getRandoms :: Integer -> RNGstate -> ([Integer], RNGstate)
 getRandoms n r = getRandoms' n r []
     where getRandoms' n r acc =
@@ -175,7 +175,7 @@ findKQ n = f (0, (n-1))
               else (k, q)
                   where (d,r) = q `divMod` 2
 
---% Perform k single tests on the integer n
+-- % Perform k single tests on the integer n
 {-# INLINABLE multiTest #-}
 multiTest :: Integer -> RNGstate-> Integer -> (Bool, RNGstate)
 multiTest k r n = {-Tx.trace "* multiTest" $-}  -- (True, r)
@@ -189,7 +189,7 @@ multiTest k r n = {-Tx.trace "* multiTest" $-}  -- (True, r)
                        of (True, r') -> mTest (k-1) r'
                           x          -> x
 
---% Original version used `take k (iterate ...)` which doesn't terminate with strict evaluation.
+-- % Original version used `take k (iterate ...)` which doesn't terminate with strict evaluation.
 {-# INLINABLE iterateN #-}
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
@@ -197,9 +197,9 @@ iterateN k f x =
     else x : iterateN (k-1) f (f x)
 
 
---% The @boundedRandom@ function takes a number @n@ and the state of a (pseudo-) RNG @r@
---% and returns a tuple consisting of an @Integer@ $x$ in the range $0 \leq x <
---% @n@$, and the updated RNG state.
+-- % The @boundedRandom@ function takes a number @n@ and the state of a (pseudo-) RNG @r@
+-- and returns a tuple consisting of an @Integer@ $x$ in the range $0 \leq x <
+-- @n@$, and the updated RNG state.
 {-# INLINABLE boundedRandom #-}
 boundedRandom :: Integer -> RNGstate -> (Integer, RNGstate)
 boundedRandom n r = (makeNumber 65536 (uniform ns rs), r')
@@ -219,10 +219,10 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 
 ---------------- Main ----------------
 
---% Various test inputs.  The Haskell version easily manages numbers up
---% to 200 digits, but we can't get beyond about 70 digits on the CEK machine.
---% Interestingly, memory consumption on the CK machine is essentially flat and
---% the times aren't much worse (maybe 10-20% greater).
+-- % Various test inputs.  The Haskell version easily manages numbers up
+-- % to 200 digits, but we can't get beyond about 70 digits on the CEK machine.
+-- % Interestingly, memory consumption on the CK machine is essentially flat and
+-- % the times aren't much worse (maybe 10-20% greater).
 input :: [Integer]
 input = [115756986668303657898962467957]
 
@@ -267,19 +267,19 @@ getPrime =
 
 -}
           
---% Only for textual output of PLC scripts
+-- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Prelude.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
---% Initialise the RNG
+-- % Initialise the RNG
 {-# INLINABLE initState #-}
 initState :: RNGstate
 initState = initRNG 111 47
 
 type Result = Tx.Bool
 
---% Parameter for multiTest: how many rounds of the main primality test do we want to perform?
+-- % Parameter for multiTest: how many rounds of the main primality test do we want to perform?
 {-# INLINABLE numTests #-}
 numTests :: Integer
 numTests = 100
@@ -290,8 +290,8 @@ composite = Tx.False
 probablyPrime :: Result
 probablyPrime = Tx.True
 
---% The @processList@ function takes a list of input numbers
---% and produces a list of output results.
+-- % The @processList@ function takes a list of input numbers
+-- % and produces a list of output results.
 {-# INLINABLE processList #-}
 processList :: [Integer] -> RNGstate -> [Result]
 processList input r =
@@ -301,7 +301,7 @@ processList input r =
               of (True, r')  -> probablyPrime : processList ns r'
                  (False, r') -> composite : processList ns r'
 
---% The @process@ function takes a single input number and produces a single result.
+-- % The @process@ function takes a single input number and produces a single result.
 {-# INLINABLE process #-}
 process :: Integer -> RNGstate -> Integer
 process n r =

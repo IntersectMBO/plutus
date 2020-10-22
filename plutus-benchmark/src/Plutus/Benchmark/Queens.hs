@@ -108,16 +108,16 @@ main2 = do
               forM_ [1..240] $ const $ do
                 sequence_ (map try algorithms)
 
---% Only for textual output of PLC scripts
+-- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
 -----------------------------------------------------------
---% Various standard things reimplemented for Plutus
+-- % Various standard things reimplemented for Plutus
 -----------------------------------------------------------
 
---% Replacement for `iterate`, which generates an infinite list
+-- % Replacement for `iterate`, which generates an infinite list
 {-# INLINABLE iterateN #-}
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
@@ -140,7 +140,7 @@ infix 4 `notElem`
 notElem :: (Eq a) => a -> [a] -> Bool
 notElem a as = not (a `elem` as)
 
---% Replacement for [a..b]
+-- % Replacement for [a..b]
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
@@ -151,7 +151,7 @@ interval a b =
 abs :: Integer -> Integer
 abs n = if n<0 then 0-n else n
 
---% Things needed for `union`
+-- % Things needed for `union`
 
 {-# INLINABLE elem_by #-}
 elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
@@ -180,7 +180,7 @@ unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 union :: (Eq a) => [a] -> [a] -> [a]
 union                   = unionBy (==)
 
---% Things needed for `sortBy`
+-- % Things needed for `sortBy`
 instance Eq Ordering where
     LT == LT = True
     EQ == EQ = True
@@ -188,7 +188,7 @@ instance Eq Ordering where
     _ == _ = False
 
 {-# INLINABLE sortBy #-}
---% Stolen from Data.List
+-- % Stolen from Data.List
 sortBy :: (a -> a -> Ordering) -> [a] -> [a]
 sortBy cmp = mergeAll . sequences
   where

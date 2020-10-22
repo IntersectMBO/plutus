@@ -21,10 +21,10 @@ import           Language.PlutusTx.Prelude as Tx hiding (init)
 type Tile     = (Integer,Integer)
 
 data ChessSet = Board
-                Integer      --% Size of board (along edge)
-                Integer      --% Current move number
-                (Maybe Tile) --% Initial square: see Note [deleteFirst] below
-                [Tile]       --% All squares visited (in reverse: the last element is the initial square).
+                Integer      -- % Size of board (along edge)
+                Integer      -- % Current move number
+                (Maybe Tile) -- % Initial square: see Note [deleteFirst] below
+                [Tile]       -- % All squares visited (in reverse: the last element is the initial square).
 
 instance Tx.Eq ChessSet where
     _ == _ = True
@@ -48,7 +48,7 @@ noPieces (Board _ n _ _) = n
 addPiece :: Tile -> ChessSet -> ChessSet
 addPiece t (Board s n f ts) = Board s (n+1) f (t:ts)
 
---% Remove the last element from a list
+-- % Remove the last element from a list
 {-# INLINABLE init #-}
 init :: [a] -> [a]
 init l = case reverse l of
@@ -121,8 +121,8 @@ isSquareFree x (Board _ _ _ ts) = notIn x ts
 
 {-
 
---% Everything below here is only needed for printing boards.
---% This is useful for debugging.
+-- % Everything below here is only needed for printing boards.
+-- % This is useful for debugging.
 
 {-# INLINABLE showInteger #-}
 showInteger :: Tx.Integer -> Tx.String
