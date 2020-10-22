@@ -1,3 +1,5 @@
+{- | Plutus benchmarks based on some nofib examples. -}
+
 module Main where
 
 import           Criterion.Main
@@ -45,7 +47,6 @@ benchKnights depth sz =
 config :: Config
 config = defaultConfig
   { reportFile = Just "report.html"
-  , jsonFile   = Just "report.json"
   , template   = "./default.tpl"
   , timeLimit  = 60.0  -- Run each benchmark for at least one minute
   }
@@ -65,14 +66,14 @@ config = defaultConfig
 
 main :: IO ()
 main = defaultMainWith config [
-    bgroup "clausify" [ bench "formula3" $ benchClausify Clausify.F3
+    bgroup "clausify" [ bench "formula1" $ benchClausify Clausify.F1
+                      , bench "formula2" $ benchClausify Clausify.F2
+                      , bench "formula3" $ benchClausify Clausify.F3
                       , bench "formula4" $ benchClausify Clausify.F4
                       , bench "formula5" $ benchClausify Clausify.F5
-                      , bench "formula6" $ benchClausify Clausify.F6
-                      , bench "formula7" $ benchClausify Clausify.F7
                       ]
-  , bgroup "primetest" [ bench "5digits"  $ benchPrime Prime.P5
-                       , bench "8digits"  $ benchPrime Prime.P8
+  , bgroup "primetest" [ bench "05digits" $ benchPrime Prime.P5
+                       , bench "08digits" $ benchPrime Prime.P8
                        , bench "10digits" $ benchPrime Prime.P10
                        , bench "20digits" $ benchPrime Prime.P20
                        , bench "30digits" $ benchPrime Prime.P30
@@ -80,18 +81,23 @@ main = defaultMainWith config [
                        , bench "50digits" $ benchPrime Prime.P50
                        , bench "60digits" $ benchPrime Prime.P60
                        ]
-  , bgroup "queens" [ -- N-queens problem on a 5x5 board
+  , bgroup "queens4x4" [ -- N-queens problem on a 4x4 board
+                      bench "bt"    $ benchQueens 4 Queens.Bt
+                    , bench "bm"    $ benchQueens 4 Queens.Bm
+                    , bench "bjbt1" $ benchQueens 4 Queens.Bjbt1
+                    , bench "bjbt2" $ benchQueens 4 Queens.Bjbt2
+                    , bench "fc"    $ benchQueens 4 Queens.Fc
+                    ]
+  , bgroup "queens5x5" [ -- N-queens problem on a 5x5 board
                       bench "bt"    $ benchQueens 5 Queens.Bt
                     , bench "bm"    $ benchQueens 5 Queens.Bm
-                    , bench "bjbt"  $ benchQueens 5 Queens.Bjbt
                     , bench "bjbt1" $ benchQueens 5 Queens.Bjbt1
+                    , bench "bjbt2" $ benchQueens 5 Queens.Bjbt2
                     , bench "fc"    $ benchQueens 5 Queens.Fc
                     ]
   , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd or N=4
                        bench "4x4" $ benchKnights 150 4
-                     , bench "5x5" $ benchKnights 150 5
                      , bench "6x6" $ benchKnights 150 6
-                     , bench "7x7" $ benchKnights 150 7
                      , bench "8x8" $ benchKnights 150 8
                      ]
        ]

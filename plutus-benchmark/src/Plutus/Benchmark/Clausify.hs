@@ -121,46 +121,46 @@ replicate :: Integer -> a -> [a]
 replicate n a = if n <= 0 then []
                 else a:(replicate (n-1) a)
 
-{-# INLINABLE formula1 #-}  -- Overflow
-formula1 :: Formula  -- (a = a = a) = (a = a = a) = (a = a = a)
-formula1 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                    (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
+{-# INLINABLE formula1 #-}
+formula1 :: Formula  -- (a = a) = (a = a) = (a = a)
+formula1 = Eqv (Eqv (Sym 1) (Sym 1))
+               (Eqv (Eqv (Sym 1) (Sym 1))
+                    (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula2 #-} -- Overflow
-formula2 :: Formula -- (a = b = c) = (d = e = f) = (g = h = i)
-formula2 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
-               (Eqv (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
-                    (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9))))
-
-{-# INLINABLE formula3 #-}
-formula3 :: Formula  -- (a = a = a) = (a = a = a)
-formula3 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+{-# INLINABLE formula2 #-} -- One execution takes about 0.35s and 300 MB
+formula2 :: Formula  -- (a = a = a) = (a = a = a)
+formula2 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula4 #-} -- One execution takes about 0.35s and 300 MB
-formula4 :: Formula  -- (a = a) = (a = a) = (a = a)
-formula4 = Eqv (Eqv (Sym 1) (Sym 1))
+{-# INLINABLE formula3 #-}  -- One execution takes about 1.5s and 660 MB
+formula3 :: Formula  -- (a = a = a) = (a = a) = (a = a)
+formula3 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Sym 1))
                     (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula5 #-}  -- One execution takes about 1.5s and 660 MB
-formula5 :: Formula  -- (a = a = a) = (a = a) = (a = a)
-formula5 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-               (Eqv (Eqv (Sym 1) (Sym 1))
-                    (Eqv (Sym 1) (Sym 1)))
-
-{-# INLINABLE formula6 #-}  -- One execution takes about 2s and 1 GB
-formula6 :: Formula  -- (a = b = c) = (d = e) = (f = g)
-formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+{-# INLINABLE formula4 #-}  -- One execution takes about 2s and 1 GB
+formula4 :: Formula  -- (a = b = c) = (d = e) = (f = g)
+formula4 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
                (Eqv (Eqv (Sym 4) (Sym 5))
                     (Eqv (Sym 6) (Sym 7)))
 
-{-# INLINABLE formula7 #-}  -- One execution takes about 11s and 5 GB
-formula7 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
-formula7 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+{-# INLINABLE formula5 #-}  -- One execution takes about 11s and 5 GB
+formula5 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
+formula5 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                     (Eqv (Sym 1) (Sym 1)))
+
+{-# INLINABLE formula6 #-}  -- Overflow
+formula6 :: Formula  -- (a = a = a) = (a = a = a) = (a = a = a)
+formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+               (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                    (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
+
+{-# INLINABLE formula7 #-} -- Overflow
+formula7 :: Formula -- (a = b = c) = (d = e = f) = (g = h = i)
+formula7 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+               (Eqv (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
+                    (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9))))
 
 data StaticFormula = F1 | F2 | F3 | F4 | F5 | F6 | F7
 

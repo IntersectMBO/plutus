@@ -42,7 +42,7 @@ quickSort []     = []
 quickSort (x:xs) = (quickSort [y | y<-xs, y Tx.< x]) ++ [x] ++
                    (quickSort [y | y<-xs, y Tx.>= x])
 
-{-
+{-% These don't work in Plutus, and aren't used in the original program.
 {-# INLINABLE lazySortLe #-}
 lazySortLe :: (a -> a -> Bool) -> [a] -> [a]
 lazySortLe le l = lazyQsort le   l []
@@ -88,7 +88,7 @@ rqpart le x (y:ys) rle rgt r =
         rqpart le x ys (y:rle) rgt r
     else
         rqpart le x ys rle (y:rgt) r
--}
+%-}
 
 {-# INLINABLE randomIntegers #-}
 randomIntegers :: Integer -> Integer -> [Integer]

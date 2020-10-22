@@ -21,10 +21,10 @@ import           Language.PlutusTx.Prelude as Tx hiding (init)
 type Tile     = (Integer,Integer)
 
 data ChessSet = Board
-                Integer      -- Size of board (along edge)
-                Integer      -- Current move number
-                (Maybe Tile) -- Initial square: see Note [deleteFirst] below
-                [Tile]       -- All squares visited (in reverse: the last element is the initial square).
+                Integer      --% Size of board (along edge)
+                Integer      --% Current move number
+                (Maybe Tile) --% Initial square: see Note [deleteFirst] below
+                [Tile]       --% All squares visited (in reverse: the last element is the initial square).
 
 instance Tx.Eq ChessSet where
     _ == _ = True
@@ -48,7 +48,7 @@ noPieces (Board _ n _ _) = n
 addPiece :: Tile -> ChessSet -> ChessSet
 addPiece t (Board s n f ts) = Board s (n+1) f (t:ts)
 
--- Remove the last element from a list
+--% Remove the last element from a list
 {-# INLINABLE init #-}
 init :: [a] -> [a]
 init l = case reverse l of
@@ -64,17 +64,17 @@ secondLast l =
       _:a:_ -> Just a
 
 
-{-  Note [deleteFirst].
-   deleteFirst removes the first position from the tour.
-   Since the sequence of positions (ts) is stored in reverse this involves
-   deleting the last element of ts and also storing the second-last element of
-   ts as the new starting position.  In the strict world this will *fail* if the
-   length of ts is 1.  The lazy version got away with this because the starting
-   position is never examined in that case (possibly just through luck: with
-   enough backtracking that might still happen).  To solve this we have to store
-   the starting position as a Maybe value, deferring any error until we actually
-   look at it.
--}
+{-%  Note [deleteFirst].
+    deleteFirst removes the first position from the tour.
+    Since the sequence of positions (ts) is stored in reverse this involves
+    deleting the last element of ts and also storing the second-last element of
+    ts as the new starting position.  In the strict world this will *fail* if the
+    length of ts is 1.  The lazy version got away with this because the starting
+    position is never examined in that case (possibly just through luck: with
+    enough backtracking that might still happen).  To solve this we have to store
+    the starting position as a Maybe value, deferring any error until we actually
+    look at it.
+%-}
 
 {-# INLINABLE deleteFirst #-}
 deleteFirst :: ChessSet -> ChessSet
@@ -121,9 +121,12 @@ isSquareFree x (Board _ _ _ ts) = notIn x ts
 
 {-
 
-{-# INLINABLE shint #-}
-shint :: Tx.Integer -> Tx.String
-shint n =
+--% Everything below here is only needed for printing boards.
+--% This is useful for debugging.
+
+{-# INLINABLE showInteger #-}
+showInteger :: Tx.Integer -> Tx.String
+showInteger n =
     if n == 0 then "0"
        else if n == 1 then "1"
             else if n == 2 then "2"
@@ -133,18 +136,15 @@ shint n =
                                 else if n == 6 then "6"
                                      else if n == 7 then "7"
                                           else "?"
-{-# INLINABLE shl #-}
-shl :: [Integer] -> String
-shl []        = "0"
-shl [_]       = "1"
-shl [_,_]     = "2"
-shl [_,_,_]   = "3"
-shl [_,_,_,_] = "4"
-shl _         = "?"
 
-
--- Everything below here is only needed for printing boards.
--- This is useful for debugging.
+{-# INLINABLE showList #-}
+showList :: [Integer] -> String
+showList []        = "0"
+showList [_]       = "1"
+showList [_,_]     = "2"
+showList [_,_,_]   = "3"
+showList [_,_,_,_] = "4"
+showList _         = "?"
 
 instance Show ChessSet where
    showsPrec _ (Board sze n _ ts)

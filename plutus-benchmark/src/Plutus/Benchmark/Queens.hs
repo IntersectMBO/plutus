@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-{- nofib/spectral/constraints converted to Plutus.
-   Renamed to avoid conflict with existing package. -}
+{-* nofib/spectral/constraints converted to Plutus.
+    Renamed to avoid conflict with existing package. *-}
 
 module Plutus.Benchmark.Queens where
 
@@ -27,34 +27,34 @@ import           Language.UntypedPlutusCore
 -- The main program
 -----------------------------
 
-{- kwxm: This program computes the number of mutually non-attacking arrangements
-   of n queens on an n x n chessboard.  It's quite sophisticated: there's a
-   generic constraint solver that takes an algorithm as a parameter.  There are
-   five different algorithms, and the original behaviour was to try each of
-   these on a board if size NxN, where N is a parameter supplied by the user.
-   The Haskell version can run all five algorithms one after the other hundreds
-   of times on an 8x8 board in a few seconds.
+{-% This program computes the number of mutually non-attacking arrangements
+    of n queens on an n x n chessboard.  It's quite sophisticated: there's a
+    generic constraint solver that takes an algorithm as a parameter.  There are
+    five different algorithms, and the original behaviour was to try each of
+    these on a board if size NxN, where N is a parameter supplied by the user.
+    The Haskell version can run all five algorithms one after the other hundreds
+    of times on an 8x8 board in a few seconds.
 
-   Compiling into Plutus, I tried to run all five algorithms one after the other
-   (in a single run of the program) on a 5x5 board on the CEK machine on an 8 GB
-   machine.  The program was just able to complete in about 23s, but with some
-   swapping.
+    Compiling into Plutus, I tried to run all five algorithms one after the other
+    (in a single run of the program) on a 5x5 board on the CEK machine on an 8 GB
+    machine.  The program was just able to complete in about 23s, but with some
+    swapping.
 
-   The resource consumption isn't so bad for the individual algorithms.  Here
-   are figures for the time and memory usage for one run of the Plutus version
-   of each algorithm on a 5x5 board on the same machine:
+    The resource consumption isn't so bad for the individual algorithms.  Here
+    are figures for the time and memory usage for one run of the Plutus version
+    of each algorithm on a 5x5 board on the same machine:
 
-   bt:    2.9s, 1.2 GB
-   bm:    2.5s, 830 MB
-   bjbt:  2.7s, 933 MB
-   bjbt': 3.0s, 1.1 GB
-   fc:    7.5s, 3.2 GB
+    bt:    2.9s, 1.2 GB
+    bm:    2.5s, 830 MB
+    bjbt:  2.7s, 933 MB
+    bjbt': 3.0s, 1.1 GB
+    fc:    7.5s, 3.2 GB
 
-   I suggest keeping the entire program, but only using a single algorithm for
-   benchmarking for the time being.  If we're investigate the behaviour of
-   Plutus Core evaluators at some point it might be useful to have the whole
-   range of algorithms available for experiments.
--}
+    I suggest keeping the entire program, but only using a single algorithm for
+    benchmarking for the time being.  If we're investigate the behaviour of
+    Plutus Core evaluators at some point it might be useful to have the whole
+    range of algorithms available for experiments.
+%-}
 
 
 -- The different algorithms implemented in this file. The program iterates the
@@ -67,8 +67,8 @@ algorithms = [bm]
 
 data Algorithm = Bt
                | Bm
-               | Bjbt
                | Bjbt1
+               | Bjbt2
                | Fc
                deriving (Show, Read)
 
@@ -76,8 +76,8 @@ data Algorithm = Bt
 lookupAlgorithm :: Algorithm -> Labeler
 lookupAlgorithm Bt    = bt
 lookupAlgorithm Bm    = bm
-lookupAlgorithm Bjbt  = bjbt
-lookupAlgorithm Bjbt1 = bjbt'  -- bjbt' problematic on command line
+lookupAlgorithm Bjbt1 = bjbt
+lookupAlgorithm Bjbt2 = bjbt'  -- bjbt' problematic on command line
 lookupAlgorithm Fc    = fc
 
 -- The main input parameter used by the Plutus version, the size of the board (n).
@@ -108,16 +108,16 @@ main2 = do
               forM_ [1..240] $ const $ do
                 sequence_ (map try algorithms)
 
--- Only for textual output of PLC scripts
+--% Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
 -----------------------------------------------------------
--- Various standard things reimplemented for Plutus
+--% Various standard things reimplemented for Plutus
 -----------------------------------------------------------
 
--- Replacement for `iterate`, which generates an infinite list
+--% Replacement for `iterate`, which generates an infinite list
 {-# INLINABLE iterateN #-}
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
@@ -140,7 +140,7 @@ infix 4 `notElem`
 notElem :: (Eq a) => a -> [a] -> Bool
 notElem a as = not (a `elem` as)
 
--- Replacement for [a..b]
+--% Replacement for [a..b]
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
@@ -151,7 +151,7 @@ interval a b =
 abs :: Integer -> Integer
 abs n = if n<0 then 0-n else n
 
--- Things needed for `union`
+--% Things needed for `union`
 
 {-# INLINABLE elem_by #-}
 elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
@@ -180,7 +180,7 @@ unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 union :: (Eq a) => [a] -> [a] -> [a]
 union                   = unionBy (==)
 
--- Things needed for `sortBy`
+--% Things needed for `sortBy`
 instance Eq Ordering where
     LT == LT = True
     EQ == EQ = True
@@ -188,7 +188,7 @@ instance Eq Ordering where
     _ == _ = False
 
 {-# INLINABLE sortBy #-}
---- Stolen from Data.List
+--% Stolen from Data.List
 sortBy :: (a -> a -> Ordering) -> [a] -> [a]
 sortBy cmp = mergeAll . sequences
   where

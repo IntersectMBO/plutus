@@ -45,7 +45,7 @@ repl n a =
     if n == 0 then []
     else a:(repl (n-1) a)
 
--- Original version used infinite lists.
+--% Original version used infinite lists.
 {-# INLINABLE mkStarts #-}
 mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
@@ -57,7 +57,7 @@ mkStarts sze =
 root :: Integer -> Queue (Integer, ChessSet)
 root sze = addAllFront (mkStarts sze) createQueue
 
-{- Original version
+{-% Original version
 root sze = addAllFront
              (Tx.zip [-(sze*sze)+1,-(sze*sze)+1..]
                   (zipWith
@@ -65,13 +65,13 @@ root sze = addAllFront
                       [(x,y) | x <- [1..sze], y <- [1..sze]]
                      (take' (sze*sze) [sze,sze..])))
              createQueue
--}
+%-}
 
 
 type P = (Integer, ChessSet)
 
 {-# INLINABLE depthSearch #-}
--- Added a depth parameter to stop things getting out of hand in the strict world.
+--% Added a depth parameter to stop things getting out of hand in the strict world.
 depthSearch :: (Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
 depthSearch depth q growFn finFn
    | depth == 0             = []
@@ -84,7 +84,7 @@ depthSearch depth q growFn finFn
                                  growFn
                                  finFn
 
--- Only for textual output of PLC scripts
+--% Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 

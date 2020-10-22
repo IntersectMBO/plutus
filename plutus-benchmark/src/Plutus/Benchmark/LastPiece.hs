@@ -1,16 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-{- Last piece puzzle, adapted from nofib/spectral/last-piece.
-   This is a solver for a jigsaw problem:
+{-% Last piece puzzle, adapted from nofib/spectral/last-piece.
+    This is a solver for a jigsaw problem:
         see https://www.nicklevine.org/contest/2003/index.html.
 
- I've removed prettyprinting code for solutions and replaced Map.Map with an
- association list.  The original version collected the entire search tree,
- including paths which led to failure, and the PLC version quickly ran out of
- memory. This version prunes the search tree to keep only successful paths.  It
- still doesn't work on the CEK machine (I don't know about the CK machine: that
- took forever).
--}
+  I've removed prettyprinting code for solutions and replaced Map.Map with an
+  association list.  The original version collected the entire search tree,
+  including paths which led to failure, and the PLC version quickly ran out of
+  memory. This version prunes the search tree to keep only successful paths.  It
+  still doesn't work on the CEK machine (I don't know about the CK machine: that
+  took forever).
+%-}
 
 module Plutus.Benchmark.LastPiece where
 
@@ -94,7 +94,7 @@ search square sex board ps
                  os <- oss]
 
 {-# INLINABLE prune #-}
--- An attempt to cut down on the size of the result (not in the original program)
+--% An attempt to cut down on the size of the result (not in the original program)
 prune :: [Solution] -> Solution
 prune ss =
     case filter nonFailure ss of
@@ -183,7 +183,7 @@ pickOne xs0 = go id xs0
 --      The initial setup
 
 {-# INLINABLE fromJust #-}
--- Library functions is not inlinable
+--% Library functions is not inlinable
 fromJust :: Maybe a -> a
 fromJust Nothing  = Tx.error ()
 fromJust (Just x) = x
