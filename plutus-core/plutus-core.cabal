@@ -58,6 +58,7 @@ library
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
+        Language.PlutusCore.Flat
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Universe
@@ -199,6 +200,7 @@ library
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
         Language.UntypedPlutusCore.Core.Instance.Recursive
         Language.UntypedPlutusCore.Core.Instance.CBOR
+        Language.UntypedPlutusCore.Core.Instance.Flat
         Language.UntypedPlutusCore.Core.Type
         Language.UntypedPlutusCore.Core.Plated
         Language.UntypedPlutusCore.Analysis.Definitions
@@ -231,6 +233,7 @@ library
         deriving-compat -any,
         deepseq -any,
         filepath -any,
+        flat -any,
         hashable,
         hedgehog >=1.0,
         integer-gmp -any,
@@ -305,6 +308,7 @@ test-suite plutus-core-test
         bytestring -any,
         containers -any,
         filepath -any,
+        flat -any,
         hedgehog -any,
         plutus-core -any,
         lazy-search -any,

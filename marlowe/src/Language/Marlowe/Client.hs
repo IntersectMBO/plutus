@@ -101,7 +101,7 @@ createContract :: (AsContractError e, AsSMContractError e MarloweData MarloweInp
     -> Marlowe.Contract
     -> Contract MarloweSchema e ()
 createContract params contract = do
-    slot <- awaitSlot 0
+    slot <- currentSlot
     _creator <- pubKeyHash <$> ownPubKey
     let marloweData = MarloweData {
             marloweContract = contract,

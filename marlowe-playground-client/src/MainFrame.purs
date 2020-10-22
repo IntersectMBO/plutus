@@ -4,11 +4,13 @@ import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
+import Data.Array (toUnfoldable)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either, note)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (_Right, assign, preview, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
+import Data.List (filter, (:))
 import Data.List.NonEmpty as NEL
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -50,11 +52,12 @@ import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
 import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Marlowe.Parser (parseContract)
+import Monaco (isError)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject (handleAction, render) as NewProject
 import NewProject.Types (Action(..), State, _projectName, emptyState, _error) as NewProject
-import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
+import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (/=), (<$>), (<<<), (<>), (>))
 import Projects (handleAction, render) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
 import Projects.Types (Lang(..))
@@ -271,12 +274,25 @@ handleAction _ CompileJSProgram = do
     Nothing -> pure unit
     Just model -> do
       assign _jsCompilationResult JSCompiling
+      maybeMarkers <- query _jsEditorSlot unit (Monaco.GetModelMarkers identity)
       void $ subscribe
         $ affEventSource
             ( \emitter -> do
-                res <- JSI.eval model
-                emit emitter (CompiledJSProgram res)
-                pure mempty
+                case map ((filter (\e -> isError e.severity)) <<< toUnfoldable) maybeMarkers of
+                  Just ({ message, startLineNumber, startColumn } : _) -> do
+                    emit emitter
+                      ( CompiledJSProgram $ Left
+                          $ JSI.CompilationError
+                              { row: startLineNumber
+                              , column: startColumn
+                              , text: [ message ]
+                              }
+                      )
+                    pure mempty
+                  _ -> do
+                    res <- JSI.eval model
+                    emit emitter (CompiledJSProgram res)
+                    pure mempty
             )
       pure unit
 

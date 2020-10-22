@@ -110,6 +110,7 @@ import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Flat                  ()
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name

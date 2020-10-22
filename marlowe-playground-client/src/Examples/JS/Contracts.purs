@@ -8,7 +8,7 @@ const bob : Party = Role("bob");
 const carol : Party = Role("carol");
 
 /* Value under escrow */
-const price : SomeNumber = new bignumber.BigNumber(450);
+const price : SomeNumber = 450n;
 
 /* helper function to build Actions */
 
@@ -29,9 +29,9 @@ const choiceValueBy = function(party : Party) : Value {
 
 /* Names for choices */
 
-const pay : [Bound]    = [Bound(0, 0)];
-const refund : [Bound] = [Bound(1, 1)];
-const both : [Bound]   = [Bound(0, 1)];
+const pay : [Bound]    = [Bound(0n, 0n)];
+const refund : [Bound] = [Bound(1n, 1n)];
+const both : [Bound]   = [Bound(0n, 1n)];
 
 /* Name choices according to person making choice and choice made */
 
@@ -57,11 +57,11 @@ const bobChosen : Value = choiceValueBy(bob);
 
 const arbitrate : Contract = When([Case(carolRefund, Close),
                                    Case(carolPay, Pay(alice, Party(bob), ada, price, Close))],
-                                   100, Close);
+                                   100n, Close);
 
 /* The contract to follow when Alice and Bob have made the same choice. */
 
-const agreement : Contract = If(ValueEQ(aliceChosen, 0),
+const agreement : Contract = If(ValueEQ(aliceChosen, 0n),
                                 Pay(alice, Party(bob), ada, price, Close),
                                 Close);
 
@@ -72,8 +72,8 @@ const inner : Contract = When([Case(aliceChoice,
                                      If(ValueEQ(aliceChosen, bobChosen),
                                         agreement,
                                         arbitrate))],
-                                60, arbitrate))],
-                          40, Close);
+                                60n, arbitrate))],
+                          40n, Close);
 
 /* What does the vanilla contract look like?
   - if Alice and Bob choose
@@ -83,11 +83,8 @@ const inner : Contract = When([Case(aliceChoice,
   - refund if no choices are made. */
 
 const contract : Contract = When([Case(Deposit(alice, alice, ada, price), inner)],
-                                 10,
+                                 10n,
                                  Close)
-
-contract
-
 """
 
 zeroCouponBond :: String
@@ -95,18 +92,17 @@ zeroCouponBond =
   """const investor : Party = Role("investor");
 const issuer : Party = Role("issuer");
 
-When([Case(
-        Deposit(investor, investor, ada, 850),
-        Pay(investor, Party(issuer), ada, 850,
-            When([ Case(Deposit(investor, issuer, ada, 1000),
-                        Pay(investor, Party(investor), ada, 1000, Close))
-                 ],
-                 20,
-                 Close)
-           ))],
-      10,
-      Close);
-
+const contract : Contract = When([Case(
+                                    Deposit(investor, investor, ada, 850n),
+                                    Pay(investor, Party(issuer), ada, 850n,
+                                        When([ Case(Deposit(investor, issuer, ada, 1000n),
+                                                    Pay(investor, Party(investor), ada, 1000n, Close))
+                                             ],
+                                             20n,
+                                             Close)
+                                       ))],
+                                  10n,
+                                  Close);
 """
 
 couponBondGuaranteed :: String
@@ -115,47 +111,47 @@ couponBondGuaranteed =
 const guarantor : Party = Role("guarantor");
 const investor : Party = Role("investor");
 
-When([
-    Case(Deposit(investor, guarantor, ada, 1030),
-         When([
-            Case(Deposit(investor, investor, ada, 1000),
-                 Pay(investor, Party(issuer), ada, 1000,
-                     When([
-                         Case(Deposit(investor, issuer, ada, 10),
-                              Pay(investor, Party(investor), ada, 10,
-                                  Pay(investor, Party(guarantor), ada, 10,
-                                      When([
-                                          Case(Deposit(investor, issuer, ada, 10),
-                                               Pay(investor, Party(investor), ada, 10,
-                                                   Pay(investor, Party(guarantor), ada, 10,
-                                                       When([
-                                                           Case(Deposit(investor, issuer, ada, 1010),
-                                                                Pay(investor, Party(investor), ada, 1010,
-                                                                    Pay(investor, Party(guarantor), ada, 1010, Close)
-                                                                   )
-                                                               )
-                                                            ], 20, Close)
-                                                      )
-                                                  )
-                                              )
-                                           ], 15, Close)
-                                     )
-                                 )
-                             )
-                          ], 10, Close)
-                    )
-                )
-              ], 5, Close)
-        )
-     ], 5, Close)
+const contract : Contract = When([
+                                Case(Deposit(investor, guarantor, ada, 1030n),
+                                    When([
+                                        Case(Deposit(investor, investor, ada, 1000n),
+                                            Pay(investor, Party(issuer), ada, 1000n,
+                                                When([
+                                                    Case(Deposit(investor, issuer, ada, 10n),
+                                                        Pay(investor, Party(investor), ada, 10n,
+                                                            Pay(investor, Party(guarantor), ada, 10n,
+                                                                When([
+                                                                    Case(Deposit(investor, issuer, ada, 10n),
+                                                                        Pay(investor, Party(investor), ada, 10n,
+                                                                            Pay(investor, Party(guarantor), ada, 10n,
+                                                                                When([
+                                                                                    Case(Deposit(investor, issuer, ada, 1010n),
+                                                                                            Pay(investor, Party(investor), ada, 1010n,
+                                                                                                Pay(investor, Party(guarantor), ada, 1010n, Close)
+                                                                                            )
+                                                                                        )
+                                                                                        ], 20n, Close)
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    ], 15n, Close)
+                                                                )
+                                                            )
+                                                        )
+                                                    ], 10n, Close)
+                                                )
+                                            )
+                                        ], 5n, Close)
+                                    )
+                                ], 5n, Close)
 """
 
 swap :: String
 swap =
-  """const lovelacePerAda : SomeNumber = new bignumber.BigNumber("1000000");
-const amountOfAda : SomeNumber = new bignumber.BigNumber("1000");
-const amountOfLovelace : SomeNumber = lovelacePerAda.times(amountOfAda);
-const amountOfDollars : SomeNumber = new bignumber.BigNumber("100");
+  """const lovelacePerAda : SomeNumber = 1000000n;
+const amountOfAda : SomeNumber = 1000n;
+const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
+const amountOfDollars : SomeNumber = 100n;
 
 const dollars : Token = Token("85bb65", "dollar")
 
@@ -193,9 +189,155 @@ const makePayment = function(src : SwapParty, dest : SwapParty,
               continuation);
 }
 
-makeDeposit(alice, 10,
-   makeDeposit(bob, 20,
-       makePayment(alice, bob,
-           makePayment(bob, alice,
-               Close))))
+const contract : Contract = makeDeposit(alice, 10n,
+                               makeDeposit(bob, 20n,
+                                   makePayment(alice, bob,
+                                       makePayment(bob, alice,
+                                           Close))))
+"""
+
+cfd :: String
+cfd =
+  """
+
+const party : Party = Role("party")
+
+const counterParty = Role("counterparty")
+
+const oracle: Party = Role("oracle")
+
+function waitForEvent (action : Action, timeout : SomeNumber,  alternative : Contract): (_: Contract) => Contract {
+    return cont => When([Case(action, cont)], timeout, alternative)
+} 
+
+function before(time: SomeNumber): SomeNumber {
+    return time
+}    
+function orElse(contract: Contract): Contract {
+    return contract
+}
+
+function receiveValue(val: string): Action {
+    return Choice(ChoiceId(val, oracle), [Bound(0, 100)])
+}
+
+function readValue(val : string): Value {
+    return ChoiceValue(ChoiceId(val, oracle))
+}
+
+function waitFor(delay: SomeNumber): (_: Contract) => Contract {
+    return cont => When([], delay, cont)
+}
+
+function checkIf(obs: Observation, c1: Contract, c2: Contract): Contract {
+    return If(obs, c1, c2)
+}
+
+function thenDo(c: Contract): Contract {
+    return c
+}
+
+function elseDo(c: Contract): Contract {
+    return c
+}
+
+
+function letValue(name: string, v: Value): (_: Contract) => Contract {
+    return cont => Let (ValueId(name), v, cont)
+}
+
+function useValue(name: string): Value {
+    return UseValue(name)
+}
+
+function value(v: SomeNumber): Value {
+    return Constant(v)
+}
+
+function fromParty(a: AccountId): AccountId {
+    return a
+}
+
+function toParty(p: Party): Payee {
+    return Party(p)
+} 
+
+function withToken(tkn: Token): Token {
+    return tkn
+}
+
+const end: Contract = Close
+
+function amountOf(amount: Value): Value {
+    return amount
+}
+
+function minus(v1: Value, v2: Value): Value {
+    return SubValue(v1, v2)
+}
+
+function sendPayment(fromParty: Party, toCounterParty: Payee, tkn: Token, payoff: Value): (_: Contract) => Contract {
+    return cont => Pay(fromParty, toCounterParty, tkn, payoff, cont)
+}
+
+function Do(actions: Array<(_: Contract) => Contract>, last: Contract): Contract {
+    const foldRight = <A, B>(xs: Array<A>, zero: B) => (f: (b: B, a: A) => B): B => {
+        const len = xs.length;
+        if (len === 0) return zero;
+        else {
+            const last = xs[len - 1];
+            const inits = xs.slice(0, len - 1);
+            return foldRight(inits, f(zero, last))(f);
+        }
+    }
+    return foldRight(actions, last)((b, a) => a(b))
+}
+
+const contract = (() => {
+    const partyCollateralToken = Token("", "")
+    const partyCollateralAmount = value(1000n)
+    const counterPartyCollateralToken = Token("", "")
+    const counterPartyCollateralAmount = value(1000n)
+    const endDate = 1000n
+    const partyCollateralDeposit = Deposit(party, party, partyCollateralToken, partyCollateralAmount)
+
+    const counterPartyCollateralDeposit = Deposit(counterParty, counterParty, counterPartyCollateralToken, counterPartyCollateralAmount)
+
+
+    const minValue = (val1: Value, val2: Value) => Cond(ValueGE(val1, val2), val2, val1)
+
+    return Do([
+        waitForEvent(partyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(counterPartyCollateralDeposit, before(100n), orElse(end)),
+        waitForEvent(receiveValue("price1"), before(100n), orElse(end)),
+        waitFor(endDate),
+        waitForEvent(receiveValue("price2"), before(endDate + 100n), orElse(end)),
+        letValue("delta", minus(readValue("price1"), readValue("price2")))
+    ],  checkIf(ValueEQ(useValue("delta"), value(0)), 
+            thenDo(end),
+            elseDo(
+                checkIf(ValueLT(useValue("delta"), value(0)),
+                    thenDo(
+                        Do([
+                            letValue("absdelta", minus(value(0), useValue("delta"))),
+                            (() => {
+                                const payoff = minValue(useValue("absdelta"), partyCollateralAmount)
+                                return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
+                            })()
+                        ], end)
+                    ),
+                    elseDo(
+                        Do([
+                            (() => {
+                                const payoff = minValue(useValue("delta"), partyCollateralAmount)
+                                return sendPayment(fromParty(party), toParty(counterParty), withToken(partyCollateralToken), amountOf(payoff))
+                            })()
+                        ], end)
+                    )
+                )
+            )
+        )
+    )
+})()
+
 """

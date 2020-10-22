@@ -3,18 +3,20 @@ import bignumber = require("bignumber.js")
 type Party = { "pk_hash" : string }
            | { "role_token" : string };
 
-type SomeNumber = bignumber.BigNumber | number | string;
+type SomeNumber = number | string | bigint;
 
 function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
     if (typeof(n) == 'string') {
         return new bignumber.BigNumber(n);
+    } else if (typeof(n) == 'bigint') {
+        return new bignumber.BigNumber(n.toString());
     } else if (typeof(n) == 'number') {
         if ((n > Number.MAX_SAFE_INTEGER) || (n < -Number.MAX_SAFE_INTEGER)) {
             throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
         }
         return new bignumber.BigNumber(n);
     } else {
-        return n;
+        throw(new Error('Not a valid number'))
     }
 }
 
@@ -97,6 +99,8 @@ function coerceValue(val : EValue) : Value {
             throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
         }
         return new bignumber.BigNumber(val);
+    } else if (typeof(val) == 'bigint') {
+        return new bignumber.BigNumber(val.toString());
     } else if (typeof(val) == "string" && val != "slot_interval_start" && val != "slot_interval_end") {
         return new bignumber.BigNumber(val);
     } else {

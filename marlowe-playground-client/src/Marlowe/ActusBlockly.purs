@@ -184,9 +184,6 @@ contractColour = "#a380bc"
 actusColour :: String
 actusColour = "#1a7b84"
 
-observationColour :: String
-observationColour = "#1fc1c3"
-
 valueColour :: String
 valueColour = "#eb2256"
 
@@ -387,8 +384,8 @@ toDefinition (ActusPeriodType PeriodYearType) =
 toolbox :: forall a b. HTML a b
 toolbox =
   xml [ id_ "actusBlocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour contractColour ] (map mkBlock actusContractTypes)
-    , category [ name "Values", colour observationColour ] (map mkBlock actusValueTypes)
+    [ category [ name "Contracts", colour actusColour ] (map mkBlock actusContractTypes)
+    , category [ name "Values", colour valueColour ] (map mkBlock actusValueTypes)
     , category [ name "Periods", colour valueColour ] (map mkBlock actusPeriodTypes)
     ]
   where

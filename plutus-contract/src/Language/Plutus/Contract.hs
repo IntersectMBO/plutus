@@ -19,6 +19,8 @@ module Language.Plutus.Contract(
     , HasAwaitSlot
     , AwaitSlot
     , awaitSlot
+    , currentSlot
+    , waitNSlots
     , until
     , when
     , timeout
