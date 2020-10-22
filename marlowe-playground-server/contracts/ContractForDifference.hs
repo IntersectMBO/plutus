@@ -3,7 +3,7 @@ module ContractForDifference where
 
 import           Data.String      (IsString (fromString))
 import           Language.Marlowe
-import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<))
+import           Prelude          hiding (Fractional, Num, (*), (-), (/), (<), (==))
 
 main :: IO ()
 main = print . pretty $ contract
@@ -59,6 +59,9 @@ value = Constant
 (<) :: (Value Observation) -> (Value Observation) -> Observation
 (<) = ValueLT
 
+(==) :: (Value Observation) -> (Value Observation) -> Observation
+(==) = ValueEQ
+
 from :: AccountId -> AccountId
 from = id
 
@@ -98,7 +101,7 @@ contract =
                 counterPartyCollateralToken
                 counterPartyCollateralAmount
 
-        maxValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
+        minValue val1 val2 = Cond (ValueGE val1 val2) val2 val1
     in
         waitForEvent partyCollateralDeposit (before 100) (orElse end) $
         waitForEvent counterPartyCollateralDeposit (before 100) (orElse end) $
@@ -106,23 +109,30 @@ contract =
         waitFor endDate $
         waitForEvent (receiveValue "price2") (before $ endDate + 100) (orElse end) $
         letValue "delta" (readValue "price1" - readValue "price2") $
-        checkIf (useValue "delta" < value 0)
+        checkIf (useValue "delta" == value 0)
             (thenDo $
-                letValue "absdelta" (value 0 - useValue "delta") $
-                (let payoff = maxValue (useValue "absdelta") partyCollateralAmount
-                in Pay
-                    (from party)
-                    (to counterParty)
-                    (with partyCollateralToken)
-                    (amountOf payoff)) $
                 end
             )
             (elseDo $
-                (let payoff = maxValue (useValue "delta") counterPartyCollateralAmount
-                in Pay
-                    (from counterParty)
-                    (to party)
-                    (with counterPartyCollateralToken)
-                    (amountOf payoff)) $
-                end
+                checkIf (useValue "delta" < value 0)
+                    (thenDo $
+                        letValue "absdelta" (value 0 - useValue "delta") $
+                        (let payoff = minValue (useValue "absdelta") partyCollateralAmount
+                        in Pay
+                            (from party)
+                            (to counterParty)
+                            (with partyCollateralToken)
+                            (amountOf payoff)) $
+                        end
+                    )
+                    (elseDo $
+                        (let payoff = minValue (useValue "delta") counterPartyCollateralAmount
+                        in Pay
+                            (from counterParty)
+                            (to party)
+                            (with counterPartyCollateralToken)
+                            (amountOf payoff)) $
+                        end
+                )
             )
+

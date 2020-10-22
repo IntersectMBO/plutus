@@ -41,7 +41,7 @@ const AvailableMoney =
     };
 ----
 
-When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object resulting from the execution – i.e. the result of the last statement – is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
+When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object in the variable `contract` resulting from the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
 
 The library implementation itself is quite simple, you can find all of its source code here.
 In principle you could write JavaScript code that produces the Marlowe’s JSON representation directly, but you should not have to worry about JSON at all when using the JS library. 
@@ -54,7 +54,7 @@ There is one important type that is not present in the Haskell definition of Mar
 
 [source,typescript]
 ----
-type SomeNumber = bignumber.BigNumber | string | number
+type SomeNumber = string | number | bigint
 ----
 
 The reason we have this type is that the native type for numbers in JavaScript and TypeScript loses precision when used with large integer numbers. This is because its implementation relies on floating point numbers.
@@ -68,7 +68,7 @@ The following expression is true in JavaScript:
 
 This can be problematic for financial contracts, since it could ultimately result in loss of money.
 
-We therefore recommend the use of `BigNumber` library, but we acknowledge that it is cumbersome to use for every single number, and sometimes we just know we are going to work with small numbers. For that reason we support three ways of representing numbers:
+We therefore recommend the use of `bigint` type. But we support three ways of representing numbers for convenience and retrocompatibility with old versions of JS:
 
 * Native numbers:
   - They are straightforward to use
@@ -78,12 +78,12 @@ We therefore recommend the use of `BigNumber` library, but we acknowledge that i
   - Notation just requires adding quotes around the numbers
   - You cannot use standard operators directly, e.g: `"32" + "57" = "3257"`
   - They do not lose precision
-* `BigNumber` library:
-  - They support algebraic operations as methods.
-  - Notation is more cumbersome than native numbers, e.g: `new bignumber.BigNumber(450);`
+* `bigint` type:
+  - They are straightforward to use (just add `n` after number literals)
+  - Notation is very simple and can be used with standard operators, e.g: `32n + 57n`
   - They do not lose precision
 
-All of these representations are converted to `BigNumber` internally, but a loss of precision may occur as it is constructed, before the conversion.
+All of these representations are converted to `BigNumber` internally, but a loss of precision may occur if native numbers are used, as the `BigNumber` is constructed, before the conversion occurs, and the API cannot do anything about it.
 
 === The `EValue` type and boolean overloading
 
@@ -107,7 +107,6 @@ We can remove everything under the line and start coding our own contract. The i
 
 [source,typescript]
 ----
-import * as bignumber from 'bignumber.js';
 import { Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
         SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
         UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
@@ -124,10 +123,10 @@ First let’s calculate the amounts we want to work with of each unit, we can de
 
 [source,typescript]
 ----
-const lovelacePerAda : SomeNumber = new bignumber.BigNumber("1000000");
-const amountOfAda : SomeNumber = new bignumber.BigNumber("1000");
-const amountOfLovelace : SomeNumber = lovelacePerAda.times(amountOfAda);
-const amountOfDollars : SomeNumber = new bignumber.BigNumber("100");
+const lovelacePerAda : SomeNumber = 1000000n;
+const amountOfAda : SomeNumber = 1000n;
+const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
+const amountOfDollars : SomeNumber = 100n;
 ----
 
 The amount in the contract must be written in Lovelace, which is 0.000001 Ada. So we calculate the amount of Lovelace by multiplying the 1,000 Ada for 1,000,000. The amount of dollars is 100 in our example.
@@ -203,11 +202,11 @@ Finally we can combine all the pieces:
 
 [source,typescript]
 ----
-makeDeposit(alice, 10,
-   makeDeposit(bob, 20,
-       makePayment(alice, bob,
-           makePayment(bob, alice,
-               Close))))
+const contract : Contract = makeDeposit(alice, 10n,
+                               makeDeposit(bob, 20n,
+                                   makePayment(alice, bob,
+                                       makePayment(bob, alice,
+                                           Close))))
 ----
 
 The contract has four steps:

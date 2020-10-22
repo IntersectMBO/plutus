@@ -15,7 +15,7 @@ import Data.Semigroup ((<>))
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (contractForDifference, escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Examples.Marlowe.Contracts (contractForDifference, escrow, zeroCouponBond, option, swap) as ME
-import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
+import Examples.JS.Contracts (cfd, escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
 import LocalStorage as LocalStorage
 
 type Label
@@ -37,8 +37,7 @@ demoFiles =
 
 addHeader :: Contents -> Contents
 addHeader c =
-  """import * as bignumber from 'bignumber.js';
-import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+  """import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
          SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
          UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
          ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
@@ -58,6 +57,7 @@ demoFilesJS =
     , "ZeroCouponBond" /\ addHeader JSE.zeroCouponBond
     , "CouponBondGuaranteed" /\ addHeader JSE.couponBondGuaranteed
     , "Swap" /\ addHeader JSE.swap
+    , "CFD" /\ addHeader JSE.cfd
     ]
 
 marloweContracts ::

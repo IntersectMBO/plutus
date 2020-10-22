@@ -1,7 +1,7 @@
 module View (render) where
 
 import Bootstrap (col12_, col5_, col7_, container_, row_)
-import Cardano.Metadata.Types (PropertyDescription)
+import Cardano.Metadata.Types (Property)
 import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Data.Array as Array
@@ -52,7 +52,7 @@ render (State { currentView, chainState, contractSignatures, chainReport, events
 
 nameIfAvailable ::
   forall k.
-  Map Metadata.Subject (Map k PropertyDescription) -> String -> String
+  Map Metadata.Subject (Map k Property) -> String -> String
 nameIfAvailable metadata key =
   fromMaybe key
     $ do

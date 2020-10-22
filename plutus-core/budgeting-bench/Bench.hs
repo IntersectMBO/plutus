@@ -18,6 +18,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
+import           System.Directory
 
 import           Criterion.Main
 import qualified Criterion.Types                                            as C
@@ -32,8 +33,9 @@ runTermBench name term = env
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
 
+-- Copying the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
 benchSameTwoByteStrings :: StaticBuiltinName -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
+benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
 benchTwoByteStrings :: StaticBuiltinName -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
@@ -50,6 +52,13 @@ createTwoTermBuiltinBench name as bs =
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
                 runTermBench (show yMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x), (mkConstant () y)]
             ))
+
+benchComparison :: [Benchmark]
+benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (createRecursiveTerm n)) <$> [1..20]
+
+-- Creates a cheap builtin operation to measure the base cost of executing one.
+createRecursiveTerm :: Integer -> Plain Term DefaultUni
+createRecursiveTerm d = mkIterApp () (staticBuiltinNameAsTerm AddInteger) [(mkConstant () (1::Integer)), if d == 0 then (mkConstant () (1::Integer)) else (createRecursiveTerm (d - 1))]
 
 benchHashOperations :: StaticBuiltinName -> Benchmark
 benchHashOperations name =
@@ -74,7 +83,7 @@ benchVerifySignature =
         bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 expsToBenchBS :: [Integer]
-expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..15])
+expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..20])
 
 byteStringsToBench :: Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
@@ -112,7 +121,8 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
+    createDirectoryIfMissing True "budgeting-bench/csvs/"
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature] <> benchComparison
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]

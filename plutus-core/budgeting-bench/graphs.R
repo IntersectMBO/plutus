@@ -1,10 +1,10 @@
-source("plutus-core/budgeting-bench/models.R")
+# See CostModel.md, #Add a new kind of model
 library(plotly)
 # install.packages("plotly")
 
-options(browser="$HOME/browser.bash")
+# this one is @reactormonk specific
+# options(browser="$HOME/browser.bash")
 # options(error=traceback)
-Sys.setenv(DISPLAY="localhost:11.0")
 
 plotRaw <- function(filtered) {
   plot_ly(filtered, x=filtered$x_mem, y=filtered$y_mem, z=filtered$Mean) %>%
@@ -25,6 +25,18 @@ plotRaw <- function(filtered) {
   # add_trace(type="scatter3d", mode="markers", name="measured")
 }
 
+plotRaw2d <- function(filtered) {
+  plot_ly(filtered, x=filtered$x_mem, y=filtered$Mean) %>%
+    add_trace(
+        type = "scatter"
+      , mode="markers"
+      , size=2
+      ) %>% layout(
+        xaxis=list(title=list(text="ExMemory of first argument"))
+      , yaxis=list(title=list(text="Time of operation"))
+      )
+}
+
 plotErrorModel <- function(filtered, filteredModel) {
   filtered$predicted <- predict(filteredModel, newdata = filtered)
 
@@ -38,7 +50,7 @@ plotErrorModel <- function(filtered, filteredModel) {
       , name="Predicted"
       , marker=list(size=2)
       , error_z=list(type="data", array=positiveErrors, arrayminus=negativeErrors, symmetric=FALSE)
-      , error_z = list(type="constant", value=0.05, symmetric=FALSE)
+      , error_z=list(type="constant", value=0.05, symmetric=FALSE)
       ) %>% layout(
         scene=list(
           xaxis=list(title=list(text="ExMemory of first argument"))
@@ -56,10 +68,11 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "DivideInteger")
+filtered <- data %>% filter(BuiltinName == "DropByteString")
 plotRaw(filtered)
+plotRaw2d(filtered)
 
-plotErrorModel(filtered, divideIntegerModel)
+plotErrorModel(filtered, concatenateModel)
 
 # tidy(model)
 # summary(model)

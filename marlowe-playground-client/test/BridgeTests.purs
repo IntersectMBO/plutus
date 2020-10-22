@@ -87,6 +87,8 @@ serializationTest =
       jsonState = encodeJSON state
     expectedJson <- liftEffect $ FS.readTextFile UTF8 "test/contract.json"
     expectedStateJson <- liftEffect $ FS.readTextFile UTF8 "test/state.json"
+    bridgedJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/contract.json"
+    bridgedStateJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/state.json"
     let
       rx = unsafeRegex "\\s+" (RegexFlags { global: true, ignoreCase: true, multiline: true, sticky: false, unicode: true })
 
@@ -96,6 +98,8 @@ serializationTest =
     equal expected json
     equal expectedState jsonState
     equal (Right contract) (runExcept $ decodeJSON json)
+    equal (Right contract) (runExcept $ decodeJSON bridgedJson)
+    equal (Right state) (runExcept $ decodeJSON bridgedStateJson)
 
 assertRight :: forall a. Either MultipleErrors a -> Test
 assertRight (Left err) = failure (show err)

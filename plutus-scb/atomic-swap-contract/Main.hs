@@ -8,4 +8,4 @@ import           Plutus.SCB.Effects.ContractTest.AtomicSwap (atomicSwap)
 import           Plutus.SCB.Utils                           (tshow)
 
 main :: IO ()
-main = commandLineApp $ first tshow $ atomicSwap
+main = commandLineApp $ first tshow atomicSwap

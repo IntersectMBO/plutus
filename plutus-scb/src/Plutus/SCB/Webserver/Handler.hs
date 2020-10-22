@@ -2,10 +2,12 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -18,12 +20,14 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect)
+import           Cardano.Metadata.Types                          (MetadataEffect, Subject,
+                                                                  SubjectProperties (SubjectProperties), batchQuery)
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
 import qualified Data.Aeson                                      as JSON
+import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
@@ -84,11 +88,16 @@ getChainReport = do
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
     let wallets = Wallet <$> [1 .. 10]
+        subjects = Metadata.toSubject . pubKeyHash . walletPubKey <$> wallets
+        toMap :: SubjectProperties (encoding :: Metadata.JSONEncoding) -> Map Subject [Metadata.Property encoding]
+        toMap (SubjectProperties subject properties) = Map.singleton subject properties
     relatedMetadata <-
-        mconcat <$>
-        traverse
-            (Metadata.getProperties . Metadata.toSubject . pubKeyHash . walletPubKey)
-            wallets
+        foldMap toMap <$>
+        batchQuery
+            (Metadata.QuerySubjects
+                 { Metadata.subjects = Set.fromList subjects
+                 , Metadata.propertyNames = Nothing
+                 })
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport

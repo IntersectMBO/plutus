@@ -12,6 +12,7 @@
 module Cardano.Protocol.Socket.Server where
 
 import qualified Data.ByteString.Lazy                                as LBS
+import           Data.Foldable                                       (traverse_)
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
 import           Data.Text                                           (Text)
@@ -91,7 +92,7 @@ data ServerResponse =
 {- | Tell the server to process a new block, by validating the transactions
      in the memory pool. This function will block waiting for a response. -}
 processBlock :: ServerHandler -> IO (Error Block)
-processBlock (ServerHandler {shCommandQueue}) = atomically $ do
+processBlock ServerHandler {shCommandQueue} = atomically $ do
     writeTQueue shCommandQueue (Left ProcessBlock)
     readTQueue  shCommandQueue >>= \case
       Right (BlockAdded block) ->
@@ -105,7 +106,7 @@ handleCommand ::
     CommandQueue
  -> InternalState
  -> IO ()
-handleCommand commandQueue (InternalState {isBlocks, isState}) =
+handleCommand commandQueue InternalState {isBlocks, isState} =
     atomically (readTQueue commandQueue) >>= \case
         -- Use the same code to add a block as the pure client.
         Left ProcessBlock -> do
@@ -152,8 +153,8 @@ initialiseInternalState ::
 initialiseInternalState chainState = do
     isBlocks <- newTChanIO
     isState  <- newMVar chainState
-    _ <- traverse (atomically . writeTChan isBlocks)
-             (view Chain.chainNewestFirst chainState)
+    traverse_ (atomically . writeTChan isBlocks)
+              (view Chain.chainNewestFirst chainState)
     pure InternalState { isBlocks, isState }
 
 -- * ChainSync protocol
@@ -272,7 +273,7 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
 
     consume :: TChan a -> Integer -> STM (Maybe (TChan a))
     consume channel' ix | ix == 0    = pure $ Just channel'
-    consume channel' ix | otherwise  =
+    consume channel' ix =
         -- We should have all requested blocks available on the
         -- channel, for consumption.
         tryReadTChan channel' >> consume channel' (ix - 1)
@@ -306,12 +307,12 @@ hoistStIdle ::
 hoistStIdle (ServerStIdle nextState' findIntersect' done) = do
     internalState <- ask
     pure ServerStIdle {
-        recvMsgRequestNext = do
-            runChainSync internalState $ do
+        recvMsgRequestNext =
+            runChainSync internalState $
                 nextState' >>= \case
                     Left stNext -> Left         <$>  hoistStNext     stNext
                     Right mNext -> Right . pure <$> (hoistStNext =<< mNext ),
-        recvMsgFindIntersect = \points -> do
+        recvMsgFindIntersect = \points ->
             runChainSync internalState
                          (findIntersect' points >>= hoistStIntersect),
         recvMsgDoneClient    = runChainSync internalState done
@@ -321,9 +322,9 @@ hoistStIntersect ::
     MonadReader InternalState m
  => ServerStIntersect Block Block ChainSyncMonad a
  -> m (ServerStIntersect Block Block IO a)
-hoistStIntersect (SendMsgIntersectFound point tip nextState') = do
+hoistStIntersect (SendMsgIntersectFound point tip nextState') =
     SendMsgIntersectFound point tip <$> hoistChainSync nextState'
-hoistStIntersect (SendMsgIntersectNotFound tip nextState') = do
+hoistStIntersect (SendMsgIntersectNotFound tip nextState') =
     SendMsgIntersectNotFound tip    <$> hoistChainSync nextState'
 
 hoistStNext ::
@@ -368,7 +369,7 @@ application ::
                          addr
                          LBS.ByteString
                          IO Void ()
-application internalState@(InternalState {isState}) =
+application internalState@InternalState {isState} =
     nodeApplication chainSync txSubmission
     where
         chainSync :: RunMiniProtocol 'ResponderMode LBS.ByteString IO Void ()

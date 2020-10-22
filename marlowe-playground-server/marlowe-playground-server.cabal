@@ -104,6 +104,7 @@ executable marlowe-playground-server
         monad-logger -any,
         mtl -any,
         plutus-ledger,
+        plutus-tx,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,
