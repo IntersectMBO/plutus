@@ -24,7 +24,7 @@ import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), In
 import           Language.Plutus.Contract.Types   (AsContractError, Contract, selectEither)
 import           Language.Plutus.Contract.Util    (foldMaybe)
 
-import           Ledger.Slot                      (Slot)
+import           Ledger.Slot                      (Slot (..))
 
 type SlotSymbol = "slot"
 
@@ -56,6 +56,18 @@ awaitSlot sl =
       check sl' = if sl' >= sl then Just sl' else Nothing
   in
   requestMaybe @SlotSymbol @_ @_ @s s check
+
+-- | Wait for a number of slots.
+waitNSlots
+  :: forall s e.
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
+  => Integer
+  -> Contract s e Slot
+waitNSlots i = do
+  Slot current <- currentSlot
+  awaitSlot $ Slot (current + i)
 
 event
     :: forall s.

@@ -24,7 +24,12 @@
           plutus-game
           plutus-currency
           plutus-atomic-swap
-          plutus-pay-to-wallet;
+          plutus-pay-to-wallet
+          prism-credential-manager
+          prism-mirror
+          prism-unlock-sto
+          prism-unlock-exchange;
+
       dbFile = name: "${dbPath}/${name}.db";
       mkconf = conf: pkgs.writeTextFile {
         name = "${conf.configname}.yaml";
@@ -108,6 +113,10 @@
           ${scb} --config=${config-primary} contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
           ${scb} --config=${config-primary} contracts install --path ${plutus-game}/bin/plutus-game
           ${scb} --config=${config-primary} contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
+          ${scb} --config=${config-primary} contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
+          ${scb} --config=${config-primary} contracts install --path ${prism-mirror}/bin/prism-mirror
+          ${scb} --config=${config-primary} contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
+          ${scb} --config=${config-primary} contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
           ${scb} --config=${config-primary} all-servers
           '';
           executable = true;
@@ -122,6 +131,10 @@
           ${scb} --config=${config-secondary} contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
           ${scb} --config=${config-secondary} contracts install --path ${plutus-game}/bin/plutus-game
           ${scb} --config=${config-secondary} contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
+          ${scb} --config=${config-secondary} contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
+          ${scb} --config=${config-secondary} contracts install --path ${prism-mirror}/bin/prism-mirror
+          ${scb} --config=${config-secondary} contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
+          ${scb} --config=${config-secondary} contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
           ${scb} --config=${config-secondary} client-services 
           '';
           executable = true;

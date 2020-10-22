@@ -22,18 +22,23 @@ module Language.Plutus.Contract.Effects.RPC(
     , RPCParams(..)
     , RPCCallError(..)
     , RPCRespondError(..)
+    , Retries(..)
     , callRPC
     , respondRPC
     ) where
 
+import           Control.Monad                                   (unless)
 import           Data.Aeson                                      (FromJSON, ToJSON (toJSON))
 import           Data.Void                                       (absurd)
 import           GHC.Generics                                    (Generic)
+import           GHC.Natural                                     (Natural)
 import           GHC.TypeLits                                    (KnownSymbol, Symbol)
+import           Language.Plutus.Contract.Effects.AwaitSlot      (HasAwaitSlot, waitNSlots)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (Endpoint, HasEndpoint, endpoint)
 import           Language.Plutus.Contract.Effects.Instance       (HasOwnId, ownInstanceId)
 import           Language.Plutus.Contract.Effects.Notify
-import           Language.Plutus.Contract.Types                  (Contract, ContractError, mapError, runError)
+import           Language.Plutus.Contract.Types                  (Contract, ContractError, mapError, runError,
+                                                                  throwError)
 
 import           Wallet.Types                                    (ContractInstanceId, NotificationError (..))
 
@@ -83,17 +88,39 @@ type HasRPCClient r s = HasEndpoint (RPCResponseEndpoint r) (Either (RPCError r)
 type RPCServer r = Endpoint (RPCRequestEndpoint r) (RPCParams (RPCRequest r))
 type HasRPCServer r s = HasEndpoint (RPCRequestEndpoint r) (RPCParams (RPCRequest r)) s
 
+-- | How many times an RPC call should be retried if the target contract instance is busy.
+data Retries = NoRetries | MaxRetries Natural
+
+-- | Call an endpoint on another contract instance.
 callRPC :: forall r s.
     ( HasOwnId s
+    , HasAwaitSlot s
     , HasEndpoint (RPCResponseEndpoint r) (Either (RPCError r) (RPCResponse r)) s
     , HasContractNotify s
     , RPC r
     , KnownSymbol (RPCRequestEndpoint r)
     )
-    => ContractInstanceId
+    => Retries
+    -> ContractInstanceId
     -> RPCRequest r
     -> Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
-callRPC = call @(RPCRequestEndpoint r) @(RPCResponseEndpoint r) @(RPCRequest r)  @(RPCResponse r) @(RPCError r)
+callRPC retries targetInstance requestArgs =
+    let inner :: Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
+        inner = call @(RPCRequestEndpoint r) @(RPCResponseEndpoint r) @(RPCRequest r)  @(RPCResponse r) @(RPCError r) targetInstance requestArgs
+        maxRetries = case retries of { NoRetries -> 0; MaxRetries n -> n }
+
+        go :: Natural -> Contract s RPCCallError (Either (RPCError r) (RPCResponse r))
+        go i = do
+            rpcResult <- mapError absurd $ runError inner
+            case rpcResult of
+                Left (e@(RPCCallError (EndpointNotAvailable _ _))) -> do
+                    unless (i < maxRetries) (throwError e)
+                    -- TODO: The wait is currently linear, but we should change
+                    -- it to exponential if this becomes a problem
+                    mapError RPCOtherError (waitNSlots 2) >> go (i + 1)
+                Left e -> throwError e
+                Right r -> pure r
+    in go 0
 
 data RPCParams a =
     RPCParams
