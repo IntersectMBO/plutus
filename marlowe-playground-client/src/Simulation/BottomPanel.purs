@@ -8,7 +8,7 @@ import Data.Either (Either(..), either)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (_Just, to, (^.))
+import Data.Lens (_Just, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
@@ -158,9 +158,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = do
-    executionState <- (state ^. (_marloweState <<< _Head <<< _executionState))
-    executionState ^. _transactionError
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)
 
   errorRow =
     if isNothing error then

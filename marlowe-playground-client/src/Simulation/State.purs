@@ -16,7 +16,7 @@ import Data.List as List
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
@@ -260,9 +260,7 @@ updateContractInStateP text state = case parseContract text of
           (set _holes holes) state
   Left error -> (set _holes mempty) state
   where
-  marloweState = case state.executionState of
-    Just s -> s.state
-    Nothing -> emptyState zero
+  marloweState = maybe (emptyState zero) (\s -> s.state) state.executionState
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState@{ executionState: Just executionState } =
