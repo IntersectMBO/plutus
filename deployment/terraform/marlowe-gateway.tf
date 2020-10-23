@@ -101,6 +101,10 @@ resource "aws_api_gateway_integration_response" "marlowe_root_get_method" {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
     "method.response.header.Content-Type" = "integration.response.header.Content-Type"
   }
+
+  depends_on = [
+    aws_api_gateway_integration.marlowe_root_get_method
+  ]
 }
 
 ## Other static files
