@@ -79,6 +79,7 @@ h2 {
 
 .main-frame {
     .container {
+        margin-top: 15px;
         padding-top: 5px;
         padding-bottom: 5px;
     }
@@ -281,13 +282,6 @@ input.form-control {
         }
     }
 
-}
-
-#banner-message {
-    border-radius: 0;
-    letter-spacing: 0.08rem;
-    text-transform: uppercase;
-    text-align: center;
 }
 
 .input-group-prepend,
