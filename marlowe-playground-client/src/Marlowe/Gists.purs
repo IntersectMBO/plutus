@@ -114,7 +114,7 @@ playgroundFiles gist =
   { playground: fromMaybe "{}" $ getFile playgroundFilename
   , currentSimulation: getFile currentSimulationMarloweFilename
   , oldSimulation: getFile oldSimulationMarloweFilename
-  , simulation: fromMaybe (pure (emptyMarloweState zero)) $ simulationState gist
+  , simulation: fromMaybe (pure emptyMarloweState) $ simulationState gist
   , marlowe: getFile marloweFilename
   , haskell: getFile haskellFilename
   , blockly: wrap <$> getFile blocklyFilename
