@@ -19,7 +19,7 @@ In this tutorial we look at our general approach to modelling contracts in Marlo
 This tutorial explains the five ways of building contracts in Marlowe. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Close`, is a simple contract. 
 In explaining these contracts we will also explain Marlowe _values_, _observations_ and _actions_, which are used to supply external information and inputs to a running contract to control how it will evolve.
 . xref:playground-blockly#playground-blockly[]
-Marlowe contracts can  be built using the Blockly visual programming environment, as described in a series of videos making up this tutorial.
+This section shows how Marlowe contracts are built using the Blockly visual programming environment.
 . xref:marlowe-data#marlowe-data[]
 This tutorial formally introduces Marlowe as a Haskell data type, as well as presenting 
 the different types used by the model, and discussing a
