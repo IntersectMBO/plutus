@@ -167,3 +167,14 @@ output "user_data" {
 If terraform still thinks it needs to make a change to `user_data` it's probably because there is a missing or extra newline in the user data. You can fiddle with this by putting the user data in a file and adjust and run `cat userdata | shasum` until you get the same sha that terraform is expecting.
 
 Finally you should delete the `output` you created in `main.tf` as it creates noise in the output.
+
+## Setting Up An Aws Region For First Use
+
+1. Go to the [AWS Certificate Manager](https://eu-west-2.console.aws.amazon.com/acm/home) and make sure you select the region which you wish to add certificates to.
+2. If there are no certificates then click on provision a new certificate, otherwise request a certificate. Start the wizard and Request a public certificate.
+3. The domain name should be `*.marlowe.iohkdev.io`.
+4. Select DNS validation.
+5. No tags needed.
+6. Review your choices and click on Confirm and Request.
+7. Now you need to setup DNS validation. On the Validation screen, expand the `*.marlowe.iohkdev.io` domain and click on Create record in Route 53. You can then Continue and after a few seconds or minutes your certificate should have status “Issued”.
+8. Repeat for the other 2 domains, `*.plutus.iohkdev.io` and `*.goguen.monitoring.iohkdev.io`.
