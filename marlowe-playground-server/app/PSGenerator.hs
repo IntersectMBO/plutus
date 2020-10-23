@@ -30,6 +30,7 @@ import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
 import qualified Escrow
+import qualified Example
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import           Language.Marlowe
@@ -45,7 +46,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOption
 import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (contractForDifference, couponBondGuaranteed, escrow,
-                                                                   swap, zeroCouponBond)
+                                                                   example, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Server                          as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -183,7 +184,8 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let haskellUsecases =
-            multilineString "escrow" escrow
+            multilineString "example" example
+         <> multilineString "escrow" escrow
          <> multilineString "zeroCouponBond" zeroCouponBond
          <> multilineString "couponBondGuaranteed" couponBondGuaranteed
          <> multilineString "swap" swap
@@ -193,7 +195,8 @@ writeUsecases outputDir = do
     BS.writeFile (outputDir </> "Examples" </> "Haskell" </> "Contracts.purs") haskellUsecasesModule
     let contractToString = BS8.pack . show . pretty
         marloweUsecases =
-            multilineString "escrow" (contractToString Escrow.contract)
+            multilineString "example" (contractToString Example.contract)
+         <> multilineString "escrow" (contractToString Escrow.contract)
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
          <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)

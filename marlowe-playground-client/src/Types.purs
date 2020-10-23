@@ -1,6 +1,7 @@
 module Types where
 
 import Analytics (class IsEvent, defaultEvent, toEvent)
+import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
@@ -11,13 +12,14 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Gist (Gist)
-import Halogen (AttrName(..), ClassName)
+import Demos.Types as Demos
+import Gist (Gist, GistId)
+import Gists (GistAction)
+import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
 import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
-import Halogen.HTML (IProp, attr)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
@@ -27,22 +29,38 @@ import Network.RemoteData (RemoteData)
 import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Projects.Types as Projects
+import Rename.Types as Rename
 import Router (Route)
+import SaveAs.Types as SaveAs
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
 import Wallet as Wallet
+import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 
 ------------------------------------------------------------
 data Query a
   = ChangeRoute Route a
 
+data ModalView
+  = NewProject
+  | OpenProject
+  | OpenDemo
+  | RenameProject
+  | SaveProjectAs
+  | GithubLogin
+
+derive instance genericModalView :: Generic ModalView _
+
+instance showModalView :: Show ModalView where
+  show = genericShow
+
 data Action
   = Init
-  -- Home Page
-  | ShowHomePageInFuture Boolean
+  | HandleKey H.SubscriptionId KeyboardEvent
   -- Haskell Editor
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
+  | SendBlocklyToSimulator
   | JSHandleEditorMessage Monaco.Message
   | JSSelectEditorKeyBindings KeyBindings
   | ShowBottomPanel Boolean
@@ -59,15 +77,25 @@ data Action
   | HandleWalletMessage Wallet.Message
   | ProjectsAction Projects.Action
   | NewProjectAction NewProject.Action
+  | DemosAction Demos.Action
+  | RenameAction Rename.Action
+  | SaveAsAction SaveAs.Action
+  -- Gist support.
+  | CheckAuthStatus
+  | GistAction GistAction
+  | OpenModal ModalView
+  | CloseModal
+  | ChangeProjectName String
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (ShowHomePageInFuture b) = Just $ (defaultEvent "ShowHomePageInFuture") { label = Just (show b) }
+  toEvent (HandleKey _ _) = Just $ defaultEvent "HandleKey"
   toEvent (HaskellAction action) = toEvent action
   toEvent (JSHandleEditorMessage _) = Just $ defaultEvent "JSHandleEditorMessage"
   toEvent (SimulationAction action) = toEvent action
+  toEvent SendBlocklyToSimulator = Just $ defaultEvent "SendBlocklyToSimulator"
   toEvent (JSSelectEditorKeyBindings _) = Just $ defaultEvent "JSSelectEditorKeyBindings"
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent CompileJSProgram = Just $ defaultEvent "CompileJSProgram"
@@ -80,6 +108,14 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
   toEvent (ProjectsAction action) = toEvent action
   toEvent (NewProjectAction action) = toEvent action
+  toEvent (DemosAction action) = toEvent action
+  toEvent (RenameAction action) = toEvent action
+  toEvent (SaveAsAction action) = toEvent action
+  toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
+  toEvent (GistAction _) = Just $ defaultEvent "GistAction"
+  toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
+  toEvent CloseModal = Just $ defaultEvent "CloseModal"
+  toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
 
 ------------------------------------------------------------
 type ChildSlots
@@ -122,8 +158,6 @@ data View
   | BlocklyEditor
   | ActusBlocklyEditor
   | WalletEmulator
-  | Projects
-  | NewProject
 
 derive instance eqView :: Eq View
 
@@ -149,12 +183,16 @@ newtype FrontendState
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
   , simulationState :: Simulation.State
-  , showHomePage :: Boolean
   , projects :: Projects.State
   , newProject :: NewProject.State
-  , gistUrl :: Maybe String
+  , rename :: Rename.State
+  , saveAs :: SaveAs.State
+  , authStatus :: WebData AuthStatus
+  , gistId :: Maybe GistId
   , createGistResult :: WebData Gist
   , loadGistResult :: Either String (WebData Gist)
+  , projectName :: String
+  , showModal :: Maybe ModalView
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -192,23 +230,35 @@ _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
 _simulationState :: Lens' FrontendState Simulation.State
 _simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
 
-_showHomePage :: Lens' FrontendState Boolean
-_showHomePage = _Newtype <<< prop (SProxy :: SProxy "showHomePage")
-
 _projects :: Lens' FrontendState Projects.State
 _projects = _Newtype <<< prop (SProxy :: SProxy "projects")
 
 _newProject :: Lens' FrontendState NewProject.State
 _newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
 
-_gistUrl :: Lens' FrontendState (Maybe String)
-_gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+_rename :: Lens' FrontendState Rename.State
+_rename = _Newtype <<< prop (SProxy :: SProxy "rename")
+
+_saveAs :: Lens' FrontendState SaveAs.State
+_saveAs = _Newtype <<< prop (SProxy :: SProxy "saveAs")
+
+_authStatus :: Lens' FrontendState (WebData AuthStatus)
+_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
+
+_gistId :: Lens' FrontendState (Maybe GistId)
+_gistId = _Newtype <<< prop (SProxy :: SProxy "gistId")
 
 _createGistResult :: Lens' FrontendState (WebData Gist)
 _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
 _loadGistResult :: Lens' FrontendState (Either String (WebData Gist))
 _loadGistResult = _Newtype <<< prop (SProxy :: SProxy "loadGistResult")
+
+_projectName :: Lens' FrontendState String
+_projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
+
+_showModal :: Lens' FrontendState (Maybe ModalView)
+_showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
 
 -- editable
 _timestamp ::
@@ -221,9 +271,3 @@ _value = prop (SProxy :: SProxy "value")
 
 isActiveTab :: FrontendState -> View -> Array ClassName
 isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
-
--- TODO: https://github.com/purescript-halogen/purescript-halogen/issues/682
-bottomPanelHeight :: forall r i. Boolean -> IProp r i
-bottomPanelHeight true = attr (AttrName "style") ""
-
-bottomPanelHeight false = attr (AttrName "style") "height: 3.5rem"

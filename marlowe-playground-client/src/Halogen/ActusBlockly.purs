@@ -186,7 +186,7 @@ render :: forall p. BlocklyState -> HTML p BlocklyAction
 render state =
   div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
-        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+        [ div [ classes [ panelSubHeaderMain, aHorizontal, ClassName "actus-buttons" ] ]
             [ toCodeButton "Generate reactive contract"
             , toStaticCodeButton "Generate static contract"
             , runAnalysis

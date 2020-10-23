@@ -24,7 +24,7 @@
 }
 
 .panel-sub-header-side {
-  min-height: 3.5rem;
+  min-height: 0rem;
 }
 
 .panel-sub-header-main {
@@ -137,7 +137,7 @@
 
 .panel-header-side,
 .panel-sub-header-side {
-  padding-left: 20px;
+  padding-left: 0px;
   padding-top: 12px;
 }
 
@@ -296,6 +296,10 @@ button.minus-btn:hover {
   box-shadow: var(--box-shadow-inverted);
 }
 
+.analysis-panel.collapsed {
+  height: 8em;
+}
+
 .simulation-bottom-panel {
   position: absolute;
   width: 67%;
@@ -307,6 +311,9 @@ button.minus-btn:hover {
   box-shadow: var(--box-shadow-inverted);
 }
 
+.simulation-bottom-panel.collapsed {
+  height: 8em;
+}
 
 @media (min-width:1280px) {
   .simulation-bottom-panel {
@@ -331,7 +338,7 @@ button.minus-btn:hover {
 }
 
 .footer-panel-bg {
-  padding: 0.5rem 2rem;
+  padding: 1rem 2rem 3rem 2rem;
   background: var(--bg-light);
   height: 100%;
 }
@@ -439,12 +446,9 @@ button.minus-btn:hover {
   padding-top: 1rem;
 }
 
-.editor-options {
-  margin: 0rem 1rem;
-}
-
 .editor-options select {
-  width: 6rem;
+  width: fit-content;
+  padding-right: 2rem;
 }
 
 .analysis-result-title {
@@ -523,4 +527,8 @@ button.minus-btn:hover {
 
 .editor-help img {
   vertical-align: top;
+}
+
+.actus-buttons {
+  padding-left: 1rem;
 }

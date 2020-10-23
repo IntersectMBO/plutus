@@ -1,18 +1,20 @@
-module Projects where
+module Projects.State where
 
 import Control.Monad.Except (runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (filter)
-import Data.Bifunctor (lmap)
+import Data.Array (filter, sortBy)
+import Data.Bifunctor (lmap, rmap)
+import Data.DateTime (DateTime)
 import Data.DateTime.ISO as ISO
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Formatter.DateTime (FormatterCommand(..), format)
 import Data.Lens (assign, to, view, (^.))
 import Data.List (fromFoldable)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
+import Data.Ordering (invert)
 import Effect.Aff.Class (class MonadAff)
-import Gist (Gist, gistCreatedAt, gistDescription, gistId)
+import Gist (Gist(..), gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (flex)
 import Halogen.HTML (HTML, a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
@@ -22,7 +24,7 @@ import Marlowe (SPParams_, getApiGists)
 import Marlowe.Gists (playgroundGist)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, const, discard, flip, map, mempty, pure, unit, ($), (<<<))
+import Prelude (Unit, Void, bind, bottom, compare, const, discard, flip, map, mempty, pure, unit, ($), (<<<))
 import Projects.Types (Action(..), Lang(..), State, _projects)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -37,9 +39,17 @@ handleAction ::
 handleAction settings LoadProjects = do
   assign _projects Loading
   resp <- flip runReaderT settings $ runExceptT getApiGists
-  assign _projects $ lmap errorToString $ RemoteData.fromEither resp
+  assign _projects $ rmap sortGists $ lmap errorToString $ RemoteData.fromEither resp
 
 handleAction settings (LoadProject lang gistId) = pure unit
+
+sortGists :: Array Gist -> Array Gist
+sortGists = sortBy f
+  where
+  dt :: String -> DateTime
+  dt s = fromMaybe bottom <<< map unwrap <<< hush $ runParser s ISO.parseISO
+
+  f (Gist { _gistUpdatedAt: a }) (Gist { _gistUpdatedAt: b }) = invert $ compare (dt a) (dt b)
 
 render ::
   forall m.
@@ -73,6 +83,7 @@ gistsTable gists =
         [ tr_
             [ th_ [ text "Name" ]
             , th_ [ text "Created" ]
+            , th_ [ text "Last Updated" ]
             , th_ [ text "Open" ]
             ]
         ]
@@ -106,9 +117,11 @@ gistRow gist =
   tr []
     [ td_ [ gist ^. (gistDescription <<< to text) ]
     , td [ class_ (ClassName "date") ] [ gist ^. (gistCreatedAt <<< to formatDate <<< to text) ]
+    , td [ class_ (ClassName "date") ] [ gist ^. (gistUpdatedAt <<< to formatDate <<< to text) ]
     , td_
         [ div [ classes [ flex, ClassName "language-links" ] ]
             [ a [ onClick (const <<< Just $ LoadProject Haskell (gist ^. gistId)) ] [ text "Haskell" ]
+            , a [ onClick (const <<< Just $ LoadProject Javascript (gist ^. gistId)) ] [ text "Javascript" ]
             , a [ onClick (const <<< Just $ LoadProject Marlowe (gist ^. gistId)) ] [ text "Marlowe" ]
             , a [ onClick (const <<< Just $ LoadProject Blockly (gist ^. gistId)) ] [ text "Blockly" ]
             ]

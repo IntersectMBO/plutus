@@ -13,15 +13,13 @@
 , packageJSON
 , yarnLock
 , yarnNix
+, webCommon
 , checkPhase ? "yarn --offline test"
 }:
 
 with pkgs;
 
 let
-  webCommon = pkgs.copyPathToStore ../web-common;
-
-  playgroundCommon = pkgs.copyPathToStore ../playground-common;
 
   # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
   nodeSassBinLinux = fetchurl {
@@ -35,10 +33,14 @@ let
 
   packagesJson = "${src}/packages.json";
 
-  # remove any files that have appeared in local builds
-  cleanSrcs = builtins.filterSource (path: type: !(pkgs.lib.elem (baseNameOf path)
-                                                  [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist"]))
-                                                  src;
+  cleanSrcs = pkgs.lib.cleanSourceWith { 
+    filter = pkgs.lib.cleanSourceFilter;
+    src = lib.cleanSourceWith {
+      filter = (path: type: !(pkgs.lib.elem (baseNameOf path)
+                            [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode"]));
+      inherit src;
+    };
+  };
 
   purescriptSources = [
     "src/**/*.purs"
@@ -88,7 +90,6 @@ in yarn2nix-moretea.mkYarnPackage {
     # Put links to the generated and common source in the correct place.
     ln -s ${psSrc} generated
     ln -s ${webCommon} ../web-common
-    ln -s ${playgroundCommon} ../playground-common
 
     # Ask spago to make the PureScript packages available.
     sh ${spagoPackages.installSpagoStyle}
