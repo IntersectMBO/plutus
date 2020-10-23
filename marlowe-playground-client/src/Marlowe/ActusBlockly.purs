@@ -187,6 +187,9 @@ actusColour = "#1a7b84"
 valueColour :: String
 valueColour = "#eb2256"
 
+periodColour :: String
+periodColour = "#e6aa00"
+
 blockColour :: BlockType -> String
 blockColour BaseContractType = contractColour
 
@@ -194,7 +197,7 @@ blockColour (ActusContractType _) = actusColour
 
 blockColour (ActusValueType _) = valueColour
 
-blockColour (ActusPeriodType _) = valueColour
+blockColour (ActusPeriodType _) = periodColour
 
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
