@@ -3,10 +3,79 @@
 
 == Marlowe in Blockly
 
-So far in these tutorials we have concentrated on building contracts in the textual version of Marlowe, embedded in Haskell, Marlowe contracts can also be built using the Blockly visual programming environment, as described in this series of videos.
+So far in these tutorials we have concentrated on building contracts in the textual version of Marlowe, embedded in Haskell, Marlowe contracts can also be built using the Blockly visual programming environment, as we describe here.
 
+=== Getting started
+
+To start building a Blockly project in the Marlowe Playground, which you can find out more about ADD LINK, select *New Project* and then *Blockly* for the project type. You'll now see a window like this:
+
+image:blockly1.png[Blockly window]
+
+Contracts are assembled by adding components to the holes in the blocks. To build a contract, we have to fill the single, top-level, hole here with a `Contract`, and blocks for these are found by clicking on *Contracts* in the menu on the left hand side. Doing this shows all the different blocks that build contracts, as shown here:
+
+image:blockly2.png[Contracts in Blockly]
+
+We can select one and drag it into the pane, like this:
+
+image:blockly3.png[A contract block]
+
+and then fit it into the top-level hole, so that we're constructing a contract with a `When` as its main construct.
+
+image:blockly4.png[Fitting in a contract block]
+
+This is the process that we repeat, adding contracts and other types of components – all shown in the menu on the left-hand side – to build a complete contract.
+
+Let's fill in the timeout information and put a `Close` contract for timeout:
+
+image:blockly5.png[Adding timeout information]
+
+What action should we choose now? Again we see all the possible actions by selecting *Actions* in the menu:
+
+image:blockly6.png[The Action menu]
+
+If we select a `Deposit` action we have a number of different types of holes to fill.
+
+image:blockly7.png[Making a Deposit]
+
+Here we have to choose 
+
+* A *Role* for the depositor
+* A *Value* which is the amount deposited …
+* … in the *Token* (often *ada*)
+* Whose account, another *Role*, into which the money is deposited.
+
+In filling in some of these we have also to fill in a text field, or a number, as shown in the final result here.
+
+image:blockly8.png[Completing a Deposit contract]
+
+Finally, we have to decide what the _continutation_ contract is: what does the contract do next? That's another contract. Here it is completed as a payment: 
+
+image:blockly9.png[The complete contract]
+
+____
+*Exercises*
+
+In Blockly, complete for yourself the construction of the contract above.
+
+What is the effect of the example contract? In particular, what are the payments made by the contract? 
+ 
+____
+
+
+=== Editing Blockly
+
+Blockly contracts can be manipulated and edited using visual gestures and keyboard short cuts.
+
+image:blockly10.png[Right-click menu]
+
+* Blocks can be *dragged* from holes, as well as being inserted.
+* There is a *right click menu* available, as seen in the image above, offering a range of options.
+* Typical editing short cuts are operative, e.g. DEL, ⌘C, ⌘V, and ⌘X on Mac OS.
+
+
+////
 * https://youtu.be/yYJiD9GaHxw[Introducing the Marlowe Playground]
 * https://youtu.be/es4qpcHxr0I[A first  Marlowe contract]
 * https://youtu.be/DS_ebkGwmXw[Enhancing the payment contract]
 * https://youtu.be/25fnB7C8mPE[A third contract: adding choices and observations]
-
+ ////
