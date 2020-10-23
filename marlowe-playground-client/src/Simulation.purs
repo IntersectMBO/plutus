@@ -10,8 +10,8 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (_Just, assign, hasn't, modifying, over, preview, to, use, view, (^.))
-import Data.Lens.Extra (peruse)
+import Data.Lens (_Just, assign, has, hasn't, modifying, nearly, over, preview, to, use, view, (^.))
+import Data.Lens.Extra (hasable)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -145,9 +145,7 @@ handleAction _ StartSimulation = do
   moveToSlot zero
 
 handleAction _ (MoveSlot slot) = do
-  maybeInTheFuture <- peruse (_currentMarloweState <<< _executionState <<< _Just <<< _slot <<< to ((>) slot))
-  let
-    inTheFuture = fromMaybe false maybeInTheFuture
+  inTheFuture <- hasable (_currentMarloweState <<< _executionState <<< _Just <<< _slot <<< nearly zero ((>) slot))
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
   when inTheFuture do
     saveInitialState
@@ -649,9 +647,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     else
       []
 
-  mCurrentSlot = preview (_currentMarloweState <<< _executionState <<< _Just <<< _slot) state
-
-  inFuture = maybe false ((>) slot) mCurrentSlot
+  inFuture = has (_currentMarloweState <<< _executionState <<< _Just <<< _slot <<< nearly zero ((>) slot)) state
 
   error = if inFuture then [] else [ text boundsError ]
 
