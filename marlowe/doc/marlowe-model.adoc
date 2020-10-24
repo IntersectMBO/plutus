@@ -1,4 +1,5 @@
-﻿[#marlowe-model]
+﻿
+[#marlowe-model]
 == The Marlowe model
 
 Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that can be combined to describe many different kinds of financial contract.
@@ -41,7 +42,7 @@ It is through their wallets that users are able to interact with smart contracts
 
 ==== Omniscient and wallet-level simulation
 
-The Marlowe Playground supports two kinds of simulation.
+The Marlowe Playground supports two kinds of simulation: the standard _omniscient_ simulation and a proof of concept _wallet-level_ simulation.
 
 In an _omniscient_ simulation, the user is able to perform any action for any role, and thus can observe the execution from the perspective of all the users. The _“wallet”-style_ simulation explicitly models different wallets (i.e. different participants) and their participation in multiple roles in multiple contracts. This model thus presents a more faithful perspective of contract execution for a particular participant in the contract.
 

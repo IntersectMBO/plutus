@@ -44,7 +44,7 @@ and `States` are defined like this, with a helper function to define an initiall
 
 [source,haskell]
 ----
-data State = State { accounts :: Map AccountId Money
+data State = State { accounts :: Map Party Money
                    , choices  :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot :: Slot }
@@ -162,6 +162,7 @@ when Bob and Alice choose to refund the money to Alice? - What
 happens if Bob and Alice disagree, but Carol sides with Bob?
 ____
 
+//// 
 === There must be an easier way!
 
 Yes, there is!
@@ -169,3 +170,4 @@ Yes, there is!
 We look next at our tool, the Marlowe Playground, that
 will capitalise on the fact that we are working in a DSL to _automate_
 picking the right inputs and allow users to interact with contracts.
+//// 
