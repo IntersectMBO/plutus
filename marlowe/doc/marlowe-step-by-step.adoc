@@ -1,4 +1,5 @@
-﻿[#marlowe-step-by-step]
+﻿
+[#marlowe-step-by-step]
 == Marlowe step by step
 
 Marlowe has five ways of building contracts. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Close`, is a simple contract. At each step of execution, as well as returning a new state and continuation contract, it is possible that effects – payments – and warnings can be generated too.
