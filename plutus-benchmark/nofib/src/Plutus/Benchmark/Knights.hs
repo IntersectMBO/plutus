@@ -67,8 +67,7 @@ root sze = addAllFront
              createQueue
 %-}
 
-
-type P = (Integer, ChessSet)
+type Solution = (Integer, ChessSet)
 
 {-# INLINABLE depthSearch #-}
 -- % Added a depth parameter to stop things getting out of hand in the strict world.
@@ -88,16 +87,19 @@ depthSearch depth q growFn finFn
 unindent :: PLC.Doc ann -> [String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
-{-# INLINABLE boardSize #-}
-boardSize :: Integer
-boardSize = 8
+
+-- % Haskell entry point for testing
+{-# INLINABLE runKnights #-}
+runKnights :: Integer -> Integer -> [Solution]
+runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
 {-# INLINABLE mkKnightsTerm #-}
 mkKnightsTerm :: Integer -> Integer -> Term Name DefaultUni ()
 mkKnightsTerm depth boardSize =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile [||
-        \depth' boardSize' ->
-            length $ depthSearch depth' (root boardSize') grow isFinished ||])
-        `Tx.applyCode` Tx.liftCode depth
-        `Tx.applyCode` Tx.liftCode boardSize
+  let (Program _ _ code) = Tx.getPlc $
+                             $$(Tx.compile [|| runKnights ||])
+                             `Tx.applyCode` Tx.liftCode depth
+                             `Tx.applyCode` Tx.liftCode boardSize
   in code
+
+Tx.makeLift ''ChessSet

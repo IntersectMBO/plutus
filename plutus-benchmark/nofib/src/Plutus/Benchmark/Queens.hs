@@ -60,10 +60,8 @@ import           Language.UntypedPlutusCore
 -- The different algorithms implemented in this file. The program iterates the
 -- solver over this list of algortihms.
 
-{-# INLINABLE algorithms #-}
-algorithms :: [Labeler]
--- algorithms = [bt, bm, bjbt, bjbt', fc]
-algorithms = [bm]
+allAlgorithms :: [Labeler]
+allAlgorithms = [bt, bm, bjbt, bjbt', fc]
 
 data Algorithm = Bt
                | Bm
@@ -80,23 +78,26 @@ lookupAlgorithm Bjbt1 = bjbt
 lookupAlgorithm Bjbt2 = bjbt'  -- bjbt' problematic on command line
 lookupAlgorithm Fc    = fc
 
--- The main input parameter used by the Plutus version, the size of the board (n).
-boardSize :: Integer
-boardSize = 5
-
 {-# INLINABLE nqueens #-}
-nqueens :: Integer -> Labeler -> Integer
-nqueens n algorithm = length (search algorithm (queens n))
+nqueens :: Integer -> Labeler -> [State]
+nqueens n algorithm = (search algorithm (queens n))
 
+-- % Haskell entry point for testing
+{-# INLINABLE runQueens #-}
+runQueens :: Integer -> Algorithm -> [State]
+runQueens n alg = nqueens n (lookupAlgorithm alg)
+
+-- % Compile a Plutus Core term which runs nqueens on given arguments
 mkQueensTerm :: Integer -> Algorithm -> Term Name DefaultUni ()
 mkQueensTerm sz alg =
   let (Program _ _ code) =
-        Tx.getPlc $ $$(Tx.compile [||
-          \sz alg -> nqueens sz (lookupAlgorithm alg) ||])
-          `Tx.applyCode` Tx.liftCode sz
-          `Tx.applyCode` Tx.liftCode alg
+        Tx.getPlc $
+              $$(Tx.compile [|| runQueens ||])
+              `Tx.applyCode` Tx.liftCode sz
+              `Tx.applyCode` Tx.liftCode alg
   in code
 
+                      
 main2 :: IO()  -- Haskell version
 main2 = do
   args <- getArgs
@@ -106,7 +107,7 @@ main2 = do
               let n = read arg :: Integer
                   try algorithm = print (nqueens n algorithm)
               forM_ [1..240] $ const $ do
-                sequence_ (map try algorithms)
+                sequence_ (map try allAlgorithms)
 
 -- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [String]
@@ -230,7 +231,6 @@ type Value = Integer
 data Assign = Var := Value deriving (Show)
 instance Eq Assign
     where (a := b) == (a' := b') = a==a' && b == b'
-
 instance Ord Assign
     where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
 
@@ -522,3 +522,4 @@ domainWipeOut CSP{vars=vars} t = mapTree f t
                 cs' = if null wipedDomains then cs else Known (collect (head wipedDomains))
 
 Tx.makeLift ''Algorithm
+Tx.makeLift ''Assign

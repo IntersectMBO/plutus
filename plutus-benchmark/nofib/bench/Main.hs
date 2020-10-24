@@ -22,34 +22,33 @@ emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
 
 
-
 benchCek :: Term Name DefaultUni () -> Benchmarkable
 benchCek program =
-  nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel)
-     program
+    nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel)
+       program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f =
-  benchCek $ Clausify.mkClausifyTerm 1 f
+    benchCek $ Clausify.mkClausifyTerm f
 
 benchPrime :: Prime.PrimeID -> Benchmarkable
 benchPrime pid =
-  benchCek $ Prime.mkPrimeTerm pid
+    benchCek $ Prime.mkPrimeTerm pid
 
 benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
 benchQueens sz alg =
-  benchCek $ Queens.mkQueensTerm sz alg
+    benchCek $ Queens.mkQueensTerm sz alg
 
 benchKnights :: Integer -> Integer -> Benchmarkable
 benchKnights depth sz =
-  benchCek $ Knights.mkKnightsTerm depth sz
+    benchCek $ Knights.mkKnightsTerm depth sz
 
 config :: Config
-config = defaultConfig
-  { reportFile = Just "report.html"
-  , template   = "./default.tpl"
-  , timeLimit  = 60.0  -- Run each benchmark for at least one minute
-  }
+config = defaultConfig {
+           reportFile = Just "report.html"
+         , template   = "./default.tpl"
+         , timeLimit  = 60.0  -- Run each benchmark for at least one minute
+         }
 
 
 {- This runs all of the benchmarks, which will take a long time.
@@ -72,11 +71,6 @@ main = defaultMainWith config [
                       , bench "formula4" $ benchClausify Clausify.F4
                       , bench "formula5" $ benchClausify Clausify.F5
                       ]
-  , bgroup "knights" [ -- Knight's tour on an NxN board; no solutions for N odd or N=4
-                       bench "4x4" $ benchKnights 150 4
-                     , bench "6x6" $ benchKnights 150 6
-                     , bench "8x8" $ benchKnights 150 8
-                     ]
   , bgroup "primetest" [ bench "05digits" $ benchPrime Prime.P5
                        , bench "08digits" $ benchPrime Prime.P8
                        , bench "10digits" $ benchPrime Prime.P10

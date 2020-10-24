@@ -25,7 +25,7 @@ import qualified Plutus.Benchmark.Queens                                    as Q
 import qualified Prelude                                                    as P
 
 data Command =
-    Clausify P.Integer Clausify.StaticFormula
+    Clausify Clausify.StaticFormula
   | Queens P.Integer Queens.Algorithm
   | Knights P.Integer P.Integer
   | LastPiece
@@ -43,9 +43,7 @@ clausifyFormulaReader f   = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 
 
 clausifyOptions :: Parser Command
 clausifyOptions =
-  Clausify P.<$> argument auto (metavar "COUNT" P.<>
-                                help "How many times you want the formula replicated")
-           P.<*> argument (eitherReader clausifyFormulaReader)
+  Clausify P.<$> argument (eitherReader clausifyFormulaReader)
                           (metavar "FORMULA" P.<>
                            help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 6 or 7")
 
@@ -106,15 +104,29 @@ evaluateWithCek :: Term Name DefaultUni () -> EvaluationResult (Term Name Defaul
 evaluateWithCek term =
   unsafeEvaluateCek emptyBuiltins defaultCostModel term
 
-main :: IO ()
-main = do
+main1 :: IO ()
+main1 = do
   cmd <- execParser (info (helper P.<*> options) idm)
   let program =
         case cmd of
-          Clausify cnt formula    -> Clausify.mkClausifyTerm cnt formula
+          Clausify formula        -> Clausify.mkClausifyTerm formula
           Queens boardSize alg    -> Queens.mkQueensTerm boardSize alg
           Knights depth boardSize -> Knights.mkKnightsTerm depth boardSize
           LastPiece               -> LastPiece.mkLastPieceTerm
-          Prime input             -> Prime.mkPrimeTerm input
+          Prime input             -> Prime.mkPrimalityBenchTerm input
   let result = unsafeEvaluateCek emptyBuiltins defaultCostModel program
   print . PLC.prettyPlcClassicDebug $ result
+
+{-
+main2 :: IO ()
+main2 = do
+  cmd <- execParser (info (helper P.<*> options) idm)
+  case cmd of
+    Clausify formula        -> print . PLC.prettyPlcClassicDebug $ Clausify.runClausify formula
+    Queens boardSize alg    -> print . PLC.prettyPlcClassicDebug $ Queens.runQueens boardSize alg
+    Knights depth boardSize -> print . PLC.prettyPlcClassicDebug $ Knights.runKnights depth boardSize
+    LastPiece               -> return ()
+    Prime input             -> return ()
+-}
+main :: IO ()
+main = main1

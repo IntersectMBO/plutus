@@ -253,12 +253,12 @@ unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 initState :: RNGstate
 initState = initRNG 111 47
 
-type Result = Tx.Bool
-
 -- % Parameter for multiTest: how many rounds of the main primality test do we want to perform?
 {-# INLINABLE numTests #-}
 numTests :: Integer
 numTests = 100
+
+type Result = Tx.Bool
 
 composite :: Result
 composite = Tx.False
@@ -277,18 +277,29 @@ processList input r =
               of (True, r')  -> probablyPrime : processList ns r'
                  (False, r') -> composite : processList ns r'
 
--- % The @process@ function takes a single input number and produces a single result.
-{-# INLINABLE process #-}
-process :: Integer -> RNGstate -> Integer
-process n r =
-    case fst $ multiTest numTests r n
-    of False ->  0
-       True  ->  1
+-- % The @testInteger@ function takes a single input number and produces a single result.
+{-# INLINABLE testInteger #-}
+testInteger :: Integer -> RNGstate -> Result
+testInteger n state = fst $ multiTest numTests state n -- Discard the RNG state in the result
 
+-- % Haskell entry point for testing
+{-# INLINABLE runPrimalityTest #-}
+runPrimalityTest :: Integer -> Result
+runPrimalityTest n = testInteger n initState
 
-mkPrimeTerm :: PrimeID -> Term Name DefaultUni ()
-mkPrimeTerm pid =
+-- % Run the program on an arbitrary integer, for testing
+mkPrimalityTestTerm :: Integer -> Term Name DefaultUni ()
+mkPrimalityTestTerm n =
+  let (Program _ _ code) = Tx.getPlc $
+                           $$(Tx.compile [|| runPrimalityTest ||])
+                           `Tx.applyCode` Tx.liftCode n
+  in code
+
+-- % Run the program on a number known to be prime, for benchmarking
+-- (primes take a long time, composite numbers generally don't).
+mkPrimalityBenchTerm :: PrimeID -> Term Name DefaultUni ()
+mkPrimalityBenchTerm pid =
   let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| \n -> process n initState ||])
+        [|| runPrimalityTest ||])
         `Tx.applyCode` Tx.liftCode (getPrime pid)
   in code
