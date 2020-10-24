@@ -1,4 +1,4 @@
-[#wallets]
+[#wallets-simulation]
 == Wallets Simulation
 
 The wallets simulation is a "bleeding-edge" feature that is still under development however it's already an interesting way to understand how a Marlowe contract will function in more detail and how a contract will appear from the perspective of each party involved.
