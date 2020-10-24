@@ -227,7 +227,7 @@ emptyMarloweState =
   , editorErrors: mempty
   , editorWarnings: mempty
   , holes: mempty
-  , executionState: Nothing
+  , executionState: Just $ emptyExecutionStateWithSlot zero
   }
 
 emptyMarloweStateWithSlot :: Slot -> MarloweState

@@ -3,7 +3,7 @@ module Home where
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (blocklyIconColour, flex, fullWidth, haskellIcon, horizontalFlip, javascriptIcon, marloweLogo2, rightArrow, scroll, simulationIcon)
-import Halogen.HTML (button, div, div_, h2_, h3_, img, p_, text)
+import Halogen.HTML (button, div, div_, h2_, img, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import Prelude (const, (<<<))
