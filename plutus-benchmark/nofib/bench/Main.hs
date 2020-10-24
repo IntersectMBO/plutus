@@ -33,7 +33,7 @@ benchClausify f =
 
 benchPrime :: Prime.PrimeID -> Benchmarkable
 benchPrime pid =
-    benchCek $ Prime.mkPrimeTerm pid
+    benchCek $ Prime.mkPrimalityBenchTerm pid
 
 benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
 benchQueens sz alg =

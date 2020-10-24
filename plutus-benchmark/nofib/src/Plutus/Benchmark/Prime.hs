@@ -258,13 +258,8 @@ initState = initRNG 111 47
 numTests :: Integer
 numTests = 100
 
-type Result = Tx.Bool
-
-composite :: Result
-composite = Tx.False
-
-probablyPrime :: Result
-probablyPrime = Tx.True
+data Result = Composite | Prime
+    deriving (Show)
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.
@@ -274,13 +269,15 @@ processList input r =
     case input of
       [] -> []
       n:ns -> case multiTest numTests r n
-              of (True, r')  -> probablyPrime : processList ns r'
-                 (False, r') -> composite : processList ns r'
+              of (True, r')  -> Prime : processList ns r'
+                 (False, r') -> Composite : processList ns r'
 
 -- % The @testInteger@ function takes a single input number and produces a single result.
 {-# INLINABLE testInteger #-}
 testInteger :: Integer -> RNGstate -> Result
-testInteger n state = fst $ multiTest numTests state n -- Discard the RNG state in the result
+testInteger n state = if fst $ multiTest numTests state n -- Discard the RNG state in the result
+                      then Prime
+                      else Composite
 
 -- % Haskell entry point for testing
 {-# INLINABLE runPrimalityTest #-}
@@ -310,4 +307,4 @@ mkPrimalityBenchTerm pid =
   in code
 
 Tx.makeLift ''PrimeID
-     
+Tx.makeLift ''Result     

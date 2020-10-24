@@ -38,6 +38,8 @@ import qualified Prelude                                                    as P
 
 data Action = RunPLC | RunHaskell | DumpPLC | DumpCBORnamed | DumpCBORdeBruijn
 
+-- TODO : add help
+
 actionReader :: String -> Maybe Action
 actionReader =
     \case
@@ -60,25 +62,25 @@ data ProgAndArgs =
   | Knights P.Integer P.Integer
   | LastPiece
   | Prime Prime.PrimeID
-
+  | TestPrimality Integer
 data Command = Command Action ProgAndArgs
 
 
 clausifyFormulaReader :: String -> Either String Clausify.StaticFormula
-clausifyFormulaReader "1" = Right Clausify.F1
-clausifyFormulaReader "2" = Right Clausify.F2
-clausifyFormulaReader "3" = Right Clausify.F3
-clausifyFormulaReader "4" = Right Clausify.F4
-clausifyFormulaReader "5" = Right Clausify.F5
-clausifyFormulaReader "6" = Right Clausify.F6
-clausifyFormulaReader "7" = Right Clausify.F7
-clausifyFormulaReader f   = Left $ "Cannot parse `" <> f <> "`. Should be 1, 2, 3, 4, 5, 6 or 7."
+clausifyFormulaReader "F1" = Right Clausify.F1
+clausifyFormulaReader "F2" = Right Clausify.F2
+clausifyFormulaReader "F3" = Right Clausify.F3
+clausifyFormulaReader "F4" = Right Clausify.F4
+clausifyFormulaReader "F5" = Right Clausify.F5
+clausifyFormulaReader "F6" = Right Clausify.F6
+clausifyFormulaReader "F7" = Right Clausify.F7
+clausifyFormulaReader f    = Left $ "Cannot parse `" <> f <> "`. Should be F1, F2, F3, F4, F5, F6 or F7."
 
 clausifyOptions :: Parser ProgAndArgs
 clausifyOptions =
   Clausify P.<$> argument (eitherReader clausifyFormulaReader)
                           (metavar "FORMULA" P.<>
-                           help "Formula to use for benchmarking: 1, 2, 3, 4, 5, 6 or 7")
+                           help "Formula to use for benchmarking: F1, F2, F3, F4, F5, F6 or F7")
 
 queensOptions :: Parser ProgAndArgs
 queensOptions =
@@ -106,6 +108,9 @@ queensAlgorithmReader alg     = Left $ "Unknown algorithm: " <> alg <> ". I know
 lastpieceOptions :: Parser ProgAndArgs
 lastpieceOptions = P.pure LastPiece
 
+knownPrimes :: String
+knownPrimes = "P05, P08, P10, P20, P30, P40, P50, or P60"
+
 primeIdReader :: String -> Either String Prime.PrimeID
 primeIdReader "5"  = Right Prime.P5
 primeIdReader "8"  = Right Prime.P8
@@ -115,19 +120,23 @@ primeIdReader "30" = Right Prime.P30
 primeIdReader "40" = Right Prime.P40
 primeIdReader "50" = Right Prime.P50
 primeIdReader "60" = Right Prime.P60
-primeIdReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 'P' plus number of digits (5, 8, 10, 20, 30, 40, 50, or 60 .)"
+primeIdReader f    = Left $ "Cannot parse `" <> f <> "`. Should be 'P' plus number of digits (" ++ knownPrimes ++")."
 
 primeOptions :: Parser ProgAndArgs
 primeOptions =
-  Prime P.<$> (argument auto (metavar "INPUT" P.<>
-                              help "Identifier for input prime: P<number of digits>"))
+  Prime P.<$> (argument auto (metavar "INPUT" P.<> help ("Identifier for input prime: " ++ knownPrimes)))
+
+testPrimalityOptions :: Parser ProgAndArgs
+testPrimalityOptions =
+  TestPrimality P.<$> (argument auto (metavar "INPUT"))
 
 progAndArgs = hsubparser
-  ( command "clausify"  (info clausifyOptions  (progDesc "Run the clausify benchmark.")) P.<>
-    command "queens"    (info queensOptions    (progDesc "Run the queens benchmark."))   P.<>
-    command "knights"   (info knightsOptions   (progDesc "Run the knights benchmark"))   P.<>
-    command "lastpiece" (info lastpieceOptions (progDesc "Run the lastpiece benchmark")) P.<>
-    command "prime"     (info primeOptions     (progDesc "Run the primes benchmark")) )
+  ( command "clausify"  (info clausifyOptions      (progDesc "Run the Clausify benchmark.")) P.<>
+    command "queens"    (info queensOptions        (progDesc "Run the Queens benchmark."))   P.<>
+    command "knights"   (info knightsOptions       (progDesc "Run the Knights benchmark"))   P.<>
+    command "lastpiece" (info lastpieceOptions     (progDesc "Run the Lastpiece benchmark")) P.<>
+    command "prime"     (info primeOptions         (progDesc "Run the Prime benchmark on a known prime"))    P.<>
+    command "primetest" (info testPrimalityOptions (progDesc "Run the Prime benchmark on an arbitrary integer")) )
 
 options :: Parser Command
 options = Command <$> action <*> progAndArgs
@@ -168,8 +177,9 @@ main = do
           Clausify formula        -> print $ Clausify.runClausify formula
           Queens boardSize alg    -> print $ Queens.runQueens boardSize alg
           Knights depth boardSize -> print $ Knights.runKnights depth boardSize
-          LastPiece               -> print $ "Not yet"
+          LastPiece               -> print $ LastPiece.runLastPiece
           Prime input             -> print $ Prime.runFixedPrimalityTest input
+          TestPrimality input     -> print $ Prime.runPrimalityTest input
     DumpPLC -> mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ getWrappedProgram panda
                where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
     DumpCBORnamed    -> writeCBOR Named $ getWrappedProgram panda
@@ -182,4 +192,5 @@ main = do
                Knights depth boardSize -> Knights.mkKnightsTerm depth boardSize
                LastPiece               -> LastPiece.mkLastPieceTerm
                Prime input             -> Prime.mkPrimalityBenchTerm input
+               TestPrimality input     -> Prime.mkPrimalityTestTerm input
           getWrappedProgram = Program () (Version () 1 0 0) . getProgram

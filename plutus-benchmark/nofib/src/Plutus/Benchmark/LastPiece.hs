@@ -293,19 +293,13 @@ bPiece = P 'b'  [ [(0,1),(0,2),(1,2)],
 unindent :: PLC.Doc ann -> [PLC.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
+runLastPiece :: Solution
+runLastPiece = search (1,2) Female initialBoard initialPieces 
+             
 mkLastPieceTerm :: Term Name DefaultUni ()
 mkLastPieceTerm =
-  let (Program _ _ code) = getPlc $ $$(compile
-        [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
+  let (Program _ _ code) = getPlc $ $$(compile [|| runLastPiece ||])
   in code
-
--- main :: IO ()
--- main = do
--- --  let solutions = search (1,2) Female initialBoard initialPieces
--- --  print $ show solutions
---     let code = getPlc $ $$(compile [|| numSolutions $ search (1,2) Female initialBoard initialPieces ||])
---     mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ code
 
 -- -- Number of correct solutions: 3
 -- -- Number including failures: 59491
-
