@@ -10,14 +10,13 @@ import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
 import Data.Lens (_Just, assign, has, hasn't, modifying, nearly, only, over, preview, to, use, view, (^.))
-import Data.Lens.Extra (hasable)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, maybe)
 import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
@@ -138,9 +137,11 @@ handleAction _ StartSimulation = do
   moveToSlot zero
 
 handleAction _ (MoveSlot slot) = do
-  inTheFuture <- hasable (_currentMarloweState <<< _executionState <<< _Just <<< _slot <<< nearly zero ((>) slot))
+  maybeExecutionState <- use (_currentMarloweState <<< _executionState)
+  let
+    slotGTcurrentSlot = maybe false (\x -> slot > (x ^. _slot)) maybeExecutionState
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
-  when inTheFuture do
+  when slotGTcurrentSlot do
     saveInitialState
     if slot >= (fromMaybe zero significantSlot) then
       moveToSignificantSlot slot
@@ -480,7 +481,7 @@ transactionComposer ::
   State ->
   HTML p Action
 transactionComposer state
-  | hasn't (_marloweState <<< _Head <<< _executionState) state =
+  | isNothing (state ^. (_marloweState <<< _Head <<< _executionState)) =
     div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
       [ ul [ class_ (ClassName "participants") ]
           [ text "Simulation has not started yet" ]
@@ -669,7 +670,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     else
       []
 
-  inFuture = has (_currentMarloweState <<< _executionState <<< _Just <<< _slot <<< nearly zero ((>) slot)) state
+  inFuture = maybe false (\x -> x.slot < slot) (state ^. (_currentMarloweState <<< _executionState))
 
   error = if inFuture then [] else [ text boundsError ]
 
