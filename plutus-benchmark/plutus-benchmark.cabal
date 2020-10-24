@@ -78,8 +78,11 @@ executable nofib-exe
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+    , bytestring -any
     , containers -any
     , optparse-applicative -any
+    , serialise -any
+    , transformers -any
 
 benchmark nofib
   import: lang

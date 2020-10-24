@@ -295,11 +295,19 @@ mkPrimalityTestTerm n =
                            `Tx.applyCode` Tx.liftCode n
   in code
 
+
+-- Run the program on one of the fixed primes listed above
+runFixedPrimalityTest :: PrimeID -> Result
+runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
+     
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
 mkPrimalityBenchTerm :: PrimeID -> Term Name DefaultUni ()
 mkPrimalityBenchTerm pid =
-  let (Program _ _ code) = Tx.getPlc $ $$(Tx.compile
-        [|| runPrimalityTest ||])
-        `Tx.applyCode` Tx.liftCode (getPrime pid)
+  let (Program _ _ code) = Tx.getPlc $
+        $$(Tx.compile [|| runFixedPrimalityTest ||])
+        `Tx.applyCode` Tx.liftCode pid
   in code
+
+Tx.makeLift ''PrimeID
+     

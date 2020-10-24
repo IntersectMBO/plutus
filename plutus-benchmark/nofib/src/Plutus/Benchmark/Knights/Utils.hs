@@ -9,4 +9,4 @@ import           Language.PlutusTx.Prelude  as PLC
 {-# INLINABLE take' #-}
 take' :: Integer -> [a] -> [a]
 take' _ []     = []
-take' n (a:as) = a:(take' (n-1) as)
+take' n (a:as) = if n<=0 then [] else a:(take' (n-1) as)

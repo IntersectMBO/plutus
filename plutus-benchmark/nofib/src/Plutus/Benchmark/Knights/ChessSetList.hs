@@ -15,7 +15,10 @@ module Plutus.Benchmark.Knights.ChessSetList
       isSquareFree
     ) where
 
-import           Language.PlutusTx.Prelude as Tx hiding (init)
+import           Plutus.Benchmark.Knights.Sort
+import           Plutus.Benchmark.Knights.Utils
+
+import           Language.PlutusTx.Prelude      as Tx hiding (init)
 
 
 type Tile     = (Integer,Integer)
@@ -119,32 +122,8 @@ isSquareFree :: Tile -> ChessSet -> Bool
 isSquareFree x (Board _ _ _ ts) = notIn x ts
 
 
-{-
-
 -- % Everything below here is only needed for printing boards.
 -- % This is useful for debugging.
-
-{-# INLINABLE showInteger #-}
-showInteger :: Tx.Integer -> Tx.String
-showInteger n =
-    if n == 0 then "0"
-       else if n == 1 then "1"
-            else if n == 2 then "2"
-                 else if n == 3 then "3"
-                      else if n == 4 then "4"
-                           else if n == 5 then "5"
-                                else if n == 6 then "6"
-                                     else if n == 7 then "7"
-                                          else "?"
-
-{-# INLINABLE showList #-}
-showList :: [Integer] -> String
-showList []        = "0"
-showList [_]       = "1"
-showList [_,_]     = "2"
-showList [_,_,_]   = "3"
-showList [_,_,_,_] = "4"
-showList _         = "?"
 
 instance Show ChessSet where
    showsPrec _ (Board sze n _ ts)
@@ -172,12 +151,10 @@ printBoard s trail@((i,j):xs) n
 printBoard _ _ _ = "?"
 
 spaces :: Integer -> Integer -> String
-spaces s y = take ((logTen s) - (logTen y) + 1) [' ',' '..]
-                 where
-                   logTen :: Integer -> Integer
-                   logTen 0 = 0
-                   logTen x = 1 + logTen (x `div` 10)
+spaces s y =
+    take' ((logTen s) - (logTen y) + 1) [' ',' '..]
+        where
+          logTen :: Integer -> Integer
+          logTen 0 = 0
+          logTen x = 1 + logTen (x `div` 10)
 
-
-PlutusTx.makeLift ''ChessSet
--}
