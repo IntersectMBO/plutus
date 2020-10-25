@@ -78,6 +78,7 @@ executable nofib-exe
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+    , ansi-wl-pprint -any
     , bytestring -any
     , containers -any
     , optparse-applicative -any

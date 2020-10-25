@@ -219,12 +219,10 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 
 ---------------- Main ----------------
 
--- % Various test inputs.  The Haskell version easily manages numbers up
--- % to 200 digits, but we can't get beyond about 70 digits on the CEK machine.
--- % Interestingly, memory consumption on the CK machine is essentially flat and
--- % the times aren't much worse (maybe 10-20% greater).
-input :: [Integer]
-input = [115756986668303657898962467957]
+{-% Various test inputs.  The Haskell version easily manages numbers up
+    to 200 digits, but we can't get beyond about 70 digits on the CEK machine.
+    Interestingly, memory consumption on the CK machine is essentially flat and
+    the times aren't much worse (maybe 10-20% greater). %-}
 
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60
      deriving (Read, Show)

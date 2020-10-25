@@ -230,7 +230,7 @@ type Value = Integer
 
 data Assign = Var := Value deriving (Show)
 instance Eq Assign
-    where (a := b) == (a' := b') = a==a' && b == b'
+    where (a := b) == (a' := b') = a==a' && b==b'
 instance Ord Assign
     where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
 
