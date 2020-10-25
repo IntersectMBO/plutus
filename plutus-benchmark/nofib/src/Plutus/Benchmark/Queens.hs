@@ -182,7 +182,7 @@ union :: (Eq a) => [a] -> [a] -> [a]
 union                   = unionBy (==)
 
 -- % Things needed for `sortBy`
-instance Eq Ordering where
+instance TxPrelude.Eq Ordering where
     LT == LT = True
     EQ == EQ = True
     GT == GT = True
@@ -228,10 +228,10 @@ sortBy cmp = mergeAll . sequences
 type Var = Integer
 type Value = Integer
 
-data Assign = Var := Value deriving (Show)
-instance Eq Assign
+data Assign = Var := Value deriving (Show, Prelude.Eq, Prelude.Ord)
+instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
-instance Ord Assign
+instance TxPrelude.Ord Assign
     where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
 
 type Relation = Assign -> Assign -> Bool
@@ -356,7 +356,7 @@ btsolver0 csp =
 -----------------------------------------------
 
 data ConflictSet = Known [Var] | Unknown
-instance Eq ConflictSet where
+instance TxPrelude.Eq ConflictSet where
     Known v == Known w = v == w
     Unknown == Unknown = True
     _ == _ = False

@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
@@ -139,8 +138,6 @@ mkPrimalityTest title test = testGroup title
              ]
 
 -- Check that the Haskell version gives the right results
-deriving instance Eq Result
-
 testPrimalityHs :: TestTree
 testPrimalityHs = mkPrimalityTest "primality test (Haskell)"
                   (\n r -> Prime.runPrimalityTest n @?= r)

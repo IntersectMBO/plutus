@@ -9,7 +9,7 @@ module Plutus.Benchmark.Prime where
 
 import           Control.Monad
 import           Data.Char                    (isSpace)
-import qualified Prelude                      (String)
+import qualified Prelude                      (String, Eq(..))
 import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
@@ -257,7 +257,7 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Show)
+    deriving (Show, Prelude.Eq)
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.
