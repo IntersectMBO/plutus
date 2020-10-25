@@ -26,12 +26,12 @@
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = "";
       dataFiles = [
-        "bench-validation/data/crowdfunding/*.plc"
-        "bench-validation/data/future/*.plc"
-        "bench-validation/data/multisigSM/*.plc"
-        "bench-validation/data/vesting/*.plc"
-        "bench-validation/data/marlowe/trustfund/*.plc"
-        "bench-validation/data/marlowe/zerocoupon/*.plc"
+        "validation/data/crowdfunding/*.plc"
+        "validation/data/future/*.plc"
+        "validation/data/multisigSM/*.plc"
+        "validation/data/vesting/*.plc"
+        "validation/data/marlowe/trustfund/*.plc"
+        "validation/data/marlowe/zerocoupon/*.plc"
         "templates/*.tpl"
         ];
       extraSrcFiles = [];
@@ -59,10 +59,30 @@
           "Plutus/Benchmark/LastPiece"
           "Plutus/Benchmark/Prime"
           ];
-        hsSourceDirs = [ "src" ];
+        hsSourceDirs = [ "nofib/src" ];
         };
       exes = {
-        "plutus-benchmark" = {
+        "nofib-exe" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-benchmark" or (errorHandler.buildDepError "plutus-benchmark"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."ansi-wl-pprint" or (errorHandler.buildDepError "ansi-wl-pprint"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "nofib/exe" ];
+          mainPath = [ "Main.hs" ];
+          };
+        };
+      tests = {
+        "plutus-benchmark-nofib-tests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-benchmark" or (errorHandler.buildDepError "plutus-benchmark"))
@@ -70,15 +90,17 @@
             (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
-          hsSourceDirs = [ "app" ];
-          mainPath = [ "Main.hs" ];
+          hsSourceDirs = [ "nofib/test" ];
+          mainPath = [ "Spec.hs" ];
           };
         };
       benchmarks = {
-        "large-plc-cek" = {
+        "nofib" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-benchmark" or (errorHandler.buildDepError "plutus-benchmark"))
@@ -89,7 +111,7 @@
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             ];
           buildable = true;
-          hsSourceDirs = [ "bench" ];
+          hsSourceDirs = [ "nofib/bench" ];
           };
         "validation" = {
           depends = [
@@ -104,7 +126,7 @@
             ];
           buildable = true;
           modules = [ "Paths_plutus_benchmark" ];
-          hsSourceDirs = [ "bench-validation" ];
+          hsSourceDirs = [ "validation" ];
           };
         };
       };
