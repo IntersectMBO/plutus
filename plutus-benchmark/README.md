@@ -17,6 +17,9 @@ This directory contains two sets of benchmarks:
        * `cabal v2-bench plutus-benchmark:nofib`
        * `cabal v2-bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"``
 
+   * By default, the benchmarks are run for a minimum of **60 seconds each** in order to get a
+     statistically reasonable number of executions.  You can change this with Criterion's `-L` option.
+
 * `validation`:  a number of Plutus Core scripts extracted from the `plutus-use-cases` tests which represent realistic on-chain
    transaction validations.
 
@@ -34,6 +37,11 @@ This directory contains two sets of benchmarks:
 
 See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
 
+### nofib-exe
+The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks from the command line and
+output Plutus Core versions in a number of formats.  See the built-in help information
+for details.
+
 ### Criterion output
 
 Both sets of benchmarks will generate a file called `report.html` containing
@@ -48,3 +56,12 @@ satck or cabal): for example
 ```
 
 The `templates` directory contains some template files for use by Criterion.
+
+### Tests
+
+The directory `nofib/test` contains some tests for the nofib examples which
+compare the result of evaluating the benchmarks as Haskell programs and as
+Plutus Core programs.  **Running the tests may consume a considerable amount of
+time and (especially) memory**; you may wish to restrict which tests are run,
+for example by using stack's `--ta/--test-arguments` option (with `-p`), or cabal's
+`--test-option` option.
