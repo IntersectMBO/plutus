@@ -15,10 +15,10 @@ import           Language.UntypedPlutusCore
 
 type Var = Integer
 
-type LRVars = ([Var], [Var]) -- Lists of variables in lhs and rhs of formula
+type LRVars = ([Var], [Var]) -- % Lists of variables in lhs and rhs of formula
 
 data Formula =
-  Sym Var |   -- Was Char, but that doesn't work well with PLC
+  Sym Var |   -- % Was Char, but that doesn't work well with PLC
   Not Formula |
   Dis Formula Formula |
   Con Formula Formula |

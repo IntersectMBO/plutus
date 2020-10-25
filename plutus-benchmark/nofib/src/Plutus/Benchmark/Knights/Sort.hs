@@ -118,16 +118,10 @@ rands s1 s2
 
         z    = s1'' - s2''
 
+-- % These are from the original program.  That's literate Haskell, and it
+-- % contains the results as latex.
 
 test1,test2,test3,test4,test5,test6,test7::[Integer]
-
-{-# INLINABLE test1 #-}
-{-# INLINABLE test2 #-}
-{-# INLINABLE test3 #-}
-{-# INLINABLE test4 #-}
-{-# INLINABLE test5 #-}
-{-# INLINABLE test6 #-}
-{-# INLINABLE test7 #-}
 
 test1 = [1..10]
 test2 = [10,9..1]
