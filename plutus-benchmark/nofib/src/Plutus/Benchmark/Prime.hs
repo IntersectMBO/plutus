@@ -258,6 +258,7 @@ numTests = 100
 
 data Result = Composite | Prime
     deriving (Show, Prelude.Eq)
+-- Prelude.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.
