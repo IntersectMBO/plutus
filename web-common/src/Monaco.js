@@ -116,6 +116,10 @@ exports.layout_ = function (editor) {
   editor.layout();
 }
 
+exports.focus_ = function (editor) {
+  editor.focus();
+}
+
 exports.enableVimBindings_ = function (editor) {
   var vimMode = global.initVimMode(editor);
   return (() => vimMode.dispose());

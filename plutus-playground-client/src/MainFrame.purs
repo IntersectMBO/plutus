@@ -5,7 +5,6 @@ module MainFrame
   ) where
 
 import Prelude
-import Ace.Types (Annotation)
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
@@ -41,7 +40,8 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
-import Editor as Editor
+import Editor.State (initialState) as Editor
+import Editor.Types (Action(..), State) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -56,7 +56,8 @@ import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import Monaco (IMarkerData, markerSeverity)
+import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
@@ -67,7 +68,7 @@ import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (_simulationActions, ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -89,13 +90,13 @@ mkSimulation simulationCurrencies simulationName =
     , simulationWallets: mkSimulatorWallet simulationCurrencies <<< BigInteger.fromInt <$> 1 .. 2
     }
 
-mkInitialState :: forall m. MonadThrow Error m => Editor.Preferences -> m State
-mkInitialState editorPreferences = do
+mkInitialState :: forall m. MonadThrow Error m => Editor.State -> m State
+mkInitialState editorState = do
   contractDemos <- mapError (\e -> error $ "Could not load demo scripts. Parsing errors: " <> show e) mkContractDemos
   pure
     $ State
         { currentView: Editor
-        , editorPreferences
+        , editorState
         , contractDemos
         , compilationResult: NotAsked
         , simulations: Cursor.empty
@@ -118,8 +119,8 @@ mkMainFrame ::
   MonadAff m =>
   n (Component HTML Query HAction Void m)
 mkMainFrame = do
-  editorPreferences <- Editor.loadPreferences
-  initialState <- mkInitialState editorPreferences
+  editorState <- Editor.initialState
+  initialState <- mkInitialState editorState
   pure $ hoist (flip runReaderT ajaxSettings)
     $ H.mkComponent
         { initialState: const initialState
@@ -128,7 +129,7 @@ mkMainFrame = do
           H.mkEval
             { handleAction: handleActionWithAnalyticsTracking
             , handleQuery: const $ pure Nothing
-            , initialize: Just CheckAuthStatus
+            , initialize: Just Init
             , receive: const Nothing
             , finalize: Nothing
             }
@@ -153,6 +154,8 @@ analyticsTracking action = do
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 toEvent :: HAction -> Maybe Event
+toEvent Init = Nothing
+
 toEvent Mounted = Just $ defaultEvent "Mounted"
 
 toEvent (EditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
@@ -224,6 +227,10 @@ handleAction ::
   MonadApp m =>
   MonadAnimate m State =>
   HAction -> m Unit
+handleAction Init = do
+  handleAction CheckAuthStatus
+  editorHandleAction $ Editor.Init
+
 handleAction Mounted = pure unit
 
 handleAction (EditorAction action) = editorHandleAction action
@@ -264,6 +271,7 @@ handleAction (GistAction subEvent) = handleGistAction subEvent
 
 handleAction (ChangeView view) = do
   assign _currentView view
+  when (view == Editor) resizeEditor
   when (view == Transactions) resizeBalancesChart
 
 handleAction EvaluateActions =
@@ -478,18 +486,22 @@ replaceViewOnSuccess result source target = do
     (assign _currentView target)
 
 ------------------------------------------------------------
-toAnnotations :: InterpreterError -> Array Annotation
+toAnnotations :: InterpreterError -> Array IMarkerData
 toAnnotations (TimeoutError _) = []
 
 toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
 
-toAnnotation :: CompilationError -> Maybe Annotation
+toAnnotation :: CompilationError -> Maybe IMarkerData
 toAnnotation (RawError _) = Nothing
 
 toAnnotation (CompilationError { row, column, text }) =
   Just
-    { type: "error"
-    , row: row - 1
-    , column
-    , text: String.joinWith "\n" text
+    { severity: markerSeverity "Error"
+    , message: String.joinWith "\\n" text
+    , startLineNumber: row
+    , startColumn: column
+    , endLineNumber: row
+    , endColumn: column
+    , code: mempty
+    , source: mempty
     }

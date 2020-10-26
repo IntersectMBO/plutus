@@ -143,37 +143,6 @@ let additions =
 		  , version =
               "v10.0.0"
 		  }
-      , ace-halogen =
-          { dependencies =
-              [ "ace"
-              , "halogen"
-              , "now"
-              , "random"
-              , "refs"
-              , "aff"
-              , "foreign-object"
-              , "prelude"
-              ]
-          , repo =
-              "https://github.com/shmish111/purescript-ace-halogen"
-          , version =
-              "purs-0.13"
-          }
-      , ace =
-          { dependencies =
-              [ "effect"
-              , "web-html"
-              , "web-uievents"
-              , "arrays"
-              , "foreign"
-              , "nullable"
-              , "prelude"
-              ]
-          , repo =
-              "https://github.com/slamdata/purescript-ace.git"
-          , version =
-              "v7.0.0"
-          }
       , concurrent-queues =
           { dependencies =
               [ "aff"

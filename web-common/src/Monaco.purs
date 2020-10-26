@@ -102,6 +102,8 @@ foreign import data Editor :: Type
 
 foreign import data ITextModel :: Type
 
+foreign import data ITextMarker :: Type
+
 foreign import data CompletionItemKind :: Type
 
 foreign import completionItemKindEq_ :: Fn2 CompletionItemKind CompletionItemKind Boolean
@@ -254,6 +256,8 @@ foreign import revealLine_ :: EffectFn2 Editor Int Unit
 
 foreign import layout_ :: EffectFn1 Editor Unit
 
+foreign import focus_ :: EffectFn1 Editor Unit
+
 foreign import enableVimBindings_ :: EffectFn1 Editor (Effect Unit)
 
 foreign import enableEmacsBindings_ :: EffectFn1 Editor (Effect Unit)
@@ -336,6 +340,9 @@ revealLine = runEffectFn2 revealLine_
 
 layout :: Editor -> Effect Unit
 layout = runEffectFn1 layout_
+
+focus :: Editor -> Effect Unit
+focus = runEffectFn1 focus_
 
 enableVimBindings :: Editor -> Effect (Effect Unit)
 enableVimBindings = runEffectFn1 enableVimBindings_
