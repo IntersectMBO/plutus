@@ -1,5 +1,7 @@
-{- | Tests for the Plutus nofib benchmarks, mostly comparing the result of
-Plutus evaluation with the result of Haskell evaluation. -}
+{- | Tests for the Plutus nofib benchmarks, mostly comparing the result of Plutus
+evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
+because its memory consumption as a Plutus program is too great to allow it to
+run to completion. -}
 
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -25,11 +27,10 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-type Term = UPLC.Term Name DefaultUni ()
-type CompiledCode a = Tx.CompiledCode DefaultUni a
-
 
 ---------------- Evaluation ----------------
+
+type Term = UPLC.Term Name DefaultUni ()
 
 emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
 emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
@@ -168,12 +169,12 @@ testPrimalityQC = testProperty "primality test (QuickCheck)" (forAll sixDigits p
 allTests :: TestTree
 allTests =
   testGroup "plutus nofib tests"
-    [ testQueens
+    [ testClausify
     , testKnights
-    , testClausify
     , testPrimalityHs
     , testPrimalityPlc
     , testPrimalityQC
+    , testQueens
     ]
 
 main :: IO ()

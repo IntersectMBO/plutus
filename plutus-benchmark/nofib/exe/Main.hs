@@ -182,7 +182,7 @@ options = hsubparser
       (progDesc "run the program directly as Haskell"))
   <> command "dumpPLC"
      (info (DumpPLC <$> progAndArgs)
-      (progDesc "print the program (applied to its arguments) as Plutus Core source on standard output"))
+      (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
   <> command "dumpCBORnamed"
      (info (DumpCBORnamed <$> progAndArgs)
       (progDesc "dump the AST as CBOR, preserving names"))
@@ -240,8 +240,8 @@ footerInfo = text "Every command takes the name of a program and a (possbily emp
            <> line
            <> indent 2 (vsep knownProgs)
            <> line <> line
-           <> string ("See 'nofib-exe run <prog> --help' for information about the arguments to the\n"
-                   ++ "individual programs.")
+           <> string ("See 'nofib-exe run <programe-name> --help' for information about the arguments\n"
+                   ++ "for a particular program.")
            <> line <> line
            <> string ("The 'dump' commands construct a Plutus Core term applying the program to its\n"
                    ++ "arguments and prints the result to the terminal in the specified format.\n"

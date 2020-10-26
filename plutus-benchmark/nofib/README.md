@@ -42,6 +42,9 @@ data to get reasonable results (use Criterion's `-L` option to change the
 execution time). The `last-piece` program has been omitted from the benchmarkign
 process because it exhausts memory on the current version of the CEK machine.
 
+Some of the benchmarks also consume a lot of memory, so it may be helpful to
+close memory-hungry programs (Slack, Firefox, ...) before running them.
+
 It's hoped that these benchmarks will be useful for stress-testing Plutus Core
 evaluators.  Some of them take a considerable time to run and consume a lot of
 memory.  Approximate times for a single execution of each benchmark on the
