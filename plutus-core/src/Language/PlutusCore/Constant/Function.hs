@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Language.PlutusCore.Constant.Function
