@@ -20,7 +20,7 @@ The specific programs which we have ported to Plutus are:
    * `knights`: find knight's tours of an NxN chessboard
    * `last-piece`: a solver for a jigsaw problem (not included in the benchmarks)
    * `primetest`: probablisitic primality testing
-   * `queens`: find solutions to the N queens problem on an m x m chessboard
+   * `queens`: find solutions to the N queens problem on an M x M chessboard
 
 
 Each benchmark can be run with a number of inputs: type
