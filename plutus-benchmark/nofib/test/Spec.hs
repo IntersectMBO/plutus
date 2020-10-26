@@ -1,3 +1,6 @@
+{- | Tests for the Plutus nofib benchmarks, mostly comparing the result of
+Plutus evaluation with the result of Haskell evaluation. -}
+
 {-# LANGUAGE FlexibleContexts #-}
 
 module Main where
@@ -121,7 +124,8 @@ testQueens = testGroup "queens"
 
 ---------------- Primes ----------------
 
--- Unit tests on some numbers which we know about, polymorphic over 'test'
+-- | Unit tests on some numbers which we know to be prime/composite, polymorphic
+-- over 'test' so that we can test both Haskell and Plutus evaluation.
 
 mkPrimalityTest :: String -> (Integer -> Prime.Result -> IO()) -> TestTree
 mkPrimalityTest title test = testGroup title
