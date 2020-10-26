@@ -14,11 +14,11 @@ the original source.
 The Criterion benchmarks use the `plutus-tx` GHC plugin to compile the programs
 to Plutus Core and then time their execution on the CEK machine.
 
-The specific program which we have ported to Plutus are:
+The specific programs which we have ported to Plutus are:
 
    * `clausify`: reduce propositions to clausal form 
    * `knights`: find knight's tours of an NxN chessboard
-   * `last-piece`: a slover for a jigsaw problem (not included in the benchmarks)
+   * `last-piece`: a solver for a jigsaw problem (not included in the benchmarks)
    * `primetest`: probablisitic primality testing
    * `queens`: find solutions to the N queens problem on an m x m chessboard
 
