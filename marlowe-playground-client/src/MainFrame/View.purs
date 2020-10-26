@@ -22,7 +22,11 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JSEditor as JSEditor
+<<<<<<< HEAD
 import MainFrame.Types (Action(..), ChildSlots, State, ModalView(..), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+=======
+import MainFrame.Types (Action(..), ChildSlots, FrontendState, ModalView(..), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+>>>>>>> move mainframe into it's own THE module
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
@@ -40,7 +44,11 @@ render ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
+<<<<<<< HEAD
   State ->
+=======
+  FrontendState ->
+>>>>>>> move mainframe into it's own THE module
   ComponentHTML Action ChildSlots m
 render settings state =
   div [ class_ (ClassName "site-wrap") ]
@@ -122,7 +130,11 @@ render settings state =
 modal ::
   forall m.
   MonadAff m =>
+<<<<<<< HEAD
   State -> ComponentHTML Action ChildSlots m
+=======
+  FrontendState -> ComponentHTML Action ChildSlots m
+>>>>>>> move mainframe into it's own THE module
 modal state = case state ^. _showModal of
   Nothing -> text ""
   Just view ->
@@ -147,7 +159,11 @@ modal state = case state ^. _showModal of
 
   modalContent GithubLogin = authButton state
 
+<<<<<<< HEAD
 menuBar :: forall p. State -> HTML p Action
+=======
+menuBar :: forall p. FrontendState -> HTML p Action
+>>>>>>> move mainframe into it's own THE module
 menuBar state =
   div [ classes [ ClassName "menu-bar" ] ]
     [ menuButton (OpenModal NewProject) "New" "New Project"

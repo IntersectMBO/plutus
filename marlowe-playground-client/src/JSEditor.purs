@@ -19,7 +19,11 @@ import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
+<<<<<<< HEAD
 import MainFrame.Types (Action(..), ChildSlots, State, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
+=======
+import MainFrame.Types (Action(..), ChildSlots, FrontendState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
+>>>>>>> move mainframe into it's own THE module
 import Monaco as Monaco
 import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
