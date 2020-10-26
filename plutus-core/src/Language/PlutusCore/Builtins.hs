@@ -298,6 +298,7 @@ instance Serialise DefaultFun where
               go 24 = pure Trace
               go _  = fail "Failed to decode BuiltinName"
 
+-- TODO: should we compute this from the number of builtins (which we can obtain)?
 -- | Using 5 bits to encode builtin tags.
 builtinTagWidth :: NumBits
 builtinTagWidth = 5
