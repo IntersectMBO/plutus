@@ -1,18 +1,19 @@
+{-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
-module Language.PlutusTx.Data (Data (..), fromTerm, toTerm) where
+module Language.PlutusTx.Data (Data (..)) where
 
 import           Prelude                   hiding (fail)
 
 import           Control.Monad.Fail
-import           Data.Bifunctor            (bimap)
-import           Data.Bitraversable        (bitraverse)
-import           Data.ByteString           as BS
-import qualified Data.ByteString.Lazy      as BSL
+import qualified Data.ByteString           as BS
 
-import qualified Codec.CBOR.Term           as CBOR
+import           Codec.CBOR.Decoding       (Decoder)
+import qualified Codec.CBOR.Decoding       as CBOR
+import           Codec.CBOR.Encoding       (Encoding)
+import qualified Codec.CBOR.Encoding       as CBOR
 import qualified Codec.Serialise           as Serialise
 
 import           Data.Text.Prettyprint.Doc
@@ -41,8 +42,6 @@ instance Pretty Data where
         I i -> pretty i
         B b -> viaShow b
 
-type CBORToDataError = String
-
 {- Note [Permissive decoding]
 We're using a canonical representation of lists, maps, bytes, and integers. However,
 the CBOR library does not guarantee that a TInteger gets encoded as a big integer,
@@ -51,50 +50,99 @@ https://github.com/well-typed/cborg/issues/222). So we need to be permissive
 when we decode.
 -}
 
-viewList :: CBOR.Term -> Maybe [CBOR.Term]
-viewList (CBOR.TList l)  = Just l
-viewList (CBOR.TListI l) = Just l
-viewList _               = Nothing
+{- Note [Encoding of Data]
 
-viewMap :: CBOR.Term -> Maybe [(CBOR.Term, CBOR.Term)]
-viewMap (CBOR.TMap m)  = Just m
-viewMap (CBOR.TMapI m) = Just m
-viewMap _              = Nothing
+All constructors of 'Data' map directly to CBOR primitives, *except* for the
+'Constr' constructor. So to encode a 'Data' value we first write a 'Bool'
+indicating whether the value is a 'Constr' or something else.
 
-viewBytes :: CBOR.Term -> Maybe BS.ByteString
-viewBytes (CBOR.TBytes b)   = Just b
-viewBytes (CBOR.TBytesI lb) = Just $ BSL.toStrict lb
-viewBytes _                 = Nothing
+When decoding 'Data', if the leading bit is true we know that we are looking at
+a 'Constr', so we can read the two arguments. If it is something else, we
+look at the CBOR token type.
 
-viewInteger :: CBOR.Term -> Maybe Integer
-viewInteger (CBOR.TInt i)     = Just (fromIntegral i)
-viewInteger (CBOR.TInteger i) = Just i
-viewInteger _                 = Nothing
+-}
 
--- TODO: try and make this match the serialization of Haskell types using derived 'Serialise'?
--- Would at least need to handle special cases with Null etc.
-fromTerm :: CBOR.Term -> Either CBORToDataError Data
-fromTerm = \case
-    -- See Note [Permissive decoding]
-    (viewInteger -> Just i) -> pure $ I i
-    (viewBytes -> Just b) -> pure $ B b
-    (viewMap -> Just entries) -> Map <$> traverse (bitraverse fromTerm fromTerm) entries
-    (viewList -> Just ts) -> List <$> traverse fromTerm ts
-    CBOR.TTagged i (viewList -> Just entries) -> Constr (fromIntegral i) <$> traverse fromTerm entries
-    t -> Left $ "Unsupported CBOR term: " ++ show t
+-- | Check whether this is using the 'Constr' constructor
+isConstr :: Data -> Bool
+isConstr = \case
+    Constr _ _ -> True
+    _ -> False
 
-toTerm :: Data -> CBOR.Term
-toTerm = \case
-    I i -> CBOR.TInteger i
-    B b -> CBOR.TBytes b
-    Map entries -> CBOR.TMap (fmap (bimap toTerm toTerm) entries)
-    List ts -> CBOR.TList (fmap toTerm ts)
-    Constr i entries -> CBOR.TTagged (fromIntegral i) $ CBOR.TList $ fmap toTerm entries
+encodeData :: Data -> Encoding
+encodeData dt = CBOR.encodeBool (isConstr dt) <> encodeRest where
+    encodeRest = case dt of
+            I i -> CBOR.encodeInteger i
+            B b -> CBOR.encodeBytes b
+            Map entries ->
+                CBOR.encodeMapLenIndef
+                    <> mconcat [ encodeData k <> encodeData v | (k, v) <- entries ]
+                    <> CBOR.encodeBreak
+            List ts ->
+                CBOR.encodeListLenIndef
+                    <> mconcat (encodeData <$> ts)
+                    <> CBOR.encodeBreak
+            Constr i entries ->
+                CBOR.encodeInteger i
+                    <> CBOR.encodeListLenIndef
+                    <> mconcat (encodeData <$> entries)
+                    <> CBOR.encodeBreak
+
+decodeData :: Decoder s Data
+decodeData = do
+    constr <- CBOR.decodeBool
+    if constr
+        then do
+            !x <- CBOR.decodeInteger
+            !y <- do
+                CBOR.decodeListLenIndef
+                decodeListIndefLen []
+            pure $ Constr x y
+        else do
+            tkty <- CBOR.peekTokenType
+            case tkty of
+                CBOR.TypeUInt -> do
+                    w <- CBOR.decodeWord
+                    return $! I $! fromIntegral w
+                CBOR.TypeUInt64 -> do
+                    w <- CBOR.decodeWord64
+                    return $! I $! fromIntegral w
+                CBOR.TypeNInt   -> do
+                    w <- CBOR.decodeNegWord
+                    return $! I $! (-1 - fromIntegral w)
+                CBOR.TypeNInt64 -> do
+                    w <- CBOR.decodeNegWord64
+                    return $! I $! (-1 - fromIntegral w)
+                CBOR.TypeInteger -> do
+                    !x <- CBOR.decodeInteger
+                    return (I x)
+                CBOR.TypeBytes -> do
+                    !x <- CBOR.decodeBytes
+                    return (B x)
+                CBOR.TypeMapLenIndef -> do
+                    CBOR.decodeMapLenIndef
+                    Map <$> decodeMapIndefLen []
+                CBOR.TypeListLenIndef -> do
+                    CBOR.decodeListLenIndef
+                    List <$> decodeListIndefLen []
+                _ -> fail "Invalid encoding"
+
+-- from https://hackage.haskell.org/package/cborg-0.2.4.0/docs/src/Codec.CBOR.Term.html#decodeListIndefLen
+decodeListIndefLen :: [Data] -> Decoder s [Data]
+decodeListIndefLen acc = do
+    stop <- CBOR.decodeBreakOr
+    if stop then return $ reverse acc
+            else do !tm <- decodeData
+                    decodeListIndefLen (tm : acc)
+
+-- from https://hackage.haskell.org/package/cborg-0.2.4.0/docs/src/Codec.CBOR.Term.html#decodeMapIndefLen
+decodeMapIndefLen :: [(Data, Data)] -> Decoder s [(Data, Data)]
+decodeMapIndefLen acc = do
+    stop <- CBOR.decodeBreakOr
+    if stop then return $ reverse acc
+            else do !tm  <- decodeData
+                    !tm' <- decodeData
+                    decodeMapIndefLen ((tm, tm') : acc)
 
 instance Serialise.Serialise Data where
-    encode = Serialise.encode . toTerm
-    decode = do
-        term <- Serialise.decode
-        case fromTerm term of
-            Left msg -> fail $ "Failed to decode from CBOR term: " ++ msg
-            Right d  -> pure d
+    encode = encodeData
+    decode = decodeData
