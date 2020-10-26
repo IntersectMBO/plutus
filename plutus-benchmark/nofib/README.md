@@ -26,12 +26,12 @@ The specific programs which we have ported to Plutus are:
 Each benchmark can be run with a number of inputs: type
 
 ```
-  stack bench plutus-benchmark:validation --ba --list
+  stack bench plutus-benchmark:nofib --ba --list
 ```
 
 or 
 ```
-  cabal v2-bench plutus-benchmark:validation --benchmark-arguments --list
+  cabal v2-bench plutus-benchmark:nofib --benchmark-arguments --list
 ```
 
 to see the available benchmarks.
