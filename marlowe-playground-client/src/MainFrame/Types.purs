@@ -18,7 +18,7 @@ import Gists (GistAction)
 import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
-import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
+import Halogen.Blockly as Blockly
 import Halogen.Classes (activeClass)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
@@ -70,8 +70,8 @@ data Action
   | SendResultJSToSimulator
   | LoadJSScript String
   -- blockly
-  | HandleBlocklyMessage BlocklyMessage
-  | HandleActusBlocklyMessage AB.BlocklyMessage
+  | HandleBlocklyMessage Blockly.Message
+  | HandleActusBlocklyMessage AB.Message
   -- Wallet Actions
   | HandleWalletMessage Wallet.Message
   | ProjectsAction Projects.Action
@@ -135,9 +135,9 @@ instance showView :: Show View where
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , jsEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
-    , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
-    , actusBlocklySlot :: H.Slot AB.BlocklyQuery AB.BlocklyMessage Unit
-    , simulationSlot :: H.Slot Simulation.Query BlocklyMessage Unit
+    , blocklySlot :: H.Slot Blockly.Query Blockly.Message Unit
+    , actusBlocklySlot :: H.Slot AB.Query AB.Message Unit
+    , simulationSlot :: H.Slot Simulation.Query Blockly.Message Unit
     , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
