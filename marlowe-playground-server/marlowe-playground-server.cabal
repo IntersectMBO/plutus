@@ -65,6 +65,7 @@ library
         time -any,
         time-units -any,
         transformers -any,
+        unordered-containers,
         wai-cors -any,
         uuid -any
 

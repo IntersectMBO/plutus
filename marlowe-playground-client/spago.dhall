@@ -12,6 +12,7 @@ You can edit this file as you like.
   , "datetime"
   , "datetime-iso"
   , "debug"
+  , "decimals"
   , "effect"
   , "formatters"
   , "functions"
