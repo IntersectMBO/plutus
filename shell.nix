@@ -28,6 +28,7 @@ in haskell.packages.shellFor {
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
+    pkgs.nixpkgs-fmt
     # Broken on 20.03, needs a backport
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
