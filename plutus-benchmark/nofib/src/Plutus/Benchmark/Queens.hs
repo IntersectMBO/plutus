@@ -93,7 +93,7 @@ mkQueensTerm sz alg =
               `Tx.applyCode` Tx.liftCode alg
   in code
 
-                      
+
 main2 :: IO()  -- Haskell version
 main2 = do
   args <- getArgs

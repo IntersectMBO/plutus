@@ -9,7 +9,7 @@ module Plutus.Benchmark.Prime where
 
 import           Control.Monad
 import           Data.Char                    (isSpace)
-import qualified Prelude                      (String, Eq(..))
+import qualified Prelude                      (Eq (..), String)
 import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
@@ -239,8 +239,8 @@ getPrime =
      P40 -> 5991810554633396517767024967580894321153
      P50 -> 22953686867719691230002707821868552601124472329079
      P60 -> 511704374946917490638851104912462284144240813125071454126151
-            
-          
+
+
 -- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Prelude.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
@@ -295,7 +295,7 @@ mkPrimalityTestTerm n =
 -- Run the program on one of the fixed primes listed above
 runFixedPrimalityTest :: PrimeID -> Result
 runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
-     
+
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
 mkPrimalityBenchTerm :: PrimeID -> Term Name DefaultUni ()
@@ -306,4 +306,4 @@ mkPrimalityBenchTerm pid =
   in code
 
 Tx.makeLift ''PrimeID
-Tx.makeLift ''Result     
+Tx.makeLift ''Result

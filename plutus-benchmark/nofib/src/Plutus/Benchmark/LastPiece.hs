@@ -294,8 +294,8 @@ unindent :: PLC.Doc ann -> [PLC.String]
 unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 runLastPiece :: Solution
-runLastPiece = search (1,2) Female initialBoard initialPieces 
-             
+runLastPiece = search (1,2) Female initialBoard initialPieces
+
 mkLastPieceTerm :: Term Name DefaultUni ()
 mkLastPieceTerm =
   let (Program _ _ code) = getPlc $ $$(compile [|| runLastPiece ||])
