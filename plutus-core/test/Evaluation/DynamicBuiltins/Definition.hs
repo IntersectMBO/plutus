@@ -22,10 +22,10 @@ module Evaluation.DynamicBuiltins.Definition
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc                                  hiding (error)
 import           Language.PlutusCore.Pretty
 
@@ -37,10 +37,10 @@ import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Bifunctor
 import           Data.Either
-import           GHC.Ix
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
+import           GHC.Ix
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
