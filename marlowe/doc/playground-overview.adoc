@@ -85,14 +85,14 @@ The editor supports auto-complete, error checking during editing, and informatio
 
 It is this final value that is converted to pure Marlowe with the *Compile* button (in the top RH corner). If compilation is successful, the compiled code is shown in an overlay (which can be minimised):
 
-image:JS-compiled.png[JS code compiled to Marlowe]
+image:js-compiled.png[JS code compiled to Marlowe]
 
 On successful compilation the result can be sent to the simulator using the *Send to Simulator*  
 button in the top RH corner of the page.
 
 If the contract cannot successfully be converted to Marlowe, the errors are also shown in overlay:
 
-image:JS-error.png[Errors in compiling JS code to Marlowe]
+image:js-error.png[Errors in compiling JS code to Marlowe]
 
 === Developing contracts in Blockly
 
