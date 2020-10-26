@@ -24,7 +24,7 @@ import LocalStorage as LocalStorage
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Loading, isLoading, isSuccess)
 import StaticData as StaticData
-import Types (ChildSlots, _haskellEditorSlot)
+import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 
 render ::
   forall m.

@@ -10,7 +10,7 @@ import Halogen.HTML (HTML, button, div, h1_, h2_, hr_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Projects.Types (Lang(..))
-import Types (ChildSlots)
+import MainFrame.Types (ChildSlots)
 
 render ::
   forall m state.

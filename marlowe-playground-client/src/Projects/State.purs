@@ -29,7 +29,7 @@ import Projects.Types (Action(..), Lang(..), State, _projects)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Text.Parsing.Parser (runParser)
-import Types (ChildSlots)
+import MainFrame.Types (ChildSlots)
 
 handleAction ::
   forall m.

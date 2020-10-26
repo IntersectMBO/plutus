@@ -28,25 +28,25 @@ import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
-type BlocklyState
+type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     }
 
-_blocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
+_blocklyState :: Lens' State (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
 
-_generator :: Lens' BlocklyState (Maybe Generator)
+_generator :: Lens' State (Maybe Generator)
 _generator = prop (SProxy :: SProxy "generator")
 
-_errorMessage :: Lens' BlocklyState (Maybe String)
+_errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
-emptyState :: BlocklyState
+emptyState :: State
 emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
 
-data BlocklyQuery a
+data Query a
   = Resize a
   | SetCode String a
   | SetError String a
@@ -54,18 +54,18 @@ data BlocklyQuery a
   | LoadWorkspace XML a
   | GetCodeQuery a
 
-data BlocklyAction
+data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
   | GetCode
 
-data BlocklyMessage
+data Message
   = CurrentCode String
 
 type DSL slots m a
-  = HalogenM BlocklyState BlocklyAction slots BlocklyMessage m a
+  = HalogenM State Action slots Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
+blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
     { initialState: const emptyState
@@ -80,7 +80,7 @@ blockly rootBlockName blockDefinitions =
         }
     }
 
-handleQuery :: forall slots m a. MonadEffect m => BlocklyQuery a -> DSL slots m (Maybe a)
+handleQuery :: forall slots m a. MonadEffect m => Query a -> DSL slots m (Maybe a)
 handleQuery (Resize next) = do
   mState <- use _blocklyState
   case mState of
@@ -147,7 +147,7 @@ handleQuery (GetCodeQuery next) = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
-handleAction :: forall m slots. MonadEffect m => BlocklyAction -> DSL slots m Unit
+handleAction :: forall m slots. MonadEffect m => Action -> DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
@@ -189,7 +189,7 @@ handleAction GetCode = do
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: forall p. BlocklyState -> HTML p BlocklyAction
+render :: forall p. State -> HTML p Action
 render state =
   div []
     [ div
@@ -200,13 +200,13 @@ render state =
         [ errorMessage state.errorMessage ]
     ]
 
-otherActions :: forall p. BlocklyState -> HTML p BlocklyAction
+otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div []
     [ toCodeButton "Send To Simulator"
     ]
 
-toCodeButton :: forall p. String -> HTML p BlocklyAction
+toCodeButton :: forall p. String -> HTML p Action
 toCodeButton key =
   button
     [ onClick $ const $ Just GetCode

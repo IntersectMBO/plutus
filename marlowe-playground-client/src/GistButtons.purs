@@ -10,9 +10,9 @@ import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx
 import Halogen.SVG as SVG
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-import Types (Action, FrontendState, _authStatus)
+import MainFrame.Types (Action, State, _authStatus)
 
-authButton :: forall p. FrontendState -> HTML p Action
+authButton :: forall p. State -> HTML p Action
 authButton state =
   let
     authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))

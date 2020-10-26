@@ -9,7 +9,7 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (_Just, assign, has, hasn't, modifying, nearly, only, over, preview, to, use, view, (^.))
+import Data.Lens (_Just, assign, has, modifying, only, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -61,7 +61,7 @@ import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeD
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
