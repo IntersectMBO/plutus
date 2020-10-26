@@ -19,7 +19,7 @@ import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (Action(..), ChildSlots, FrontendState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
+import MainFrame.Types (Action(..), ChildSlots, State, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
 import Monaco as Monaco
 import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
@@ -28,7 +28,7 @@ import Text.Pretty (pretty)
 render ::
   forall m.
   MonadAff m =>
-  FrontendState ->
+  State ->
   ComponentHTML Action ChildSlots m
 render state =
   div_
@@ -39,7 +39,7 @@ render state =
     , bottomPanel state
     ]
 
-otherActions :: forall p. FrontendState -> HTML p Action
+otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div [ classes [ ClassName "group" ] ]
     [ editorOptions state
@@ -47,12 +47,12 @@ otherActions state =
     , sendButton state
     ]
 
-sendButton :: forall p. FrontendState -> HTML p Action
+sendButton :: forall p. State -> HTML p Action
 sendButton state = case view _jsCompilationResult state of
   JSCompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultJSToSimulator ] [ text "Send To Simulator" ]
   _ -> text ""
 
-editorOptions :: forall p. FrontendState -> HTML p Action
+editorOptions :: forall p. State -> HTML p Action
 editorOptions state =
   div [ class_ (ClassName "editor-options") ]
     [ select
@@ -72,7 +72,7 @@ editorOptions state =
 jsEditor ::
   forall m.
   MonadAff m =>
-  FrontendState ->
+  State ->
   ComponentHTML Action ChildSlots m
 jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditorMessage)
   where
@@ -86,7 +86,7 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditor
 
   component = monacoComponent $ JSM.settings setup
 
-bottomPanel :: forall p. FrontendState -> HTML p Action
+bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
   div
     ( [ classes
@@ -116,7 +116,7 @@ bottomPanel state =
   where
   showingBottomPanel = state ^. _showBottomPanel
 
-compileButton :: forall p. FrontendState -> HTML p Action
+compileButton :: forall p. State -> HTML p Action
 compileButton state =
   button [ onClick $ const $ Just CompileJSProgram ]
     [ text (if state ^. _jsCompilationResult <<< to isLoading then "Compiling..." else "Compile") ]
@@ -125,7 +125,7 @@ compileButton state =
 
   isLoading _ = false
 
-resultPane :: forall p. FrontendState -> Array (HTML p Action)
+resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _jsCompilationResult state of
     JSCompiledSuccessfully (InterpreterResult result) ->

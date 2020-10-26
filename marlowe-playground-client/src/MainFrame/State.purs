@@ -43,7 +43,7 @@ import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
-import MainFrame.Types (Action(..), ChildSlots, FrontendState(FrontendState), ModalView(..), Query(..), View(..), _activeJSDemo, _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, State(State), ModalView(..), Query(..), View(..), _activeJSDemo, _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -85,9 +85,9 @@ import Web.HTML.Window (document) as Web
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
-initialState :: FrontendState
+initialState :: State
 initialState =
-  FrontendState
+  State
     { view: Simulation
     , jsCompilationResult: JSNotCompiled
     , blocklyState: Nothing
@@ -131,43 +131,43 @@ mkMainFrame settings =
 toSimulation ::
   forall m a.
   Functor m =>
-  HalogenM ST.State ST.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM ST.State ST.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toSimulation = mapSubmodule _simulationState SimulationAction
 
 toHaskellEditor ::
   forall m a.
   Functor m =>
-  HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toHaskellEditor = mapSubmodule _haskellState HaskellAction
 
 toProjects ::
   forall m a.
   Functor m =>
-  HalogenM Projects.State Projects.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM Projects.State Projects.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toProjects = mapSubmodule _projects ProjectsAction
 
 toNewProject ::
   forall m a.
   Functor m =>
-  HalogenM NewProject.State NewProject.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM NewProject.State NewProject.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toNewProject = mapSubmodule _newProject NewProjectAction
 
 toDemos ::
   forall m a.
   Functor m =>
-  HalogenM FrontendState Demos.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM State Demos.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toDemos = mapSubmodule identity DemosAction
 
 toRename ::
   forall m a.
   Functor m =>
-  HalogenM Rename.State Rename.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM Rename.State Rename.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toRename = mapSubmodule _rename RenameAction
 
 toSaveAs ::
   forall m a.
   Functor m =>
-  HalogenM SaveAs.State SaveAs.Action ChildSlots Void m a -> HalogenM FrontendState Action ChildSlots Void m a
+  HalogenM SaveAs.State SaveAs.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toSaveAs = mapSubmodule _saveAs SaveAsAction
 
 handleSubRoute ::
@@ -175,7 +175,7 @@ handleSubRoute ::
   MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  SubRoute -> HalogenM FrontendState Action ChildSlots Void m Unit
+  SubRoute -> HalogenM State Action ChildSlots Void m Unit
 handleSubRoute _ Router.Home = selectView HomePage
 
 handleSubRoute _ Router.Simulation = selectView Simulation
@@ -195,7 +195,7 @@ handleRoute ::
   MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  Route -> HalogenM FrontendState Action ChildSlots Void m Unit
+  Route -> HalogenM State Action ChildSlots Void m Unit
 handleRoute settings { gistId: (Just gistId), subroute } = do
   handleAction settings (GistAction (SetGistUrl (unwrap gistId)))
   handleAction settings (GistAction LoadGist)
@@ -210,7 +210,7 @@ handleQuery ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Query a ->
-  HalogenM FrontendState Action ChildSlots Void m (Maybe a)
+  HalogenM State Action ChildSlots Void m (Maybe a)
 handleQuery settings (ChangeRoute route next) = do
   handleRoute settings route
   pure $ Just next
@@ -220,7 +220,7 @@ handleAction ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
-  HalogenM FrontendState Action ChildSlots Void m Unit
+  HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
@@ -513,12 +513,12 @@ showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
 
 runAjax ::
   forall m a.
-  ExceptT AjaxError (HalogenM FrontendState Action ChildSlots Void m) a ->
-  HalogenM FrontendState Action ChildSlots Void m (WebData a)
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
 ------------------------------------------------------------
-checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM FrontendState Action ChildSlots Void m Unit
+checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
 checkAuthStatus settings = do
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
@@ -528,7 +528,7 @@ handleGistAction ::
   forall m.
   MonadAff m =>
   MonadEffect m =>
-  SPSettings_ SPParams_ -> GistAction -> HalogenM FrontendState Action ChildSlots Void m Unit
+  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
 handleGistAction settings PublishGist = do
   description <- use _projectName
   let
@@ -592,7 +592,7 @@ loadGist ::
   MonadAff m =>
   MonadEffect m =>
   Gist ->
-  HalogenM FrontendState Action ChildSlots Void m Unit
+  HalogenM State Action ChildSlots Void m Unit
 loadGist gist = do
   let
     { marlowe
@@ -620,7 +620,7 @@ loadGist gist = do
 selectView ::
   forall m action message.
   MonadEffect m =>
-  View -> HalogenM FrontendState action ChildSlots message m Unit
+  View -> HalogenM State action ChildSlots message m Unit
 selectView view = do
   let
     subroute = case view of

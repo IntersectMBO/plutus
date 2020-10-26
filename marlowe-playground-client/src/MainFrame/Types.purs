@@ -164,8 +164,8 @@ _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
 
 -----------------------------------------------------------
-newtype FrontendState
-  = FrontendState
+newtype State
+  = State
   { view :: View
   , jsCompilationResult :: JSCompilationState
   , blocklyState :: Maybe BlocklyState
@@ -187,63 +187,63 @@ newtype FrontendState
   , showModal :: Maybe ModalView
   }
 
-derive instance newtypeFrontendState :: Newtype FrontendState _
+derive instance newtypeState :: Newtype State _
 
-_view :: Lens' FrontendState View
+_view :: Lens' State View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_jsCompilationResult :: Lens' FrontendState JSCompilationState
+_jsCompilationResult :: Lens' State JSCompilationState
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
 
-_blocklyState :: Lens' FrontendState (Maybe BlocklyState)
+_blocklyState :: Lens' State (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
-_actusBlocklyState :: Lens' FrontendState (Maybe BlocklyState)
+_actusBlocklyState :: Lens' State (Maybe BlocklyState)
 _actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
 
-_jsEditorKeybindings :: Lens' FrontendState KeyBindings
+_jsEditorKeybindings :: Lens' State KeyBindings
 _jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
 
-_activeJSDemo :: Lens' FrontendState String
+_activeJSDemo :: Lens' State String
 _activeJSDemo = _Newtype <<< prop (SProxy :: SProxy "activeJSDemo")
 
-_showBottomPanel :: Lens' FrontendState Boolean
+_showBottomPanel :: Lens' State Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
 
-_haskellState :: Lens' FrontendState HE.State
+_haskellState :: Lens' State HE.State
 _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
 
-_simulationState :: Lens' FrontendState Simulation.State
+_simulationState :: Lens' State Simulation.State
 _simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
 
-_projects :: Lens' FrontendState Projects.State
+_projects :: Lens' State Projects.State
 _projects = _Newtype <<< prop (SProxy :: SProxy "projects")
 
-_newProject :: Lens' FrontendState NewProject.State
+_newProject :: Lens' State NewProject.State
 _newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
 
-_rename :: Lens' FrontendState Rename.State
+_rename :: Lens' State Rename.State
 _rename = _Newtype <<< prop (SProxy :: SProxy "rename")
 
-_saveAs :: Lens' FrontendState SaveAs.State
+_saveAs :: Lens' State SaveAs.State
 _saveAs = _Newtype <<< prop (SProxy :: SProxy "saveAs")
 
-_authStatus :: Lens' FrontendState (WebData AuthStatus)
+_authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
 
-_gistId :: Lens' FrontendState (Maybe GistId)
+_gistId :: Lens' State (Maybe GistId)
 _gistId = _Newtype <<< prop (SProxy :: SProxy "gistId")
 
-_createGistResult :: Lens' FrontendState (WebData Gist)
+_createGistResult :: Lens' State (WebData Gist)
 _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
-_loadGistResult :: Lens' FrontendState (Either String (WebData Gist))
+_loadGistResult :: Lens' State (Either String (WebData Gist))
 _loadGistResult = _Newtype <<< prop (SProxy :: SProxy "loadGistResult")
 
-_projectName :: Lens' FrontendState String
+_projectName :: Lens' State String
 _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 
-_showModal :: Lens' FrontendState (Maybe ModalView)
+_showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
 
 -- editable
@@ -255,5 +255,5 @@ _timestamp = prop (SProxy :: SProxy "timestamp")
 _value :: forall s a. Lens' { value :: a | s } a
 _value = prop (SProxy :: SProxy "value")
 
-isActiveTab :: FrontendState -> View -> Array ClassName
+isActiveTab :: State -> View -> Array ClassName
 isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))

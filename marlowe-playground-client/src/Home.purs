@@ -3,13 +3,13 @@ module Home where
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (blocklyIconColour, flex, fullWidth, haskellIcon, horizontalFlip, javascriptIcon, marloweLogo2, rightArrow, scroll, simulationIcon)
-import Halogen.HTML (button, div, div_, h2_, h3_, img, p_, text)
+import Halogen.HTML (button, div, div_, h2_, img, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import Prelude (const, (<<<))
-import MainFrame.Types (ModalView(..), Action(..), ChildSlots, FrontendState)
+import MainFrame.Types (ModalView(..), Action(..), ChildSlots, State)
 
-render :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+render :: forall m. State -> ComponentHTML Action ChildSlots m
 render state =
   div [ classes [ scroll, ClassName "homepage-container" ] ]
     [ div [ classes [ ClassName "marlowe-intro-container" ] ]
@@ -40,7 +40,7 @@ render state =
         ]
     ]
 
-startWithHaskell :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+startWithHaskell :: forall m. State -> ComponentHTML Action ChildSlots m
 startWithHaskell state =
   div [ classes [ ClassName "start-with-haskell", ClassName "even-item" ] ]
     [ div [ classes [ ClassName "group", ClassName "compilers-group" ] ]
@@ -69,7 +69,7 @@ startWithHaskell state =
         ]
     ]
 
-startWithMarlowe :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+startWithMarlowe :: forall m. State -> ComponentHTML Action ChildSlots m
 startWithMarlowe state =
   div [ classes [ ClassName "start-with-marlowe" ] ]
     [ marloweBlocklyBox state
@@ -80,7 +80,7 @@ startWithMarlowe state =
         ]
     ]
 
-marloweBlocklyBox :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+marloweBlocklyBox :: forall m. State -> ComponentHTML Action ChildSlots m
 marloweBlocklyBox state =
   div [ classes [ ClassName "marlowe-blockly-box" ] ]
     [ div [ classes [ ClassName "t-align-center" ] ]
