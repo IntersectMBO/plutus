@@ -113,8 +113,11 @@ newtype DefaultFunDyn = DefaultFunDyn
     { defaultFunDynTrace :: String -> IO ()
     }
 
+-- Kinda pointless, but I really like to use 'mempty' as a default 'DefaultFunDyn' and
+-- for providing a 'Monoid' instance we have to provide a 'Semigroup' one.
 instance Semigroup DefaultFunDyn where
-    DefaultFunDyn trace1 <> DefaultFunDyn trace2 = DefaultFunDyn $ \str -> trace1 str `seq` trace2 str
+    DefaultFunDyn trace1 <> DefaultFunDyn trace2 =
+        DefaultFunDyn $ \str -> trace1 str `seq` trace2 str
 
 instance Monoid DefaultFunDyn where
     mempty = DefaultFunDyn traceIO
@@ -295,6 +298,7 @@ instance Serialise DefaultFun where
               go 24 = pure Trace
               go _  = fail "Failed to decode BuiltinName"
 
+-- TODO: should we compute this from the number of builtins (which we can obtain)?
 -- | Using 5 bits to encode builtin tags.
 builtinTagWidth :: NumBits
 builtinTagWidth = 5
