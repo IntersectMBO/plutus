@@ -50,10 +50,6 @@ import           Language.UntypedPlutusCore
     bjbt': 3.0s, 1.1 GB
     fc:    7.5s, 3.2 GB
 
-    I suggest keeping the entire program, but only using a single algorithm for
-    benchmarking for the time being.  If we're investigate the behaviour of
-    Plutus Core evaluators at some point it might be useful to have the whole
-    range of algorithms available for experiments.
 %-}
 
 
