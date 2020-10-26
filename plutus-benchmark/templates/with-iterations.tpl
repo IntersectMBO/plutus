@@ -56,6 +56,7 @@
   </tbody>
  </table>
 
+ <!-- Modified to add entries for total iterations and total time -->
  <br/>
  Total number of executions: <span class="iters{{number}}">xxx</span>
  <br/>
@@ -167,6 +168,8 @@
    estimate of the extent to which the standard deviation has been
    inflated by outliers.</p>
 
+
+<!-- Script modified to add entries for total iterations and total time -->
 <script type="text/javascript">
 $(function () {
   function mangulate(rpt) {

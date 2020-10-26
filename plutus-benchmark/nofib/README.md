@@ -4,7 +4,7 @@ This directory contains Plutus versions of some benchmarks from the
 `spectral` set of [GHC nofib benchmarks](https://github.com/ghc/nofib).
 
 Most of the programs have required some modifications in order to work as Plutus
-programs (mostly related to eliminating strictness, since Plutus Core is a
+programs (mostly related to eliminating laziness, since Plutus Core is a
 strict language).  Type signatures have also been added to all top-level
 functions, but apart from that the original programs have been left unchanged as
 much as possible.  Comments relating to the Plutus implementation are delimited

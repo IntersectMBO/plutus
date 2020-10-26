@@ -49,7 +49,7 @@ detailed information about the results of running the benchmarks. This will be
 written to the `plutus-benchmarks` directory.  To put it elsewhere, pass
 Criterion the `--output` option along with an *absolute* path (relative paths
 are interpreted relative to `plutus-benchmarks` when running the benchmarks via
-satck or cabal): for example
+stack or cabal): for example
 
 ```
   stack bench plutus-benchmark:validation --ba "crowdfunding -L10 --output $PWD/crowdfunding-report.html"
