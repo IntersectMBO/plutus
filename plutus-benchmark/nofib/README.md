@@ -84,5 +84,5 @@ executed the relevant benchmark.  One would ideally like hundreds of samples in
 order to get useful statistics, so this information may be useful for deciding
 which benchmarks to run if, for example, two different versions of the CEK
 machine were being compared.  Note also that the total execution time (in
-seconds), and hence the number of samples, can be altered with Cirterions `-L`
+seconds), and hence the number of samples, can be altered with Cirterion's `-L`
 option.
