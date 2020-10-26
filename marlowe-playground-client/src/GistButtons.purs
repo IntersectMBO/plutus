@@ -10,11 +10,7 @@ import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx
 import Halogen.SVG as SVG
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(..))
-<<<<<<< HEAD
 import MainFrame.Types (Action, State, _authStatus)
-=======
-import MainFrame.Types (Action, FrontendState, _authStatus)
->>>>>>> move mainframe into it's own THE module
 
 authButton :: forall p. State -> HTML p Action
 authButton state =
