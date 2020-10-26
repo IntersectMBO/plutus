@@ -61,7 +61,7 @@ import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeD
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E

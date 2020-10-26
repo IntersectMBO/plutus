@@ -11,7 +11,7 @@ import Marlowe (SPParams_)
 import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
 import SaveAs.Types (Action(..), State, _error, _projectName)
 import Servant.PureScript.Settings (SPSettings_)
-import Types (ChildSlots)
+import MainFrame.Types (ChildSlots)
 
 handleAction ::
   forall m.

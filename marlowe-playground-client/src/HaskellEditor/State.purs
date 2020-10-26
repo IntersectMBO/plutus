@@ -26,7 +26,7 @@ import Simulation.State (_result)
 import Simulation.Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Webghc.Server (CompileRequest(..))
 
 handleAction ::

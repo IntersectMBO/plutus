@@ -15,14 +15,15 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
+import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
+import MainFrame.Types (Action(..), ChildSlots, FrontendState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
 import Monaco as Monaco
 import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (Action(..), ChildSlots, FrontendState, JSCompilationState(..), _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
 
 render ::
   forall m.

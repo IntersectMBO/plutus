@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -13,13 +14,13 @@ import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
-import MainFrame (mkMainFrame)
+import MainFrame.State (mkMainFrame)
+import MainFrame.Types (Query(..))
 import Marlowe (SPParams_(SPParams_))
 import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Types (Query(..))
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })

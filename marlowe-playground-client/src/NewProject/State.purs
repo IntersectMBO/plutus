@@ -13,7 +13,7 @@ import NewProject.Types (Action(..), State, _error, _projectName)
 import Prelude (Unit, Void, const, map, pure, show, unit, ($), (<<<))
 import Projects.Types (Lang(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Types (ChildSlots)
+import MainFrame.Types (ChildSlots)
 
 handleAction ::
   forall m.

@@ -7,7 +7,7 @@ import Halogen.HTML (button, div, div_, h2_, h3_, img, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import Prelude (const, (<<<))
-import Types (Action(..), ChildSlots, FrontendState, ModalView(..))
+import MainFrame.Types (ModalView(..), Action(..), ChildSlots, FrontendState)
 
 render :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
 render state =
