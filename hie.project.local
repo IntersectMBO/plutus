@@ -1,9 +1,0 @@
-package plutus-use-cases
-  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip
-
-package marlowe
-  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip
-
-package marlowe-actus
-  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip
-
