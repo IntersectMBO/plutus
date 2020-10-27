@@ -19,10 +19,10 @@ import           Language.PlutusIR.Compiler.Definitions
 import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.MkPir
 
+import qualified Language.PlutusCore.Builtins           as PLC
 import qualified Language.PlutusCore.MkPlc              as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.Universe           as PLC
-import qualified Language.PlutusCore.Builtins           as PLC
 
 import           Control.Monad.Reader                   hiding (lift)
 import           Control.Monad.State                    hiding (lift)
