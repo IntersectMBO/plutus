@@ -1,7 +1,6 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
-import Control.Bind ((>>=))
 import Data.Array (concatMap, drop, head, length, reverse)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -157,7 +156,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = (previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)) >>= (\x -> x)
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError <<< _Just)
 
   errorRow =
     if isNothing error then
