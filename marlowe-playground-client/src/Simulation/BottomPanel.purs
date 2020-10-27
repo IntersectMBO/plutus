@@ -1,6 +1,7 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
+import Control.Bind ((>>=))
 import Data.Array (concatMap, drop, head, length, reverse)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -122,7 +123,7 @@ panelContents state CurrentStateView =
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
-                , columns: ("Account ID" /\ "Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money")
+                , columns: ("Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money" /\ mempty)
                 , rowData: accountsData
                 }
             <> tableRow
@@ -156,7 +157,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)
+  error = (previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)) >>= (\x -> x)
 
   errorRow =
     if isNothing error then
