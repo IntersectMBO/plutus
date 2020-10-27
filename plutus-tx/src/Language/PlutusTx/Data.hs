@@ -71,68 +71,36 @@ isConstr = \case
 encodeData :: Data -> Encoding
 encodeData dt = CBOR.encodeBool (isConstr dt) <> encodeRest where
     encodeRest = case dt of
-            I i -> CBOR.encodeInteger i
-            B b -> CBOR.encodeBytes b
+            I i -> Serialise.encode i
+            B b -> Serialise.encode b
             Map entries ->
                 CBOR.encodeMapLenIndef
                     <> mconcat [ encodeData k <> encodeData v | (k, v) <- entries ]
                     <> CBOR.encodeBreak
-            List ts ->
-                CBOR.encodeListLenIndef
-                    <> mconcat (encodeData <$> ts)
-                    <> CBOR.encodeBreak
-            Constr i entries ->
-                CBOR.encodeInteger i
-                    <> CBOR.encodeListLenIndef
-                    <> mconcat (encodeData <$> entries)
-                    <> CBOR.encodeBreak
+            List ts -> Serialise.encode ts
+            Constr i entries -> Serialise.encode i <> Serialise.encode entries
 
 decodeData :: Decoder s Data
 decodeData = do
     constr <- CBOR.decodeBool
     if constr
-        then do
-            !x <- CBOR.decodeInteger
-            !y <- do
-                CBOR.decodeListLenIndef
-                decodeListIndefLen []
-            pure $ Constr x y
+        then Constr <$> Serialise.decode <*> Serialise.decode
         else do
             tkty <- CBOR.peekTokenType
             case tkty of
-                CBOR.TypeUInt -> do
-                    w <- CBOR.decodeWord
-                    return $! I $! fromIntegral w
-                CBOR.TypeUInt64 -> do
-                    w <- CBOR.decodeWord64
-                    return $! I $! fromIntegral w
-                CBOR.TypeNInt   -> do
-                    w <- CBOR.decodeNegWord
-                    return $! I $! (-1 - fromIntegral w)
-                CBOR.TypeNInt64 -> do
-                    w <- CBOR.decodeNegWord64
-                    return $! I $! (-1 - fromIntegral w)
-                CBOR.TypeInteger -> do
-                    !x <- CBOR.decodeInteger
-                    return (I x)
-                CBOR.TypeBytes -> do
-                    !x <- CBOR.decodeBytes
-                    return (B x)
+                CBOR.TypeUInt -> I <$> Serialise.decode
+                CBOR.TypeUInt64 -> I <$> Serialise.decode
+                CBOR.TypeNInt   -> I <$> Serialise.decode
+                CBOR.TypeNInt64 -> I <$> Serialise.decode
+                CBOR.TypeInteger -> I <$> Serialise.decode
+                CBOR.TypeBytes -> B <$> Serialise.decode
                 CBOR.TypeMapLenIndef -> do
                     CBOR.decodeMapLenIndef
                     Map <$> decodeMapIndefLen []
-                CBOR.TypeListLenIndef -> do
-                    CBOR.decodeListLenIndef
-                    List <$> decodeListIndefLen []
+                CBOR.TypeMapLen -> Map <$> Serialise.decode
+                CBOR.TypeListLenIndef -> List <$> Serialise.decode
+                CBOR.TypeListLen -> List <$> Serialise.decode
                 _ -> fail "Invalid encoding"
-
--- from https://hackage.haskell.org/package/cborg-0.2.4.0/docs/src/Codec.CBOR.Term.html#decodeListIndefLen
-decodeListIndefLen :: [Data] -> Decoder s [Data]
-decodeListIndefLen acc = do
-    stop <- CBOR.decodeBreakOr
-    if stop then return $ reverse acc
-            else do !tm <- decodeData
-                    decodeListIndefLen (tm : acc)
 
 -- from https://hackage.haskell.org/package/cborg-0.2.4.0/docs/src/Codec.CBOR.Term.html#decodeMapIndefLen
 decodeMapIndefLen :: [(Data, Data)] -> Decoder s [(Data, Data)]
@@ -142,7 +110,6 @@ decodeMapIndefLen acc = do
             else do !tm  <- decodeData
                     !tm' <- decodeData
                     decodeMapIndefLen ((tm, tm') : acc)
-
 instance Serialise.Serialise Data where
     encode = encodeData
     decode = decodeData
