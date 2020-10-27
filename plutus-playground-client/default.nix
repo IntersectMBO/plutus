@@ -5,7 +5,7 @@ let
   server-invoker =
     let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-      runtimeGhc = haskell.packages.ghcWithPackages (ps: [
+      runtimeGhc = haskell.project.ghcWithPackages (ps: [
         ps.playground-common
         ps.plutus-playground-server
         ps.plutus-use-cases

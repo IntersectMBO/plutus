@@ -9,17 +9,15 @@
 , fetchFromGitHub
 , fetchFromGitLab
 , index-state
+, compiler-nix-name
 , checkMaterialization
 , buildPackages
 }:
-let
-  compiler-nix-name = "ghc8102";
-in
 {
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "1fpj2q02ric566k9pcb812pq219d07l0982rvqq0ijd72mgr9sjz";
+    plan-sha256 = "0dywr1n68gvb0sbrqm5ahp8lkckminqdxsdcybjnjr8vc82sc08c";
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -56,21 +54,21 @@ in
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "19kn00zpj1b1p1fyrzwbg062z45x2lgcfap5bb9ra5alf0wxngh3";
+    plan-sha256 = "0m1h3hp95cflj28vhxyl1hl7k3frhx8f1mbkc8ry2dms603w2nrw";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "102zl1rjc8qhr6cf38ja4pxsr39i8pkg1b7pajdc4yb8jz6rdzir";
+    plan-sha256 = "0dl37v5sfs9gl46cxiaw04p3h5ny2pmqfy8jrpwr5xca8kxihc8h";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0pxqq5lnh7kd8pyhfyh81pq2v00g9lzkb1db8065cdxya6nirpjs";
+    plan-sha256 = "0q2ymsp4j3gi6ahaj6gynq1hkw418qwk2qyyarvbk4x9xskkz9fh";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }
@@ -96,7 +94,10 @@ in
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "0rjpf8xnamn063hbzi4wij8h2aiv71ailbpgd4ykfkv7mlc9mzny";
+    plan-sha256 = "0g3v4zxhzv2hyd1n5iqw6ldc01j5hai557vcl4likfq7nssymla3";
+    modules = [{
+      packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
+    }];
   };
   in { inherit (hspkgs) haskell-language-server hie-bios implicit-hie; }
 )
