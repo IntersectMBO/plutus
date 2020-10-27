@@ -109,8 +109,25 @@
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             ];
           buildable = true;
+          modules = [ "Common" "Paths_plutus_benchmark" ];
+          hsSourceDirs = [ "nofib/bench" ];
+          };
+        "nofib-hs" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-benchmark" or (errorHandler.buildDepError "plutus-benchmark"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            ];
+          buildable = true;
+          modules = [ "Common" "Paths_plutus_benchmark" ];
           hsSourceDirs = [ "nofib/bench" ];
           };
         "validation" = {
