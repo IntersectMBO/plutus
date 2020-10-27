@@ -122,7 +122,7 @@ panelContents state CurrentStateView =
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
-                , columns: ("Account ID" /\ "Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money")
+                , columns: ("Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money" /\ mempty)
                 , rowData: accountsData
                 }
             <> tableRow
@@ -156,7 +156,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError <<< _Just)
 
   errorRow =
     if isNothing error then
