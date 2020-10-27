@@ -37,11 +37,7 @@ The landing page for the Marlowe Playground looks like this
 
 image:landing-page.png[The landing page for the Playground]
 
-<<<<<<< HEAD
 The title bar has, at the right-hand side, links to this tutorial and the Actus Labs feature, and the *main menu* operations are shown below this.
-=======
-The title bar has, at the right hand side, links to this tutorial and the Actus Labs feature, and the *main menu* operations are shown below this.
->>>>>>> 93f75fa42358dcfedb80499348f51a93d3d20e68
 
 * *New Project* This clears the existing project, and creates a new one, in a coding environment of the user's choice:
 
@@ -64,7 +60,6 @@ The editor supports the development of Marlowe contracts described in Haskell. W
 
 image:haskell-editor.png[The Haskell editor]
 
-<<<<<<< HEAD
 The Haskell editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, we have to define a top-level value `contract` of type `Contract`; it is this value that is converted to pure Marlowe with the *Compile* button (in the top right-hand corner). If compilation is successful, the compiled code is shown in an overlay (which can be minimised):
 
 image:haskell-compiled.png[Haskell code compiled to Marlowe]
@@ -72,15 +67,6 @@ image:haskell-compiled.png[Haskell code compiled to Marlowe]
 On successful compilation the result can be sent to the simulator or to Blockly: these options are provided by the *Send to Simulator* and *Send to Blockly* buttons in the top right-hand corner of the page.
 
 If the contract cannot successfully be converted to Marlowe, the errors are also shown in an overlay:
-=======
-The Haskell editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, we have to define a top-level value `contract` of type `Contract`; it is this value that is converted to pure Marlowe with the *Compile* button (in the top RH corner). If compilation is successful, the compiled code is shown in an overlay (which can be minimised):
-
-image:haskell-compiled.png[Haskell code compiled to Marlowe]
-
-On successful compilation the result can be sent to the simulator or to Blockly: these options are provided by the *Send to Simulator* and *Send to Blockly* buttons in the top RH corner of the page.
-
-If the contract cannot successfully be converted to Marlowe, the errors are also shown in overlay:
->>>>>>> 93f75fa42358dcfedb80499348f51a93d3d20e68
 
 image:haskell-errors.png[Errors in compiling Haskell code to Marlowe]
 
@@ -91,7 +77,6 @@ The editor supports the development of Marlowe contracts described in JavaScript
 
 image:js-editor.png[The JavaScript editor]
 
-<<<<<<< HEAD
 The JS editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, the variable `contract` needs to be defined to something of type  `Contract`. 
 
 image:js-editor-cont.png[The value of `contract` defines the contract.]
@@ -151,65 +136,6 @@ image:simulation2.png[Simulation step 2]
 Where we see at the foot of the screen that the deposit has taken place. 
 
 This remains in view if we then make Alice's and then Bob's choice. Note also that the current state of the contract is shown in the main part of the window, and indeed we are waiting at this stage for a choice from Alice.
-=======
-The JS editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, the _last expression in the file_ needs to be of type  `Contract`: here we define the top-level constant `contract` to be of that type. 
-
-image:js-editor-cont.png[The final expression in the editor defines the contract.]
-
-The editor supports auto-complete, error checking during editing, and information about bindings on mouse over. In particular, using mouse over on any of the imported bindings will show its type (in TypeScript).
-
-It is this final value that is converted to pure Marlowe with the *Compile* button (in the top RH corner). If compilation is successful, the compiled code is shown in an overlay (which can be minimised):
-
-image:js-compiled.png[JS code compiled to Marlowe]
-
-On successful compilation the result can be sent to the simulator using the *Send to Simulator*  
-button in the top RH corner of the page.
-
-If the contract cannot successfully be converted to Marlowe, the errors are also shown in overlay:
-
-image:js-error.png[Errors in compiling JS code to Marlowe]
-
-=== Developing contracts in Blockly
-
-The playground provides a mechanism for creating and viewing contracts in a visual form, rather than in text. This is discussed in this earlier section on xref:playground-blockly#playground-blockly[Blockly].
-
-=== Developing contracts in Marlowe
-
-It is also possible to create contracts in "raw" Marlowe too, and this is performed in the simulation environment. Marlowe is edited in the Monaco editor, and this gives formatting (on right click) and supports *holes* too. 
-
-image:marlowe-editor.png[Editing Marlowe: using holes]
-
-Holes allow a program to be built top-down. Clicking the lightbulb next to a hole presents a completion menu, in each case replacing each sub component by a new hole. For example, choosing `Pay` to fill the top-level hole will result in this:
-
-image:marlowe-hole-fill.png[Editing Marlowe: filling a hole]
-
-Holes can be combined with ordinary text editing, so that you can use a mixture of bottom-up and top-down constructs in building Marlowe contracts. Moreover, contracts with holes can be transferred to and from Blockly: holes in Marlowe become literal holes in Blockly. To transfer to Blockly use the *View in Blockly Editor* in the top RH corner of the screen.
-
-=== Simulating Marlowe contracts
-
-However a contract is written, when it is sent to simulation this is the view seen first.
-
-image:simulation-tab.png[The Simulation pane]
-
-The code shown here presents whatever of the contract remains to be simulated, and the pane at the foot gives data about the simulation, as well as giving access to _static analysis_ for the contract (from its current state).
-
-Simulation is started by clicking the *Start simulation* button, and once this is done, the available actions that will advance the contract are presented;
-
-image:available-actions.png[The actions available, width=300]
-
-In this case there are two potential actions: Alice can make a deposit, or the slot (time) can advance to `10` at which the wait for a deposit times out. Two other generic actions can be taken too
-
-* *Undo* will undo the last action made in the simulator. This means that we can explore a contract interactively, making some moves, undoing some of them, and then proceeding in a different direction.
-* *Reset* will reset the contract and its state back to their initial values: the full contract and an empty state.
-
-For our example, let us select for Alice to make the deposit of 450 lovelace. We can do that with the *+* button next to this input. After doing that we see
-
-image:simulation2.png[Simulation step 2]
-
-Where we see at the foot of the screen that the deposit has taken place. 
-
-This remains in view if we then make Alice's and then Bob's choice. Note also the the current state of the contract is shown in the main part of the window, and indeed we are waiting at this stage for a choice from Alice.
->>>>>>> 93f75fa42358dcfedb80499348f51a93d3d20e68
 
 If Alice and Bob make different choices we then see
 
@@ -219,19 +145,11 @@ and at this point in the evolution of the contract we are awaiting a choice from
 
 === Saving and Opening Projects
 
-<<<<<<< HEAD
 Projects can be saved on github, and so when you first save a project you will be prompted thus:
 
 image:github1.png[Prompt to login to github]
 
 and, if you choose to *Login* there, you will be taken to a login screen for github:
-=======
-Projects are saved on github, and so when you first save a project you will be prompted thus:
-
-image:github1.png[Prompt to login to github]
-
-and if you choose to *Login* there you will be taken to a login screen for github:
->>>>>>> 93f75fa42358dcfedb80499348f51a93d3d20e68
 
 image:github2.png[Logging in to github,width=300]
 
