@@ -26,7 +26,7 @@ import           Data.Proxy
 
 -- This instance ensures that we can apply typeable type constructors to typeable arguments and get a typeable
 -- type. We need the kind variable, so that partial application of type constructors works.
-instance (Typeable uni fun (f :: * -> k), Typeable uni fun (a :: *)) => Typeable uni fun (f a) where
+instance (Typeable uni (f :: * -> k), Typeable uni (a :: *)) => Typeable uni (f a) where
     typeRep _ = TyApp () <$> typeRep (Proxy :: Proxy f) <*> typeRep (Proxy :: Proxy a)
 
 {- Note [Typeable instances for function types]
@@ -41,7 +41,7 @@ What is this? Well, it's something like '\a b . a -> b' as a type function. Whic
 silly thing to write, but it does work.
 -}
 -- See Note [Typeable instances for function types]
-instance Typeable uni fun (->) where
+instance Typeable uni (->) where
     typeRep _ = do
         a <- PLC.liftQuote $ PLC.freshTyName "a"
         b <- PLC.liftQuote $ PLC.freshTyName "b"
@@ -61,16 +61,16 @@ liftBuiltin
     => a -> RTCompile uni fun (Term TyName Name uni fun ())
 liftBuiltin = pure . mkConstant ()
 
-instance uni `PLC.Includes` Integer => Typeable uni fun Integer where
+instance uni `PLC.Includes` Integer => Typeable uni Integer where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.Includes` Integer => Lift uni fun Integer where
+instance uni `PLC.Includes` Integer => Lift uni Integer where
     lift = liftBuiltin
 
-instance uni `PLC.Includes` BS.ByteString => Typeable uni fun BS.ByteString where
+instance uni `PLC.Includes` BS.ByteString => Typeable uni BS.ByteString where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.Includes` BS.ByteString => Lift uni fun BS.ByteString where
+instance uni `PLC.Includes` BS.ByteString => Lift uni BS.ByteString where
     lift = liftBuiltin
 
 -- Standard types

@@ -49,7 +49,7 @@ type Throwable uni = (PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Every
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
-    :: (Lift.Lift uni fun a
+    :: (Lift.Lift uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GShow uni, PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
 
@@ -65,7 +65,7 @@ safeLift x = do
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
-    :: (Lift.Lift uni fun a
+    :: (Lift.Lift uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GShow uni, PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
 
@@ -76,7 +76,7 @@ safeLiftProgram
 safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
 safeLiftCode
-    :: (Lift.Lift uni fun a
+    :: (Lift.Lift uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GShow uni, PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
@@ -96,7 +96,7 @@ unsafely ma = runQuote $ do
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
-    :: ( Lift.Lift uni fun a, Throwable uni
+    :: ( Lift.Lift uni a, Throwable uni
        , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
        )
     => a -> UPLC.Term Name uni fun ()
@@ -104,7 +104,7 @@ lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
-    :: ( Lift.Lift uni fun a, Throwable uni
+    :: ( Lift.Lift uni a, Throwable uni
        , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
        )
     => a -> UPLC.Program Name uni fun ()
@@ -112,13 +112,13 @@ liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
 
 -- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef
-    :: Lift.Lift PLC.DefaultUni PLC.DefaultFun a
+    :: Lift.Lift PLC.DefaultUni a
     => a -> UPLC.Program Name PLC.DefaultUni PLC.DefaultFun ()
 liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
-    :: ( Lift.Lift uni fun a, Throwable uni
+    :: ( Lift.Lift uni a, Throwable uni
        , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
        ) => a -> CompiledCode uni fun a
 liftCode x = unsafely $ safeLiftCode x
@@ -138,7 +138,7 @@ iff the original term has the given type. We opt for `(\x : <the type> -> x) ter
 -- | Check that PLC term has the given type.
 typeCheckAgainst
     :: forall e a uni fun m .
-       ( Lift.Typeable uni fun a
+       ( Lift.Typeable uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PIR.AsError e uni fun (Provenance ())
@@ -170,7 +170,7 @@ typeCheckAgainst p plcTerm = do
 -- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.
 typeCode
     :: forall e a uni fun m .
-       ( Lift.Typeable uni fun a
+       ( Lift.Typeable uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PIR.AsError e uni fun (Provenance ())
