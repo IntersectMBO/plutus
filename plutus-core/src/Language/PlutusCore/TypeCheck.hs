@@ -37,7 +37,7 @@ import           Control.Monad.Except
 import           Data.Ix
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
--- corresponding @Type TyName@ for each row of a 'BuiltinMeanings'.
+-- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
     :: (AsTypeError err term uni fun ann, MonadError err m, ToBuiltinMeaning uni fun)
     => ann -> m (BuiltinTypes uni fun)
@@ -47,6 +47,7 @@ builtinMeaningsToTypes ann =
         _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
         pure <$> normalizeType ty
 
+-- | Get the default type checking config.
 getDefTypeCheckConfig
     :: forall term uni fun m err ann.
        (MonadError err m, AsTypeError err term uni fun ann, ToBuiltinMeaning uni fun)

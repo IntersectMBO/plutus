@@ -331,7 +331,7 @@ evaluateCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
-evaluateCk bri term = runReaderT ([] |> term) $ CkEnv bri
+evaluateCk runtime term = runReaderT ([] |> term) $ CkEnv runtime
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
@@ -342,4 +342,4 @@ unsafeEvaluateCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())
-unsafeEvaluateCk bri = either throw id . extractEvaluationResult . evaluateCk bri
+unsafeEvaluateCk runtime = either throw id . extractEvaluationResult . evaluateCk runtime

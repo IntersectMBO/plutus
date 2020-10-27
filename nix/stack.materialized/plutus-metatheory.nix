@@ -32,7 +32,12 @@
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = "";
       dataFiles = [];
-      extraSrcFiles = [ "README.md" "Plutus.agda-lib" ];
+      extraSrcFiles = [
+        "README.md"
+        "Plutus.agda-lib"
+        "src/**/*.lagda"
+        "src/**/*.lagda.md"
+        ];
       extraTmpFiles = [];
       extraDocFiles = [];
       };

@@ -23,7 +23,6 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type        as Types
 import qualified Language.PlutusCore.TypeCheck.Internal as PLC
 
-import           Data.Ix
 import qualified Data.Text                              as T
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
@@ -112,7 +111,7 @@ type Compiling m e uni fun a =
     , MonadQuote m
     , Ord a
     , PLC.GShow uni, PLC.GEq uni
-    , Ix fun, PLC.ToBuiltinMeaning uni fun
+    , PLC.ToBuiltinMeaning uni fun
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)

@@ -2,10 +2,10 @@
 , ({ tally: ({ BForce causes ({ cpu: 18
 | mem: 18
 })
-| BBuiltin SubtractInteger causes ({ cpu: 28
+| BBuiltin SubtractInteger causes ({ cpu: 18
 | mem: 164
 })
-| BBuiltin AddInteger causes ({ cpu: 14
+| BBuiltin AddInteger causes ({ cpu: 8
 | mem: 2
 })
 | BApply causes ({ cpu: 86
@@ -20,10 +20,10 @@
 | BVar causes ({ cpu: 59
 | mem: 59
 })
-| BBuiltin LessThanEqInteger causes ({ cpu: 35
+| BBuiltin LessThanEqInteger causes ({ cpu: 25
 | mem: 5
 })})
-| budget: ({ cpu: 245
+| budget: ({ cpu: 219
 | mem: 379
 })
 }) )

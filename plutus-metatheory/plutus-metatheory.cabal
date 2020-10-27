@@ -10,7 +10,13 @@ license-files:
 author:              James Chapman
 maintainer:          james.chapman@iohk.io
 category:            Development
-extra-source-files:  README.md, Plutus.agda-lib
+extra-source-files:
+  README.md,
+  Plutus.agda-lib,
+  -- This makes cabal rebuild if any of these files change, which allow the
+  -- custom setup to fire and rebuild the Haskell sources
+  src/**/*.lagda,
+  src/**/*.lagda.md
 build-type:          Custom
 
 custom-setup

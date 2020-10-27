@@ -1,9 +1,9 @@
-@media (max-width:1360px) {
+@media (max-width: $breakpoint-wide) {
 
   .expanded a .drawer-icon {
     transform: rotate(0deg);
   }
-  
+
   .drawer-icon {
     display: block;
     margin-left: auto;
@@ -88,6 +88,10 @@
     transform: translatex(0);
   }
 
+  .code-panel .sidebar-composer .drawer-icon-container {
+    opacity: 1;
+  }
+
   .code-panel .sidebar-composer>div,
   .code-panel .sidebar-composer>article {
     opacity: 0;
@@ -101,5 +105,16 @@
 
   .simulation-bottom-panel {
     width: 90%;
+  }
+}
+
+@media (max-width: $breakpoint-mid - 1) {
+  .menu-bar a {
+    .long-text {
+      display: none;
+    }
+    .short-text {
+      display: contents;
+    }
   }
 }

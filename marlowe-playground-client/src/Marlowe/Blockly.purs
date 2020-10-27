@@ -404,13 +404,12 @@ toDefinition blockType@(ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account of %5 %6 continue as %7 %8"
+        , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account of %5 continue as %6 %7"
         , args0:
           [ DummyCentre
           , Value { name: "from_party", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
-          , DummyLeft
           , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -563,13 +562,12 @@ toDefinition blockType@(ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account of %5 %6 continue as %7 %8"
+        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account of %5 continue as %6 %7"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
           , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
-          , DummyLeft
           , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }

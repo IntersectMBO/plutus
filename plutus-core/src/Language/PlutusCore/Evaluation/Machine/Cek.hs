@@ -6,9 +6,6 @@
 -- The CEK machines handles name capture by design.
 -- The type checker pass is a prerequisite.
 -- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
--- Dynamic extensions to the set of built-ins are allowed.
--- In case an unknown dynamic built-in is encountered, an 'UnknownBuiltinError' is returned
--- (wrapped in 'OtherMachineError').
 
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -283,8 +280,8 @@ instance (Eq fun, Hashable fun, ToExMemory term) =>
                         Nothing  -- No value available for error
 
 data Frame uni fun
-    = FrameApplyFun (CekValue uni fun)                             -- ^ @[V _]@
-    | FrameApplyArg (CekValEnv uni fun) (TermWithMem uni fun)          -- ^ @[_ N]@
+    = FrameApplyFun (CekValue uni fun)                         -- ^ @[V _]@
+    | FrameApplyArg (CekValEnv uni fun) (TermWithMem uni fun)  -- ^ @[_ N]@
     | FrameTyInstArg (TypeWithMem uni)                         -- ^ @{_ A}@
     | FrameUnwrap                                              -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni)  -- ^ @(iwrap A B _)@
@@ -520,8 +517,8 @@ runCek
     -> ExBudgetMode
     -> Plain Term uni fun
     -> (Either (CekEvaluationException uni fun) (Plain Term uni fun), CekExBudgetState fun)
-runCek means mode term =
-    runCekM (CekEnv means mode)
+runCek runtime mode term =
+    runCekM (CekEnv runtime mode)
             (ExBudgetState mempty mempty)
         $ do
             spendBudget BAST (ExBudget 0 (termAnn memTerm))
@@ -537,7 +534,7 @@ runCekCounting
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> (Either (CekEvaluationException uni fun) (Plain Term uni fun), CekExBudgetState fun)
-runCekCounting means = runCek means Counting
+runCekCounting runtime = runCek runtime Counting
 
 -- | Evaluate a term using the CEK machine.
 evaluateCek
@@ -547,7 +544,7 @@ evaluateCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> Either (CekEvaluationException uni fun) (Plain Term uni fun)
-evaluateCek means = fst . runCekCounting means
+evaluateCek runtime = fst . runCekCounting runtime
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
@@ -558,7 +555,7 @@ unsafeEvaluateCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> EvaluationResult (Plain Term uni fun)
-unsafeEvaluateCek means = either throw id . extractEvaluationResult . evaluateCek means
+unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -569,4 +566,4 @@ readKnownCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Plain Term uni fun
     -> Either (CekEvaluationException uni fun) a
-readKnownCek means = evaluateCek means >=> readKnown
+readKnownCek runtime = evaluateCek runtime >=> readKnown

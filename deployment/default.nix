@@ -18,7 +18,7 @@ let
 
     ${awscli}/bin/aws sts get-session-token --serial-number "arn:aws:iam::454236594309:mfa/$1" --output text --duration-seconds 86400 --token-code "$2" \
             | awk '{printf("export AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=\"%s\"\nexport AWS_SESSION_TOKEN=\"%s\"\n",$2,$4,$5)}'
-      '';
+  '';
 
   terraform-locals = env:
     writeTextFile {
@@ -49,7 +49,7 @@ let
       ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
       ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
       ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial
-      '';
+    '';
 
   syncPlutusTutorial = env:
     writeShellScript "syncPlutusTutorial" ''
@@ -58,7 +58,7 @@ let
       echo "sync plutus tutorial with S3"
       ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
       ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
-      '';
+    '';
 
   applyTerraform = env: region:
     writeShellScript "deploy" ''
@@ -113,7 +113,7 @@ let
       ${syncS3 env}
       ${syncPlutusTutorial env}
       echo "done"
-      '';
+    '';
 
   destroy = env: region:
     writeShellScript "destroy" ''
@@ -159,4 +159,5 @@ let
     pablo = mkEnv "pablo" "eu-west-3";
     wyohack = mkEnv "wyohack" "us-west-2";
   };
-in envs // { inherit getCreds; }
+in
+envs // { inherit getCreds; }

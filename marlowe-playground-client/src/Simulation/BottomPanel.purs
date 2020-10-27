@@ -4,15 +4,16 @@ import Control.Alternative (map)
 import Data.Array (concatMap, drop, head, length, reverse)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
+import Data.Either (Either(..), either)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, (^.))
+import Data.Lens (_Just, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Maybe (Maybe(..), isJust, isNothing, maybe)
 import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.String.Extra (unlines)
@@ -28,10 +29,9 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
+import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _executionState, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
-import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
@@ -42,7 +42,6 @@ bottomPanel state =
             else
               [ ClassName "simulation-bottom-panel", collapsed ]
           )
-      , bottomPanelHeight showingBottomPanel
       ]
     )
     [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
@@ -97,9 +96,9 @@ bottomPanel state =
 
   errors = state ^. (_marloweState <<< _Head <<< _editorErrors)
 
-  hasRuntimeWarnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings <<< to Array.null <<< to not)
+  hasRuntimeWarnings = maybe false (\x -> x ^. (_transactionWarnings <<< to Array.null <<< to not)) (state ^. (_marloweState <<< _Head <<< _executionState))
 
-  hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
+  hasRuntimeError = maybe false (\x -> x ^. (_transactionError <<< to isJust)) (state ^. (_marloweState <<< _Head <<< _executionState))
 
   showingBottomPanel = state ^. _showBottomPanel
 
@@ -118,12 +117,12 @@ panelContents state CurrentStateView =
   div [ class_ Classes.panelContents ]
     [ div [ classes [ rTable, rTable6cols, ClassName "panel-table" ] ]
         ( warningsRow <> errorRow
-            <> dataRow "Current Slot" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
+            <> eitherRow "Current Slot" (slotText)
             <> dataRow "Expiration Slot" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
-                , columns: ("Account ID" /\ "Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money")
+                , columns: ("Participant" /\ "Currency Symbol" /\ "Token Name" /\ "Money" /\ mempty)
                 , rowData: accountsData
                 }
             <> tableRow
@@ -149,7 +148,7 @@ panelContents state CurrentStateView =
     in
       if t == zero then "Closed" else show t
 
-  warnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings)
+  warnings = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionWarnings)
 
   warningsRow =
     if Array.null warnings then
@@ -157,13 +156,17 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = state ^. (_marloweState <<< _Head <<< _transactionError)
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError <<< _Just)
 
   errorRow =
     if isNothing error then
       []
     else
       (headerRow "Errors" ("details" /\ mempty /\ mempty /\ mempty /\ mempty)) <> displayError error
+
+  maybeExecutionState = state ^. (_marloweState <<< _Head <<< _executionState)
+
+  slotText = maybe (Left "Simulation has not started yet") (\x -> Right $ show (x ^. _slot)) maybeExecutionState
 
   displayError Nothing = []
 
@@ -174,7 +177,7 @@ panelContents state CurrentStateView =
 
   accountsData =
     let
-      (accounts :: Array _) = state ^. (_marloweState <<< _Head <<< _state <<< _accounts <<< to Map.toUnfoldable)
+      (accounts :: Array (Tuple (Tuple Party Token) BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
       asTuple (Tuple (Tuple accountOwner (Token currSym tokName)) value) = show accountOwner /\ show currSym /\ show tokName /\ show value /\ mempty
     in
@@ -182,7 +185,7 @@ panelContents state CurrentStateView =
 
   choicesData =
     let
-      (choices :: Array _) = state ^. (_marloweState <<< _Head <<< _state <<< _choices <<< to Map.toUnfoldable)
+      (choices :: Array (Tuple ChoiceId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _choices <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = show choiceName /\ show choiceOwner /\ show value /\ mempty /\ mempty
     in
@@ -190,7 +193,7 @@ panelContents state CurrentStateView =
 
   bindingsData =
     let
-      (bindings :: Array _) = state ^. (_marloweState <<< _Head <<< _state <<< _boundValues <<< to Map.toUnfoldable)
+      (bindings :: Array (Tuple ValueId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _boundValues <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ValueId valueId) value) = show valueId /\ show value /\ mempty /\ mempty /\ mempty
     in
@@ -219,6 +222,8 @@ panelContents state CurrentStateView =
         [ text title ]
     , div [ classes [ rTableCell, rTableDataRow ] ] [ text message ]
     ]
+
+  eitherRow title = either (emptyRow title) (dataRow title)
 
   displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
@@ -393,7 +398,7 @@ panelContents state MarloweLogView =
     ]
     content
   where
-  inputLines = state ^. (_marloweState <<< _Head <<< _log <<< to (concatMap logToLines))
+  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _log <<< to (concatMap logToLines))
 
   content =
     [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]

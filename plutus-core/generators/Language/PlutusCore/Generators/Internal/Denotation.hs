@@ -95,10 +95,9 @@ insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a builtin into a 'DenotationContext'.
 insertBuiltin
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => DefaultFun
-    -> DenotationContext (Term TyName Name uni DefaultFun ())
-    -> DenotationContext (Term TyName Name uni DefaultFun ())
+    :: DefaultFun
+    -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 insertBuiltin fun =
     case toBuiltinMeaning fun of
         BuiltinMeaning sch meta _ ->
@@ -110,8 +109,7 @@ insertBuiltin fun =
 -- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'TypedStaticBuiltin's.
 typedBuiltins
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => DenotationContext (Term TyName Name uni DefaultFun ())
+    :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 typedBuiltins
     = insertBuiltin AddInteger
     . insertBuiltin SubtractInteger

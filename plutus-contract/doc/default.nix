@@ -2,7 +2,8 @@
 
 let
   extraArgs = (lib.optionals (playgroundUrl != null) [ "-a" "playground=${playgroundUrl}" ]) ++ (lib.optionals (haddockUrl != null) [ "-a" "haddock=${haddockUrl}" ]);
-in stdenv.mkDerivation {
+in
+stdenv.mkDerivation {
   name = "plutus-contract-docs";
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
   buildInputs = [ asciidoctor python2 ];

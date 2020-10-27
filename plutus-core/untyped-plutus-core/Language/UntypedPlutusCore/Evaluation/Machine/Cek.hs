@@ -2,9 +2,6 @@
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
 -- The CEK machines handles name capture by design.
--- Dynamic extensions to the set of built-ins are allowed.
--- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinError' is returned
--- (wrapped in 'OtherMachineError').
 
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -496,8 +493,8 @@ runCek
     -> ExBudgetMode
     -> Term Name uni fun ()
     -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), CekExBudgetState fun)
-runCek bri mode term =
-    runCekM (CekEnv bri mode)
+runCek runtime mode term =
+    runCekM (CekEnv runtime mode)
             (ExBudgetState mempty mempty)
         $ do
             spendBudget BAST (ExBudget 0 (termAnn memTerm))
@@ -523,7 +520,7 @@ evaluateCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
-evaluateCek bri = fst . runCekCounting bri
+evaluateCek runtime = fst . runCekCounting runtime
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
@@ -534,7 +531,7 @@ unsafeEvaluateCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCek bri = either throw id . extractEvaluationResult . evaluateCek bri
+unsafeEvaluateCek runtime = either throw id . extractEvaluationResult . evaluateCek runtime
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -545,4 +542,4 @@ readKnownCek
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term Name uni fun ()
     -> Either (CekEvaluationException uni fun) a
-readKnownCek bri = evaluateCek bri >=> readKnown
+readKnownCek runtime = evaluateCek runtime >=> readKnown

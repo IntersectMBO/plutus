@@ -17,6 +17,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 
+import           Data.List                      (find)
 import           Data.Proxy
 import qualified Data.Text                      as T
 
@@ -30,8 +31,7 @@ parseError = throwError . Unexpected
 --- Static built-in functions ---
 
 parseBuiltinFunction :: (Bounded fun, Enum fun, Pretty fun) => T.Text -> Maybe fun
-parseBuiltinFunction name =
-    foldr (\fun r -> if display fun == name then Just fun else r) Nothing enumeration
+parseBuiltinFunction name = find (\fun -> display fun == name) enumeration
 
 --- Parsing built-in types and constants ---
 

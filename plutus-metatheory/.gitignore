@@ -1,4 +1,4 @@
 *.agdai
 *.lagda~
 *.agda~
-MAlonzo/*
+src/MAlonzo

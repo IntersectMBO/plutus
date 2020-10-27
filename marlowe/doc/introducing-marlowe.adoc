@@ -46,8 +46,8 @@ possible to use “pure” Marlowe if we wish, being embedded in a
 general-purpose language allows contract writers to selectively exploit
 features of Haskell in writing Marlowe contracts, making them easier to
 read and supporting re-use. In fact, Marlowe is not tied to Haskell, and we
-are developing an experimental JavaScript environment for Marlowe too. You will find a 
-prototype of this in the Marlowe Playground too.
+have also developed a JavaScript environment for Marlowe. You will find a 
+prototype of this in the Playground too.
 
 === Marlowe in a nutshell
 
@@ -111,6 +111,7 @@ This tutorial covers the latest version of Marlowe, while some of these links co
 * https://github.com/input-output-hk/marlowe[The Marlowe github repository] from which you can download Marlowe.
 * https://iohk.io/en/research/library/papers/marlowefinancial-contracts-on-blockchain/[Marlowe: financial contracts on blockchain] The paper that introduces an earlier version of the Marlowe language. Nevertheless, it explains the principles and rationale behind its design and implementation.
 * https://iohk.io/en/research/library/papers/marloweimplementing-and-analysing-financial-contracts-on-blockchain/[Marlowe: implementing and analysing financial contracts on blockchain] This paper describes the implementation of Marlowe on the Cardano blockchain, and the analysis supported by the Marlowe Playground web-based development and simulation environment.
-* YouTube playlist: https://www.youtube.com/playlist?list=PLqu19-ygE4ofUgGpslOs5zCr9Z6zCMibq[Marlowe: financial contracts on blockchain]. A general introduction to Marlowe from April 2020.
+* https://iohk.io/en/research/library/papers/efficient-static-analysis-of-marlowe-contracts/[Efficient static analysis of Marlowe contracts] This paper explains how we optimised the static analysis explained in the previous paper.
+* YouTube playlist: https://www.youtube.com/playlist?list=PLqu19-ygE4ofUgGpslOs5zCr9Z6zCMibq[Marlowe: financial contracts on blockchain]. A general introduction to Marlowe from April 2020, updated October 2020.
 * YouTube playlist: https://www.youtube.com/playlist?list=PLqu19-ygE4ofEeRfUiA-DYKRk9I3V9c1Q[The Marlowe Playground] An introduction to the playground; some features have changed, and others have been added, since these videos were made in April 2020. 
 

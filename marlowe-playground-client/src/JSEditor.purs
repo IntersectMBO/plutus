@@ -1,61 +1,67 @@
 module JSEditor where
 
-import Data.Array ((:))
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
-import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.JS.Contracts as JSE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
+import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
+import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (alt, class_, classes, enabled, href, src)
+import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
+import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
+import MainFrame.Types (Action(..), ChildSlots, State, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
 import Monaco as Monaco
-import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
+import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState, Action(..), JSCompilationState(..), _activeJSDemo, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
   forall m.
   MonadAff m =>
-  FrontendState ->
-  Array (ComponentHTML Action ChildSlots m)
+  State ->
+  ComponentHTML Action ChildSlots m
 render state =
-  [ section [ classes [ panelSubHeader, aHorizontal ] ]
-      [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-          [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-              [ div [ classes [ ClassName "demos", spaceLeft ] ]
-                  [ small_ [ text "Demos:" ]
-                  ]
-              ]
-          , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFilesJS))
-          ]
-      , div [ class_ (ClassName "editor-options") ]
-          [ select
-              [ HTML.id_ "editor-options"
-              , class_ (ClassName "dropdown-header")
-              , onSelectedIndexChange (\idx -> JSSelectEditorKeyBindings <$> toEnum idx)
-              ]
-              (map keybindingItem (upFromIncluding bottom))
-          ]
-      ]
-  , section [ class_ (ClassName "code-panel") ]
-      [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
-          [ jsEditor state ]
-      ]
-  ]
+  div_
+    [ section [ class_ (ClassName "code-panel") ]
+        [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
+            [ jsEditor state ]
+        ]
+    , bottomPanel state
+    ]
+
+otherActions :: forall p. State -> HTML p Action
+otherActions state =
+  div [ classes [ ClassName "group" ] ]
+    [ editorOptions state
+    , compileButton state
+    , sendButton state
+    ]
+
+sendButton :: forall p. State -> HTML p Action
+sendButton state = case view _jsCompilationResult state of
+  JSCompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultJSToSimulator ] [ text "Send To Simulator" ]
+  _ -> text ""
+
+editorOptions :: forall p. State -> HTML p Action
+editorOptions state =
+  div [ class_ (ClassName "editor-options") ]
+    [ select
+        [ HTML.id_ "editor-options"
+        , class_ (ClassName "dropdown-header")
+        , onSelectedIndexChange (\idx -> JSSelectEditorKeyBindings <$> toEnum idx)
+        ]
+        (map keybindingItem (upFromIncluding bottom))
+    ]
   where
   keybindingItem item =
     if state ^. _jsEditorKeybindings == item then
@@ -63,12 +69,10 @@ render state =
     else
       option [ HTML.value (show item) ] [ text $ show item ]
 
-  demoScriptLink key = li [ state ^. _activeJSDemo <<< activeClasses (eq key) ] [ a [ onClick $ const $ Just $ LoadJSScript key ] [ text key ] ]
-
 jsEditor ::
   forall m.
   MonadAff m =>
-  FrontendState ->
+  State ->
   ComponentHTML Action ChildSlots m
 jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditorMessage)
   where
@@ -82,7 +86,7 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditor
 
   component = monacoComponent $ JSM.settings setup
 
-bottomPanel :: forall p. FrontendState -> HTML p Action
+bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
   div
     ( [ classes
@@ -91,7 +95,6 @@ bottomPanel state =
             else
               [ analysisPanel, collapsed ]
           )
-      , bottomPanelHeight showingBottomPanel
       ]
     )
     [ div
@@ -102,17 +105,6 @@ bottomPanel state =
                     [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
                         [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                     ]
-                , div
-                    [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "js-buttons" ])
-                    ]
-                    ( case view _jsCompilationResult state of
-                        JSCompiling -> [ button [ enabled false, classes [ ClassName "disabled" ] ] [ text "Compiling..." ] ]
-                        JSCompiledSuccessfully _ ->
-                          [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ]
-                          , button [ onClick $ const $ Just SendResultJSToSimulator ] [ text "Send To Simulator" ]
-                          ]
-                        _ -> [ button [ onClick $ const $ Just CompileJSProgram ] [ text "Compile" ] ]
-                    )
                 ]
             ]
         , section
@@ -124,7 +116,16 @@ bottomPanel state =
   where
   showingBottomPanel = state ^. _showBottomPanel
 
-resultPane :: forall p. FrontendState -> Array (HTML p Action)
+compileButton :: forall p. State -> HTML p Action
+compileButton state =
+  button [ onClick $ const $ Just CompileJSProgram ]
+    [ text (if state ^. _jsCompilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+  where
+  isLoading JSCompiling = true
+
+  isLoading _ = false
+
+resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _jsCompilationResult state of
     JSCompiledSuccessfully (InterpreterResult result) ->

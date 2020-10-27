@@ -224,9 +224,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
 
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
-genTermLoose
-     :: (Generatable uni, Monad m)
-     => TypedBuiltinGenT (Plain Term uni DefaultFun) m
+genTermLoose :: Monad m => TypedBuiltinGenT (Plain Term DefaultUni DefaultFun) m
 genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,

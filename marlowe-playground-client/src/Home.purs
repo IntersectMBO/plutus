@@ -1,19 +1,17 @@
 module Home where
 
-import Data.Lens (to, (^.))
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (blocklyIconColour, flex, fullHeight, fullWidth, haskellIcon, horizontalFlip, marloweLogo2, rightArrow, scroll, simulationIcon)
-import Halogen.HTML (a, button, div, div_, h2_, h3_, img, input, label, p_, text)
-import Halogen.HTML.Events (onChecked, onClick)
-import Halogen.HTML.Properties (InputType(..), checked, classes, href, id_, src, target, type_)
-import Halogen.HTML.Properties as HTML
-import Prelude (const, not, (<<<))
-import Types (ChildSlots, FrontendState, Action(..), View(..), _showHomePage)
+import Halogen.Classes (blocklyIconColour, flex, fullWidth, haskellIcon, horizontalFlip, javascriptIcon, marloweLogo2, rightArrow, scroll, simulationIcon)
+import Halogen.HTML (button, div, div_, h2_, img, p_, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, src)
+import Prelude (const, (<<<))
+import MainFrame.Types (ModalView(..), Action(..), ChildSlots, State)
 
-render :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+render :: forall m. State -> ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ scroll, fullHeight ] ]
+  div [ classes [ scroll, ClassName "homepage-container" ] ]
     [ div [ classes [ ClassName "marlowe-intro-container" ] ]
         [ div [ classes [ ClassName "text-block" ] ]
             [ h2_ [ text "What is Marlowe?" ]
@@ -25,54 +23,53 @@ render state =
             ]
         , div [ classes [ ClassName "text-block" ] ]
             [ h2_ [ text "How does the playground work?" ]
-            , p_ [ text "Marlowe contracts can be built in different ways. You can write them as Marlowe text, but also use the Blockly visual programming tool to create contracts by fitting together blocks that represent the different components. Marlowe is written in the Haskell programming language, and you can also use Haskell features to help you describe Marlowe contracts more readably and succinctly." ]
+            , p_ [ text "Marlowe contracts can be built in different ways. You can write them as Marlowe text, but also use the Blockly visual programming tool to create contracts by fitting together blocks that represent the different components. Marlowe is embedded in JavaScript and Haskell, and so you can use features from them to help you to build Marlowe contracts more readably and succinctly." ]
             ]
         ]
     , div [ classes [ flex, ClassName "start-with-container" ] ]
-        [ div [ classes [ fullWidth ] ]
-            [ h3_ [ text "Option 1: Start with Haskell" ]
+        [ div [ classes [ fullWidth, flex ] ]
+            [ div [ class_ (ClassName "even-item") ] []
             , startWithHaskell state
-            ]
-        , div [ classes [ fullWidth ] ]
-            [ h3_ [ text "Option 2: Start with Marlowe or Blockly" ]
-            , startWithMarlowe state
+            , div [ class_ (ClassName "even-item") ] []
             ]
         ]
-    , h3_ [ text "Ready to go?" ]
     , div [ classes [ ClassName "home-buttons" ] ]
         [ div [ classes [ ClassName "ready-to-go-buttons" ] ]
-            [ a [ href "./tutorial/index.html", target "_blank" ] [ text "Read our tutorial" ]
-            , button [ onClick ((const <<< Just <<< ChangeView) Simulation) ] [ text "Start coding!" ]
-            ]
-        , div [ classes [ ClassName "no-show-home" ] ]
-            [ input
-                [ id_ "no-show-home"
-                , type_ InputCheckbox
-                , onChecked (Just <<< ShowHomePageInFuture <<< not)
-                , checked (state ^. (_showHomePage <<< to not))
-                ]
-            , label [ HTML.for "no-show-home" ] [ text "Don’t show this screen next time" ]
+            [ button [ onClick ((const <<< Just <<< OpenModal) NewProject) ] [ text "Start coding!" ]
             ]
         ]
     ]
 
-startWithHaskell :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+startWithHaskell :: forall m. State -> ComponentHTML Action ChildSlots m
 startWithHaskell state =
-  div [ classes [ ClassName "start-with-haskell" ] ]
-    [ div []
-        [ img [ src haskellIcon, classes [ ClassName "haskell-icon" ] ]
-        , p_ [ text "Haskell" ]
+  div [ classes [ ClassName "start-with-haskell", ClassName "even-item" ] ]
+    [ div [ classes [ ClassName "group", ClassName "compilers-group" ] ]
+        [ div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
+            [ div [ classes [ ClassName "icon-group" ] ]
+                [ img [ src haskellIcon, classes [ ClassName "haskell-icon" ] ]
+                , p_ [ text "Haskell" ]
+                ]
+            , div [ classes [ rightArrow ] ] []
+            ]
+        , div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
+            [ div [ classes [ ClassName "icon-group" ] ]
+                [ img [ src javascriptIcon, classes [ ClassName "javascript-icon" ] ]
+                , p_ [ text "Javascript" ]
+                ]
+            , div [ classes [ rightArrow ] ] []
+            ]
         ]
-    , div [ classes [ rightArrow ] ] []
     , marloweBlocklyBox state
-    , div [ classes [ rightArrow ] ] []
-    , div_
-        [ img [ src simulationIcon, classes [ ClassName "sim-icon" ] ]
-        , p_ [ text "Simulator" ]
+    , div [ classes [ ClassName "group", flex, ClassName "simulation-group" ] ]
+        [ div [ classes [ rightArrow ] ] []
+        , div_
+            [ img [ src simulationIcon, classes [ ClassName "sim-icon" ] ]
+            , p_ [ text "Simulator" ]
+            ]
         ]
     ]
 
-startWithMarlowe :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+startWithMarlowe :: forall m. State -> ComponentHTML Action ChildSlots m
 startWithMarlowe state =
   div [ classes [ ClassName "start-with-marlowe" ] ]
     [ marloweBlocklyBox state
@@ -83,7 +80,7 @@ startWithMarlowe state =
         ]
     ]
 
-marloweBlocklyBox :: forall m. FrontendState -> ComponentHTML Action ChildSlots m
+marloweBlocklyBox :: forall m. State -> ComponentHTML Action ChildSlots m
 marloweBlocklyBox state =
   div [ classes [ ClassName "marlowe-blockly-box" ] ]
     [ div [ classes [ ClassName "t-align-center" ] ]

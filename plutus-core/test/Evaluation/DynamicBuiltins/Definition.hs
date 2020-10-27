@@ -56,6 +56,8 @@ size = fromEnum (maxBound :: a) - fromEnum (minBound :: a) + 1
 
 -- >>> map fromEnum [Left False .. Right GT]
 -- [0,1,2,3,4]
+-- >>> map toEnum [0 .. 4] :: [Either Bool Ordering]
+-- [Left False,Left True,Right LT,Right EQ,Right GT]
 instance (Eq a, Eq b, Bounded a, Bounded b, Enum a, Enum b) => Enum (Either a b) where
     succ (Left x)
         | x == maxBound = Right minBound
