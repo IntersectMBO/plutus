@@ -436,6 +436,10 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         let constr = constrs !! index
 
                         lifts :: [Term TyName Name PLC.DefaultUni fun ()] <- sequence liftExprs'
+                        -- The 'fun' that is referenced here is the 'fun' that we bind the line above.
+                        -- If it was forall-bound instead, 'typeExprs\'' wouldn't type check,
+                        -- because 'Type' does not determine 'fun' (unlike 'Term' in 'liftExprs\''
+                        -- above).
                         let typeExprs' :: [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
                             typeExprs' = $$(tyListE typeExprs)
                         -- The types are compiled in an (empty) local scope.
