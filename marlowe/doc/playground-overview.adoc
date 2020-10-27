@@ -19,7 +19,7 @@ contract in the browser-based tool, the Marlowe Playground, a web tool
 that supports the interactive construction, revision, and simulation of
 smart-contracts written in Marlowe.
 
-Contracts can be authored in four different ways in the Playground. We can write directly in Marlowe, or use the Blockly representation of Marlowe. Marlowe is also embedded in Haskell and JavaScript, and we can author contracts in these langauges and then convert ("compile") them to Marlowe in the Playground.
+Contracts can be authored in four different ways in the Playground. We can write directly in Marlowe, or use the Blockly representation of Marlowe. Marlowe is also embedded in Haskell and JavaScript, and we can author contracts in these languages and then convert ("compile") them to Marlowe in the Playground.
 
 image:authoring.png[Authoring contracts in the Marlowe Playground]
 
