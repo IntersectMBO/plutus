@@ -151,16 +151,20 @@ If you find you are building packages that are not defined in this
 repository, or if the build seems to take a very long time then you may
 not have this set up properly.
 
-To set up the cache:
+Depending on your setup and needs different options for configuring the cache are available and
+are explained below.
 
-. On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
-+
+==== Cache setup on non-NixOS machines
+Edit `/etc/nix/nix.conf` and add the following lines:
+
 ----
 substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
 trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ----
-. On NixOS, set the following NixOS options:
-+
+
+==== Cache setup on NixOS machines
+Set the following NixOS options:
+
 ----
 nix = {
   binaryCaches          = [ "https://hydra.iohk.io" "https://iohk.cachix.org" ];
@@ -170,6 +174,29 @@ nix = {
 
 NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] you may add the
 `nix.conf` lines to `~/.config/nix/nix.conf` instead.
+
+
+==== Cache setup via `.envrc`
+Alternatively you may want to configure the cache only for the plutus project. If you use
+lorri and/or direnv you can do so by adding the following to the `.envrc` at the project root:
+
+----
+# Create a local nix config file
+NIX_CONF_DIR=$(pwd)/.config/nix
+mkdir -p $NIX_CONF_DIR
+
+# Store the iohk specific cache config
+cat - <<EOF > $NIX_CONF_DIR/nix.conf
+substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+EOF
+
+# Add our configuration to `XDG_CONFIG_DIRS` so that Nix will
+# pick it up and set `NIX_CONF_DIR` to have Nix treat it as
+# configuration file.
+export XDG_CONFIG_DIRS="$(pwd)/.config:$XDG_CONFIG_DIRS"
+export NIX_CONF_DIR
+----
 
 === Nix on macOS
 
