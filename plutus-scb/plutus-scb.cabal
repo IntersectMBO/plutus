@@ -333,3 +333,51 @@ test-suite plutus-scb-test
         transformers -any,
         prettyprinter -any,
         row-types -any
+
+executable prism-credential-manager
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/credential-manager
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-mirror
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/mirror
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-unlock-sto
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/unlock-sto
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-unlock-exchange
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/unlock-exchange
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any

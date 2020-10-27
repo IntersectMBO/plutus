@@ -14,6 +14,7 @@ in haskell.packages.shellFor {
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
+    pkgs.shellcheck
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
@@ -58,10 +59,13 @@ in haskell.packages.shellFor {
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
 
-  shellHook = ''
+  shellHook = 
     # Work around https://github.com/NixOS/nix/issues/3345, which makes
     # tests etc. run single-threaded in a nix-shell.
     # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
-    taskset -pc 0-1000 $$ 
-  '';
+    # Only necessary for linux - darwin doesn't even expose thread
+    # affinity APIs!
+    pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+      taskset -pc 0-1000 $$ 
+    '';
 }

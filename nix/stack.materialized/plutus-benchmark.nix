@@ -25,7 +25,15 @@
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = "";
-      dataFiles = [];
+      dataFiles = [
+        "bench-validation/data/crowdfunding/*.plc"
+        "bench-validation/data/future/*.plc"
+        "bench-validation/data/multisigSM/*.plc"
+        "bench-validation/data/vesting/*.plc"
+        "bench-validation/data/marlowe/trustfund/*.plc"
+        "bench-validation/data/marlowe/zerocoupon/*.plc"
+        "templates/*.tpl"
+        ];
       extraSrcFiles = [];
       extraTmpFiles = [];
       extraDocFiles = [];
@@ -82,6 +90,21 @@
             ];
           buildable = true;
           hsSourceDirs = [ "bench" ];
+          };
+        "validation" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          modules = [ "Paths_plutus_benchmark" ];
+          hsSourceDirs = [ "bench-validation" ];
           };
         };
       };

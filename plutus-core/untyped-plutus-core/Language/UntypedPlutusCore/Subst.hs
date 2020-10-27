@@ -8,6 +8,7 @@ module Language.UntypedPlutusCore.Subst
     , termSubstFreeNamesA
     , termSubstFreeNames
     , termMapNames
+    , programMapNames
     , uniquesTerm
     , vTerm
     ) where
@@ -104,6 +105,13 @@ termMapNames f = go
             Constant ann c -> Constant ann c
             Builtin ann b -> Builtin ann b
             Error ann -> Error ann
+
+programMapNames
+    :: forall name name' uni ann
+    . (name -> name')
+    -> Program name uni ann
+    -> Program name' uni ann
+programMapNames f (Program a v term) = Program a v (termMapNames f term)
 
 -- All variables
 

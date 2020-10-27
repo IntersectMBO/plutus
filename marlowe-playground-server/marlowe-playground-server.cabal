@@ -75,6 +75,7 @@ executable marlowe-playground-server
         PSGenerator
         Types
         Escrow
+        Example
         CouponBondGuaranteed
         ZeroCouponBond
         Swap

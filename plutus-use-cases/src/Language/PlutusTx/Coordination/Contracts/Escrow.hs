@@ -282,14 +282,14 @@ redeem
     -> Contract s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
     let addr = Scripts.scriptAddress inst
-    currentSlot <- awaitSlot 0
+    current <- currentSlot
     unspentOutputs <- utxoAt addr
     let
         valRange = Interval.to (pred $ escrowDeadline escrow)
         tx = Typed.collectFromScript unspentOutputs Redeem
                 <> foldMap mkTx (escrowTargets escrow)
                 <> Constraints.mustValidateIn valRange
-    if currentSlot >= escrowDeadline escrow
+    if current >= escrowDeadline escrow
     then throwing _RedeemFailed DeadlinePassed
     else if (foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs) `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress

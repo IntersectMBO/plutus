@@ -38,6 +38,8 @@ foreign import iohkLogo :: String
 
 foreign import haskellIcon :: String
 
+foreign import javascriptIcon :: String
+
 foreign import marloweLogo :: String
 
 foreign import marloweLogo2 :: String

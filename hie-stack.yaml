@@ -208,7 +208,31 @@ cradle:
         stack:
           component: "web-ghc:test:web-ghc-test"
 
-  # These use the plutus plugin - HIE doesn't support plugins yet
+  - path: ./plutus-benchmark/lib
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:lib"
+
+  - path: ./plutus-benchmark/bench
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:large-plc-cek"
+
+  - path: ./plutus-benchmark/bench-validation
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:validation"
+
+  - path: ./plutus-benchmark/app
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:exe:plutus-benchmark"
+
+# These use the plutus plugin - HIE doesn't support plugins yet
 
   - path: ./marlowe
     config:

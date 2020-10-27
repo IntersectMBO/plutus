@@ -1866,14 +1866,6 @@
       };
     }
     {
-      name = "esprima___esprima_1.0.4.tgz";
-      path = fetchurl {
-        name = "esprima___esprima_1.0.4.tgz";
-        url  = "https://registry.yarnpkg.com/esprima/-/esprima-1.0.4.tgz";
-        sha1 = "9f557e08fc3b4d26ece9dd34f8fbf476b62585ad";
-      };
-    }
-    {
       name = "esrecurse___esrecurse_4.2.1.tgz";
       path = fetchurl {
         name = "esrecurse___esrecurse_4.2.1.tgz";
@@ -2551,14 +2543,6 @@
         name = "hmac_drbg___hmac_drbg_1.0.1.tgz";
         url  = "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz";
         sha1 = "d2745701025a6c775a6c545793ed502fc0c649a1";
-      };
-    }
-    {
-      name = "hoister___hoister_0.0.2.tgz";
-      path = fetchurl {
-        name = "hoister___hoister_0.0.2.tgz";
-        url  = "https://registry.yarnpkg.com/hoister/-/hoister-0.0.2.tgz";
-        sha1 = "0d0d8b1ce0f191553e61afec654f6b180eb96e5d";
       };
     }
     {
@@ -4082,14 +4066,6 @@
       };
     }
     {
-      name = "notevil___notevil_1.3.3.tgz";
-      path = fetchurl {
-        name = "notevil___notevil_1.3.3.tgz";
-        url  = "https://registry.yarnpkg.com/notevil/-/notevil-1.3.3.tgz";
-        sha1 = "56b8a935d8978e0c000749621aca3928b823cb01";
-      };
-    }
-    {
       name = "npm_bundled___npm_bundled_1.0.6.tgz";
       path = fetchurl {
         name = "npm_bundled___npm_bundled_1.0.6.tgz";
@@ -5215,6 +5191,14 @@
         name = "safe_buffer___safe_buffer_5.2.1.tgz";
         url  = "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz";
         sha1 = "1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6";
+      };
+    }
+    {
+      name = "safe_eval___safe_eval_0.4.1.tgz";
+      path = fetchurl {
+        name = "safe_eval___safe_eval_0.4.1.tgz";
+        url  = "https://registry.yarnpkg.com/safe-eval/-/safe-eval-0.4.1.tgz";
+        sha1 = "e54ba5a1bbdec795d488f6c8765e0c2a78b4cdc0";
       };
     }
     {

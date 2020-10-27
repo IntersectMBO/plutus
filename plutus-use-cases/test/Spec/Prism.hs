@@ -72,7 +72,7 @@ tests = testGroup "PRISM"
         >> handleAll
 
         -- issue a KYC credential to a user
-        >> callEndpoint @"issue" mirror CredentialOwnerReference{coTokenName=kyc, coOwner=pubKeyHash (walletPubKey user)}
+        >> callEndpoint @"issue" mirror CredentialOwnerReference{coTokenName=kyc, coOwner=user}
         >> handleBlockchainEvents mirror
         >> addBlocks 1
         >> handleAll
