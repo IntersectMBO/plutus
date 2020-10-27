@@ -43,7 +43,7 @@ import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
-import MainFrame.Types (Action(..), ChildSlots, State(State), ModalView(..), Query(..), View(..), _activeJSDemo, _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _activeJSDemo, _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -55,7 +55,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
 import NewProject.Types (Action(..), State, _projectName, emptyState) as NewProject
-import Prelude (class Functor, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
+import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
 import Projects.Types (Lang(..))
@@ -420,6 +420,15 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   assign _gistId Nothing
   assign _createGistResult NotAsked
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
+  -- reset all the editors
+  toHaskellEditor $ HaskellEditor.editorSetValue mempty
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
+  void $ query _jsEditorSlot unit (Monaco.SetText mempty unit)
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
+  toSimulation $ Simulation.editorSetValue mempty
+  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
+  void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
+  -- set the appropriate editor
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
@@ -429,9 +438,10 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
         void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
         liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
+    Marlowe -> do
+      toSimulation $ Simulation.editorSetValue "?new_contract"
+      liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
     _ -> pure unit
-  toSimulation $ Simulation.editorSetValue "?new_contract"
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
   traverse_ selectView $ selectLanguageView lang
   assign (_simulationState <<< ST._source) lang
   assign _showModal Nothing
@@ -440,11 +450,16 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
 handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
 
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
-  for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-  for_ (Map.lookup key StaticData.demoFilesJS) \contents -> void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
-  for_ (preview (ix key) (Map.fromFoldable StaticData.marloweContracts)) \contents -> do
-    Simulation.editorSetValue contents
-    void $ query _blocklySlot unit (Blockly.SetCode contents unit)
+  case lang of
+    Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
+    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+    Marlowe -> do
+      for_ (preview (ix key) (Map.fromFoldable StaticData.marloweContracts)) \contents -> do
+        Simulation.editorSetValue contents
+    Blockly -> do
+      for_ (preview (ix key) (Map.fromFoldable StaticData.marloweContracts)) \contents -> do
+        void $ query _blocklySlot unit (Blockly.SetCode contents unit)
+    Actus -> pure unit
   assign _showModal Nothing
   traverse_ selectView $ selectLanguageView lang
 
@@ -538,13 +553,19 @@ handleGistAction ::
 handleGistAction settings PublishGist = do
   description <- use _projectName
   let
+    toNothing :: forall a. Eq a => Monoid a => Maybe a -> Maybe a
+    toNothing (Just v)
+      | v == mempty = Nothing
+
+    toNothing m = m
+
     -- playground is a meta-data file that we currently just use as a tag to check if a gist is a marlowe playground gist
     playground = "{}"
-  marlowe <- toSimulation Simulation.editorGetValue
-  haskell <- HaskellEditor.editorGetValue
-  blockly <- query _blocklySlot unit $ H.request Blockly.GetWorkspace
-  javascript <- query _jsEditorSlot unit $ H.request Monaco.GetText
-  actus <- query _actusBlocklySlot unit $ H.request ActusBlockly.GetWorkspace
+  marlowe <- toNothing <$> toSimulation Simulation.editorGetValue
+  haskell <- toNothing <$> HaskellEditor.editorGetValue
+  blockly <- toNothing <$> (query _blocklySlot unit $ H.request Blockly.GetWorkspace)
+  javascript <- toNothing <$> (query _jsEditorSlot unit $ H.request Monaco.GetText)
+  actus <- toNothing <$> (query _actusBlocklySlot unit $ H.request ActusBlockly.GetWorkspace)
   let
     files = { playground, marlowe, haskell, blockly, javascript, actus }
 
