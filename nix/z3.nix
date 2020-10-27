@@ -1,4 +1,3 @@
-
 # TODO: We will move this into the upstream nixpkgs (iohk and nix organizations) and then we can remove it
 { lib, stdenv, fetchFromGitHub, python, fixDarwinDylibNames, staticbin ? false }:
 
@@ -10,8 +9,8 @@ stdenv.mkDerivation rec {
   version = "4.8.6";
 
   src = fetchFromGitHub {
-    owner  = "Z3Prover";
-    repo   = name;
+    owner = "Z3Prover";
+    repo = name;
     rev = "4c0db00a7b37d277e3a703794fad31e52adfc455";
     sha256 = "1m03cx7nay76328n88qs4awx0i6j2amwwm04l23ks1vjnv785nf2";
   };
@@ -37,9 +36,9 @@ stdenv.mkDerivation rec {
 
   meta = {
     description = "A high-performance theorem prover and SMT solver";
-    homepage    = "https://github.com/Z3Prover/z3";
-    license     = stdenv.lib.licenses.mit;
-    platforms   = stdenv.lib.platforms.x86_64;
+    homepage = "https://github.com/Z3Prover/z3";
+    license = stdenv.lib.licenses.mit;
+    platforms = stdenv.lib.platforms.x86_64;
     maintainers = [ stdenv.lib.maintainers.thoughtpolice ];
   };
 }

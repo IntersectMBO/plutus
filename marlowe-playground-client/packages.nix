@@ -3,7 +3,7 @@
 # To change the contents of this file, first fork Psc-Package2Nix
 # And edit the $file_template
 
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 let
   inputs = {
@@ -1303,9 +1303,10 @@ let
       phases = "installPhase";
       installPhase = "ln -s $src $out";
     };
-};
+  };
 
-in {
+in
+{
   inherit inputs;
 
   set = "local";

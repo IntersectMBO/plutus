@@ -4,9 +4,9 @@ latex.buildLatex {
   name = "lazy-machine";
   texInputs = {
     inherit (texlive)
-    scheme-small
-    collection-latexextra
-    collection-mathscience;
+      scheme-small
+      collection-latexextra
+      collection-mathscience;
   };
   texFiles = [ "lazy-plutus-core.tex" ];
   src = latex.filterLatex ./.;

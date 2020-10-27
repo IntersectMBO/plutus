@@ -6,7 +6,7 @@
 , yarn2nix-moretea
 , nodejs-headers
 , src
-, additionalPurescriptSources ? []
+, additionalPurescriptSources ? [ ]
 , packages
 , spagoPackages
 , name
@@ -33,11 +33,11 @@ let
 
   packagesJson = "${src}/packages.json";
 
-  cleanSrcs = pkgs.lib.cleanSourceWith { 
+  cleanSrcs = pkgs.lib.cleanSourceWith {
     filter = pkgs.lib.cleanSourceFilter;
     src = lib.cleanSourceWith {
       filter = (path: type: !(pkgs.lib.elem (baseNameOf path)
-                            [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode"]));
+        [ ".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode" ]));
       inherit src;
     };
   };
@@ -49,7 +49,8 @@ let
     ".spago/*/*/src/**/*.purs"
   ] ++ additionalPurescriptSources;
 
-in yarn2nix-moretea.mkYarnPackage {
+in
+yarn2nix-moretea.mkYarnPackage {
   inherit name packageJSON yarnLock yarnNix checkPhase;
   src = cleanSrcs;
   nodejs = nodejs-10_x;
