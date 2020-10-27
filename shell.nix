@@ -11,9 +11,11 @@ let
     src = (pkgs.lib.cleanSource ./.);
     tools = {
       stylish-haskell = dev.packages.stylish-haskell;
+      nixpkgs-fmt = pkgs.nixpkgs-fmt;
     };
     hooks = {
       stylish-haskell.enable = true;
+      nixpkgs-fmt.enable = true;
     };
   };
 in
