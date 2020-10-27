@@ -420,10 +420,16 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   assign _gistId Nothing
   assign _createGistResult NotAsked
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
-  toHaskellEditor $ HaskellEditor.editorSetValue HE.example
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
-  for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
+  case lang of
+    Haskell ->
+      for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
+        toHaskellEditor $ HaskellEditor.editorSetValue HE.example
+        liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
+    Javascript ->
+      for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
+        void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+        liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
+    _ -> pure unit
   toSimulation $ Simulation.editorSetValue "?new_contract"
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
   traverse_ selectView $ selectLanguageView lang
