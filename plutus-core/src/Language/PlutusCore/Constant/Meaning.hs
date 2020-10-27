@@ -93,8 +93,11 @@ toBuiltinRuntime dyn cost (BuiltinMeaning sch f exF) =
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
-    type DynamicPart uni fun  -- ^ The @dyn@ part of 'BuiltinMeaning'.
-    type CostingPart uni fun  -- ^ The @cost@ part of 'BuiltinMeaning'.
+    -- | The @dyn@ part of 'BuiltinMeaning'.
+    type DynamicPart uni fun
+
+    -- | The @cost@ part of 'BuiltinMeaning'.
+    type CostingPart uni fun
 
     -- | Get the 'BuiltinMeaning' of a built-in function.
     toBuiltinMeaning
