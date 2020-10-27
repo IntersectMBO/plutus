@@ -2,7 +2,8 @@
 
 let
   extraArgs = (lib.optionals (plutusPlaygroundUrl != null) [ "-a" "plutusplayground=${plutusPlaygroundUrl}" ]) ++ (lib.optionals (marlowePlaygroundUrl != null) [ "-a" "marloweplayground=${marlowePlaygroundUrl}" ]);
-in stdenv.mkDerivation {
+in
+stdenv.mkDerivation {
   name = "marlowe-tutorial";
   src = lib.sourceFilesBySuffices ./. [ ".adoc" ".svg" ".png" ".PNG" ".gif" ".ico" ".css" ];
   buildInputs = [ asciidoctor python2 ];

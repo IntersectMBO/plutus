@@ -11,12 +11,15 @@ let
     src = (pkgs.lib.cleanSource ./.);
     tools = {
       stylish-haskell = dev.packages.stylish-haskell;
+      nixpkgs-fmt = pkgs.nixpkgs-fmt;
     };
     hooks = {
       stylish-haskell.enable = true;
+      nixpkgs-fmt.enable = true;
     };
   };
-in haskell.packages.shellFor {
+in
+haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -28,6 +31,7 @@ in haskell.packages.shellFor {
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
+    pkgs.nixpkgs-fmt
     # Broken on 20.03, needs a backport
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
@@ -71,12 +75,12 @@ in haskell.packages.shellFor {
   shellHook = ''
     ${pre-commit-check.shellHook}
   ''
-    # Work around https://github.com/NixOS/nix/issues/3345, which makes
-    # tests etc. run single-threaded in a nix-shell.
-    # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
-    # Only necessary for linux - darwin doesn't even expose thread
-    # affinity APIs!
-   + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
-      ${pkgs.utillinux}/bin/taskset -pc 0-1000 $$
-    '';
+  # Work around https://github.com/NixOS/nix/issues/3345, which makes
+  # tests etc. run single-threaded in a nix-shell.
+  # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
+  # Only necessary for linux - darwin doesn't even expose thread
+  # affinity APIs!
+  + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+    ${pkgs.utillinux}/bin/taskset -pc 0-1000 $$
+  '';
 }

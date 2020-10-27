@@ -13,13 +13,13 @@
 let
   ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-playground-server ]);
   main = pkgs.writeText "app.hs"
-              ''
-              module Main where
-              import qualified Lambda
-              main = Lambda.main
-              '';
+    ''
+      module Main where
+      import qualified Lambda
+      main = Lambda.main
+    '';
 
-  openssl = (pkgs.openssl.override { static = true; }).overrideAttrs(old : {
+  openssl = (pkgs.openssl.override { static = true; }).overrideAttrs (old: {
     # "no-shared" per https://github.com/NixOS/nixpkgs/pull/77542, should be able to
     # get rid of this when we update nixpkgs
     configureFlags = old.configureFlags ++ [ "no-shared" ];
@@ -30,12 +30,12 @@ let
   libffi = pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; });
   numactl = pkgs.numactl.overrideAttrs (_: { configureFlags = "--enable-static"; });
 in
-  pkgs.stdenv.mkDerivation {
-    name = "marlowe-playground-lambda";
-    nativeBuildInputs = [ pkgs.zip ];
-    unpackPhase = "true";
-    buildPhase =
-      ''
+pkgs.stdenv.mkDerivation {
+  name = "marlowe-playground-lambda";
+  nativeBuildInputs = [ pkgs.zip ];
+  unpackPhase = "true";
+  buildPhase =
+    ''
       mkdir -p $out/bin
       ${ghc}/bin/${ghc.targetPrefix}ghc ${main} -static -threaded -o $out/bin/bootstrap \
                      -optl=-static \
@@ -45,12 +45,12 @@ in
                      -optl=-L${lib.getLib openssl}/lib \
                      -optl=-L${lib.getLib libffi}/lib \
                      -optl=-L${lib.getLib numactl}/lib
-      '';
-    installPhase = ''
-      zip -j marlowe-playground-lambda.zip $out/bin/bootstrap
-      mv marlowe-playground-lambda.zip $out/marlowe-playground-lambda.zip
     '';
+  installPhase = ''
+    zip -j marlowe-playground-lambda.zip $out/bin/bootstrap
+    mv marlowe-playground-lambda.zip $out/marlowe-playground-lambda.zip
+  '';
 
-    # Marlowe lambda builds with musl, and only on linux
-    meta.platforms = lib.platforms.linux;
-  }
+  # Marlowe lambda builds with musl, and only on linux
+  meta.platforms = lib.platforms.linux;
+}

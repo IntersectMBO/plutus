@@ -1,6 +1,7 @@
 { lib, mkDerivation, standard-library }:
 let
-in mkDerivation {
+in
+mkDerivation {
   pname = "Plutus";
   version = "0.1";
 
