@@ -8,7 +8,7 @@
 
 { system ? builtins.currentSystem
 , crossSystem ? null
-, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, config ? { }
 
 # Overrides for niv
 , sourcesOverride ? {}
@@ -25,7 +25,6 @@
 
 let
   inherit (pkgs) lib;
-  localLib = import ./lib.nix;
 
   sources = import ./nix/sources.nix;
 
@@ -57,7 +56,7 @@ let
   easyPS = pkgs.callPackage sources.easy-purescript-nix {};
 
 in rec {
-  inherit pkgs sources localLib iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
+  inherit pkgs sources iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
 
   python = {
     inherit sphinx-markdown-tables sphinxemoji;

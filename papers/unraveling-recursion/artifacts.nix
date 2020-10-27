@@ -1,5 +1,5 @@
 {
-  pkgs ? (import ../../lib.nix {}).pkgs,
+  pkgs ? (import ../../nix {}),
 }:
 
 pkgs.runCommand "FIR-compiler" { buildInputs = [ pkgs.zip ]; src = ./code; } ''

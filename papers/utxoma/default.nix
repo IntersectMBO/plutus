@@ -1,5 +1,5 @@
 {
-  pkgs ? (import ../lib.nix {}).pkgs,
+  pkgs ? (import ../nix {}),
   latex,
   texlive ? pkgs.texlive
 }:
