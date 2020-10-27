@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Plutus.Benchmark.Knights where

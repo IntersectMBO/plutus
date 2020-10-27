@@ -34,7 +34,7 @@ clause p = clause' p ([] , [])
            clause' (Dis p q)       x   = clause' p (clause' q x)
            clause' (Sym s)       (c,a) = (insert s c , a)
            clause' (Not (Sym s)) (c,a) = (c , insert s a)
-           
+
 -- the main pipeline from propositional formulae to a list of clauses
 {-# INLINABLE clauses #-}
 clauses :: Formula -> [LRVars]
