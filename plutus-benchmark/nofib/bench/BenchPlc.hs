@@ -3,10 +3,9 @@
 module Main where
 
 import           Criterion.Main
-import           Criterion.Types                                            (Config (..))
 import qualified Data.Map                                                   as Map
 
-import qualified Common
+import           Common
 
 import           Language.PlutusCore                                        (Name (..))
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
@@ -39,13 +38,6 @@ benchQueens sz alg = benchCek $ Queens.mkQueensTerm sz alg
 benchKnights :: Integer -> Integer -> Benchmarkable
 benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
 
-config :: Config
-config = defaultConfig {
-           reportFile = Just "report.html"
-         , template   = "./default.tpl"
-         , timeLimit  = 60.0  -- Run each benchmark for at least one minute
-         }
-
 {- This runs all of the benchmarks, which will take a long time.
    To run an individual benmark, try, for example,
 
@@ -59,4 +51,7 @@ config = defaultConfig {
 -}
 
 main :: IO ()
-main = defaultMainWith config $ Common.mkBenchMarks benchClausify benchKnights benchPrime benchQueens
+main = do
+  let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
+  config <- Common.getConfig 60.0  -- Run each benchmark for at least one minute
+  defaultMainWith config $ Common.mkBenchMarks runners

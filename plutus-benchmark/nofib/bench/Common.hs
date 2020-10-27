@@ -1,20 +1,43 @@
 {- | Shared code for benchmarking Plutus and Haskell versions of the Plutus nofib examples -}
-module Common
+module Common (getConfig, mkBenchMarks, BenchmarkRunners)
 where
 
 import           Criterion.Main
+import           Criterion.Types           (Config (..))
+import           System.FilePath
 
+import           Paths_plutus_benchmark    (getDataFileName)
 import qualified Plutus.Benchmark.Clausify as Clausify
 import qualified Plutus.Benchmark.Prime    as Prime
 import qualified Plutus.Benchmark.Queens   as Queens
 
-mkBenchMarks
-    :: (Clausify.StaticFormula -> Benchmarkable)
-    -> (Integer -> Integer -> Benchmarkable)
-    -> (Prime.PrimeID -> Benchmarkable)
-    -> (Integer -> Queens.Algorithm -> Benchmarkable)
-    -> [Benchmark]
-mkBenchMarks benchClausify benchKnights benchPrime benchQueens = [
+{- | The Criterion configuration returned by `getConfig` will cause an HTML report
+   to be generated.  If run via stack/cabal this will be written to the
+   `plutus-benchmark` directory by default.  The -o option can be used to change
+   this, but an absolute path will probably be required (eg,
+   "-o=$PWD/report.html") . -}
+getConfig :: Double -> IO Config
+getConfig limit = do
+  templateDir <- getDataFileName "templates"
+  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
+  pure $ defaultConfig {
+                template = templateFile,
+                reportFile = Just "report.html",
+                timeLimit = limit
+              }
+
+{- | Package together functions to create benchmarks for each program given suitable inputs. -}
+type BenchmarkRunners =
+    ( Clausify.StaticFormula -> Benchmarkable
+    , Integer -> Integer -> Benchmarkable
+    , Prime.PrimeID -> Benchmarkable
+    , Integer -> Queens.Algorithm -> Benchmarkable
+    )
+
+{- | Make a benchmarks with a number of different inputs.  The input values
+   have been chosen to complete in a reasonable time without exhausting memory. -}
+mkBenchMarks :: BenchmarkRunners -> [Benchmark]
+mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
     bgroup "clausify" [ bench "formula1" $ benchClausify Clausify.F1
                       , bench "formula2" $ benchClausify Clausify.F2
                       , bench "formula3" $ benchClausify Clausify.F3

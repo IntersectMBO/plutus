@@ -5,26 +5,19 @@
 module Main where
 
 import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.CBOR
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import qualified Language.PlutusCore.Pretty                                 as PP
 
 import           Criterion.Main
 import           Criterion.Types                                            (Config (..))
-import qualified Language.PlutusCore.Universe                               as PLC
 import qualified Language.UntypedPlutusCore                                 as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
 import           Paths_plutus_benchmark                                     (getDataFileName)
 
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Functor                                               (($>), (<&>))
-import qualified Data.Map                                                   as Map
-import qualified Data.Text.IO                                               as T
 import           System.FilePath
 import           Text.Printf                                                (printf)
 
@@ -74,30 +67,37 @@ getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumb
 
 {- Create a benchmark with a name like "crowdfunding/5" by applying validator
    number v to datum number d, redeemer number r, and context number c in the
-   directory data/<dirname>.  The 'id' argument is just to make the names of the
+   directory data/<dirname>.  The 'bmId' argument is just to make the names of the
    indvidual benchmarks more readable and more easily typed. -}
 mkBM :: String -> (Int, (Int, Int, Int, Int)) -> Benchmark
-mkBM dirname (id, (v,d,r,c)) =
-    env (getAppliedScript dirname v d r c) $ \script -> bench (show id) $ benchCek script
+mkBM dirname (bmId, (v,d,r,c)) =
+    env (getAppliedScript dirname v d r c) $ \script -> bench (show bmId) $ benchCek script
 
 -- Make a `bgroup` collecting together a number of benchmarks for the same contract
 mkBgroup :: String -> [(Int, (Int, Int, Int, Int))] -> Benchmark
 mkBgroup dirname bms = bgroup dirname (map (mkBM dirname) bms)
 
+
+{- | The Criterion configuration returned by `getConfig` will cause an HTML report
+   to be generated.  If run via stack/cabal this will be written to the
+   `plutus-benchmark` directory by default.  The -o option can be used to change
+   this, but an absolute path will probably be required (eg,
+   "-o=$PWD/report.html") . -}
+getConfig :: IO Config
+getConfig = do
+  templateDir <- getDataFileName "templates"
+  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
+  pure $ defaultConfig {
+                template = templateFile,
+                reportFile = Just "report.html"
+              }
+
 {- See the README files in the data directories for the combinations of scripts.
    you can run specific benchmarks by typing things like
    `stack bench -- plutus-benchmark:validation --ba crowdfunding/2`. -}
-{- The definition of `config` below will cause an HTML report to be generated.  If
-   run via stack/cabal this will be written to the `plutus-benchmark` directory
-   by default.  The -o option can be used to change this, but an absolute path
-   will probably be required (eg, "-o=$PWD/report.html") . -}
+main :: IO ()
 main = do
-  templateDir <- getDataFileName "templates"
-  let templateFile = templateDir </> "with-iterations" <.> "tpl" -- Include number of iterations in HTML report
-      config = defaultConfig {
-                 template = templateFile,
-                 reportFile = Just "report.html"
-               }
+  config <- getConfig
   defaultMainWith config
        [ mkBgroup
          "crowdfunding"
