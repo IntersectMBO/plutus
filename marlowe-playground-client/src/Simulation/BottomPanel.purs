@@ -8,12 +8,12 @@ import Data.Either (Either(..), either)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (_Just, previewOn, to, (^.))
+import Data.Lens (_Just, has, only, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, isNothing, maybe)
+import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.String.Extra (unlines)
@@ -29,7 +29,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _executionState, _log, _slot, _state, _transactionError, _transactionWarnings)
+import Simulation.State (MarloweEvent(..), _SimulationRunning, _SimulationNotStarted, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 
@@ -96,9 +96,9 @@ bottomPanel state =
 
   errors = state ^. (_marloweState <<< _Head <<< _editorErrors)
 
-  hasRuntimeWarnings = maybe false (\x -> x ^. (_transactionWarnings <<< to Array.null <<< to not)) (state ^. (_marloweState <<< _Head <<< _executionState))
+  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
 
-  hasRuntimeError = maybe false (\x -> x ^. (_transactionError <<< to isJust)) (state ^. (_marloweState <<< _Head <<< _executionState))
+  hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
 
   showingBottomPanel = state ^. _showBottomPanel
 
@@ -148,7 +148,7 @@ panelContents state CurrentStateView =
     in
       if t == zero then "Closed" else show t
 
-  warnings = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionWarnings)
+  warnings = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings)
 
   warningsRow =
     if Array.null warnings then
@@ -156,7 +156,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError <<< _Just)
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< _Just)
 
   errorRow =
     if isNothing error then
@@ -164,9 +164,11 @@ panelContents state CurrentStateView =
     else
       (headerRow "Errors" ("details" /\ mempty /\ mempty /\ mempty /\ mempty)) <> displayError error
 
-  maybeExecutionState = state ^. (_marloweState <<< _Head <<< _executionState)
-
-  slotText = maybe (Left "Simulation has not started yet") (\x -> Right $ show (x ^. _slot)) maybeExecutionState
+  slotText = case previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) of
+    Just initialSlot -> Right $ show initialSlot
+    Nothing -> case previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _slot) of
+      Just slot -> Right $ show slot
+      Nothing -> Left "Slot number not defined"
 
   displayError Nothing = []
 
@@ -177,7 +179,7 @@ panelContents state CurrentStateView =
 
   accountsData =
     let
-      (accounts :: Array (Tuple (Tuple Party Token) BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _accounts <<< to Map.toUnfoldable)
+      (accounts :: Array (Tuple (Tuple Party Token) BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
       asTuple (Tuple (Tuple accountOwner (Token currSym tokName)) value) = show accountOwner /\ show currSym /\ show tokName /\ show value /\ mempty
     in
@@ -185,7 +187,7 @@ panelContents state CurrentStateView =
 
   choicesData =
     let
-      (choices :: Array (Tuple ChoiceId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _choices <<< to Map.toUnfoldable)
+      (choices :: Array (Tuple ChoiceId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _choices <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = show choiceName /\ show choiceOwner /\ show value /\ mempty /\ mempty
     in
@@ -193,7 +195,7 @@ panelContents state CurrentStateView =
 
   bindingsData =
     let
-      (bindings :: Array (Tuple ValueId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _state <<< _boundValues <<< to Map.toUnfoldable)
+      (bindings :: Array (Tuple ValueId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _boundValues <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ValueId valueId) value) = show valueId /\ show value /\ mempty /\ mempty /\ mempty
     in
@@ -398,7 +400,7 @@ panelContents state MarloweLogView =
     ]
     content
   where
-  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _Just <<< _log <<< to (concatMap logToLines))
+  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines))
 
   content =
     [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]

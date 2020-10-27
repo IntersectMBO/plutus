@@ -4,13 +4,13 @@ import Prelude
 import Control.Monad.State (runState)
 import Data.Array (snoc)
 import Data.BigInteger (fromInt)
-import Data.Lens (_Just, over, set, (^.))
+import Data.Lens (over, preview, set, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
-import Simulation.State (_contract, _executionState, _pendingInputs, _transactionError, applyTransactions, emptyExecutionStateWithSlot, updateContractInState, updateMarloweState)
+import Simulation.State (_SimulationRunning, _contract, _executionState, _pendingInputs, _transactionError, applyTransactions, emptyExecutionStateWithSlot, updateContractInState, updateMarloweState)
 import Simulation.Types (_marloweState, mkState)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
@@ -37,18 +37,18 @@ all =
 
         (Tuple _ finalState) =
           (flip runState mkState) do
-            updateMarloweState (set _executionState (Just (emptyExecutionStateWithSlot zero)))
+            updateMarloweState (set _executionState (emptyExecutionStateWithSlot zero))
             updateContractInState Contracts.escrow
-            updateMarloweState (over (_executionState <<< _Just <<< _pendingInputs) ((flip snoc) deposit))
+            updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) deposit))
             applyTransactions
-            updateMarloweState (over (_executionState <<< _Just <<< _pendingInputs) ((flip snoc) choice1))
-            updateMarloweState (over (_executionState <<< _Just <<< _pendingInputs) ((flip snoc) choice2))
+            updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) choice1))
+            updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) choice2))
             applyTransactions
 
         finalContract = finalState ^. _marloweState <<< _Head <<< _contract
 
         txError = do
-          executionState <- (finalState ^. _marloweState <<< _Head <<< _executionState)
+          executionState <- preview (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning) finalState
           executionState ^. _transactionError
       equal Nothing txError
       equal (Just Close) finalContract
