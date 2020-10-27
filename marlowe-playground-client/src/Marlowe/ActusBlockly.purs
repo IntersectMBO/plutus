@@ -389,7 +389,7 @@ toolbox =
   xml [ id_ "actusBlocklyToolbox", style "display:none" ]
     [ category [ name "Contracts", colour actusColour ] (map mkBlock actusContractTypes)
     , category [ name "Values", colour valueColour ] (map mkBlock actusValueTypes)
-    , category [ name "Periods", colour valueColour ] (map mkBlock actusPeriodTypes)
+    , category [ name "Periods", colour periodColour ] (map mkBlock actusPeriodTypes)
     ]
   where
   mkBlock :: forall t. Show t => t -> _

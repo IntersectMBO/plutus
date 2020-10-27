@@ -2,13 +2,14 @@ html,
 body,
 .site-wrap {
   background: var(--bg-dark);
-  height: 100vh;
+  height: calc(100vh - 53px);
 }
 
 main {
   display: flex;
+  flex-direction: column;
   overflow: hidden;
-  height: calc(100vh - 80px);
+  height: 100%;
 }
 
 main nav {

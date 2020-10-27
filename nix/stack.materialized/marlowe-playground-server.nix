@@ -128,6 +128,7 @@
             "PSGenerator"
             "Types"
             "Escrow"
+            "Example"
             "CouponBondGuaranteed"
             "ZeroCouponBond"
             "Swap"

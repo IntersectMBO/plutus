@@ -8,7 +8,7 @@ import Data.Either (Either(..), either)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (_Just, to, (^.))
+import Data.Lens (_Just, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
@@ -32,7 +32,6 @@ import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _executionState, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
-import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
@@ -43,7 +42,6 @@ bottomPanel state =
             else
               [ ClassName "simulation-bottom-panel", collapsed ]
           )
-      , bottomPanelHeight showingBottomPanel
       ]
     )
     [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
@@ -158,9 +156,7 @@ panelContents state CurrentStateView =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty /\ mempty /\ mempty)) <> foldMap displayWarning' warnings
 
-  error = do
-    executionState <- (state ^. (_marloweState <<< _Head <<< _executionState))
-    executionState ^. _transactionError
+  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _Just <<< _transactionError)
 
   errorRow =
     if isNothing error then

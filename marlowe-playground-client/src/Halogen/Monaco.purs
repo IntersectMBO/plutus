@@ -30,7 +30,7 @@ data KeyBindings
 derive instance genericKeyBindings :: Generic KeyBindings _
 
 instance showKeyBindings :: Show KeyBindings where
-  show DefaultBindings = "Default"
+  show DefaultBindings = "Default Key Bindings"
   show Vim = "Vim"
   show Emacs = "Emacs"
 

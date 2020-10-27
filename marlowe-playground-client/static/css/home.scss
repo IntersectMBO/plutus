@@ -1,3 +1,8 @@
+.homepage-container {
+  height: calc(100% - 40px);
+  margin: 0rem 1rem;
+}
+
 .right-arrow {
   background: rgb(0, 0, 0);
   height: 2px;
@@ -39,10 +44,8 @@
 
 .start-with-haskell {
   max-width: 500px;
-}
-
-.start-with-marlowe {
-  max-width: 350px;
+  justify-content: space-between;
+  margin: auto;
 }
 
 .start-with-haskell .haskell-icon {
@@ -53,12 +56,9 @@
   max-width: 100px;
 }
 
-.start-with-marlowe .sim-icon {
-  max-width: 100px;
-}
-
 .marlowe-blockly-box {
   display: flex;
+  flex-direction: column;
   align-items: center;
   border: 1px grey solid;
   padding: 0.5rem;
@@ -70,6 +70,7 @@
   flex-direction: column;
   place-content: space-between;
   margin: 0.5rem;
+  transform: rotate(90deg);
 }
 
 .marlowe-blockly-box .arrows .right-arrow {
@@ -78,6 +79,34 @@
 
 .start-with-container {
   gap: 2rem;
+
+  .even-item {
+    flex: 1;
+  }
+  .even-item:first-child {
+    margin: 1rem;
+  }
+}
+
+.compilers-group {
+  flex: 1;
+}
+
+.compiler-group {
+  align-items: center;
+  margin: 1rem;
+
+  .icon-group {
+    width: 50px;
+    p {
+      text-align: center;
+    }
+  }
+}
+
+.simulation-group {
+  flex: 1;
+  align-items: center;
 }
 
 .ready-to-go-buttons {
@@ -105,6 +134,12 @@
   /* add gap and remove wrap if we want 3 columns */
   /* gap: 1rem; */
   flex-wrap: wrap;
+  flex-flow: row;
+
+  div {
+    margin: 1rem;
+    ;
+  }
 }
 
 @media (max-width:768px) {
