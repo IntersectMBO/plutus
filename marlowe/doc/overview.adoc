@@ -1,4 +1,5 @@
-== Marlowe 3.0 tutorials
+
+== Marlowe tutorials
 
 This document gives an overview of a set of Marlowe tutorials.
 
@@ -19,7 +20,7 @@ In this tutorial we look at our general approach to modelling contracts in Marlo
 This tutorial explains the five ways of building contracts in Marlowe. Four of these – `Pay`, `Let`, `If` and `When` – build a complex contract from simpler contracts, and the fifth, `Close`, is a simple contract. 
 In explaining these contracts we will also explain Marlowe _values_, _observations_ and _actions_, which are used to supply external information and inputs to a running contract to control how it will evolve.
 . xref:playground-blockly#playground-blockly[]
-Marlowe contracts can  be built using the Blockly visual programming environment, as described in a series of videos making up this tutorial.
+This section shows how Marlowe contracts are built using the Blockly visual programming environment.
 . xref:marlowe-data#marlowe-data[]
 This tutorial formally introduces Marlowe as a Haskell data type, as well as presenting 
 the different types used by the model, and discussing a
@@ -29,9 +30,8 @@ be run.
 This tutorial shows how to use some simple features of Haskell to write
 Marlowe contracts that are more readable, maintainable and reusable, illustrated by
 revisiting the escrow contract.
-. xref:using-marlowe#using-marlowe[]
-This tutorial shows you how to use Marlowe from the command line in ghci, and in
-particular shows how to exercise a contract using the semantics given earlier.
+. xref:javascript-embedding#javascript-embedding[]
+Marlowe is also embedded in JavaScript, and here we show how Marlowe contracts can be created and edited in JavaScript.
 . xref:playground-overview#playground-overview[]
 This tutorial introduces the Marlowe Playground, an online tool for
 creating embedded Marlowe contracts and interactively stepping through
@@ -46,14 +46,15 @@ of the inputs that it receives. This tutorial explains this, and how to run an a
 . xref:actus-marlowe#actus-marlowe[]
 This tutorial gives an introduction to the general idea of the ACTUS
 taxonomy, plus examples implemented in Marlowe.
-. xref:migrating#migrating[]
-Here we explain how the current version of Marlowe is related to earlier versions, in particular version 1.3 and 2.0.
-. xref:wallets-simulation#wallets-simulation[]
-The wallets simulation present a view of a running contract from the perspective of a participant in that contract, rather than the ‘omniscient‘ view given in the simulation tab.
 . xref:actus-labs#actus-labs[]
 The Actus Labs support generation of different styles of Actus contract from the parameters that describe the particular contract instance.
-. xref:javascript-embedding#javascript-embedding[]
-Marlowe is also embedded in JavaScript, and here we show how Marlowe contracts can be created and edited in JavaScript.
+. xref:wallets-simulation#wallets-simulation[]
+The wallets simulation present a view of a running contract from the perspective of a participant in that contract, rather than the ‘omniscient‘ view given in the simulation tab.
+. xref:using-marlowe#using-marlowe[]
+This tutorial shows you how to use Marlowe from the command line in ghci, and in
+particular shows how to exercise a contract using the semantics given earlier.
+. xref:migrating#migrating[]
+Here we explain how the current version of Marlowe is related to earlier versions.
 // . xref:escrow-step-by-step#escrow-step-by-step[] Escrow step by step NOT YET UPDATED
 // On this tutorial we build the escrow contract step by step. From a single contract with a single actor (Alice) to multiple actors (Alice,Bob,Carol) and multiple interactions. /This was the script for the example in the udemy class/.
 
@@ -76,10 +77,10 @@ simulation of the Cardano SL layer.
 ////
 ____
 These tutorials address the current version of
-Marlowe, 3.0, which is implemented in the _Marlowe Playground_, and
+Marlowe, which is implemented in the _Marlowe Playground_, and
 available {marloweplayground}[here].
 
 The version covered in the ISoLA paper, and supported in the original
-version of Meadow, is tagged as *v1.3* and is
+version of the Playground (called Meadow), is tagged as *v1.3* and is
 available https://github.com/input-output-hk/marlowe/tree/v1.3[here].
 ____

@@ -1,5 +1,5 @@
 [#javascript-embedding]
-== Marlowe in JavaScript
+== Marlowe embedded in JavaScript
 
 Marlowe is written as a Haskell data type, and thus it is straightforward to generate Marlowe smart contracts using Haskell. Nevertheless, we also provide a library written in TypeScript that can be used to generate Marlowe smart contracts from TypeScript or JavaScript in a similar way to how one would by using Haskell. If you are not familiar with TypeScript, you can also use the API as if it was written in JavaScript since TypeScript is a superset of JavaScript.
 
@@ -216,4 +216,4 @@ The contract has four steps:
  . Then we pay Alice’s deposit to Bob
  . We pay Bob’s deposit to Alice.
 
-And that was all. You can find the full source code for the swap smart contract in the examples that are available at the top of the JS Tab.
+And that is it. You can find the full source code for the swap smart contract in the examples in the Marlowe Playground, which we look at next.

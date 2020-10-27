@@ -23,7 +23,7 @@ render state =
             ]
         , div [ classes [ ClassName "text-block" ] ]
             [ h2_ [ text "How does the playground work?" ]
-            , p_ [ text "Marlowe contracts can be built in different ways. You can write them as Marlowe text, but also use the Blockly visual programming tool to create contracts by fitting together blocks that represent the different components. Marlowe is written in the Haskell programming language, and you can also use Haskell features to help you describe Marlowe contracts more readably and succinctly." ]
+            , p_ [ text "Marlowe contracts can be built in different ways. You can write them as Marlowe text, but also use the Blockly visual programming tool to create contracts by fitting together blocks that represent the different components. Marlowe is embedded in JavaScript and Haskell, and so you can use features from them to help you to build Marlowe contracts more readably and succinctly." ]
             ]
         ]
     , div [ classes [ flex, ClassName "start-with-container" ] ]
