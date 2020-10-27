@@ -3,16 +3,21 @@
 This directory contains Plutus versions of some benchmarks from the
 `spectral` set of [GHC nofib benchmarks](https://github.com/ghc/nofib).
 
-Most of the programs have required some modifications in order to work as Plutus
-programs (mostly related to eliminating laziness, since Plutus Core is a
-strict language).  Type signatures have also been added to all top-level
-functions, but apart from that the original programs have been left unchanged as
-much as possible.  Comments relating to the Plutus implementation are delimited
-by `{-% ... %-}` and `-- % ...` in order to distinguish them from comments in
-the original source.
+Comments relating to the Plutus implementation are delimited by `{-% ... %-}`
+and `-- % ...` in order to distinguish them from comments in the original source
 
-The Criterion benchmarks use the `plutus-tx` GHC plugin to compile the programs
-to Plutus Core and then time their execution on the CEK machine.
+Most of the programs have required some modifications in order to work as Plutus
+programs (mostly related to eliminating laziness, since Plutus Core is a strict
+language).  The original programs have been left unchanged as much as
+possible except that:
+
+  * Type signatures have also been added to all top-level functions
+
+  * A couple of programs were originally in the form of literate Haskell. They
+    have been converted to standard Haskell 
+
+  * Certain warnings have been suppresed in some source files because the original
+    programs include things like shadowed variables and incomplete matches.
 
 The specific programs which we have ported to Plutus are:
 
@@ -22,6 +27,9 @@ The specific programs which we have ported to Plutus are:
    * `primetest`: probablisitic primality testing
    * `queens`: find solutions to the N queens problem on an M x M chessboard
 
+
+The Criterion benchmarks use the `plutus-tx` GHC plugin to compile the programs
+to Plutus Core and then time their execution on the CEK machine.
 
 Each benchmark can be run with a number of inputs: type
 
@@ -35,6 +43,9 @@ or
 ```
 
 to see the available benchmarks.
+
+For purposes of comparison each program also has a Haskell entry point, and
+these can be benchmarked using `plutus-benchmark:nofib-hs`.
 
 The benchmarks generally take a long time to run, and Criterion has been
 configured to run each one for a minimum of 60 seconds in order to get enough

@@ -93,7 +93,7 @@ executable nofib-exe
 benchmark nofib
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Main.hs
+  main-is: BenchPlc.hs
   hs-source-dirs:
     nofib/bench
   other-modules: Common
@@ -109,7 +109,7 @@ benchmark nofib
 benchmark nofib-hs
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Main-hs.hs
+  main-is: BenchHaskell.hs
   hs-source-dirs:
     nofib/bench
   other-modules: Common

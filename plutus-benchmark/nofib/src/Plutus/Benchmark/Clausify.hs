@@ -1,13 +1,12 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
+{-# OPTIONS_GHC -fno-warn-identities          #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 module Plutus.Benchmark.Clausify where
 
-import           Control.Monad
-import           System.Environment
-
 import           Language.PlutusCore          (Name (..))
-import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
 import           Language.PlutusTx.Prelude    as TxPrelude hiding (replicate)
@@ -35,7 +34,7 @@ clause p = clause' p ([] , [])
            clause' (Dis p q)       x   = clause' p (clause' q x)
            clause' (Sym s)       (c,a) = (insert s c , a)
            clause' (Not (Sym s)) (c,a) = (c , insert s a)
-
+           
 -- the main pipeline from propositional formulae to a list of clauses
 {-# INLINABLE clauses #-}
 clauses :: Formula -> [LRVars]

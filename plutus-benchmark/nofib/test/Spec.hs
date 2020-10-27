@@ -16,7 +16,6 @@ import qualified Plutus.Benchmark.Queens                                    as Q
 import qualified Data.Map                                                   as Map
 import           Language.PlutusCore                                        (Name (..))
 import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
-import           Language.PlutusCore.Constant.Dynamic                       (getStringBuiltinMeanings)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
 import           Language.PlutusCore.Universe                               (DefaultUni)
 import qualified Language.PlutusTx                                          as Tx

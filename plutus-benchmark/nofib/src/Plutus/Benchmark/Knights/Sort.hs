@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+
 module Plutus.Benchmark.Knights.Sort
         ( insertSort,
           mergeSort,

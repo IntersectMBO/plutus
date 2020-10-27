@@ -1,4 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Plutus.Benchmark.Knights where
 
@@ -6,11 +7,6 @@ import           Data.Char
 import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.Queue
-import           Plutus.Benchmark.Knights.Sort
-import           Plutus.Benchmark.Knights.Utils
-
-import           Control.Monad
-import           System.Environment
 
 import           Language.PlutusCore                      (Name (..))
 import qualified Language.PlutusCore.Pretty               as PLC

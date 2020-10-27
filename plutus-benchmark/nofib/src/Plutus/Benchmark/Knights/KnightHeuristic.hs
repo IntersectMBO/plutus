@@ -10,7 +10,6 @@ module Plutus.Benchmark.Knights.KnightHeuristic
 import           Plutus.Benchmark.Knights.ChessSetList
 import           Plutus.Benchmark.Knights.Sort         (quickSort)
 
-import qualified Language.PlutusTx                     as Tx
 import           Language.PlutusTx.Prelude             as Tx
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD

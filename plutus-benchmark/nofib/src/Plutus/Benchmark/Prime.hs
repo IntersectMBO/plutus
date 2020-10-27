@@ -1,16 +1,18 @@
+{-% Primality testing functions taken from nofib/spectral/primetest.
+  Most of the literate Haskell stuff has been removed and everything's
+  been put into one file for simplicity. %-}
+
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-
--- % Primality testing functions taken from nofib/spectral/primetest
--- Most of the literate Haskell stuff has been removed and everything's
--- been put into one file for simplicity.
+{-# OPTIONS_GHC -fno-warn-identities              #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns     #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing          #-}
 
 module Plutus.Benchmark.Prime where
 
-import           Control.Monad
 import           Data.Char                    (isSpace)
 import qualified Prelude                      (Eq (..), String)
-import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
 import qualified Language.PlutusCore.Pretty   as PLC

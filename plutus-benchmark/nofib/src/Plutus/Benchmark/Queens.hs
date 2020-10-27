@@ -1,7 +1,10 @@
+{-% nofib/spectral/constraints converted to Plutus.
+    Renamed to avoid conflict with existing package. %-}
 {-# LANGUAGE NoImplicitPrelude #-}
-
-{-* nofib/spectral/constraints converted to Plutus.
-    Renamed to avoid conflict with existing package. *-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
+{-# OPTIONS_GHC -fno-warn-orphans             #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches      #-}
 
 module Plutus.Benchmark.Queens where
 
@@ -102,7 +105,7 @@ main2 = do
     arg:_ -> do
               let n = read arg :: Integer
                   try algorithm = print (nqueens n algorithm)
-              forM_ [1..240] $ const $ do
+              forM_ [1..240::Integer] $ const $ do
                 sequence_ (map try allAlgorithms)
 
 -- % Only for textual output of PLC scripts
