@@ -7,7 +7,7 @@ So far in these tutorials we have concentrated on building contracts in the text
 
 === Getting started
 
-To start building a Blockly project in the Marlowe Playground, which you can find out more about in the section about xref:playground-overview#playground-overview[], select *New Project* and then *Blockly* for the project type. You'll now see a window like this:
+To start building a Blockly project in the Marlowe Playground, which you can find out more about in the section about xref:playground-overview#playground-overview[], select *New Project* and then *Blockly* for the project type. You'll now see a screen like this:
 
 image:blockly1.png[Blockly window]
 
@@ -15,17 +15,17 @@ Contracts are assembled by adding components to the holes in the blocks. To buil
 
 image:blockly2.png[Contracts in Blockly]
 
-We can select one and drag it into the pane, like this:
+We can select one and drag it into the editing area, which has a dotted background, like this:
 
 image:blockly3.png[A contract block]
 
 and then fit it into the top-level hole, so that we're constructing a contract with a `When` as its main construct.
 
 image:blockly4.png[Fitting in a contract block]
+ 
+We can then repeat this process, adding contracts and other types of components – all of which are shown in the menu on the left-hand side – to build a complete contract, that is a contract that contains no holes.
 
-This is the process that we repeat, adding contracts and other types of components – all shown in the menu on the left-hand side – to build a complete contract.
-
-Let's fill in the timeout information and put a `Close` contract to perform on timeout:
+Let's fill in the timeout information and add a `Close` contract to be performed in the case of timeout:
 
 image:blockly5.png[Adding timeout information]
 
@@ -42,7 +42,7 @@ Here we have to choose
 * A *Role* for the depositor
 * A *Value* which is the amount deposited …
 * … in the *Token* (often *ada*)
-* Whose account, another *Role*, into which the money is deposited.
+* Where the money is to be deposited, give by a *Party*, which is either a *Role* or a *Public Key*.
 
 In filling in some of these we have also to fill in a text field, or a number, as shown in the final result here.
 
