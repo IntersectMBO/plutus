@@ -35,6 +35,11 @@ common lang
     -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
+  ghc-options:
+     -Wall -Wnoncanonical-monad-instances
+     -Wincomplete-uni-patterns -Wincomplete-record-updates
+     -Wredundant-constraints -Widentities
+     -Wnoncanonical-monoid-instances
 
 library
   import: lang
