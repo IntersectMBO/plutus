@@ -105,7 +105,7 @@ in rec {
 
     # Extra Haskell packages which we use but aren't part of the main project definition.
     extraPackages = pkgs.callPackage ./nix/haskell-extra.nix {
-      inherit index-state checkMaterialization sources;
+      inherit index-state checkMaterialization;
     };
   };
 
