@@ -2,7 +2,7 @@
 
 module Main where
 
-import           Prelude                                                    ((<$>), (<*>), (<>))
+import           Prelude                                                    ((<>))
 import qualified Prelude                                                    as P
 
 import           Codec.Serialise
@@ -11,18 +11,11 @@ import           Control.Monad                                              ()
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import qualified Data.ByteString.Lazy                                       as BSL
 import           Data.Char                                                  (isSpace)
-import           Data.List                                                  (intercalate)
 import qualified Data.Map                                                   as Map
 import           Options.Applicative                                        as Opt hiding (action)
-import           Options.Applicative.Builder.Internal                       as Opt
-import           Options.Applicative.Common                                 as Opt hiding (action)
-import           Options.Applicative.Extra                                  as Opt hiding (action)
-import           Options.Applicative.Types                                  as Opt hiding (action)
-import           System.Environment
 import           System.Exit                                                (exitFailure)
 import           System.IO
-import           Text.PrettyPrint.ANSI.Leijen                               (Doc, indent, line, string, text, vsep,
-                                                                             (</>))
+import           Text.PrettyPrint.ANSI.Leijen                               (Doc, indent, line, string, text, vsep)
 
 import           Language.PlutusCore                                        (Name (..))
 import qualified Language.PlutusCore                                        as PLC
@@ -32,13 +25,11 @@ import           Language.PlutusCore.Evaluation.Machine.Cek                 ()
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import qualified Language.PlutusCore.Pretty                                 as PLC
 import           Language.PlutusCore.Universe
-import qualified Language.PlutusTx                                          as Tx
 import           Language.PlutusTx.Prelude                                  as TxPrelude hiding (fmap, mappend, (<$),
                                                                                           (<$>), (<*>), (<>))
 import           Language.UntypedPlutusCore                                 as UPLC
 import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import           Plutus.Benchmark.Clausify                                  (Formula (..))
 import qualified Plutus.Benchmark.Clausify                                  as Clausify
 import qualified Plutus.Benchmark.Knights                                   as Knights
 import qualified Plutus.Benchmark.LastPiece                                 as LastPiece

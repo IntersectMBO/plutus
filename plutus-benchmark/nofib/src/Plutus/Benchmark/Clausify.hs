@@ -43,8 +43,8 @@ clauses = unicl . split . disin . negin . elim
 
 {-# INLINABLE conjunct #-}
 conjunct :: Formula -> Bool
-conjunct (Con p q) = True
-conjunct p         = False
+conjunct (Con _ _) = True
+conjunct _         = False
 
 -- shift disjunction within conjunction
 {-# INLINABLE disin #-}

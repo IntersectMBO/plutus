@@ -96,6 +96,23 @@ benchmark nofib
   main-is: Main.hs
   hs-source-dirs:
     nofib/bench
+  other-modules: Common
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , plutus-core -any
+    , containers -any
+    , criterion -any
+
+benchmark nofib-hs
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main-hs.hs
+  hs-source-dirs:
+    nofib/bench
+  other-modules: Common
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
