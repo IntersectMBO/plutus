@@ -38,6 +38,7 @@ import Halogen.Query.EventSource (affEventSource, emit, eventListenerEventSource
 import HaskellEditor.State (editorGetValue, editorResize, editorSetValue, handleAction) as HaskellEditor
 import HaskellEditor.Types (Action(..), State, initialState) as HE
 import HaskellEditor.Types (_compilationResult)
+import JSEditor as JSEditor
 import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
@@ -338,7 +339,7 @@ handleAction _ (LoadJSScript key) = do
   case Map.lookup key StaticData.demoFilesJS of
     Nothing -> pure unit
     Just contents -> do
-      void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+      JSEditor.editorSetValue contents
       assign _activeJSDemo key
 
 handleAction s SendResultJSToSimulator = do
@@ -423,7 +424,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   -- reset all the editors
   toHaskellEditor $ HaskellEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
-  void $ query _jsEditorSlot unit (Monaco.SetText mempty unit)
+  JSEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
   toSimulation $ Simulation.editorSetValue mempty
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
@@ -436,7 +437,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
         liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+        JSEditor.editorSetValue contents
         liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
     Marlowe -> do
       toSimulation $ Simulation.editorSetValue "?new_contract"
@@ -452,12 +453,12 @@ handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleActio
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> JSEditor.editorSetValue contents
     Marlowe -> do
-      for_ (preview (ix key) (Map.fromFoldable StaticData.marloweContracts)) \contents -> do
+      for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         Simulation.editorSetValue contents
     Blockly -> do
-      for_ (preview (ix key) (Map.fromFoldable StaticData.marloweContracts)) \contents -> do
+      for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
   assign _showModal Nothing
@@ -553,19 +554,19 @@ handleGistAction ::
 handleGistAction settings PublishGist = do
   description <- use _projectName
   let
-    toNothing :: forall a. Eq a => Monoid a => Maybe a -> Maybe a
-    toNothing (Just v)
+    pruneEmpty :: forall a. Eq a => Monoid a => Maybe a -> Maybe a
+    pruneEmpty (Just v)
       | v == mempty = Nothing
 
-    toNothing m = m
+    pruneEmpty m = m
 
     -- playground is a meta-data file that we currently just use as a tag to check if a gist is a marlowe playground gist
     playground = "{}"
-  marlowe <- toNothing <$> toSimulation Simulation.editorGetValue
-  haskell <- toNothing <$> HaskellEditor.editorGetValue
-  blockly <- toNothing <$> (query _blocklySlot unit $ H.request Blockly.GetWorkspace)
-  javascript <- toNothing <$> (query _jsEditorSlot unit $ H.request Monaco.GetText)
-  actus <- toNothing <$> (query _actusBlocklySlot unit $ H.request ActusBlockly.GetWorkspace)
+  marlowe <- pruneEmpty <$> toSimulation Simulation.editorGetValue
+  haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
+  blockly <- pruneEmpty <$> query _blocklySlot unit (H.request Blockly.GetWorkspace)
+  javascript <- pruneEmpty <$> query _jsEditorSlot unit (H.request Monaco.GetText)
+  actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
   let
     files = { playground, marlowe, haskell, blockly, javascript, actus }
 
@@ -640,7 +641,7 @@ loadGist gist = do
   toSimulation $ Simulation.editorSetValue $ fromMaybe mempty marlowe
   HaskellEditor.editorSetValue (fromMaybe mempty haskell)
   for_ blockly \xml -> query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
-  void $ query _jsEditorSlot unit (Monaco.SetText (fromMaybe mempty javascript) unit)
+  JSEditor.editorSetValue (fromMaybe mempty javascript)
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------

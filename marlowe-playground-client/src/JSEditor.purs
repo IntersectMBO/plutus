@@ -8,22 +8,25 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.JS.Contracts as JSE
-import Halogen (ClassName(..), ComponentHTML, liftEffect)
+import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
 import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (monacoComponent)
+import Halogen.Monaco (monacoComponent, Query(..))
 import JavascriptEditor.Types (JSCompilationState(..))
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (Action(..), ChildSlots, State, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
 import Monaco as Monaco
-import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
+import Prelude (Unit, bind, bottom, const, map, not, show, unit, void, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
+
+editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
+editorSetValue contents = void $ query _jsEditorSlot unit (SetText contents unit)
 
 render ::
   forall m.

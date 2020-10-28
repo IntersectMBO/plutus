@@ -12,7 +12,7 @@ module StaticData
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Semigroup ((<>))
-import Data.Tuple.Nested ((/\), type (/\))
+import Data.Tuple.Nested ((/\))
 import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, escrow, example, swap, zeroCouponBond) as HE
 import Examples.JS.Contracts (cfd, couponBondGuaranteed, escrow, example, swap, zeroCouponBond) as JSE
 import Examples.Marlowe.Contracts (contractForDifference, escrow, example, option, swap, zeroCouponBond) as ME
@@ -63,15 +63,16 @@ demoFilesJS =
     ]
 
 marloweContracts ::
-  Array (Label /\ Contents)
+  Map Label Contents
 marloweContracts =
-  [ "Example" /\ ME.example
-  , "Escrow" /\ ME.escrow
-  , "ZeroCouponBond" /\ ME.zeroCouponBond
-  , "Option" /\ ME.option
-  , "Swap" /\ ME.swap
-  , "CFD" /\ ME.contractForDifference
-  ]
+  Map.fromFoldable
+    [ "Example" /\ ME.example
+    , "Escrow" /\ ME.escrow
+    , "ZeroCouponBond" /\ ME.zeroCouponBond
+    , "Option" /\ ME.option
+    , "Swap" /\ ME.swap
+    , "CFD" /\ ME.contractForDifference
+    ]
 
 marloweContract ::
   Contents
