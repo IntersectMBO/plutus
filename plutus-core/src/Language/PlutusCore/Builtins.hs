@@ -298,7 +298,9 @@ instance Serialise DefaultFun where
               go 24 = pure Trace
               go _  = fail "Failed to decode BuiltinName"
 
--- TODO: should we compute this from the number of builtins (which we can obtain)?
+-- It's set deliberately to give us "extra room" in the binary format to add things without running
+-- out of space for tags (expanding the space would change the binary format for people who're
+-- implementing it manually). So we have to set it manually.
 -- | Using 5 bits to encode builtin tags.
 builtinTagWidth :: NumBits
 builtinTagWidth = 5
