@@ -69,7 +69,7 @@
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "91398ea81f67191a2fdc2657d511e9297720746d",
-        "sha256": "1bnocjo74rinos5rqbh5liiglg5okebhel0iog04ukqnmthig6f1",
+        "sha256": "0000000000000000000000000000000000000000000000000000",
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/91398ea81f67191a2fdc2657d511e9297720746d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
