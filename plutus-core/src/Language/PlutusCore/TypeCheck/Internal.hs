@@ -119,7 +119,7 @@ runTypeCheckM config a =
 withTyVar :: TyName -> Kind () -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
 withTyVar name = local . over tceTyVarKinds . insertByName name
 
--- | Look up th type of a built-in function.
+-- | Look up the type of a built-in function.
 lookupBuiltinM
     :: (AsTypeError err term uni fun ann, HasTypeCheckConfig cfg uni fun, Ix fun)
     => ann -> fun -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
