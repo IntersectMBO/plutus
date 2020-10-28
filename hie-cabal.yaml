@@ -83,11 +83,17 @@ cradle:
   - path: ./web-ghc/test
     config: { cradle: { cabal: { component: "web-ghc:web-ghc-test" } } }
 
+  - path: ./plutus-benchmark/nofib.exe
+    config: { cradle: {cabal: {component: "exe:nofib-exe" } } }
   - path: ./plutus-benchmark/lib
     config: { cradle: {cabal: {component: "lib:plutus-benchmark" } } }
-  - path: ./plutus-benchmark/bench
-    config: { cradle: {cabal: {component: "plutus-benchmark:large-plc-cek" } } }
-  - path: ./plutus-benchmark/bench-validation
+  - path: ./plutus-benchmark/nofib
+    config: { cradle: {cabal: {component: "plutus-benchmark:nofib" } } }
+  - path: ./plutus-benchmark/nofib
+    config: { cradle: {cabal: {component: "plutus-benchmark:nofib-hs" } } }
+  - path: ./plutus-benchmark/validation
     config: { cradle: {cabal: {component: "plutus-benchmark:validation" } } }
+  - path: ./plutus-benchmark/nofib/test
+    config: { cradle: {cabal: {component: "plutus-benchmark:plutus-benchmark-nofib-tests" } } }
 
 # Add more as needed, I'm too lazy
