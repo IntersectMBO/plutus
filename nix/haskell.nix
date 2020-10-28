@@ -14,6 +14,7 @@ let
   r-packages = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
+    # Use ghc 8.10.2 with the experimental core interface files patch
     compiler-nix-name = "ghc8102-experimental";
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
