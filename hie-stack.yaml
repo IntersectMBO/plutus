@@ -214,23 +214,35 @@ cradle:
         stack:
           component: "plutus-benchmark:lib"
 
-  - path: ./plutus-benchmark/bench
+  - path: ./plutus-benchmark/nofib
     config:
       cradle:
         stack:
-          component: "plutus-benchmark:large-plc-cek"
+          component: "plutus-benchmark:nofib"
 
-  - path: ./plutus-benchmark/bench-validation
+  - path: ./plutus-benchmark/nofib
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:nofib-hs"
+
+  - path: ./plutus-benchmark/validation
     config:
       cradle:
         stack:
           component: "plutus-benchmark:validation"
 
-  - path: ./plutus-benchmark/app
+  - path: ./plutus-benchmark/nofib/exe
     config:
       cradle:
         stack:
-          component: "plutus-benchmark:exe:plutus-benchmark"
+          component: "plutus-benchmark:exe:nofib-exe"
+
+  - path: ./plutus-benchmark/nofib/test
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:plutus-benchmark-nofib-tests"
 
 # These use the plutus plugin - HIE doesn't support plugins yet
 

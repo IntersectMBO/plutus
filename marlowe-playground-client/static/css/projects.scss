@@ -32,6 +32,13 @@ table.gists {
   justify-content: space-evenly;
   color: #3677f7;
   text-decoration: underline;
+  text-align: center;
+  a {
+    flex: 1;
+  }
+  .empty {
+    flex: 1;
+  }
 }
 
 td.date {

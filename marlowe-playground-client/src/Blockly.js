@@ -83,8 +83,13 @@ exports.getBlockById_ = function (just, nothing, workspace, id) {
 }
 
 exports.workspaceXML_ = function (blockly, workspace) {
-    var dom = blockly.Xml.workspaceToDom(workspace);
-    return blockly.utils.xml.domToText(dom);
+    const isEmpty = workspace.getAllBlocks()[0].getChildren().length == 0;
+    if (isEmpty) {
+        return "";
+    } else {
+        var dom = blockly.Xml.workspaceToDom(workspace);
+        return blockly.utils.xml.domToText(dom);
+    }
 }
 
 exports.loadWorkspace_ = function (blockly, workspaceRef, xml) {

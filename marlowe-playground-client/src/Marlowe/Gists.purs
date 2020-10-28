@@ -2,6 +2,8 @@ module Marlowe.Gists
   ( mkNewGist
   , playgroundGist
   , playgroundFiles
+  , filenames
+  , fileExists
   ) where
 
 import Prelude
@@ -39,45 +41,47 @@ type PlaygroundFiles
 
 toArray :: PlaygroundFiles -> Array NewGistFile
 toArray { playground, marlowe, haskell, blockly, javascript, actus } =
-  [ mkNewGistFile playgroundFilename playground
+  [ mkNewGistFile filenames.playground playground
   ]
     <> catMaybes
-        [ mkNewGistFile marloweFilename <$> marlowe
-        , mkNewGistFile haskellFilename <$> haskell
-        , mkNewGistFile blocklyFilename <<< unwrap <$> blockly
-        , mkNewGistFile jsFilename <$> javascript
-        , mkNewGistFile actusFilename <<< unwrap <$> actus
+        [ mkNewGistFile filenames.marlowe <$> marlowe
+        , mkNewGistFile filenames.haskell <$> haskell
+        , mkNewGistFile filenames.blockly <<< unwrap <$> blockly
+        , mkNewGistFile filenames.javascript <$> javascript
+        , mkNewGistFile filenames.actus <<< unwrap <$> actus
         ]
 
-playgroundFilename :: String
-playgroundFilename = "playground.marlowe.json"
-
-marloweFilename :: String
-marloweFilename = "playground.marlowe"
-
-haskellFilename :: String
-haskellFilename = "Main.hs"
-
-blocklyFilename :: String
-blocklyFilename = "blockly.xml"
-
-jsFilename :: String
-jsFilename = "playground.js"
-
-actusFilename :: String
-actusFilename = "actus.xml"
+filenames ::
+  { playground :: String
+  , marlowe :: String
+  , haskell :: String
+  , blockly :: String
+  , javascript :: String
+  , actus :: String
+  }
+filenames =
+  { playground: "playground.marlowe.json"
+  , marlowe: "playground.marlowe"
+  , haskell: "Main.hs"
+  , blockly: "blockly.xml"
+  , javascript: "playground.js"
+  , actus: "actus.xml"
+  }
 
 playgroundGist :: Gist -> Boolean
-playgroundGist = has (gistFiles <<< ix playgroundFilename)
+playgroundGist = has (gistFiles <<< ix filenames.playground)
 
 playgroundFiles :: Gist -> PlaygroundFiles
 playgroundFiles gist =
-  { playground: fromMaybe "{}" $ getFile playgroundFilename
-  , marlowe: getFile marloweFilename
-  , haskell: getFile haskellFilename
-  , blockly: wrap <$> getFile blocklyFilename
-  , javascript: getFile jsFilename
-  , actus: wrap <$> getFile actusFilename
+  { playground: fromMaybe "{}" $ getFile filenames.playground
+  , marlowe: getFile filenames.marlowe
+  , haskell: getFile filenames.haskell
+  , blockly: wrap <$> getFile filenames.blockly
+  , javascript: getFile filenames.javascript
+  , actus: wrap <$> getFile filenames.actus
   }
   where
   getFile name = view (gistFiles <<< ix name <<< gistFileContent) gist
+
+fileExists :: String -> Gist -> Boolean
+fileExists name gist = has (gistFiles <<< ix name) gist

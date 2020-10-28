@@ -20,8 +20,9 @@ import Halogen.Classes (flex)
 import Halogen.HTML (HTML, a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
+import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_, getApiGists)
-import Marlowe.Gists (playgroundGist)
+import Marlowe.Gists (fileExists, filenames, playgroundGist)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (Unit, Void, bind, bottom, compare, const, discard, flip, map, mempty, pure, unit, ($), (<<<))
@@ -29,7 +30,6 @@ import Projects.Types (Action(..), Lang(..), State, _projects)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Text.Parsing.Parser (runParser)
-import MainFrame.Types (ChildSlots)
 
 handleAction ::
   forall m.
@@ -120,10 +120,15 @@ gistRow gist =
     , td [ class_ (ClassName "date") ] [ gist ^. (gistUpdatedAt <<< to formatDate <<< to text) ]
     , td_
         [ div [ classes [ flex, ClassName "language-links" ] ]
-            [ a [ onClick (const <<< Just $ LoadProject Haskell (gist ^. gistId)) ] [ text "Haskell" ]
-            , a [ onClick (const <<< Just $ LoadProject Javascript (gist ^. gistId)) ] [ text "Javascript" ]
-            , a [ onClick (const <<< Just $ LoadProject Marlowe (gist ^. gistId)) ] [ text "Marlowe" ]
-            , a [ onClick (const <<< Just $ LoadProject Blockly (gist ^. gistId)) ] [ text "Blockly" ]
+            [ loadLink Haskell "Haskell" $ fileExists filenames.haskell gist
+            , loadLink Javascript "Javascript" $ fileExists filenames.javascript gist
+            , loadLink Marlowe "Marlowe" $ fileExists filenames.marlowe gist
+            , loadLink Blockly "Blockly" $ fileExists filenames.blockly gist
             ]
         ]
     ]
+  where
+  loadLink :: Lang -> String -> Boolean -> HTML p Action
+  loadLink _ _ false = div [ class_ (ClassName "empty") ] []
+
+  loadLink action name _ = a [ onClick (const <<< Just $ LoadProject action (gist ^. gistId)) ] [ text name ]

@@ -156,7 +156,7 @@ let additions =
       , foreign-generic =
             upstream.foreign-generic
           ⫽ { repo = "https://github.com/shmish111/purescript-foreign-generic"
-            , version = "57692ed7b1bc512bcfddd2c00c27e865e9c21b84"
+            , version = "bd412a186bae788967cfc92fd3c5e1415355ff8c"
             }
       , matryoshka =
           { dependencies =
