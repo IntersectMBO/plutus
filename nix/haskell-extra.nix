@@ -85,6 +85,7 @@ in {
       }) hie-bios haskell-language-server ghcide;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
+        compiler-nix-name = "ghc865";
         src = pkgs.fetchFromGitLab {
           owner = "joneshf";
           repo = "purty";
@@ -94,10 +95,6 @@ in {
         # Invalidate and update if you change the version
         stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
         inherit checkMaterialization;
-
-        # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
-        ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
-        modules = [{ compiler.nix-name = pkgs.lib.mkForce "ghc865"; }];
 
         pkg-def-extras = [
           # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214

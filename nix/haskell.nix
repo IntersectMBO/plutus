@@ -14,6 +14,7 @@ let
   r-packages = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
+    compiler-nix-name = "ghc8102-experimental";
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
       filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [../.gitignore] root) root;
@@ -40,8 +41,6 @@ let
       };
     modules = [
         {
-          compiler.nix-name = pkgs.lib.mkForce "ghc8102-experimental";
-
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427
           # This corresponds to the set of packages that comes with GHC. We are
           # here saying that we must get them from GHC itself, rather than trying
