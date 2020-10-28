@@ -66,6 +66,12 @@ newtype XML
 
 derive instance newtypeXML :: Newtype XML _
 
+derive newtype instance semigroupXML :: Semigroup XML
+
+derive newtype instance monoidXML :: Monoid XML
+
+derive newtype instance eqXML :: Eq XML
+
 -- Functions that mutate values always work on STRefs rather than regular values
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 

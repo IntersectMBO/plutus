@@ -21,7 +21,7 @@ import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
 import Data.String as String
-import Data.Traversable (traverse)
+import Data.Traversable (for_, traverse)
 import Data.Tuple (Tuple(..), snd)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -38,6 +38,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
@@ -61,7 +62,6 @@ import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeD
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -115,18 +115,16 @@ handleAction _ (SelectEditorKeyBindings bindings) = do
   void $ query _marloweEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction _ (LoadScript key) = do
-  case preview (ix key) (Map.fromFoldable StaticData.marloweContracts) of
-    Nothing -> pure unit
-    Just contents -> do
-      let
-        prettyContents = case parseContract contents of
-          Right pcon -> show $ pretty pcon
-          Left _ -> contents
-      editorSetValue prettyContents
-      liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
-      updateContractInState prettyContents
-      resetContract
-      assign _activeDemo key
+  for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
+    let
+      prettyContents = case parseContract contents of
+        Right pcon -> show $ pretty pcon
+        Left _ -> contents
+    editorSetValue prettyContents
+    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    updateContractInState prettyContents
+    resetContract
+    assign _activeDemo key
 
 handleAction _ (SetEditorText contents) = do
   editorSetValue contents
@@ -441,7 +439,7 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Hand
   setup editor = do
     mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
     let
-      contents = fromMaybe initialContents mContents
+      contents = fromMaybe "?contract" (mContents <|> Map.lookup "Example" StaticData.marloweContracts)
     model <- liftEffect $ Monaco.getModel editor
     liftEffect do
       Monaco.setValue model contents
@@ -450,8 +448,6 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Hand
       Monaco.setTheme monaco MM.daylightTheme.name
 
   component = monacoComponent $ MM.settings setup
-
-  initialContents = fromMaybe "?contract" $ Array.head $ map snd StaticData.marloweContracts
 
 sidebar ::
   forall p.
