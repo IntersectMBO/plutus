@@ -134,7 +134,7 @@ We use two type classes for automatic derivation of type schemes: 'KnownMonotype
 
 'KnownMonotype' and 'KnownPolytype' are responsible for deriving monomorphic and polymorphic types,
 respectively. 'KnownMonotype' turns every argument that the Haskell denotation of a builtin
-receives into a 'TypeSchemeArror'. We extract the arguments from the type of the Haskell denotation
+receives into a 'TypeSchemeArrow'. We extract the arguments from the type of the Haskell denotation
 using the 'GetArgs' type family. 'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'.
 We extract variables from the type of the Haskell denotation using the 'ToBinds' type family
 (in particular, see the @ToBinds (TypeScheme term args res)@ type instances). Variables are
