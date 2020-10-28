@@ -16,6 +16,7 @@
     "@fortawesome/fontawesome-free": "^5.10.2",
     "bignumber": "^1.1.0",
     "bootstrap": "^4.3.1",
+    "decimal.js": "^10.0.0",
     "json-bigint": "^1.0.0",
     "monaco-editor": "^0.20.0",
     "monaco-emacs": "^0.2.2",

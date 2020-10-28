@@ -17,7 +17,7 @@ import           Language.PureScript.Bridge                (BridgePart, Language
                                                             genericShow, haskType, isTuple, mkSumType, order,
                                                             psTypeParameters, typeModule, typeName, (^==))
 import           Language.PureScript.Bridge.Builder        (BridgeData)
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
+import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters (A)
 import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
                                                             PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
@@ -131,7 +131,7 @@ scientificBridge :: BridgePart
 scientificBridge = do
     typeName ^== "Scientific"
     typeModule ^== "Data.Scientific"
-    pure psInt
+    pure psNumber
 
 
 naturalBridge :: BridgePart

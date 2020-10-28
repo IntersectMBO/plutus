@@ -70,6 +70,7 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           ];

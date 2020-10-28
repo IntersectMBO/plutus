@@ -233,6 +233,18 @@ let
       installPhase = "ln -s $src $out";
     };
 
+    "decimals" = pkgs.stdenv.mkDerivation {
+      name = "decimals";
+      version = "v5.0.0";
+      src = pkgs.fetchgit {
+        url = "https://github.com/sharkdp/purescript-decimals.git";
+        rev = "4911f744fb7db6519758b6993edc28d0f81e0a89";
+        sha256 = "1ad56xf8i7mwqlp718ik12dvc8aqwjxfpk7d8hdyjwzhf7b1ws2n";
+      };
+      phases = "installPhase";
+      installPhase = "ln -s $src $out";
+    };
+
     "distributive" = pkgs.stdenv.mkDerivation {
       name = "distributive";
       version = "v4.0.0";
