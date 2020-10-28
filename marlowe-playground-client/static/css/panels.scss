@@ -170,6 +170,14 @@
   width: 150px;
 }
 
+.initial-slot-input {
+  margin: 1rem 0rem;
+}
+
+.initial-slot-input > span {
+  margin-right: 1rem;
+}
+
 .transaction-composer ul li ul {
   display: flex;
 }
