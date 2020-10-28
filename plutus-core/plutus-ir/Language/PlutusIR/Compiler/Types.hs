@@ -53,13 +53,14 @@ defaultCompilationOpts = CompilationOpts True
 data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts
     , _ccEnclosing       :: Provenance a
-    , _ccTypeCheckConfig :: PirTCConfig uni fun
+    -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
+    , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)
     }
 
 makeLenses ''CompilationCtx
 
 toDefaultCompilationCtx :: PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
-toDefaultCompilationCtx configPlc = CompilationCtx defaultCompilationOpts noProvenance (PirTCConfig configPlc YesEscape)
+toDefaultCompilationCtx configPlc = CompilationCtx defaultCompilationOpts noProvenance $ Just (PirTCConfig configPlc YesEscape)
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
