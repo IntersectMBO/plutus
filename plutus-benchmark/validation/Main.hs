@@ -46,6 +46,12 @@ benchCek program = nf (UPLC.unsafeEvaluateCek getStringBuiltinMeanings defaultCo
 plcSuffix :: String
 plcSuffix = "plc"
 
+-- The name of the directory where the scripts are kept.
+-- This must match the location of the files relative to the directory containing the cabal file.
+-- IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED.
+scriptDirectory :: String
+scriptDirectory = "validation" </> "data"
+
 {- Construct an applied validator.  We assume that relevant validators, datum
    scripts, redeemers and contexts are stored in CBOR format under `<progName>`
    in the `data` directory.  These should have names like "Redeemer01.cbor",
@@ -55,7 +61,7 @@ plcSuffix = "plc"
 getAppliedScript :: String -> Int -> Int -> Int -> Int -> IO (Term ())
 getAppliedScript progName validatorNumber datumNumber redeemerNumber contextNumber = do
   let loadScript base scriptNumber = do
-          let file = "bench-validation" </> "data" </> progName </> (base ++ printf "%02d" scriptNumber) <.> plcSuffix
+          let file = scriptDirectory </> progName </> (base ++ printf "%02d" scriptNumber) <.> plcSuffix
           dataPath <- getDataFileName file
           loadPlcSource dataPath
   validator <- loadScript "Validator" validatorNumber
