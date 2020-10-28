@@ -22,8 +22,14 @@ Before discussing other forms of contracts, we need to describe values, observat
 Observations will have a value at every step of execution. On the other hand, *actions* happen at particular points during execution. As noted earlier, actions can be
 
  * depositing money,
- * making a choice between various alternatives, or
- * notifying an external or oracle value, such as the current price of a particular commodity.
+ * making a choice between various alternatives, including an _oracle_ value (see next section), or
+ * notifying an external value of some kind.
+
+=== Oracles 
+
+Oracles are being developed for the Cardano blockchain in general, and will be available for use within Marlowe on Cardano. In the meantime we have introduced an _oracle prototype_, which is implemented in the Marlowe Playground.
+
+If a role in a contract is `"kraken"`, and that role makes a choice such as `"adausdt"` then, in the Playground simulation, this choice will be _pre-filled_ from the kraken API https://www.kraken.com/features/api with the current value of the ADA/USD conversion rate. In this way it provides the kraken API as an oracle to Marlowe.
 
 === If
 The conditional `If obs cont1 cont2` will continue as `cont1` or `cont2`, depending on the Boolean value of the observation `obs` when this construct is executed.
