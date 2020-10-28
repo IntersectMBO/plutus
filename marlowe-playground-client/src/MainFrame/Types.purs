@@ -23,9 +23,8 @@ import Halogen.Classes (activeClass)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
-import JavascriptEditor.Types (JSCompilationState)
-import Language.Javascript.Interpreter as JS
-import Marlowe.Semantics (Contract)
+import JavascriptEditor.Types (CompilationState)
+import JavascriptEditor.Types as JS
 import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Projects.Types as Projects
@@ -56,19 +55,12 @@ data Query a
 data Action
   = Init
   | HandleKey H.SubscriptionId KeyboardEvent
-  -- Haskell Editor
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
   | SendBlocklyToSimulator
-  | JSHandleEditorMessage Monaco.Message
-  | JSSelectEditorKeyBindings KeyBindings
+  | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
-  -- haskell actions
-  | CompileJSProgram
-  | CompiledJSProgram (Either JS.CompilationError (JS.InterpreterResult Contract))
   | ChangeView View
-  | SendResultJSToSimulator
-  | LoadJSScript String
   -- blockly
   | HandleBlocklyMessage Blockly.Message
   | HandleActusBlocklyMessage AB.Message
@@ -92,19 +84,14 @@ instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
   toEvent (HandleKey _ _) = Just $ defaultEvent "HandleKey"
   toEvent (HaskellAction action) = toEvent action
-  toEvent (JSHandleEditorMessage _) = Just $ defaultEvent "JSHandleEditorMessage"
   toEvent (SimulationAction action) = toEvent action
   toEvent SendBlocklyToSimulator = Just $ defaultEvent "SendBlocklyToSimulator"
-  toEvent (JSSelectEditorKeyBindings _) = Just $ defaultEvent "JSSelectEditorKeyBindings"
+  toEvent (JavascriptAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
-  toEvent CompileJSProgram = Just $ defaultEvent "CompileJSProgram"
-  toEvent (CompiledJSProgram _) = Just $ defaultEvent "CompiledJSProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
-  toEvent (LoadJSScript script) = Just $ (defaultEvent "LoadJSScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
   toEvent (ProjectsAction action) = toEvent action
   toEvent (NewProjectAction action) = toEvent action
   toEvent (DemosAction action) = toEvent action
@@ -167,13 +154,14 @@ _walletSlot = SProxy
 newtype State
   = State
   { view :: View
-  , jsCompilationResult :: JSCompilationState
+  , jsCompilationResult :: CompilationState
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings
   , activeJSDemo :: String
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
+  , javascriptState :: JS.State
   , simulationState :: Simulation.State
   , projects :: Projects.State
   , newProject :: NewProject.State
@@ -192,7 +180,7 @@ derive instance newtypeState :: Newtype State _
 _view :: Lens' State View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_jsCompilationResult :: Lens' State JSCompilationState
+_jsCompilationResult :: Lens' State CompilationState
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
 
 _blocklyState :: Lens' State (Maybe BlocklyState)
@@ -212,6 +200,9 @@ _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
 
 _haskellState :: Lens' State HE.State
 _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
+
+_javascriptState :: Lens' State JS.State
+_javascriptState = _Newtype <<< prop (SProxy :: SProxy "javascriptState")
 
 _simulationState :: Lens' State Simulation.State
 _simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")

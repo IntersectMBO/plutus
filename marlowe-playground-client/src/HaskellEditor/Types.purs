@@ -36,14 +36,10 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
 
 type State
-  = { activeDemo :: String
-    , keybindings :: KeyBindings
+  = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
     }
-
-_activeHaskellDemo :: Lens' State String
-_activeHaskellDemo = prop (SProxy :: SProxy "activeDemo")
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
 _haskellEditorKeybindings = prop (SProxy :: SProxy "keybindings")
@@ -56,8 +52,7 @@ _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 initialState :: State
 initialState =
-  { activeDemo: mempty
-  , keybindings: DefaultBindings
+  { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , showBottomPanel: true
   }

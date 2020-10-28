@@ -1,4 +1,4 @@
-module JSEditor where
+module JavascriptEditor.View where
 
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
@@ -8,25 +8,23 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.JS.Contracts as JSE
-import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
+import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (monacoComponent, Query(..))
-import JavascriptEditor.Types (JSCompilationState(..))
+import Halogen.Monaco (monacoComponent)
+import JavascriptEditor.Types (Action(..), State, _compilationResult, _keybindings, _showBottomPanel)
+import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (Action(..), ChildSlots, State, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel)
+import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Monaco as Monaco
-import Prelude (Unit, bind, bottom, const, map, not, show, unit, void, ($), (<$>), (<<<), (<>), (==))
+import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Pretty (pretty)
-
-editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
-editorSetValue contents = void $ query _jsEditorSlot unit (SetText contents unit)
 
 render ::
   forall m.
@@ -51,8 +49,8 @@ otherActions state =
     ]
 
 sendButton :: forall p. State -> HTML p Action
-sendButton state = case view _jsCompilationResult state of
-  JSCompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultJSToSimulator ] [ text "Send To Simulator" ]
+sendButton state = case view _compilationResult state of
+  JS.CompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultToSimulator ] [ text "Send To Simulator" ]
   _ -> text ""
 
 editorOptions :: forall p. State -> HTML p Action
@@ -61,13 +59,13 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
-        , onSelectedIndexChange (\idx -> JSSelectEditorKeyBindings <$> toEnum idx)
+        , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))
     ]
   where
   keybindingItem item =
-    if state ^. _jsEditorKeybindings == item then
+    if state ^. _keybindings == item then
       option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
     else
       option [ HTML.value (show item) ] [ text $ show item ]
@@ -77,7 +75,7 @@ jsEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditorMessage)
+jsEditor state = slot _jsEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
   setup editor =
     liftEffect do
@@ -121,23 +119,23 @@ bottomPanel state =
 
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
-  button [ onClick $ const $ Just CompileJSProgram ]
-    [ text (if state ^. _jsCompilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+  button [ onClick $ const $ Just Compile ]
+    [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
   where
-  isLoading JSCompiling = true
+  isLoading JS.Compiling = true
 
   isLoading _ = false
 
 resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
-  if state ^. _showBottomPanel then case view _jsCompilationResult state of
-    JSCompiledSuccessfully (InterpreterResult result) ->
+  if state ^. _showBottomPanel then case view _compilationResult state of
+    JS.CompiledSuccessfully (InterpreterResult result) ->
       [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
           numberedText
       ]
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
-    JSCompilationError err -> [ compilationErrorPane err ]
+    JS.CompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "" ]
   else
     [ text "" ]

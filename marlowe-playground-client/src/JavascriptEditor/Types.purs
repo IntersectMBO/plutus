@@ -1,10 +1,70 @@
 module JavascriptEditor.Types where
 
+import Prelude
+import Analytics (class IsEvent, Event)
+import Analytics as A
+import Data.Either (Either(..))
+import Data.Lens (Lens', Prism', prism)
+import Data.Lens.Record (prop)
+import Data.Maybe (Maybe(..))
+import Data.Symbol (SProxy(..))
+import Halogen.Monaco (KeyBindings(..))
+import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
 
-data JSCompilationState
-  = JSNotCompiled
-  | JSCompiling
-  | JSCompilationError JS.CompilationError
-  | JSCompiledSuccessfully (JS.InterpreterResult Contract)
+data CompilationState
+  = NotCompiled
+  | Compiling
+  | CompilationError JS.CompilationError
+  | CompiledSuccessfully (JS.InterpreterResult Contract)
+
+_CompiledSuccessfully :: Prism' CompilationState (JS.InterpreterResult Contract)
+_CompiledSuccessfully = prism CompiledSuccessfully unwrap
+  where
+  unwrap (CompiledSuccessfully x) = Right x
+
+  unwrap y = Left y
+
+data Action
+  = Compile
+  | ChangeKeyBindings KeyBindings
+  | LoadScript String
+  | HandleEditorMessage Monaco.Message
+  | ShowBottomPanel Boolean
+  | SendResultToSimulator
+  | SendResultToBlockly
+
+defaultEvent :: String -> Event
+defaultEvent s = A.defaultEvent $ "Haskell." <> s
+
+instance actionIsEvent :: IsEvent Action where
+  toEvent Compile = Just $ defaultEvent "Compile"
+  toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
+  toEvent (LoadScript _) = Just $ defaultEvent "LoadScript"
+  toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
+  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
+  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
+
+type State
+  = { keybindings :: KeyBindings
+    , compilationResult :: CompilationState
+    , showBottomPanel :: Boolean
+    }
+
+_keybindings :: Lens' State KeyBindings
+_keybindings = prop (SProxy :: SProxy "keybindings")
+
+_compilationResult :: Lens' State CompilationState
+_compilationResult = prop (SProxy :: SProxy "compilationResult")
+
+_showBottomPanel :: Lens' State Boolean
+_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
+
+initialState :: State
+initialState =
+  { keybindings: DefaultBindings
+  , compilationResult: NotCompiled
+  , showBottomPanel: true
+  }

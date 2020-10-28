@@ -4,14 +4,12 @@ import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (toUnfoldable)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), either, note)
+import Data.Either (Either(..), note)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (_Right, assign, preview, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
-import Data.List (filter, (:))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -23,7 +21,7 @@ import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists (GistAction(..))
 import Gists as Gists
-import Halogen (Component, get, liftEffect, query, subscribe, subscribe')
+import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
@@ -34,24 +32,24 @@ import Halogen.HTML (HTML)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
-import Halogen.Query.EventSource (affEventSource, emit, eventListenerEventSource)
+import Halogen.Query.EventSource (eventListenerEventSource)
 import HaskellEditor.State (editorGetValue, editorResize, editorSetValue, handleAction) as HaskellEditor
 import HaskellEditor.Types (Action(..), State, initialState) as HE
 import HaskellEditor.Types (_compilationResult)
-import JSEditor as JSEditor
-import JavascriptEditor.Types (JSCompilationState(..))
+import JavascriptEditor.State as JavascriptEditor
+import JavascriptEditor.Types (CompilationState(..))
+import JavascriptEditor.Types (Action(..), State, _CompiledSuccessfully, _compilationResult, initialState) as JS
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _activeJSDemo, _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Marlowe.Parser (parseContract)
-import Monaco (isError)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
@@ -90,11 +88,12 @@ initialState :: State
 initialState =
   State
     { view: Simulation
-    , jsCompilationResult: JSNotCompiled
+    , jsCompilationResult: NotCompiled
     , blocklyState: Nothing
     , actusBlocklyState: Nothing
     , showBottomPanel: true
     , haskellState: HE.initialState
+    , javascriptState: JS.initialState
     , simulationState: ST.mkState
     , jsEditorKeybindings: DefaultBindings
     , activeJSDemo: mempty
@@ -140,6 +139,12 @@ toHaskellEditor ::
   Functor m =>
   HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toHaskellEditor = mapSubmodule _haskellState HaskellAction
+
+toJavascriptEditor ::
+  forall m a.
+  Functor m =>
+  HalogenM JS.State JS.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
+toJavascriptEditor = mapSubmodule _javascriptState JavascriptAction
 
 toProjects ::
   forall m a.
@@ -244,7 +249,6 @@ handleAction settings (HandleKey sid ev)
   | otherwise = pure unit
 
 handleAction s (HaskellAction action) = do
-  currentState <- get
   toHaskellEditor (HaskellEditor.handleAction s action)
   case action of
     HE.SendResultToSimulator -> do
@@ -274,8 +278,33 @@ handleAction s (HaskellAction action) = do
       selectView BlocklyEditor
     _ -> pure unit
 
+handleAction s (JavascriptAction action) = do
+  toJavascriptEditor (JavascriptEditor.handleAction s action)
+  case action of
+    JS.SendResultToSimulator -> do
+      mContract <-
+        peruse
+          ( _javascriptState
+              <<< JS._compilationResult
+              <<< JS._CompiledSuccessfully
+              <<< JSI._result
+          )
+      let
+        contract = case mContract of
+          Just con -> show $ pretty con
+          _ -> ""
+      assign (_simulationState <<< _source) Javascript
+      selectView Simulation
+      void $ toSimulation
+        $ do
+            Simulation.handleAction s (ST.SetEditorText contract)
+            Simulation.handleAction s ST.ResetContract
+    JS.SendResultToBlockly -> do
+      assign (_simulationState <<< _source) Javascript
+      selectView BlocklyEditor
+    _ -> pure unit
+
 handleAction s (SimulationAction action) = do
-  currentState <- get
   toSimulation (Simulation.handleAction s action)
   case action of
     ST.SetBlocklyCode -> do
@@ -293,68 +322,6 @@ handleAction _ SendBlocklyToSimulator = void $ query _blocklySlot unit (Blockly.
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
-
-handleAction _ (JSHandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey text
-  assign _jsCompilationResult JSNotCompiled
-  assign _activeJSDemo ""
-
-handleAction _ (JSSelectEditorKeyBindings bindings) = do
-  assign _jsEditorKeybindings bindings
-  void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
-
-handleAction _ CompileJSProgram = do
-  maybeModel <- query _jsEditorSlot unit (Monaco.GetModel identity)
-  case maybeModel of
-    Nothing -> pure unit
-    Just model -> do
-      assign _jsCompilationResult JSCompiling
-      maybeMarkers <- query _jsEditorSlot unit (Monaco.GetModelMarkers identity)
-      void $ subscribe
-        $ affEventSource
-            ( \emitter -> do
-                case map ((filter (\e -> isError e.severity)) <<< toUnfoldable) maybeMarkers of
-                  Just ({ message, startLineNumber, startColumn } : _) -> do
-                    emit emitter
-                      ( CompiledJSProgram $ Left
-                          $ JSI.CompilationError
-                              { row: startLineNumber
-                              , column: startColumn
-                              , text: [ message ]
-                              }
-                      )
-                    pure mempty
-                  _ -> do
-                    res <- JSI.eval model
-                    emit emitter (CompiledJSProgram res)
-                    pure mempty
-            )
-      pure unit
-
-handleAction _ (CompiledJSProgram res) = do
-  assign _jsCompilationResult (either JSCompilationError JSCompiledSuccessfully res)
-  assign _showBottomPanel true
-
-handleAction _ (LoadJSScript key) = do
-  case Map.lookup key StaticData.demoFilesJS of
-    Nothing -> pure unit
-    Just contents -> do
-      JSEditor.editorSetValue contents
-      assign _activeJSDemo key
-
-handleAction s SendResultJSToSimulator = do
-  mContract <- use _jsCompilationResult
-  case mContract of
-    JSNotCompiled -> pure unit
-    JSCompiling -> pure unit
-    JSCompilationError err -> pure unit
-    JSCompiledSuccessfully (JSI.InterpreterResult { result: contract }) -> do
-      assign (_simulationState <<< _source) Javascript
-      selectView Simulation
-      void $ toSimulation
-        $ do
-            Simulation.handleAction s (ST.SetEditorText (show $ pretty contract))
-            Simulation.handleAction s ST.ResetContract
 
 handleAction _ (ChangeView ActusBlocklyEditor) = do
   assign (_simulationState <<< ST._source) Actus
@@ -424,7 +391,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   -- reset all the editors
   toHaskellEditor $ HaskellEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
-  JSEditor.editorSetValue mempty
+  JavascriptEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
   toSimulation $ Simulation.editorSetValue mempty
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
@@ -437,7 +404,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
         liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        JSEditor.editorSetValue contents
+        JavascriptEditor.editorSetValue contents
         liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
     Marlowe -> do
       toSimulation $ Simulation.editorSetValue "?new_contract"
@@ -453,7 +420,7 @@ handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleActio
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> JSEditor.editorSetValue contents
+    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> JavascriptEditor.editorSetValue contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         Simulation.editorSetValue contents
@@ -641,7 +608,7 @@ loadGist gist = do
   toSimulation $ Simulation.editorSetValue $ fromMaybe mempty marlowe
   HaskellEditor.editorSetValue (fromMaybe mempty haskell)
   for_ blockly \xml -> query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
-  JSEditor.editorSetValue (fromMaybe mempty javascript)
+  JavascriptEditor.editorSetValue (fromMaybe mempty javascript)
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------
