@@ -7,7 +7,7 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
-import Data.Lens (Getter', Lens', Prism', Traversal', has, lens, modifying, over, preview, previewOn, prism, set, to, use, view, (^.))
+import Data.Lens (Getter', Lens', Prism', Traversal', has, lens, modifying, nearly, over, preview, previewOn, prism, set, to, use, view, (^.))
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -17,7 +17,7 @@ import Data.List as List
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
@@ -32,7 +32,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, identity, map, mempty, min, one, zero, (#), ($), (<<<), (==))
+import Prelude (class Eq, class HeytingAlgebra, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, (#), ($), (<<<), (==), (>))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -217,8 +217,8 @@ emptyExecutionStateWithSlot sn =
     { possibleActions: mempty
     , pendingInputs: mempty
     , transactionError: Nothing
-    , transactionWarnings: []
-    , log: []
+    , transactionWarnings: mempty
+    , log: mempty
     , state: emptyState sn
     , slot: sn
     , moneyInContract: mempty
@@ -275,7 +275,7 @@ emptyMarloweStateWithSlot sn =
   , executionState: emptyExecutionStateWithSlot sn
   }
 
-getAsMuchStateAP :: forall m t0. Bind m => MonadState { marloweState :: NonEmptyList MarloweState | t0 } m => m State
+getAsMuchStateAP :: forall m t0. MonadState { marloweState :: NonEmptyList MarloweState | t0 } m => m State
 getAsMuchStateAP = do
   executionState <- use (_currentMarloweState <<< _executionState)
   pure
@@ -283,6 +283,9 @@ getAsMuchStateAP = do
         SimulationRunning runRecord -> runRecord.state
         SimulationNotStarted notRunRecord -> emptyState notRunRecord.initialSlot
     )
+
+inFuture :: forall b r. HeytingAlgebra b => { marloweState :: NonEmptyList MarloweState | r } -> Slot -> b
+inFuture state slot = has (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< nearly zero ((>) slot)) state
 
 -- We have a special person for notifications
 otherActionsParty :: Party
@@ -305,7 +308,7 @@ updateContractInStateP text state = case parseContract text of
           (set _holes holes) state
   Left error -> (set _holes mempty) state
   where
-  marloweState = maybe (emptyState zero) identity (previewOn state (_executionState <<< _SimulationRunning <<< _state))
+  marloweState = fromMaybe (emptyState zero) (previewOn state (_executionState <<< _SimulationRunning <<< _state))
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState@{ executionState: SimulationRunning executionState } =

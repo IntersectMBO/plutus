@@ -1,6 +1,6 @@
 module Simulation where
 
-import Control.Alternative (map, void, when, (<|>))
+import Control.Alternative (map, void, when, (<*>), (<|>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (delete, filter, intercalate, snoc, sortWith)
@@ -9,8 +9,8 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (assign, has, modifying, nearly, only, over, preview, to, use, view, (^.))
-import Data.Lens.Extra (hasable, peruse)
+import Data.Lens (assign, has, modifying, only, over, preview, to, use, view, (^.))
+import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -22,13 +22,13 @@ import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
 import Data.String as String
-import Data.Traversable (traverse)
+import Data.Traversable (for_, traverse)
 import Data.Tuple (Tuple(..), snd)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Halogen (HalogenM, query)
+import Halogen (HalogenM, get, query)
 import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
@@ -39,6 +39,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
@@ -51,18 +52,17 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
 import Projects.Types (Lang(..))
 import Reachability (startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, ExecutionState(..), _SimulationNotStarted, _SimulationRunning, _editorErrors, _editorWarnings, _executionState, _initialSlot, _moveToAction, _pendingInputs, _possibleActions, _slot, applyInput, emptyExecutionStateWithSlot, emptyMarloweState, getAsMuchStateAP, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.State (ActionInput(..), ActionInputId, ExecutionState(..), _SimulationNotStarted, _SimulationRunning, _editorErrors, _editorWarnings, _executionState, _initialSlot, _moveToAction, _pendingInputs, _possibleActions, _slot, applyInput, emptyExecutionStateWithSlot, emptyMarloweState, getAsMuchStateAP, hasHistory, inFuture, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _bottomPanelView, _currentContract, _currentMarloweState, _editorKeybindings, _helpContext, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _source, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -135,24 +135,21 @@ handleAction _ (SetEditorText contents) = do
   editorSetValue contents
   updateContractInState contents
 
-handleAction _ (SetInitialSlot initialSlot) = do
-  assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
+handleAction _ (SetInitialSlot initialSlot) = assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
 
 handleAction _ StartSimulation = do
   maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
-  case maybeInitialSlot of
-    Just initialSlot -> do
-      saveInitialState
-      assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
-      moveToSignificantSlot initialSlot
-      mCurrContract <- use _currentContract
-      case mCurrContract of
-        Just currContract -> editorSetValue (show $ genericPretty currContract)
-        Nothing -> pure unit
-    Nothing -> pure unit
+  for_ maybeInitialSlot \initialSlot -> do
+    saveInitialState
+    assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
+    moveToSignificantSlot initialSlot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> editorSetValue (show $ genericPretty currContract)
+      Nothing -> pure unit
 
 handleAction _ (MoveSlot slot) = do
-  inTheFuture <- hasable (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< nearly zero ((>) slot))
+  inTheFuture <- inFuture <$> get <*> pure slot
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
   when inTheFuture do
     saveInitialState
@@ -514,7 +511,7 @@ transactionComposer state = case view (_marloweState <<< _Head <<< _executionSta
               ]
           ]
       ]
-  SimulationRunning runRec ->
+  SimulationRunning _ ->
     div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
       [ ul [ class_ (ClassName "participants") ]
           if (Map.isEmpty possibleActions) then
@@ -679,7 +676,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     )
   where
   addButton =
-    if isEnabled && inFuture then
+    if isEnabled && inFuture state slot then
       [ button
           [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
           , onClick $ const $ Just $ MoveSlot slot
@@ -689,9 +686,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     else
       []
 
-  inFuture = has (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< nearly zero ((>) slot)) state
-
-  error = if inFuture then [] else [ text boundsError ]
+  error = if inFuture state slot then [] else [ text boundsError ]
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
