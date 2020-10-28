@@ -1,4 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- Default Criterion template modified to add total time and total number of
+executions for each benchmark, and to add time units to the tick labels on the v
+overview chart. -->
+ <!DOCTYPE HTML PUBLIC
+"-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
  <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -37,7 +41,6 @@
 <p><a href="#grokularation">want to understand this report?</a></p>
 
 <div id="overview" class="ovchart" style="width:900px;height:100px;"></div>
-
 {{#report}}
 <h2><a name="b{{number}}">{{name}}</a></h2>
  <table width="100%">
@@ -335,10 +338,13 @@ $(function () {
     max_time = Math.max(max_time, means[0][i] + stddevs[i]);
   }
   var oq = $("#overview");
-  var max_x = max_time * 1.02;
+  var max_x = max_time * 1.1;   // Used to be 1.02: leave more room for legend
+  function timeFormatter(val, axis) { // Added to get times on x-axis ticks.
+    return $.renderTime(val/means[1])
+  };
   o = $.plot(oq, xs, { grid: { borderColor: "#777", hoverable: true },
                        legend: { show: xs.length > 1 },
-                       xaxis: { max: max_x, zoomRange: [false, max_x], panRange: [0, max_x] },
+                       xaxis: { max: max_x, zoomRange: [false, max_x], panRange: [0, max_x], tickFormatter: timeFormatter},
                        yaxis: { ticks: ylabels, tickColor: '#ffffff', zoomRange: false, panRange: false },
                        zoom: { interactive: true, amount: 1.05 },
                        pan: { interactive: true } });
