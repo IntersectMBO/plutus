@@ -112,7 +112,7 @@ resource "aws_alb_listener" "playground" {
   certificate_arn   = data.aws_acm_certificate.plutus_private.arn
 
   default_action {
-    target_group_arn = aws_alb_target_group.playground.arn
+    target_group_arn = aws_alb_target_group.webghc.arn
     type             = "forward"
   }
 }
@@ -127,7 +127,9 @@ resource "aws_lb_listener_certificate" "monitoring" {
   certificate_arn = data.aws_acm_certificate.monitoring_private.arn
 }
 
-# Playground
+# FIXME: This needs to stay here until aws_alb_listener.playground no longer depends on it
+# This has been changed but it needs to be deployed everywhere first so this should be removed
+# in another commit/pr
 resource "aws_alb_target_group" "playground" {
   # ALB is taking care of SSL termination so we listen to port 80 here
   port     = "80"
@@ -145,36 +147,6 @@ resource "aws_alb_target_group" "playground" {
     type = "lb_cookie"
   }
 }
-
-resource "aws_alb_listener_rule" "playground" {
-  depends_on   = [aws_alb_target_group.playground]
-  listener_arn = aws_alb_listener.playground.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.playground.id
-  }
-
-  condition {
-    host_header {
-      values = [local.plutus_domain_name]
-    }
-  }
-}
-
-resource "aws_alb_target_group_attachment" "playground_a" {
-  target_group_arn = aws_alb_target_group.playground.arn
-  target_id        = aws_instance.playground_a.id
-  port             = "80"
-}
-
-resource "aws_alb_target_group_attachment" "playground_b" {
-  target_group_arn = aws_alb_target_group.playground.arn
-  target_id        = aws_instance.playground_b.id
-  port             = "80"
-}
-
 ## ALB rule for web-ghc
 resource "aws_alb_target_group" "webghc" {
   # ALB is taking care of SSL termination so we listen to port 80 here

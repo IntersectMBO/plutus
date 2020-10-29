@@ -58,9 +58,12 @@ type Objects
     , completionItemProvider :: Maybe CompletionItemProvider
     }
 
+newtype CancelBindings
+  = CancelBindings (Effect Unit)
+
 type State
   = { editor :: Maybe Editor
-    , deactivateBindings :: Effect Unit
+    , deactivateBindings :: CancelBindings
     , objects :: Objects
     }
 
@@ -103,7 +106,7 @@ monacoComponent settings =
     { initialState:
       const
         { editor: Nothing
-        , deactivateBindings: pure unit
+        , deactivateBindings: CancelBindings $ pure unit
         , objects:
           { codeActionProvider: settings.codeActionProvider
           , completionItemProvider: settings.completionItemProvider
@@ -229,28 +232,26 @@ handleQuery (SetModelMarkers markersData f) = do
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
 
-handleQuery (SetKeyBindings DefaultBindings next) =
+handleQuery (SetKeyBindings bindings next) =
   withEditor \editor -> do
     { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    pure next
-
-handleQuery (SetKeyBindings Emacs next) =
-  withEditor \editor -> do
-    { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    disableEmacsMode <- liftEffect $ Monaco.enableEmacsBindings editor
-    modify_ (_ { deactivateBindings = disableEmacsMode })
-    pure next
-
-handleQuery (SetKeyBindings Vim next) =
-  withEditor \editor -> do
-    { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    disableVimMode <- liftEffect $ Monaco.enableVimBindings editor
-    modify_ (_ { deactivateBindings = disableVimMode })
+    newDeactivateBindings <- liftEffect $ replaceKeyBindings bindings editor deactivateBindings
+    modify_ (_ { deactivateBindings = newDeactivateBindings })
     pure next
 
 handleQuery (GetObjects f) = do
   { objects } <- get
   pure $ Just $ f objects
+
+replaceKeyBindings :: KeyBindings -> Editor -> CancelBindings -> Effect (CancelBindings)
+replaceKeyBindings bindings editor (CancelBindings deactivateOldBindings) = do
+  let
+    enableFn :: KeyBindings -> Editor -> Effect (Effect Unit)
+    enableFn DefaultBindings = pure $ pure $ pure unit
+
+    enableFn Vim = Monaco.enableVimBindings
+
+    enableFn Emacs = Monaco.enableEmacsBindings
+  deactivateOldBindings
+  deactivateNewBindings <- enableFn bindings editor
+  pure $ CancelBindings deactivateNewBindings

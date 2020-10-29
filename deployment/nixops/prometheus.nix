@@ -15,7 +15,7 @@
     }: node: { config, pkgs, lib, ... }:
 
     let
-      servers = [ machines.playgroundA machines.playgroundB machines.webghcA machines.webghcB ];
+      servers = [ machines.webghcA machines.webghcB ];
       nginxPort = 80;
       deploymentServerPort = 8080;
       target = port: node:

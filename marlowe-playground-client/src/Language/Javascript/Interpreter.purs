@@ -4,6 +4,11 @@ import Prelude
 import Control.Monad.Except (runExcept)
 import Control.Promise (Promise, toAffE)
 import Data.Either (Either(..))
+import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens.Record (prop)
+import Data.Newtype (class Newtype)
+import Data.Symbol (SProxy(..))
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn3, runEffectFn3)
 import Foreign.Generic (decodeJSON)
@@ -27,6 +32,11 @@ newtype InterpreterResult a
   { warnings :: Array Warning
   , result :: a
   }
+
+derive instance newtypeInterpreterResult :: Newtype (InterpreterResult a) _
+
+_result :: forall a. Lens' (InterpreterResult a) a
+_result = _Newtype <<< prop (SProxy :: SProxy "result")
 
 foreign import eval_ :: forall a b. EffectFn3 (String -> Either a b) (String -> Either a b) ITextModel (Promise (Either a b))
 
