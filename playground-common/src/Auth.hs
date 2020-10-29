@@ -208,7 +208,7 @@ authStatus cookieHeader = do
                     "Failed to extract github token at step: " <> showText err
                 pure Anonymous
     let authStatusResult = AuthStatus {..}
-    logDebugN $ "Authentication status is:" <> showText authStatusResult
+    logDebugN $ "Authentication status is: " <> showText authStatusResult
     pure authStatusResult
 
 extractGithubToken ::
@@ -233,7 +233,7 @@ extractGithubToken signer now cookieHeader =
             Map.lookup githubTokenClaim .
             JWT.unClaimsMap . JWT.unregisteredClaims $
             claims
-        attempt $ "Extracting token as a string:" <> showText json
+        attempt $ "Extracting token as a string: " <> showText json
         withTrace $
             case json of
                 String token -> pure $ Token token
