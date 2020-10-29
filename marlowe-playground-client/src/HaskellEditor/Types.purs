@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, result)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Simulation.Types (WebData)
@@ -61,7 +61,7 @@ _Pretty = to f
     Left _ -> ugly
 
 _ContractString :: forall r. Monoid r => Fold' r State String
-_ContractString = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _Pretty
+_ContractString = _compilationResult <<< _Success <<< _Right <<< result <<< _Pretty
 
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")

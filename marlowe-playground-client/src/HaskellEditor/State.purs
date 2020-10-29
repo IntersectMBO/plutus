@@ -14,19 +14,19 @@ import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..))
+import Language.Haskell.Interpreter as Interpreter
 import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.State (_result)
 import Simulation.Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Webghc.Server (CompileRequest(..))
 
 handleAction ::
@@ -75,7 +75,7 @@ handleAction _ SendResultToBlockly = do
   case mContract of
     Success (Right result) -> do
       let
-        source = view (_InterpreterResult <<< _result) result
+        source = view Interpreter.result result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 

@@ -139,7 +139,7 @@ resultPane state = case state ^. _showBottomPanel, view _compilationResult state
         numberedText
     ]
     where
-    numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
+    numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result._result
   true, Success (Left (TimeoutError error)) -> [ text error ]
   true, Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
   _, _ -> [ text "" ]
