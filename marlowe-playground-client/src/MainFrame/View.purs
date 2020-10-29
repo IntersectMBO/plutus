@@ -21,8 +21,8 @@ import Halogen.SVG as SVG
 import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
-import JSEditor as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, State, ModalView(..), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+import JavascriptEditor.View as JSEditor
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
@@ -63,7 +63,7 @@ render settings state =
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
-              , tabContents JSEditor [ JSEditor.render state ]
+              , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
               , tabContents BlocklyEditor
                   [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
                   , MB.toolbox
@@ -106,7 +106,7 @@ render settings state =
 
   otherActions Simulation = [ renderSubmodule _simulationState SimulationAction Simulation.otherActions state ]
 
-  otherActions JSEditor = [ JSEditor.otherActions state ]
+  otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
 
   otherActions BlocklyEditor =
     [ div [ classes [ ClassName "group" ] ]

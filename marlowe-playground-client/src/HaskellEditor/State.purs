@@ -13,7 +13,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
+import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_, postRunghc)
@@ -38,7 +38,6 @@ handleAction ::
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _compilationResult NotAsked
-  assign _activeHaskellDemo ""
 
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
@@ -64,7 +63,6 @@ handleAction _ (LoadScript key) = do
     Nothing -> pure unit
     Just contents -> do
       editorSetValue contents
-      assign _activeHaskellDemo key
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
