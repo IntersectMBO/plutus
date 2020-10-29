@@ -34,7 +34,7 @@ We model Oracles as choices that made by a participant with a specific Oracle ro
 If a role in a contract is `"kraken"`, and that role makes a choice such as `"adausdt"` then, in the Playground simulation, this choice will be _pre-filled_, based on data from Cryptowat.ch, with the current value of the ADA/USD conversion rate.
 You can find all supported currency pairs here https://api.cryptowat.ch/markets/kraken
 
-Note, that we support only whole numbers as choice inputs. How then we use current ADA/USD price, which is $0.098924? We simply multiply the price by 10^8^, so the price whould appear as 9892400. You can `Scale` the value after doing your calculations.
+Note, that we support only whole numbers as choice inputs. How then do we use current ADA/USD price, which is $0.098924? We simply multiply the price by 10^8^, so the price whould appear as 9892400. You can `Scale` the value after doing your calculations.
 
 For example, you'd like to buy USDT for 12 ADA, using Oracle price.
 
