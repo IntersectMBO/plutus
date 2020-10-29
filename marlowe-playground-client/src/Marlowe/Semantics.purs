@@ -20,6 +20,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Ord (abs, signum)
+import Data.String (toLower)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Foreign (Foreign, ForeignError(..), fail)
@@ -97,12 +98,16 @@ instance decodeJsonToken :: Decode Token where
 
 derive instance genericToken :: Generic Token _
 
-derive instance eqToken :: Eq Token
+instance eqToken :: Eq Token where
+  eq (Token cur1 tok1) (Token cur2 tok2) = eq (toLower cur1) (toLower cur2) && eq tok1 tok2
 
-derive instance ordToken :: Ord Token
+instance ordToken :: Ord Token where
+  compare (Token cur1 tok1) (Token cur2 tok2) = case compare (toLower cur1) (toLower cur2) of
+    EQ -> compare tok1 tok2
+    other -> other
 
 instance showToken :: Show Token where
-  show = genericShow
+  show (Token cur tok) = genericShow (Token (toLower cur) tok)
 
 {- Use this to show a token to a user, i.e. in browser or logs.
   If we choose to redefine either 'show' or 'pretty' we'd need to

@@ -4,6 +4,7 @@ const moo = require("moo");
 const lexer = moo.compile({
         WS: /[ \t]+/,
         number: /0|-?[1-9][0-9]*/,
+        base16: {match: /"(?:[0-9a-fA-F][0-9a-fA-F])*"/, value: x => x.slice(1, -1)},
         string: {match: /"(?:\\["\\]|[^\n"\\])*"/, value: x => x.slice(1, -1)},
         ratio: '%',
         comma: ',',
@@ -91,6 +92,10 @@ timeout
 
 string
    -> %string {% ([s]) => s.value %}
+    | %base16 {% ([s]) => s.value %}
+
+base16
+   -> %base16 {% ([s]) => s.value %}
 
 topContract
    -> hole {% ([hole]) => hole %}
@@ -143,15 +148,16 @@ choiceId
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
    -> %string {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + value.length}) %}
+    | %base16 {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + value.length}) %}
 # valueId -> lparen %VALUE_ID someWS string rparen
 
 token
    -> hole {% ([hole]) => hole %}
-    | lparen %TOKEN someWS string someWS string rparen {% ([start,{line,col},,a,,b,end]) => opts.mkTerm(opts.mkToken(a)(b))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen %TOKEN someWS base16 someWS string rparen {% ([start,{line,col},,a,,b,end]) => opts.mkTerm(opts.mkToken(a)(b))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 party
    -> hole {% ([hole]) => hole %}
-    | lparen "PK" someWS string rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkPK(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen "PK" someWS base16 rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkPK(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Role" someWS string rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkRole(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 payee

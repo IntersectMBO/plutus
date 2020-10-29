@@ -8,8 +8,11 @@ import Control.Monad.Reader (class MonadReader, ask, local)
 import Control.Monad.Rec.Class (class MonadRec)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
+import Data.Char (fromCharCode)
 import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
+import Data.Int (rem)
+import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
@@ -54,6 +57,16 @@ genTimeout = TermWrapper <$> genSlot <*> pure zero
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
 
+genHexit :: forall m. MonadGen m => m Char
+genHexit = oneOf $ lowerAlphaHexDigit :| upperAlphaHexDigit :| [ genDigitChar ]
+  where
+  lowerAlphaHexDigit = fromMaybe 'a' <$> (fromCharCode <$> chooseInt 97 102)
+
+  upperAlphaHexDigit = fromMaybe 'A' <$> (fromCharCode <$> chooseInt 65 70)
+
+genBase16 :: forall m. MonadGen m => MonadRec m => m String
+genBase16 = fromCharArray <$> resize (\s -> s - (s `rem` 2)) (unfoldable genHexit)
+
 genAlphaNum :: forall m. MonadGen m => MonadRec m => m Char
 genAlphaNum = oneOf $ genAlpha :| [ genDigitChar ]
 
@@ -61,7 +74,7 @@ genString :: forall m. MonadGen m => MonadRec m => m String
 genString = fromCharArray <$> resize (_ - 1) (unfoldable genAlphaNum)
 
 genPubKey :: forall m. MonadGen m => MonadRec m => m PubKey
-genPubKey = genString
+genPubKey = genBase16
 
 genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
@@ -74,7 +87,7 @@ genParty = oneOf $ pk :| [ role ]
   role = Role <$> genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
-genCurrencySymbol = genString
+genCurrencySymbol = genBase16
 
 genSlotInterval :: forall m. MonadGen m => MonadRec m => m Slot -> m SlotInterval
 genSlotInterval gen = do
@@ -306,7 +319,7 @@ genTokenNameValue :: forall m. MonadGen m => MonadRec m => m S.TokenName
 genTokenNameValue = genString
 
 genCurrencySymbolValue :: forall m. MonadGen m => MonadRec m => m S.CurrencySymbol
-genCurrencySymbolValue = genString
+genCurrencySymbolValue = genBase16
 
 genTokenValue :: forall m. MonadGen m => MonadRec m => m S.Token
 genTokenValue = do
