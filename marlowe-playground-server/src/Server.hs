@@ -11,7 +11,7 @@
 
 module Server where
 
-import           API                                              (API)
+import           API
 import qualified Auth
 import           Auth.Types                                       (OAuthClientId (OAuthClientId),
                                                                    OAuthClientSecret (OAuthClientSecret))
@@ -19,14 +19,19 @@ import           Control.Monad.Except                             (ExceptT)
 import           Control.Monad.IO.Class                           (MonadIO, liftIO)
 import           Control.Monad.Logger                             (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader                             (ReaderT, runReaderT)
-import           Data.Aeson                                       (ToJSON, eitherDecode, encode)
+import           Data.Aeson                                       as Aeson
+import           Data.Aeson                                       (FromJSON, ToJSON, eitherDecode, encode)
+import qualified Data.HashMap.Strict                              as HM
 import           Data.Proxy                                       (Proxy (Proxy))
+import           Data.String                                      as S
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
+import           GHC.Generics                                     (Generic)
 import           Git                                              (gitRev)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
 import           Language.Marlowe.Pretty                          (pretty)
+import           Network.HTTP.Simple                              (getResponseBody, httpJSON)
 import           Network.Wai.Middleware.Cors                      (cors, corsRequestHeaders, simpleCorsResourcePolicy)
 import           Servant                                          ((:<|>) ((:<|>)), (:>), Application,
                                                                    Handler (Handler), Server, ServerError, hoistServer,
@@ -39,6 +44,14 @@ genActusContract = pure . show . pretty . genFsContract
 
 genActusContractStatic :: ContractTerms -> Handler String
 genActusContractStatic = pure . show . pretty . genStaticContract
+
+
+oracle :: MonadIO m => String -> String -> m Value
+oracle exchange pair = do
+    response <- liftIO (httpJSON (fromString $ "GET https://api.cryptowat.ch/markets/" <> exchange <> "/" <> pair <> "/price"))
+    let result = getResponseBody response :: Value
+    pure result
+
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
 liftedAuthServer githubEndpoints config =
@@ -61,7 +74,7 @@ version :: Applicative m => m Text
 version = pure gitRev
 
 mhandlers :: Server API
-mhandlers = version :<|> genActusContract :<|> genActusContractStatic
+mhandlers = oracle :<|> version :<|> genActusContract :<|> genActusContractStatic
 
 app :: Server Web -> Application
 app handlers =

@@ -159,6 +159,7 @@ data Action
   | LoadScript String
   | SetEditorText String
   -- marlowe actions
+  | SetInitialSlot Slot
   | StartSimulation
   | MoveSlot Slot
   | SetSlot Slot
@@ -197,6 +198,7 @@ instance isEventAction :: IsEvent Action where
   toEvent (SelectEditorKeyBindings _) = Just $ defaultEvent "SelectEditorKeyBindings"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (SetEditorText _) = Just $ defaultEvent "SetEditorText"
+  toEvent (SetInitialSlot _) = Just $ defaultEvent "SetInitialSlot"
   toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
   toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"
