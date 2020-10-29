@@ -6,8 +6,8 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Foldable (for_, traverse_)
-import Data.Lens (_Right, assign, preview, use, view, (^.))
+import Data.Foldable (fold, for_, traverse_)
+import Data.Lens (assign, preview, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -34,14 +34,11 @@ import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (eventListenerEventSource)
 import HaskellEditor.State (editorGetValue, editorResize, editorSetValue, handleAction) as HaskellEditor
-import HaskellEditor.Types (Action(..), State, initialState) as HE
-import HaskellEditor.Types (_compilationResult)
+import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as HE
 import JavascriptEditor.State as JavascriptEditor
+import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
-import JavascriptEditor.Types (Action(..), State, _CompiledSuccessfully, _compilationResult, initialState) as JS
-import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
-import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
@@ -49,7 +46,6 @@ import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Gists (mkNewGist, playgroundFiles)
-import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
@@ -70,12 +66,10 @@ import SaveAs.Types (Action(..), State, _error, _projectName, emptyState) as Sav
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
-import Simulation.State (_result)
 import Simulation.Types (_source)
 import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Pretty (pretty)
 import Types (WebData)
 import Wallet as Wallet
 import Web.HTML (window) as Web
@@ -252,27 +246,10 @@ handleAction s (HaskellAction action) = do
   toHaskellEditor (HaskellEditor.handleAction s action)
   case action of
     HE.SendResultToSimulator -> do
-      mContract <-
-        peruse
-          ( _haskellState
-              <<< _compilationResult
-              <<< _Success
-              <<< _Right
-              <<< _InterpreterResult
-              <<< _result
-          )
+      mContract <- peruse (_haskellState <<< HE._ContractString)
       let
-        contract = case mContract of
-          Just unformatted -> case parseContract unformatted of
-            Right pcon -> show $ pretty pcon
-            Left _ -> unformatted
-          _ -> ""
-      assign (_simulationState <<< _source) Haskell
-      selectView Simulation
-      void $ toSimulation
-        $ do
-            Simulation.handleAction s (ST.SetEditorText contract)
-            Simulation.handleAction s ST.ResetContract
+        contract = fold mContract
+      sendToSimulation s Haskell contract
     HE.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Haskell
       selectView BlocklyEditor
@@ -282,23 +259,10 @@ handleAction s (JavascriptAction action) = do
   toJavascriptEditor (JavascriptEditor.handleAction s action)
   case action of
     JS.SendResultToSimulator -> do
-      mContract <-
-        peruse
-          ( _javascriptState
-              <<< JS._compilationResult
-              <<< JS._CompiledSuccessfully
-              <<< JSI._result
-          )
+      mContract <- peruse (_javascriptState <<< JS._ContractString)
       let
-        contract = case mContract of
-          Just con -> show $ pretty con
-          _ -> ""
-      assign (_simulationState <<< _source) Javascript
-      selectView Simulation
-      void $ toSimulation
-        $ do
-            Simulation.handleAction s (ST.SetEditorText contract)
-            Simulation.handleAction s ST.ResetContract
+        contract = fold mContract
+      sendToSimulation s Javascript contract
     JS.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Javascript
       selectView BlocklyEditor
@@ -478,6 +442,15 @@ handleAction _ (OpenModal modalView) = assign _showModal $ Just modalView
 handleAction _ CloseModal = assign _showModal Nothing
 
 handleAction _ (ChangeProjectName name) = assign _projectName name
+
+sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
+sendToSimulation settings language contract = do
+  assign (_simulationState <<< _source) language
+  selectView Simulation
+  void $ toSimulation
+    $ do
+        Simulation.handleAction settings (ST.SetEditorText contract)
+        Simulation.handleAction settings ST.ResetContract
 
 selectLanguageView :: Lang -> Maybe View
 selectLanguageView Haskell = Just HaskellEditor

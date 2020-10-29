@@ -4,14 +4,16 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Either (Either(..))
-import Data.Lens (Lens', Prism', prism)
+import Data.Lens (Getter', Lens', Prism', Fold', prism, to)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
+import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
+import Text.Pretty (pretty)
 
 data CompilationState
   = NotCompiled
@@ -25,6 +27,12 @@ _CompiledSuccessfully = prism CompiledSuccessfully unwrap
   unwrap (CompiledSuccessfully x) = Right x
 
   unwrap y = Left y
+
+_Pretty :: Getter' Contract String
+_Pretty = to (show <<< pretty)
+
+_ContractString :: forall r. Monoid r => Fold' r State String
+_ContractString = _compilationResult <<< _CompiledSuccessfully <<< _result <<< _Pretty
 
 data Action
   = Compile
