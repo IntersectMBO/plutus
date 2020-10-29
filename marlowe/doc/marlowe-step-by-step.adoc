@@ -22,7 +22,7 @@ Before discussing other forms of contracts, we need to describe values, observat
 Observations will have a value at every step of execution. On the other hand, *actions* happen at particular points during execution. As noted earlier, actions can be
 
  * depositing money,
- * making a choice between various alternatives, including an _oracle_ value (see next section), or
+ * making a choice between various alternatives, including an _oracle_ value (see next section), or 
  * notifying an external value of some kind.
 
 === Oracles 
