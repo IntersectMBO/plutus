@@ -131,7 +131,7 @@ exports.enableEmacsBindings_ = function (editor) {
 }
 
 exports.completionItemKindEq_ = function (a, b) {
-  a == b
+  return a == b;
 }
 
 exports.completionItemKindOrd_ = function (lt, eq, gt, a, b) {
