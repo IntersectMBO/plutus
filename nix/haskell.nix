@@ -11,7 +11,7 @@
 }:
 
 let
-  sources = import ./sources.nix {}
+  sources = import ./sources.nix {};
   r-packages = with sources.nixpkgsForR.rPackages; [pkgs.R tidyverse dplyr stringr MASS plotly];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
