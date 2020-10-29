@@ -1,9 +1,9 @@
 module Halogen.Classes where
 
-import Prelude
+import Prelude hiding (div)
 import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
-import Halogen.HTML (HTML, IProp, span, text)
+import Halogen.HTML (HTML, IProp, div, span, text)
 import Halogen.HTML.Properties (classes)
 
 foreign import closeDrawerIcon :: String
@@ -237,8 +237,17 @@ alignedButtonLast = ClassName "aligned-button-last"
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
 
+arrow :: ClassName
+arrow = ClassName "arrow"
+
+downArrow :: ClassName
+downArrow = ClassName "down-arrow"
+
 rightArrow :: ClassName
 rightArrow = ClassName "right-arrow"
 
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"
+
+vl :: forall p a. HTML p a
+vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]

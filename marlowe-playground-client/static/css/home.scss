@@ -1,67 +1,89 @@
 .homepage-container {
-  height: calc(100% - 40px);
-  margin: 0rem 1rem;
+  // height: calc(100% - 40px);
+  margin: 0rem auto;
+  width: 1024px;
 }
 
-.right-arrow {
+.arrow {
   background: rgb(0, 0, 0);
   height: 2px;
-  width: 50px;
+  width: 20px;
   margin: 0 auto;
   position: relative;
 }
 
-.right-arrow:before,
-.right-arrow:after {
+.arrow:before,
+.arrow:after {
   content: "";
   background: rgb(0, 0, 0);
   position: absolute;
   height: 2px;
-  width: 10px;
+  width: 8px;
 }
 
-.right-arrow:before {
+.arrow:before {
   right: -2px;
-  bottom: -3px;
+  bottom: -2px;
   transform: rotate(-45deg);
 }
 
-.right-arrow:after {
+.arrow:after {
   right: -2px;
-  top: -3px;
+  top: -2px;
   transform: rotate(45deg);
+}
+
+.down-arrow {
+  transform: rotate(90deg);
 }
 
 .flip {
   transform: rotate(180deg);
 }
 
-.start-with-haskell,
-.start-with-marlowe {
+.start-with-container {
   display: flex;
+  place-content: space-between;
+  margin-top: 2rem;
+}
+
+.start-with {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 1rem;
   align-items: center;
-}
+  padding: 1rem;
+  width: 312px;
+  height: 460px;
 
-.start-with-haskell {
-  max-width: 500px;
-  justify-content: space-between;
-  margin: auto;
-}
+  h2 {
+    margin: 0;
+  }
 
-.start-with-haskell .haskell-icon {
-  max-width: 100px;
-}
+  .diagram {
+    display: flex;
+    height: 100%;
+    align-items: center;
 
-.start-with-haskell .sim-icon {
-  max-width: 100px;
+    .fixed-height {
+      height: 16px;
+
+      .down-arrow {
+        top: 6px;
+        width: 16px;
+      }
+    }
+  }
 }
 
 .marlowe-blockly-box {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  border: 1px grey solid;
-  padding: 0.5rem;
+  border-radius: 1rem;
+  padding: 1rem 2rem;
+  background-color: var(--bg-light);
 }
 
 .marlowe-blockly-box .arrows {
@@ -70,34 +92,27 @@
   flex-direction: column;
   place-content: space-between;
   margin: 0.5rem;
-  transform: rotate(90deg);
+
+  .arrow,
+  .arrow:after,
+  .arrow::before {
+    background-color: var(--bg-darkest);
+  }
 }
 
 .marlowe-blockly-box .arrows .right-arrow {
   width: 40px;
 }
 
-.start-with-container {
-  gap: 2rem;
-
-  .even-item {
-    flex: 1;
-  }
-  .even-item:first-child {
-    margin: 1rem;
-  }
-}
-
-.compilers-group {
-  flex: 1;
-}
-
 .compiler-group {
   align-items: center;
   margin: 1rem;
+  display: flex;
+  flex-direction: column;
 
   .icon-group {
     width: 50px;
+
     p {
       text-align: center;
     }
@@ -107,17 +122,38 @@
 .simulation-group {
   flex: 1;
   align-items: center;
+  flex-direction: column;
+  margin-top: 1rem;
+
 }
 
 .ready-to-go-buttons {
   display: flex;
-  margin-bottom: 1rem;
-}
+  flex-direction: column;
+  width: 55%;
+  align-items: center;
+  margin: auto;
 
-.ready-to-go-buttons a {
-  margin-right: 1rem;
-  align-self: center;
-  text-decoration: underline;
+  .links {
+    display: flex;
+    text-align: center;
+    width: 75%;
+    margin-top: 1rem;
+
+    :hover {
+      color: var(--text-color);
+    }
+
+    a {
+      flex: 1;
+      margin: 0rem 1rem;
+      white-space: nowrap;
+      align-self: center;
+      text-decoration: underline;
+      color: var(--text-color-light);
+
+    }
+  }
 }
 
 .no-show-home {
@@ -150,12 +186,4 @@
   .start-with-container {
     flex-wrap: wrap;
   }
-}
-
-.home-buttons {
-  display: flex;
-  justify-content: space-between;
-
-  /* remove this to put dont show button on right */
-  flex-flow: column;
 }

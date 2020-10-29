@@ -10,10 +10,10 @@ import Gists (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -59,6 +59,7 @@ render settings state =
           ]
       , main []
           [ topBar
+          , hr_
           , section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
@@ -81,18 +82,33 @@ render settings state =
               ]
           ]
       , modal state
+      , div [ classes [ ClassName "footer" ] ]
+          [ div [ classes [ flex, ClassName "links" ] ]
+              [ a [ href "https://cardano.org/" ] [ text "cardano.org" ]
+              , vl
+              , a [ href "https://iohk.io/" ] [ text "iohk.io" ]
+              ]
+          , div [] [ text "\x00A9 2020 IOHK Ltd" ]
+          , div [ classes [ flex, ClassName "links" ] ]
+              [ a [] [ text "Stack Overflow" ]
+              , vl
+              , a [] [ text "Twitter" ]
+              ]
+          ]
       ]
     )
   where
-  projectTitle =
-    let
-      title = state ^. _projectName
+  projectTitle = case state ^. _view of
+    HomePage -> text ""
+    _ ->
+      let
+        title = state ^. _projectName
 
-      isLoading = has (_createGistResult <<< _Loading) state
+        isLoading = has (_createGistResult <<< _Loading) state
 
-      spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
-    in
-      div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
+        spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
+      in
+        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 
@@ -150,25 +166,24 @@ modal state = case state ^. _showModal of
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
   div [ classes [ ClassName "menu-bar" ] ]
-    [ menuButton (OpenModal NewProject) "New" "New Project"
-    , gistModal (OpenModal OpenProject) "Open" "Open Project"
-    , menuButton (OpenModal OpenDemo) "Open Example" "Open Example"
-    , menuButton (OpenModal RenameProject) "Rename" "Rename Project"
-    , gistModal (GistAction PublishGist) "Save" "Save Project"
-    , gistModal (OpenModal SaveProjectAs) "Save As" "Save As New Project"
+    [ menuButton (OpenModal NewProject) "New Project"
+    , gistModal (OpenModal OpenProject) "Open"
+    , menuButton (OpenModal OpenDemo) "Open Example"
+    , menuButton (OpenModal RenameProject) "Rename"
+    , gistModal (GistAction PublishGist) "Save"
+    , gistModal (OpenModal SaveProjectAs) "Save As..."
     ]
   where
-  menuButton action shortName longName =
+  menuButton action name =
     a [ onClick $ const $ Just action ]
-      [ span [ class_ (ClassName "short-text") ] [ text shortName ]
-      , span [ class_ (ClassName "long-text") ] [ text longName ]
+      [ span [] [ text name ]
       ]
 
-  gistModal action shortName restOfName =
+  gistModal action name =
     if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then
-      menuButton action shortName restOfName
+      menuButton action name
     else
-      menuButton (OpenModal GithubLogin) shortName restOfName
+      menuButton (OpenModal GithubLogin) name
 
 marloweIcon :: forall p a. HTML p a
 marloweIcon =

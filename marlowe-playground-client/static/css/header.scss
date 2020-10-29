@@ -78,6 +78,10 @@ header {
   a {
     padding: 0rem 1rem;
     font-weight: bold;
+    color: var(--text-color-light);
+    :hover {
+      color: var(--text-color);
+    }
   }
 
   .short-text {

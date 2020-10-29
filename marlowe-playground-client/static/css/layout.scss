@@ -1,8 +1,8 @@
 html,
 body,
 .site-wrap {
-  background: var(--bg-dark);
-  height: calc(100vh - 53px);
+  background: var(--bg-light);
+  // height: calc(100vh - 53px);
 }
 
 main {
@@ -10,6 +10,11 @@ main {
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+
+  hr {
+    margin: 0rem 1rem;
+    border-top: 0px solid var(--bg-darker);
+  }
 }
 
 main nav {
@@ -24,4 +29,21 @@ main section {
 .code-editor {
   height: 90vh;
   overflow-x: scroll;
+}
+
+.footer {
+  display: flex;
+  height: 54px;
+  justify-content: space-between;
+  background-color: var(--bg-dark);
+  align-items: center;
+
+  .links {
+    height: 1rem;
+    align-items: center;
+
+    a {
+      padding: 0rem 1rem;
+    }
+  }
 }
