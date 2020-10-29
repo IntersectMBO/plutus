@@ -62,7 +62,7 @@ data "template_file" "nixops_user_data" {
 }
 
 resource "aws_instance" "nixops" {
-  ami           = lookup(var.aws_amis, var.aws_region)
+  ami           = lookup(var.amis_20_03, var.aws_region)
   instance_type = var.nixops_instance_type
   subnet_id     = aws_subnet.private.*.id[0]
   user_data     = data.template_file.nixops_user_data.rendered

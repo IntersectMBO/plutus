@@ -8,18 +8,6 @@ data "template_file" "playground_ssh_keys" {
 }
 
 locals {
-  playgroundA = {
-    name = "playgroundA"
-    ip   = "${element(concat(aws_instance.playground_a.*.private_ip, list("")), 0)}"
-    dns  = "playground-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
-  playgroundB = {
-    name = "playgroundB"
-    ip   = "${element(concat(aws_instance.playground_b.*.private_ip, list("")), 0)}"
-    dns  = "playground-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
-  }
-
   webghcA = {
     name = "webghcA"
     ip   = "${element(concat(aws_instance.webghc_a.*.private_ip, list("")), 0)}"
@@ -46,8 +34,6 @@ locals {
   }
 
   machines = {
-    playgroundA       = "${local.playgroundA}"
-    playgroundB       = "${local.playgroundB}"
     webghcA       = "${local.webghcA}"
     webghcB       = "${local.webghcB}"
     nixops         = "${local.nixops}"
