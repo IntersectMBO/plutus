@@ -23,7 +23,6 @@ haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
-    pkgs.git
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
