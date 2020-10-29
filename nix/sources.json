@@ -73,7 +73,7 @@
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/db31e48c5c8d99dcaf4e5883a96181f6ac4ad6f6.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
+    }, 
     "nixpkgsForR": {
         "branch": "nixos-20.03",
         "builtin": true,
