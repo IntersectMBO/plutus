@@ -12,7 +12,9 @@
 
 let
   sources = import ./sources.nix {};
-  r-packages = with sources.nixpkgsForR.rPackages; [pkgs.R tidyverse dplyr stringr MASS plotly];
+  nixpkgsForR = sources.nixpkgsForR;
+  pkgsForR = import nixpkgsForR {};
+  r-packages = with pkgsForR.rPackages; [pkgsForR.R tidyverse dplyr stringr MASS plotly];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
