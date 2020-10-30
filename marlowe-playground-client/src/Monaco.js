@@ -36,10 +36,10 @@ exports.getModelMarkers_ = function (monaco, model) {
 
 exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
-    value: [
-      'Close'
-    ].join('\n'),
     language: languageId,
+    minimap: {
+      enabled: true
+    }
   });
   return editor;
 }
