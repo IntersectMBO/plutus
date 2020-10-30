@@ -1,5 +1,4 @@
 .homepage-container {
-  // height: calc(100% - 40px);
   margin: 0rem auto;
   width: 1024px;
 }
@@ -51,11 +50,12 @@
   display: flex;
   flex-direction: column;
   background-color: white;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   align-items: center;
   padding: 1rem;
   width: 312px;
   height: 460px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.01), 0 6px 20px 0 rgba(0, 0, 0, 0.1);
 
   h2 {
     margin: 0;
@@ -167,14 +167,16 @@
 
 .marlowe-intro-container {
   display: flex;
-  /* add gap and remove wrap if we want 3 columns */
-  /* gap: 1rem; */
   flex-wrap: wrap;
   flex-flow: row;
 
   div {
-    margin: 1rem;
-    ;
+    margin: 1rem 1rem 1rem 0rem;
+  }
+
+  h2 {
+    white-space: nowrap;
+    font-size: 1.2rem;
   }
 }
 

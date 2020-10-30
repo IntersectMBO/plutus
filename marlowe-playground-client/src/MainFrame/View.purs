@@ -84,20 +84,22 @@ render settings state =
       , modal state
       , div [ classes [ ClassName "footer" ] ]
           [ div [ classes [ flex, ClassName "links" ] ]
-              [ a [ href "https://cardano.org/" ] [ text "cardano.org" ]
+              [ a [ href "https://cardano.org/", target "_blank" ] [ text "cardano.org" ]
               , vl
-              , a [ href "https://iohk.io/" ] [ text "iohk.io" ]
+              , a [ href "https://iohk.io/", target "_blank" ] [ text "iohk.io" ]
               ]
-          , div [] [ text "\x00A9 2020 IOHK Ltd" ]
+          , div [] [ text (copyright <> " 2020 IOHK Ltd") ]
           , div [ classes [ flex, ClassName "links" ] ]
               [ a [] [ text "Stack Overflow" ]
               , vl
-              , a [] [ text "Twitter" ]
+              , a [ href "https://twitter.com/hashtag/#Marlowe", target "_blank" ] [ text "Twitter" ]
               ]
           ]
       ]
     )
   where
+  copyright = "\x00A9"
+
   projectTitle = case state ^. _view of
     HomePage -> text ""
     _ ->

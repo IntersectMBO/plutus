@@ -54,8 +54,8 @@ startWith index subtitle contents =
 downArrowBox :: forall p. HTML p Action
 downArrowBox = div [ classes [ ClassName "fixed-height" ] ] [ div [ classes [ arrow, downArrow ] ] [] ]
 
-sim :: forall p. HTML p Action
-sim =
+simulationDiagram :: forall p. HTML p Action
+simulationDiagram =
   div [ classes [ ClassName "group", flex, ClassName "simulation-group" ] ]
     [ downArrowBox
     , div_
@@ -66,7 +66,7 @@ sim =
 
 startWithHaskell :: forall p. HTML p Action
 startWithHaskell =
-  div [ classes [] ]
+  div_
     [ div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
         [ div [ classes [ ClassName "icon-group" ] ]
             [ img [ src haskellIcon, classes [ ClassName "haskell-icon" ] ]
@@ -75,12 +75,12 @@ startWithHaskell =
         , downArrowBox
         ]
     , marloweBlocklyBox
-    , sim
+    , simulationDiagram
     ]
 
 startWithJavascript :: forall p. HTML p Action
 startWithJavascript =
-  div [ classes [] ]
+  div_
     [ div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
         [ div [ classes [ ClassName "icon-group" ] ]
             [ img [ src javascriptIcon, classes [ ClassName "javascript-icon" ] ]
@@ -89,15 +89,15 @@ startWithJavascript =
         , downArrowBox
         ]
     , marloweBlocklyBox
-    , sim
+    , simulationDiagram
     ]
 
 startWithMarlowe :: forall m. ComponentHTML Action ChildSlots m
 startWithMarlowe =
-  div [ classes [] ]
+  div_
     [ marloweBlocklyBox
     , div [ classes [ rightArrow ] ] []
-    , sim
+    , simulationDiagram
     ]
 
 marloweBlocklyBox :: forall p. HTML p Action

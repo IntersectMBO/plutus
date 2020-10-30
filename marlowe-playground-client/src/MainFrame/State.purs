@@ -13,6 +13,7 @@ import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
+import Debug.Trace (trace)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
@@ -72,9 +73,14 @@ import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalSt
 import StaticData as StaticData
 import Types (WebData)
 import Wallet as Wallet
+import Web.DOM.Document as D
+import Web.DOM.Element (setScrollTop)
+import Web.DOM.HTMLCollection as WC
 import Web.HTML (window) as Web
-import Web.HTML.HTMLDocument (toEventTarget)
+import Web.HTML.HTMLDocument (toDocument, toEventTarget)
 import Web.HTML.Window (document) as Web
+import Web.HTML.Window as W
+import Web.HTML.Window as Window
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
@@ -601,6 +607,9 @@ selectView view = do
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
   liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
+  liftEffect do
+    window <- Web.window
+    Window.scroll 0 0 window
   case view of
     HomePage -> pure unit
     Simulation -> do
