@@ -20,7 +20,7 @@ module Plutus.SCB.Webserver.Handler
     , contractSchema
     ) where
 
-import           Cardano.Metadata.Types                          (MetadataEffect, Subject,
+import           Cardano.Metadata.Types                          (MetadataEffect, QueryResult, Subject,
                                                                   SubjectProperties (SubjectProperties), batchQuery)
 import qualified Cardano.Metadata.Types                          as Metadata
 import           Control.Monad.Freer                             (Eff, Member)
@@ -89,15 +89,18 @@ getChainReport = do
                       } = mkChainOverview blocks
     let wallets = Wallet <$> [1 .. 10]
         subjects = Metadata.toSubject . pubKeyHash . walletPubKey <$> wallets
-        toMap :: SubjectProperties (encoding :: Metadata.JSONEncoding) -> Map Subject [Metadata.Property encoding]
-        toMap (SubjectProperties subject properties) = Map.singleton subject properties
-    relatedMetadata <-
-        foldMap toMap <$>
+        toMap ::
+               SubjectProperties (encoding :: Metadata.JSONEncoding)
+            -> Map Subject [Metadata.Property encoding]
+        toMap (SubjectProperties subject properties) =
+            Map.singleton subject properties
+    batchQueryResult :: QueryResult (encoding :: Metadata.JSONEncoding) <-
         batchQuery
             (Metadata.QuerySubjects
                  { Metadata.subjects = Set.fromList subjects
                  , Metadata.propertyNames = Nothing
                  })
+    let relatedMetadata = foldMap toMap . Metadata.results $ batchQueryResult
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport

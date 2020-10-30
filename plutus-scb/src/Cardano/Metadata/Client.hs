@@ -16,7 +16,8 @@ module Cardano.Metadata.Client
 import           Cardano.Metadata.API      (API)
 import           Cardano.Metadata.Types    (JSONEncoding (AesonEncoding),
                                             MetadataEffect (BatchQuery, GetProperties, GetProperty),
-                                            MetadataError (MetadataClientError, SubjectNotFound, SubjectPropertyNotFound))
+                                            MetadataError (MetadataClientError, SubjectNotFound, SubjectPropertyNotFound),
+                                            QueryResult (QueryResult))
 import           Control.Monad.Freer       (Eff, LastMember, Member, type (~>), interpret, sendM)
 import           Control.Monad.Freer.Error (Error, throwError)
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
@@ -62,4 +63,4 @@ handleMetadataClient clientEnv =
                 runClient
                     (throwError (SubjectPropertyNotFound subject propertyKey))
                     (getProperty subject propertyKey)
-            BatchQuery query -> runClient (pure []) (batchQuery query)
+            BatchQuery query -> runClient (pure (QueryResult [])) (batchQuery query)
