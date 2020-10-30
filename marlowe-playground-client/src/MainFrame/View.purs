@@ -90,7 +90,7 @@ render settings state =
               ]
           , div [] [ text (copyright <> " 2020 IOHK Ltd") ]
           , div [ classes [ flex, ClassName "links" ] ]
-              [ a [] [ text "Stack Overflow" ]
+              [ a [ href "https://t.me/IOHK_Marlowe", target "_blank" ] [ text "Telegram" ]
               , vl
               , a [ href "https://twitter.com/hashtag/#Marlowe", target "_blank" ] [ text "Twitter" ]
               ]
