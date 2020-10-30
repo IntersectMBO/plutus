@@ -92,7 +92,7 @@ render settings state =
           , div [ classes [ flex, ClassName "links" ] ]
               [ a [ href "https://t.me/IOHK_Marlowe", target "_blank" ] [ text "Telegram" ]
               , vl
-              , a [ href "https://twitter.com/hashtag/#Marlowe", target "_blank" ] [ text "Twitter" ]
+              , a [ href "https://twitter.com/hashtag/Marlowe", target "_blank" ] [ text "Twitter" ]
               ]
           ]
       ]
