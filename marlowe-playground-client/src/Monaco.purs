@@ -19,9 +19,6 @@ import Foreign.Object (Object)
 import Foreign.Object as Object
 import Web.HTML (HTMLElement)
 
-class Default a where
-  default :: a
-
 newtype LanguageExtensionPoint
   = LanguageExtensionPoint { id :: String }
 
