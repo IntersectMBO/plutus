@@ -12,10 +12,12 @@ let
     tools = {
       stylish-haskell = dev.packages.stylish-haskell;
       nixpkgs-fmt = pkgs.nixpkgs-fmt;
+      shellcheck = pkgs.shellcheck;
     };
     hooks = {
       stylish-haskell.enable = true;
       nixpkgs-fmt.enable = true;
+      shellcheck.enable = true;
     };
   };
 in
