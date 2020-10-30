@@ -15,7 +15,7 @@ This directory contains two sets of benchmarks:
 
    * The corresponding cabal commands are
        * `cabal v2-bench plutus-benchmark:nofib`
-       * `cabal v2-bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"``
+       * `cabal v2-bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
 
    * By default, the benchmarks are run for a minimum of **60 seconds each** in order to get a
      statistically reasonable number of executions.  You can change this with Criterion's `-L` option.

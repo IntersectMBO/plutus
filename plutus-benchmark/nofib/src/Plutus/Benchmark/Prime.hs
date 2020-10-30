@@ -2,6 +2,8 @@
   Most of the literate Haskell stuff has been removed and everything's
   been put into one file for simplicity. %-}
 
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-identities              #-}
@@ -11,7 +13,9 @@
 
 module Plutus.Benchmark.Prime where
 
+import           Control.DeepSeq              (NFData)
 import           Data.Char                    (isSpace)
+import           GHC.Generics
 import qualified Prelude                      (Eq (..), String)
 
 import           Language.PlutusCore          (Name (..))
@@ -259,7 +263,7 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Show, Prelude.Eq)
+    deriving (Show, Prelude.Eq, Generic, NFData)
 -- Prelude.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers
