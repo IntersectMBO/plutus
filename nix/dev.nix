@@ -83,7 +83,7 @@ pkgs.recurseIntoAttrs (rec {
       #!${pkgs.runtimeShell}
       set -eou pipefail
 
-      export PATH=${pkgs.gccStdenv.lib.makeBinPath [
+      export PATH=${pkgs.gccStdenv.lib.makeBinPath ([
         pkgs.coreutils
         pkgs.git
         pkgs.python
@@ -100,7 +100,7 @@ pkgs.recurseIntoAttrs (rec {
         easyPS.psc-package
         easyPS.spago
         easyPS.spago2nix
-      ]}
+      ] ++ (if pkgs.stdenv.isDarwin then [ pkgs.clang ] else [ ]))}
 
       if [ ! -f package.json ]
       then
