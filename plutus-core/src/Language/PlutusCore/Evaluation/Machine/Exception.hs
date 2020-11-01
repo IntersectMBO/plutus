@@ -77,7 +77,7 @@ data MachineError err term
     | BuiltinTermArgumentExpectedMachineError
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
-      -- ^ A buitlin received a term argument when something else was expected
+      -- ^ A builtin received a term argument when something else was expected
     | EmptyBuiltinArityMachineError
       -- ^ We've reached a state where a builtin instantiation or application is attempted
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
@@ -196,7 +196,7 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
     prettyBy _      BuiltinTermArgumentExpectedMachineError =
         "A builtin expected a term argument, but something else was received"
     prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
-        "A buitlin received a term argument when something else was expected"
+        "A builtin received a term argument when something else was expected"
     prettyBy _      EmptyBuiltinArityMachineError =
         "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy config (ConstAppMachineError constAppError)  =

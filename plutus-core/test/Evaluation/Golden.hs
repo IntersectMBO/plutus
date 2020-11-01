@@ -29,6 +29,14 @@ import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
+-- (con integer)
+integer :: Type TyName DefaultUni ()
+integer = mkTyBuiltin @ Integer ()
+
+-- (con string)
+string :: Type TyName DefaultUni ()
+string = mkTyBuiltin @ String ()
+
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
@@ -106,9 +114,9 @@ closure :: uni `Includes` Integer => Term TyName Name uni ()
 closure = runQuote $ do
     i <- freshName "i"
     j <- freshName "j"
-    let integer = mkTyBuiltin @Integer ()
+    let integer' = mkTyBuiltin @Integer ()
     pure
-        . Apply () (LamAbs () i integer . LamAbs () j integer $ Var () i)
+        . Apply () (LamAbs () i integer' . LamAbs () j integer' $ Var () i)
         $ mkConstant @Integer () 1
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
@@ -119,6 +127,85 @@ goldenVsPretty name value =
 goldenVsEvaluated :: String -> Term TyName Name DefaultUni () -> TestTree
 goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel
 
+
+-- Tests for evaluation of builtins, mainly checking that interleaving of term
+-- and type arguments is correct.  At the moment the only polymorphic builtin
+-- we have is ifThenElse.
+
+-- Various components that we'll use to build larger terms for testing
+
+lte :: Term TyName Name DefaultUni ()
+lte = staticBuiltinNameAsTerm LessThanEqInteger
+
+eleven :: Term TyName Name DefaultUni ()
+eleven = mkConstant @Integer () 11
+
+twentytwo :: Term TyName Name DefaultUni ()
+twentytwo = mkConstant @Integer () 22
+
+string1 :: Term TyName Name DefaultUni ()
+string1 = mkConstant @String () "11 <= 22"
+
+string2 :: Term TyName Name DefaultUni ()
+string2 = mkConstant @String () "¬(11 <= 22)"
+
+-- 11 <= 22
+lteExpr :: Term TyName Name DefaultUni ()
+lteExpr = mkIterApp () lte [eleven, twentytwo]
+
+-- (builtin ifThenElse)
+ite :: Term TyName Name DefaultUni ()
+ite = staticBuiltinNameAsTerm IfThenElse
+
+-- { (builtin ifThenElse) (con integer) }
+iteAtInteger :: Term TyName Name DefaultUni ()
+iteAtInteger = TyInst () ite integer
+
+-- { (builtin ifThenElse) (con string) }
+iteAtString :: Term TyName Name DefaultUni ()
+iteAtString = TyInst () ite string
+
+-- { (builtin ifThenElse) (forall a . a -> a) }
+-- Evaluation should succeed, but typechecking should fail.
+-- You're not allowed to instantiate a builtin at a higher kind.
+iteAtHigherKind :: Term TyName Name DefaultUni ()
+iteAtHigherKind = TyInst () ite (TyForall () a (Type ()) aArrowA)
+    where a = TyName (Name "a" (Unique (-1)))
+          aArrowA = TyFun () (TyVar () a) (TyVar () a)
+
+-- {ifThenElse @ String} (11<=22): should succeed
+iteTest1String :: Term TyName Name DefaultUni ()
+iteTest1String = Apply () iteAtString lteExpr
+
+-- {ifThenElse @ String} (11<=22): should succeed
+iteTest1Integer :: Term TyName Name DefaultUni ()
+iteTest1Integer = Apply () iteAtInteger lteExpr
+
+-- ifThenElse (11<=22): should fail because ifThenElse isn't instantiated
+-- Type expcted, term supplied
+iteTestUninstantiated :: Term TyName Name DefaultUni ()
+iteTestUninstantiated  = Apply () ite lteExpr
+
+-- {ifThenElse @ String} (11<=22) "11 <= 22" "¬(11<=22)": should succeed
+iteTest3 :: Term TyName Name DefaultUni ()
+iteTest3 = mkIterApp () iteTest1String [string1, string2]
+
+-- {ifThenElse @ Integer} (11<=22) "11 <= 22" "¬(11<=22)": should also succeed.
+-- However it's ill-typed: at execution we only check that type instantiations
+-- and term arguments are correctly interleaved, not that instantiations are
+-- correct.
+iteTest4 :: Term TyName Name DefaultUni ()
+iteTest4 = mkIterApp () iteTest1Integer [string1, string2]
+
+-- { {ifThenElse @ Integer} @ Integer }: should fail
+iteTest5 :: Term TyName Name DefaultUni ()
+iteTest5 = TyInst () iteAtInteger integer
+
+-- { [{ifThenElse @ Integer} (11<=22)] @ String }: should fail:
+-- term expected, type supplied
+iteTest6 :: Term TyName Name DefaultUni ()
+iteTest6 = TyInst () iteTest1Integer string
+
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree
 test_golden = testGroup "golden"
@@ -128,4 +215,25 @@ test_golden = testGroup "golden"
     , goldenVsEvaluated "polyError" polyError
     , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer ())
     , goldenVsEvaluated "closure" closure
+    , goldenVsEvaluated "ite" $ ite
+    , goldenVsEvaluated "iteAtInteger" $ iteAtInteger
+    , goldenVsEvaluated "iteAtString" $ iteAtString
+    , goldenVsEvaluated "iteAtHigherKind" $ iteAtHigherKind
+    , goldenVsEvaluated "iteTest1Integer" $ iteTest1Integer
+    , goldenVsEvaluated "iteTest3" $ iteTest3
+    , goldenVsEvaluated "iteTest4" $ iteTest4
+    , goldenVsEvaluated "iteTest5" $ iteTest5
+    , goldenVsEvaluated "iteTest6" $ iteTest6
+    , goldenVsEvaluated "iteTestUninstantiated" $ iteTestUninstantiated
     ]
+{-
+
+(program 1.0.0
+[ {(builtin ifThenElse) (con string)}
+  [(builtin lessThanInteger) (con integer 11) (con integer 22)]
+  (con string "11 < 22")
+  (con string "¬(11 < 22)")
+]
+)
+
+-}
