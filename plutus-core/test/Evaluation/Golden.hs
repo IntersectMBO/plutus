@@ -226,14 +226,3 @@ test_golden = testGroup "golden"
     , goldenVsEvaluated "iteTest6" $ iteTest6
     , goldenVsEvaluated "iteTestUninstantiated" $ iteTestUninstantiated
     ]
-{-
-
-(program 1.0.0
-[ {(builtin ifThenElse) (con string)}
-  [(builtin lessThanInteger) (con integer 11) (con integer 22)]
-  (con string "11 < 22")
-  (con string "¬(11 < 22)")
-]
-)
-
--}
