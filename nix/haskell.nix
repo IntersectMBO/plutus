@@ -14,12 +14,14 @@ let
   sources = import ./sources.nix {}; 
   nixpkgs = sources.nixpkgs;
   rOverlay = self: super: {
-    rPackages = super.rPackages.overrideScope'(selfx: superx: {
-      hexbin = superx.hexbin.overrideDerivation(attrs: {
-        nativeBuildInputs = attrs.nativeBuildInputs ++ [ super.libiconv ];
-        buildInputs = attrs.buildInputs ++ [ super.libiconv ];
+    rPackages = super.rPackages.override{
+      overrides = ({
+        hexbin = super.rPackages.hexbin.overrideDerivation(attrs: {
+          nativeBuildInputs = attrs.nativeBuildInputs ++ [ super.libiconv ];
+          buildInputs = attrs.buildInputs ++ [ super.libiconv ];
+        });
       });
-    });
+    };
   };
   pkgsForR = import nixpkgs {
     overlays = [ rOverlay ];
