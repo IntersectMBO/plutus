@@ -15,7 +15,7 @@ let
   nixpkgs = sources.nixpkgs;
   rOverlay = self: super: {
     rPackages = super.rPackages.override {
-      plotly = super.rPackages.plotly.overrideDerivation(attrs: {
+      hexbin = super.rPackages.hexbin.overrideDerivation(attrs: {
         nativeBuildInputs = attrs.nativeBuildInputs ++ [ super.libiconv ];
         buildInputs = attrs.buildInputs ++ [ super.libiconv ];
       });
