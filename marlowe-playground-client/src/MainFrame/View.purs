@@ -189,7 +189,7 @@ menuBar state =
 
 marloweIcon :: forall p a. HTML p a
 marloweIcon =
-  svg [ SVG.width (SVG.Length 50.0), SVG.height (SVG.Length 41.628), SVG.viewBox (SVG.Box { x: 0, y: 0, width: 60, height: 42 }) ]
+  svg [ SVG.width (SVG.Length 35.0), SVG.height (SVG.Length 26.0), SVG.viewBox (SVG.Box { x: 0, y: 0, width: 60, height: 42 }) ]
     [ defs []
         [ linearGradient [ id_ "marlowe__linear-gradient", x1 (SVG.Length 0.5), x2 (SVG.Length 0.5), y2 (SVG.Length 1.0), gradientUnits ObjectBoundingBox ]
             [ stop [ offset (SVG.Length 0.221), stopColour "#832dc4" ] []

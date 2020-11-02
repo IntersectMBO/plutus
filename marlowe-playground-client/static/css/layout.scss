@@ -11,8 +11,11 @@ main {
   height: 100%;
 
   hr {
-    margin: 0rem 1rem;
-    border-top: 0px solid var(--bg-darker);
+    margin: 0em 0.5em 0.5em 0.5em;
+    border-top: 1px solid var(--bg-darker);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
   }
 }
 

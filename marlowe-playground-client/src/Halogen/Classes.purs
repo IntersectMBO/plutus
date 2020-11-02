@@ -44,6 +44,12 @@ foreign import marloweLogo :: String
 
 foreign import marloweLogo2 :: String
 
+foreign import option1 :: String
+
+foreign import option2 :: String
+
+foreign import option3 :: String
+
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
 
@@ -236,15 +242,6 @@ alignedButtonLast = ClassName "aligned-button-last"
 
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
-
-arrow :: ClassName
-arrow = ClassName "arrow"
-
-downArrow :: ClassName
-downArrow = ClassName "down-arrow"
-
-rightArrow :: ClassName
-rightArrow = ClassName "right-arrow"
 
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"

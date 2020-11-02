@@ -1,130 +1,24 @@
 .homepage-container {
   margin: 0rem auto;
   width: 1024px;
-}
 
-.arrow {
-  background: rgb(0, 0, 0);
-  height: 2px;
-  width: 20px;
-  margin: 0 auto;
-  position: relative;
-}
-
-.arrow:before,
-.arrow:after {
-  content: "";
-  background: rgb(0, 0, 0);
-  position: absolute;
-  height: 2px;
-  width: 8px;
-}
-
-.arrow:before {
-  right: -2px;
-  bottom: -2px;
-  transform: rotate(-45deg);
-}
-
-.arrow:after {
-  right: -2px;
-  top: -2px;
-  transform: rotate(45deg);
-}
-
-.down-arrow {
-  transform: rotate(90deg);
-}
-
-.flip {
-  transform: rotate(180deg);
+  hr {
+    margin: 0;
+  }
 }
 
 .start-with-container {
   display: flex;
   place-content: space-between;
   margin-top: 2rem;
-}
 
-.start-with {
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-radius: 0.5rem;
-  align-items: center;
-  padding: 1rem;
-  width: 312px;
-  height: 460px;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.01), 0 6px 20px 0 rgba(0, 0, 0, 0.1);
-
-  h2 {
-    margin: 0;
+  .rectangle {
+    width: 312px;
+    height: 460px;
+    border-radius: 8px;
+    box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
   }
-
-  .diagram {
-    display: flex;
-    height: 100%;
-    align-items: center;
-
-    .fixed-height {
-      height: 16px;
-
-      .down-arrow {
-        top: 6px;
-        width: 16px;
-      }
-    }
-  }
-}
-
-.marlowe-blockly-box {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  border-radius: 1rem;
-  padding: 1rem 2rem;
-  background-color: var(--bg-light);
-}
-
-.marlowe-blockly-box .arrows {
-  display: flex;
-  height: 25px;
-  flex-direction: column;
-  place-content: space-between;
-  margin: 0.5rem;
-
-  .arrow,
-  .arrow:after,
-  .arrow::before {
-    background-color: var(--bg-darkest);
-  }
-}
-
-.marlowe-blockly-box .arrows .right-arrow {
-  width: 40px;
-}
-
-.compiler-group {
-  align-items: center;
-  margin: 1rem;
-  display: flex;
-  flex-direction: column;
-
-  .icon-group {
-    width: 50px;
-
-    p {
-      text-align: center;
-    }
-  }
-}
-
-.simulation-group {
-  flex: 1;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 1rem;
-
 }
 
 .ready-to-go-buttons {

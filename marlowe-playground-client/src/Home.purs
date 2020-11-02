@@ -3,8 +3,8 @@ module Home where
 import Prelude hiding (div)
 import Data.Maybe (Maybe(..))
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (arrow, blocklyIconColour, downArrow, flex, haskellIcon, horizontalFlip, javascriptIcon, marloweLogo2, rightArrow, simulationIcon, vl)
-import Halogen.HTML (HTML, a, button, div, div_, h2_, hr_, img, p_, text)
+import Halogen.Classes (flex, option1, option2, option3, vl)
+import Halogen.HTML (a, button, div, h2_, hr_, img, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, href, src, target)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State)
@@ -28,9 +28,9 @@ render state =
         ]
     , hr_
     , div [ classes [ flex, ClassName "start-with-container" ] ]
-        [ startWith 1 "start with Haskell" startWithHaskell
-        , startWith 2 "start with Javascript" startWithJavascript
-        , startWith 3 "start with Marlowe or Blockly" startWithMarlowe
+        [ div [ classes [ ClassName "rectangle" ] ] [ img [ src option1 ] ]
+        , div [ classes [ ClassName "rectangle" ] ] [ img [ src option2 ] ]
+        , div [ classes [ ClassName "rectangle" ] ] [ img [ src option3 ] ]
         ]
     , div [ classes [ ClassName "ready-to-go-buttons" ] ]
         [ h2_ [ text "Ready to go?" ]
@@ -40,79 +40,5 @@ render state =
             , vl
             , a [ onClick ((const <<< Just <<< OpenModal) OpenDemo) ] [ text "Browse the example files" ]
             ]
-        ]
-    ]
-
-startWith :: forall p. Int -> String -> HTML p Action -> HTML p Action
-startWith index subtitle contents =
-  div [ classes [ ClassName "start-with" ] ]
-    [ h2_ [ text ("Option " <> show index) ]
-    , p_ [ text subtitle ]
-    , div [ classes [ ClassName "diagram" ] ] [ contents ]
-    ]
-
-downArrowBox :: forall p. HTML p Action
-downArrowBox = div [ classes [ ClassName "fixed-height" ] ] [ div [ classes [ arrow, downArrow ] ] [] ]
-
-simulationDiagram :: forall p. HTML p Action
-simulationDiagram =
-  div [ classes [ ClassName "group", flex, ClassName "simulation-group" ] ]
-    [ downArrowBox
-    , div_
-        [ img [ src simulationIcon, classes [ ClassName "sim-icon" ] ]
-        , p_ [ text "Simulator" ]
-        ]
-    ]
-
-startWithHaskell :: forall p. HTML p Action
-startWithHaskell =
-  div_
-    [ div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
-        [ div [ classes [ ClassName "icon-group" ] ]
-            [ img [ src haskellIcon, classes [ ClassName "haskell-icon" ] ]
-            , p_ [ text "Haskell" ]
-            ]
-        , downArrowBox
-        ]
-    , marloweBlocklyBox
-    , simulationDiagram
-    ]
-
-startWithJavascript :: forall p. HTML p Action
-startWithJavascript =
-  div_
-    [ div [ classes [ ClassName "group", flex, ClassName "compiler-group" ] ]
-        [ div [ classes [ ClassName "icon-group" ] ]
-            [ img [ src javascriptIcon, classes [ ClassName "javascript-icon" ] ]
-            , p_ [ text "Javascript" ]
-            ]
-        , downArrowBox
-        ]
-    , marloweBlocklyBox
-    , simulationDiagram
-    ]
-
-startWithMarlowe :: forall m. ComponentHTML Action ChildSlots m
-startWithMarlowe =
-  div_
-    [ marloweBlocklyBox
-    , div [ classes [ rightArrow ] ] []
-    , simulationDiagram
-    ]
-
-marloweBlocklyBox :: forall p. HTML p Action
-marloweBlocklyBox =
-  div [ classes [ ClassName "marlowe-blockly-box" ] ]
-    [ div [ classes [ ClassName "t-align-center" ] ]
-        [ img [ src marloweLogo2 ]
-        , p_ [ text "Marlowe" ]
-        ]
-    , div [ classes [ ClassName "arrows" ] ]
-        [ div [ classes [ arrow ] ] []
-        , div [ classes [ arrow, horizontalFlip ] ] []
-        ]
-    , div [ classes [ ClassName "t-align-center" ] ]
-        [ img [ src blocklyIconColour ]
-        , p_ [ text "Blockly" ]
         ]
     ]
