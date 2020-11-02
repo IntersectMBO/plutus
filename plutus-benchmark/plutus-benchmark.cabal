@@ -13,6 +13,15 @@ description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
 build-type: Simple
 
+data-files:
+        validation/data/crowdfunding/*.plc
+        validation/data/future/*.plc
+        validation/data/multisigSM/*.plc
+        validation/data/vesting/*.plc
+        validation/data/marlowe/trustfund/*.plc
+        validation/data/marlowe/zerocoupon/*.plc
+        templates/*.tpl
+
 source-repository head
     type: git
     location: https://github.com/iohk/plutus
@@ -26,6 +35,11 @@ common lang
     -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas
     -fno-worker-wrapper
+  ghc-options:
+     -Wall -Wnoncanonical-monad-instances
+     -Wincomplete-uni-patterns -Wincomplete-record-updates
+     -Wredundant-constraints -Widentities
+     -Wnoncanonical-monoid-instances
 
 library
   import: lang
@@ -41,12 +55,13 @@ library
       Plutus.Benchmark.LastPiece
       Plutus.Benchmark.Prime
   hs-source-dirs:
-      src
+      nofib/src
   build-depends:
       base >=4.7 && <5
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+    , deepseq -any
   default-extensions:
     DataKinds
     NamedFieldPuns
@@ -58,26 +73,33 @@ library
   other-extensions:
     NoImplicitPrelude
 
-executable plutus-benchmark
+executable nofib-exe
   import: lang
   main-is: Main.hs
   hs-source-dirs:
-      app
+      nofib/exe
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
     , plutus-tx -any
     , plutus-tx-plugin -any
     , plutus-core -any
+    , ansi-wl-pprint -any
+    , bytestring -any
     , containers -any
     , optparse-applicative -any
+    , serialise -any
+    , transformers -any
 
-benchmark large-plc-cek
+benchmark nofib
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Main.hs
+  main-is: BenchPlc.hs
   hs-source-dirs:
-    bench
+    nofib/bench
+  other-modules:
+    Common
+    Paths_plutus_benchmark  
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -86,3 +108,60 @@ benchmark large-plc-cek
     , plutus-core -any
     , containers -any
     , criterion -any
+    , filepath -any
+
+benchmark nofib-hs
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: BenchHaskell.hs
+  hs-source-dirs:
+    nofib/bench
+  other-modules:
+    Common
+    Paths_plutus_benchmark  
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , plutus-core -any
+    , containers -any
+    , criterion -any
+    , filepath -any
+
+
+benchmark validation
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      Paths_plutus_benchmark
+  build-depends:
+      base >=4.7 && <5
+    , plutus-core -any
+    , bytestring -any
+    , containers -any
+    , criterion -any
+    , filepath -any
+    , text -any
+    , transformers -any
+
+test-suite plutus-benchmark-nofib-tests
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: nofib/test
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    default-language: Haskell2010
+    build-depends:
+        base >=4.7 && <5
+      , plutus-benchmark -any
+      , plutus-tx -any
+      , plutus-tx-plugin -any
+      , plutus-core -any
+      , containers -any
+      , tasty -any
+      , tasty-hunit -any
+      , tasty-quickcheck -any

@@ -52,7 +52,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import Web.DOM.Document as D
@@ -300,9 +300,9 @@ mkComponent =
 
 applyTransactions :: forall m. MonadState State m => m Unit
 applyTransactions = do
-  initialPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _payments)
+  initialPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
   modifying _loadedMarloweState (extendWith (updatePossibleActions <<< updateStateP))
-  updatedPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _payments)
+  updatedPayments <- fromMaybe mempty <$> peruse (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
   let
     newPayments = drop (Array.length initialPayments) updatedPayments
   mContract <- use _walletLoadedContract
@@ -356,7 +356,7 @@ handleQuery (LoadContract contractString next) = do
               , owner: openWallet ^. _name
               , parties: mempty
               , started: false
-              , marloweState: NEL.singleton (emptyMarloweState slot)
+              , marloweState: NEL.singleton (emptyMarloweStateWithSlot slot)
               }
           modifying _wallets (Map.union newWallets)
           assign _walletLoadedContract (Just loadedContract)
@@ -413,7 +413,7 @@ handleAction StartContract = do
 handleAction ResetContract = do
   assign _slot zero
   assign (_contracts <<< traversed <<< _started) false
-  assign (_contracts <<< traversed <<< _marloweState) (NEL.singleton (emptyMarloweState zero))
+  assign (_contracts <<< traversed <<< _marloweState) (NEL.singleton (emptyMarloweStateWithSlot zero))
 
 handleAction ResetAll = do
   assign _initialized false
@@ -426,7 +426,7 @@ handleAction ResetAll = do
 handleAction NextSlot = do
   modifying _slot (add one)
   modifying (_contracts <<< traversed <<< _marloweState)
-    (extendWith (updatePossibleActions <<< over _slot (add one)))
+    (extendWith (updatePossibleActions <<< over (_executionState <<< _SimulationRunning <<< _slot) (add one)))
 
 handleAction ApplyTransaction = do
   assign _addInputError Nothing
@@ -460,7 +460,7 @@ handleAction (AddInput input@(IDeposit _ _ token amount) bounds) = do
     Just walletAmount ->
       if walletAmount >= amount then do
         assign (_openWallet <<< _Just <<< _assets <<< ix token) (walletAmount - amount)
-        updateMarloweState (over _pendingInputs ((flip snoc) input))
+        updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) input))
       else
         assign _addInputError $ Just "Insufficient funds to add this input"
 
@@ -471,20 +471,20 @@ handleAction (AddInput input bounds) = do
       (IChoice _ chosenNum) -> inBounds chosenNum bounds
       _ -> true
   if validChoice then
-    updateMarloweState (over _pendingInputs ((flip snoc) input))
+    updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) ((flip snoc) input))
   else
     assign _addInputError $ Just "Invalid Choice"
 
 handleAction (RemoveInput input@(IDeposit _ _ token amount)) = do
   assign _addInputError Nothing
   modifying (_openWallet <<< _Just <<< _assets <<< ix token) (\v -> v + amount)
-  updateMarloweState (over _pendingInputs (delete input))
+  updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) (delete input))
 
 handleAction (RemoveInput input) = do
   assign _addInputError Nothing
-  updateMarloweState (over _pendingInputs (delete input))
+  updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) (delete input))
 
-handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions (mapPartiesActionInput (updateChoice choiceId)))
+handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -687,12 +687,14 @@ renderActions state =
       )
   ]
   where
-  pendingInputs = fromMaybe mempty (state ^? (_currentLoadedMarloweState <<< _pendingInputs))
+  pendingInputs = fromMaybe mempty (state ^? (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _pendingInputs))
 
   possibleActions =
     fromMaybe mempty
       $ state
       ^? ( _currentLoadedMarloweState
+            <<< _executionState
+            <<< _SimulationRunning
             <<< _possibleActions
             <<< to unwrap
             <<< to (Map.filterKeys walletKeys)
@@ -711,7 +713,7 @@ renderActions state =
     in
       Set.member party walletParties
 
-  hasTransactions = has (_currentLoadedMarloweState <<< _pendingInputs <<< to Array.null <<< to not) state
+  hasTransactions = has (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _pendingInputs <<< to Array.null <<< to not) state
 
   renderAction :: (Tuple ActionInputId ActionInput) -> HTML p Action
   renderAction (Tuple actionInputId actionInput) = inputItem true "" actionInput
@@ -833,7 +835,7 @@ renderCurrentState state =
     in
       if t == zero then "Closed" else show t
 
-  warnings = state ^. (_currentLoadedMarloweState <<< _transactionWarnings)
+  warnings = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _transactionWarnings)
 
   warningsRow =
     if Array.null warnings then
@@ -841,7 +843,7 @@ renderCurrentState state =
     else
       (headerRow "Warnings" ("type" /\ "details" /\ mempty)) <> foldMap displayWarning' warnings
 
-  errorRow = case state ^? (_currentLoadedMarloweState <<< _transactionError) of
+  errorRow = case state ^? (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _transactionError) of
     Nothing -> []
     Just error ->
       if isNothing error then
@@ -858,7 +860,7 @@ renderCurrentState state =
 
   accountsData =
     let
-      (accounts :: Array _) = state ^. (_currentLoadedMarloweState <<< _state <<< _accounts <<< to Map.toUnfoldable)
+      (accounts :: Array _) = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _state <<< _accounts <<< to Map.toUnfoldable)
 
       asTuple (Tuple (Tuple accountOwner token) value) = stripParens (show accountOwner) /\ (show value <> " " <> shortTokenString token) /\ mempty
     in
@@ -870,7 +872,7 @@ renderCurrentState state =
 
   choicesData =
     let
-      (choices :: Array _) = state ^. (_currentLoadedMarloweState <<< _state <<< _choices <<< to Map.toUnfoldable)
+      (choices :: Array _) = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _state <<< _choices <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = show choiceName /\ stripParens (show choiceOwner) /\ show value
     in
@@ -878,7 +880,7 @@ renderCurrentState state =
 
   paymentsData =
     let
-      payments = state ^. (_currentLoadedMarloweState <<< _payments)
+      payments = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _payments)
 
       asTuple :: Payment -> Array (String /\ String /\ String)
       asTuple (Payment party (Assets mon)) =
@@ -897,7 +899,7 @@ renderCurrentState state =
 
   bindingsData =
     let
-      (bindings :: Array _) = state ^. (_currentLoadedMarloweState <<< _state <<< _boundValues <<< to Map.toUnfoldable)
+      (bindings :: Array _) = state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _state <<< _boundValues <<< to Map.toUnfoldable)
 
       asTuple (Tuple (ValueId valueId) value) = show valueId /\ show value /\ mempty
     in
@@ -1196,9 +1198,9 @@ transactionComposer state =
     else
       [ transaction state ]
   where
-  currentBlock = state ^? (_currentLoadedMarloweState <<< _slot)
+  currentBlock = state ^? (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _slot)
 
-  pendingInputs = fromMaybe mempty (state ^? (_currentLoadedMarloweState <<< _pendingInputs))
+  pendingInputs = fromMaybe mempty (state ^? (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _pendingInputs))
 
 transaction ::
   forall p.
@@ -1208,7 +1210,7 @@ transaction state =
   li [ classes [ ClassName "participant-a", noMargins ] ]
     [ ul
         []
-        (map (transactionRow state) (state ^. (_currentLoadedMarloweState <<< _pendingInputs)))
+        (map (transactionRow state) (state ^. (_currentLoadedMarloweState <<< _executionState <<< _SimulationRunning <<< _pendingInputs)))
     ]
 
 transactionRow ::

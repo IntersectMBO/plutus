@@ -113,7 +113,7 @@ instance Pretty Slot where
     prettyFragment (Slot n) = prettyFragment n
 
 instance Pretty PubKeyHash where
-    prettyFragment (PubKeyHash bs) = prettyFragment bs
+    prettyFragment (PubKeyHash bs) = text ("\"" ++ show (PubKeyHash bs) ++ "\"")
 
 instance Pretty BS.ByteString where
     prettyFragment = text . show
@@ -121,5 +121,7 @@ instance Pretty BS.ByteString where
 instance Pretty Ada where
     prettyFragment x = prettyFragment (getLovelace x)
 
-deriving instance Pretty CurrencySymbol
+instance Pretty CurrencySymbol where
+    prettyFragment (CurrencySymbol bs) = text ("\"" ++ show (CurrencySymbol bs) ++ "\"")
+
 deriving instance Pretty TokenName

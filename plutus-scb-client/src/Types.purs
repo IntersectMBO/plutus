@@ -2,7 +2,7 @@ module Types where
 
 import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint)
 import Prelude
-import Cardano.Metadata.Types (PropertyDescription(..), PropertyKey(..))
+import Cardano.Metadata.Types (Property(..), PropertyKey(..))
 import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
 import Clipboard as Clipboard
@@ -100,7 +100,7 @@ newtype State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData StreamToClient
   , webSocketStatus :: WebSocketStatus
-  , metadata :: Map Metadata.Subject (Map PropertyKey PropertyDescription)
+  , metadata :: Map Metadata.Subject (Map PropertyKey Property)
   }
 
 type EndpointForm
@@ -132,14 +132,14 @@ _contractStates = _Newtype <<< prop (SProxy :: SProxy "contractStates")
 
 _metadata ::
   Lens' State
-    ( Map Metadata.Subject (Map PropertyKey PropertyDescription)
+    ( Map Metadata.Subject (Map PropertyKey Property)
     )
 _metadata = _Newtype <<< prop (SProxy :: SProxy "metadata")
 
-_annotatedBlockchain :: forall t. Lens' ChainReport (Array (Array AnnotatedTx))
+_annotatedBlockchain :: Lens' ChainReport (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
-_transactionMap :: forall t. Lens' ChainReport (Map TxId Tx)
+_transactionMap :: Lens' ChainReport (Map TxId Tx)
 _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 
 _webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
@@ -151,7 +151,7 @@ _webSocketStatus = _Newtype <<< prop (SProxy :: SProxy "webSocketStatus")
 _contractReport :: forall s a r. Newtype s { contractReport :: a | r } => Lens' s a
 _contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
 
-_utxoIndex :: forall t. Lens' ChainReport UtxoIndex
+_utxoIndex :: Lens' ChainReport UtxoIndex
 _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 
 _crAvailableContracts :: forall t. Lens' (ContractReport t) (Array (ContractSignatureResponse t))
@@ -215,7 +215,7 @@ instance showView :: Show View where
   show = genericShow
 
 ------------------------------------------------------------
-toPropertyKey :: PropertyDescription -> PropertyKey
+toPropertyKey :: Property -> PropertyKey
 toPropertyKey (Preimage _ _) = PropertyKey "preimage"
 
 toPropertyKey (Name _ _) = PropertyKey "name"
@@ -227,11 +227,7 @@ toPropertyKey (Other name _ _) = PropertyKey name
 _getPubKeyHash :: forall s r a. Newtype s { getPubKeyHash :: a | r } => Lens' s a
 _getPubKeyHash = _Newtype <<< prop (SProxy :: SProxy "getPubKeyHash")
 
-_propertyName :: Getter' Metadata.Property (Maybe String)
-_propertyName =
-  Metadata.propertyDescription
-    <<< to
-        ( case _ of
-            Metadata.Name name _ -> Just name
-            _ -> Nothing
-        )
+propertyName :: Metadata.Property -> (Maybe String)
+propertyName (Metadata.Name name _) = Just name
+
+propertyName _ = Nothing

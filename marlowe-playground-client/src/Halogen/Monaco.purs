@@ -30,7 +30,7 @@ data KeyBindings
 derive instance genericKeyBindings :: Generic KeyBindings _
 
 instance showKeyBindings :: Show KeyBindings where
-  show DefaultBindings = "Default"
+  show DefaultBindings = "Default Key Bindings"
   show Vim = "Vim"
   show Emacs = "Emacs"
 
@@ -58,9 +58,12 @@ type Objects
     , completionItemProvider :: Maybe CompletionItemProvider
     }
 
+newtype CancelBindings
+  = CancelBindings (Effect Unit)
+
 type State
   = { editor :: Maybe Editor
-    , deactivateBindings :: Effect Unit
+    , deactivateBindings :: CancelBindings
     , objects :: Objects
     }
 
@@ -68,6 +71,7 @@ data Query a
   = SetText String a
   | GetText (String -> a)
   | GetModel (Monaco.ITextModel -> a)
+  | GetModelMarkers (Array IMarker -> a)
   | SetPosition IPosition a
   | Resize a
   | SetTheme String a
@@ -102,7 +106,7 @@ monacoComponent settings =
     { initialState:
       const
         { editor: Nothing
-        , deactivateBindings: pure unit
+        , deactivateBindings: CancelBindings $ pure unit
         , objects:
           { codeActionProvider: settings.codeActionProvider
           , completionItemProvider: settings.completionItemProvider
@@ -192,6 +196,14 @@ handleQuery (GetModel f) = do
     m <- liftEffect $ Monaco.getModel editor
     pure $ f m
 
+handleQuery (GetModelMarkers f) = do
+  withEditor \editor ->
+    liftEffect do
+      monaco <- Monaco.getMonaco
+      model <- Monaco.getModel editor
+      markers <- Monaco.getModelMarkers monaco model
+      pure $ f markers
+
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.setPosition editor position
@@ -220,28 +232,26 @@ handleQuery (SetModelMarkers markersData f) = do
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
 
-handleQuery (SetKeyBindings DefaultBindings next) =
+handleQuery (SetKeyBindings bindings next) =
   withEditor \editor -> do
     { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    pure next
-
-handleQuery (SetKeyBindings Emacs next) =
-  withEditor \editor -> do
-    { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    disableEmacsMode <- liftEffect $ Monaco.enableEmacsBindings editor
-    modify_ (_ { deactivateBindings = disableEmacsMode })
-    pure next
-
-handleQuery (SetKeyBindings Vim next) =
-  withEditor \editor -> do
-    { deactivateBindings } <- get
-    liftEffect deactivateBindings
-    disableVimMode <- liftEffect $ Monaco.enableVimBindings editor
-    modify_ (_ { deactivateBindings = disableVimMode })
+    newDeactivateBindings <- liftEffect $ replaceKeyBindings bindings editor deactivateBindings
+    modify_ (_ { deactivateBindings = newDeactivateBindings })
     pure next
 
 handleQuery (GetObjects f) = do
   { objects } <- get
   pure $ Just $ f objects
+
+replaceKeyBindings :: KeyBindings -> Editor -> CancelBindings -> Effect (CancelBindings)
+replaceKeyBindings bindings editor (CancelBindings deactivateOldBindings) = do
+  let
+    enableFn :: KeyBindings -> Editor -> Effect (Effect Unit)
+    enableFn DefaultBindings = pure $ pure $ pure unit
+
+    enableFn Vim = Monaco.enableVimBindings
+
+    enableFn Emacs = Monaco.enableEmacsBindings
+  deactivateOldBindings
+  deactivateNewBindings <- enableFn bindings editor
+  pure $ CancelBindings deactivateNewBindings

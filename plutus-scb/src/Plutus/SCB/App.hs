@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -21,7 +22,8 @@ import           Cardano.BM.Trace                   (Trace)
 import           Cardano.ChainIndex.Client          (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types           as ChainIndex
 import           Cardano.Metadata.Client            (handleMetadataClient)
-import           Cardano.Metadata.Types             as Metadata
+import           Cardano.Metadata.Types             (MetadataEffect)
+import qualified Cardano.Metadata.Types             as Metadata
 import           Cardano.Node.Client                (handleNodeClientClient, handleNodeFollowerClient,
                                                      handleRandomTxClient)
 import           Cardano.Node.Follower              (NodeFollowerEffect)
@@ -52,7 +54,8 @@ import           Data.Functor.Contravariant         (Contravariant (..))
 import qualified Data.Text                          as Text
 import           Database.Persist.Sqlite            (runSqlPool)
 import           Eventful.Store.Sqlite              (initializeSqliteEventStore)
-import           Network.HTTP.Client                (defaultManagerSettings, newManager)
+import           Network.HTTP.Client                (managerModifyRequest, newManager, setRequestIgnoreStatus)
+import           Network.HTTP.Client.TLS            (tlsManagerSettings)
 import           Plutus.SCB.Core                    (Connection (Connection),
                                                      ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
 import           Plutus.SCB.Core.ContractInstance   (ContractInstanceMsg)
@@ -69,7 +72,7 @@ import           Plutus.SCB.Types                   (Config (Config), ContractEx
                                                      dbConfig, metadataServerConfig, nodeServerConfig,
                                                      signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Webserver.Types         (WebSocketLogMsg)
-import           Servant.Client                     (ClientEnv, ClientError, mkClientEnv)
+import           Servant.Client                     (BaseUrl, ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                        (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                     (readProcessWithExitCode)
 import           Wallet.API                         (WalletAPIError)
@@ -100,7 +103,7 @@ type AppBackend m =
          , NodeClientEffect
          , Error ClientError
          , MetadataEffect
-         , Error ClientError
+         , Error Metadata.MetadataError
          , SigningProcessEffect
          , Error ClientError
          , UUIDEffect
@@ -166,9 +169,9 @@ runAppBackend trace loggingConfig config action = do
             flip handleError (throwError . NodeClientError) .
             handleNodeFollowerClient nodeClientEnv
         handleMetadata ::
-               Eff (MetadataEffect ': Error ClientError ': _) a -> Eff _ a
+               Eff (MetadataEffect ': Error Metadata.MetadataError ': _) a -> Eff _ a
         handleMetadata =
-            flip handleError (throwError . MetadataClientError) .
+            flip handleError (throwError . MetadataError) .
             handleMetadataClient metadataClientEnv
         handleWallet ::
                Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a
@@ -208,7 +211,7 @@ runAppBackend trace loggingConfig config action = do
 
 type App a = Eff (AppBackend (TraceLoggerT IO)) a
 
-mkEnv :: (MonadUnliftIO m, MonadLogger m) => Config -> m Env
+mkEnv :: forall m. (MonadUnliftIO m, MonadLogger m) => Config -> m Env
 mkEnv Config { dbConfig
              , nodeServerConfig
              , metadataServerConfig
@@ -225,9 +228,12 @@ mkEnv Config { dbConfig
     dbConnection <- dbConnect dbConfig
     pure Env {..}
   where
-    clientEnv baseUrl =
-        mkClientEnv <$> liftIO (newManager defaultManagerSettings) <*>
-        pure baseUrl
+    clientEnv :: BaseUrl -> m ClientEnv
+    clientEnv baseUrl = mkClientEnv <$> liftIO mkManager <*> pure baseUrl
+
+    mkManager =
+        newManager $
+        tlsManagerSettings {managerModifyRequest = pure . setRequestIgnoreStatus}
 
 runApp :: Trace IO SCBLogMsg -> CM.Configuration -> Config -> App a -> IO (Either SCBError a)
 runApp theTrace logConfig config action =

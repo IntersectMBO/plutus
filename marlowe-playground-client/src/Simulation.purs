@@ -1,20 +1,25 @@
 module Simulation where
 
-import Auth (AuthRole(..), authStatusAuthRole)
-import Control.Alternative (map, void, when, (<|>))
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Alternative (map, void, when, (<*>), (<|>))
+import Control.Monad.Except (ExceptT, runExceptT, runExcept)
 import Control.Monad.Reader (runReaderT)
+import Data.EuclideanRing ((*))
+import Data.RawJson (RawJson(..))
 import Data.Array (delete, filter, intercalate, snoc, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
+import Data.Decimal (truncated, fromNumber)
+import Data.Decimal as Decimal
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (assign, modifying, over, preview, to, use, view, (^.))
+import Data.Lens (assign, has, modifying, only, over, preview, to, use, view, (^.))
+import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty as NEL
+import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -22,51 +27,50 @@ import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
 import Data.String as String
-import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Traversable (for_, traverse)
+import Data.Tuple (Tuple(..), snd)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Console (log)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Gist (Gist)
-import Gists (GistAction(..), idPublishGist)
-import Halogen (HalogenM, query)
-import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Foreign.Generic (ForeignError, decode)
+import Foreign.JSON (parseJSON)
+import Halogen (HalogenM, get, query)
+import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, label, li, option, p, p_, section, select, slot, small, span, strong_, text, ul)
-import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
-import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
+import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
+import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
-import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx, cy, d, fill, height, path, r, strokeLinecap, strokeWidth, svg, viewBox)
-import Halogen.SVG as SVG
 import Help (HelpContext(..), toHTML)
-import Icons (Icon(..), icon)
 import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds, showPrettyToken)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
+import Projects.Types (Lang(..))
 import Reachability (startReachabilityAnalysis)
-import Servant.PureScript.Ajax (AjaxError)
+import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _createGistResult, _loadGistResult, _helpContext, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
+import Simulation.State (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), _SimulationNotStarted, _SimulationRunning, _editorErrors, _editorWarnings, _executionState, _initialSlot, _moveToAction, _pendingInputs, _possibleActions, _slot, applyInput, emptyExecutionStateWithSlot, emptyMarloweState, getAsMuchStateAP, hasHistory, inFuture, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _bottomPanelView, _currentContract, _currentMarloweState, _editorKeybindings, _helpContext, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _source, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -81,21 +85,25 @@ handleAction ::
   MonadAff m =>
   SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
-  checkAuthStatus settings
   editorSetTheme
+  setOraclePrice settings
 
-handleAction _ (HandleEditorMessage (Monaco.TextChanged "")) = do
-  assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
+  assign _marloweState $ NEL.singleton emptyMarloweState
   assign _oldContract Nothing
   updateContractInState ""
 
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
+handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
   assign _activeDemo ""
-  state <- use (_currentMarloweState <<< _state)
+  executionState <- use (_currentMarloweState <<< _executionState)
   let
+    state = case executionState of
+      SimulationRunning runRecord -> runRecord.state
+      SimulationNotStarted notRunRecord -> emptyState $ notRunRecord.initialSlot
+
     (Tuple markerData additionalContext) = Linter.markers state text
   markers <- query _marloweEditorSlot unit (Monaco.SetModelMarkers markerData identity)
   void $ traverse editorSetMarkers markers
@@ -106,11 +114,12 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
 
 handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
 
-handleAction _ (HandleDropEvent event) = do
+handleAction settings (HandleDropEvent event) = do
   liftEffect $ FileEvents.preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ editorSetValue contents
   updateContractInState contents
+  setOraclePrice settings
 
 handleAction _ (MoveToPosition lineNumber column) = do
   void $ query _marloweEditorSlot unit (Monaco.SetPosition { column, lineNumber } unit)
@@ -119,28 +128,44 @@ handleAction _ (SelectEditorKeyBindings bindings) = do
   assign _editorKeybindings bindings
   void $ query _marloweEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
-handleAction _ (LoadScript key) = do
-  case preview (ix key) (Map.fromFoldable StaticData.marloweContracts) of
-    Nothing -> pure unit
-    Just contents -> do
-      let
-        prettyContents = case parseContract contents of
-          Right pcon -> show $ pretty pcon
-          Left _ -> contents
-      editorSetValue prettyContents
-      liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
-      updateContractInState prettyContents
-      resetContract
-      assign _activeDemo key
+handleAction settings (LoadScript key) = do
+  for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
+    let
+      prettyContents = case parseContract contents of
+        Right pcon -> show $ pretty pcon
+        Left _ -> contents
+    editorSetValue prettyContents
+    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    updateContractInState prettyContents
+    resetContract
+    assign _activeDemo key
+    setOraclePrice settings
 
-handleAction _ (SetEditorText contents) = do
+handleAction settings (SetEditorText contents) = do
   editorSetValue contents
   updateContractInState contents
 
-handleAction _ (MoveSlot slot) = do
-  currentSlot <- use (_currentMarloweState <<< _slot)
+handleAction settings (SetInitialSlot initialSlot) = do
+  assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
+  setOraclePrice settings
+
+handleAction settings StartSimulation = do
+  maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
+  for_ maybeInitialSlot \initialSlot -> do
+    saveInitialState
+    assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
+    moveToSignificantSlot initialSlot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
+      Nothing -> pure unit
+
+handleAction settings (MoveSlot slot) = do
+  inTheFuture <- inFuture <$> get <*> pure slot
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
-  when (slot > currentSlot) do
+  when inTheFuture do
     saveInitialState
     if slot >= (fromMaybe zero significantSlot) then
       moveToSignificantSlot slot
@@ -148,32 +173,40 @@ handleAction _ (MoveSlot slot) = do
       moveToSlot slot
     mCurrContract <- use _currentContract
     case mCurrContract of
-      Just currContract -> editorSetValue (show $ genericPretty currContract)
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
       Nothing -> pure unit
 
-handleAction _ (SetSlot slot) = assign (_currentMarloweState <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
+handleAction settings (SetSlot slot) = do
+  assign (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
+  setOraclePrice settings
 
-handleAction _ (AddInput input bounds) = do
+handleAction settings (AddInput input bounds) = do
   when validInput do
     saveInitialState
     applyInput ((flip snoc) input)
     mCurrContract <- use _currentContract
     case mCurrContract of
-      Just currContract -> editorSetValue (show $ genericPretty currContract)
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
       Nothing -> pure unit
   where
   validInput = case input of
     (IChoice _ chosenNum) -> inBounds chosenNum bounds
     _ -> true
 
-handleAction _ (RemoveInput input) = do
-  updateMarloweState (over _pendingInputs (delete input))
+handleAction settings (RemoveInput input) = do
+  updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) (delete input))
   currContract <- editorGetValue
   case currContract of
     Nothing -> pure unit
-    Just contract -> updateContractInState contract
+    Just contract -> do
+      updateContractInState contract
+      setOraclePrice settings
 
-handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions (mapPartiesActionInput (updateChoice choiceId)))
+handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -181,21 +214,26 @@ handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over _possib
 
   updateChoice _ input = input
 
-handleAction _ ResetSimulator = do
+handleAction settings ResetSimulator = do
   oldContract <- use _oldContract
   currContract <- editorGetValue
   let
     newContract = fromMaybe mempty $ oldContract <|> currContract
   editorSetValue newContract
   resetContract
+  setOraclePrice settings
 
-handleAction _ ResetContract = resetContract
+handleAction settings ResetContract = do
+  resetContract
+  setOraclePrice settings
 
-handleAction _ Undo = do
+handleAction settings Undo = do
   modifying _marloweState tailIfNotEmpty
   mCurrContract <- use _currentContract
   case mCurrContract of
-    Just currContract -> editorSetValue (show $ genericPretty currContract)
+    Just currContract -> do
+      editorSetValue (show $ genericPretty currContract)
+      setOraclePrice settings
     Nothing -> pure unit
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
@@ -209,11 +247,6 @@ handleAction _ (ChangeHelpContext help) = do
   assign _helpContext help
   scrollHelpPanel
 
-handleAction settings CheckAuthStatus = do
-  checkAuthStatus settings
-
-handleAction settings (GistAction subEvent) = pure unit
-
 handleAction _ (ShowRightPanel val) = assign _showRightPanel val
 
 handleAction _ (ShowBottomPanel val) = do
@@ -224,9 +257,15 @@ handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction _ SetBlocklyCode = pure unit
 
+handleAction _ EditHaskell = pure unit
+
+handleAction _ EditJavascript = pure unit
+
+handleAction _ EditActus = pure unit
+
 handleAction settings AnalyseContract = do
   currContract <- use _currentContract
-  currState <- use (_currentMarloweState <<< _state)
+  currState <- getAsMuchStateAP
   case currContract of
     Nothing -> pure unit
     Just contract -> do
@@ -238,24 +277,76 @@ handleAction settings AnalyseContract = do
 
 handleAction settings AnalyseReachabilityContract = do
   currContract <- use _currentContract
-  currState <- use (_currentMarloweState <<< _state)
+  currState <- getAsMuchStateAP
   case currContract of
     Nothing -> pure unit
     Just contract -> do
       newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
       assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
+handleAction _ Save = pure unit
+
+setOraclePrice ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
+setOraclePrice settings = do
+  execState <- use (_currentMarloweState <<< _executionState)
+  case execState of
+    SimulationRunning esr -> do
+      let
+        (Parties actions) = esr.possibleActions
+      case Map.lookup (Role "kraken") actions of
+        Just acts -> do
+          case Array.head (Map.toUnfoldable acts) of
+            Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _) bounds) _) -> do
+              price <- getPrice settings "kraken" pair
+              handleAction settings (SetChoice choiceId price)
+            _ -> pure unit
+        Nothing -> pure unit
+    _ -> pure unit
+
+type Resp
+  = { result :: { price :: Number }, allowance :: { remaining :: Number, upgrade :: String, cost :: Number } }
+
+getPrice :: forall m. MonadAff m => SPSettings_ SPParams_ -> String -> String -> HalogenM State Action ChildSlots Void m BigInteger
+getPrice settings exchange pair = do
+  result <- runAjax (runReaderT (Server.getApiOracleByExchangeByPair exchange pair) settings)
+  calculatedPrice <-
+    liftEffect case result of
+      NotAsked -> pure "0"
+      Loading -> pure "0"
+      Failure e -> do
+        log $ "Failure" <> errorToString e
+        pure "0"
+      Success (RawJson json) -> do
+        let
+          response :: Either (NonEmptyList ForeignError) Resp
+          response =
+            runExcept
+              $ do
+                  foreignJson <- parseJSON json
+                  decode foreignJson
+        case response of
+          Right resp -> do
+            let
+              price = fromNumber resp.result.price
+            let
+              adjustedPrice = price * fromNumber 100000000.0
+            log $ "Got price: " <> show resp.result.price <> ", remaining calls: " <> show resp.allowance.remaining
+            pure $ Decimal.toString (truncated adjustedPrice)
+          Left err -> do
+            log $ "Left " <> show err
+            pure "0"
+  let
+    price = fromMaybe zero (fromString calculatedPrice)
+  pure price
+
 getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m String
 getCurrentContract = do
   oldContract <- use _oldContract
   currContract <- editorGetValue
   pure $ fromMaybe mempty $ oldContract <|> currContract
-
-checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
-checkAuthStatus settings = do
-  assign _authStatus Loading
-  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
-  assign _authStatus authResult
 
 runAjax ::
   forall m a.
@@ -308,7 +399,7 @@ saveInitialState = do
 resetContract :: forall m. HalogenM State Action ChildSlots Void m Unit
 resetContract = do
   newContract <- editorGetValue
-  assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+  assign _marloweState $ NEL.singleton emptyMarloweState
   assign _oldContract Nothing
   updateContractInState $ fromMaybe "" newContract
 
@@ -342,44 +433,8 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div []
-    [ section [ classes [ panelSubHeader, aHorizontal ] ]
-        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-            [ a [ class_ (ClassName "editor-help"), onClick $ const $ Just $ ChangeHelpContext EditorHelp ]
-                [ img [ src infoIcon, alt "info book icon" ] ]
-            , div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-                [ div [ classes [ spaceLeft ] ]
-                    [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Demos:" ]
-                    ]
-                ]
-            , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-                (demoScriptLink <$> Array.fromFoldable (map fst StaticData.marloweContracts))
-            , div [ class_ (ClassName "code-to-blockly-wrap") ]
-                [ div [ class_ (ClassName "editor-options") ]
-                    [ select
-                        [ HTML.id_ "editor-options"
-                        , class_ (ClassName "dropdown-header")
-                        , onSelectedIndexChange (\idx -> SelectEditorKeyBindings <$> toEnum idx)
-                        ]
-                        (map keybindingItem (upFromIncluding bottom))
-                    ]
-                , button
-                    [ classes [ smallBtn, ClassName "tooltip" ]
-                    , onClick $ const $ Just $ SetBlocklyCode
-                    , enabled isBlocklyEnabled
-                    ]
-                    [ span [ class_ (ClassName "tooltiptext") ] [ text "Send Contract to Blockly" ]
-                    , img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ]
-                    ]
-                ]
-            ]
-        , div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel) ] ]
-            [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
-                [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
-            , authButton state
-            ]
-        ]
-    , section [ class_ (ClassName "code-panel") ]
+  div [ classes [ fullHeight, scroll, ClassName "simulation-panel" ] ]
+    [ section [ class_ (ClassName "code-panel") ]
         [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
             [ marloweEditor state ]
         , sidebar state
@@ -389,12 +444,76 @@ render state =
   where
   showRightPanel = state ^. _showRightPanel
 
-  isBlocklyEnabled = view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
-
   demoScriptLink key =
     li [ state ^. _activeDemo <<< activeClasses (eq key) ]
       [ a [ onClick $ const $ Just $ LoadScript key ] [ text key ] ]
 
+otherActions :: forall p. State -> HTML p Action
+otherActions state =
+  div [ classes [ ClassName "group" ] ]
+    ( [ editorOptions state
+      , sendToBlocklyButton state
+      ]
+        <> ( if has (_source <<< only Haskell) state then
+              [ haskellSourceButton state ]
+            else
+              []
+          )
+        <> ( if has (_source <<< only Javascript) state then
+              [ javascriptSourceButton state ]
+            else
+              []
+          )
+        <> ( if has (_source <<< only Actus) state then
+              [ actusSourceButton state ]
+            else
+              []
+          )
+    )
+
+sendToBlocklyButton :: forall p. State -> HTML p Action
+sendToBlocklyButton state =
+  button
+    [ onClick $ const $ Just $ SetBlocklyCode
+    , enabled isBlocklyEnabled
+    , classes [ Classes.disabled (not isBlocklyEnabled) ]
+    ]
+    [ text "View in Blockly Editor" ]
+  where
+  isBlocklyEnabled = view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
+
+haskellSourceButton :: forall p. State -> HTML p Action
+haskellSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditHaskell
+    ]
+    [ text "Edit Haskell Source" ]
+
+javascriptSourceButton :: forall p. State -> HTML p Action
+javascriptSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditJavascript
+    ]
+    [ text "Edit Javascript Source" ]
+
+actusSourceButton :: forall p. State -> HTML p Action
+actusSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditActus
+    ]
+    [ text "Edit Actus Source" ]
+
+editorOptions :: forall p. State -> HTML p Action
+editorOptions state =
+  div [ class_ (ClassName "editor-options") ]
+    [ select
+        [ HTML.id_ "editor-options"
+        , class_ (ClassName "dropdown-header")
+        , onSelectedIndexChange (\idx -> SelectEditorKeyBindings <$> toEnum idx)
+        ]
+        (map keybindingItem (upFromIncluding bottom))
+    ]
+  where
   keybindingItem item =
     if state ^. _editorKeybindings == item then
       option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
@@ -411,7 +530,7 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Hand
   setup editor = do
     mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
     let
-      contents = fromMaybe initialContents mContents
+      contents = fromMaybe "?contract" (mContents <|> Map.lookup "Example" StaticData.marloweContracts)
     model <- liftEffect $ Monaco.getModel editor
     liftEffect do
       Monaco.setValue model contents
@@ -420,8 +539,6 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Hand
       Monaco.setTheme monaco MM.daylightTheme.name
 
   component = monacoComponent $ MM.settings setup
-
-  initialContents = fromMaybe "?contract" $ Array.head $ map snd StaticData.marloweContracts
 
 sidebar ::
   forall p.
@@ -432,7 +549,11 @@ sidebar state =
     showRightPanel = state ^. _showRightPanel
   in
     aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
-      [ div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
+      [ div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
+          [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
+              [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
+          ]
+      , div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
           [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
               [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Available Actions" ] ]
           , a [ onClick $ const $ Just $ ChangeHelpContext AvailableActionsHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
@@ -446,46 +567,69 @@ transactionComposer ::
   forall p.
   State ->
   HTML p Action
-transactionComposer state =
-  div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
-    [ ul [ class_ (ClassName "participants") ]
-        if (Map.isEmpty possibleActions) then
-          [ text "No valid inputs can be added to the transaction" ]
-        else
-          (actionsForParties possibleActions)
-    , div [ class_ (ClassName "transaction-btns") ]
-        [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-            [ li [ classes [ bold, pointer ] ]
-                [ a
-                    [ onClick $ const
-                        $ if hasHistory state then
-                            Just Undo
-                          else
-                            Nothing
-                    , class_ (Classes.disabled $ not isEnabled)
-                    ]
-                    [ text "Undo" ]
-                ]
-            , li [ classes [ bold, pointer ] ]
-                [ a
-                    [ onClick $ const
-                        $ if hasHistory state then
-                            Just ResetSimulator
-                          else
-                            Nothing
-                    , class_ (Classes.disabled $ not isEnabled)
-                    ]
-                    [ text "Reset" ]
-                ]
-            ]
-        ]
-    ]
+transactionComposer state = case view (_marloweState <<< _Head <<< _executionState) state of
+  SimulationNotStarted { initialSlot } ->
+    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+      [ ul_
+          [ h6
+              [ classes
+                  [ ClassName "input-composer-heading"
+                  , noMargins
+                  ]
+              ]
+              [ text "Simulation has not started yet" ]
+          , div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
+              [ spanText "Initial slot:"
+              , marloweActionInput true (SetInitialSlot <<< wrap) initialSlot
+              ]
+          ]
+      , div [ class_ (ClassName "transaction-btns") ]
+          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+              [ li [ classes [ bold, pointer ] ]
+                  [ a [ onClick $ const $ Just StartSimulation ]
+                      [ text "Start simulation" ]
+                  ]
+              ]
+          ]
+      ]
+  SimulationRunning _ ->
+    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+      [ ul [ class_ (ClassName "participants") ]
+          if (Map.isEmpty possibleActions) then
+            [ text "No valid inputs can be added to the transaction" ]
+          else
+            (actionsForParties possibleActions)
+      , div [ class_ (ClassName "transaction-btns") ]
+          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+              [ li [ classes [ bold, pointer ] ]
+                  [ a
+                      [ onClick $ const
+                          $ if hasHistory state then
+                              Just Undo
+                            else
+                              Nothing
+                      , class_ (Classes.disabled $ not isEnabled)
+                      ]
+                      [ text "Undo" ]
+                  ]
+              , li [ classes [ bold, pointer ] ]
+                  [ a
+                      [ onClick $ const
+                          $ if hasHistory state then
+                              Just ResetSimulator
+                            else
+                              Nothing
+                      , class_ (Classes.disabled $ not isEnabled)
+                      ]
+                      [ text "Reset" ]
+                  ]
+              ]
+          ]
+      ]
   where
-  currentBlock = state ^. (_marloweState <<< _Head <<< _slot)
-
   isEnabled = isContractValid state
 
-  possibleActions = view (_marloweState <<< _Head <<< _possibleActions <<< _Newtype) state
+  possibleActions = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _Newtype) state
 
   kvs :: forall k v. Map k v -> Array (Tuple k v)
   kvs = Map.toUnfoldable
@@ -613,7 +757,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     )
   where
   addButton =
-    if isEnabled && inFuture then
+    if isEnabled && inFuture state slot then
       [ button
           [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
           , onClick $ const $ Just $ MoveSlot slot
@@ -623,11 +767,9 @@ inputItem state isEnabled person (MoveToSlot slot) =
     else
       []
 
-  inFuture = view (_currentMarloweState <<< _slot) state < slot
+  error = if inFuture state slot then [] else [ text boundsError ]
 
-  error = if inFuture then [] else [ text boundsError ]
-
-  boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _slot <<< to show))
+  boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Action) -> a -> HTML p Action
 marloweActionInput isEnabled f current =
@@ -659,141 +801,3 @@ renderDeposit accountOwner party tok money =
   , spanText " as "
   , b_ [ spanText (show party) ]
   ]
-
-authButton :: forall p. State -> HTML p Action
-authButton state =
-  let
-    authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
-  in
-    case authStatus of
-      Failure _ ->
-        button
-          [ idPublishGist
-          , classes []
-          ]
-          [ text "Failed to login" ]
-      Success Anonymous ->
-        div [ class_ (ClassName "auth-button-container") ]
-          [ a
-              [ idPublishGist
-              , classes [ ClassName "auth-button" ]
-              , href "/api/oauth/github"
-              ]
-              [ text "Save to GitHub"
-              ]
-          ]
-      Success GithubUser -> gistSection state
-      Loading ->
-        button
-          [ idPublishGist
-          , classes []
-          , disabled true
-          ]
-          [ icon Spinner ]
-      NotAsked ->
-        button
-          [ idPublishGist
-          , classes []
-          , disabled true
-          ]
-          [ icon Spinner ]
-
-spinner :: forall p. HTML p Action
-spinner =
-  svg [ clazz (ClassName "spinner"), SVG.width (Px 65), height (Px 65), viewBox (Box { x: 0, y: 0, width: 66, height: 66 }) ]
-    [ circle [ clazz (ClassName "path"), fill SVG.None, strokeWidth 6, strokeLinecap Round, cx (Length 33.0), cy (Length 33.0), r (Length 30.0) ] [] ]
-
-arrowDown :: forall p. HTML p Action
-arrowDown =
-  svg [ clazz (ClassName "arrow-down"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
-    [ path [ fill (Hex "#832dc4"), d "M19.92,12.08L12,20L4.08,12.08L5.5,10.67L11,16.17V2H13V16.17L18.5,10.66L19.92,12.08M12,20H2V22H22V20H12Z" ] [] ]
-
-arrowUp :: forall p. HTML p Action
-arrowUp =
-  svg [ clazz (ClassName "arrow-up"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
-    [ path [ fill (Hex "#832dc4"), d "M4.08,11.92L12,4L19.92,11.92L18.5,13.33L13,7.83V22H11V7.83L5.5,13.33L4.08,11.92M12,4H22V2H2V4H12Z" ] [] ]
-
-errorIcon :: forall p. HTML p Action
-errorIcon =
-  svg [ clazz (ClassName "error-icon"), SVG.width (Px 20), height (Px 20), viewBox (Box { x: 0, y: 0, width: 24, height: 24 }) ]
-    [ path [ fill (Hex "#ff0000"), d "M13,13H11V7H13M12,17.3A1.3,1.3 0 0,1 10.7,16A1.3,1.3 0 0,1 12,14.7A1.3,1.3 0 0,1 13.3,16A1.3,1.3 0 0,1 12,17.3M15.73,3H8.27L3,8.27V15.73L8.27,21H15.73L21,15.73V8.27L15.73,3Z" ] [] ]
-
-gistButtonIcon :: forall p. HTML p Action -> Either String (RemoteData AjaxError Gist) -> HTML p Action
-gistButtonIcon _ (Left _) = errorIcon
-
-gistButtonIcon _ (Right (Failure _)) = errorIcon
-
-gistButtonIcon arrow (Right (Success _)) = arrow
-
-gistButtonIcon _ (Right Loading) = spinner
-
-gistButtonIcon arrow (Right NotAsked) = arrow
-
-gistInput :: forall p. State -> Either String (RemoteData AjaxError Gist) -> HTML p Action
-gistInput state (Left _) =
-  input
-    [ HTML.type_ InputText
-    , classes [ ClassName "form-control", ClassName "py-0", ClassName "error" ]
-    , HTML.id_ "github-input"
-    , placeholder "Gist ID"
-    , value (state ^. _gistUrl <<< to (fromMaybe ""))
-    , onValueInput $ Just <<< GistAction <<< SetGistUrl
-    ]
-
-gistInput state (Right (Failure _)) =
-  input
-    [ HTML.type_ InputText
-    , classes [ ClassName "form-control", ClassName "py-0", ClassName "error" ]
-    , HTML.id_ "github-input"
-    , placeholder "Gist ID"
-    , value (state ^. _gistUrl <<< to (fromMaybe ""))
-    , onValueInput $ Just <<< GistAction <<< SetGistUrl
-    ]
-
-gistInput state _ =
-  input
-    [ HTML.type_ InputText
-    , classes [ ClassName "form-control", ClassName "py-0" ]
-    , HTML.id_ "github-input"
-    , placeholder "Gist ID"
-    , value (state ^. _gistUrl <<< to (fromMaybe ""))
-    , onValueInput $ Just <<< GistAction <<< SetGistUrl
-    ]
-
-gistSection :: forall p. State -> HTML p Action
-gistSection state =
-  div [ classes [ ClassName "github-gist-panel", aHorizontal, expanded (state ^. _showRightPanel) ] ]
-    [ div [ classes [ ClassName "input-group-text", ClassName "upload-btn", ClassName "tooltip" ], onClick $ const $ Just $ GistAction PublishGist ]
-        [ span [ class_ (ClassName "tooltiptext") ] [ publishTooltip publishStatus ]
-        , gistButtonIcon arrowUp publishStatus
-        ]
-    , label [ classes [ ClassName "sr-only", active ], HTML.for "github-input" ] [ text "Enter Github Gist" ]
-    , div [ classes (map ClassName [ "input-group", "mb-2", "mr-sm-2" ]) ]
-        [ gistInput state loadStatus
-        , div [ class_ (ClassName "input-group-append") ]
-            [ div
-                [ classes [ ClassName "input-group-text", ClassName "download-btn", ClassName "tooltip" ]
-                , onClick $ const $ Just $ GistAction LoadGist
-                ]
-                [ span [ class_ (ClassName "tooltiptext") ] [ loadTooltip loadStatus ]
-                , gistButtonIcon arrowDown loadStatus
-                ]
-            ]
-        ]
-    ]
-  where
-  publishStatus = state ^. _createGistResult <<< to Right
-
-  loadStatus = state ^. _loadGistResult
-
-  publishTooltip (Left _) = text "Failed to publish gist"
-
-  publishTooltip (Right (Failure _)) = text "Failed to publish gist"
-
-  publishTooltip _ = text "Publish To Github Gist"
-
-  loadTooltip (Left e) = text "Failed to load gist"
-
-  loadTooltip (Right (Failure _)) = text "Failed to load gist"
-
-  loadTooltip _ = text "Load From Github Gist"

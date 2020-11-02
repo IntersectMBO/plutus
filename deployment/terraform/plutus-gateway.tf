@@ -69,7 +69,7 @@ resource "aws_api_gateway_integration" "plutus_root_get_method" {
 
   type                    = "AWS"
   integration_http_method = "GET"
-  credentials             = "${aws_iam_role.plutus_s3_proxy_role.arn}"
+  credentials             = aws_iam_role.plutus_s3_proxy_role.arn
   uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/plutus-playground-website-${var.env}/index.html"
 }
 
@@ -100,6 +100,10 @@ resource "aws_api_gateway_integration_response" "plutus_root_get_method" {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
     "method.response.header.Content-Type" = "integration.response.header.Content-Type"
   }
+
+  depends_on = [
+    aws_api_gateway_integration.plutus_root_get_method
+  ]
 }
 
 ## Other static files
@@ -127,7 +131,7 @@ resource "aws_api_gateway_integration" "plutus_item_get_method" {
 
   type                    = "HTTP_PROXY"
   integration_http_method = "GET"
-  credentials             = "${aws_iam_role.plutus_s3_proxy_role.arn}"
+  credentials             = aws_iam_role.plutus_s3_proxy_role.arn
   # uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/plutus-playground-website-${var.env}/{proxy}"
   uri                     = "http://${aws_s3_bucket.plutus_playground.id}.${aws_s3_bucket.plutus_playground.website_domain}/{proxy}"
 
@@ -248,8 +252,8 @@ resource "aws_route53_record" "plutus_api_gw" {
   name    = local.plutus_domain_name
   type    = "A"
   alias {
-    name                   = "${aws_api_gateway_domain_name.plutus.regional_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.plutus.regional_zone_id}"
+    name                   = aws_api_gateway_domain_name.plutus.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.plutus.regional_zone_id
     evaluate_target_health = true
   }
 }

@@ -16,6 +16,9 @@ data Lang
   | Haskell
   | Javascript
   | Blockly
+  | Actus
+
+derive instance eqLang :: Eq Lang
 
 derive instance genericLang :: Generic Lang _
 

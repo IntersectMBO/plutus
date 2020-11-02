@@ -1,9 +1,9 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> { } }:
 
 pkgs.agda.mkDerivation (self: {
   src = pkgs.lib.cleanSource ./.;
   name = "FixN";
-  topSourceDirectories = ["."];
+  topSourceDirectories = [ "." ];
   everythingFile = "FixN.agda";
-  buildDepends = [pkgs.AgdaStdlib];
+  buildDepends = [ pkgs.AgdaStdlib ];
 })

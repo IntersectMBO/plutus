@@ -43,8 +43,7 @@ module Plutus.SCB.Core
     ) where
 
 import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras    (StructuredLog)
-import           Cardano.BM.Data.Tracer.Extras    (mkObjectStr)
+import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, mkObjectStr)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer              (Eff, Member)
 import           Control.Monad.Freer.Error        (Error)

@@ -197,7 +197,7 @@ and people may not be notified if you just push commits.
 .Pre-submit checklist:
 * `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files.
 * `$(nix-shell shell.nix --run fix-stylish-haskell)` to fix any formatting issues.
-* `cabal v2-build all` to check that everything builds.
+* `nix build -L -f ci.nix --arg supportedSystems '[ builtins.currentSystem ]'` to check that everything builds
 
 You can build some things with Nix locally if you like, but it's fine to let the CI do that for you.
 

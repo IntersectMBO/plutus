@@ -20,7 +20,7 @@ import Prelude (Unit, Void, bind, discard, map, pure, unit, ($), (+), (/=), (<$>
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
-import Types (ChildSlots)
+import MainFrame.Types (ChildSlots)
 
 data ContractZipper
   = PayZip AccountId Payee Token Value ContractZipper

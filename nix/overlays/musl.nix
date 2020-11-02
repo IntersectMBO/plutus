@@ -1,10 +1,12 @@
 self: super:
-let lib = super.lib;
-    hostPlatform = super.stdenv.hostPlatform;
-in {
+let
+  lib = super.lib;
+  hostPlatform = super.stdenv.hostPlatform;
+in
+{
   glibc = super.glibc.overrideAttrs (old: lib.optionalAttrs hostPlatform.isMusl {
     # See https://github.com/NixOS/nixpkgs/pull/71480, should be fixed in future nixpkgs
-    NIX_CFLAGS_COMPILE = (if old.NIX_CFLAGS_COMPILE != null then old.NIX_CFLAGS_COMPILE else []) ++ ["-Wno-error=attribute-alias" "-Wno-error=stringop-truncation"];
+    NIX_CFLAGS_COMPILE = (if old.NIX_CFLAGS_COMPILE != null then old.NIX_CFLAGS_COMPILE else [ ]) ++ [ "-Wno-error=attribute-alias" "-Wno-error=stringop-truncation" ];
   });
 
   python37 = super.python37.override {

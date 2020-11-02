@@ -3,7 +3,6 @@
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
 
@@ -94,9 +93,6 @@ module.exports = {
     },
 
     plugins: [
-        new webpack.LoaderOptionsPlugin({
-            debug: true
-        }),
         new HtmlWebpackPlugin({
             template: '../web-common/static/index.html',
             favicon: 'static/favicon.ico',

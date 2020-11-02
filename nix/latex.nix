@@ -1,16 +1,20 @@
 { stdenv, lib, texlive }:
 {
   # Build a latex derivation using latexmk.
-  buildLatex = { 
-    texFiles ? [], # The specific tex files to build, will try and build all of them if absent
-    texInputs ? { inherit (texlive) scheme-small; }, # Tex dependencies as an attrset
-    buildInputs ? [], # Additional build inputs
-    ...}@attrs :
+  buildLatex =
+    { texFiles ? [ ]
+    , # The specific tex files to build, will try and build all of them if absent
+      texInputs ? { inherit (texlive) scheme-small; }
+    , # Tex dependencies as an attrset
+      buildInputs ? [ ]
+    , # Additional build inputs
+      ...
+    }@attrs:
 
-    let 
+    let
       tex = texlive.combine (texInputs // { inherit (texlive) latexmk; });
       # mkDerivation doesn't like having this as an attr, and we don't need to pass it through
-      filteredAttrs = builtins.removeAttrs attrs ["texInputs" ];
+      filteredAttrs = builtins.removeAttrs attrs [ "texInputs" ];
       buildDir = ".nix-build";
     in
     stdenv.mkDerivation (filteredAttrs // {

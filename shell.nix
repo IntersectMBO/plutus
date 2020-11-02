@@ -6,17 +6,39 @@ let
   pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
   # Called from Cabal to generate the Haskell source for the metatheory package
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
-in haskell.packages.shellFor {
+  # Configure project pre-commit hooks
+  pre-commit-check = pkgs.nix-pre-commit-hooks.run {
+    src = (pkgs.lib.cleanSource ./.);
+    tools = {
+      stylish-haskell = dev.packages.stylish-haskell;
+      nixpkgs-fmt = pkgs.nixpkgs-fmt;
+      shellcheck = pkgs.shellcheck;
+    };
+    hooks = {
+      stylish-haskell.enable = true;
+      nixpkgs-fmt = {
+        enable = true;
+        # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
+        # does not appear to work inside the hook. For now we have to thus
+        # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
+        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ];
+      };
+      shellcheck.enable = true;
+    };
+  };
+in
+haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
-    pkgs.git
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
+    pkgs.shellcheck
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
+    pkgs.nixpkgs-fmt
     # Broken on 20.03, needs a backport
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
@@ -32,6 +54,7 @@ in haskell.packages.shellFor {
     pkgs.awscli
     pkgs.aws_shell
     pkgs.pass
+    pkgs.yubikey-manager
 
     # Extra dev packages acquired from elsewhere
     dev.packages.cabal-install
@@ -45,12 +68,26 @@ in haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
+    dev.scripts.updateMetadataSamples
   ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
     # This breaks compilation of R on macOS. The latest version of R
     # does compile, so we can remove it when we upgrade to 20.09.
     pkgs.rPackages.plotly # for generating R plots locally
     pkgs.R
   ]);
+
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
+
+  shellHook = ''
+    ${pre-commit-check.shellHook}
+  ''
+  # Work around https://github.com/NixOS/nix/issues/3345, which makes
+  # tests etc. run single-threaded in a nix-shell.
+  # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
+  # Only necessary for linux - darwin doesn't even expose thread
+  # affinity APIs!
+  + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+    ${pkgs.utillinux}/bin/taskset -pc 0-1000 $$
+  '';
 }

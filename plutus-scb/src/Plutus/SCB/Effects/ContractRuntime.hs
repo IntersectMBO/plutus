@@ -10,7 +10,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE StrictData          #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 module Plutus.SCB.Effects.ContractRuntime(
@@ -55,7 +54,7 @@ instance ToObject ContractRuntimeMsg where
                     MaximalVerbosity -> Left (notificationContractID, notificationContractEndpoint, Tagged @"argument" notificationContractArg)
                     _                -> Right (notificationContractID, notificationContractEndpoint)
         NotificationFailure e ->
-            mkObjectStr "Notification failure" $ (Tagged @"error" e)
+            mkObjectStr "Notification failure" (Tagged @"error" e)
 
 instance Pretty ContractRuntimeMsg where
     pretty = \case

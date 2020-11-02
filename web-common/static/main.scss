@@ -79,6 +79,7 @@ h2 {
 
 .main-frame {
     .container {
+        margin-top: 15px;
         padding-top: 5px;
         padding-bottom: 5px;
     }
@@ -283,13 +284,6 @@ input.form-control {
 
 }
 
-#banner-message {
-    border-radius: 0;
-    letter-spacing: 0.08rem;
-    text-transform: uppercase;
-    text-align: center;
-}
-
 .input-group-prepend,
 .input-group-append {
     button,
@@ -315,7 +309,7 @@ input.form-control {
         padding: 5px 0x;
 
         .custom-select {
-            width: 5rem;
+            width: 10rem;
             color: $white;
             border-color: $dark;
             background-color: $gray-800;

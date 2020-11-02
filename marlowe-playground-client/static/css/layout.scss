@@ -1,0 +1,27 @@
+html,
+body,
+.site-wrap {
+  background: var(--bg-dark);
+  height: calc(100vh - 53px);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+main nav {
+  flex: 1;
+}
+
+main section {
+  flex: 15;
+}
+
+.sidebar-composer,
+.code-editor {
+  height: 90vh;
+  overflow-x: scroll;
+}

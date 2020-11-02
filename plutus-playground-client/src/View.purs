@@ -2,7 +2,7 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container_, empty, justifyContentBetween, noGutters, row, row_)
+import Bootstrap (btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container_, empty, justifyContentBetween, noGutters, row, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Either (Either(..))
@@ -35,86 +35,83 @@ render ::
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
 render state@(State { currentView, blockchainVisualisationState, contractDemos, editorPreferences }) =
-  div_
-    [ bannerMessage
-    , div
-        [ class_ $ ClassName "main-frame" ]
-        [ container_
-            [ mainHeader
-            , div [ classes [ row, noGutters, justifyContentBetween ] ]
-                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
-                , div
-                    [ classes [ colXs12, colSm5 ] ]
-                    [ GistAction <$> gistControls (unwrap state) ]
-                ]
+  div
+    [ class_ $ ClassName "main-frame" ]
+    [ container_
+        [ mainHeader
+        , div [ classes [ row, noGutters, justifyContentBetween ] ]
+            [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
+            , div
+                [ classes [ colXs12, colSm5 ] ]
+                [ GistAction <$> gistControls (unwrap state) ]
             ]
-        , viewContainer currentView Editor
-            let
-              compilationResult = view _compilationResult state
-            in
-              [ row_
-                  [ div
-                      [ classes [ colXs12, colMd4, colLg7 ] ]
-                      [ compileButton CompileProgram compilationResult ]
-                  , div
-                      [ classes [ colXs12, colMd8, colLg5 ] ]
-                      [ documentationLinksPane
-                      , contractDemosPane contractDemos
-                      ]
-                  ]
-              , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
-              , compileButton CompileProgram compilationResult
-              , mapComponent EditorAction $ editorFeedback compilationResult
-              , case compilationResult of
-                  Failure error -> ajaxErrorPane error
-                  _ -> empty
-              ]
-        , viewContainer currentView Simulations
-            $ let
-                knownCurrencies = evalState getKnownCurrencies state
-
-                initialValue = mkInitialValue knownCurrencies zero
-              in
-                [ simulationPane
-                    initialValue
-                    (view _actionDrag state)
-                    ( view
-                        ( _compilationResult
-                            <<< _Success
-                            <<< _Right
-                            <<< _Newtype
-                            <<< _result
-                            <<< _functionSchema
-                        )
-                        state
-                    )
-                    (view _simulations state)
-                    (view _evaluationResult state)
-                , case (view _evaluationResult state) of
-                    Failure error -> ajaxErrorPane error
-                    Success (Left error) -> actionsErrorPane error
-                    _ -> empty
-                ]
-        , viewContainer currentView Transactions
-            $ case view _evaluationResult state of
-                Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
-                Success (Left error) ->
-                  [ text "Your simulation has errors. Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above to fix them and recompile."
-                  ]
-                Failure error ->
-                  [ text "Your simulation has errors. Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above to fix them and recompile."
-                  ]
-                Loading -> [ icon Spinner ]
-                NotAsked ->
-                  [ text "Click the "
-                  , strong_ [ text "Simulation" ]
-                  , text " tab above and evaluate a simulation to see some results."
-                  ]
         ]
+    , viewContainer currentView Editor
+        let
+          compilationResult = view _compilationResult state
+        in
+          [ row_
+              [ div
+                  [ classes [ colXs12, colMd4, colLg7 ] ]
+                  [ compileButton CompileProgram compilationResult ]
+              , div
+                  [ classes [ colXs12, colMd8, colLg5 ] ]
+                  [ documentationLinksPane
+                  , contractDemosPane contractDemos
+                  ]
+              ]
+          , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
+          , compileButton CompileProgram compilationResult
+          , mapComponent EditorAction $ editorFeedback compilationResult
+          , case compilationResult of
+              Failure error -> ajaxErrorPane error
+              _ -> empty
+          ]
+    , viewContainer currentView Simulations
+        $ let
+            knownCurrencies = evalState getKnownCurrencies state
+
+            initialValue = mkInitialValue knownCurrencies zero
+          in
+            [ simulationPane
+                initialValue
+                (view _actionDrag state)
+                ( view
+                    ( _compilationResult
+                        <<< _Success
+                        <<< _Right
+                        <<< _Newtype
+                        <<< _result
+                        <<< _functionSchema
+                    )
+                    state
+                )
+                (view _simulations state)
+                (view _evaluationResult state)
+            , case (view _evaluationResult state) of
+                Failure error -> ajaxErrorPane error
+                Success (Left error) -> actionsErrorPane error
+                _ -> empty
+            ]
+    , viewContainer currentView Transactions
+        $ case view _evaluationResult state of
+            Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
+            Success (Left error) ->
+              [ text "Your simulation has errors. Click the "
+              , strong_ [ text "Simulation" ]
+              , text " tab above to fix them and recompile."
+              ]
+            Failure error ->
+              [ text "Your simulation has errors. Click the "
+              , strong_ [ text "Simulation" ]
+              , text " tab above to fix them and recompile."
+              ]
+            Loading -> [ icon Spinner ]
+            NotAsked ->
+              [ text "Click the "
+              , strong_ [ text "Simulation" ]
+              , text " tab above and evaluate a simulation to see some results."
+              ]
     ]
   where
   defaultContents :: Maybe String
@@ -134,18 +131,6 @@ demoScriptButton (ContractDemo { contractDemoName }) =
     , onClick $ const $ Just $ LoadScript contractDemoName
     ]
     [ text contractDemoName ]
-
-bannerMessage :: forall p i. HTML p i
-bannerMessage =
-  div
-    [ id_ "banner-message"
-    , classes [ alert, alertPrimary ]
-    ]
-    [ text "Plutus Beta - Updated 19th September 2019 - See the "
-    , a
-        [ href ("https://github.com/input-output-hk/plutus/blob/master/CHANGELOG.md") ]
-        [ text "CHANGELOG" ]
-    ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
