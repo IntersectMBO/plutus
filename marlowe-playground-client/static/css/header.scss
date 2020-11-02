@@ -12,10 +12,6 @@ header {
   svg {
     fill: url(#marlowe__linear-gradient) var(--primary-color);
   }
-
-  h2 {
-    font-size: 1.3em;
-  }
 }
 
 
@@ -25,6 +21,7 @@ header {
 
   h2 {
     line-height: 1;
+    font-size: 1.4em;
   }
 }
 
@@ -83,6 +80,7 @@ header {
     padding: 0rem 1rem;
     font-weight: bold;
     color: var(--text-color-light);
+
     :hover {
       color: var(--text-color);
     }
