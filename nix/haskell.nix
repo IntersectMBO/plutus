@@ -21,7 +21,7 @@ let
           buildInputs = attrs.buildInputs ++ [ super.libiconv ];
         });
       });
-    };
+    }; 
   };
   pkgsForR = import nixpkgs {
     overlays = [ rOverlay ];
