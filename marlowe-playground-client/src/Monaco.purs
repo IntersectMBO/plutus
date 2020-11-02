@@ -224,7 +224,7 @@ foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMa
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
-foreign import addExtraLibsJS_ :: EffectFn1 Monaco Unit
+foreign import addExtraTypesScriptLibsJS_ :: EffectFn1 Monaco Unit
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
 
@@ -292,8 +292,8 @@ defineTheme = runEffectFn2 defineTheme_
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
-addExtraLibsJS :: Monaco -> Effect Unit
-addExtraLibsJS = runEffectFn1 addExtraLibsJS_
+addExtraTypesScriptLibsJS :: Monaco -> Effect Unit
+addExtraTypesScriptLibsJS = runEffectFn1 addExtraTypesScriptLibsJS_
 
 getModel :: Editor -> Effect ITextModel
 getModel = runEffectFn1 getModel_

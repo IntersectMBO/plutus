@@ -54,13 +54,10 @@ exports.onDidChangeContent_ = function (editor, handler) {
   });
 }
 
-exports.addExtraLibsJS_ = function (monaco) {
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(
-    require('!!raw-loader!../node_modules/bignumber.js/bignumber.d.ts').default, 'inmemory://model/bignumber.js.d.ts'
-  );
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(
-    require('!!raw-loader!src/Language/Javascript/MarloweJS.ts').default, "inmemory://model/marlowe-js.d.ts"
-  );
+exports.addExtraTypesScriptLibsJS_ = function (monaco) {
+    global.monacoExtraTypeScriptLibs.forEach(function ([dts, dtsFilename]) {
+        monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, dtsFilename);
+    });
 }
 
 exports.getModel_ = function (editor) {
