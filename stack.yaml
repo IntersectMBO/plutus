@@ -23,6 +23,8 @@ packages:
 - web-ghc
 
 extra-deps:
+# Flat compression
+- pure-zlib-0.6.7@sha256:5a1cdf87bf3079b7d3abace1f94eeb3c597c687a38a08ee2908783e609271467,3487
 # FEAT/NEAT and deps
 - lazy-search-0.1.2.0
 - size-based-0.1.2.0
