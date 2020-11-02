@@ -299,7 +299,7 @@ setOraclePrice settings = do
       case Map.lookup (Role "kraken") actions of
         Just acts -> do
           case Array.head (Map.toUnfoldable acts) of
-            Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _) bounds) _) -> do
+            Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _)) _) -> do
               price <- getPrice settings "kraken" pair
               handleAction settings (SetChoice choiceId price)
             _ -> pure unit
