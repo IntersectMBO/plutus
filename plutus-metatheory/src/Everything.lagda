@@ -31,7 +31,7 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
-import Declarative.Erasure
+-- import Declarative.Erasure -- TODO
 
 import Declarative.Examples
 import Declarative.Examples.StdLib.Function

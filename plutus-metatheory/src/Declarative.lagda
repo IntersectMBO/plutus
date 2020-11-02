@@ -9,6 +9,7 @@ open import Type
 open import Type.RenamingSubstitution
 open import Type.Equality
 open import Builtin
+open import Utils
 
 -- these things should perhaps be rexported...
 open import Builtin.Constant.Type
@@ -28,6 +29,7 @@ open import Data.Vec hiding ([_]; take; drop)
 open import Data.List hiding ([_]; length; take; drop)
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
+open import Data.Sum
 open import Function hiding (_∋_)
 import Data.Bool as Bool
 open import Data.String
@@ -106,24 +108,10 @@ data Tel {Φ} Γ Δ (σ : Sub Δ Φ) : List (Δ ⊢⋆ *) → Set
 -- this is just a synonym for a substitution
 ITel : ∀ {Φ}{Ψ} Γ Δ → Sub Φ Ψ → Set
 
-data _≤L_ {A : Set} : List A → List A → Set where
- base : ∀{as} → as ≤L as
- skip : ∀{as as' a} → as ≤L as' → as ≤L (a ∷ as')
-
-[]≤L : {A : Set}(as : List A) → [] ≤L as
-[]≤L []       = base
-[]≤L (a ∷ as) = skip ([]≤L as)
-
-data _≤C⋆_ : Ctx⋆ → Ctx⋆ → Set where
- base : ∀{Φ} → Φ ≤C⋆ Φ
- skip : ∀{Φ Φ' K} → Φ ≤C⋆ Φ' → Φ ≤C⋆ (Φ' ,⋆ K)
-
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
- 
-
 
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
 ISIG addInteger = _ ,, (∅ , con integer , con integer) ,, con integer
@@ -159,8 +147,6 @@ abstract2 Ψ (A ∷ As) As' (skip p) C = abstract2 Ψ As As' p (A ⇒ C)
 abstract1 : ∀ Ψ Ψ' (p : Ψ' ≤C⋆ Ψ)(C : Ψ ⊢⋆ *) → Ψ' ⊢⋆ *
 abstract1 Ψ        Ψ  base     C = C
 abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
-
-open import Data.Sum
 
 abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
 abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (abstract2 Ψ As As' p C)

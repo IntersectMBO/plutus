@@ -10,6 +10,7 @@ open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Unit
+open import Data.Sum
 
 open import Type
 open import Type.BetaNormal
@@ -95,67 +96,149 @@ open import Data.String
 
 data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
 
-data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
+-- this is just a synonym for a substitution
+ITel : ∀ {Φ}{Ψ} Γ Δ → SubNf Φ Ψ → Set
 
-  ` : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
+ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
+ISIG addInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG subtractInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG multiplyInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG divideInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG quotientInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG remainderInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG modInteger = _ ,, (∅ , con integer , con integer) ,, con integer
+ISIG lessThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG lessThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG greaterThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG greaterThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG equalsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
+ISIG concatenate = _ ,, (∅ , con bytestring , con bytestring) ,, con bytestring
+ISIG takeByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
+ISIG dropByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
+ISIG sha2-256 = _ ,, (∅ , con bytestring) ,, con bytestring
+ISIG sha3-256 = _ ,, (∅ , con bytestring) ,, con bytestring
+ISIG verifySignature = _ ,, (∅ , con bytestring , con bytestring , con bytestring) ,, con bool
+ISIG equalsByteString = _ ,, (∅ , con bytestring , con bytestring) ,, con bool
+ISIG ifThenElse = _ ,, (∅ , con bool ,⋆ * , ne (` Z) , ne (` Z)) ,, ne (` Z)
+data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
+ base : Γ ≤C Γ
+ skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
+ skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
+
+abstract2 : ∀ Ψ (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ ⊢Nf⋆ *))(p : As' ≤L As)(C : Ψ ⊢Nf⋆ *) → Ψ ⊢Nf⋆ *
+abstract2 Ψ As       .As base     C = C
+abstract2 Ψ (A ∷ As) As' (skip p) C = abstract2 Ψ As As' p (A ⇒ C)
+
+abstract1 : ∀ Ψ Ψ' (p : Ψ' ≤C⋆ Ψ)(C : Ψ ⊢Nf⋆ *) → Ψ' ⊢Nf⋆ *
+abstract1 Ψ        Ψ  base     C = C
+abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
+
+abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As) → Ψ ⊢Nf⋆ * → (SubNf Ψ' Φ) → Φ ⊢Nf⋆ *
+abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = substNf σ (abstract2 Ψ As As' p C)
+abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
+  substNf σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
+
+apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
+  → (Δ' ≤C Δ)
+  → (C : Ψ ⊢Nf⋆ *)
+  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
+  → Φ ⊢Nf⋆ *
+apply⋆ Φ Γ Ψ .Ψ Δ .Δ base C σ⋆ σ = substNf σ⋆ C
+apply⋆ Φ Γ .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ Δ' p (Π C) σ⋆ σ 
+apply⋆ Φ Γ Ψ Ψ' (_ , A) Δ' (skip p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ _ p (A ⇒ C) σ⋆ σ
+
+
+data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
+
+  ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ------
     → Γ ⊢ A
 
-  ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  ƛ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ , A ⊢ B
       -----------
     → Γ ⊢ A ⇒ B
 
-  _·_ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  _·_ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ ⊢ A ⇒ B
     → Γ ⊢ A
       -----------
     → Γ ⊢ B
 
-  Λ : ∀ {Φ Γ K}
+  Λ : ∀ {K}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
       ----------
     → Γ ⊢ Π B
 
-  _·⋆_ : ∀ {Φ Γ K}
+  _·⋆_ : ∀ {K}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ⊢ Π B
     → (A : Φ ⊢Nf⋆ K)
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap : ∀{Φ Γ K}
+  wrap : ∀{K}
    → (A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
    → (B : Φ ⊢Nf⋆ K)
    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
    → Γ ⊢ μ A B
 
-  unwrap : ∀{Φ Γ K}
+  unwrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → Γ ⊢ μ A B
     → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
 
-  con : ∀{Φ}{Γ : Ctx Φ}{tcn}
+  con : ∀{tcn}
     → TermCon {Φ} (con tcn)
       -------------------
     → Γ ⊢ con tcn
 
-  builtin : ∀{Φ Γ}
-    → (bn : Builtin)
+  builtin :
+      (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
     → Tel Γ Δ σ As
       -------------------------------
     → Γ ⊢ substNf σ C
 
-  error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
+  pbuiltin :
+      (b :  Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      ∀ Ψ' → 
+      (σ : SubNf Ψ' Φ)
+    → (As' : List (Ψ' ⊢Nf⋆ *))
+    → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
+    → Tel Γ Ψ' σ As'
+    → Γ ⊢ abstract3 Φ Ψ Ψ' As As' p C σ
+
+  ibuiltin : 
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      (σ⋆ : SubNf Ψ Φ)
+    → (σ : ITel Δ Γ σ⋆)
+    → Γ ⊢ substNf σ⋆ C
+
+  ipbuiltin : 
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      ∀ Ψ'
+    → (Δ' : Ctx Ψ')
+    → (p : Δ' ≤C Δ)
+      (σ⋆ : SubNf Ψ' Φ)
+    → (σ : ITel Δ' Γ σ⋆)
+    → Γ ⊢ apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ
+
+  error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
 data Tel {Φ} Γ Δ σ where
   []  : Tel Γ Δ σ []
   _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
+
+ITel {Φ} Γ Δ σ = {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ A
+
 \end{code}
 
 Utility functions

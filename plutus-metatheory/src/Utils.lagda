@@ -81,6 +81,14 @@ _:<L_ : ∀{A : Set} → List A → A → List A
 []        :<L a = a ∷ []
 (a' ∷ as) :<L a = a' ∷ (as :<L a)
 
+data _≤L_ {A : Set} : List A → List A → Set where
+ base : ∀{as} → as ≤L as
+ skip : ∀{as as' a} → as ≤L as' → as ≤L (a ∷ as')
+
+[]≤L : {A : Set}(as : List A) → [] ≤L as
+[]≤L []       = base
+[]≤L (a ∷ as) = skip ([]≤L as)
+
 -- Monads
 
 record Monad (F : Set → Set) : Set₁ where

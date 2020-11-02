@@ -139,3 +139,9 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 \end{code}
 
 Let `A`, `B`, `C` range over types.
+
+\begin{code}
+data _≤C⋆_ : Ctx⋆ → Ctx⋆ → Set where
+ base : ∀{Φ} → Φ ≤C⋆ Φ
+ skip : ∀{Φ Φ' K} → Φ ≤C⋆ Φ' → Φ ≤C⋆ (Φ' ,⋆ K)
+\end{code}
