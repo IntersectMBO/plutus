@@ -182,7 +182,7 @@ iteAtStringOneArg :: Term TyName Name DefaultUni ()
 iteAtStringOneArg = Apply () iteAtString lteExpr
 
 -- [ { (builtin ifThenElse) (forall a . a -> a) } (11<=22) ]: evaluation should
--- succeed, typechecking should fail
+-- succeed, typechecking should fail (illegal kind)
 iteAtHigherKindOneArg :: Term TyName Name DefaultUni ()
 iteAtHigherKindOneArg = Apply () iteAtHigherKind lteExpr
 
@@ -194,8 +194,9 @@ iteUninstantiatedFullyApplied = mkIterApp () ite [lteExpr, stringResultTrue, str
 iteAtStringFullyApplied :: Term TyName Name DefaultUni ()
 iteAtStringFullyApplied = mkIterApp () iteAtStringOneArg [stringResultTrue, stringResultFalse]
 
--- [ { (builtin ifThenElse)  (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ]: should also succeed.
--- However it's ill-typed: at execution time we only check that type
+-- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ]:
+-- should also succeed.  However it's ill-typed because we're instantiating at
+-- `integer` but returning a string: at execution time we only check that type
 -- instantiations and term arguments are correctly interleaved, not that
 -- instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni ()
