@@ -1,12 +1,12 @@
 header {
   padding: 0.5rem 2rem;
   background: var(--bg-dark);
-  max-height: 80px;
+  height: 54px;
 }
 
 .marlowe-logo {
-  width: 60px;
-  height: 42px;
+  width: 35px;
+  height: 26px;
   cursor: pointer;
 
   svg {
@@ -21,6 +21,7 @@ header {
 
   h2 {
     line-height: 1;
+    font-size: 1.4em;
   }
 }
 
@@ -78,6 +79,11 @@ header {
   a {
     padding: 0rem 1rem;
     font-weight: bold;
+    color: var(--text-color-light);
+
+    :hover {
+      color: var(--text-color);
+    }
   }
 
   .short-text {
@@ -89,7 +95,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1em 1em;
+  padding: 10px;
   background-color: var(--bg-light);
 }
 
