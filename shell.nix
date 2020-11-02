@@ -18,10 +18,9 @@ let
       stylish-haskell.enable = true;
       nixpkgs-fmt = {
         enable = true;
-        # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
-        # does not appear to work inside the hook. For now we have to thus
-        # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ];
+        # Get the hook to respect ignore patterns
+        # See https://github.com/cachix/pre-commit-hooks.nix/pull/77
+        raw.files = "(\\.nix$)|(\\.ignore$)";
       };
       shellcheck.enable = true;
     };
@@ -31,6 +30,8 @@ haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
+    # pre-commit-check needs git here
+    pkgs.git
     pkgs.cacert
     pkgs.niv
     pkgs.nodejs
