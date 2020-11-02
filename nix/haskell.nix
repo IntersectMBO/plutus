@@ -11,9 +11,19 @@
 }:
 
 let
-  sources = import ./sources.nix {};
-  nixpkgsForR = sources.nixpkgsForR;
-  pkgsForR = import nixpkgsForR {};
+  sources = import ./sources.nix {}; 
+  nixpkgs = sources.nixpkgs;
+  rOverlay = self: super: {
+    rPackages = super.rPackages.override {
+      plotly = super.rPackages.plotly.overrideDerivation(attrs: {
+        nativeBuildInputs = attrs.nativeBuildInputs ++ [ super.libiconv ];
+        buildInputs = attrs.buildInputs ++ [ super.libiconv ];
+      });
+    };
+  };
+  pkgsForR = import nixpkgs {
+    overlays = [ rOverlay ];
+  };
   r-packages = with pkgsForR.rPackages; [pkgsForR.R tidyverse dplyr stringr MASS plotly];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
