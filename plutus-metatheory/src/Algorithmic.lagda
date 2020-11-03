@@ -14,6 +14,7 @@ open import Data.Sum
 
 open import Type
 open import Type.BetaNormal
+import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
@@ -137,6 +138,19 @@ abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf�
 abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = substNf σ (abstract2 Ψ As As' p C)
 abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
   substNf σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
+
+abstract3-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : ⋆.Ren Φ Φ') →
+  abstract3 Φ' Ψ Ψ' As As' p
+  C (λ x → renNf ρ⋆ (σ x)) 
+  ≡
+  renNf ρ⋆
+  (abstract3 Φ Ψ Ψ' As As' p
+   C σ)
+abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
+  renNf-substNf σ ρ⋆ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
+abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
+  renNf-substNf σ ρ⋆ (abstract2 Ψ As As' p C)
+
 
 apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
   → (Δ' ≤C Δ)

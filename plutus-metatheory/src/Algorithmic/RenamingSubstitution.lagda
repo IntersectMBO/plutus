@@ -85,6 +85,25 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ Δ σ As
  → Tel Γ' Δ (renNf ρ⋆ ∘ σ) As
 
+apply⋆-ren : (Φ Φ' : Ctx⋆)(Γ : Ctx Φ)(Γ' : Ctx Φ')(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
+  → (p : Δ' ≤C Δ)
+  → (C : Ψ ⊢Nf⋆ *)
+  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
+  → (ρ⋆ : ⋆.Ren Φ Φ')
+  → (ρ : Ren ρ⋆ Γ Γ')
+  → 
+  apply⋆ _ _ Ψ Ψ' Δ Δ' p
+  C (λ x → renNf ρ⋆ (σ⋆ x))
+  (λ {A} x → conv⊢ refl (sym (renNf-substNf σ⋆ ρ⋆ A)) (ren ρ⋆ ρ (σ x)))
+  ≡
+  renNf ρ⋆
+  (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
+apply⋆-ren Φ Φ' Γ Γ' Ψ .Ψ Δ .Δ base C σ⋆ σ ρ⋆ ρ = renNf-substNf σ⋆ ρ⋆ C
+apply⋆-ren Φ Φ' Γ Γ' .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ ρ⋆ ρ =
+  apply⋆-ren _ _ _ _ _ _ _ _ p (Π C) σ⋆ σ ρ⋆ ρ
+apply⋆-ren Φ Φ' Γ Γ' Ψ Ψ' .(_ , _) Δ' (skip p) C σ⋆ σ ρ⋆ ρ =
+  apply⋆-ren _ _ _ _ _ _ _ _ p (_ ⇒ C) σ⋆ σ ρ⋆ ρ
+  
 ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)    = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
@@ -106,6 +125,19 @@ ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (renNf-substNf σ ρ⋆ A)
   (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
+ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
+  refl
+  (abstract3-ren _ _ _ _ _ As' p _ σ ρ⋆)
+  (pbuiltin b Ψ' (renNf ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
+ren ρ⋆ ρ (ibuiltin b σ⋆ σ) = let _ ,, _ ,, A = ISIG b in conv⊢
+  refl
+  (renNf-substNf σ⋆ ρ⋆ A)
+  (ibuiltin b (renNf ρ⋆ ∘ σ⋆) λ {A  = A} → conv⊢ refl (sym (renNf-substNf σ⋆ ρ⋆ A)) ∘ ren ρ⋆ ρ ∘ σ)
+ren ρ⋆ ρ (ipbuiltin b Ψ' Δ' p σ⋆ σ) = let _ ,, _ ,, A = ISIG b in conv⊢
+  refl
+  (apply⋆-ren _ _ _ _ _ _ _ _ p A σ⋆ σ ρ⋆ ρ)
+  (ipbuiltin b Ψ' Δ' p (renNf ρ⋆ ∘ σ⋆) λ {A  = A} → conv⊢ refl (sym (renNf-substNf
+  σ⋆ ρ⋆ A)) ∘ ren ρ⋆ ρ ∘ σ)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 
 renTel ρ⋆ ρ     {As = []}     []       = []
@@ -216,6 +248,14 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (substNf-comp σ' σ⋆ A)
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
+subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p σ') = pbuiltin b
+  Ψ'
+  {!!}
+  {!!}
+  {!!}
+  {!!}
+subst σ⋆ σ (ibuiltin b σ⋆₁ σ₁) = {!!}
+subst σ⋆ σ (ipbuiltin b Ψ' Δ' p σ⋆₁ σ₁) = {!!}
 subst σ⋆ σ (error A) = error (substNf σ⋆ A)
 \end{code}
 
