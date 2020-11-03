@@ -118,12 +118,14 @@ let
   # nodejs headers  (needed for purescript builds)
   nodejs-headers = sources.nodejs-headers;
 
+  # ghc web service
+  web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks nodejs-headers;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios purty;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev thorp;
+  inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS;
 }
