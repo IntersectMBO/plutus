@@ -146,33 +146,9 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  plutus-scb = pkgs.recurseIntoAttrs (rec {
-    server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
-
-    generated-purescript = pkgs.runCommand "plutus-scb-purescript" { } ''
-      mkdir $out
-      ln -s ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
-      ${server-invoker}/bin/plutus-scb psgenerator $out
-    '';
-
-    client =
-      pkgs.callPackage ./nix/purescript.nix rec {
-        inherit nodejs-headers;
-        inherit easyPS webCommon;
-        psSrc = generated-purescript;
-        src = ./plutus-scb-client;
-        packageJSON = ./plutus-scb-client/package.json;
-        yarnLock = ./plutus-scb-client/yarn.lock;
-        yarnNix = ./plutus-scb-client/yarn.nix;
-        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
-        packages = pkgs.callPackage ./plutus-scb-client/packages.nix { };
-        spagoPackages = pkgs.callPackage ./plutus-scb-client/spago-packages.nix { };
-        name = (pkgs.lib.importJSON packageJSON).name;
-        checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
-      };
-    demo-scripts = (dbPath: pkgs.callPackage ./pab-demo-scripts.nix { inherit pkgs dbPath plutus-scb; scb-exes = haskell.packages.plutus-scb.components.exes; });
-
-  });
+  plutus-scb = pkgs.callPackage ./plutus-scb-client {
+    inherit set-git-rev haskell nodejs-headers webCommon easyPS;
+  };
 
   docker = import ./nix/docker.nix {
     inherit (pkgs) dockerTools binutils-unwrapped coreutils bash git cabal-install writeTextFile;
