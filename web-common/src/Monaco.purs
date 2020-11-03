@@ -102,6 +102,8 @@ foreign import data Editor :: Type
 
 foreign import data ITextModel :: Type
 
+foreign import data ITextMarker :: Type
+
 foreign import data CompletionItemKind :: Type
 
 foreign import completionItemKindEq_ :: Fn2 CompletionItemKind CompletionItemKind Boolean
@@ -224,7 +226,7 @@ foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMa
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
-foreign import addExtraLibsJS_ :: EffectFn1 Monaco Unit
+foreign import addExtraTypesScriptLibsJS_ :: EffectFn1 Monaco Unit
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
 
@@ -253,6 +255,8 @@ foreign import setPosition_ :: EffectFn2 Editor IPosition Unit
 foreign import revealLine_ :: EffectFn2 Editor Int Unit
 
 foreign import layout_ :: EffectFn1 Editor Unit
+
+foreign import focus_ :: EffectFn1 Editor Unit
 
 foreign import enableVimBindings_ :: EffectFn1 Editor (Effect Unit)
 
@@ -292,8 +296,8 @@ defineTheme = runEffectFn2 defineTheme_
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
-addExtraLibsJS :: Monaco -> Effect Unit
-addExtraLibsJS = runEffectFn1 addExtraLibsJS_
+addExtraTypesScriptLibsJS :: Monaco -> Effect Unit
+addExtraTypesScriptLibsJS = runEffectFn1 addExtraTypesScriptLibsJS_
 
 getModel :: Editor -> Effect ITextModel
 getModel = runEffectFn1 getModel_
@@ -336,6 +340,9 @@ revealLine = runEffectFn2 revealLine_
 
 layout :: Editor -> Effect Unit
 layout = runEffectFn1 layout_
+
+focus :: Editor -> Effect Unit
+focus = runEffectFn1 focus_
 
 enableVimBindings :: Editor -> Effect (Effect Unit)
 enableVimBindings = runEffectFn1 enableVimBindings_
