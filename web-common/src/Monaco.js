@@ -60,6 +60,12 @@ exports.addExtraTypesScriptLibsJS_ = function (monaco) {
     });
 }
 
+exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
+  editor.deltaDecorations([], [
+    { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},
+  ]);
+}
+
 exports.getModel_ = function (editor) {
   return editor.getModel();
 }
@@ -74,6 +80,10 @@ exports.getValue_ = function (model) {
 
 exports.setValue_ = function (model, value) {
   return model.setValue(value);
+}
+
+exports.getLineCount_ = function (model) {
+  return model.getLineCount();
 }
 
 exports.setTokensProvider_ = function (monaco, languageId, provider) {

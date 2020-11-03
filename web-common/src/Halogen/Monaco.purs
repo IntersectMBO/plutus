@@ -80,8 +80,10 @@ type State
 data Query a
   = SetText String a
   | GetText (String -> a)
+  | GetLineCount (Int -> a)
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
+  | SetDeltaDecorations Int Int a
   | SetPosition IPosition a
   | Focus a
   | Resize a
@@ -202,6 +204,13 @@ handleQuery (GetText f) = do
       s = Monaco.getValue model
     pure $ f s
 
+handleQuery (GetLineCount f) = do
+  withEditor \editor -> do
+    model <- liftEffect $ Monaco.getModel editor
+    let
+      i = Monaco.getLineCount model
+    pure $ f i
+
 handleQuery (GetModel f) = do
   withEditor \editor -> do
     m <- liftEffect $ Monaco.getModel editor
@@ -214,6 +223,11 @@ handleQuery (GetModelMarkers f) = do
       model <- Monaco.getModel editor
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
+
+handleQuery (SetDeltaDecorations first last next) = do
+  withEditor \editor -> do
+    liftEffect $ Monaco.setDeltaDecorations editor first last
+    pure next
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do

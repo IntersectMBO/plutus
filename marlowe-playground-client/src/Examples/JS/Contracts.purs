@@ -8,7 +8,8 @@ const contract : Contract = Close
 
 escrow :: String
 escrow =
-  """/* Parties */
+  """
+/* Parties */
 const alice : Party = Role("alice");
 const bob : Party = Role("bob");
 const carol : Party = Role("carol");
@@ -95,7 +96,8 @@ const contract : Contract = When([Case(Deposit(alice, alice, ada, price), inner)
 
 zeroCouponBond :: String
 zeroCouponBond =
-  """const investor : Party = Role("investor");
+  """
+const investor : Party = Role("investor");
 const issuer : Party = Role("issuer");
 
 const contract : Contract = When([Case(
@@ -113,7 +115,8 @@ const contract : Contract = When([Case(
 
 couponBondGuaranteed :: String
 couponBondGuaranteed =
-  """const issuer : Party = Role("issuer");
+  """
+const issuer : Party = Role("issuer");
 const guarantor : Party = Role("guarantor");
 const investor : Party = Role("investor");
 
@@ -154,7 +157,8 @@ const contract : Contract = When([
 
 swap :: String
 swap =
-  """const lovelacePerAda : SomeNumber = 1000000n;
+  """
+const lovelacePerAda : SomeNumber = 1000000n;
 const amountOfAda : SomeNumber = 1000n;
 const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
 const amountOfDollars : SomeNumber = 100n;
