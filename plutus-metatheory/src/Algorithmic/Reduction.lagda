@@ -15,7 +15,7 @@ open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List hiding (take; drop; concat) renaming ([_] to [_]ₗ)
+open import Data.List as List using (List; _∷_; []; _++_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
@@ -142,7 +142,7 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con 
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
 BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
 BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
-BUILTIN charToString _ (_ ∷ []) (V-con (char c) ,, tt) = con (string (primStringFromList [ c ]ₗ))
+BUILTIN charToString _ (_ ∷ []) (V-con (char c) ,, tt) = con (string (primStringFromList List.[ c ]))
 BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) ,, V-con (string t) ,, tt) =
   con (string (primStringAppend s t))
 BUILTIN trace _ (_ ∷ []) (V-con (string s) ,, tt) = con (Debug.trace s unit)

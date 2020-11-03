@@ -302,14 +302,11 @@ runCompiler
     -> m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler opts expr = do
     -- trick here to take out the concrete plc.error
-    let tcConfigConcrete = PLC.getDefTypeCheckConfig PIR.noProvenance
+    tcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
-    -- turn the concrete plc.error into our compileerror monad
-    stringBuiltinTCConfig <- liftEither $ first (view (re PIR._PLCError)) tcConfigConcrete
-
-    let ctx = PIR.toDefaultCompilationCtx stringBuiltinTCConfig
+    let ctx = PIR.toDefaultCompilationCtx tcConfig
               & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-              & set PIR.ccTypeCheckConfig (PIR.PirTCConfig stringBuiltinTCConfig PIR.YesEscape)
+              & set PIR.ccTypeCheckConfig (PIR.PirTCConfig tcConfig PIR.YesEscape)
 
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
 
@@ -327,7 +324,7 @@ runCompiler opts expr = do
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
     -- again trick to take out the concrete plc.error and lift it into our compileeerror
     when (poDoTypecheck opts) . void $ do
-        tcConcrete <- runExceptT $ PLC.typecheckPipeline stringBuiltinTCConfig plcP
+        tcConcrete <- runExceptT $ PLC.typecheckPipeline tcConfig plcP
         -- also wrap the PLC Error annotations into Original provenances, to match our expected compileerror
         liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) tcConcrete
 

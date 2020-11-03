@@ -30,6 +30,7 @@ module Language.PlutusCore
     , type (<:)
     , DefaultUni (..)
     , DefaultFun (..)
+    , defDefaultFunDyn
     -- * AST
     , Term (..)
     , termSubterms
@@ -50,6 +51,7 @@ module Language.PlutusCore
     , toTerm
     , termAnn
     , typeAnn
+    , mapFun
     -- * Lexer
     , AlexPosn (..)
     -- * Formatting
@@ -126,9 +128,6 @@ import           Language.PlutusCore.Universe
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                      as BSL
 import qualified Data.Text                                 as T
-
-topAlexPosn :: AlexPosn
-topAlexPosn = AlexPn 0 0 0
 
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.

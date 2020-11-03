@@ -67,7 +67,7 @@ data BuiltinMeaning term dyn cost =
         (cost -> FoldArgsEx args)
 
 -- | A 'BuiltinRuntime' is an instantiated (via 'toBuiltinRuntime') 'BuiltinMeaning'.
--- It containts info that is used during evaluation:
+-- It contains info that is used during evaluation:
 --
 -- 1. the 'TypeScheme' of a builtin
 -- 2. the 'Arity'
@@ -117,11 +117,11 @@ toBuiltinsRuntime
        )
     => dyn -> cost -> BuiltinsRuntime fun term
 toBuiltinsRuntime dyn cost =
-    BuiltinsRuntime . tabulate $ toBuiltinRuntime dyn cost . toBuiltinMeaning
+    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime dyn cost . toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
-    :: (MonadError (ErrorWithCause err term) m, AsMachineError err internal fun term, Ix fun)
+    :: (MonadError (ErrorWithCause err term) m, AsMachineError err fun term, Ix fun)
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of

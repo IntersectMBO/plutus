@@ -28,7 +28,7 @@ data Keyword
     | KwCon
     | KwBuiltin
     | KwError
-    -- UPLC only
+    -- TPLC only
     | KwAbs
     | KwFun
     | KwAll

@@ -62,7 +62,7 @@ data ConstAppError fun term
     deriving (Show, Eq, Functor)
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError err fun term
+data MachineError fun term
     = NonPolymorphicInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -82,14 +82,12 @@ data MachineError err fun term
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
     | UnknownBuiltin fun
-    | OtherMachineError err
     deriving (Show, Eq, Functor)
 
--- Do we still need @internal@?
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
-data EvaluationError internal user fun term
-    = InternalEvaluationError (MachineError internal fun term)
+data EvaluationError user fun term
+    = InternalEvaluationError (MachineError fun term)
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
@@ -102,17 +100,17 @@ mtraverse makeClassyPrisms
     , ''EvaluationError
     ]
 
-instance AsMachineError (EvaluationError internal user fun term) internal fun term where
+instance AsMachineError (EvaluationError user fun term) fun term where
     _MachineError = _InternalEvaluationError
-instance AsConstAppError (MachineError err fun term) fun term where
+instance AsConstAppError (MachineError fun term) fun term where
     _ConstAppError = _ConstAppMachineError
-instance AsConstAppError (EvaluationError internal user fun term) fun term where
+instance AsConstAppError (EvaluationError user fun term) fun term where
     _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
 instance AsUnliftingError (ConstAppError fun term) where
     _UnliftingError = _UnliftingConstAppError
-instance AsUnliftingError (EvaluationError internal user fun term) where
+instance AsUnliftingError (EvaluationError user fun term) where
     _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
-instance AsUnliftingError (MachineError err fun term) where
+instance AsUnliftingError (MachineError fun term) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 
 -- | An error and (optionally) what caused it.
@@ -123,11 +121,11 @@ data ErrorWithCause err term
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
 
-type MachineException fun internal term =
-    ErrorWithCause (MachineError fun internal term) term
+type MachineException fun term =
+    ErrorWithCause (MachineError fun term) term
 
-type EvaluationException internal user fun term =
-    ErrorWithCause (EvaluationError internal user fun term) term
+type EvaluationException user fun term =
+    ErrorWithCause (EvaluationError user fun term) term
 
 mapErrorWithCauseF
     :: Functor f
@@ -153,14 +151,14 @@ UserEvaluationError is used in cases when a PLC program itself goes
 wrong (for example, a failure due to `(error)`, a failure during
 builtin evavluation, or exceeding the gas limit).  This is used to
 signal unsuccessful in validation and so is not regarded as a real
-error; in contrast, internal machine errors, typechecking failures,
+error; in contrast, machine errors, typechecking failures,
 and so on are genuine errors and we report their context if available.
  -}
 
 -- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
-    :: Either (EvaluationException internal user fun term) a
-    -> Either (MachineException internal fun term) (EvaluationResult a)
+    :: Either (EvaluationException user fun term) a
+    -> Either (MachineException fun term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left  $ ErrorWithCause err cause
@@ -182,8 +180,8 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun, Pretty err) =>
-            PrettyBy config (MachineError err fun term) where
+instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
+            PrettyBy config (MachineError fun term) where
     prettyBy _      NonPolymorphicInstantiationMachineError =
         "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -202,15 +200,13 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun, Pr
         prettyBy config constAppError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
-    prettyBy _      (OtherMachineError err)               =
-        pretty err
 
 instance
         ( PrettyBy config term, HasPrettyDefaults config ~ 'True
-        , Pretty fun, Pretty internal, Pretty user
-        ) => PrettyBy config (EvaluationError internal user fun term) where
+        , Pretty fun, Pretty user
+        ) => PrettyBy config (EvaluationError user fun term) where
     prettyBy config (InternalEvaluationError err) = fold
-        [ "Internal error:", hardline
+        [ "error:", hardline
         , prettyBy config err
         ]
     prettyBy _      (UserEvaluationError err) = fold

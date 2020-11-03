@@ -26,7 +26,7 @@ import           Test.Tasty.Hedgehog
 
 -- A monad to keep 'applyTypeSchemed' happy.
 -- We can't use CekM or CkM because their exception types don't match 'Term'.
-type AppErr = EvaluationException () () DefaultFun (Term TyName Name DefaultUni DefaultFun ())
+type AppErr = EvaluationException () DefaultFun (Term TyName Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM
@@ -40,7 +40,7 @@ test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
         BuiltinMeaning sch toF toExF -> do
-            let f = toF mempty
+            let f = toF defDefaultFunDyn
                 exF = toExF defaultCostModel
                 denot = Denotation fun (Builtin ()) f sch
                 getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot

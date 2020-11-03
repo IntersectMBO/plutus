@@ -22,7 +22,6 @@ import           Language.PlutusCore.Constant
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                                 (PrettyConst)
 import           Language.PlutusCore.Universe
 
 import           Language.UntypedPlutusCore
@@ -34,18 +33,13 @@ import           System.IO.Unsafe
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
 evaluateCek
-    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , fun ~ DefaultFun
-       )
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> Either (CekEvaluationException uni fun) (Term Name uni fun ())
 evaluateCek (Program _ _ t) = UPLC.evaluateCek defBuiltinsRuntime t
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
-    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni
-       , uni `EverywhereAll` '[ExMemoryUsage, PrettyConst], Typeable uni
-       , fun ~ DefaultFun
-       )
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun () -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCek defBuiltinsRuntime t
 
@@ -54,9 +48,7 @@ unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCek defBuiltinsRuntime t
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins and tracing, additionally
 -- returning the trace output.
 evaluateCekTrace
-    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , fun ~ DefaultFun
-       )
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun ()
     -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =

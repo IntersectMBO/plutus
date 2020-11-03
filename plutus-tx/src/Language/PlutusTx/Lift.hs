@@ -45,7 +45,10 @@ import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import qualified Data.Typeable                            as GHC
 
-type Throwable uni = (PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni)
+type Throwable uni fun =
+    ( PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
+    , Pretty fun, GHC.Typeable fun
+    )
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
@@ -86,7 +89,7 @@ safeLiftCode
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 unsafely
-    :: (Throwable uni, GHC.Typeable fun, Pretty fun)
+    :: Throwable uni fun
     => ExceptT (Error uni fun (Provenance ())) Quote a -> a
 unsafely ma = runQuote $ do
     run <- runExceptT ma
@@ -96,17 +99,13 @@ unsafely ma = runQuote $ do
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
-    :: ( Lift.Lift uni a, Throwable uni
-       , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
-       )
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
     => a -> UPLC.Term Name uni fun ()
 lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
-    :: ( Lift.Lift uni a, Throwable uni
-       , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
-       )
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
     => a -> UPLC.Program Name uni fun ()
 liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
 
@@ -118,9 +117,8 @@ liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
-    :: ( Lift.Lift uni a, Throwable uni
-       , GHC.Typeable fun, Pretty fun, PLC.ToBuiltinMeaning uni fun
-       ) => a -> CompiledCode uni fun a
+    :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
+    => a -> CompiledCode uni fun a
 liftCode x = unsafely $ safeLiftCode x
 
 {- Note [Checking the type of a term with Typeable]

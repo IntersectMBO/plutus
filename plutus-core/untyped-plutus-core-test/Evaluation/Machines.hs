@@ -8,8 +8,6 @@ module Evaluation.Machines
     , test_counting
     ) where
 
-import           PlutusPrelude
-
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 
@@ -36,10 +34,10 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 testMachine
-    :: (Pretty internal, PrettyPlc termErr)
+    :: PrettyPlc termErr
     => String
     -> (Term Name DefaultUni DefaultFun () ->
-            Either (EvaluationException internal user DefaultFun termErr) (Term Name DefaultUni DefaultFun ()))
+            Either (EvaluationException user DefaultFun termErr) (Term Name DefaultUni DefaultFun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->

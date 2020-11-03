@@ -124,11 +124,9 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
         BuiltinMeaning sch toF toExF -> BuiltinMeaning sch (toF . snd) (toExF . snd)
 
 defBuiltinsRuntimeExt
-    :: ( uni ~ DefaultUni, HasConstantIn uni term, ToBuiltinMeaning uni a
-       , Monoid (DynamicPart uni a), Monoid (CostingPart uni a)
-       )
-    => BuiltinsRuntime (Either DefaultFun a) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime mempty (defaultCostModel, mempty)
+    :: HasConstantIn DefaultUni term
+    => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
+defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostModel, ())
 
 data ListRep a
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
@@ -184,7 +182,7 @@ test_Factorial =
     testCase "Factorial" $ do
         let ten = mkConstant @Integer @DefaultUni () 10
             lhs = typecheckEvaluateCek defBuiltinsRuntimeExt $ Apply () (Builtin () $ Right Factorial) ten
-            rhs = typecheckEvaluateCek defBuiltinsRuntimeExt $ Apply () (first Left factorial) ten
+            rhs = typecheckEvaluateCek defBuiltinsRuntimeExt $ Apply () (mapFun Left factorial) ten
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
 
@@ -200,7 +198,7 @@ test_Const =
             char = toTypeAst @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             lhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ Builtin () (Right Const)
-            rhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ first Left Plc.const
+            rhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ mapFun Left Plc.const
         lhs === Right (Right c)
         lhs === rhs
 
@@ -241,9 +239,9 @@ test_IdFInteger =
             res = mkConstant @Integer @DefaultUni () 55
             -- sum (idFInteger {list} (enumFromTo 1 10))
             term
-                = Apply () (first Left Plc.sum)
+                = Apply () (mapFun Left Plc.sum)
                 . Apply () (TyInst () (Builtin () $ Right IdFInteger) Plc.listTy)
-                $ mkIterApp () (first Left Plc.enumFromTo) [one, ten]
+                $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
         typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
@@ -260,9 +258,9 @@ test_IdList =
             integer = mkTyBuiltin @Integer ()
             -- sum (idList {integer} (enumFromTo 1 10))
             term
-                = Apply () (first Left Plc.sum)
+                = Apply () (mapFun Left Plc.sum)
                 . Apply () (TyInst () (Builtin () $ Right IdList) integer)
-                $ mkIterApp () (first Left Plc.enumFromTo) [one, ten]
+                $ mkIterApp () (mapFun Left Plc.enumFromTo) [one, ten]
         tyAct @?= tyExp
         typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
@@ -303,7 +301,7 @@ test_IdRank2 =
             integer = mkTyBuiltin @Integer ()
             -- sum (idRank2 {list} nil {integer})
             term
-                = Apply () (first Left Plc.sum)
+                = Apply () (mapFun Left Plc.sum)
                 . TyInst () (Apply () (TyInst () (Builtin () $ Right IdRank2) Plc.listTy) Plc.nil)
                 $ integer
         tyAct @?= tyExp

@@ -98,9 +98,9 @@ type TypeEvalCheckM uni fun = Either (TypeEvalCheckError uni fun)
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
     :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
-       , Pretty internal, PrettyPlc termErr
+       , PrettyPlc termErr
        )
-    => (Plain Term uni fun -> Either (EvaluationException internal user fun termErr) (Plain Term uni fun))
+    => (Plain Term uni fun -> Either (EvaluationException user fun termErr) (Plain Term uni fun))
        -- ^ An evaluator.
     -> TermOf (Term TyName Name uni fun ()) a
     -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))

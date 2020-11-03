@@ -32,10 +32,10 @@ import           GHC.Integer.GMP.Internals
 
 errors :: TestNested
 errors = testNested "Errors" [
---     goldenUPlcCatch "machInt" machInt
+    goldenUPlcCatch "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     -- , goldenPlcCatch "negativeInt" negativeInt
-     goldenUPlcCatch "caseInt" caseInt
+    , goldenUPlcCatch "caseInt" caseInt
     , goldenUPlcCatch "recursiveNewtype" recursiveNewtype
     , goldenUPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
     , goldenUPlcCatch "literalCaseInt" literalCaseInt
@@ -43,8 +43,8 @@ errors = testNested "Errors" [
     , goldenUPlcCatch "literalCaseOther" literalCaseOther
   ]
 
--- machInt :: CompiledCode PLC.DefaultUni PLC.DefaultFun Int
--- machInt = plc (Proxy @"machInt") (1::Int)
+machInt :: CompiledCode PLC.DefaultUni PLC.DefaultFun Int
+machInt = plc (Proxy @"machInt") (1::Int)
 
 negativeInt :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)

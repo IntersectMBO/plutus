@@ -48,6 +48,8 @@ import           System.IO.Unsafe
 --
 -- reexporting stuff from these two.
 
+-- For @n >= 24@, CBOR needs two bytes instead of one to encode @n@, so we want the commonest
+-- builtins at the front.
 -- | Default built-in functions.
 data DefaultFun
     = AddInteger
@@ -113,14 +115,8 @@ newtype DefaultFunDyn = DefaultFunDyn
     { defaultFunDynTrace :: String -> IO ()
     }
 
--- Kinda pointless, but I really like to use 'mempty' as a default 'DefaultFunDyn' and
--- for providing a 'Monoid' instance we have to provide a 'Semigroup' one.
-instance Semigroup DefaultFunDyn where
-    DefaultFunDyn trace1 <> DefaultFunDyn trace2 =
-        DefaultFunDyn $ \str -> trace1 str `seq` trace2 str
-
-instance Monoid DefaultFunDyn where
-    mempty = DefaultFunDyn traceIO
+defDefaultFunDyn :: DefaultFunDyn
+defDefaultFunDyn = DefaultFunDyn traceIO
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -135,7 +131,7 @@ integerToInt = fromIntegral
 defBuiltinsRuntime
     :: (HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinsRuntime DefaultFun term
-defBuiltinsRuntime = toBuiltinsRuntime mempty defaultCostModel
+defBuiltinsRuntime = toBuiltinsRuntime defDefaultFunDyn defaultCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
     type DynamicPart uni DefaultFun = DefaultFunDyn

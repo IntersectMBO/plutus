@@ -21,6 +21,7 @@ module Language.PlutusCore.Core.Type
     , toTerm
     , termAnn
     , typeAnn
+    , mapFun
     )
 where
 
@@ -78,22 +79,6 @@ data Version ann
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
     deriving (Show, Functor, Generic, NFData, Hashable)
 
--- For conviently mapping over the set of built-in functions.
--- @deriveBifunctor@ fails (because of types and kinds over which we have to map with 'fmap'),
--- hence writing everything out manually.
-instance Bifunctor (Term tyname name uni) where
-    bimap g f = go where
-        go (LamAbs ann name ty body)  = LamAbs (f ann) name (f <$> ty) (go body)
-        go (TyAbs ann name kind body) = TyAbs (f ann) name (f <$> kind) (go body)
-        go (IWrap ann pat arg term)   = IWrap (f ann) (f <$> pat) (f <$> arg) (go term)
-        go (Apply ann fun arg)        = Apply (f ann) (go fun) (go arg)
-        go (Unwrap ann term)          = Unwrap (f ann) (go term)
-        go (Error ann ty)             = Error (f ann) (f <$> ty)
-        go (TyInst ann term ty)       = TyInst (f ann) (go term) (f <$> ty)
-        go (Var ann name)             = Var (f ann) name
-        go (Constant ann con)         = Constant (f ann) con
-        go (Builtin ann fun)          = Builtin (f ann) (g fun)
-
 -- | Extract the universe from a type.
 type family UniOf a :: * -> *
 
@@ -109,10 +94,10 @@ newtype Normalized a = Normalized
 type family HasUniques a :: Constraint
 type instance HasUniques (Kind ann) = ()
 type instance HasUniques (Type tyname uni ann) = HasUnique tyname TypeUnique
-type instance HasUniques (Term tyname name uni fun ann)
-    = (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-type instance HasUniques (Program tyname name uni fun ann) = HasUniques
-    (Term tyname name uni fun ann)
+type instance HasUniques (Term tyname name uni fun ann) =
+    (HasUnique tyname TypeUnique, HasUnique name TermUnique)
+type instance HasUniques (Program tyname name uni fun ann) =
+    HasUniques (Term tyname name uni fun ann)
 
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
@@ -141,3 +126,17 @@ termAnn (Unwrap ann _    ) = ann
 termAnn (IWrap ann _ _ _ ) = ann
 termAnn (Error ann _     ) = ann
 termAnn (LamAbs ann _ _ _) = ann
+
+-- | Map a function over the set of built-in functions.
+mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
+mapFun f = go where
+    go (LamAbs ann name ty body)  = LamAbs ann name ty (go body)
+    go (TyAbs ann name kind body) = TyAbs ann name kind (go body)
+    go (IWrap ann pat arg term)   = IWrap ann pat arg (go term)
+    go (Apply ann fun arg)        = Apply ann (go fun) (go arg)
+    go (Unwrap ann term)          = Unwrap ann (go term)
+    go (Error ann ty)             = Error ann ty
+    go (TyInst ann term ty)       = TyInst ann (go term) ty
+    go (Var ann name)             = Var ann name
+    go (Constant ann con)         = Constant ann con
+    go (Builtin ann fun)          = Builtin ann (f fun)

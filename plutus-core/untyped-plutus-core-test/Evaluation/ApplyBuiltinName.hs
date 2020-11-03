@@ -40,7 +40,7 @@ withGenArgsRes (TypeSchemeArrow _ schB) f k = do
     withGenArgsRes schB (f x) (k . (v :))
 withGenArgsRes (TypeSchemeAll _ _ schK) f k = withGenArgsRes (schK Proxy) f k
 
-type AppErr = EvaluationException () () DefaultFun (Term Name DefaultUni DefaultFun ())
+type AppErr = EvaluationException () DefaultFun (Term Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM
@@ -55,7 +55,7 @@ test_applyBuiltinFunction :: DefaultFun -> TestTree
 test_applyBuiltinFunction fun =
     testProperty (show fun) . property $ case toBuiltinMeaning fun of
         BuiltinMeaning sch toF toExF -> do
-            let f = toF mempty
+            let f = toF defDefaultFunDyn
                 exF = toExF defaultCostModel
             withGenArgsRes sch f $ \args res -> do
                 let rhs = makeKnown res

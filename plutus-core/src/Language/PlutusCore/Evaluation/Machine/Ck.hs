@@ -97,7 +97,7 @@ data CkUserError =
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
-    EvaluationException () CkUserError fun (CkValue uni fun)
+    EvaluationException CkUserError fun (CkValue uni fun)
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
@@ -221,7 +221,7 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-    BuiltinRuntime _ arity _ _ <- ask >>= lookupBuiltin bn . ckEnvRuntime
+    BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . ckEnvRuntime
     stack <| VBuiltin bn arity arity [] []
 stack |> c@Constant{}          = stack <| VCon c
 _     |> _err@Error{}          =
@@ -318,7 +318,7 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    BuiltinRuntime sch _ f exF <- ask >>= lookupBuiltin bn . ckEnvRuntime
+    BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
     result <- applyTypeSchemed bn sch f exF args
     case result of
         EvaluationSuccess t -> stack <| t

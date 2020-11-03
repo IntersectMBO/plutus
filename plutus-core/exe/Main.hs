@@ -478,10 +478,10 @@ prettyExample (SomeTermExample (TermExample _ term)) =
 toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
-    ty = case PLC.runQuote . runExceptT $ do
-            tcConfig <- PLC.getDefTypeCheckConfig ()
-            PLC.typecheckPipeline tcConfig program
-         of
+    errOrTy = PLC.runQuote . runExceptT $ do
+        tcConfig <- PLC.getDefTypeCheckConfig ()
+        PLC.typecheckPipeline tcConfig program
+    ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> error $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy
 

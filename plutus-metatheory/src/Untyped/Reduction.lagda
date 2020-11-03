@@ -14,7 +14,7 @@ open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
-open import Data.List renaming ([_] to [_]ₗ) using ()
+import Data.List as List
 open import Data.Vec using (Vec;[];_∷_;_++_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 import Debug.Trace as Debug
@@ -185,7 +185,7 @@ BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestr
   con (bool (equals b b'))
 BUILTIN ifThenElse (_ ∷ _ ∷ t ∷ _ ∷ []) (_ , V-con (bool true)  , vt , _ , tt) = t
 BUILTIN ifThenElse (_ ∷ _ ∷ _ ∷ u ∷ []) (_ , V-con (bool false) , _ , vu , tt) = u
-BUILTIN charToString (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList [ c ]ₗ))
+BUILTIN charToString (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList List.[ c ]))
 BUILTIN append (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
   con (string (primStringAppend s t))
 BUILTIN trace (_ ∷ []) (V-con (string s) , tt) = con (Debug.trace s unit)

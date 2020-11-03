@@ -11,7 +11,7 @@ open import Builtin.Constant.Type
 open import Utils
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend)
-open import Data.List renaming ([_] to [_]ₗ) using ()
+import Data.List as List
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Vec using ([];_∷_;_++_)
 open import Data.Product
@@ -133,7 +133,7 @@ BUILTIN equalsByteString _ _ _ = error (con bool)
 BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , tt) = t
 BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , tt) = u
 BUILTIN ifThenElse (A ∷ []) _ _ = error A
-BUILTIN charToString _ (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList [ c ]ₗ))
+BUILTIN charToString _ (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList List.[ c ]))
 BUILTIN charToString _ _ _ = error (con string)
 BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
   con (string (primStringAppend s t))

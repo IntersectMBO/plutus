@@ -65,9 +65,10 @@ module PlutusPrelude
     , foldMapM
     , reoption
     , enumeration
-    , tabulate
+    , tabulateArray
     , (?)
     , ensure
+    , asksM
     -- * Pretty-printing
     , Doc
     , ShowPretty (..)
@@ -90,7 +91,7 @@ import           Control.Composition       ((.*))
 import           Control.DeepSeq           (NFData)
 import           Control.Exception         (Exception, throw)
 import           Control.Lens
-import           Control.Monad             (guard, join, (<=<), (>=>))
+import           Control.Monad.Reader
 import           Data.Array
 import           Data.Bifunctor            (first, second)
 import           Data.Bool                 (bool)
@@ -98,7 +99,7 @@ import           Data.Coerce               (Coercible, coerce)
 import           Data.Either               (fromRight, isRight)
 import           Data.Foldable             (fold, toList)
 import           Data.Function             (on)
-import           Data.Functor              (void, ($>))
+import           Data.Functor              (($>))
 import           Data.Functor.Compose
 import           Data.List                 (foldl')
 import           Data.List.NonEmpty        (NonEmpty (..))
@@ -164,8 +165,11 @@ reoption = foldr (const . pure) empty
 enumeration :: (Bounded a, Enum a) => [a]
 enumeration = [minBound .. maxBound]
 
-tabulate :: (Bounded a, Enum a, Ix a) => (a -> b) -> Array a b
-tabulate f = listArray (minBound, maxBound) $ map f enumeration
+-- | Basically a @Data.Functor.Representable@ instance for 'Array'.
+-- We can't provide an actual instance because of the @Distributive@ superclass: @Array i@ is not
+-- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
+tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
+tabulateArray f = listArray (minBound, maxBound) $ map f enumeration
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
@@ -181,6 +185,10 @@ instance Functor f => Functor (PairT b f) where
 -- | @ensure p x@ is equal to @pure x@ whenever @p x@ holds and is 'empty' otherwise.
 ensure :: Alternative f => (a -> Bool) -> a -> f a
 ensure p x = p x ? x
+
+-- | A monadic version of 'asks'.
+asksM :: MonadReader r m => (r -> m a) -> m a
+asksM k = ask >>= k
 
 -- For GHCi to use this properly it needs to be in a registered package, hence
 -- why we're naming such a trivial thing.
