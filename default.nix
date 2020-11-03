@@ -33,6 +33,9 @@ let
 
   # provides `buildLatex` and `filterLatex`
   latex = pkgs.callPackage ./nix/lib/latex.nix { };
+
+  # common files for frontend clients
+  webCommon = import ./web-common { };
 in
 rec {
   inherit pkgs pkgsLocal pkgsMusl;
@@ -84,25 +87,10 @@ rec {
     marlowe-tutorial = pkgs.callPackage ./marlowe/doc { };
   };
 
-  papers = pkgs.recurseIntoAttrs {
-    unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) agda; inherit latex; };
-    system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) agda standard-library; inherit latex; };
-    eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
-    utxoma = pkgs.callPackage ./papers/utxoma/default.nix { inherit latex; };
-    eutxoma = pkgs.callPackage ./papers/eutxoma/default.nix { inherit latex; };
-  };
-
-  webCommon = lib.cleanSourceWith {
-    filter = lib.cleanSourceFilter;
-    src = lib.cleanSourceWith {
-      filter = (path: type: !(lib.elem (baseNameOf path)
-        [ ".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode" ]));
-      src = ./web-common;
-    };
-  };
+  papers = pkgs.callPackage ./papers { inherit agdaPackages latex; };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
-    inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+    inherit set-git-rev haskell docs easyPS nodejs-headers;
   };
 
   marlowe-playground = pkgs.callPackage ./marlowe-playground-client {
