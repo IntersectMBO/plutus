@@ -41,6 +41,8 @@ let
       (import ./overlays/musl.nix)
       # add pre-commit-hooks which isn't available in 20.03
       (import ./overlays/pre-commit-hooks.nix)
+      # fix r-modules
+      (import ./overlays/r.nix)
     ];
 
   pkgs = import nixpkgs {
