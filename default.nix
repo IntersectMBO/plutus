@@ -122,51 +122,9 @@ rec {
     };
   };
 
-  plutus-playground = pkgs.recurseIntoAttrs (rec {
-    playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
-    server-invoker =
-      let
-        # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-        runtimeGhc = haskell.packages.ghcWithPackages (ps: [
-          ps.playground-common
-          ps.plutus-playground-server
-          ps.plutus-use-cases
-        ]);
-      in
-      pkgs.runCommand "plutus-server-invoker" { buildInputs = [ pkgs.makeWrapper ]; } ''
-        # We need to provide the ghc interpreter with the location of the ghc lib dir and the package db
-        mkdir -p $out/bin
-        ln -s ${playground-exe}/bin/plutus-playground-server $out/bin/plutus-playground
-        wrapProgram $out/bin/plutus-playground \
-          --set GHC_LIB_DIR "${runtimeGhc}/lib/ghc-${runtimeGhc.version}" \
-          --set GHC_BIN_DIR "${runtimeGhc}/bin" \
-          --set GHC_PACKAGE_PATH "${runtimeGhc}/lib/ghc-${runtimeGhc.version}/package.conf.d" \
-          --set GHC_RTS "-M2G"
-      '';
-
-    generated-purescript = pkgs.runCommand "plutus-playground-purescript" { } ''
-      mkdir $out
-      ${server-invoker}/bin/plutus-playground psgenerator $out
-    '';
-
-    client =
-      pkgs.callPackage ./nix/purescript.nix rec {
-        inherit nodejs-headers;
-        inherit easyPS webCommon;
-        psSrc = generated-purescript;
-        src = ./plutus-playground-client;
-        packageJSON = ./plutus-playground-client/package.json;
-        yarnLock = ./plutus-playground-client/yarn.lock;
-        yarnNix = ./plutus-playground-client/yarn.nix;
-        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
-        packages = pkgs.callPackage ./plutus-playground-client/packages.nix { };
-        spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix { };
-        name = (pkgs.lib.importJSON packageJSON).name;
-        checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
-      };
-    tutorial = docs.site;
-    haddock = docs.combined-haddock;
-  });
+  plutus-playground = pkgs.callPackage ./plutus-playground-client {
+    inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+  };
 
   marlowe-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
