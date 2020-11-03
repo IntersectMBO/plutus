@@ -221,6 +221,21 @@ subst : ∀ {Φ Ψ Γ Δ}
     -------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
 
+
+apply⋆-subst : (Φ Φ' : Ctx⋆)(Γ : Ctx Φ)(Γ' : Ctx Φ')(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
+  → (p : Δ' ≤C Δ)
+  → (C : Ψ ⊢Nf⋆ *)
+  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
+  → (ρ⋆ : SubNf Φ Φ')
+  → (ρ : Sub ρ⋆ Γ Γ')
+  → 
+  apply⋆ _ _ Ψ Ψ' Δ Δ' p
+  C (λ x → substNf ρ⋆ (σ⋆ x))
+  (λ {A} x → conv⊢ refl (sym (substNf-comp σ⋆ ρ⋆ A)) (subst ρ⋆ ρ (σ x)))
+  ≡
+  substNf ρ⋆
+  (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
+
 substTel σ⋆ σ      {As = []}     []       = []
 substTel σ⋆ σ {σ'} {As = A ∷ As} (M ∷ Ms) =
   conv⊢ refl (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
@@ -248,15 +263,25 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (substNf-comp σ' σ⋆ A)
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
-subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p σ') = pbuiltin b
-  Ψ'
-  {!!}
-  {!!}
-  {!!}
-  {!!}
-subst σ⋆ σ (ibuiltin b σ⋆₁ σ₁) = {!!}
-subst σ⋆ σ (ipbuiltin b Ψ' Δ' p σ⋆₁ σ₁) = {!!}
+subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p ts) = let _ ,, _ ,, A = SIG b in conv⊢
+  refl
+  (abstract3-subst _ _ _ _ _ _ p A σ⋆' σ⋆)
+  (pbuiltin b Ψ' (substNf σ⋆ ∘ σ⋆') As' p (substTel σ⋆ σ ts))
+subst σ⋆ σ (ibuiltin b σ⋆' σ') = let _ ,, _ ,, A = ISIG b in conv⊢
+  refl
+  (substNf-comp σ⋆' σ⋆ A)
+  (ibuiltin b (substNf σ⋆ ∘ σ⋆') λ {A = A} → conv⊢ refl (sym (substNf-comp σ⋆' σ⋆ A)) ∘ subst σ⋆ σ ∘ σ')
+subst σ⋆ σ (ipbuiltin b Ψ' Δ' p σ⋆' σ') = let _ ,, _ ,, A = ISIG b in conv⊢
+  refl
+  (apply⋆-subst _ _ _ _ _ _ _ _ p A σ⋆' σ' σ⋆ σ)
+  (ipbuiltin b Ψ' Δ' p (substNf σ⋆ ∘ σ⋆') λ {A = A} → conv⊢ refl (sym (substNf-comp σ⋆' σ⋆ A)) ∘ subst σ⋆ σ ∘ σ')
 subst σ⋆ σ (error A) = error (substNf σ⋆ A)
+
+apply⋆-subst Φ Φ' Γ Γ' Ψ .Ψ Δ .Δ base C σ⋆ σ ρ⋆ ρ = substNf-comp σ⋆ ρ⋆ C
+apply⋆-subst Φ Φ' Γ Γ' .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ ρ⋆ ρ =
+  apply⋆-subst _ _ _ _ _ _ _ _ p (Π C) σ⋆ σ ρ⋆ ρ
+apply⋆-subst Φ Φ' Γ Γ' Ψ Ψ' .(_ , _) Δ' (skip p) C σ⋆ σ ρ⋆ ρ =
+  apply⋆-subst _ _ _ _ _ _ _ _ p (_ ⇒ C) σ⋆ σ ρ⋆ ρ
 \end{code}
 
 \begin{code}
