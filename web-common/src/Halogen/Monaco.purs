@@ -1,4 +1,11 @@
-module Halogen.Monaco where
+module Halogen.Monaco
+  ( KeyBindings(..)
+  , Settings
+  , Query(..)
+  , Objects
+  , Message(..)
+  , monacoComponent
+  ) where
 
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
@@ -61,6 +68,9 @@ type Objects
 newtype CancelBindings
   = CancelBindings (Effect Unit)
 
+defaultCancelBindings :: CancelBindings
+defaultCancelBindings = CancelBindings (pure unit)
+
 type State
   = { editor :: Maybe Editor
     , deactivateBindings :: CancelBindings
@@ -73,6 +83,7 @@ data Query a
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
   | SetPosition IPosition a
+  | Focus a
   | Resize a
   | SetTheme String a
   | SetModelMarkers (Array IMarkerData) (Array IMarker -> a)
@@ -106,7 +117,7 @@ monacoComponent settings =
     { initialState:
       const
         { editor: Nothing
-        , deactivateBindings: CancelBindings $ pure unit
+        , deactivateBindings: defaultCancelBindings
         , objects:
           { codeActionProvider: settings.codeActionProvider
           , completionItemProvider: settings.completionItemProvider
@@ -140,7 +151,7 @@ handleAction settings Init = do
       let
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
-        when (languageId == "typescript") $ Monaco.addExtraLibsJS monaco
+        when (languageId == "typescript") $ Monaco.addExtraTypesScriptLibsJS monaco
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         for_ settings.theme $ Monaco.defineTheme monaco
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
@@ -210,6 +221,11 @@ handleQuery (SetPosition position next) = do
     liftEffect $ Monaco.revealLine editor position.lineNumber
     pure next
 
+handleQuery (Focus next) = do
+  withEditor \editor -> do
+    liftEffect $ Monaco.focus editor
+    pure next
+
 handleQuery (Resize next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.layout editor
@@ -243,7 +259,7 @@ handleQuery (GetObjects f) = do
   { objects } <- get
   pure $ Just $ f objects
 
-replaceKeyBindings :: KeyBindings -> Editor -> CancelBindings -> Effect (CancelBindings)
+replaceKeyBindings :: KeyBindings -> Editor -> CancelBindings -> Effect CancelBindings
 replaceKeyBindings bindings editor (CancelBindings deactivateOldBindings) = do
   let
     enableFn :: KeyBindings -> Editor -> Effect (Effect Unit)

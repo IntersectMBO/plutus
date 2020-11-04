@@ -3,11 +3,14 @@
 ############################################################################
 { lib
 , stdenv
-, pkgs
+, rPackages
 , haskell-nix
 , agdaPackages
 , buildPackages
+, nix-gitignore
 , checkMaterialization
+, z3
+, R
 }:
 
 let
@@ -17,7 +20,7 @@ let
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in
       haskell-nix.haskellLib.cleanSourceWith {
-        filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [ ../.gitignore ] root) root;
+        filter = nix-gitignore.gitignoreFilter (nix-gitignore.gitignoreCompileIgnore [ ../.gitignore ] root) root;
         src = root;
         # Otherwise this depends on the name in the parent directory, which reduces caching, and is
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
@@ -105,7 +108,7 @@ let
           # Fix missing executables on the paths of the test runners. This is arguably
           # a bug, and the fix is a bit of a hack.
           marlowe.components.tests.marlowe-test.preCheck = ''
-            PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
+            PATH=${lib.makeBinPath [ z3 ]}:$PATH
           '';
           # In this case we can just propagate the native dependencies for the build of the test executable,
           # which are actually set up right (we have a build-tool-depends on the executable we need)

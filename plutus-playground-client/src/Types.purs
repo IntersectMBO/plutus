@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types as Chain
 import Control.Monad.State.Class (class MonadState)
@@ -20,12 +19,13 @@ import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
-import Editor as Editor
+import Editor.Types as Editor
 import Foreign.Generic (encodeJSON)
 import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
 import Halogen.Chartist as Chartist
+import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
 import Ledger.Crypto (PubKey, PubKeyHash, _PubKey)
 import Ledger.Slot (Slot)
@@ -121,7 +121,8 @@ toEvaluation sourceCode (Simulation { simulationActions, simulationWallets }) = 
 data Query a
 
 data HAction
-  = Mounted
+  = Init
+  | Mounted
   -- SubEvents.
   | ActionDragAndDrop Int DragAndDropEventType DragEvent
   | HandleBalancesChartMessage Chartist.Message
@@ -169,7 +170,7 @@ instance showDragAndDropEventType :: Show DragAndDropEventType where
 
 ------------------------------------------------------------
 type ChildSlots
-  = ( editorSlot :: H.Slot AceQuery AceMessage Unit
+  = ( editorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , balancesChartSlot :: H.Slot Chartist.Query Chartist.Message Unit
     )
 
@@ -193,7 +194,7 @@ newtype State
   = State
   { currentView :: View
   , contractDemos :: Array ContractDemo
-  , editorPreferences :: Editor.Preferences
+  , editorState :: Editor.State
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
@@ -212,8 +213,8 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 _contractDemos :: Lens' State (Array ContractDemo)
 _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
 
-_editorPreferences :: Lens' State Editor.Preferences
-_editorPreferences = _Newtype <<< prop (SProxy :: SProxy "editorPreferences")
+_editorState :: Lens' State Editor.State
+_editorState = _Newtype <<< prop (SProxy :: SProxy "editorState")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")

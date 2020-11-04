@@ -1,6 +1,6 @@
 let
   # Generic nixpkgs, use *only* for lib functions that are stable across versions
-  pkgs = import (import ./sources.nix).nixpkgs { };
+  pkgs = import (import ../sources.nix).nixpkgs { };
   lib = pkgs.lib;
 in
 rec {
