@@ -25,6 +25,7 @@ import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Monaco as Monaco
 import Prelude (bind, bottom, const, discard, map, not, show, unit, ($), (+), (-), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
+import Text.Parsing.StringParser.Basic (lines)
 import Text.Pretty (pretty)
 
 render ::
@@ -85,10 +86,10 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< HandleEditorMe
         contents = fromMaybe JSE.escrow mContents
 
         decoratedContent = joinWith "\n" [ decorationHeaderString, contents, decorationFooterString ]
+
+        numLines = Array.length $ lines decoratedContent
       model <- Monaco.getModel editor
       Monaco.setValue model decoratedContent
-      let
-        numLines = Monaco.getLineCount model
       Monaco.setDeltaDecorations editor 1 (Array.length decorationHeader)
       Monaco.setDeltaDecorations editor (numLines - Array.length decorationFooter + 1) numLines
 

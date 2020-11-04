@@ -3,12 +3,11 @@ module JavascriptEditor.State where
 import Prelude hiding (div)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Foldable (for_)
 import Data.Lens (assign, to, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Halogen (HalogenM, liftEffect, query)
@@ -24,6 +23,7 @@ import Monaco (isError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
+import Text.Parsing.StringParser.Basic (lines)
 
 handleAction ::
   forall m.
@@ -31,9 +31,19 @@ handleAction ::
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
-  assign _compilationResult NotCompiled
+handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
+  ( do
+      mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
+      if (mContent == Just text) || (checkJSboilerplate text) then
+        ( do
+            let
+              numLines = Array.length $ lines text
+            liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
+            assign _compilationResult NotCompiled
+        )
+      else
+        editorSetValue (fromMaybe "" mContent)
+  )
 
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
@@ -120,13 +130,20 @@ editorSetValue :: forall state action msg m. String -> HalogenM state action Chi
 editorSetValue contents = do
   let
     decoratedContent = joinWith "\n" [ decorationHeaderString, contents, decorationFooterString ]
+
+    numLines = Array.length $ lines decoratedContent
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
-  mNumLines <- query _jsEditorSlot unit $ Monaco.GetLineCount identity
-  for_ mNumLines
-    ( \numLines -> do
-        void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) unit
-        void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines unit
-    )
+  void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) unit
+  void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines unit
+
+checkJSboilerplate :: String -> Boolean
+checkJSboilerplate content =
+  let
+    header = (take (lengthOfHeader + 1) content)
+
+    footer = (drop (length content - lengthOfFooter - 1) content)
+  in
+    (header == decorationHeaderString <> "\n") && (footer == "\n" <> decorationFooterString)
 
 pruneJSboilerplate :: String -> String
 pruneJSboilerplate content =
