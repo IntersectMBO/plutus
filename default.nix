@@ -58,7 +58,6 @@ rec {
     };
 
     plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
-    plutus-book = pkgs.callPackage ./plutus-book/doc { };
     plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
     multi-currency = pkgs.callPackage ./notes/multi-currency { inherit latex; };
     extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };

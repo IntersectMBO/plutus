@@ -1,8 +1,0 @@
-[#10-PlutusTx]
-= Plutus Tx
-
-In this chapter we will discuss the technology we use to write scripts on the Plutus Platform.
-We will discuss how they are used to control the transfer of funds in the
-<<09-extended#09-extended, next chapter>>.
-
-//include::plutus-tx.adoc[]

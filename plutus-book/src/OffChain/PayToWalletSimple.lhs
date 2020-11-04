@@ -1,1 +1,0 @@
-../../doc/off-chain/payToWallet2.adoc

@@ -13,7 +13,6 @@ packages:
 - plutus-metatheory
 - plutus-ledger
 - plutus-playground-server
-- plutus-book
 - plutus-contract
 - plutus-scb
 - deployment-server
