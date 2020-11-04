@@ -56,7 +56,7 @@ rec {
     site = pkgs.callPackage ./doc {
       inherit (pkgsLocal) sphinx-markdown-tables sphinxemoji;
       inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
-      inherit combined-haddock;
+      combined-haddock = pkgsLocal.plutus-haddock-combined;
       pythonPackages = pkgs.python3Packages;
     };
 
@@ -67,30 +67,16 @@ rec {
     lazy-machine = pkgs.callPackage ./notes/fomega/lazy-machine { inherit latex; };
     plutus-report = pkgs.callPackage ./notes/plutus-report/default.nix { inherit latex; };
     cost-model-notes = pkgs.callPackage ./notes/cost-model-notes { inherit latex; };
-
-    combined-haddock =
-      let
-        toHaddock = haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackages;
-        haddock-combine = pkgs.callPackage ./nix/lib/haddock-combine.nix {
-          ghc = haskell.project.pkg-set.config.ghc.package;
-          inherit (sphinxcontrib-haddock) sphinxcontrib-haddock;
-        };
-      in
-      haddock-combine {
-        hspkgs = builtins.attrValues toHaddock;
-        prologue = pkgs.writeTextFile {
-          name = "prologue";
-          text = "Combined documentation for all the public Plutus libraries.";
-        };
-      };
-
     marlowe-tutorial = pkgs.callPackage ./marlowe/doc { };
+
+    inherit (pkgsLocal) plutus-haddock-combined;
+
   };
 
   papers = pkgs.callPackage ./papers { inherit agdaPackages latex; };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
-    inherit set-git-rev haskell docs easyPS nodejs-headers;
+    inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
   };
 
   marlowe-playground = pkgs.callPackage ./marlowe-playground-client {

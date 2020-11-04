@@ -46,5 +46,5 @@ in
     checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
   };
   tutorial = docs.site;
-  haddock = docs.combined-haddock;
+  haddock = docs.plutus-haddock-combined;
 }
