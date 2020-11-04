@@ -1,15 +1,9 @@
-{ stdenv, lib, asciidoctor, python2, playgroundUrl ? null, haddockUrl ? null }:
+{ runCommand, lib, asciidoctor }:
 
 let
-  extraArgs = (lib.optionals (playgroundUrl != null) [ "-a" "playground=${playgroundUrl}" ]) ++ (lib.optionals (haddockUrl != null) [ "-a" "haddock=${haddockUrl}" ]);
+  files = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
 in
-stdenv.mkDerivation {
-  name = "plutus-contract-docs";
-  src = lib.sourceFilesBySuffices ./. [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
-  buildInputs = [ asciidoctor python2 ];
-  buildPhase = "asciidoctor --failure-level ERROR ${toString extraArgs} contract-api.adoc";
-  installPhase = ''
-    mkdir -p $out
-    install -t $out *.html
-  '';
-}
+runCommand "build-plutus-contract-doc" { buildInputs = [ asciidoctor ]; } ''
+  mkdir -p $out
+  asciidoctor --failure-level ERROR ${files}/contract-api.adoc -o $out/contract-api.html
+''
