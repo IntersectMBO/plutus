@@ -1,15 +1,15 @@
 module JavascriptEditor.State where
 
 import Prelude hiding (div)
-import Data.Array (length)
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Lens (assign, to, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.String (joinWith)
+import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
@@ -98,23 +98,46 @@ decorationHeader =
   , "    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract"
   , "} from 'marlowe-js';"
   , ""
-  , "/* === Code above this comment will be removed at compile time === */"
+  , "(function (): Contract {"
   ]
 
 decorationFooter :: Array String
-decorationFooter = []
+decorationFooter = [ "})" ]
+
+decorationHeaderString :: String
+decorationHeaderString = joinWith "\n" decorationHeader
+
+lengthOfHeader :: Int
+lengthOfHeader = length decorationHeaderString
+
+decorationFooterString :: String
+decorationFooterString = joinWith "\n" decorationFooter
+
+lengthOfFooter :: Int
+lengthOfFooter = length decorationFooterString
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = do
   let
-    decoratedContent = joinWith "\n" (decorationHeader <> [ contents ] <> decorationFooter)
+    decoratedContent = joinWith "\n" [ decorationHeaderString, contents, decorationFooterString ]
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
   mNumLines <- query _jsEditorSlot unit $ Monaco.GetLineCount identity
-  case mNumLines of
-    Nothing -> pure unit
-    Just numLines -> do
-      void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (length decorationHeader) unit
-      void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - length decorationFooter + 1) numLines unit
+  for_ mNumLines
+    ( \numLines -> do
+        void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) unit
+        void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines unit
+    )
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
-editorGetValue = query _jsEditorSlot unit (Monaco.GetText identity)
+editorGetValue = do
+  mContent <- query _jsEditorSlot unit (Monaco.GetText identity)
+  pure
+    ( map
+        ( \content ->
+            let
+              noHeader = (drop lengthOfHeader content)
+            in
+              take (length noHeader - lengthOfFooter) noHeader
+        )
+        mContent
+    )
