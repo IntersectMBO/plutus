@@ -53,6 +53,8 @@ rec {
   };
 
   docs = pkgs.recurseIntoAttrs rec {
+    papers = pkgs.callPackage ./papers { inherit agdaPackages latex; };
+
     site = pkgs.callPackage ./doc {
       inherit (pkgsLocal) sphinx-markdown-tables sphinxemoji;
       inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
@@ -73,7 +75,6 @@ rec {
 
   };
 
-  papers = pkgs.callPackage ./papers { inherit agdaPackages latex; };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
     inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
