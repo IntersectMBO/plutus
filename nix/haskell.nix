@@ -161,7 +161,6 @@ let
           playground-common.package.ghcOptions = "-Werror";
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
-          plutus-book.package.ghcOptions = "-Werror";
           plutus-contract.package.ghcOptions = "-Werror";
           plutus-ledger.package.ghcOptions = "-Werror";
           plutus-playground-server.package.ghcOptions = "-Werror";
