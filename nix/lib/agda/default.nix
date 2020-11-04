@@ -21,7 +21,7 @@ let
         inherit (pkgs.haskellPackages) ghcWithPackages;
       };
 
-      plc-agda = callPackage ../../metatheory { };
+      plc-agda = callPackage ../../../plutus-metatheory { };
     };
 in
 mkAgdaPackages Agda

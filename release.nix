@@ -11,7 +11,7 @@ let
   genericPkgs = import (import ./nix/sources.nix).nixpkgs { };
   lib = genericPkgs.lib;
 
-  inherit (import ./nix/ci-lib.nix) stripAttrsForHydra filterDerivations;
+  inherit (import ./nix/lib/ci.nix) stripAttrsForHydra filterDerivations;
 
   ci = import ./ci.nix { inherit supportedSystems rev; };
   # ci.nix is a set of attributes that work fine as jobs (albeit in a slightly different structure, the platform comes
