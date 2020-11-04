@@ -53,6 +53,7 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
+          (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
@@ -78,6 +79,8 @@
           "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
           "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
           "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
+          "Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability"
+          "Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel"
           "Language/Marlowe/ACTUS/Model/Utility/DateShift"
           "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
           "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
@@ -109,6 +112,7 @@
             (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
             (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
             (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
             ];
           buildable = true;
           modules = [

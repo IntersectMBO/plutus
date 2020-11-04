@@ -48,7 +48,8 @@ library
     marlowe -any,
     time -any,
     loch-th -any,
-    sort -any
+    sort -any,
+    validation -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -73,6 +74,8 @@ library
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
     Language.Marlowe.ACTUS.Model.INIT.StateInitialization
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+    Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
+    Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
@@ -138,7 +141,8 @@ executable marlowe-shiny
       time -any,
       loch-th -any,
       sort -any,
-      inline-r -any
+      inline-r -any,
+      validation -any
 
 test-suite marlowe-actus-test
     default-language: Haskell2010

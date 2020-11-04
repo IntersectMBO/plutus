@@ -67,7 +67,8 @@ library
         transformers -any,
         unordered-containers,
         wai-cors -any,
-        uuid -any
+        uuid -any,
+        validation -any
 
 executable marlowe-playground-server
     main-is: Main.hs

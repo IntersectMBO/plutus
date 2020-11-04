@@ -161,6 +161,7 @@ myTypes =
     , mkSumType (Proxy @CT.EOMC)
     , mkSumType (Proxy @CT.ContractStatus)
     , mkSumType (Proxy @CT.FEB)
+    , mkSumType (Proxy @CT.IPCB)
     , mkSumType (Proxy @CT.ContractRole)
     , mkSumType (Proxy @CT.ContractType)
     , mkSumType (Proxy @CT.Assertion)
