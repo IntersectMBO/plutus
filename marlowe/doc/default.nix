@@ -1,17 +1,10 @@
-{ stdenv, lib, asciidoctor, python2, plutusPlaygroundUrl ? null, marlowePlaygroundUrl ? null, ... }:
+{ runCommand, lib, asciidoctor, python2 }:
 
 let
-  extraArgs = (lib.optionals (plutusPlaygroundUrl != null) [ "-a" "plutusplayground=${plutusPlaygroundUrl}" ]) ++ (lib.optionals (marlowePlaygroundUrl != null) [ "-a" "marloweplayground=${marlowePlaygroundUrl}" ]);
+  files = lib.sourceFilesBySuffices ./. [ ".adoc" ".svg" ".png" ".PNG" ".gif" ".ico" ".css" ];
 in
-stdenv.mkDerivation {
-  name = "marlowe-tutorial";
-  src = lib.sourceFilesBySuffices ./. [ ".adoc" ".svg" ".png" ".PNG" ".gif" ".ico" ".css" ];
-  buildInputs = [ asciidoctor python2 ];
-  buildPhase = "asciidoctor --failure-level ERROR ${toString extraArgs} index.adoc";
-  installPhase = ''
-    mkdir -p $out
-    install -t $out *.html 
-    cp -aR images $out
-    cp -aR css $out
-  '';
-}
+runCommand "build-plutus-contract-doc" { buildInputs = [ asciidoctor python2 ]; } ''
+  mkdir -p $out
+  asciidoctor --failure-level ERROR ${files}/index.adoc -o $out/index.html
+  cp -aR ${files}/images $out
+''
