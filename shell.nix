@@ -32,7 +32,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ];
+        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/yarn.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };

@@ -1,2 +1,5 @@
 nix/stack.materialized/*.nix
 nix/sources.nix
+**/spago-packages.nix
+**/yarn.nix
+**/packages.nix
