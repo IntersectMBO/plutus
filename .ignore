@@ -1,2 +1,2 @@
-nix/stack.materialized
+nix/stack.materialized/*.nix
 nix/sources.nix
