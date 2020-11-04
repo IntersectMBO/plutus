@@ -1,5 +1,15 @@
-@import '../../web-common/static/main.scss';
+@import '../../web-common/static/variables.scss';
+@import '../../web-common/static/common.scss';
 @import '../../web-common/static/chain.scss';
+
+.contract-status {
+    table {
+        .iteration-id ,
+        .request-id {
+            width: 3rem;
+        }
+    }
+}
 
 .web-data-loading,
 .stream-data-refreshing {
@@ -24,15 +34,6 @@
         justify-content: center;
 
         z-index: 10;
-    }
-}
-
-.contract-status {
-    table {
-        .iteration-id ,
-        .request-id {
-            width: 3rem;
-        }
     }
 }
 

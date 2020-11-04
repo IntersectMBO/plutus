@@ -1,0 +1,19 @@
+#editor {
+    .monaco-editor-container {
+        height: 50vh;
+        min-height: 300px;
+    }
+
+    #editor-preferences {
+        text-align: right;
+        background-color: $dark;
+        padding: 5px 0x;
+
+        .custom-select {
+            width: 10rem;
+            color: $white;
+            border-color: $dark;
+            background-color: $gray-800;
+        }
+    }
+}

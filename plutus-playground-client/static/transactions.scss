@@ -1,0 +1,80 @@
+table.balance-map {
+    overflow: hidden;
+    border: 2px solid $gray-700;
+
+    thead {
+        h3 {
+            font-size: 0.6rem;
+        }
+    }
+
+    tbody {
+        tr:hover {
+            background-color: $gray-800;
+
+            .balance-remainder::after {
+                content: "";
+                position: absolute;
+                background-color: $gray-800;
+                bottom: 0;
+                left: -10%;
+                height: 10000px;
+                width: 120%;
+                z-index: -1;
+            }
+        }
+    }
+
+    .forge {
+        .balance {
+            border-color: darken($green, 20%);
+            background-color: $green;
+        }
+    }
+
+    .balance {
+        position: relative;
+        border: solid 1px darken($blue, 20%);
+        background-color: $blue;
+        color: $gray-300;
+        padding: 3px 8px;
+        min-width: 5rem;
+
+        &.balance-remainder {
+            background: url(tx-arrows.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: none;
+        }
+
+        &.balance-no-currencies {
+            background-color: transparent;
+            border: none;
+        }
+
+        & div:first-child {
+            border-top: none;
+        }
+    }
+}
+
+.logs {
+    font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    word-wrap: break-word;
+
+    .info {
+        &:before {
+            content: "- ";
+        }
+        &:after {
+            content: " -";
+        }
+        color: $lightPurple;
+        text-indent: 1rem;
+    }
+
+    .error {
+        color: $red;
+    }
+}

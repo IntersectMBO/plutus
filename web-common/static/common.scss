@@ -1,8 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
-@import 'variables.scss';
-@import 'chartist.scss';
-
 @import './node_modules/bootstrap/scss/functions';
 @import './node_modules/bootstrap/scss/variables';
 @import './node_modules/bootstrap/scss/mixins';
@@ -110,19 +107,7 @@ h2 {
         text-decoration: underline;
         padding: 5px;
     }
-}
 
-.form-control {
-    &:focus {
-        color: inherit;
-    }
-}
-
-input.form-control {
-    min-width: 4.5rem;
-}
-
-.gist-controls {
     h1, h2, h3, h4 {
         color: $lightPurple;
     }
@@ -264,6 +249,16 @@ input.form-control {
 
 }
 
+.form-control {
+    &:focus {
+        color: inherit;
+    }
+}
+
+input.form-control {
+    min-width: 4.5rem;
+}
+
 .input-group-prepend,
 .input-group-append {
     button,
@@ -280,25 +275,6 @@ input.form-control {
 .input-group-append button {
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
-}
-
-#editor {
-    .monaco-editor-container {
-        height: 50vh;
-    }
-
-    #editor-preferences {
-        text-align: right;
-        background-color: $dark;
-        padding: 5px 0x;
-
-        .custom-select {
-            width: 10rem;
-            color: $white;
-            border-color: $dark;
-            background-color: $gray-800;
-        }
-    }
 }
 
 .preWrap {
