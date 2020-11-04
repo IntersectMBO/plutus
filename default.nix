@@ -35,6 +35,7 @@ let
   latex = pkgs.callPackage ./nix/lib/latex.nix { };
 in
 rec {
+  inherit pkgs pkgsLocal;
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix haskell;
