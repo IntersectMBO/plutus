@@ -506,7 +506,7 @@ handleGistAction settings PublishGist = do
   marlowe <- pruneEmpty <$> toSimulation Simulation.editorGetValue
   haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
   blockly <- pruneEmpty <$> query _blocklySlot unit (H.request Blockly.GetWorkspace)
-  javascript <- pruneEmpty <$> query _jsEditorSlot unit (H.request Monaco.GetText)
+  javascript <- pruneEmpty <$> JavascriptEditor.editorGetValue
   actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
   let
     files = { playground, marlowe, haskell, blockly, javascript, actus }

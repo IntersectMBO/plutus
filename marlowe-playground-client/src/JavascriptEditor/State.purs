@@ -32,7 +32,7 @@ handleAction ::
   Action ->
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey text
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
   assign _compilationResult NotCompiled
 
 handleAction _ (ChangeKeyBindings bindings) = do
@@ -128,16 +128,18 @@ editorSetValue contents = do
         void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines unit
     )
 
+pruneJSboilerplate :: String -> String
+pruneJSboilerplate content =
+  let
+    noHeader = (drop (lengthOfHeader + 1) content)
+  in
+    take (length noHeader - lengthOfFooter - 1) noHeader
+
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = do
   mContent <- query _jsEditorSlot unit (Monaco.GetText identity)
   pure
     ( map
-        ( \content ->
-            let
-              noHeader = (drop lengthOfHeader content)
-            in
-              take (length noHeader - lengthOfFooter) noHeader
-        )
+        pruneJSboilerplate
         mContent
     )
