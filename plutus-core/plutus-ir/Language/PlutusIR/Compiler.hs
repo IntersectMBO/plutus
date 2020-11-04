@@ -19,11 +19,12 @@ module Language.PlutusIR.Compiler (
     ccEnclosing,
     ccBuiltinMeanings,
     ccTypeCheckConfig,
+    PirTCConfig(..),
+    AllowEscape(..),
     defaultCompilationCtx) where
 
 import           Language.PlutusIR
 
-import qualified Language.PlutusCore.TypeCheck.Internal      as PLC
 import qualified Language.PlutusIR.Compiler.Let              as Let
 import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
@@ -63,7 +64,7 @@ floatTerm = runIfOpts letFloat
 typeCheckTerm :: Compiling m e uni b => Term TyName Name uni (Provenance b) -> m ()
 typeCheckTerm t = do
     tcconfig <- asks _ccTypeCheckConfig
-    void $ PLC.runTypeCheckM tcconfig $ inferTypeM t
+    void . runTypeCheckM tcconfig $ inferTypeM t
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin

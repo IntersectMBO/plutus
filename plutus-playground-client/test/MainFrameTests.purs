@@ -26,12 +26,13 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(Tuple))
-import Editor as Editor
+import Editor.Types (State(..)) as Editor
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
-import Gist (Gist, GistId, gistFileContent, gistFiles, gistId)
+import Gist (Gist, GistId, gistId)
 import Gists (GistAction(..))
+import Halogen.Monaco (KeyBindings(..)) as Editor
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(..))
 import MainFrame (handleAction, mkInitialState)
 import MonadApp (class MonadApp)
@@ -39,6 +40,7 @@ import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync as FS
+import Playground.Gists (playgroundGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (CompilationResult, ContractDemo, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
@@ -128,6 +130,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
     MockApp do
       Tuple { compilationResult } _ <- get
       pure compilationResult
+  resizeEditor = pure unit
   resizeBalancesChart = pure unit
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
@@ -146,7 +149,12 @@ instance monadClipboardMockApp :: Monad m => MonadClipboard (MockApp m) where
 
 execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
 execMockApp world queries = do
-  initialState <- mkInitialState (Editor.Preferences { keyBindings: Editor.Ace })
+  initialState <-
+    mkInitialState
+      ( Editor.State
+          { keyBindings: Editor.DefaultBindings
+          }
+      )
   RWSResult state result writer <-
     runRWST
       (unwrap (traverse_ handleAction queries :: MockApp m Unit))
@@ -207,7 +215,7 @@ evalTests =
             equal
               2
               (Cursor.length (view _simulations finalState))
-            case view (gistFiles <<< ix 0 <<< gistFileContent) gist of
+            case view playgroundGistFile gist of
               Nothing -> failure "Could not read gist content. Sample test data may be incorrect."
               Just sourceFile -> do
                 equal' "Editor gets updated."

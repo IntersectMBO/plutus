@@ -17,7 +17,7 @@ import Foreign (F, MultipleErrors)
 import Foreign.Class (class Decode)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Language.Haskell.Interpreter (CompilationError)
-import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), State(..), Token(..), Value(..), ValueId(..))
+import Marlowe.Semantics (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), State(..), Token(..), Value(..), ValueId(..))
 import Node.Encoding (Encoding(UTF8))
 import Node.FS.Sync as FS
 import Test.Unit (TestSuite, Test, failure, success, suite, test)
@@ -44,9 +44,7 @@ serializationTest =
     let
       ada = Token "" ""
 
-      alicePk = PK "deadbeef"
-
-      aliceAcc = AccountId (fromInt 0) alicePk
+      alicePk = PK "4ecde0775d081e45f06141416cbc3afed4c44a08c93ea31281e25c8fa03548b9"
 
       bobRole = Role "Bob"
 
@@ -61,13 +59,13 @@ serializationTest =
       contract =
         Assert TrueObs
           ( When
-              [ Case (Deposit aliceAcc alicePk ada valueExpr)
+              [ Case (Deposit alicePk alicePk ada valueExpr)
                   ( Let (ValueId "x") valueExpr
-                      (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
+                      (Pay alicePk (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
                   )
               , Case (Choice choiceId [ Bound (fromInt 0) (fromInt 1) ])
                   ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromInt 1) (fromInt 10)) const))
-                      (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
+                      (Pay alicePk (Account alicePk) token (AvailableMoney alicePk token) Close)
                       Close
                   )
               , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
@@ -78,7 +76,7 @@ serializationTest =
 
       state =
         State
-          { accounts: Map.singleton (Tuple aliceAcc token) (fromInt 12)
+          { accounts: Map.singleton (Tuple alicePk token) (fromInt 12)
           , choices: Map.singleton choiceId (fromInt 42)
           , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromInt 1), Tuple (ValueId "y") (fromInt 2) ]
           , minSlot: (Slot $ fromInt 123)
@@ -89,6 +87,8 @@ serializationTest =
       jsonState = encodeJSON state
     expectedJson <- liftEffect $ FS.readTextFile UTF8 "test/contract.json"
     expectedStateJson <- liftEffect $ FS.readTextFile UTF8 "test/state.json"
+    bridgedJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/contract.json"
+    bridgedStateJson <- liftEffect $ FS.readTextFile UTF8 "generated/JSON/state.json"
     let
       rx = unsafeRegex "\\s+" (RegexFlags { global: true, ignoreCase: true, multiline: true, sticky: false, unicode: true })
 
@@ -98,6 +98,8 @@ serializationTest =
     equal expected json
     equal expectedState jsonState
     equal (Right contract) (runExcept $ decodeJSON json)
+    equal (Right contract) (runExcept $ decodeJSON bridgedJson)
+    equal (Right state) (runExcept $ decodeJSON bridgedStateJson)
 
 assertRight :: forall a. Either MultipleErrors a -> Test
 assertRight (Left err) = failure (show err)

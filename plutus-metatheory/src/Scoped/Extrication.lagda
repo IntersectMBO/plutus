@@ -44,13 +44,10 @@ extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
 extricateNf⋆ (ƛ {K = K} A) = ƛ K (extricateNf⋆ A)
 extricateNf⋆ (ne n) = extricateNe⋆ n
 extricateNf⋆ (con c) = con c
+extricateNf⋆ (μ A B) = μ (extricateNf⋆ A) (extricateNf⋆ B)
 
 extricateNe⋆ (` α) = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
--- ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-extricateNe⋆ (μ1 {K = K}) = ƛ 
-  ((K ⇒ *) ⇒ K ⇒ *)
-  (ƛ (K) (μ (` (suc zero)) (` zero)))
 \end{code}
 
 
@@ -149,9 +146,9 @@ extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
 extricate (Λ {K = K} t) = Λ K (extricate t)
 extricate {Φ}{Γ} (_·⋆_ t A) = extricate t ScopedTm.·⋆ extricateNf⋆ A
-extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
+extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
-extricate (unwrap1 t) = unwrap (extricate t)
+extricate (unwrap t) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
 extricate {Φ}{Γ} (builtin b σ ts) =
   builtin

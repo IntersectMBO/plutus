@@ -53,7 +53,7 @@ import           Wallet.Rollup                                     (doAnnotateBl
 import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
 
 tests :: TestTree
-tests = testGroup "SCB.Core" [installContractTests, executionTests]
+tests = testGroup "Plutus.SCB.Core" [installContractTests, executionTests]
 
 installContractTests :: TestTree
 installContractTests =
@@ -315,7 +315,7 @@ assertEqual msg expected actual =
         $ Text.unwords
             [ msg
             , "Expected: " <> tshow expected
-            , "Actual:" <> tshow actual
+            , "Actual: " <> tshow actual
             ]
 
 assertBool ::

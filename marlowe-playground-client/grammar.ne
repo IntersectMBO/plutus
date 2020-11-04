@@ -4,6 +4,7 @@ const moo = require("moo");
 const lexer = moo.compile({
         WS: /[ \t]+/,
         number: /0|-?[1-9][0-9]*/,
+        base16: {match: /"(?:[0-9a-fA-F][0-9a-fA-F])*"/, value: x => x.slice(1, -1)},
         string: {match: /"(?:\\["\\]|[^\n"\\])*"/, value: x => x.slice(1, -1)},
         ratio: '%',
         comma: ',',
@@ -42,7 +43,6 @@ const lexer = moo.compile({
                     'UseValue',
                     'Cond'
                 ],
-                ACCOUNT_ID: ['AccountId'],
                 TOKEN: ['Token'],
                 PAYEE: ['Account', 'Party'],
                 PARTY: ['PK', 'Role'],
@@ -92,11 +92,15 @@ timeout
 
 string
    -> %string {% ([s]) => s.value %}
+    | %base16 {% ([s]) => s.value %}
+
+base16
+   -> %base16 {% ([s]) => s.value %}
 
 topContract
    -> hole {% ([hole]) => hole %}
     | "Close" {% ([{line, col}]) => opts.mkTerm(opts.mkClose)({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + 5}) %}
-    | "Pay" someWS accountId someWS payee someWS token someWS value someWS contract {% ([{line, col},,accountId,,payee,,token,,value,,contract]) => opts.mkTerm(opts.mkPay(accountId)(payee)(token)(value)(contract))({startLineNumber: line, startColumn: col, endLineNumber: opts.getRange(contract).endLineNumber, endColumn: opts.getRange(contract).endColumn}) %}
+    | "Pay" someWS party someWS payee someWS token someWS value someWS contract {% ([{line, col},,party,,payee,,token,,value,,contract]) => opts.mkTerm(opts.mkPay(party)(payee)(token)(value)(contract))({startLineNumber: line, startColumn: col, endLineNumber: opts.getRange(contract).endLineNumber, endColumn: opts.getRange(contract).endColumn}) %}
     | "If" someWS observation someWS contract someWS contract {% ([{line, col},,observation,,contract1,,contract2]) => opts.mkTerm(opts.mkIf(observation)(contract1)(contract2))({startLineNumber: line, startColumn: col, endLineNumber: opts.getRange(contract2).endLineNumber, endColumn: opts.getRange(contract2).endColumn}) %}
     | "When" someWS lsquare cases:* rsquare someWS timeout someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({startLineNumber: line, startColumn: col, endLineNumber: opts.getRange(contract).endLineNumber, endColumn: opts.getRange(contract).endColumn}) %}
     | "Let" someWS valueId someWS value someWS contract {% ([{line, col},,valueId,,value,,contract]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({startLineNumber: line, startColumn: col, endLineNumber: opts.getRange(contract).endLineNumber, endColumn: opts.getRange(contract).endColumn}) %}
@@ -124,7 +128,7 @@ bound
 
 action
    -> hole {% ([hole]) => hole %}
-    | lparen "Deposit" someWS accountId someWS party someWS token someWS value rparen {% ([start,{line, col},,accountId,,party,,token,,value,end]) => opts.mkTerm(opts.mkDeposit(accountId)(party)(token)(value))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen "Deposit" someWS party someWS party someWS token someWS value rparen {% ([start,{line, col},,account,,party,,token,,value,end]) => opts.mkTerm(opts.mkDeposit(account)(party)(token)(value))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Choice" someWS choiceId someWS lsquare bounds:* rsquare rparen {% ([start,{line, col},,choiceId,,,bounds,,end]) => opts.mkTerm(opts.mkChoice(choiceId)(bounds))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Notify" someWS observation rparen {% ([start,{line, col},,observation,end]) => opts.mkTerm(opts.mkNotify(observation))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
@@ -132,7 +136,7 @@ action
 contract
    -> hole {% ([hole]) => hole %}
     | "Close" {% ([{line,col}]) => opts.mkTerm(opts.mkClose)({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + 5}) %}
-    | lparen "Pay" someWS accountId someWS payee someWS token someWS value someWS contract rparen {% ([start,{line, col},,accountId,,payee,,token,,value,,contract,end]) => opts.mkTerm(opts.mkPay(accountId)(payee)(token)(value)(contract))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen "Pay" someWS party someWS payee someWS token someWS value someWS contract rparen {% ([start,{line, col},,party,,payee,,token,,value,,contract,end]) => opts.mkTerm(opts.mkPay(party)(payee)(token)(value)(contract))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "If" someWS observation someWS contract someWS contract rparen {% ([start,{line, col},,observation,,contract1,,contract2,end]) => opts.mkTerm(opts.mkIf(observation)(contract1)(contract2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "When" someWS lsquare cases:* rsquare someWS timeout someWS contract rparen {% ([start,{line, col},,,cases,,,timeout,,contract,end]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Let" someWS valueId someWS value someWS contract rparen {% ([start,{line, col},,valueId,,value,,contract,end]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
@@ -144,23 +148,21 @@ choiceId
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
    -> %string {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + value.length}) %}
+    | %base16 {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({startLineNumber: line, startColumn: col, endLineNumber: line, endColumn: col + value.length}) %}
 # valueId -> lparen %VALUE_ID someWS string rparen
-
-accountId
-   -> lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkAccountId(aid)(party) %}
 
 token
    -> hole {% ([hole]) => hole %}
-    | lparen %TOKEN someWS string someWS string rparen {% ([start,{line,col},,a,,b,end]) => opts.mkTerm(opts.mkToken(a)(b))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen %TOKEN someWS base16 someWS string rparen {% ([start,{line,col},,a,,b,end]) => opts.mkTerm(opts.mkToken(a)(b))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 party
    -> hole {% ([hole]) => hole %}
-    | lparen "PK" someWS string rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkPK(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen "PK" someWS base16 rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkPK(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Role" someWS string rparen {% ([start,{line,col},,k,end]) => opts.mkTerm(opts.mkRole(k))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 payee
    -> hole {% ([hole]) => hole %}
-    | lparen "Account" someWS accountId rparen {% ([start,{line,col},,accountId,end]) => opts.mkTerm(opts.mkAccount(accountId))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+    | lparen "Account" someWS party rparen {% ([start,{line,col},,party,end]) => opts.mkTerm(opts.mkAccount(party))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
     | lparen "Party" someWS party rparen {% ([start,{line,col},,party,end]) => opts.mkTerm(opts.mkParty(party))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 observation
@@ -183,7 +185,7 @@ rational
 
 value
    -> hole {% ([hole]) => hole %}
-    | lparen "AvailableMoney" someWS accountId someWS token rparen {% ([start,{line,col},,accountId,,token,end]) => opts.mkTerm(opts.mkAvailableMoney(accountId)(token))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
+    | lparen "AvailableMoney" someWS party someWS token rparen {% ([start,{line,col},,party,,token,end]) => opts.mkTerm(opts.mkAvailableMoney(party)(token))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "Constant" someWS number rparen {% ([start,{line,col},,number,end]) => opts.mkTerm(opts.mkConstant(number))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "NegValue" someWS value rparen {% ([start,{line,col},,value,end]) => opts.mkTerm(opts.mkNegValue(value))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([start,{line,col},,v1,,v2,end]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col + 1}) %}

@@ -126,7 +126,7 @@ handleObserveTrace config t =
   -- 'observeBefore' makes the call to 'observeOpen' and 'observeAfter'
   -- makes the call to 'observeClose.'
 
-  let observeBefore :: (L.LogMessage Text) -> Eff effs (Maybe (SubTrace, CounterState))
+  let observeBefore :: L.LogMessage Text -> Eff effs (Maybe (SubTrace, CounterState))
       observeBefore L.LogMessage{L._logLevel, L._logMessageContent} = do
 
         -- find the correct subtrace using the logging config and the content

@@ -3,6 +3,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE MultiParamTypeClasses   #-}
 module Language.PlutusIR.Compiler.Types where
 
 import qualified Language.PlutusIR                     as PIR
@@ -14,6 +16,7 @@ import           Control.Monad.Reader
 
 import           Control.Lens
 
+import qualified Language.PlutusCore.TypeCheck.Internal as PLC
 import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
 import qualified Language.PlutusCore.Constant          as PLC
@@ -21,6 +24,22 @@ import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
 
 import qualified Data.Text                             as T
+
+-- | Extra flag to be passed in the TypeCheckM Reader context,
+-- to signal if the PIR expression currently being typechecked is at the top-level
+-- and thus its type can escape, or nested and thus not allowed to escape.
+data AllowEscape = YesEscape | NoEscape
+
+-- | extending theh plc typecheck config with AllowEscape
+data PirTCConfig uni = PirTCConfig {
+      _pirConfigTCConfig :: PLC.TypeCheckConfig uni
+      , _pirConfigAllowEscape :: AllowEscape
+     }
+makeLenses ''PirTCConfig
+
+-- pir config has inside a plc config so it can act like it
+instance PLC.HasTypeCheckConfig (PirTCConfig uni) uni where
+    typeCheckConfig = pirConfigTCConfig
 
 newtype CompilationOpts = CompilationOpts {
     _coOptimize :: Bool
@@ -35,13 +54,13 @@ data CompilationCtx uni a = CompilationCtx {
     _ccOpts        :: CompilationOpts
     , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni ())
     , _ccEnclosing :: Provenance a
-    , _ccTypeCheckConfig :: PLC.TypeCheckConfig uni
+    , _ccTypeCheckConfig :: PirTCConfig uni
     }
 
 makeLenses ''CompilationCtx
 
 defaultCompilationCtx :: CompilationCtx uni a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance PLC.defConfig
+defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance (PirTCConfig PLC.defConfig YesEscape)
 
 getEnclosing :: MonadReader (CompilationCtx uni a) m => m (Provenance a)
 getEnclosing = view ccEnclosing

@@ -131,4 +131,6 @@ test-suite plutus-ledger-test
         plutus-tx -any,
         lens -any,
         bytestring -any,
-        aeson -any
+        aeson -any,
+        plutus-core -any,
+        plutus-tx-plugin -any

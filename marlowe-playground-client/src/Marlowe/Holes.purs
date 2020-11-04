@@ -38,8 +38,7 @@ import Type.Proxy (Proxy(..))
 
 -- | These are Marlowe types that can be represented as holes
 data MarloweType
-  = AccountIdType
-  | ChoiceIdType
+  = ChoiceIdType
   | ValueIdType
   | ActionType
   | PayeeType
@@ -85,8 +84,6 @@ allMarloweTypes :: Array MarloweType
 allMarloweTypes = upFromIncluding bottom
 
 readMarloweType :: String -> Maybe MarloweType
-readMarloweType "AccountIdType" = Just AccountIdType
-
 readMarloweType "ChoiceIdType" = Just ChoiceIdType
 
 readMarloweType "ValueIdType" = Just ValueIdType
@@ -129,22 +126,20 @@ data Argument
   | GenArg MarloweType
 
 getMarloweConstructors :: MarloweType -> Map String (Array Argument)
-getMarloweConstructors AccountIdType = Map.singleton "AccountId" [ DefaultNumber zero, DataArg PartyType ]
-
 getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" [ DefaultString "choiceNumber", DataArg PartyType ]
 
 getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
+    [ (Tuple "Deposit" [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
     , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg ObservationType ])
     ]
 
 getMarloweConstructors PayeeType =
   Map.fromFoldable
-    [ (Tuple "Account" [ GenArg AccountIdType ])
+    [ (Tuple "Account" [ DataArg PartyType ])
     , (Tuple "Party" [ DataArg PartyType ])
     ]
 
@@ -152,7 +147,7 @@ getMarloweConstructors CaseType = Map.singleton "Case" [ DataArg ActionType, Dat
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" [ GenArg AccountIdType, DataArg TokenType ])
+    [ (Tuple "AvailableMoney" [ DataArg PartyType, DataArg TokenType ])
     , (Tuple "Constant" [ DefaultNumber zero ])
     , (Tuple "NegValue" [ DataArg ValueType ])
     , (Tuple "AddValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
@@ -184,7 +179,7 @@ getMarloweConstructors ObservationType =
 getMarloweConstructors ContractType =
   Map.fromFoldable
     [ (Tuple "Close" [])
-    , (Tuple "Pay" [ GenArg AccountIdType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
+    , (Tuple "Pay" [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
     , (Tuple "If" [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
     , (Tuple "When" [ EmptyArrayArg, DefaultNumber zero, DataArg ContractType ])
     , (Tuple "Let" [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
@@ -347,9 +342,6 @@ instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
   fromTerm (Term a _) = fromTerm a
   fromTerm _ = Nothing
 
--- FIXME: I need to add the end position to Term in the entire project
--- in the nearley parser I can get this info by finding the position of the last paren
--- once I've done this I can fix the markers which actually have the incorrect range
 getRange :: forall a. Term a -> Range
 getRange (Term _ range) = range
 
@@ -559,37 +551,8 @@ instance partyHasMarloweHoles :: HasMarloweHoles Party where
 instance partyHasContractData :: HasContractData Party where
   gatherContractData party s = over _parties (Set.insert party) s
 
-data AccountId
-  = AccountId BigInteger (Term Party)
-
-derive instance genericAccountId :: Generic AccountId _
-
-derive instance eqAccountId :: Eq AccountId
-
-derive instance ordAccountId :: Ord AccountId
-
-instance showAccountId :: Show AccountId where
-  show v = genericShow v
-
-instance prettyAccountId :: Pretty AccountId where
-  pretty = genericPretty
-
-instance hasArgsAccountId :: Args AccountId where
-  hasArgs = genericHasArgs
-  hasNestedArgs = genericHasNestedArgs
-
-instance accountIdFromTerm :: FromTerm AccountId S.AccountId where
-  fromTerm (AccountId b (Term c _)) = S.AccountId <$> pure b <*> fromTerm c
-  fromTerm _ = Nothing
-
-instance accountIdIsMarloweType :: IsMarloweType AccountId where
-  marloweType _ = AccountIdType
-
-instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles (AccountId a b) m = m <> getHoles b m
-
-instance accountIdHasContractData :: HasContractData AccountId where
-  gatherContractData (AccountId _ party) s = gatherContractData party s
+type AccountId
+  = Term Party
 
 data Token
   = Token String String

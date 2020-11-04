@@ -1,5 +1,5 @@
 [#embedded-marlowe]
-== Embedded Marlowe
+== Marlowe embedded in Haskell
 
 In this tutorial we go back to the escrow example, and show how we can
 use the _embedding_ of Marlowe in Haskell to make more readable, modular
@@ -112,7 +112,7 @@ have this contract instead:
 When [
   (Case
      (Deposit
-        (AccountId 0 "alice") "alice" ada
+        "alice" "alice" ada
         (Constant 450))
      (When [
            (Case
@@ -136,7 +136,7 @@ When [
                                 (ChoiceId "choice" "alice"))
                              (Constant 0))
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob") ada
                              (Constant 450) Close) Close)
                        (When [
@@ -150,7 +150,7 @@ When [
                                    (ChoiceId "choice" "carol") [
                                    (Bound 0 0)])
                                 (Pay
-                                   (AccountId 0 "alice")
+                                   "alice"
                                    (Party "bob") ada
                                    (Constant 450) Close))] 100 Close)))] 60
                  (When [
@@ -164,7 +164,7 @@ When [
                              (ChoiceId "choice" "carol") [
                              (Bound 0 0)])
                           (Pay
-                             (AccountId 0 "alice")
+                             "alice"
                              (Party "bob") ada
                              (Constant 450) Close))] 100 Close)))
       ]
@@ -183,7 +183,7 @@ ____
 This example has shown how embedding in Haskell gives us a more
 expressive language, simply by reusing some of the basic features of
 Haskell, namely definitions of constants and functions. In the next
-tutorial you will learn about how to _exercise_ Marlowe contracts in ghci.
+tutorial you will learn about how to define contracts using the JavaScript embedding instead.
 
 ==== Note
 

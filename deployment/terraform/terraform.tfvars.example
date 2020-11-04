@@ -1,6 +1,3 @@
 env="myname"
 nixops_root="/home/myname/plutus/plutus-playground/deployment/nixops"
-zerotier_network_id="canbeanything"
-zerotier_subnet_cidrs=["172.25.0.0/16"]
 ssh_config_root="/home/myname/.ssh"
-tld="plutus.iohkdev.io"

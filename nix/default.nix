@@ -1,13 +1,13 @@
 { system ? builtins.currentSystem
 , crossSystem ? null
-, config ? {}
-, overlays ? []
-, sourcesOverride ? {}
+, config ? { }
+, overlays ? [ ]
+, sourcesOverride ? { }
 }:
 let
   sources = import ./sources.nix { inherit pkgs; }
     // sourcesOverride;
-  iohkNix = import sources.iohk-nix {};
+  iohkNix = import sources.iohk-nix { };
   haskellNix = import sources."haskell.nix" {
     sourcesOverride = {
       hackage = sources."hackage.nix";
@@ -31,14 +31,16 @@ let
 
         # commonLib: mix pkgs.lib with iohk-nix utils and our own:
         commonLib = lib // iohkNix
-          // import ./util.nix { inherit lib haskell-nix; }
-          # also expose our sources and overlays
-          // { inherit overlays sources; };
+        // import ./util.nix { inherit lib haskell-nix; }
+        # also expose our sources and overlays
+        // { inherit overlays sources; };
       })
       (import ./overlays/nixpkgs-overrides.nix)
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
+      # add pre-commit-hooks which isn't available in 20.03
+      (import ./overlays/pre-commit-hooks.nix)
     ];
 
   pkgs = import nixpkgs {
@@ -47,4 +49,5 @@ let
     config = haskellNix.config // config;
   };
 
-in pkgs
+in
+pkgs

@@ -1,1 +1,1 @@
-(import ./. {}).env
+(import ./. { }).env

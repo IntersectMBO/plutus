@@ -46,10 +46,6 @@ data _⊢Ne⋆_ : Ctx⋆ → Kind → Set where
       ------
     → Φ ⊢Ne⋆ J
 
-  μ1 : ∀{φ K}
-     ---------------------------------
-    → φ ⊢Ne⋆ ((K ⇒ *) ⇒ K ⇒ *) ⇒ K ⇒ *
-
 data _⊢Nf⋆_ where
 
   Π : ∀ {Φ K}
@@ -75,6 +71,12 @@ data _⊢Nf⋆_ where
 
   con : ∀{φ} → TyCon → φ ⊢Nf⋆ *
 
+  μ : ∀{φ K}
+    → φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *
+    → φ ⊢Nf⋆ K
+      -----------------------
+    → φ ⊢Nf⋆ *
+
 \end{code}
 
 # Renaming
@@ -98,10 +100,10 @@ renNf ρ (A ⇒ B)     = renNf ρ A ⇒ renNf ρ B
 renNf ρ (ƛ B)       = ƛ (renNf (ext ρ) B)
 renNf ρ (ne A)      = ne (renNe ρ A)
 renNf ρ (con tcn)   = con tcn
+renNf ρ (μ A B)     = μ (renNf ρ A) (renNf ρ B)
 
 renNe ρ (` x)   = ` (ρ x)
 renNe ρ (A · x) = renNe ρ A · renNf ρ x
-renNe ρ μ1      = μ1
 \end{code}
 
 \begin{code}
@@ -123,10 +125,10 @@ embNf (A ⇒ B)     = embNf A ⇒ embNf B
 embNf (ƛ B)       = ƛ (embNf B)
 embNf (ne B)      = embNe B
 embNf (con tcn)   = con tcn
+embNf (μ A B)     = μ (embNf A) (embNf B)
 
 embNe (` x)   = ` x
 embNe (A · B) = embNe A · embNf B
-embNe μ1      = μ1
 \end{code}
 
 \begin{code}
@@ -149,8 +151,8 @@ ren-embNf ρ (A ⇒ B)     = cong₂ _⇒_ (ren-embNf ρ A) (ren-embNf ρ B)
 ren-embNf ρ (ƛ B)       = cong ƛ (ren-embNf (ext ρ) B)
 ren-embNf ρ (ne n)      = ren-embNe ρ n
 ren-embNf ρ (con tcn  ) = refl
+ren-embNf ρ (μ A B)     = cong₂ μ (ren-embNf ρ A) (ren-embNf ρ B)
 
 ren-embNe ρ (` x)    = refl
 ren-embNe ρ (n · n') = cong₂ _·_ (ren-embNe ρ n) (ren-embNf ρ n')
-ren-embNe ρ μ1       = refl
 \end{code}

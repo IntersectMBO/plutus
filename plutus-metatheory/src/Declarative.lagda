@@ -132,17 +132,17 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap1 : ∀{K}
-   → (pat : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
-   → (arg : Φ ⊢⋆ K)
-   → (term : Γ ⊢ pat · (μ1 · pat) · arg)
-   → Γ ⊢ μ1 · pat · arg
+  wrap : ∀{K}
+   → (A : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (B : Φ ⊢⋆ K)
+   → Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
+   → Γ ⊢ μ A B
 
-  unwrap1 : ∀{K}
-    → {pat : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢⋆ K}
-    → (term : Γ ⊢ μ1 · pat · arg)
-    → Γ ⊢ pat · (μ1 · pat) · arg
+  unwrap : ∀{K}
+    → {A : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢⋆ K}
+    → Γ ⊢ μ A B
+    → Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
     
   conv : {A B : Φ ⊢⋆ *}
     → A ≡β B

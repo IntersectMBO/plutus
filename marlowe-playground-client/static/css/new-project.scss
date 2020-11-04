@@ -1,0 +1,30 @@
+.new-project-container {
+  width: 90%;
+}
+
+.new-project-container input {
+  margin: 1.5rem 0rem;
+  font-weight: normal;
+  font-size: 1.912em;
+  line-height: calc(18px + 1.8vw);
+  padding: 0;
+  display: block;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  border: none;
+  appearance: none;
+  background-color: var(--bg-light);
+  color: var(--text-color);
+}
+
+.new-project-container .language-links {
+  justify-content: flex-start;
+  text-decoration: none;
+}
+.new-project-container .language-links a {
+  margin: 0 1rem 0 0rem;
+  border: solid 1px;
+  border-radius: 1rem;
+  padding: 0 1rem;
+  background-color: white;
+}

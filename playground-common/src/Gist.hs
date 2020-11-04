@@ -28,12 +28,11 @@ module Gist
 
 import           Auth.Types        (Token, TokenProvider (Github))
 import           Data.Aeson        (FromJSON, GFromJSON, ToJSON, Value, Zero, genericParseJSON, object, parseJSON,
-                                    toJSON, withObject, (.:), (.:?), (.=))
+                                    toJSON, withObject, (.!=), (.:), (.:?), (.=))
 import           Data.Aeson.Casing (aesonPrefix, snakeCase)
 import           Data.Aeson.Types  (Parser)
 import           Data.Bifunctor    (bimap)
 import           Data.Map          (Map)
-import qualified Data.Map          as Map
 import           Data.Proxy        (Proxy (Proxy))
 import           Data.Text         (Text)
 import qualified Data.Text         as T
@@ -123,12 +122,15 @@ instance FromHttpApiData GistId where
 
 data Gist =
     Gist
-        { _gistId         :: !GistId
-        , _gistGitPushUrl :: !Text
-        , _gistHtmlUrl    :: !Text
-        , _gistOwner      :: !Owner
-        , _gistFiles      :: ![GistFile]
-        , _gistTruncated  :: !Bool
+        { _gistId          :: !GistId
+        , _gistGitPushUrl  :: !Text
+        , _gistHtmlUrl     :: !Text
+        , _gistOwner       :: !Owner
+        , _gistFiles       :: !(Map String GistFile)
+        , _gistTruncated   :: !Bool
+        , _gistCreatedAt   :: !String
+        , _gistUpdatedAt   :: !String
+        , _gistDescription :: !String
         }
     deriving (Show, Eq, Generic, ToJSON)
 
@@ -139,9 +141,12 @@ instance FromJSON Gist where
             _gistGitPushUrl <- o .: "git_push_url"
             _gistHtmlUrl <- o .: "html_url"
             _gistOwner <- o .: "owner"
-            _gistFiles <-
-                Map.elems <$> ((o .: "files") :: Parser (Map String GistFile))
+            _gistFiles <- (o .: "files")
             _gistTruncated <- o .: "truncated"
+            _gistCreatedAt <- o .: "created_at"
+            _gistUpdatedAt <- o .: "updated_at"
+            -- playground gists will always have a description but to avoid breaking with non-playground gists we change null to empty string
+            _gistDescription <- o .:? "description" .!= ""
             pure Gist {..}
 
 data GistFile =

@@ -1,0 +1,15 @@
+.group.nav-buttons {
+  padding: 1rem 0rem;
+  display: flex;
+  width: 24rem;
+  justify-content: space-between;
+}
+
+.group.open-buttons {
+  padding: 1rem 0rem;
+  display: flex;
+  justify-content: flex-start;
+  button {
+    margin-right: 1rem;
+  }
+}

@@ -6,11 +6,12 @@
 ############################################################################
 { pkgs, index-state, checkMaterialization }:
 let compiler-nix-name = "ghc8102";
-in {
+in
+{
   Agda = pkgs.haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "0pl6cgvn6fi3g3wfhvhav0fkxv66522gqifd0jm9r58imxca85c6";
+    plan-sha256 = "17ypsqyrrsd53g8lhqfq5baa1iyid67r6px8zv4nq29rjpligx6s";
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -45,71 +46,70 @@ in {
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0nvcaa4nn2bnayyfjmcrxrzb390xbwyasqmjm335nizww2n9j22v";
+    plan-sha256 = "19kn00zpj1b1p1fyrzwbg062z45x2lgcfap5bb9ra5alf0wxngh3";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1y5p7wbqvj2i6kyyy34w1gfih76x65q209df2ajlk3wdg9kw9fb3";
+    plan-sha256 = "0gg64j082l4wph2wymp10akyc9qdb5di5r1d5w9nqgjxnjxdwh9v";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0wl57va8a6a74w05yjd29hrc39d8vkx1bqbk188mxyfflz08adjc";
+    plan-sha256 = "12xbj6i81nragfcl8aq7hjlxgi0jxaka4jdndh1ag7lrs34c7k7c";
   };
-  inherit (
-    let hspkgs = pkgs.haskell-nix.cabalProject {
-        src = pkgs.fetchFromGitHub {
-          name = "haskell-language-server";
-          owner = "haskell";
-          repo = "haskell-language-server";
-          rev = "0.4.0";
-          sha256 = "0b94l6bywa6jk20y2cswyq5ks4g515895k2apvr1mdfkfhngdb7b";
-          fetchSubmodules = true;
-        };
-        lookupSha256 = { location, tag, ... } : {
-          "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
-          }."${location}"."${tag}";
-        inherit compiler-nix-name index-state checkMaterialization;
-        # Plan issues with the benchmarks, can try removing later
-        configureArgs = "--disable-benchmarks";
-        # Invalidate and update if you change the version
-        plan-sha256 = "044p19wpydc6c56f0zw5b7c17151n0cghimr9wd8rlhifymmky2h";
-        modules = [{
-          # Tests don't pass for some reason, but this is a somewhat random revision.
-          packages.haskell-language-server.doCheck = false;
-        }];
-      };
-    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
-  hie-bios haskell-language-server;
+  inherit (let hspkgs = pkgs.haskell-nix.cabalProject {
+    src = pkgs.fetchFromGitHub {
+      name = "haskell-language-server";
+      owner = "haskell";
+      repo = "haskell-language-server";
+      rev = "0.5.0";
+      sha256 = "0vkh5ff6l5wr4450xmbki3cfhlwf041fjaalnwmj7zskd72s9p7p";
+      fetchSubmodules = true;
+    };
+    lookupSha256 = { location, tag, ... }: {
+      "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
+    }."${location}"."${tag}";
+    inherit compiler-nix-name index-state checkMaterialization;
+    # Plan issues with the benchmarks, can try removing later
+    configureArgs = "--disable-benchmarks";
+    # Invalidate and update if you change the version
+    plan-sha256 = "1vyriqi905kl2yrx1xg04cy11wfm9nq1wswny7xm1cwv03gyj6y8";
+    modules = [{
+      # Tests don't pass for some reason, but this is a somewhat random revision.
+      packages.haskell-language-server.doCheck = false;
+    }];
+  };
+  in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
+    hie-bios haskell-language-server;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
-        src = pkgs.fetchFromGitLab {
-          owner = "joneshf";
-          repo = "purty";
-          rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
-          sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
-        };
-        # Invalidate and update if you change the version
-        stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
-        inherit checkMaterialization;
-
-        # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
-        ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
-        modules = [{ compiler.nix-name = pkgs.lib.mkForce "ghc865"; }];
-
-        pkg-def-extras = [
-          # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
-          (hackage: {
-            packages = {
-              "hsc2hs" = (((hackage.hsc2hs)."0.68.6").revisions).default;
-            };
-          })
-        ];
+      src = pkgs.fetchFromGitLab {
+        owner = "joneshf";
+        repo = "purty";
+        rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
+        sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
       };
+      # Invalidate and update if you change the version
+      stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
+      inherit checkMaterialization;
+
+      # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
+      ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
+      modules = [{ compiler.nix-name = pkgs.lib.mkForce "ghc865"; }];
+
+      pkg-def-extras = [
+        # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
+        (hackage: {
+          packages = {
+            "hsc2hs" = (((hackage.hsc2hs)."0.68.6").revisions).default;
+          };
+        })
+      ];
+    };
     in hspkgs.purty;
 }

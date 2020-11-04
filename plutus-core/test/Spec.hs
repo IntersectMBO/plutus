@@ -22,16 +22,15 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Generators.NEAT.PropTest
-import           Language.PlutusCore.Normalize
+import qualified Language.PlutusCore.Generators.NEAT.Spec                   as NEAT
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Coolean
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
+import qualified Flat                                                       as Flat
 import           Hedgehog                                                   hiding (Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
@@ -98,6 +97,11 @@ propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
+propFlat :: Property
+propFlat = property $ do
+    prog <- forAllPretty $ runAstGen genProgram
+    Hedgehog.tripping prog Flat.flat Flat.unflat
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -134,10 +138,12 @@ propDeBruijn gen = property . generalizeT $ do
     Hedgehog.tripping body forward backward
 
 allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all tests"
+allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
+  testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip" propCBOR
+    , testProperty "serialization round-trip (CBOR)" propCBOR
+    , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
@@ -153,18 +159,8 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     , test_evaluation
     , test_normalizationCheck
     , Check.tests
-    -- NEAT tests
-    , testCaseCount "kind checker for generated types is sound" $
-        testTyProp size star prop_checkKindSound
-    , testCaseCount "normalization preserves kinds" $
-        testTyProp size star prop_normalizePreservesKind
-    , testCaseCount "normalization for generated types is sound" $
-        testTyProp size star prop_normalizeTypeSound
+    , NEAT.tests NEAT.defaultGenOptions
     ]
-
-testCaseCount :: String -> IO Integer -> TestTree
-testCaseCount name act = testCaseInfo name $
-  liftM (\i -> show i ++ " types generated") act
 
 
 type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
@@ -303,36 +299,3 @@ tests = testCase "example programs" $ fold
         fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
-
--- NEAT stuff
-
-size :: Int
-size = 10
-
-star :: Kind ()
-star = Type ()
-
--- |Check if the type/kind checker or generation threw any errors.
-isSafe :: ExceptT (ErrorP a) Quote a -> Cool
-isSafe = toCool . isRight . runQuote . runExceptT
-
--- |Property: Kind checker for generated types is sound.
-prop_checkKindSound :: TyProp
-prop_checkKindSound k _ tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  withExceptT TypeErrorP $ checkKind defConfig () ty k
-
--- |Property: Normalisation preserves kind.
-prop_normalizePreservesKind :: TyProp
-prop_normalizePreservesKind k _ tyQ = isSafe $ do
-  ty  <- withExceptT GenErrorP tyQ
-  ty' <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
-  withExceptT TypeErrorP $ checkKind defConfig () ty' k
-
--- |Property: Normalisation for generated types is sound.
-prop_normalizeTypeSound :: TyProp
-prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty  <- withExceptT GenErrorP tyQ
-  ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
-  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
-  return (ty1 == ty2)

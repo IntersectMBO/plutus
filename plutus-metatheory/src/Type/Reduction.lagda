@@ -23,7 +23,6 @@ open import Relation.Binary.PropositionalEquality
 ## Values
 
 \begin{code}
-data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π : ∀ {Φ K}
@@ -42,25 +41,16 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
       -----------------------------
     → Value⋆ (ƛ N)
 
-  N- : ∀ {Φ K} {N : Φ ⊢⋆ K}
-    → Neutral⋆ N
-      ----------
-    → Value⋆ N
-
   V-con : ∀{Φ}
     → (tcn : TyCon)
       ------------------
     → Value⋆ {Γ = Φ} (con tcn)
 
-data Neutral⋆ where
-  N-μ1 : ∀ {Φ K}
-      ----------------------------
-    → Neutral⋆ (μ1 {Φ}{K})
-    
-  N-· :  ∀ {Φ K J} {N : Φ ⊢⋆ K ⇒ J}{V : Φ ⊢⋆ K}
-   → Neutral⋆ N
-   → Value⋆ V
-   → Neutral⋆ (N · V)
+  V-μ : ∀ {Φ K}{S}{T : Φ ⊢⋆ K}
+    → Value⋆ S
+    → Value⋆ T
+    ----------------------------
+    → Value⋆ (μ S T)
 \end{code}
 
 ## Intrinsically Kind Preserving Type Reduction
@@ -96,6 +86,17 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → Value⋆ W
       -------------------
     → ƛ N · W —→⋆ N [ W ]
+
+  ξ-μ₁ : ∀ {Φ K} {S S'} {T : Φ ⊢⋆ K}
+    → S —→⋆ S'
+      ------------------------------
+    → μ S T —→⋆ μ S' T
+
+  ξ-μ₂ : ∀ {Φ K} {S} {T T' : Φ ⊢⋆ K}
+    → Value⋆ S
+    → T —→⋆ T'
+      ------------------------------
+    → μ S T —→⋆ μ S T'
 \end{code}
 
 \begin{code}
@@ -127,20 +128,23 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
 \begin{code}
 progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` ())
-progress⋆ μ1      = done (N- N-μ1)
+progress⋆ (μ M N) with progress⋆ M
+... | step p  = step (ξ-μ₁ p)
+... | done VM with progress⋆ N
+... | step p  = step (ξ-μ₂ VM p)
+... | done VN = done (V-μ VM VN)
 progress⋆ (Π M)   = done (V-Π M)
 progress⋆ (M ⇒ N) with progress⋆ M
-progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
-progress⋆ (M ⇒ N) | done VM with progress⋆ N
-progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
-progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
+... | step p = step (ξ-⇒₁ p)
+... | done VM with progress⋆ N
+... | step q  = step (ξ-⇒₂ VM q)
+... | done VN = done (VM V-⇒ VN)
 progress⋆ (ƛ M)   = done (V-ƛ M)
 progress⋆ (M · N)  with progress⋆ M
-...                    | step p = step (ξ-·₁ p)
-...                    | done vM with progress⋆ N
-...                               | step p = step (ξ-·₂ vM p)
-progress⋆ (.(ƛ _) · N) | done (V-ƛ M) | done vN = step (β-ƛ vN)
-progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
+... | step p = step (ξ-·₁ p)
+... | done VM with progress⋆ N
+... | step p = step (ξ-·₂ VM p)
+progress⋆ (.(ƛ _) · N) | done (V-ƛ M) | done VN = step (β-ƛ VN)
 progress⋆ (con tcn) = done (V-con tcn)
 \end{code}
 
@@ -149,31 +153,26 @@ open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
 
-mutual
-  -- doesn't need to be mutual, we could separately prove that a type
-  -- cannot be both a value and a neutral which would take care of the
-  -- ξ-·₂ case of notbothN
-  notbothN : ∀{Φ K}(A : Φ ⊢⋆ K) → ¬ (Neutral⋆ A × (Σ (Φ ⊢⋆ K) (A —→⋆_)))
-  notbothN .(_ · _) (N-· N A , .(_ · _) , ξ-·₁ p) = notbothN _ (N , _ , p)
-  notbothN .(_ · _) (N-· N A , .(_ · _) , ξ-·₂ V p) = notboth _ (A , _ , p)
-  
-  notboth : ∀{Φ K}(A : Φ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (Φ ⊢⋆ K) (A —→⋆_)))
-  notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₁ p) = notboth _ (V , _ , p) 
-  notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₂ _ p) = notboth _ (W , _ , p)
-  notboth ._ (N- N , _ , p) = notbothN _ (N , _ , p)
+notboth : ∀{Φ K}(A : Φ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (Φ ⊢⋆ K) (A —→⋆_)))
+notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₁ p)   = notboth _ (V , _ , p)
+notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₂ _ p) = notboth _ (W , _ , p)
+notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₁ p)   = notboth _ (V , _ , p)
+notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₂ _ p) = notboth _ (W , _ , p)
 
 det : ∀{Φ K}{A A' A'' : Φ ⊢⋆ K}(p : A —→⋆ A')(q : A —→⋆ A'') → A' ≡ A''
 det (ξ-⇒₁ p) (ξ-⇒₁ q) = cong (_⇒ _) (det p q)
-det (ξ-⇒₁ p) (ξ-⇒₂ v q) = ⊥-elim (notboth _ (v , _ , p))
+det (ξ-⇒₁ p) (ξ-⇒₂ w q) = ⊥-elim (notboth _ (w , _ , p))
 det (ξ-⇒₂ v p) (ξ-⇒₁ q) = ⊥-elim (notboth _ (v , _ , q))
 det (ξ-⇒₂ v p) (ξ-⇒₂ w q) = cong (_ ⇒_) (det p q)
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
-det (ξ-·₁ p) (ξ-·₂ v q) = ⊥-elim (notboth _ (v , _ , p))
-det (ξ-·₁ ()) (β-ƛ v)
+det (ξ-·₁ p) (ξ-·₂ w q) = ⊥-elim (notboth _ (w , _ , p))
 det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (notboth _ (v , _ , q))
 det (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (det p q)
 det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (notboth _ (w , _ , p))
-det (β-ƛ v) (ξ-·₁ ())
 det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (notboth _ (v , _ , q))
 det (β-ƛ v) (β-ƛ w) = refl
+det (ξ-μ₁ p) (ξ-μ₁ q) = cong (λ X → μ X _) (det p q)
+det (ξ-μ₁ p) (ξ-μ₂ w q) = ⊥-elim (notboth _ (w , _ , p))
+det (ξ-μ₂ v p) (ξ-μ₁ q) = ⊥-elim (notboth _ (v , _ , q))
+det (ξ-μ₂ v p) (ξ-μ₂ w q) = cong (μ _) (det p q)
 \end{code}

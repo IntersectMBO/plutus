@@ -1,4 +1,5 @@
-﻿[#marlowe-model]
+﻿
+[#marlowe-model]
 == The Marlowe model
 
 Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that can be combined to describe many different kinds of financial contract.
@@ -17,7 +18,7 @@ We should separate the notions of _participants_ and _roles_ in a Marlowe contra
 
 ==== Accounts
 
-The Marlowe model allows for a contract to control money in a number of disjoint _accounts_: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a _refund_ of any remaining funds in the account when the contract is closed.footnote:[A fully “fungible” model is supported by a contract with a single account, and with explicit allocation of any remaining funds on contract termination.] These accounts are _local_, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
+The Marlowe model allows for a contract to store assets. All parties that participate in the contract implicitly own an account with their name. All assets stored in the contract must be in the account of one of the parties, this way, when the contract is closed, all assets that remain in the contract are refunded to the respective owners. These accounts are local, in that they only exist during the execution of the contract, and during that time they are only accessible by parties to the contract.
 
 ==== Steps and states
 
@@ -41,7 +42,7 @@ It is through their wallets that users are able to interact with smart contracts
 
 ==== Omniscient and wallet-level simulation
 
-The Marlowe Playground supports two kinds of simulation.
+The Marlowe Playground supports two kinds of simulation: the standard _omniscient_ simulation and a proof of concept _wallet-level_ simulation.
 
 In an _omniscient_ simulation, the user is able to perform any action for any role, and thus can observe the execution from the perspective of all the users. The _“wallet”-style_ simulation explicitly models different wallets (i.e. different participants) and their participation in multiple roles in multiple contracts. This model thus presents a more faithful perspective of contract execution for a particular participant in the contract.
 
@@ -93,7 +94,7 @@ The first input is then processed, and then the contract is single stepped again
 
 Such a _transaction_, as shown in the diagram below, is added to the blockchain. What we do next is to describe in detail what Marlowe contracts look like, and how they are evaluated step by step.
 
-We have shown,footnote:[In our paper https://iohk.io/en/research/library/papers/marloweimplementing-and-analysing-financial-contracts-on-blockchain/[Marlowe: implementing and analysing financial contracts on blockchain]] that the behaviour of a Marlowe is independent of how inputs are collected into transactions, and so when we simulate the action of a contract we don't need to group inputs into transactions explicitly. For concreteness we can think of each transaction having at most one input. While the semantics of a contract is independent of how inputs are grouped into transactions, the _costs of execution_ may be lower if multiple inputs can be grouped into a single transaction. 
+We have shown,footnote:[In our paper https://iohk.io/en/research/library/papers/marloweimplementing-and-analysing-financial-contracts-on-blockchain/[Marlowe: implementing and analysing financial contracts on blockchain]] that the behaviour of a Marlowe is independent of how inputs are collected into transactions, and so when we simulate the action of a contract we don't need to group inputs into transactions explicitly. For concreteness we can think of each transaction having at most one input. While the semantics of a contract is independent of how inputs are grouped into transactions, the _costs of execution_ may be lower if multiple inputs can be grouped into a single transaction.
 
 In the _omniscient_ simulation available in the Marlowe playground we abstract away from transaction grouping, while in the role-based “wallet“ simulation transactions are explicit.
 

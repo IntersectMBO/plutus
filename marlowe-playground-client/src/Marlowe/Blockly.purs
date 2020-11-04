@@ -25,7 +25,7 @@ import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
 import Record (merge)
@@ -404,13 +404,12 @@ toDefinition blockType@(ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account %5 with owner %6 continue as %7 %8"
+        , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account of %5 continue as %6 %7"
         , args0:
           [ DummyCentre
           , Value { name: "from_party", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
-          , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -465,9 +464,9 @@ toDefinition blockType@(PayeeType AccountPayeeType) =
   BlockDefinition
     $ merge
         { type: show AccountPayeeType
-        , message0: "Account %1 with Owner %2"
+        , message0: "Account of %1 %2"
         , args0:
-          [ Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+          [ DummyLeft
           , Value { name: "party", check: "party", align: Right }
           ]
         , colour: blockColour blockType
@@ -563,13 +562,12 @@ toDefinition blockType@(ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
+        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account of %5 continue as %6 %7"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
           , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
-          , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -814,10 +812,10 @@ toDefinition blockType@(ValueType AvailableMoneyValueType) =
   BlockDefinition
     $ merge
         { type: show AvailableMoneyValueType
-        , message0: "Available currency %1 from account %2 %3 owner %4 %5"
+        , message0: "Available currency %1 from account of %2 %3 %4 %5"
         , args0:
           [ Value { name: "token", check: "token", align: Right }
-          , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+          , DummyRight
           , DummyRight
           , Value { name: "party", check: "party", align: Right }
           , DummyRight
@@ -1080,15 +1078,12 @@ statementToTerm g block name p = case statementToCode g block name of
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
   blockDefinition DepositActionType g block = do
-    accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- statementToTerm g block "party" Parser.party
     tok <- statementToTerm g block "token" Parser.token
-    let
-      accountId = AccountId accountNumber accountOwner
     party <- statementToTerm g block "from_party" Parser.party
     amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountId party tok amount)) contract)
+    pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountOwner party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- statementToTerm g block "party" Parser.party
@@ -1111,11 +1106,8 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) where
   blockDefinition AccountPayeeType g block = do
-    accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- statementToTerm g block "party" Parser.party
-    let
-      accountId = AccountId accountNumber accountOwner
-    pure $ mkDefaultTerm (Account accountId)
+    pure $ mkDefaultTerm (Account accountOwner)
   blockDefinition PartyPayeeType g block = do
     party <- statementToTerm g block "party" Parser.party
     pure $ mkDefaultTerm (Party party)
@@ -1140,15 +1132,12 @@ instance hasBlockDefinitionToken :: HasBlockDefinition TokenType (Term Token) wh
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Contract) where
   blockDefinition CloseContractType _ _ = pure $ mkDefaultTerm Close
   blockDefinition PayContractType g block = do
-    accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- statementToTerm g block "party" Parser.party
     tok <- statementToTerm g block "token" Parser.token
-    let
-      accountId = AccountId accountNumber accountOwner
     payee <- statementToTerm g block "payee" Parser.payee
     value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
-    pure $ mkDefaultTerm (Pay accountId payee tok value contract)
+    pure $ mkDefaultTerm (Pay accountOwner payee tok value contract)
   blockDefinition IfContractType g block = do
     observation <- statementToTerm g block "observation" Parser.observation
     contract1 <- statementToTerm g block "contract1" Parser.contract
@@ -1219,12 +1208,9 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) where
   blockDefinition AvailableMoneyValueType g block = do
-    accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- statementToTerm g block "party" Parser.party
     tok <- statementToTerm g block "token" Parser.token
-    let
-      accountId = AccountId accountNumber accountOwner
-    pure $ mkDefaultTerm (AvailableMoney accountId tok)
+    pure $ mkDefaultTerm (AvailableMoney accountOwner tok)
   blockDefinition ConstantValueType g block = do
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
     pure $ mkDefaultTerm (Constant constant)
@@ -1322,10 +1308,9 @@ instance toBlocklyTerm :: ToBlockly a => ToBlockly (Term a) where
   toBlockly newBlock workspace input _ = pure unit
 
 instance toBlocklyPayee :: ToBlockly Payee where
-  toBlockly newBlock workspace input (Account (AccountId accountNumber accountOwner)) = do
+  toBlockly newBlock workspace input (Account accountOwner) = do
     block <- newBlock workspace (show AccountPayeeType)
     connectToOutput block input
-    setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "party" accountOwner
   toBlockly newBlock workspace input (Party party) = do
     block <- newBlock workspace (show PartyPayeeType)
@@ -1380,9 +1365,8 @@ instance toBlocklyBounds :: ToBlockly (Array (Term Bound)) where
         nextBound newBlock workspace fromConnection tail
 
 oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
-oneCaseToBlockly newBlock workspace (Case (Term (Deposit (AccountId accountNumber accountOwner) party tok value) _) cont) = do
+oneCaseToBlockly newBlock workspace (Case (Term (Deposit accountOwner party tok value) _) cont) = do
   block <- newBlock workspace (show DepositActionType)
-  setField block "account_number" (show accountNumber)
   inputToBlockly newBlock workspace block "party" accountOwner
   inputToBlockly newBlock workspace block "token" tok
   inputToBlockly newBlock workspace block "from_party" party
@@ -1438,10 +1422,9 @@ instance toBlocklyContract :: ToBlockly Contract where
   toBlockly newBlock workspace input Close = do
     block <- newBlock workspace (show CloseContractType)
     connectToPrevious block input
-  toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee tok value contract) = do
+  toBlockly newBlock workspace input (Pay accountOwner payee tok value contract) = do
     block <- newBlock workspace (show PayContractType)
     connectToPrevious block input
-    setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "party" accountOwner
     inputToBlockly newBlock workspace block "token" tok
     inputToBlockly newBlock workspace block "payee" payee
@@ -1524,10 +1507,9 @@ instance toBlocklyObservation :: ToBlockly Observation where
     connectToOutput block input
 
 instance toBlocklyValue :: ToBlockly Value where
-  toBlockly newBlock workspace input (AvailableMoney (AccountId accountNumber accountOwner) tok) = do
+  toBlockly newBlock workspace input (AvailableMoney accountOwner tok) = do
     block <- newBlock workspace (show AvailableMoneyValueType)
     connectToOutput block input
-    setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "party" accountOwner
     inputToBlockly newBlock workspace block "token" tok
   toBlockly newBlock workspace input (Constant v) = do

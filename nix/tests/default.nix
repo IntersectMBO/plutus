@@ -9,4 +9,8 @@ pkgs.recurseIntoAttrs {
     inherit src;
     purty = haskell.extraPackages.purty.components.exes.purty;
   };
+  nixpkgsFmt = pkgs.callPackage ./nixpkgs-fmt.nix {
+    inherit src;
+    inherit (pkgs) nixpkgs-fmt;
+  };
 }

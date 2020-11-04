@@ -59,6 +59,7 @@ library
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
+        Language.PlutusCore.Flat
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
         Language.PlutusCore.Universe
@@ -94,8 +95,8 @@ library
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
         Language.PlutusCore.Generators.NEAT.Common
+        Language.PlutusCore.Generators.NEAT.Spec
         Language.PlutusCore.Generators.NEAT.Type
-        Language.PlutusCore.Generators.NEAT.PropTest
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
 
@@ -121,6 +122,7 @@ library
         Language.UntypedPlutusCore.DeBruijn
         Language.UntypedPlutusCore.Evaluation.Machine.Cek
         Language.UntypedPlutusCore.Parser
+        Language.UntypedPlutusCore.Rename
 
         PlutusPrelude
         Common
@@ -200,9 +202,15 @@ library
         Language.UntypedPlutusCore.Core.Instance.Pretty.Classic
         Language.UntypedPlutusCore.Core.Instance.Pretty.Plc
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
+        Language.UntypedPlutusCore.Core.Instance.Recursive
         Language.UntypedPlutusCore.Core.Instance.CBOR
+        Language.UntypedPlutusCore.Core.Instance.Flat
         Language.UntypedPlutusCore.Core.Type
         Language.UntypedPlutusCore.Core.Plated
+        Language.UntypedPlutusCore.Analysis.Definitions
+        Language.UntypedPlutusCore.Check.Uniques
+        Language.UntypedPlutusCore.Mark
+        Language.UntypedPlutusCore.Rename.Internal
         Language.UntypedPlutusCore.Size
         Language.UntypedPlutusCore.Subst
 
@@ -214,6 +222,7 @@ library
         algebraic-graphs >= 0.3,
         base >=4.9 && <5,
         barbies -any,
+        bifunctors -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -228,6 +237,7 @@ library
         deriving-compat -any,
         deepseq -any,
         filepath -any,
+        flat -any,
         hashable,
         hedgehog >=1.0,
         integer-gmp -any,
@@ -302,6 +312,7 @@ test-suite plutus-core-test
         bytestring -any,
         containers -any,
         filepath -any,
+        flat -any,
         hedgehog -any,
         plutus-core -any,
         lazy-search -any,
@@ -399,16 +410,14 @@ executable plc
     hs-source-dirs: exe
     build-depends:
         base <5,
-        deepseq -any,
-        plutus-core -any,
-        transformers -any,
         bytestring -any,
         deepseq -any,
+        optparse-applicative -any,
+        plutus-core -any,
+        prettyprinter -any,
         serialise -any,
         text -any,
-        lens -any,
-        prettyprinter -any,
-        optparse-applicative -any
+        transformers -any
 
 benchmark plutus-core-budgeting-bench
     import: lang

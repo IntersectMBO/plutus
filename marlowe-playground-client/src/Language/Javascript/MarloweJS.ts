@@ -3,22 +3,24 @@ import bignumber = require("bignumber.js")
 type Party = { "pk_hash" : string }
            | { "role_token" : string };
 
-type SomeNumber = bignumber.BigNumber | number | string;
+type SomeNumber = number | string | bigint;
 
 function coerceNumber(n : SomeNumber) : bignumber.BigNumber {
     if (typeof(n) == 'string') {
         return new bignumber.BigNumber(n);
+    } else if (typeof(n) == 'bigint') {
+        return new bignumber.BigNumber(n.toString());
     } else if (typeof(n) == 'number') {
         if ((n > Number.MAX_SAFE_INTEGER) || (n < -Number.MAX_SAFE_INTEGER)) {
             throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
         }
         return new bignumber.BigNumber(n);
     } else {
-        return n;
+        throw(new Error('Not a valid number'))
     }
 }
 
-export const pk =
+export const PK =
     function (pubKey : string) : Party {
         var regexp = /^([0-9a-f][0-9a-f])*$/g;
         if (pubKey.match(regexp)) {
@@ -28,24 +30,17 @@ export const pk =
         };
     };
 
-export const role =
+export const Role =
     function (roleToken : string) : Party {
         return { "role_token": roleToken };
     };
 
-type AccountId = { "account_number" : bignumber.BigNumber,
-                   "account_owner" : Party };
-
-export const accountId =
-    function (accountNumber : SomeNumber, accountOwner : Party) : AccountId {
-        return { "account_number": coerceNumber(accountNumber),
-                 "account_owner": accountOwner };
-    };
+type AccountId = Party;
 
 type ChoiceId = { "choice_name" : string,
                   "choice_owner" : Party };
 
-export const choiceId =
+export const ChoiceId =
     function (choiceName : string, choiceOwner : Party) : ChoiceId {
         return { "choice_name": choiceName,
                  "choice_owner": choiceOwner };
@@ -54,12 +49,12 @@ export const choiceId =
 type Token = { "currency_symbol": string,
                "token_name": string };
 
-export const token =
-    function (currencySymbol : string, choiceOwner : string) : Token {
+export const Token =
+    function (currencySymbol : string, tokenName : string) : Token {
         var regexp = /^([0-9a-f][0-9a-f])*$/g;
         if (currencySymbol.match(regexp)) {
             return { "currency_symbol": currencySymbol,
-                     "token_name": choiceOwner };
+                     "token_name": tokenName };
         } else {
             throw(new Error('Currency symbol must be base16'));
         };
@@ -70,7 +65,7 @@ export const ada : Token = { "currency_symbol": "",
 
 type ValueId = string;
 
-export const valueId =
+export const ValueId =
     function (valueIdentifier : string) : ValueId {
         return valueIdentifier;
     };
@@ -104,6 +99,8 @@ function coerceValue(val : EValue) : Value {
             throw(new Error('Unsafe use of JavaScript numbers. For amounts this large, please use BigNumber.'));
         }
         return new bignumber.BigNumber(val);
+    } else if (typeof(val) == 'bigint') {
+        return new bignumber.BigNumber(val.toString());
     } else if (typeof(val) == "string" && val != "slot_interval_start" && val != "slot_interval_end") {
         return new bignumber.BigNumber(val);
     } else {
@@ -111,41 +108,41 @@ function coerceValue(val : EValue) : Value {
     }
 }
 
-export const availableMoney =
+export const AvailableMoney =
     function (token : Token, accountId : AccountId) : Value {
         return { "amount_of_token": token,
                  "in_account": accountId };
     };
 
-export const constant =
+export const Constant =
     function (number : SomeNumber) : Value {
         return coerceNumber(number);
     };
 
-export const negValue =
+export const NegValue =
     function (value : EValue) : Value {
         return { "negate": coerceValue(value) };
     };
 
-export const addValue =
+export const AddValue =
     function (lhs : EValue, rhs : EValue) : Value {
         return { "add": coerceValue(lhs),
                  "and": coerceValue(rhs) };
     };
 
-export const subValue =
+export const SubValue =
     function (lhs : EValue, rhs : EValue) : Value {
         return { "value": coerceValue(lhs),
                  "minus": coerceValue(rhs) };
     };
 
-export const mulValue =
+export const MulValue =
     function (lhs : EValue, rhs : EValue) : Value {
         return { "multiply": coerceValue(lhs),
                  "times": coerceValue(rhs) };
     };
 
-export const scale =
+export const Scale =
     function (num : SomeNumber, den : SomeNumber, val : EValue) : Value {
         var cden = coerceNumber(den);
         if (cden <= (new bignumber.BigNumber(0))) {
@@ -157,21 +154,21 @@ export const scale =
         }
     };
 
-export const choiceValue =
+export const ChoiceValue =
     function (choiceId : ChoiceId) : Value {
         return { "value_of_choice": choiceId };
     };
 
-export const slotIntervalStart : Value = "slot_interval_start";
+export const SlotIntervalStart : Value = "slot_interval_start";
 
-export const slotIntervalEnd : Value = "slot_interval_end";
+export const SlotIntervalEnd : Value = "slot_interval_end";
 
-export const useValue =
+export const UseValue =
     function (valueId : ValueId) : Value {
         return { "use_value": valueId };
     };
 
-export const cond =
+export const Cond =
     function (obs : Observation, contThen : EValue, contElse : EValue) : Value {
         return { "if": obs,
                  "then": coerceValue(contThen),
@@ -196,66 +193,66 @@ type Observation = { "both": Observation,
                      "equal_to": Value }
                  | boolean;
 
-export const andObs =
+export const AndObs =
     function (lhs : Observation, rhs : Observation) : Observation {
         return { "both": lhs,
                  "and": rhs };
     };
 
-export const orObs =
+export const OrObs =
     function (lhs : Observation, rhs : Observation) : Observation {
         return { "either": lhs,
                  "or": rhs };
     };
 
-export const notObs =
+export const NotObs =
     function (obs : Observation) : Observation {
         return { "not": obs };
     };
 
-export const choseSomething =
+export const ChoseSomething =
     function (choiceId : ChoiceId) : Observation {
         return { "chose_something_for": choiceId };
     };
 
-export const valueGE =
+export const ValueGE =
     function (lhs : EValue, rhs : EValue) : Observation {
         return { "value": coerceValue(lhs),
                  "ge_than": coerceValue(rhs) };
     };
 
-export const valueGT =
+export const ValueGT =
     function (lhs : EValue, rhs : EValue) : Observation {
         return { "value": coerceValue(lhs),
                  "gt": coerceValue(rhs) };
     };
 
-export const valueLT =
+export const ValueLT =
     function (lhs : EValue, rhs : EValue) : Observation {
         return { "value": coerceValue(lhs),
                  "lt": coerceValue(rhs) };
     };
 
-export const valueLE =
+export const ValueLE =
     function (lhs : EValue, rhs : EValue) : Observation {
         return { "value": coerceValue(lhs),
                  "le_than": coerceValue(rhs) };
     };
 
-export const valueEQ =
+export const ValueEQ =
     function (lhs : EValue, rhs : EValue) : Observation {
         return { "value": coerceValue(lhs),
                  "equal_to": coerceValue(rhs) };
     };
 
-export const trueObs : Observation = true;
+export const TrueObs : Observation = true;
 
-export const falseObs : Observation = false;
+export const FalseObs : Observation = false;
 
 type Bound = { "from": bignumber.BigNumber,
                "to": bignumber.BigNumber };
 
-export const bound =
+export const Bound =
     function (boundMin : SomeNumber, boundMax : SomeNumber) : Bound {
         return { "from": coerceNumber(boundMin),
                  "to": coerceNumber(boundMax) };
@@ -269,7 +266,7 @@ type Action = { "party": Party,
                 "for_choice": ChoiceId }
             | { "notify_if": Observation };
 
-export const deposit =
+export const Deposit =
     function (accId : AccountId, party : Party, token : Token, value : EValue) : Action {
         return { "party": party,
                  "deposits": coerceValue(value),
@@ -277,24 +274,32 @@ export const deposit =
                  "into_account": accId };
     };
 
-export const choice =
+export const Choice =
     function (choiceId : ChoiceId, bounds : Bound[]) : Action {
         return { "choose_between": bounds,
                  "for_choice": choiceId };
     };
 
-export const notify =
+export const Notify =
     function (obs : Observation) : Action {
         return { "notify_if": obs };
     };
 
-type Payee = AccountId
-           | Party;
+type Payee = { "account" : AccountId }
+           | { "party" : Party };
+
+export function Account(party: Party) : Payee {
+    return { "account" : party };
+}
+
+export function Party(party: Party) : Payee {
+  return { "party" : party };
+}
 
 type Case = { "case": Action,
               "then": Contract };
 
-export const caseM =
+export const Case =
     function (caseAction : Action, continuation : Contract) : Case {
         return { "case": caseAction,
                  "then": continuation };
@@ -318,9 +323,9 @@ type Contract = "close"
               | { "assert": Observation,
                   "then": Contract };
 
-export const closeM : Contract = "close";
+export const Close : Contract = "close";
 
-export const payM =
+export const Pay =
     function (accId : AccountId, payee : Payee, token : Token,
               value : EValue, continuation : Contract) : Contract {
         return { "pay": coerceValue(value),
@@ -330,28 +335,28 @@ export const payM =
                  "then": continuation };
     };
 
-export const ifM =
+export const If =
     function (obs : Observation, contThen : Contract, contElse : Contract) : Contract {
         return { "if": obs,
                  "then": contThen,
                  "else": contElse };
     };
 
-export const whenM =
+export const When =
     function (cases : Case[], timeout : SomeNumber, timeoutCont : Contract) : Contract {
         return { "when": cases,
                  "timeout": coerceNumber(timeout),
                  "timeout_continuation": timeoutCont };
     };
 
-export const letM =
+export const Let =
     function (valueId : ValueId, value : Value, cont : Contract) : Contract {
         return { "let": valueId,
                  "be": value,
                  "then": cont };
     };
 
-export const assertM =
+export const Assert =
     function (obs : Observation, cont : Contract) : Contract {
         return { "assert": obs,
                  "then": cont };

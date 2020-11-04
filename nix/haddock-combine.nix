@@ -6,7 +6,8 @@
 }:
 let
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
-in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
+in
+runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   # Merge all the docs from the packages. We don't use symlinkJoin because:
   # - We are going to want to redistribute this, so we don't want any symlinks.
   # - We want to be selective about what we copy (we don't need the hydra

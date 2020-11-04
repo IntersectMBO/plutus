@@ -132,7 +132,7 @@ We will see xref:embedded-marlowe#embedded-marlowe[later] that parts of this
 contract description, such as `+arbitrate+`, `agreement`, and `price`, use the Haskell
 _embedding_ of Marlowe DSL to give some shorthand definitions. We also use _overloaded_ strings to make some descriptions – e.g. of accounts – more concise.
 
-These are discussed in more detail when we look at xref:embedded-marlowe#embedded-marlowe[embedded Marlowe].
+These are discussed in more detail when we look at xref:embedded-marlowe#embedded-marlowe[Marlowe embedded in Haskell].
 
 ____
 *Exercise*

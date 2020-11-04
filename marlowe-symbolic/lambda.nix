@@ -13,14 +13,14 @@
 let
   ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-symbolic ]);
   main = pkgs.writeText "app.hs"
-              ''
-              module Main where
-              import qualified Marlowe.Symbolic.Lambda as Lambda
-              main = Lambda.main
-              '';
+    ''
+      module Main where
+      import qualified Marlowe.Symbolic.Lambda as Lambda
+      main = Lambda.main
+    '';
 
   z3 = pkgs.z3.override { staticbin = true; };
-  openssl = (pkgs.openssl.override { static = true; }).overrideAttrs(old : {
+  openssl = (pkgs.openssl.override { static = true; }).overrideAttrs (old: {
     # "no-shared" per https://github.com/NixOS/nixpkgs/pull/77542, should be able to
     # get rid of this when we update nixpkgs
     configureFlags = old.configureFlags ++ [ "no-shared" ];
@@ -35,12 +35,12 @@ let
     kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
   '';
 in
-  pkgs.stdenv.mkDerivation {
-    name = "marlowe-symbolic-lambda";
-    nativeBuildInputs = [ pkgs.zip ];
-    unpackPhase = "true";
-    buildPhase =
-      ''
+pkgs.stdenv.mkDerivation {
+  name = "marlowe-symbolic-lambda";
+  nativeBuildInputs = [ pkgs.zip ];
+  unpackPhase = "true";
+  buildPhase =
+    ''
       mkdir -p $out/bin
       ${ghc}/bin/${ghc.targetPrefix}ghc ${main} -static -threaded -o $out/bin/bootstrap \
                      -optl=-static \
@@ -50,12 +50,12 @@ in
                      -optl=-L${lib.getLib openssl}/lib \
                      -optl=-L${lib.getLib libffi}/lib \
                      -optl=-L${lib.getLib numactl}/lib
-      '';
-    installPhase = ''
-      zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
-      mv marlowe-symbolic.zip $out/marlowe-symbolic.zip
     '';
+  installPhase = ''
+    zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
+    mv marlowe-symbolic.zip $out/marlowe-symbolic.zip
+  '';
 
-    # Marlowe lambda builds with musl, and only on linux
-    meta.platforms = lib.platforms.linux;
-  }
+  # Marlowe lambda builds with musl, and only on linux
+  meta.platforms = lib.platforms.linux;
+}

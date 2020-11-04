@@ -3,13 +3,13 @@
 latex.buildLatex {
   name = "multi-currency";
   src = latex.filterLatex ./.;
-  texInputs = { 
+  texInputs = {
     inherit (texlive)
-    scheme-small
-    collection-latexextra
-    collection-latexrecommended
-    collection-mathscience
-    collection-fontsextra;
+      scheme-small
+      collection-latexextra
+      collection-latexrecommended
+      collection-mathscience
+      collection-fontsextra;
   };
 
   meta = with lib; {

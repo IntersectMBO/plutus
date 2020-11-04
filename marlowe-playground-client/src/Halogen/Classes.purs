@@ -1,9 +1,9 @@
 module Halogen.Classes where
 
-import Prelude
+import Prelude hiding (div)
 import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
-import Halogen.HTML (HTML, IProp, span, text)
+import Halogen.HTML (HTML, IProp, div, span, text)
 import Halogen.HTML.Properties (classes)
 
 foreign import closeDrawerIcon :: String
@@ -38,9 +38,17 @@ foreign import iohkLogo :: String
 
 foreign import haskellIcon :: String
 
+foreign import javascriptIcon :: String
+
 foreign import marloweLogo :: String
 
 foreign import marloweLogo2 :: String
+
+foreign import option1 :: String
+
+foreign import option2 :: String
+
+foreign import option3 :: String
 
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
@@ -235,8 +243,8 @@ alignedButtonLast = ClassName "aligned-button-last"
 collapsed :: ClassName
 collapsed = ClassName "collapsed"
 
-rightArrow :: ClassName
-rightArrow = ClassName "right-arrow"
-
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"
+
+vl :: forall p a. HTML p a
+vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]

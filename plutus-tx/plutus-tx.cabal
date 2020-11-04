@@ -87,3 +87,21 @@ library
         plutus-core -any,
         lens -any,
         ghc-prim -any,
+        aeson -any
+
+test-suite plutus-tx-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: test
+    build-depends:
+        base >=4.9 && <5,
+        plutus-tx -any,
+        bytestring -any,
+        hedgehog -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-hedgehog -any,
+        serialise -any,
+        cborg -any
+

@@ -4,10 +4,10 @@ latex.buildLatex {
   name = "cost-model-notes";
   texInputs = {
     inherit (texlive)
-    scheme-small
-    collection-latexextra
-    collection-latexrecommended
-    collection-mathscience;
+      scheme-small
+      collection-latexextra
+      collection-latexrecommended
+      collection-mathscience;
   };
   texFiles = [ "cost-model-notes.tex" ];
   src = latex.filterLatex ./.;

@@ -45,6 +45,7 @@
           (hsPkgs."algebraic-graphs" or (errorHandler.buildDepError "algebraic-graphs"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+          (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -59,6 +60,7 @@
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
@@ -166,9 +168,15 @@
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
+          "Language/UntypedPlutusCore/Core/Instance/Recursive"
           "Language/UntypedPlutusCore/Core/Instance/CBOR"
+          "Language/UntypedPlutusCore/Core/Instance/Flat"
           "Language/UntypedPlutusCore/Core/Type"
           "Language/UntypedPlutusCore/Core/Plated"
+          "Language/UntypedPlutusCore/Analysis/Definitions"
+          "Language/UntypedPlutusCore/Check/Uniques"
+          "Language/UntypedPlutusCore/Mark"
+          "Language/UntypedPlutusCore/Rename/Internal"
           "Language/UntypedPlutusCore/Size"
           "Language/UntypedPlutusCore/Subst"
           "Data/Aeson/THReader"
@@ -187,6 +195,7 @@
           "Language/PlutusCore/Check/Value"
           "Language/PlutusCore/Check/Normal"
           "Language/PlutusCore/CBOR"
+          "Language/PlutusCore/Flat"
           "Language/PlutusCore/Constant"
           "Language/PlutusCore/Constant/Dynamic"
           "Language/PlutusCore/Universe"
@@ -222,8 +231,8 @@
           "Language/PlutusCore/Generators/Interesting"
           "Language/PlutusCore/Generators/Test"
           "Language/PlutusCore/Generators/NEAT/Common"
+          "Language/PlutusCore/Generators/NEAT/Spec"
           "Language/PlutusCore/Generators/NEAT/Type"
-          "Language/PlutusCore/Generators/NEAT/PropTest"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
           "Language/PlutusIR"
@@ -247,6 +256,7 @@
           "Language/UntypedPlutusCore/DeBruijn"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "Language/UntypedPlutusCore/Parser"
+          "Language/UntypedPlutusCore/Rename"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Hash"
@@ -282,15 +292,14 @@
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
           hsSourceDirs = [ "exe" ];
@@ -304,6 +313,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))

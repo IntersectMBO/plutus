@@ -10,7 +10,7 @@
         rev = "v${version}";
         sha256 = "1vgpwnwqjc93nvdpcd52748bwl3r371jb55l17bsgdzrmlcyfm8a";
       };
-      GOCACHE="off";
+      GOCACHE = "off";
     });
   };
 }

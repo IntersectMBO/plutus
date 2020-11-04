@@ -1,0 +1,130 @@
+header {
+  padding: 0.5rem 2rem;
+  background: var(--bg-dark);
+  height: 54px;
+}
+
+.marlowe-logo {
+  width: 35px;
+  height: 26px;
+  cursor: pointer;
+
+  svg {
+    fill: url(#marlowe__linear-gradient) var(--primary-color);
+  }
+}
+
+
+.marlowe-title-group {
+  flex: 1;
+  justify-content: start;
+
+  h2 {
+    line-height: 1;
+    font-size: 1.4em;
+  }
+}
+
+.marlowe-links-group {
+  flex: 1;
+  text-align: end;
+
+  a {
+    margin: 0.5rem;
+
+  }
+}
+
+@media(max-width: $breakpoint-tablet - 1) {
+  .marlowe-title-group {
+    h2 {
+      display: none;
+    }
+  }
+}
+
+.project-title {
+  text-align: center;
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  h1 {
+    max-width: 200px;
+    white-space: nowrap;
+  }
+}
+
+.project-title i {
+  height: 1em;
+  width: 1em;
+  margin-left: 1rem;
+}
+
+.project-title .empty {
+  height: 1em;
+  width: 1em;
+  margin-left: 1rem;
+}
+
+.external-links {
+  flex: 1;
+  text-align: right;
+}
+
+.menu-bar {
+  display: flex;
+
+  a {
+    padding: 0rem 1rem;
+    font-weight: bold;
+    color: var(--text-color-light);
+
+    :hover {
+      color: var(--text-color);
+    }
+  }
+
+  .short-text {
+    display: none;
+  }
+}
+
+.global-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: var(--bg-light);
+}
+
+.global-actions h2 {
+  margin: 0 1rem;
+}
+
+.global-actions button {
+  height: 2em;
+  padding: 0.4em 0em;
+  min-width: 8em;
+}
+
+.save-button-group {
+  display: flex;
+  align-items: center;
+}
+
+.save-button-group .error {
+  color: var(--error-color);
+  padding: 0em 1em;
+}
+
+.global-actions .group {
+  display: flex;
+  align-items: center;
+}
+
+.global-actions .group button {
+  margin-left: 1em;
+  padding: 0rem 1rem;
+}

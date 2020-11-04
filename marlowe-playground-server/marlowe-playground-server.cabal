@@ -65,6 +65,7 @@ library
         time -any,
         time-units -any,
         transformers -any,
+        unordered-containers,
         wai-cors -any,
         uuid -any
 
@@ -75,10 +76,12 @@ executable marlowe-playground-server
         PSGenerator
         Types
         Escrow
+        Example
         CouponBondGuaranteed
         ZeroCouponBond
         Swap
         Option
+        ContractForDifference
     hs-source-dirs: app contracts
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
@@ -103,6 +106,7 @@ executable marlowe-playground-server
         monad-logger -any,
         mtl -any,
         plutus-ledger,
+        plutus-tx,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,

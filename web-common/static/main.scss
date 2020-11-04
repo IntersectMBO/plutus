@@ -79,6 +79,7 @@ h2 {
 
 .main-frame {
     .container {
+        margin-top: 15px;
         padding-top: 5px;
         padding-bottom: 5px;
     }
@@ -109,10 +110,6 @@ h2 {
         text-decoration: underline;
         padding: 5px;
     }
-}
-
-.ace_editor, .ace_content {
-    height: 60vh;
 }
 
 .form-control {
@@ -237,22 +234,6 @@ input.form-control {
     border-top: $card-border-width solid $card-border-color;
 }
 
-.ace-monokai {
-    background: $gray-900;
-    .ace_gutter, .ace_marker-layer .ace_active-line {
-        background:#1a1b2c;
-    }
-    .ace_entity.ace_name.ace_tag, .ace_keyword, .ace_meta.ace_tag, .ace_storage {
-        color:#eabdfd;
-    }
-    .ace_entity.ace_name.ace_function, .ace_entity.ace_other, .ace_entity.ace_other.ace_attribute-name, .ace_variable {
-        color:#fd9fa6;
-    }
-    .ace_storage.ace_type, .ace_support.ace_class, .ace_support.ace_type {
-        color:#9bfbfa;
-    }
-}
-
 .nav-tabs {
     margin-bottom: 15px;
     text-transform: uppercase;
@@ -283,13 +264,6 @@ input.form-control {
 
 }
 
-#banner-message {
-    border-radius: 0;
-    letter-spacing: 0.08rem;
-    text-transform: uppercase;
-    text-align: center;
-}
-
 .input-group-prepend,
 .input-group-append {
     button,
@@ -309,13 +283,17 @@ input.form-control {
 }
 
 #editor {
+    .monaco-editor-container {
+        height: 50vh;
+    }
+
     #editor-preferences {
         text-align: right;
         background-color: $dark;
         padding: 5px 0x;
 
         .custom-select {
-            width: 5rem;
+            width: 10rem;
             color: $white;
             border-color: $dark;
             background-color: $gray-800;

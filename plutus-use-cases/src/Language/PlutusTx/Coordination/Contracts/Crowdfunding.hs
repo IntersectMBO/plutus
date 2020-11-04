@@ -59,7 +59,7 @@ import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup(..), return, (<$>), (>>), (>>=))
-import           Ledger                            (PubKeyHash, pubKeyHash, Slot, Validator, txId)
+import           Ledger                            (PubKeyHash, Slot, Validator, txId)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Constraints                as Constraints

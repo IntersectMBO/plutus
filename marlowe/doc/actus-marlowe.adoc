@@ -42,21 +42,21 @@ Later, after _maturity date_, time `20` here, the investor can exchange the bond
 When [
   (Case
      (Deposit
-        (AccountId 0 "investor")
+        "investor"
         "investor" ada
         (Constant 850))
      (Pay
-        (AccountId 0 "investor")
+        "investor"
         (Party "issuer") ada
         (Constant 850)
         (When [
            (Case
               (Deposit
-                 (AccountId 0 "investor")
+                 "investor"
                  "issuer" ada
                  (Constant 1000))
               (Pay
-                 (AccountId 0 "investor")
+                 "investor"
                  (Party "investor") ada
                  (Constant 1000)
                  Close))

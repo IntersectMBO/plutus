@@ -111,6 +111,7 @@ import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Flat                  ()
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
@@ -154,7 +155,7 @@ printType
     -> m T.Text
 printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
-    inferTypeOfProgram (TypeCheckConfig mempty) scoped
+    inferTypeOfProgram defConfig scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.

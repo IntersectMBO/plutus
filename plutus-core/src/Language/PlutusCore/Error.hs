@@ -65,6 +65,7 @@ data ParseError ann
     | UnknownBuiltinFunction ann T.Text
     | InvalidBuiltinConstant ann T.Text T.Text
     deriving (Eq, Generic, NFData, Functor)
+
 makeClassyPrisms ''ParseError
 
 instance Pretty ann => Show (ParseError ann)

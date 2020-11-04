@@ -184,11 +184,11 @@ contractColour = "#a380bc"
 actusColour :: String
 actusColour = "#1a7b84"
 
-observationColour :: String
-observationColour = "#1fc1c3"
-
 valueColour :: String
 valueColour = "#eb2256"
+
+periodColour :: String
+periodColour = "#e6aa00"
 
 blockColour :: BlockType -> String
 blockColour BaseContractType = contractColour
@@ -197,7 +197,7 @@ blockColour (ActusContractType _) = actusColour
 
 blockColour (ActusValueType _) = valueColour
 
-blockColour (ActusPeriodType _) = valueColour
+blockColour (ActusPeriodType _) = periodColour
 
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
@@ -387,9 +387,9 @@ toDefinition (ActusPeriodType PeriodYearType) =
 toolbox :: forall a b. HTML a b
 toolbox =
   xml [ id_ "actusBlocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour contractColour ] (map mkBlock actusContractTypes)
-    , category [ name "Values", colour observationColour ] (map mkBlock actusValueTypes)
-    , category [ name "Periods", colour valueColour ] (map mkBlock actusPeriodTypes)
+    [ category [ name "Contracts", colour actusColour ] (map mkBlock actusContractTypes)
+    , category [ name "Values", colour valueColour ] (map mkBlock actusValueTypes)
+    , category [ name "Periods", colour periodColour ] (map mkBlock actusPeriodTypes)
     ]
   where
   mkBlock :: forall t. Show t => t -> _

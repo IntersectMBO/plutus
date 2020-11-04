@@ -20,6 +20,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Ord (abs, signum)
+import Data.String (toLower)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Foreign (Foreign, ForeignError(..), fail)
@@ -97,12 +98,16 @@ instance decodeJsonToken :: Decode Token where
 
 derive instance genericToken :: Generic Token _
 
-derive instance eqToken :: Eq Token
+instance eqToken :: Eq Token where
+  eq (Token cur1 tok1) (Token cur2 tok2) = eq (toLower cur1) (toLower cur2) && eq tok1 tok2
 
-derive instance ordToken :: Ord Token
+instance ordToken :: Ord Token where
+  compare (Token cur1 tok1) (Token cur2 tok2) = case compare (toLower cur1) (toLower cur2) of
+    EQ -> compare tok1 tok2
+    other -> other
 
 instance showToken :: Show Token where
-  show = genericShow
+  show (Token cur tok) = genericShow (Token (toLower cur) tok)
 
 {- Use this to show a token to a user, i.e. in browser or logs.
   If we choose to redefine either 'show' or 'pretty' we'd need to
@@ -213,37 +218,8 @@ derive newtype instance euclideanRingAda :: EuclideanRing Ada
 
 instance commutativeRingAda :: CommutativeRing Ada
 
-data AccountId
-  = AccountId BigInteger Party
-
-derive instance genericAccountId :: Generic AccountId _
-
-derive instance eqAccountId :: Eq AccountId
-
-derive instance ordAccountId :: Ord AccountId
-
-instance encodeJsonAccountId :: Encode AccountId where
-  encode (AccountId accNum party) =
-    encode
-      { account_number: accNum
-      , account_owner: party
-      }
-
-instance decodeJsonAccountId :: Decode AccountId where
-  decode a =
-    ( AccountId <$> decodeProp "account_number" a
-        <*> decodeProp "account_owner" a
-    )
-
-instance showAccountId :: Show AccountId where
-  show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
-
-instance prettyAccountId :: Pretty AccountId where
-  pretty = genericPretty
-
-instance hasArgsAccountId :: Args AccountId where
-  hasArgs = genericHasArgs
-  hasNestedArgs = genericHasNestedArgs
+type AccountId
+  = Party
 
 data ChoiceId
   = ChoiceId String Party
@@ -690,13 +666,13 @@ derive instance eqPayee :: Eq Payee
 derive instance ordPayee :: Ord Payee
 
 instance encodeJsonPayee :: Encode Payee where
-  encode (Account accountId) = encode accountId
-  encode (Party party) = encode party
+  encode (Account accountId) = encode { account: accountId }
+  encode (Party party) = encode { party: party }
 
 instance decodeJsonPayee :: Decode Payee where
   decode a =
-    (Account <$> decode a)
-      <|> (Party <$> decode a)
+    (Account <$> decodeProp "account" a)
+      <|> (Party <$> decodeProp "party" a)
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -1242,9 +1218,6 @@ emptyState sn =
     , minSlot: sn
     }
 
-accountOwner :: AccountId -> Party
-accountOwner (AccountId _ owner) = owner
-
 inBounds :: ChosenNum -> Array Bound -> Boolean
 inBounds num = any (\(Bound l u) -> num >= l && num <= u)
 
@@ -1333,7 +1306,7 @@ refundOne accounts = case Map.toUnfoldable accounts of
   Nil -> Nothing
   Tuple (Tuple accId (Token cur tok)) balance : rest ->
     if balance > zero then
-      Just (Tuple (Tuple (accountOwner accId) (asset cur tok balance)) (Map.fromFoldable rest))
+      Just (Tuple (Tuple accId (asset cur tok balance)) (Map.fromFoldable rest))
     else
       refundOne (Map.fromFoldable rest)
 

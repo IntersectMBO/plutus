@@ -126,17 +126,17 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       ---------------
     → Γ ⊢ B [ A ]
 
-  wrap1 : ∀{Φ Γ K}
-   → (pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
-   → (arg : Φ ⊢Nf⋆ K)
-   → (term : Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-   → Γ ⊢ ne (μ1 · pat · arg)
+  wrap : ∀{Φ Γ K}
+   → (A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
+   → (B : Φ ⊢Nf⋆ K)
+   → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
+   → Γ ⊢ μ A B
 
-  unwrap1 : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → (term : Γ ⊢ ne (μ1 · pat · arg))
-    → Γ ⊢ nf (embNf pat · (μ1 · embNf pat) · embNf arg)
+  unwrap : ∀{Φ Γ K}
+    → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+    → {B : Φ ⊢Nf⋆ K}
+    → Γ ⊢ μ A B
+    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
 
   con : ∀{Φ}{Γ : Ctx Φ}{tcn}
     → TermCon {Φ} (con tcn)

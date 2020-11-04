@@ -37,7 +37,7 @@ toHTML helpType =
   , p [ class_ (ClassName "help-body") ] [ bodyText helpType ]
   ]
   where
-  headerText MarloweHelp = text "Modelling contracts in Marlowe"
+  headerText MarloweHelp = text "Simulation and analysis"
 
   headerText InputComposerHelp = text "Input Composer"
 
@@ -49,7 +49,12 @@ toHTML helpType =
 
   headerText EditorHelp = text "Marlowe Code Editor"
 
-  bodyText MarloweHelp = text "Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract"
+  bodyText MarloweHelp =
+    div []
+      [ p_ [ text "In this pane you can create, simulate and analyse Marlowe contracts." ]
+      , p_ [ text "The main display area shows the contract that is still to be executed, so that this changes as the simulation moves forwards or backwards. Underneath this is shown the current state, including the currency in each of the contract’s accounts and the current slot. Other tabs in that section show logs, errors and warnings, as well as giving access to static analysis results." ]
+      , p_ [ text "Above this information are shown the actions available at this point in the simulation. An action is performed by pressing the “+” button next to it; a single action is undone by pressing “Undo”; “Reset” will reset the simulation to the start." ]
+      ]
 
   bodyText InputComposerHelp = text "The Input Composer allows you to choose any of the possible inputs to add to a transaction"
 
@@ -119,11 +124,6 @@ holeText marloweType = "Found a hole of type " <> dropEnd 4 (show marloweType) <
   dropEnd n = fromCodePointArray <<< Array.dropEnd n <<< toCodePointArray
 
 marloweTypeMarkerText :: MarloweType -> String
-marloweTypeMarkerText AccountIdType =
-  """
-The Marlowe model allows for a contract to control money in a number of disjoint accounts: this allows for more explicit control of how the money flows in the contract. Each account is owned by a particular party to the contract, and that party receives a refund of any remaining funds in the account when the contract is closed. These accounts are local, in that they only exist as during the execution of the contract, and during that time they are only accessible by parties to the contract.
-"""
-
 marloweTypeMarkerText ChoiceIdType =
   """
 Choices – of integers – are identified by ChoiceId which combines a name for the choice with the Party who had made the choice

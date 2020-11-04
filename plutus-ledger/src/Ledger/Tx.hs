@@ -218,7 +218,7 @@ lookupDatum Tx{txData} h = Map.lookup h txData
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
 validValuesTx Tx{..}
-  = all (nonNegative . txOutValue) txOutputs && nonNegative txForge  && nonNegative txFee
+  = all (nonNegative . txOutValue) txOutputs  && nonNegative txFee
     where
       nonNegative i = V.geq i mempty
 

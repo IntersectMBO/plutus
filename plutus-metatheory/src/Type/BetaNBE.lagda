@@ -128,7 +128,7 @@ eval (Π B)       η = Π (reify (eval B (exte η)))
 eval (A ⇒ B)     η = reify (eval A η) ⇒ reify (eval B η)
 eval (ƛ B)       η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
 eval (A · B)     η = eval A η ·V eval B η
-eval μ1          η = inj₁ μ1
+eval (μ A B)     η = μ (reify (eval A η)) (reify (eval B η))
 eval (con tcn)   η = con tcn
 \end{code}
 

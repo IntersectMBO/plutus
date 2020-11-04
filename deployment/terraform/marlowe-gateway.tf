@@ -70,7 +70,7 @@ resource "aws_api_gateway_integration" "marlowe_root_get_method" {
 
   type                    = "AWS"
   integration_http_method = "GET"
-  credentials             = "${aws_iam_role.marlowe_s3_proxy_role.arn}"
+  credentials             = aws_iam_role.marlowe_s3_proxy_role.arn
   uri                     = "arn:aws:apigateway:${var.aws_region}:s3:path/marlowe-playground-website-${var.env}/index.html"
 }
 
@@ -101,6 +101,10 @@ resource "aws_api_gateway_integration_response" "marlowe_root_get_method" {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
     "method.response.header.Content-Type" = "integration.response.header.Content-Type"
   }
+
+  depends_on = [
+    aws_api_gateway_integration.marlowe_root_get_method
+  ]
 }
 
 ## Other static files
@@ -128,7 +132,7 @@ resource "aws_api_gateway_integration" "marlowe_item_get_method" {
 
   type                    = "HTTP_PROXY"
   integration_http_method = "GET"
-  credentials             = "${aws_iam_role.marlowe_s3_proxy_role.arn}"
+  credentials             = aws_iam_role.marlowe_s3_proxy_role.arn
   uri                     = "https://${aws_s3_bucket.marlowe_playground.bucket_regional_domain_name}/{proxy}"
 
   request_parameters = {
@@ -285,10 +289,10 @@ resource "aws_api_gateway_integration" "marlowe_runghc" {
 resource "aws_route53_record" "marlowe_api_gw" {
   name    = local.marlowe_domain_name
   type    = "A"
-  zone_id = "${var.marlowe_public_zone}"
+  zone_id = var.marlowe_public_zone
   alias {
-    name                   = "${aws_api_gateway_domain_name.marlowe.regional_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.marlowe.regional_zone_id}"
+    name                   = aws_api_gateway_domain_name.marlowe.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.marlowe.regional_zone_id
     evaluate_target_health = true
   }
 }

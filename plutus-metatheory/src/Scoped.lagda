@@ -128,41 +128,55 @@ lookupWTy (suc x) Z = nothing
 lookupWTy (suc x) (S w) = lookupWTy x w
 lookupWTy (suc x) (T w) = fmap suc (lookupWTy x w)
 
+
 lookupWTm' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTm' i Z = i
+lookupWTm' zero (S w) = 1
+lookupWTm' (suc i) (S w) = suc (lookupWTm' i w)
+lookupWTm' i (T w) = suc (lookupWTm' i w)
+{-
 lookupWTm' x (S m) = lookupWTm' x m
 lookupWTm' x (T m) = lookupWTm' (suc x) m
-lookupWTm' x Z     = x
+lookupWTm' x Z     = suc x
+-}
 
 lookupWTy' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
+lookupWTy' i Z = i
+lookupWTy' i (S w) = suc (lookupWTy' i w)
+lookupWTy' (suc i) (T w) = suc (lookupWTy' i w)
+lookupWTy' 0 (T w) = 1
+
+{-
 lookupWTy' x (S m) = lookupWTy' (suc x) m
 lookupWTy' x (T m) = lookupWTy' x m
-lookupWTy' x Z     = x
+lookupWTy' x Z     = suc x
+-}
 
 -- these are renamings
-shifterTy : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTy → RawTy
-shifterTy m w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
-shifterTy m w (A ⇒ B) = shifterTy m w A ⇒ shifterTy m w B
-shifterTy m w (Π K A) = Π K (shifterTy (suc m) (T w) A)
-shifterTy m w (ƛ K A) = ƛ K (shifterTy (suc m) (T w) A)
-shifterTy m w (A · B) = shifterTy m w A · shifterTy m w B
-shifterTy m w (con c) = con c
-shifterTy m w (μ A B) = μ (shifterTy m w A) (shifterTy m w B)
+shifterTy : ∀{n}(w : Weirdℕ n) → RawTy → RawTy
+shifterTy w (` x) = ` (maybe (\x → x) 100 (lookupWTy ∣ x - 1 ∣  w))
+shifterTy w (A ⇒ B) = shifterTy w A ⇒ shifterTy w B
+shifterTy w (Π K A) = Π K (shifterTy (T w) A)
+shifterTy w (ƛ K A) = ƛ K (shifterTy (T w) A)
+shifterTy w (A · B) = shifterTy w A · shifterTy w B
+shifterTy w (con c) = con c
+shifterTy w (μ A B) = μ (shifterTy w A) (shifterTy w B)
 
-shifter : ∀(m : ℕ){n}(w : Weirdℕ n) → RawTm → RawTm
-shifter m w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
-shifter m w (Λ K t) = Λ K (shifter (suc m) (T w) t)
-shifter m w (t ·⋆ A) = shifter m w t ·⋆ shifterTy m w A
-shifter m w (ƛ A t) = ƛ (shifterTy (suc m) (S w) A) (shifter (suc m) (S w) t) 
-shifter m w (t · u) = shifter m w t · shifter m w u
-shifter m w (con c) = con c
-shifter m w (error A) = error (shifterTy m w A)
-shifter m w (builtin b) = builtin b
-shifter m w (wrap pat arg t) =
-  wrap (shifterTy m w pat) (shifterTy m w arg) (shifter m w t)
-shifter m w (unwrap t) = unwrap (shifter m w t)
+shifter : ∀{n}(w : Weirdℕ n) → RawTm → RawTm
+shifter w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
+shifter w (Λ K t) = Λ K (shifter (T w) t)
+shifter w (t ·⋆ A) = shifter w t ·⋆ shifterTy w A
+shifter w (ƛ A t) = ƛ (shifterTy (S w) A) (shifter (S w) t) 
+shifter w (t · u) = shifter w t · shifter w u
+shifter w (con c) = con c
+shifter w (error A) = error (shifterTy w A)
+shifter w (builtin b) = builtin b
+shifter w (wrap pat arg t) =
+  wrap (shifterTy w pat) (shifterTy w arg) (shifter w t)
+shifter w (unwrap t) = unwrap (shifter w t)
 
 unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
-unshifterTy w (` x) = ` (suc (lookupWTy' x w))
+unshifterTy w (` x) = ` (lookupWTy' x w)
 unshifterTy w (A ⇒ B) = unshifterTy w A ⇒ unshifterTy w B
 unshifterTy w (Π K A) = Π K (unshifterTy (T w) A)
 unshifterTy w (ƛ K A) = ƛ K (unshifterTy (T w) A)
@@ -170,10 +184,12 @@ unshifterTy w (A · B) = unshifterTy w A · unshifterTy w B
 unshifterTy w (con c) = con c
 unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
 
+open import Relation.Binary.PropositionalEquality
 
 unshifter : ∀{n} → Weirdℕ n → RawTm → RawTm
-unshifter w (` x) = ` (suc (lookupWTm' x w))
+unshifter w (` x) = ` (lookupWTm' x w)
 unshifter w (Λ K t) = Λ K (unshifter (T w) t)
+
 unshifter w (t ·⋆ A) = unshifter w t ·⋆ unshifterTy w A
 unshifter w (ƛ A t) = ƛ (unshifterTy (S w) A) (unshifter (S w) t)
 unshifter w (t · u) = unshifter w t · unshifter w u
@@ -231,13 +247,28 @@ deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit 
 
-ℕtoFin : ∀{n} → ℕ → Either Error (Fin n)
-ℕtoFin {zero}  _       = inj₁ scopeError
+postulate
+  FreeVariableError : Set
+
+{-# COMPILE GHC FreeVariableError = type FreeVariableError #-}
+
+
+data ScopeError : Set where
+  deBError : ScopeError
+  freeVariableError : FreeVariableError → ScopeError  
+  
+{-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import Raw #-}
+{-# COMPILE GHC ScopeError = data ScopeError (DeBError | FreeVariableError) #-}
+
+
+ℕtoFin : ∀{n} → ℕ → Either ScopeError (Fin n)
+ℕtoFin {zero}  _       = inj₁ deBError
 ℕtoFin {suc m} zero    = return zero
 ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
-ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either Error (WeirdFin w)
-ℕtoWeirdFin {w = Z}   n    = inj₁ scopeError
+ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either ScopeError (WeirdFin w)
+ℕtoWeirdFin {w = Z}   n    = inj₁ deBError
 ℕtoWeirdFin {w = S w} zero = return Z
 ℕtoWeirdFin {w = S w} (suc n) = do
   i ← ℕtoWeirdFin {w = w} n
@@ -246,7 +277,7 @@ deBruijnifyC unit           = unit
   i ← ℕtoWeirdFin {w = w} n
   return (T i)
 
-scopeCheckTy : ∀{n} → RawTy → Either Error (ScopedTy n)
+scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
@@ -264,7 +295,7 @@ scopeCheckTy (μ A B) = do
   B ← scopeCheckTy B
   return (μ A B)
 
-scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either Error (ScopedTm w)
+scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either ScopeError (ScopedTm w)
 scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
 scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
@@ -346,7 +377,6 @@ extricateScope (unwrap t) = unwrap (extricateScope t)
 -- UGLY PRINTING
 
 \begin{code}
-{-
 open import Data.String
 
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
@@ -354,12 +384,10 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-{-
 uglyTermCon : TermCon → String
 uglyTermCon (integer x) = "(integer " ++ Data.Integer.show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
--}
 
 postulate showNat : ℕ → String
 
@@ -377,16 +405,15 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (builtin b As ts) =
-  "(builtin " ++
+ugly (builtin b X As ts) = "builtin" -- FIX ME
+{-  "(builtin " ++
   uglyBuiltin b ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++
   " " ++
   Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
-  ++ ")"
+  ++ ")" -}
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
--}
 \end{code}

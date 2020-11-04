@@ -200,7 +200,7 @@ evalSR (ƛ B)   {σ}{η}          p =
                     B)))))
     (evalSR B (SR,,⋆ (renSR ρ ∘ p) q))
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
-evalSR μ1          p = refl≡β _
+evalSR (μ A B)     p = μ≡β (reifySR (evalSR A p)) (reifySR (evalSR B p))
 evalSR (con tcn)   p = refl≡β _
 \end{code}
 

@@ -10,7 +10,13 @@ license-files:
 author:              James Chapman
 maintainer:          james.chapman@iohk.io
 category:            Development
-extra-source-files:  README.md, Plutus.agda-lib
+extra-source-files:
+  README.md,
+  Plutus.agda-lib,
+  -- This makes cabal rebuild if any of these files change, which allow the
+  -- custom setup to fire and rebuild the Haskell sources
+  src/**/*.lagda,
+  src/**/*.lagda.md
 build-type:          Custom
 
 custom-setup
@@ -41,6 +47,7 @@ library
         Scoped
         Opts
         MAlonzo.Code.Main
+        MAlonzo.Code.Algorithmic.Evaluation
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
         MAlonzo.Code.Agda.Builtin.Equality
@@ -401,7 +408,7 @@ library
         MAlonzo.Code.IO.Primitive
         MAlonzo.Code.Relation.Binary.Construct.FromRel
         MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
-                       
+
 executable plc-agda
   import: stuff
   hs-source-dirs: exe
@@ -409,7 +416,7 @@ executable plc-agda
   build-depends:
     base -any,
     plutus-metatheory
-    
+
 test-suite test1
   import: stuff
   build-tool-depends: plutus-core:plc
@@ -435,7 +442,7 @@ test-suite test2
     plutus-metatheory,
     process -any,
     text -any
-    
+
 test-suite test3
   import: stuff
   hs-source-dirs: test

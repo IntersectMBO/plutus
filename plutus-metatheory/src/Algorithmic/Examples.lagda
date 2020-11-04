@@ -52,35 +52,36 @@ module Scott where
   f ·Nf a = nf (embNf f · embNf a)
 
   μ0 : ∀{Γ} → Γ ⊢Nf⋆ (* ⇒ *) ⇒ *
-  μ0 = ƛ "x" (ne (μ1 · ƛ "t" (ƛ "z" (ne (` Z · ne (` (S Z) · ne (` Z))))) · ne (` Z)))
+  μ0 = ƛ (μ (ƛ (ƛ (ne (` Z · ne (` (S Z) · ne (` Z)))))) (ne (` Z)))
+
 
   wrap0 : ∀{Φ Γ}
     → (A : Φ ⊢Nf⋆ * ⇒ *)
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
     → Γ ⊢ μ0 ·Nf A
-  wrap0 A X rewrite stability A = wrap1 _ A X
+  wrap0 A X rewrite stability A = wrap _ A X
 
   unwrap0 : ∀{Φ Γ}
     → (A : Φ ⊢Nf⋆ * ⇒ *)
     → Γ ⊢ μ0 ·Nf A
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
-  unwrap0 A X rewrite stability A = unwrap1 X
+  unwrap0 A X rewrite stability A = unwrap X
   
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
-  G = Π "α" (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
+  G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
   
   M : ∀{Γ} → Γ ⊢Nf⋆ *
-  M = μ0 ·Nf ƛ "x" G
+  M = μ0 ·Nf ƛ G
 
   N : ∀{Γ} → Γ ⊢Nf⋆ *
   N  =  G [ M ]Nf
 
   Zero : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
-  Zero = Λ "α" (ƛ "x" (ƛ "y" (` (S (Z )))))
+  Zero = Λ (ƛ (ƛ (` (S (Z )))))
 
 
   Succ :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N
-  Succ = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" (` Z · wrap0 (ƛ "x" G) (` (S (S (T Z))))))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap0 (ƛ G) (` (S (S (T Z))))))))
 
   One :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   One = Succ · Zero
@@ -94,26 +95,26 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π "α" (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ "a" (` (S Z) ·  unwrap0 (ƛ "x" G) (` Z) ))))))
+  case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
+  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
 
 {-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
   Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (ne (` Z) ⇒ ne (` (S Z))) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
 -}
   Z-comb :  ∀{Φ}{Γ : Ctx Φ} →
-    Γ ⊢ Π "α" (Π "β" (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
-  Z-comb = Λ "α" (Λ "β" (ƛ "f" (ƛ "r" (` (S Z) · ƛ "x" (unwrap0  (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ "r" (` (S Z) · ƛ "x" (unwrap0 (ƛ "y" (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
+    Γ ⊢ Π (Π (((ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` (S Z)) ⇒ ne (` Z)))
+  Z-comb = Λ (Λ (ƛ (ƛ (` (S Z) · ƛ (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ (` (S Z) · ƛ (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
   OnePlus :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  OnePlus = ƛ "x" (ƛ "y" ((((case · (` Z)) ·⋆ N) · One) · (ƛ "z" (Succ · (` (S (S Z)) · (` Z))))))
+  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   OnePlusOne : ∅ ⊢ N
   OnePlusOne = (Z-comb ·⋆ N) ·⋆ N · OnePlus · One
 
  -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ "x" (ƛ "y" ((Z-comb ·⋆ N) ·⋆ N · (ƛ "x" (ƛ "y" ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ "x" (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
@@ -166,16 +167,16 @@ eval (gas 10000000) Scott.Two
 module Church where
 
   N :  ∀{Φ} → Φ ⊢Nf⋆ *
-  N = Π "α" ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
+  N = Π ((ne (` Z)) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ (ne (` Z)))
 
   Zero : ∅ ⊢ N
-  Zero = Λ "α" (ƛ "x" (ƛ "y" (` (S Z))))
+  Zero = Λ (ƛ (ƛ (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ "x" (Λ "α" (ƛ "y" (ƛ "z" (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
   
-  Iter : ∅ ⊢ Π "α" (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
-  Iter = Λ "α" (ƛ "x" (ƛ "y" (ƛ "z" ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
+  Iter : ∅ ⊢ Π (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
+  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two
   One : ∅ ⊢ N

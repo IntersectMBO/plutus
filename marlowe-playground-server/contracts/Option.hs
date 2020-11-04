@@ -34,13 +34,13 @@ contract = When
                 (When
                     [Case
                         (Deposit
-                            (AccountId 0 (Role "seller"))
+                            (Role "seller")
                             (Role "seller")
                             (Token "" "")
                             (UseValue "payoff")
                         )
                         (Pay
-                            (AccountId 0 (Role "seller"))
+                            (Role "seller")
                             (Party (Role "buyer"))
                             (Token "" "")
                             (UseValue "payoff")

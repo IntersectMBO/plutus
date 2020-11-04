@@ -1,76 +1,87 @@
 module Marlowe.Gists
   ( mkNewGist
-  , currentSimulationMarloweGistFile
-  , oldSimulationMarloweGistFile
-  , simulationState
+  , playgroundGist
+  , playgroundFiles
+  , filenames
+  , fileExists
   ) where
 
 import Prelude
-import Control.Monad.Except (runExcept)
+import Blockly (XML)
 import Data.Array (catMaybes)
-import Data.Array as Array
-import Data.Either (hush)
-import Data.Lens (view)
-import Data.List.NonEmpty as NEL
-import Data.List.Types (NonEmptyList)
-import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
-import Foreign.Generic (decodeJSON, encodeJSON)
-import Gist (Gist, GistFile, NewGist(NewGist), NewGistFile(NewGistFile), gistFileContent)
-import Gists (firstMatch)
-import Language.Haskell.Interpreter (SourceCode)
-import Simulation.State (MarloweState)
+import Data.Lens (has, view)
+import Data.Lens.Index (ix)
+import Data.Maybe (Maybe, fromMaybe)
+import Data.Newtype (unwrap, wrap)
+import Gist (Gist, NewGist(NewGist), NewGistFile(..), gistFileContent, gistFiles)
 
-mkNewGist ::
-  Maybe SourceCode ->
-  Maybe SourceCode ->
-  NonEmptyList MarloweState ->
-  Maybe NewGist
-mkNewGist currentSource oldSource marloweState =
-  if Array.null gistFiles then
-    Nothing
-  else
-    Just
-      $ NewGist
-          { _newGistDescription: "Marlowe Smart Contract"
-          , _newGistPublic: true
-          , _newGistFiles: gistFiles
-          }
+mkNewGist :: String -> PlaygroundFiles -> NewGist
+mkNewGist description files =
+  NewGist
+    { _newGistDescription: description
+    , _newGistPublic: true
+    , _newGistFiles: toArray files
+    }
+
+mkNewGistFile :: String -> String -> NewGistFile
+mkNewGistFile _newGistFilename _newGistFileContent =
+  NewGistFile
+    { _newGistFilename
+    , _newGistFileContent
+    }
+
+type PlaygroundFiles
+  = { playground :: String
+    , marlowe :: Maybe String
+    , haskell :: Maybe String
+    , blockly :: Maybe XML
+    , javascript :: Maybe String
+    , actus :: Maybe XML
+    }
+
+toArray :: PlaygroundFiles -> Array NewGistFile
+toArray { playground, marlowe, haskell, blockly, javascript, actus } =
+  [ mkNewGistFile filenames.playground playground
+  ]
+    <> catMaybes
+        [ mkNewGistFile filenames.marlowe <$> marlowe
+        , mkNewGistFile filenames.haskell <$> haskell
+        , mkNewGistFile filenames.blockly <<< unwrap <$> blockly
+        , mkNewGistFile filenames.javascript <$> javascript
+        , mkNewGistFile filenames.actus <<< unwrap <$> actus
+        ]
+
+filenames ::
+  { playground :: String
+  , marlowe :: String
+  , haskell :: String
+  , blockly :: String
+  , javascript :: String
+  , actus :: String
+  }
+filenames =
+  { playground: "playground.marlowe.json"
+  , marlowe: "playground.marlowe"
+  , haskell: "Main.hs"
+  , blockly: "blockly.xml"
+  , javascript: "playground.js"
+  , actus: "actus.xml"
+  }
+
+playgroundGist :: Gist -> Boolean
+playgroundGist = has (gistFiles <<< ix filenames.playground)
+
+playgroundFiles :: Gist -> PlaygroundFiles
+playgroundFiles gist =
+  { playground: fromMaybe "{}" $ getFile filenames.playground
+  , marlowe: getFile filenames.marlowe
+  , haskell: getFile filenames.haskell
+  , blockly: wrap <$> getFile filenames.blockly
+  , javascript: getFile filenames.javascript
+  , actus: wrap <$> getFile filenames.actus
+  }
   where
-  gistFiles =
-    catMaybes
-      [ mkNewGistFile currentSimulationMarloweFile <<< unwrap <$> currentSource
-      , mkNewGistFile oldSimulationMarloweFile <<< unwrap <$> oldSource
-      , Just $ mkNewGistFile simulationFile (encodeJSON stateArray)
-      ]
+  getFile name = view (gistFiles <<< ix name <<< gistFileContent) gist
 
-  stateArray :: Array MarloweState
-  stateArray = NEL.toUnfoldable marloweState
-
-  mkNewGistFile _newGistFilename _newGistFileContent =
-    NewGistFile
-      { _newGistFilename
-      , _newGistFileContent
-      }
-
-currentSimulationMarloweFile :: String
-currentSimulationMarloweFile = "CurrentMarlowe.hs"
-
-oldSimulationMarloweFile :: String
-oldSimulationMarloweFile = "OldMarlowe.hs"
-
-simulationFile :: String
-simulationFile = "simulation.json"
-
-currentSimulationMarloweGistFile :: Gist -> Maybe GistFile
-currentSimulationMarloweGistFile = firstMatch currentSimulationMarloweFile
-
-oldSimulationMarloweGistFile :: Gist -> Maybe GistFile
-oldSimulationMarloweGistFile = firstMatch oldSimulationMarloweFile
-
-simulationState :: Gist -> Maybe (NonEmptyList MarloweState)
-simulationState gist = do
-  gistFile <- firstMatch simulationFile gist
-  content <- view gistFileContent gistFile
-  stateList <- hush $ runExcept $ decodeJSON content
-  NEL.fromList stateList
+fileExists :: String -> Gist -> Boolean
+fileExists name gist = has (gistFiles <<< ix name) gist

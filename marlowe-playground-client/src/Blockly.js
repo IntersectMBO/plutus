@@ -81,3 +81,22 @@ exports.getBlockById_ = function (just, nothing, workspace, id) {
         return nothing;
     }
 }
+
+exports.workspaceXML_ = function (blockly, workspace) {
+    const isEmpty = workspace.getAllBlocks()[0].getChildren().length == 0;
+    if (isEmpty) {
+        return "";
+    } else {
+        var dom = blockly.Xml.workspaceToDom(workspace);
+        return blockly.utils.xml.domToText(dom);
+    }
+}
+
+exports.loadWorkspace_ = function (blockly, workspaceRef, xml) {
+    return function () {
+        var workspace = workspaceRef.value;
+        var dom = blockly.utils.xml.textToDomDocument(xml);
+        blockly.Xml.clearWorkspaceAndLoadFromXml(dom.childNodes[0], workspace);
+        workspace.getAllBlocks()[0].setDeletable(false);
+    }
+}

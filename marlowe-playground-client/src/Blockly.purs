@@ -61,6 +61,17 @@ type WorkspaceConfig
     , grid :: GridConfig
     }
 
+newtype XML
+  = XML String
+
+derive instance newtypeXML :: Newtype XML _
+
+derive newtype instance semigroupXML :: Semigroup XML
+
+derive newtype instance monoidXML :: Monoid XML
+
+derive newtype instance eqXML :: Eq XML
+
 -- Functions that mutate values always work on STRefs rather than regular values
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 
@@ -77,6 +88,10 @@ foreign import initializeWorkspace_ :: forall r. Fn2 Blockly (STRef r Workspace)
 foreign import render_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
 
 foreign import getBlockById_ :: forall a. Fn4 (a -> Maybe a) (Maybe a) Workspace String (Maybe Block)
+
+foreign import workspaceXML_ :: Fn2 Blockly Workspace XML
+
+foreign import loadWorkspace_ :: forall r. Fn3 Blockly (STRef r Workspace) XML (ST r Unit)
 
 newtype ElementId
   = ElementId String
@@ -148,6 +163,12 @@ render = runFn1 render_
 
 getBlockById :: Workspace -> String -> Maybe Block
 getBlockById = runFn4 getBlockById_ Just Nothing
+
+workspaceXML :: Blockly -> Workspace -> XML
+workspaceXML = runFn2 workspaceXML_
+
+loadWorkspace :: forall r. Blockly -> (STRef r Workspace) -> XML -> ST r Unit
+loadWorkspace = runFn3 loadWorkspace_
 
 data Pair
   = Pair String String

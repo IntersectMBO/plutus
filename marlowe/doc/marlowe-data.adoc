@@ -1,5 +1,7 @@
+
 [#marlowe-data]
 == The Marlowe data types
+
 
 This tutorial formally introduces Marlowe as a Haskell data type, as well as presenting
 the different types used by the model, and discussing a
@@ -14,7 +16,7 @@ types in Haskell, with contracts being given by the `Contract` type:
 [source,haskell]
 ----
 data Contract = Close
-              | Pay AccountId Payee Token Value Contract
+              | Pay Party Payee Token Value Contract
               | If Observation Contract Contract
               | When [Case] Timeout Contract
               | Let ValueId Value Contract
@@ -83,21 +85,15 @@ type Timeout = Slot
 ----
 
 
-Accounts have a number `NumAccount` and an owner, who is a `Party` to the contract.
-[source,haskell]
-----
-type NumAccount = Integer
-data AccountId  = AccountId NumAccount Party
-----
-and an example would be `AccountId 0 "alice"`. Note that `"alice"` is the owner here in the sense that she will be refunded any money in the account when the contract terminates.
+Note that `"alice"` is the owner here in the sense that she will be refunded any money in the account when the contract terminates.
 
-Because in many contracts, each party will own at most one account, we can use overloaded strings to allow us to abbreviate this account – account number `0` for any owner – by the name of its owner: in this case `"alice"`.
+We can use overloaded strings to allow us to abbreviate this account by the name of its owner: in this case `"alice"`.
 
 A payment can be made to one of the parties to the contract, or to one of the accounts of the contract, and this is reflected in the definition
 
 [source,haskell]
 ----
-data Payee = Account AccountId
+data Payee = Account Party
            | Party Party
 ----
 
@@ -120,7 +116,7 @@ Building on the basic types, we can describe three higher-level components of co
 
 [source,haskell]
 ----
-data Value = AvailableMoney AccountId Token
+data Value = AvailableMoney Party Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
@@ -167,7 +163,7 @@ Cases and actions are given by these types:
 ----
 data Case = Case Action Contract
 
-data Action = Deposit AccountId Party Token Value
+data Action = Deposit Party Party Token Value
             | Choice ChoiceId [Bound]
             | Notify Observation
 
@@ -175,7 +171,7 @@ data Bound = Bound Integer Integer
 ----
 Three kinds of action are possible:
 
-* A `Deposit n p t v` makes a deposit of value `v` of token `t` into account number `n` belonging to party `p`.
+* A `Deposit n p t v` makes a deposit of value `v` of token `t` from party `p` into account `n`.
 * A choice is made for a particular id with a list of bounds on the values that are acceptable.  For example, `[Bound 0 0, Bound 3 5]` offers the choice of one of `0`, `3`, `4` and `5`.
 * The contract is notified that a particular observation be made. Typically this would be done by one of the parties, or one of their wallets acting automatically.
 

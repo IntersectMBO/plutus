@@ -87,10 +87,10 @@ erase (ƛ t)             = ƛ (erase t)
 erase (t · u)           = erase t · erase u
 erase (Λ t)             = ƛ (U.weaken (erase t))
 erase (t ·⋆ A)          = erase t · plc_dummy
-erase (wrap1 pat arg t) = erase t
-erase (unwrap1 t)       = erase t
+erase (wrap A B t)      = erase t
+erase (unwrap t)        = erase t
 erase (conv p t)        = erase t
-erase {Γ = Γ} (con t)    = con (eraseTC {Γ = Γ} t)
+erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel ts)
 erase (error A)         = error

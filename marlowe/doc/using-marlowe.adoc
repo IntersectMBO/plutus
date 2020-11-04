@@ -44,7 +44,7 @@ and `States` are defined like this, with a helper function to define an initiall
 
 [source,haskell]
 ----
-data State = State { accounts :: Map AccountId Money
+data State = State { accounts :: Map Party Money
                    , choices  :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot :: Slot }
@@ -88,7 +88,7 @@ The output is matched with `TransactionOutput txWarn1 txPay1 state1 con1` so tha
 *Lang...V2> txPay1
 []
 *Lang...V2> state1
-State {accounts = fromList [((AccountId 0 "alice", ada), 450)], choices = fromList [], boundValues = fromList [], minSlot = 0}
+State {accounts = fromList [("alice", ada), 450)], choices = fromList [], boundValues = fromList [], minSlot = 0}
 *Lang...V2> con1
 When [Case (Choice (ChoiceId "choice" "alice") [Bound 0 1])
  ...
@@ -127,9 +127,9 @@ An alternative execution of the contract is given by
 ----
 *Lang...V2> let (TransactionOutput txWarn2 txPay2 state2 con2) = computeTransaction (TransactionInput (SlotInterval 0 0) [IChoice (ChoiceId "choice" "alice") 0, IChoice (ChoiceId "choice" "bob") 1]) state1 con1
 *Lang...V2> con2
-When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Close, Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay (AccountId 0 "alice") (Party "bob") ada (Constant 450) Close)] 100 Close
+When [Case (Choice (ChoiceId "choice" "carol") [Bound 1 1]) Close, Case (Choice (ChoiceId "choice" "carol") [Bound 0 0]) (Pay "alice" (Party "bob") ada (Constant 450) Close)] 100 Close
 *Lang...V2> state2
-State {accounts = fromList [((AccountId 0 "alice", ada), 450)], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",1)], boundValues = fromList [] , minSlot = 0}
+State {accounts = fromList [("alice", ada), 450)], choices = fromList [(ChoiceId "choice" "alice",0),(ChoiceId "choice" "bob",1)], boundValues = fromList [] , minSlot = 0}
 ----
 
 This shows that we're now in a contract where the choice is up to Carol, and that there is still the 450 Lovelace in the `"alice"` account.
@@ -162,6 +162,7 @@ when Bob and Alice choose to refund the money to Alice? - What
 happens if Bob and Alice disagree, but Carol sides with Bob?
 ____
 
+//// 
 === There must be an easier way!
 
 Yes, there is!
@@ -169,3 +170,4 @@ Yes, there is!
 We look next at our tool, the Marlowe Playground, that
 will capitalise on the fact that we are working in a DSL to _automate_
 picking the right inputs and allow users to interact with contracts.
+//// 

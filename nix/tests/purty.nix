@@ -3,19 +3,22 @@
 let
   # just purescript sources
   src' = lib.cleanSourceWith {
-   inherit src;
-   filter = with lib;
-    name: type: let baseName = baseNameOf (toString name); in (
-      (type == "regular" && hasSuffix ".purs" baseName) ||
-      (type == "directory" && (baseName != "generated"
-                            && baseName != "output"
-                            && baseName != "node_modules"
-                            && baseName != ".psc-package"
-                            && baseName != ".spago"))
-    );
+    inherit src;
+    filter = with lib;
+      name: type:
+        let baseName = baseNameOf (toString name); in
+        (
+          (type == "regular" && hasSuffix ".purs" baseName) ||
+          (type == "directory" && (baseName != "generated"
+          && baseName != "output"
+          && baseName != "node_modules"
+          && baseName != ".psc-package"
+          && baseName != ".spago"))
+        );
   };
 in
-runCommand "purty-check" {
+runCommand "purty-check"
+{
   buildInputs = [ purty diffutils glibcLocales ];
 } ''
   set +e

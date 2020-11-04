@@ -106,17 +106,6 @@ instance (Pretty a) => Pretty [a] where
     Thus, we require @PureScript.parse . Haskell.pretty == id
  -}
 
-instance  (Show a) => Show (P.Ratio a) where
-    -- Adapted from Data.Ratio in the base library
-    showsPrec p r = showParen (p > ratioPrec) $
-                    showString "(" .
-                    showsPrec ratioPrec1 (P.numerator r) .
-                    showString " % " .
-                    showsPrec ratioPrec1 (P.denominator r) .
-                    showString ")"
-       where ratioPrec = 7  -- This refers to the operator precedence level of %
-             ratioPrec1 = ratioPrec + 1
-
 instance (Show a) => Pretty (P.Ratio a) where
     prettyFragment = text . show
 
@@ -124,7 +113,7 @@ instance Pretty Slot where
     prettyFragment (Slot n) = prettyFragment n
 
 instance Pretty PubKeyHash where
-    prettyFragment (PubKeyHash bs) = prettyFragment bs
+    prettyFragment (PubKeyHash bs) = text ("\"" ++ show (PubKeyHash bs) ++ "\"")
 
 instance Pretty BS.ByteString where
     prettyFragment = text . show
@@ -132,5 +121,7 @@ instance Pretty BS.ByteString where
 instance Pretty Ada where
     prettyFragment x = prettyFragment (getLovelace x)
 
-deriving instance Pretty CurrencySymbol
+instance Pretty CurrencySymbol where
+    prettyFragment (CurrencySymbol bs) = text ("\"" ++ show (CurrencySymbol bs) ++ "\"")
+
 deriving instance Pretty TokenName

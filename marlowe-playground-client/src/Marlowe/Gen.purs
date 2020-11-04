@@ -8,11 +8,14 @@ import Control.Monad.Reader (class MonadReader, ask, local)
 import Control.Monad.Rec.Class (class MonadRec)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
+import Data.Char (fromCharCode)
 import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
+import Data.Int (rem)
+import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
@@ -54,6 +57,16 @@ genTimeout = TermWrapper <$> genSlot <*> pure zero
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
 
+genHexit :: forall m. MonadGen m => m Char
+genHexit = oneOf $ lowerAlphaHexDigit :| upperAlphaHexDigit :| [ genDigitChar ]
+  where
+  lowerAlphaHexDigit = fromMaybe 'a' <$> (fromCharCode <$> chooseInt 97 102)
+
+  upperAlphaHexDigit = fromMaybe 'A' <$> (fromCharCode <$> chooseInt 65 70)
+
+genBase16 :: forall m. MonadGen m => MonadRec m => m String
+genBase16 = fromCharArray <$> resize (\s -> s - (s `rem` 2)) (unfoldable genHexit)
+
 genAlphaNum :: forall m. MonadGen m => MonadRec m => m Char
 genAlphaNum = oneOf $ genAlpha :| [ genDigitChar ]
 
@@ -61,7 +74,7 @@ genString :: forall m. MonadGen m => MonadRec m => m String
 genString = fromCharArray <$> resize (_ - 1) (unfoldable genAlphaNum)
 
 genPubKey :: forall m. MonadGen m => MonadRec m => m PubKey
-genPubKey = genString
+genPubKey = genBase16
 
 genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
@@ -74,7 +87,7 @@ genParty = oneOf $ pk :| [ role ]
   role = Role <$> genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
-genCurrencySymbol = genString
+genCurrencySymbol = genBase16
 
 genSlotInterval :: forall m. MonadGen m => MonadRec m => m Slot -> m SlotInterval
 genSlotInterval gen = do
@@ -115,12 +128,6 @@ genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m 
 genTermWrapper g = do
   TermWrapper <$> g <*> pure zero
 
-genAccountId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m AccountId
-genAccountId = do
-  accountNumber <- genBigInteger
-  accountOwner <- genTerm (mkArgName PartyType) genParty
-  pure $ AccountId accountNumber accountOwner
-
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
 genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
 
@@ -131,12 +138,12 @@ genChoiceId = do
   pure $ ChoiceId choiceName choiceOwner
 
 genPayee :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm (mkArgName PartyType) genParty ]
+genPayee = oneOf $ (Account <$> genTerm (mkArgName PartyType) genParty) :| [ Party <$> genTerm (mkArgName PartyType) genParty ]
 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadReader Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genAccountId <*> genTerm "from_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
+    $ (Deposit <$> genTerm "into" genParty <*> genTerm "from_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
     :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable (genTerm (mkArgName BoundType) genBound))
       , Notify <$> genTerm (mkArgName ObservationType) (genObservation' size)
       ]
@@ -193,7 +200,7 @@ genValue' size
       in
         oneOf $ pure SlotIntervalStart
           :| [ pure SlotIntervalEnd
-            , AvailableMoney <$> genAccountId <*> genTerm (mkArgName TokenType) genToken
+            , AvailableMoney <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName TokenType) genToken
             , Constant <$> genBigInteger
             , NegValue <$> genNewValue
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
@@ -206,7 +213,7 @@ genValue' size
   | otherwise =
     oneOf $ pure SlotIntervalStart
       :| [ pure SlotIntervalEnd
-        , AvailableMoney <$> genAccountId <*> genTerm (mkArgName TokenType) genToken
+        , AvailableMoney <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName TokenType) genToken
         , Constant <$> genBigInteger
         , UseValue <$> genTermWrapper genValueId
         ]
@@ -295,7 +302,7 @@ genContract' size
         genNewContract = genTerm (mkArgName ContractType) $ genContract' newSize
       in
         oneOf $ pure Close
-          :| [ Pay <$> genAccountId <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract
+          :| [ Pay <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContractIndexed 1 <*> genNewContractIndexed 2
             , When <$> genCases newSize <*> genTimeout <*> genNewContract
             , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
@@ -312,7 +319,7 @@ genTokenNameValue :: forall m. MonadGen m => MonadRec m => m S.TokenName
 genTokenNameValue = genString
 
 genCurrencySymbolValue :: forall m. MonadGen m => MonadRec m => m S.CurrencySymbol
-genCurrencySymbolValue = genString
+genCurrencySymbolValue = genBase16
 
 genTokenValue :: forall m. MonadGen m => MonadRec m => m S.Token
 genTokenValue = do
@@ -327,14 +334,8 @@ genPartyValue = oneOf $ pk :| [ role ]
 
   role = S.Role <$> genTokenNameValue
 
-genAccountIdValue :: forall m. MonadGen m => MonadRec m => m S.AccountId
-genAccountIdValue = do
-  accountNumber <- genBigInteger
-  accountOwner <- genPartyValue
-  pure $ S.AccountId accountNumber accountOwner
-
 genPayeeValue :: forall m. MonadGen m => MonadRec m => m S.Payee
-genPayeeValue = oneOf $ (S.Account <$> genAccountIdValue) :| [ S.Party <$> genPartyValue ]
+genPayeeValue = oneOf $ (S.Account <$> genPartyValue) :| [ S.Party <$> genPartyValue ]
 
 genValueIdValue :: forall m. MonadGen m => MonadRec m => m S.ValueId
 genValueIdValue = S.ValueId <$> genString
@@ -352,7 +353,7 @@ genInput ::
   m S.Input
 genInput =
   oneOf
-    $ (IDeposit <$> genAccountIdValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
+    $ (IDeposit <$> genPartyValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
     :| [ IChoice <$> genChoiceIdValue <*> genBigInteger
       , pure INotify
       ]
@@ -374,8 +375,8 @@ genTransactionWarning ::
   m TransactionWarning
 genTransactionWarning =
   oneOf
-    $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genAccountIdValue <*> genTokenValue <*> genBigInteger)
-    :| [ TransactionNonPositivePay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
-      , TransactionPartialPay <$> genAccountIdValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
+    $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
+    :| [ TransactionNonPositivePay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
+      , TransactionPartialPay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
       , TransactionShadowing <$> genValueIdValue <*> genBigInteger <*> genBigInteger
       ]

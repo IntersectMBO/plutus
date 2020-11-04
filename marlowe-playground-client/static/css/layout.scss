@@ -1,0 +1,51 @@
+html,
+body,
+.site-wrap {
+  background: var(--bg-light);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+
+  hr {
+    margin: 0em 0.5em 0.5em 0.5em;
+    border-top: 1px solid var(--bg-darker);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+main nav {
+  flex: 1;
+}
+
+main section {
+  flex: 15;
+}
+
+.sidebar-composer,
+.code-editor {
+  height: 90vh;
+  overflow-x: scroll;
+}
+
+.footer {
+  display: flex;
+  height: 54px;
+  justify-content: space-between;
+  background-color: var(--bg-dark);
+  align-items: center;
+
+  .links {
+    height: 1rem;
+    align-items: center;
+
+    a {
+      padding: 0rem 1rem;
+    }
+  }
+}

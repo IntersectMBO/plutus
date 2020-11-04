@@ -1,9 +1,6 @@
 module MonadApp where
 
 import Prelude
-import Ace (Annotation, Editor)
-import Ace.EditSession as Session
-import Ace.Editor as AceEditor
 import Animation (class MonadAnimate, animate)
 import Auth (AuthStatus)
 import Clipboard (class MonadClipboard, copy)
@@ -17,15 +14,18 @@ import Data.Either (Either)
 import Data.Maybe (Maybe)
 import Data.MediaType (MediaType)
 import Data.Newtype (class Newtype, unwrap, wrap)
-import Editor as Editor
+import Editor.State (handleAction, saveBuffer) as Editor
+import Editor.Types (Action) as Editor
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents as FileEvents
 import Gist (Gist, GistId, NewGist)
-import Halogen (HalogenM)
+import Halogen (HalogenM, query, tell)
 import Halogen as H
 import Halogen.Chartist as Chartist
+import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
+import Monaco (IMarkerData)
 import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
 import Playground.Server as Server
@@ -43,7 +43,7 @@ class
   editorGetContents :: m (Maybe SourceCode)
   editorSetContents :: SourceCode -> Maybe Int -> m Unit
   editorHandleAction :: Editor.Action -> m Unit
-  editorSetAnnotations :: Array Annotation -> m Unit
+  editorSetAnnotations :: Array IMarkerData -> m Unit
   --
   saveBuffer :: String -> m Unit
   preventDefault :: DragEvent -> m Unit
@@ -57,6 +57,7 @@ class
   postGist :: NewGist -> m (WebData Gist)
   patchGistByGistId :: NewGist -> GistId -> m (WebData Gist)
   postContract :: SourceCode -> m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+  resizeEditor :: m Unit
   resizeBalancesChart :: m Unit
 
 newtype HalogenApp m a
@@ -103,15 +104,12 @@ instance monadAppHalogenApp ::
   , MonadAff m
   ) =>
   MonadApp (HalogenApp m) where
-  editorGetContents = map SourceCode <$> withEditor (liftEffect <<< AceEditor.getValue)
-  editorSetContents (SourceCode contents) cursor = void $ withEditor $ liftEffect <<< AceEditor.setValue contents cursor
-  editorHandleAction action = void $ withEditor $ Editor.handleAction bufferLocalStorageKey action
-  editorSetAnnotations annotations =
-    void
-      $ withEditor \editor ->
-          liftEffect do
-            session <- AceEditor.getSession editor
-            Session.setAnnotations annotations session
+  editorGetContents = do
+    mText <- wrap $ query _editorSlot unit $ Monaco.GetText identity
+    pure $ map SourceCode mText
+  editorSetContents (SourceCode contents) cursor = wrap $ void $ query _editorSlot unit $ tell $ Monaco.SetText contents
+  editorHandleAction action = wrap $ Editor.handleAction bufferLocalStorageKey action
+  editorSetAnnotations annotations = wrap $ void $ query _editorSlot unit $ Monaco.SetModelMarkers annotations identity
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   setDropEffect dropEffect event = wrap $ liftEffect $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
   setDataTransferData event mimeType value = wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
@@ -123,6 +121,7 @@ instance monadAppHalogenApp ::
   postGist newGist = runAjax $ Server.postGists newGist
   patchGistByGistId newGist gistId = runAjax $ Server.patchGistsByGistId newGist gistId
   postContract source = runAjax $ Server.postContract source
+  resizeEditor = wrap $ void $ H.query _editorSlot unit (Monaco.Resize unit)
   resizeBalancesChart = wrap $ void $ H.query _balancesChartSlot unit (Chartist.Resize unit)
 
 runAjax ::
@@ -130,9 +129,6 @@ runAjax ::
   ExceptT AjaxError (HalogenM State HAction ChildSlots Void m) a ->
   HalogenApp m (WebData a)
 runAjax action = wrap $ RemoteData.fromEither <$> runExceptT action
-
-withEditor :: forall a m. MonadEffect m => (Editor -> m a) -> HalogenApp m (Maybe a)
-withEditor = HalogenApp <<< Editor.withEditor _editorSlot unit
 
 instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   editorGetContents = lift editorGetContents
@@ -150,4 +146,5 @@ instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   postGist newGist = lift $ postGist newGist
   patchGistByGistId newGist gistId = lift $ patchGistByGistId newGist gistId
   postContract source = lift $ postContract source
+  resizeEditor = lift resizeEditor
   resizeBalancesChart = lift resizeBalancesChart
