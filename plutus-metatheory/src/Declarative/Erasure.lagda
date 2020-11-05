@@ -19,6 +19,7 @@ open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` c
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
   renaming (TermCon to TyTermCon)
 
+open import Data.Nat.Properties
 open import Data.Nat
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec using ([]; _∷_;_++_)
@@ -135,8 +136,8 @@ lem1 : ∀ Ψ Ψ' As As' →
          Relation.Binary.PropositionalEquality.subst (λ Φ₁ → List (Φ₁ ⊢⋆ *))
          (sym p) As)
       → len⋆ Ψ' + length As' ≤‴ len⋆ Ψ + length As
-lem1 Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤⇒≤‴ (+-mono-≤ (≤C⋆2≤ p) z≤n)
-lem1 Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤⇒≤‴ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q))
+lem1 Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤″⇒≤‴ (≤⇒≤″ (+-mono-≤ (≤C⋆2≤ p) z≤n))
+lem1 Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q)))
 
 eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
   → Declarative.Tel Γ Δ σ As
@@ -158,10 +159,9 @@ erase (conv p t)        = erase t
 erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel ts)
-erase {Γ = Γ} (pbuiltin b Ψ' σ As' p ts) = builtin b (≤⇒≤‴ (≤-trans (≤‴⇒≤ (lem1 _ _ _ As' p)) (≤‴⇒≤ (lemma≤ b)))) (eraseTel⋆ Γ Ψ' ++ eraseTel ts)
-erase (ibuiltin b σ⋆ σ) = ibuiltin b (lemmaI≤ b) (erase-Sub σ⋆ σ)
-erase (ipbuiltin b Ψ' Δ' p σ⋆ σ) = ibuiltin b (≤⇒≤‴ (≤-trans (≤C2≤ p) (≤‴⇒≤ (lemmaI≤ b)))) (erase-Sub σ⋆ σ)
-
+erase {Γ = Γ} (pbuiltin b Ψ' σ As' p ts) = error
+erase (ibuiltin b σ⋆ σ) = error
+erase (ipbuiltin b Ψ' Δ' p σ⋆ σ) = error
 erase (error A)         = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *

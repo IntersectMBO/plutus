@@ -15,6 +15,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
 open import Data.Vec hiding ([_];length)
+open import Data.Sum
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -289,7 +290,11 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
       bn
       ((nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn))))
       (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
-nfType {Γ} (Syn.error A) = Norm.error (nf A)
+nfType (Syn.pbuiltin b Ψ' σ As' (inj₁ (p ,, q)) ts) = Norm.conv⊢ refl {!!} (Norm.pbuiltin b Ψ' (nf ∘ σ) (nfList As') (inj₁ ({!!} ,, cong nfList q)) (nfTypeTel σ As' ts))
+nfType (Syn.pbuiltin b Ψ' σ As' (inj₂ p) ts) = Norm.pbuiltin b Ψ' (nf ∘ σ) (nfList As') (inj₂ {!!} ) (nfTypeTel σ As' ts)
+nfType (Syn.ibuiltin b σ⋆ σ) = {!!}
+nfType (Syn.ipbuiltin b Ψ' Δ' p σ⋆ σ) = {!!}
+nfType (Syn.error A) = Norm.error (nf A)
 
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
