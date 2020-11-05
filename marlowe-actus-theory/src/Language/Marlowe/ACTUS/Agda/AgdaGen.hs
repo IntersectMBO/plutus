@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.AgdaGen(genDefinition, genModule) where
+module Language.Marlowe.ACTUS.Agda.AgdaGen(genDefinition, genModule, ident) where
 
 import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, ExpandedEllipsis(..), noPlaceholder, defaultNamedArg, defaultArgInfo, defaultArg)
 import           Agda.Syntax.Position                                  (Range'(..))
@@ -7,6 +7,11 @@ import           Agda.Syntax.Concrete                                  (Expr(..)
 import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
 import           Data.List.NonEmpty                                    (NonEmpty(..))
 import           Agda.Utils.List2                                      (List2(..))
+
+ident :: String -> Expr
+ident param = Ident $ QName $ paramName param where
+    paramName nm = Name NoRange NotInScope $ Id nm :| []
+
 
 genDefinition :: Expr -> String -> String -> [String] -> [String] -> String -> [Declaration]
 genDefinition expr name param1 params inputTypes outputType = 

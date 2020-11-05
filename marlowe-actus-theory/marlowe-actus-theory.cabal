@@ -58,8 +58,9 @@ library
                       DeriveTraversable
   exposed-modules:
   other-modules:
-    Language.Marlowe.ACTUS.AgdaOps
-    Language.Marlowe.ACTUS.AgdaGen
+    Language.Marlowe.ACTUS.Agda.AgdaOps
+    Language.Marlowe.ACTUS.Agda.AgdaGen
+    Language.Marlowe.ACTUS.Agda.GenPayoff
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

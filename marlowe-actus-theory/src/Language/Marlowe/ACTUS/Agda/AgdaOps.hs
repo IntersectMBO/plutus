@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-orphans  #-}
 
-module Language.Marlowe.ACTUS.AgdaOps() where
+module Language.Marlowe.ACTUS.Agda.AgdaOps() where
 
 import           Language.Marlowe.ACTUS.Ops
 import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, noPlaceholder, defaultNamedArg)
