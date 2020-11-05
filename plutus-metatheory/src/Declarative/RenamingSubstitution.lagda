@@ -129,7 +129,7 @@ ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
   (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
 ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
   refl
-  (abstract3-ren _ _ _ _ _ As' p _ σ ρ⋆)
+  (abstract3'-ren _ _ _ _ _ As' p _ σ ρ⋆)
   (pbuiltin b Ψ' (⋆.ren ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
 ren ρ⋆ ρ (ibuiltin b σ⋆ σ) = conv⊢
   refl
@@ -276,7 +276,7 @@ subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢
   (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
 subst σ⋆ σ (pbuiltin b Ψ' σ' As' p ts) = conv⊢
   refl
-  (abstract3-subst _ _ _ _ _ As' p _ σ' σ⋆)
+  (abstract3'-subst _ _ _ _ _ As' p _ σ' σ⋆)
   (pbuiltin b Ψ' (⋆.subst σ⋆ ∘ σ') As' p (substTel σ⋆ σ ts))
 subst σ⋆ σ (ibuiltin b σ⋆' σ') = conv⊢
   refl

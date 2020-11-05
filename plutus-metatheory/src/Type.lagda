@@ -150,4 +150,5 @@ data _≤C⋆'_ : Ctx⋆ → Ctx⋆ → Set where
  skip : ∀{Φ Φ' K} → (Φ ,⋆ K) ≤C⋆' Φ' → Φ ≤C⋆' Φ'
 
 postulate ≤C⋆'to≤C⋆ : ∀ {Φ Φ'} → Φ ≤C⋆' Φ' → Φ ≤C⋆ Φ'
+postulate ≤C⋆to≤C⋆' : ∀ {Φ Φ'} → Φ ≤C⋆ Φ' → Φ ≤C⋆' Φ'
 \end{code}

@@ -153,6 +153,10 @@ abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (abstract2 Ψ As 
 abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
   subst σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
 
+abstract3' : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
+abstract3' Φ Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3 Φ Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
+abstract3' Φ Ψ Ψ' As As' (inj₂ p) = abstract3 Φ Ψ Ψ' As As' (inj₂ p)
+
 abstract3-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Ren Φ Φ') →
   abstract3 Φ' Ψ Ψ' As As' p
   C (λ x → ren ρ⋆ (σ x)) 
@@ -165,6 +169,18 @@ abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
 abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
   ren-subst (abstract2 Ψ As As' p C)
 
+abstract3'-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Ren Φ Φ') →
+  abstract3' Φ' Ψ Ψ' As As' p
+  C (λ x → ren ρ⋆ (σ x)) 
+  ≡
+  ren ρ⋆
+  (abstract3' Φ Ψ Ψ' As As' p
+   C σ)
+abstract3'-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, q)) =
+  abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
+abstract3'-ren Φ Φ' Ψ Ψ' As As' (inj₂ p)        =
+  abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ p)
+
 abstract3-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Sub Φ Φ') →
   abstract3 Φ' Ψ Ψ' As As' p
   C (λ x → subst ρ⋆ (σ x)) 
@@ -176,6 +192,16 @@ abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
   subst-comp (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
 abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
   subst-comp (abstract2 Ψ As As' p C)
+
+abstract3'-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Sub Φ Φ') →
+  abstract3' Φ' Ψ Ψ' As As' p
+  C (λ x → subst ρ⋆ (σ x)) 
+  ≡
+  subst ρ⋆
+  (abstract3' Φ Ψ Ψ' As As' p
+   C σ)
+abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
+abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₂ p) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ p)
 
 apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
   → (Δ' ≤C Δ)
@@ -252,9 +278,9 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       ∀ Ψ' → 
       (σ : Sub Ψ' Φ)
     → (As' : List (Ψ' ⊢⋆ *))
-    → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
+    → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
     → Tel Γ Ψ' σ As'
-    → Γ ⊢ abstract3 Φ Ψ Ψ' As As' p C σ
+    → Γ ⊢ abstract3' Φ Ψ Ψ' As As' p C σ
 
   ibuiltin : 
       (b : Builtin)
