@@ -33,7 +33,7 @@ import Projects.State (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.State as Simulation
+import Simulation.View as Simulation
 import Wallet as Wallet
 
 render ::
