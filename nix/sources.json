@@ -115,10 +115,10 @@
     },
     "nodejs-headers": {
         "builtin": false,
-        "rev": "v10.9.0",
-        "sha256": "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a",
+        "rev": "v12.19.0",
+        "sha256": "1fb0dkzsprilybg30nhgdy0fcaqx9kc89iyrw6871frkaqmcdwwn",
         "type": "file",
-        "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
+        "url": "https://nodejs.org/download/release/v12.19.0/node-v12.19.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
     },
     "pre-commit-hooks.nix": {

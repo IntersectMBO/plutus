@@ -23,10 +23,8 @@ let
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit plutusMusl;
-    inherit (pkgs) stdenv fetchFromGitHub fetchFromGitLab haskell-nix buildPackages nix-gitignore z3 R rPackages;
     inherit agdaWithStdlib checkMaterialization;
   };
-
 
   #
   # additional haskell packages from ./nix/pkgs/haskell-extra
@@ -68,12 +66,7 @@ let
   updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
-    inherit purty;
-    inherit (pkgs.nodePackages_10_x) node-gyp;
-    inherit (pkgs.yarn2nix-moretea) yarn2nix;
     inherit (easyPS) purs psc-package spago spago2nix;
-    inherit (pkgs.stdenv) isDarwin;
-    inherit (pkgs) clang;
   };
 
   #
