@@ -30,12 +30,10 @@ module Ledger.Crypto(
     , privateKey10
     ) where
 
-import qualified Codec.CBOR.Write           as Write
-import           Codec.Serialise.Class      (Serialise, encode)
+import           Codec.Serialise.Class      (Serialise)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
-import           Crypto.Hash                (Digest, SHA256, hash)
 import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
                                              ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
                                              genericParseJSON, genericToJSON, (.:))
@@ -55,7 +53,7 @@ import           Language.PlutusTx.Lift     (makeLift)
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger.Orphans             ()
 import           Ledger.TxId
-import           LedgerBytes                (LedgerBytes)
+import           LedgerBytes                (LedgerBytes (..))
 import qualified LedgerBytes                as KB
 import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
 
@@ -83,12 +81,13 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
 
+{-# INLINABLE pubKeyHash #-}
 -- | Compute the hash of a public key.
 pubKeyHash :: PubKey -> PubKeyHash
-pubKeyHash pk = PubKeyHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
-    h' :: Digest SHA256 = hash h
-    e = encode pk
+pubKeyHash (PubKey (LedgerBytes bs)) =
+    -- this needs to be usable in on-chain code as well, so we have to
+    -- INLINABLE & use the hash function from Builtins
+    PubKeyHash (Builtins.sha2_256 bs)
 
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }

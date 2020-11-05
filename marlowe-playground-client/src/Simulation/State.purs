@@ -2,7 +2,7 @@ module Simulation.State where
 
 import Control.Bind
 import Control.Monad.State (class MonadState)
-import Data.Array (fromFoldable, mapMaybe, uncons)
+import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
@@ -13,6 +13,7 @@ import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
+import Data.List (List(..))
 import Data.List as List
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
@@ -29,14 +30,14 @@ import Marlowe.Holes (Holes, fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics (AccountId, Action(..), Assets, Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class HeytingAlgebra, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, (#), ($), (<<<), (==), (>))
+import Prelude (class Eq, class HeytingAlgebra, class Monoid, class Ord, class Semigroup, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
-  | ChoiceInputId ChoiceId (Array Bound)
+  | ChoiceInputId ChoiceId
   | NotifyInputId
   | MoveToSlotId
 
@@ -88,9 +89,32 @@ actionToActionInput state (Deposit accountId party token value) =
   in
     Tuple (DepositInputId accountId party token evalResult) (DepositInput accountId party token evalResult)
 
-actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId bounds) (ChoiceInput choiceId bounds (minimumBound bounds))
+actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId) (ChoiceInput choiceId bounds (minimumBound bounds))
 
 actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput
+
+combineChoices :: ActionInput -> ActionInput -> ActionInput
+combineChoices (ChoiceInput choiceId1 bounds1 _) (ChoiceInput choiceId2 bounds2 _)
+  | choiceId1 == choiceId2 = (ChoiceInput choiceId2 combinedBounds (minimumBound combinedBounds))
+    where
+    combinedBounds = bounds1 <> bounds2
+
+combineChoices a1 a2 = a2
+
+simplifyActionInput :: ActionInput -> ActionInput
+simplifyActionInput (ChoiceInput choiceId bounds minBound) = ChoiceInput choiceId (simplifyBounds bounds) minBound
+
+simplifyActionInput other = other
+
+simplifyBounds :: Array Bound -> Array Bound
+simplifyBounds bounds = fromFoldable (simplifyBoundList (toUnfoldable (sort bounds)))
+
+simplifyBoundList :: List Bound -> List Bound
+simplifyBoundList (Cons (Bound low1 high1) (Cons b2@(Bound low2 high2) rest))
+  | high1 >= low2 = simplifyBoundList (Cons (Bound (min low1 low2) (max high1 high2)) rest)
+  | otherwise = (Cons (Bound low1 high1) (simplifyBoundList (Cons b2 rest)))
+
+simplifyBoundList l = l
 
 data MarloweEvent
   = InputEvent TransactionInput
@@ -327,7 +351,9 @@ updatePossibleActions oldState@{ executionState: SimulationRunning executionStat
 
     slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
 
-    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
+    rawActionInputs = Map.fromFoldableWith combineChoices $ map (actionToActionInput nextState) usefulActions
+
+    actionInputs = map simplifyActionInput rawActionInputs
 
     moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
 

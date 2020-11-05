@@ -186,14 +186,6 @@
       };
     }
     {
-      name = "ace_builds___ace_builds_1.4.1.tgz";
-      path = fetchurl {
-        name = "ace_builds___ace_builds_1.4.1.tgz";
-        url = "https://registry.yarnpkg.com/ace-builds/-/ace-builds-1.4.1.tgz";
-        sha1 = "a66e33bcd519918ee99bc54cac5d7399a83c8ff2";
-      };
-    }
-    {
       name = "acorn___acorn_6.3.0.tgz";
       path = fetchurl {
         name = "acorn___acorn_6.3.0.tgz";
@@ -3194,11 +3186,27 @@
       };
     }
     {
+      name = "lodash.kebabcase___lodash.kebabcase_4.1.1.tgz";
+      path = fetchurl {
+        name = "lodash.kebabcase___lodash.kebabcase_4.1.1.tgz";
+        url = "https://registry.yarnpkg.com/lodash.kebabcase/-/lodash.kebabcase-4.1.1.tgz";
+        sha1 = "8489b1cb0d29ff88195cceca448ff6d6cc295c36";
+      };
+    }
+    {
       name = "lodash.tail___lodash.tail_4.1.1.tgz";
       path = fetchurl {
         name = "lodash.tail___lodash.tail_4.1.1.tgz";
         url = "https://registry.yarnpkg.com/lodash.tail/-/lodash.tail-4.1.1.tgz";
         sha1 = "d2333a36d9e7717c8ad2f7cacafec7c32b444664";
+      };
+    }
+    {
+      name = "lodash.throttle___lodash.throttle_4.1.1.tgz";
+      path = fetchurl {
+        name = "lodash.throttle___lodash.throttle_4.1.1.tgz";
+        url = "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz";
+        sha1 = "c23e91b710242ac70c37f1e1cda9274cc39bf2f4";
       };
     }
     {
@@ -3495,6 +3503,38 @@
         name = "http___registry.npmjs.org_mkdirp___mkdirp_0.5.1.tgz";
         url = "http://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz";
         sha1 = "30057438eac6cf7f8c4767f38648d6697d75c903";
+      };
+    }
+    {
+      name = "monaco_editor_webpack_plugin___monaco_editor_webpack_plugin_1.9.1.tgz";
+      path = fetchurl {
+        name = "monaco_editor_webpack_plugin___monaco_editor_webpack_plugin_1.9.1.tgz";
+        url = "https://registry.yarnpkg.com/monaco-editor-webpack-plugin/-/monaco-editor-webpack-plugin-1.9.1.tgz";
+        sha1 = "eb4bbb1c5e5bfb554541c1ae1542e74c2a9f43fd";
+      };
+    }
+    {
+      name = "monaco_editor___monaco_editor_0.20.0.tgz";
+      path = fetchurl {
+        name = "monaco_editor___monaco_editor_0.20.0.tgz";
+        url = "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.20.0.tgz";
+        sha1 = "5d5009343a550124426cb4d965a4d27a348b4dea";
+      };
+    }
+    {
+      name = "monaco_emacs___monaco_emacs_0.2.2.tgz";
+      path = fetchurl {
+        name = "monaco_emacs___monaco_emacs_0.2.2.tgz";
+        url = "https://registry.yarnpkg.com/monaco-emacs/-/monaco-emacs-0.2.2.tgz";
+        sha1 = "798cb7a71a26ee7067581e4c8745be5869c82110";
+      };
+    }
+    {
+      name = "monaco_vim___monaco_vim_0.1.8.tgz";
+      path = fetchurl {
+        name = "monaco_vim___monaco_vim_0.1.8.tgz";
+        url = "https://registry.yarnpkg.com/monaco-vim/-/monaco-vim-0.1.8.tgz";
+        sha1 = "7de9bd01a28b1d3e6c9874baea168e6e1449545e";
       };
     }
     {

@@ -35,6 +35,7 @@ module Ledger.Validation
     , getContinuingOutputs
     -- ** Hashes (see note [Hashes in validator scripts])
     , scriptCurrencySymbol
+    , pubKeyHash
     -- * Validator functions
     -- ** Signatures
     , txSignedBy
@@ -62,7 +63,7 @@ import           Language.PlutusTx.Prelude
 import           Ledger.Ada                 (Ada)
 import qualified Ledger.Ada                 as Ada
 import           Ledger.Address             (Address (..), scriptHashAddress)
-import           Ledger.Crypto              (PubKey (..), PubKeyHash (..), Signature (..))
+import           Ledger.Crypto              (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
 import           Ledger.Scripts
 import           Ledger.Slot                (SlotRange)
 import           Ledger.Tx                  (TxOut (..), TxOutRef (..), TxOutType (..))

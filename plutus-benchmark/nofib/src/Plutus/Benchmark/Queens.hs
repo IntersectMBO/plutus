@@ -1,5 +1,7 @@
 {-% nofib/spectral/constraints converted to Plutus.
     Renamed to avoid conflict with existing package. %-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
@@ -13,8 +15,10 @@ module Plutus.Benchmark.Queens where
 	See Proceedings of WAAAPL '99
 -}
 
+import           Control.DeepSeq              (NFData)
 import           Control.Monad                (forM_)
 import           Data.Char                    (isSpace)
+import           GHC.Generics
 import qualified Prelude
 import           System.Environment
 
@@ -228,7 +232,8 @@ sortBy cmp = mergeAll . sequences
 type Var = Integer
 type Value = Integer
 
-data Assign = Var := Value deriving (Show, Prelude.Eq, Prelude.Ord)
+data Assign = Var := Value
+    deriving (Show, Prelude.Eq, Prelude.Ord, Generic, NFData)
 instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign

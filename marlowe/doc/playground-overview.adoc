@@ -143,6 +143,18 @@ image:simulation3.png[Simulation step 3]
 
 and at this point in the evolution of the contract we are awaiting a choice from Carol to arbitrate the outcome.
 
+=== Oracle simulation
+
+As we noted earlier in the section on <<_oracles>>, the Playground provides oracle values to simulations for the role `"kraken"`. When the simulation reaches the point of simulating this construct
+
+image:oracles1.png[Asking for an oracle value,width=300]
+
+then the value is _pre-filled_ in the simulation like this:
+
+image:oracles2.png[Providing an oracle value,width=400]
+
+
+
 === Saving and Opening Projects
 
 Projects can be saved on github, and so when you first save a project you will be prompted thus:

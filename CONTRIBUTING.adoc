@@ -1,33 +1,43 @@
-= How to contribute to Plutus
+= Contributing to Plutus
 :toc: left
 :reproducible:
 
-== How to develop the code
+== Setting up and working with our development tools
 
 Make sure you have set up the link:./README{outfilesuffix}#prerequisites[prerequisities].
 
-You can get an environment for developing the entire project using
-`nix-shell` in the root directory. This will have all external
-dependencies present, so is suitable for building the packages with
-e.g. `cabal v2-build`.
+=== How to get a shell environment with tools
 
-For `stack`, you may want to use the Nix integration and point it at `shell.nix`,
-which will make sure you get the right GHC.
+You can get an environment for developing the entire project using `nix-shell` in the root directory.
+This includes a variety of useful tools:
 
-NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
-convenient alternative to running `nix-shell` directly.
+* The right version of GHC with all the external Haskell dependencies in its package database.
+* `cabal-install`
+* Agda with the right libraries set up to build our Agda code
+* `stylish-haskell`
+* `haskell-language-server`
+* ... and more
 
-An environment for developing a particular package in isolation can be
-entered by using
-`nix-shell default.nix -A haskell.projectPackages.<package name>.components.<component type>.<component name>.env`.
-This has all the dependencies, *including* local ones, provided.
-This shouldn’t be necessary unless you need to use an old-style
-`cabal` command that only works in a single package context.
+Have a look in `shell.nix` to see what's there.
+
+We rely heavily on this approach to ensure that everyone has consistent versions of the tools that we use.
+Please do make use of this, since problems due to mismatched versions of tools are particularly annoying to fix!
+
+NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a convenient alternative to running `nix-shell` directly.
+
+=== How to build the code during development
+
+The `nix-shell` environment has the correct GHC with all the external Haskell dependencies of the project.
+From here you can build the project packages directly with `cabal`.
+
+NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-index-state[we have pinned].
+
+For `stack`, you may want to use the Nix integration and point it at `shell.nix`, which will make sure you at least get the right GHC.
 
 [WARNING]
 ====
-You can also use `cabal` and `stack` outside a Nix environment to build
-the project. _However_ there are two caveats:
+You can also use `cabal` and `stack` outside the `nix-shell` environment to build the project.
+_However_ there are two caveats:
 
 * You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
@@ -39,11 +49,20 @@ this can at least potentially cause problems or cause you to be missing
 bug workarounds.
 ====
 
-=== How to setup HIE
+=== How to setup `haskell-language-server`
+
+The `nix-shell` environment has a `haskell-language-server` binary for the right version of GHC.
+
+IMPORTANT: this binary is called `haskell-language-server` not `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
 Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
-The binary itself is provided by the Nix shell environment.
 
+[[update-hie]]
+==== How to update `hie-*.yaml`
+
+The `hie-*.yaml` files define the "cradle" setup for HLS, which tells it how to load the various components, depending on which build system we're using.
+This is annoyingly manual, and hopefully will improve in the future, but for now, please do try and update them when you change the set of components.
+You can find some documentation in the [hie-bios](https://github.com/mpickering/hie-bios) repository.
 
 [[update-generated]]
 === How to update the generated Haskell package set
@@ -54,70 +73,79 @@ However, to avoid doing too much work all the time, we have checked the generate
 IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver.
 But the CI will tell you if you've failed to do so.
 
-You can regenerate the files by running
-`$(nix-build default.nix -A dev.scripts.updateMaterialized)`.
+You can regenerate the files by running `$(nix-build default.nix -A pkgsLocal.updateMaterialized)`.
 
-=== How to update one of our pinned dependencies
+=== How to add a new Haskell package
 
-==== Haskell pins
+You need to do a few things when adding a new package, in the following order:
 
-We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal)
-and `extra-dep` (Stack) mechanisms.
+. Add the cabal file for the new package.
+. Add the package to link:stack.yaml[`stack.yaml`].
+. Add the package to link:cabal.project[`cabal.project`].
+. Update the xref:update-generated[package set].
+. Update the `xref:update-hie[hie-*.yaml` files].
+. Check that you can run `nix build -f default.nix pkgsLocal.haskell.projectPackages.<package name>` successfully.
+
+[[update-haskell-pins]]
+=== How to update our pinned Haskell dependencies
+
+We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) and `extra-dep` (Stack) mechanisms.
 
 These can be managed normally, but ensure that:
 
 * The specifications remain in sync between `cabal.project` and `stack.yaml`.
 * You update the xref:update-generated[package set].
-* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`. For the moment you have to do this by hand, using the
-following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`.
+* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`.
+For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
-==== Nix pins
+[[update-nix-pins]]
+=== How to update our pinned Nix dependencies
 
 We pin versions of some git repositories that are used by Nix, for example `nixpkgs`.
 
-These are specified in link:./nix/sources.json[`sources.json`]. This file is managed by
-https://github.com/nmattia/niv[`niv`]. You can edit it by hand, but I wouldn't recommend it.
-See the `niv` website for usage instructions.
+These are specified in link:./nix/sources.json[`sources.json`].
+This file is managed by https://github.com/nmattia/niv[`niv`].
+You can edit it by hand, but we wouldn't recommend it.
+See the `niv` website for usage instructions, but the simplest action is `niv update <dependency>`, which will update it to the latest version on the tracked branch.
 
+[[update-index-state]]
 === How to update the Hackage index state
 
-The Hackage index state is pinned to a particular time in `cabal.project`. This helps with
-reproducibility. If you want to use a Hackage package from after that time, you need to bump
-the pinned index state (not a big deal).
+The Hackage index state is pinned to a particular time in `cabal.project`.
+This helps with reproducibility: alongside using the same version of `cabal`, this ensures that everyone will get the same result from the `cabal` version solver.
+If you want to use a Hackage package from after the pinned index state time, you need to bump it.
+This is not a big deal, since all it does is change what packages `cabal` considers to be available when doing solving, but it *may* result in different versions being picked, so it's not completely safe.
 
-You may also need to update `hackage.nix`, which is a Nix representation of Hackage. This also needs
-to be newer than the index state. From inside a Nix shell, run `niv update hackage.nix`.
+Note that `cabal` itself keeps track of what index states it knows about, so you may need to update this with `cabal update` in order for `cabal` to be happy.
 
-=== How to add a new package to the repository
+The Nix code which builds our packages also cares about the index state.
+The set of index states which it knows about is controlled by `hackage.nix`, which is a Nix representation of Hackage.
+This therefore needs to be newer than the index state.
+You can update it xref:update-nix-pins[with `niv`].
 
-You need to do a few things when adding a new package, in the following
-order:
+== Working conventions
 
-. Add the cabal file for the new package.
-. Add the package to link:stack.yaml[`stack.yaml`].
-. Add the package to link:cabal.project[`cabal.project`].
-. Update the xref:update-generated[package set ].
-. Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
-successfully.
+=== Code is communication
 
-=== Code style
+We are a relatively large team working on sometimes quite abstruse problems.
+As such, it's important that future people who work on the project know how things work, and just as importantly, why.
+These future people may even be yourself - we forget things very quickly!
 
-==== Code comments
+When writing, try to put yourself in the position of someone coming to this code for the first time.
+What do they need to do to understand it and do their job?
+Write it down!
 
-Extensive code comments are encouraged. If it took you a while to work out how or
-why to do something, then write it down so the next person looking at it (which might
-be future you) gets some help.
+Code review is a good lens for this: if you have to explain something to a reviewer, then it is probably not clear in the code and should have a note.
 
-Focus on *why* things are the way they are -- this information is not in the code and
-can easily be lost. People can usually work out the *how*, but
-it can be good to comment on the odd dangerous bend.
-
-If in doubt, write more. It is unusual that people write too much!
+This applies both to the code itself (structure, naming, etc.) and also to comments.
+How to write useful comments is a large topic which we don't attempt to cover here, but link:http://antirez.com/news/124[Antirez] is good.
+If in doubt: write more!
 
 ==== "Notes"
 
-We adopt a convention (stolen from GHC) of writing fairly substantial notes in our code
-with a particular structure.
+One special kind of comment is worth drawing attention to.
+We adopt a convention (stolen from GHC) of writing fairly substantial notes in our code with a particular structure.
+These correspond to what Antirez calls "design comments", with some conventions about cross-referencing them.
 
 The structure is:
 
@@ -125,125 +153,162 @@ The structure is:
 * The first line of the Note should be `Note [Name of note]`
 * Refer to a Note from where it is relevant with a comment saying `See Note [Name of note]`
 
-Notes are a great place to put substantial discussion that you need to refer to from
-multiple places. For example, if you used an encoding trick to fit more data into
-an output format, you could write a Note describing the trick (and justifying its usage!), and
-then refer to it from the encoder and the decoder.
+For example:
 
-==== Formatting
+----
+{- Note [How to write a note]
+A note should look a bit like this.
 
-We use `stylish-haskell` for Haskell code formatting. It is checked by the CI, so
-if you don’t apply it them your PR will not go green. To avoid annoyance,
-set up your editor to run it automatically.
+Go wild, write lots of stuff!
 
-You can run `stylish-haskell` over your tree and apply changes
-by running `$(nix-shell shell.nix --run fix-stylish-haskell)`.
+Here's a small diagram:
+A ----> B >> C
 
-==== Compiler warnings
+And of course, you should see Note [Another note].
+-}
+----
 
-The CI builds with `-Werror`, so will fail if there are any compiler warnings.
+Notes are a great place to put substantial discussion that you need to refer to from multiple places.
+For example, if you used an encoding trick to fit more data into an output format,
+you could write a Note describing the trick (and justifying its usage!), and then refer to it from the encoder and the decoder.
 
-== How to make and review changes
+=== Code formatting
 
-=== How to make commits
+We use `stylish-haskell` for Haskell code formatting, and `purty` for Purescript.
+CI checks that running these is a no-op, so if you don’t apply it them your PR will not go green.
+To avoid annoyance, set up your editor to run them automatically.
+The `nix-shell` environment provides `stylish-haskell` and `purty` binaries of the correct versions.
 
-There are no enforced policies for making commits.
+You can run `stylish-haskell` or `purty` over your tree using the `fix-stylish-haskell` or `fix-purty` script provided by the `nix-shell` environment.
 
-.Guidelines for committing:
-* Set up automatic commit signing.
-* The best places for information are 1) in code comments, 2) in a commit message,
-3) in a pull request description.
-** It doesn't hurt to repeat yourself a little across these media.
-* If the commit is small, very focussed, or very obvious then it doesn't need a big message.
-* Commit often and rebase/squash later.
+=== Compiler warnings
 
-=== How to submit a change
+The CI builds Haskell code with `-Werror`, so will fail if there are any compiler warnings.
+So fix your own warnings!
 
-All code changes go through pull requests (PRs), it is not possible to push directly to master.
+If the warnings are stupid, we can turn them off, e.g. sometimes it makes sense to add `-Wno-orphans` to a file where we know it's safe.
 
-.Guidelines for submitting PRs:
-* Make your PR *from* the main repository if possible, this is necessary
-for the Buildkite CI to trust you.
-** Making a PR from a fork is acceptable, you will need to do this if
-you don’t have write access to the main repository.
-* PRs exist to be reviewed - design them with a reader in mind!
-** Include the ticket name in the PR title where possible.
-** Write a helpful PR description that explains what’s in the PR and
-why, and draws attention to anything of particular note, references
-related tickets etc.
-** Consider rebasing your PRs before submitting to structure them into a
-few logical commits that can be reviewed separately. Keep PRs to a
-single topic.
-** If you find yourself making unrelated changes, pull those commits out
-into another PR and submit them separately (i.e. do not include them in
-the original PR)
-** If you can’t remove unrelated changes from your PR (because you
-depend on them), then add a note that your PR depends on the other one
-and should not be merged before it. You can still put it up for review.
-** Take especial care to manage changes that are likely to have many
-conflicts (like formatting or refactoring changes) in their own PRs.
-* Submit PRs in a "finished" state. If you want to use a PR to let
-people review a WIP branch, submit it using Github's "draft PR" feature.
-* Take a minute to review the diff when opening a PR -- often you'll spot
-a few things that look wrong!
-* Use your judgment when requesting review.
-* Force-pushing PRs is okay, this will mostly do the right thing in
-Github. Do this if you’re applying fixups, or you’ve done a series of
-additional commits that you want to squash down before merging.
-* Comment if you want attention from someone (e.g. a re-review after
-changes). Github does not make it easy to signal this state otherwise,
-and people may not be notified if you just push commits.
+=== Commit messages
 
-.Pre-submit checklist:
-* `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files.
-* `$(nix-shell shell.nix --run fix-stylish-haskell)` to fix any formatting issues.
-* `nix build -L -f ci.nix --arg supportedSystems '[ builtins.currentSystem ]'` to check that everything builds
+Please make informative commit messages!
+It makes it much easier to work out why things are the way they are when you're debugging things later.
 
-You can build some things with Nix locally if you like, but it's fine to let the CI do that for you.
+A commit message is communication, so as usual, put yourself in the position of the reader: what does a reviewer, or someone reading the commit message later need to do their job?
+Write it down!
+It is even better to include this information in the code itself, but sometimes it doesn't belong there (e.g. ticket info).
 
-=== How to do code reviews
+Also, include any relevant meta-information, such as ticket numbers.
+If a commit completely addresses a ticket, you can put that in the headline if you want, but it's fine to just put it in the body.
 
-.Guidelines for reviewing PRs:
-* Try to review PRs where your review is requested within a few days.
-This should be nearly-top-priority work.
-* If you don’t understand something then ask for an explanation.
-** For the author: this explanation should ideally be added as a comment - you’re
-going to write it anyway, and future readers are likely to be
-just as confused as the reviewer.
+There is plenty to say on this topic, but broadly the guidelines in link:https://chris.beams.io/posts/git-commit/[this post] are good.
 
-== Continuous integration
+=== Commit signing
 
-We have one CI systems at the moment:
+Set it up if you can, it's relatively easy to do.
+
+== Making and reviewing changes
+
+=== Opening a pull request
+
+A pull request is a change to the codebase, but it is also an artifact which goes through a change acceptance process.
+There are a bunch of things which we can do to make this process smooth which may have nothing to do with the code itself.
+
+The key bottleneck in getting a PR merged is code review.
+Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
+
+The amount of time it's worth spending doing this is probably much more than you think.
+If you make the reviewer spend
+
+==== What changes to include
+
+Having a sensible and comprehensible set of changes makes your reviewer's life much easier.
+
+* Keep commits to a single logical change where possible.
+The reviewer will be happier, and you'll be happier if you ever have to revert it.
+If you *can't* do this (say because you have a huge mess), best to just have one commit with everything in it.
+* Keep your PRs to a single topic.
+Including unrelated changes makes things harder for your reviewers, slowing them down, and makes it harder to integrate new changes.
+* If you're working on something that's likely to conflict with someone else, talk to them.
+It's not a race.
+
+==== Pull request descriptions
+
+A pull request is communication, so as usual, put yourself in the position of the reader: what does your audience (the reviewer) need to know to do their job?
+This information is easy for you to access, but hard for them to figure out, so write it down!
+
+However, better to put information in the code or commit messages if possible: these persist but PR descriptions do not.
+It's okay to repeat information from such places, or simply to point to it.
+For one-commit PRs, Github will automatically populate the PR description with the commit message, so if you've written a good commit message you're done!
+Sometimes there is "change-related" information that doesn't belong in a commit message but is useful ("Kris I think this will fix the issue you had yesterday").
+
+==== Misc PR tips
+
+* Review the diff of your own PR at the last minute before hitting "create".
+It's amazing how many obvious things you spot here, and it stops the reviewer having to point them all out.
+* It's fine to make WIP PRs if you just want to show your code to someone else or have the CI check it.
+Use the Github "draft" feature for this.
+
+=== Rebasing, force-pushing, and history
+
+Until a PR is merged, the branch is yours to do with as you will.
+In particular, rebasing and force-pushing is fine.
+Indeed, if you need to update your branch with changes from master, rebasing is typically better than merging.
+
+So please do use this ability where it helps, for example:
+
+* Add low-effort or WIP commits to fix review comments, and then squash them away before merging the PR.
+* If you have already had a PR review, don't rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
+* Rewrite the commits to make the story clearer where possible.
+
+Don't be obsessive about history though: a little bit of effort making the history clear is nice, but you can rapidly hit diminishing returns.
+Use your judgement, but probably don't merge a PR that has commits called "WIP" or "fix"!
+
+If a PR is just a total mess, consider using Github's squash-merge feature.
+
+=== Code review and merging
+
+All pull-requests should be approved by at least one other person.
+We don't enforce this, though: a PR fixing a typo is fine to self-merge, beyond that use your judgement.
+
+As an author, code review is an opportunity for you to get feedback from clear eyes.
+As a reviewer, code review is an opportunity for you to help your colleagues and learn about what they are doing.
+Make the best use of it you can!
+
+* Pick the right reviewer(s). If you don't know who to pick, ask!
+* Respect your reviewers' time. Their time is as valuable as yours, and it's typically more efficient for you
+to spend time explaining or clarifying something in advance than for them to puzzle it out or pose a question.
+* Respond to review requests as quickly as you can. If you can't review it all, say what you can and come back to it. Waiting for review is often a blocker for other people, so prioritize it.
+* If you don't understand something, ask. You are as clever as any person who will read this in the future, if it confuses you it's confusing.
+* If someone had to ask about your code, it wasn't clear enough so change it or add a comment.
+* Do spend the time to understand the code. This will help you make more useful comments, help you review future changes more easily, and help you if you ever need to work on it yourself.
+* More reviewing is usually helpful. If you think a PR is interesting, you can review it even if nobody asked you to, you will probably have things to contribute and you'll learn something.
+
+== Supporting systems
+
+=== Continuous integration
+
+We have two sources of CI checks at the moment:
 - Hydra
-- Hercules (disabled, but will be back)
+- ReadTheDocs
 
-The CI will report statuses on your PRs with links to the logs in case of
-failure. Pull requests cannot be merged without the CI going green.
+The CI will report statuses on your PRs with links to the logs in case of failure.
+Pull requests cannot be merged without at least the Hydra CI check being green.
 
-.Troubleshooting CI
-* Because the CI is not necessarily run on
-the merge commit that is created when the PR is merged, it is possible
-that merging a green PR can result in the CI being broken on master.
-This shouldn’t happen frequently, but be aware that it’s possible.
+CI checks are run on the tip of the PR branch, not on the merge commit that is created with master.
+As a result, it's possible to create a "semantic" merge commit where the CI passes on commits C1 and C2, but not on the merge of C1 and C2.
+In this circumstance we can end up with the CI checks being broken on master.
+However, this is sufficiently infrequent that we just live with the possibility, since eliminating it is quite awkward.
 
-=== Hydra
+==== Hydra
 
-Hydra is the "standard" CI builder for Nix-based projects. It builds everything in the project, including
-all the tests, documentation, etc.
+Hydra is the "standard" CI builder for Nix-based projects.
+It builds everything in the project, including all the tests, documentation, etc.
 
-Hydra builds jobs based on `release.nix`, although currently this imports a lot of its jobs from `ci.nix`
-(see Hercules).
+Hydra builds jobs based on `release.nix`, although currently this imports a lot of its jobs from `ci.nix` (was used for Hercules, may be used again in future).
 
-Hydra will not report a failed status if `release.nix` has errors, we have a Builkite job to check this.
+Hydra will not report a failed status if `release.nix` fails to evaluate, but you should get a red CI status in this case.
 
-=== Hercules
-
-Hercules is a new CI builder for Nix-based projects. It has some advantages over Hydra, but for the moment
-everything is built on both.
-
-Hercules builds jobs based on `ci.nix`.
-
-== Continuous deployment
+=== Continuous deployment
 
 The Plutus Playground is continuously deployed to an https://alpha.plutus.iohkdev.io/[alpha environment].
 This happens when a PR is merged to master, you can see the status on the

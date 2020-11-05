@@ -142,6 +142,7 @@ handleMetadata =
         BatchQuery query@QuerySubjects {subjects, propertyNames} -> do
             logInfo $ Querying query
             pure .
+                QueryResult .
                 fmap (filterSubjectProperties propertyNames) .
                 fromMaybe [] . traverse fetchSubject $
                 Set.toList subjects
@@ -166,7 +167,7 @@ handler ::
        Member MetadataEffect effs
     => (Subject -> (Eff effs (SubjectProperties 'AesonEncoding)
                     :<|> (PropertyKey -> Eff effs (Property 'AesonEncoding))))
-       :<|> (Query -> Eff effs [SubjectProperties 'AesonEncoding])
+       :<|> (Query -> Eff effs (QueryResult 'AesonEncoding))
 handler =
     (\subject -> getProperties subject :<|> getProperty subject) :<|> batchQuery
 

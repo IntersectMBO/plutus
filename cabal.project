@@ -8,7 +8,6 @@ packages: plutus-core
           plutus-tx-plugin
           plutus-use-cases
           plutus-playground-server
-          plutus-book
           plutus-scb
           plutus-benchmark
           playground-common

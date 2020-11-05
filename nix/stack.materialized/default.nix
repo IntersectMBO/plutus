@@ -68,7 +68,6 @@
         plutus-metatheory = ./plutus-metatheory.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
-        plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;
         plutus-scb = ./plutus-scb.nix;
         deployment-server = ./deployment-server.nix;

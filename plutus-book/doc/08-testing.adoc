@@ -1,4 +1,0 @@
-[#08-testing]
-= Testing Plutus outside of the Playground
-
-.. trace monad

@@ -3,6 +3,8 @@
 , config ? { }
 , overlays ? [ ]
 , sourcesOverride ? { }
+, rev ? null
+, checkMaterialization ? false
 }:
 let
   sources = import ./sources.nix { inherit pkgs; }
@@ -14,10 +16,7 @@ let
       stackage = sources."stackage.nix";
     };
   };
-  # Use our own nixpkgs
-  nixpkgs = sources.nixpkgs;
 
-  # for inclusion in pkgs:
   extraOverlays =
     # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
     haskellNix.overlays
@@ -27,27 +26,31 @@ let
     ++ iohkNix.overlays.iohkNix
     # our own overlays:
     ++ [
-      (pkgs: _: with pkgs; {
-
-        # commonLib: mix pkgs.lib with iohk-nix utils and our own:
-        commonLib = lib // iohkNix
-        // import ./util.nix { inherit lib haskell-nix; }
-        # also expose our sources and overlays
-        // { inherit overlays sources; };
-      })
+      # Modifications to derivations from nixpkgs
       (import ./overlays/nixpkgs-overrides.nix)
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
-      # add pre-commit-hooks which isn't available in 20.03
-      (import ./overlays/pre-commit-hooks.nix)
+      # fix r-modules
+      (import ./overlays/r.nix)
     ];
 
-  pkgs = import nixpkgs {
+  pkgs = import sources.nixpkgs {
     inherit system crossSystem;
     overlays = extraOverlays ++ overlays;
     config = haskellNix.config // config;
   };
 
+  pkgsMusl = import sources.nixpkgs {
+    system = "x86_64-linux";
+    crossSystem = pkgs.lib.systems.examples.musl64;
+    overlays = extraOverlays ++ overlays;
+    config = haskellNix.config // config;
+  };
+
+  pkgsLocal = import ./pkgs { inherit rev pkgs pkgsMusl checkMaterialization sources; };
+
 in
-pkgs
+{
+  inherit pkgs pkgsMusl pkgsLocal;
+}

@@ -13,16 +13,16 @@ import qualified Plutus.Benchmark.Prime    as Prime
 import qualified Plutus.Benchmark.Queens   as Queens
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
-benchClausify f = nf Clausify.mkClausifyTerm f
+benchClausify f = nf Clausify.runClausify f
 
 benchKnights :: Integer -> Integer -> Benchmarkable
-benchKnights depth sz = nf (Knights.mkKnightsTerm depth) sz
+benchKnights depth sz = nf (Knights.runKnights depth) sz
 
 benchPrime :: Prime.PrimeID -> Benchmarkable
-benchPrime pid = nf Prime.mkPrimalityBenchTerm pid
+benchPrime pid = nf Prime.runFixedPrimalityTest pid
 
 benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
-benchQueens sz alg = nf (Queens.mkQueensTerm sz) alg
+benchQueens sz alg = nf (Queens.runQueens sz) alg
 
 main :: IO ()
 main = do

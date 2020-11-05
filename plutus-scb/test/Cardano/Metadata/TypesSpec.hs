@@ -10,7 +10,7 @@ module Cardano.Metadata.TypesSpec
     ) where
 
 import           Cardano.Metadata.Types (AnnotatedSignature, HashFunction, JSONEncoding (ExternalEncoding), Property,
-                                         SubjectProperties)
+                                         QueryResult, SubjectProperties)
 import           Control.Monad          (void)
 import           Data.Aeson             (FromJSON, eitherDecode, encode)
 import qualified Data.ByteString.Lazy   as LBS
@@ -65,6 +65,16 @@ jsonTests =
                 assertDecodes
                     @(SubjectProperties 'ExternalEncoding)
                     "test/Cardano/Metadata/subject_response1.json"
+              , testCase "Batch query response 1" $
+                void $
+                assertDecodes
+                    @(QueryResult 'ExternalEncoding)
+                    "test/Cardano/Metadata/query_response1.json"
+              , testCase "Batch query response 1" $
+                void $
+                assertDecodes
+                    @(QueryResult 'ExternalEncoding)
+                    "test/Cardano/Metadata/query_response2.json"
               ]
         ]
 
