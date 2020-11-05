@@ -62,7 +62,7 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER
 
 _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF _PRCL _PRANX _PRNXT _IPCB _IPCBA =
     let
-        -- Tmd
+        -- TMD
         maybeTMinus
                     | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
                     | (_IED `plusCycle` fromJust _PRCL) >= t0 = Just $ _IED `plusCycle` fromJust _PRCL
@@ -72,33 +72,6 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) }
 
         pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
-
-        -- Same as PAM
-        _nt = nt pam_init
-
-        -- Same as PAM
-        _ipnr = ipnr pam_init
-
-        -- Same as PAM
-        _ipac = ipac pam_init
-
-        -- Same as PAM
-        _fac = fac pam_init
-
-        -- Same as PAM
-        _feac = feac pam_init
-
-        -- Same as PAM
-        _nsc = nsc pam_init
-
-        -- Same as PAM
-        _isc = isc pam_init
-
-        -- Same as PAM
-        _prf = prf pam_init
-
-        -- Same as PAM
-        _sd = sd pam_init
 
         -- PRNXT
         s
@@ -114,4 +87,5 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | t0 < _IED                    = 0.0
                 | (fromJust _IPCB) == IPCB_NT              = r _CNTRL * _NT
                 | otherwise                     = r _CNTRL * (fromJust _IPCBA)
-    in ContractStatePoly { prnxt = prnxt, ipcb = ipcb, tmd = tmd, nt = _nt, ipnr = _ipnr, ipac = _ipac, fac = _fac, feac = _feac, nsc = _nsc, isc = _isc, prf = _prf, sd = _sd }
+    -- All is same as PAM except PRNXT, IPCB, and MD
+    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }

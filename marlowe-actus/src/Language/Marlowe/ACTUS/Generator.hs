@@ -105,7 +105,17 @@ inquiryFs ev ct timePosfix date oracle context continue =
         riskFactorsInquiryEv ev continue
 
 
+{- Note [ContractTerms and Maybe]
+Throughout the contract generation, ContractTerms fields are commonly accessed
+with what appears to be an unchecked `fromJust`. There's not much backing up
+the assertion that one of those won't fail other than the applicability model
+right now. The applicability model (validateTerms) enforces that certain fields
+(e.g ContractType, Notional, etc.) are required, and contract generation will
+fail if they aren't provided.
 
+The plans for better type safety were also outlined in this comment:
+https://github.com/input-output-hk/plutus/pull/2440#issuecomment-722329158
+-}
 
 genStaticContract :: ContractTerms -> Validation [TermValidationError] Contract
 genStaticContract terms =
