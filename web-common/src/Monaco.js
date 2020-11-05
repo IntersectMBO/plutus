@@ -60,6 +60,12 @@ exports.addExtraTypesScriptLibsJS_ = function (monaco) {
     });
 }
 
+exports.setStrictNullChecks_ = function (monaco, bool) {
+  var compilerOptions = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
+  compilerOptions['strictNullChecks'] = bool;
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
+}
+
 exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
   return editor.deltaDecorations([], [
     { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},

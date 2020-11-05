@@ -153,7 +153,9 @@ handleAction settings Init = do
       let
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
-        when (languageId == "typescript") $ Monaco.addExtraTypesScriptLibsJS monaco
+        when (languageId == "typescript") do
+          Monaco.addExtraTypesScriptLibsJS monaco
+          Monaco.setStrictNullChecks monaco true
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         for_ settings.theme $ Monaco.defineTheme monaco
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId

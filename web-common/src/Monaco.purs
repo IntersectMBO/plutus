@@ -228,6 +228,8 @@ foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
 foreign import addExtraTypesScriptLibsJS_ :: EffectFn1 Monaco Unit
 
+foreign import setStrictNullChecks_ :: EffectFn2 Monaco Boolean Unit
+
 foreign import setDeltaDecorations_ :: EffectFn3 Editor Int Int String
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
@@ -302,6 +304,9 @@ setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
 addExtraTypesScriptLibsJS :: Monaco -> Effect Unit
 addExtraTypesScriptLibsJS = runEffectFn1 addExtraTypesScriptLibsJS_
+
+setStrictNullChecks :: Monaco -> Boolean -> Effect Unit
+setStrictNullChecks = runEffectFn2 setStrictNullChecks_
 
 setDeltaDecorations :: Editor -> Int -> Int -> Effect String
 setDeltaDecorations = runEffectFn3 setDeltaDecorations_
