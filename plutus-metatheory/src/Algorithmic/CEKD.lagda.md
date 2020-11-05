@@ -151,6 +151,11 @@ step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (p
   s ; ρ ▻ BUILTIN bn σ (substEq (Tel _ _ σ) (sym p) []) (vtel-lem σ (sym p) [] _)
 step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
   (s , builtin- bn σ L.[] [] _ A As p (dischargeTel σ ts ρ)) ; ρ ▻ t
+step (x ; x₁ ▻ pbuiltin b Ψ' σ As' p x₂) =
+  ◆ (abstract3' _ _ Ψ' _ As' p (proj₂ (proj₂ (SIG b))) σ)
+step (x ; x₁ ▻ ibuiltin b σ⋆ σ) = ◆ (substNf σ⋆ (proj₂ (proj₂ (ISIG b))))
+step (x ; x₁ ▻ ipbuiltin b Ψ' Δ' p σ⋆ σ) =
+  ◆ (apply⋆ _ _ _ Ψ' _ Δ' p (proj₂ (proj₂ (ISIG b))) σ⋆ σ)
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
 step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M

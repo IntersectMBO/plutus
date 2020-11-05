@@ -54,19 +54,13 @@ data _⊢ (n : ℕ) : Set
 Tel : ℕ → ℕ → Set
 Tel m n = Vec (n ⊢) m
 
-ITel : ℕ → ℕ → Set
-ITel m n = Fin m → n ⊢
-
-
 data _⊢ n where
   `       : Fin n → n ⊢
   ƛ       : suc n ⊢ → n ⊢
   _·_     : n ⊢ → n ⊢ → n ⊢
   con     : TermCon → n ⊢
   builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
-  ibuiltin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : ITel m n) → n ⊢
   error   : n ⊢
-
 \end{code}
 
 
@@ -126,7 +120,6 @@ ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
 ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
 ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
 ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
-ugly (ibuiltin b p σ) = "ibuiltin"
 ugly error = "error"
 \end{code}
 

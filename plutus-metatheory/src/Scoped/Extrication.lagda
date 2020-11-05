@@ -13,6 +13,7 @@ open import Data.Product renaming (_,_ to _,,_)
 
 open import Type
 open import Type.BetaNormal
+open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic as A
 open import Scoped
 open import Builtin
@@ -156,5 +157,8 @@ extricate {Φ}{Γ} (builtin b σ ts) =
     (inj₂ ((lemma⋆ b) ,, (≡2≤‴ (lemma b))))
     (extricateSub σ)
     (extricateTel σ _ ts)
+extricate (pbuiltin b Ψ' σ As' p x) = error (extricateNf⋆ (abstract3' _ _ Ψ' _ As' p (proj₂ (proj₂ (SIG b))) σ))
+extricate (ibuiltin b σ⋆ σ) = error (extricateNf⋆ (substNf σ⋆ (proj₂ (proj₂ (ISIG b)))))
+extricate (ipbuiltin b Ψ' Δ' p σ⋆ σ) = error (extricateNf⋆ (apply⋆ _ _ _ Ψ' _ Δ' p (proj₂ (proj₂ (ISIG b))) σ⋆ σ))
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}
