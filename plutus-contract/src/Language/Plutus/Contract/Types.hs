@@ -29,6 +29,7 @@ module Language.Plutus.Contract.Types(
     , mapError
     , throwError
     , runError
+    , handleError
     -- * Checkpoints
     , AsCheckpointError(..)
     , CheckpointError(..)
@@ -188,8 +189,7 @@ mapError ::
   (e -> e')
   -> Contract s e a
   -> Contract s e' a
-mapError f (Contract c) = Contract c' where
-  c' = E.handleError @e (raiseUnderN @'[E.Error e'] c) (E.throwError @e' . f)
+mapError f = handleError (throwError . f)
 
 -- | Turn a contract with error type 'e' and return type 'a' into one with
 --   error type 'Void' (ie. throwing no errors) that returns 'Either e a'
@@ -198,6 +198,15 @@ runError ::
   Contract s e a
   -> Contract s Void (Either e a)
 runError (Contract r) = Contract (E.runError $ raiseUnderN @'[E.Error Void] r)
+
+-- | Handle errors, potentially throwing new errors.
+handleError ::
+  forall s e e' a.
+  (e -> Contract s e' a)
+  -> Contract s e a
+  -> Contract s e' a
+handleError f (Contract c) = Contract c' where
+  c' = E.handleError @e (raiseUnderN @'[E.Error e'] c) (fmap unContract f)
 
 runResumable ::
   [Response (Event s)]
