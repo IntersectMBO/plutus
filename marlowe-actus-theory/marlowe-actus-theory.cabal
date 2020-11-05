@@ -26,8 +26,9 @@ flag defer-plugin-errors
     default: False
     manual: True
 
-library
-  hs-source-dirs: src
+executable actus-agda-gen
+  main-is: Main.hs
+  hs-source-dirs: app src
   build-depends:
     aeson -any,
     base -any,

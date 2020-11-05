@@ -32,7 +32,6 @@ payoff = genModule "POF" defs where
         , genDefinition _POF_PY_PAM_PYTP_I "_POF_PY_PAM_PYTP_I" _POF_PY_PAM_param1 _POF_PY_PAM_params _POF_PY_PAM_types numberType
         , genDefinition _POF_PY_PAM_PYTP_O "_POF_PY_PAM_PYTP_O" _POF_PY_PAM_param1 _POF_PY_PAM_params _POF_PY_PAM_types numberType
         ]
-    _PYTP = ident "_PYTP"
     o_rf_CURS = ident "o_rf_CURS"
     o_rf_RRMO = ident "o_rf_RRMO"
     _PYRT = ident "_PYRT"
