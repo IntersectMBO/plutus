@@ -117,7 +117,7 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks nodejs-headers;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
+  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios purty;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev;
   inherit easyPS;
