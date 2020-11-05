@@ -13,12 +13,8 @@ Pre-submit checklist:
     - [ ] Useful pull request description
     - [ ] Reviewer requested
 - If you updated any cabal files or added Haskell packages:
-    - [ ] `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files
+   - [ ] `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files
    - [ ] Update `hie-*.yaml` files if needed
-- If you changed any Haskell files:
-   - [ ] `$(nix-shell shell.nix --run fix-stylish-haskell)` to fix any formatting issues
-- If you changed any Purescript files:
-   - [ ] `$(nix-shell shell.nix --run fix-purty)` to fix any formatting issues
 
 Pre-merge checklist:
 - [ ] Someone approved it
