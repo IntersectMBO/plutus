@@ -4,9 +4,9 @@
 
 module Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel where
 
-import Data.Maybe ()
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms(..), TermValidationError(..))
-import Data.Validation (Validation(..))
+import           Data.Maybe                                       ()
+import           Data.Validation                                  (Validation (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms (..), TermValidationError (..))
 
 -- Applicability Validation Functions
 

@@ -105,7 +105,7 @@ data TermValidationError =
     | NotApplicable String
     deriving (Eq)
 instance Show TermValidationError where
-    show (Required s) = "Missing required term: " ++ s
+    show (Required s)      = "Missing required term: " ++ s
     show (NotApplicable s) = "Term not applicable to contract: " ++ s
 
 data ScheduleConfig = ScheduleConfig
@@ -195,7 +195,7 @@ data ContractTerms = ContractTerms {
   , ct_IPCB      :: Maybe IPCB   -- Interest calc base
   , ct_IPCBA     :: Maybe Double -- Amount used for interest calculation
   , ct_IPCBCL    :: Maybe Cycle  -- Cycle of interest calculation base
-  , ct_IPCBANX    :: Maybe Day   -- Anchor of interest calc base cycle
+  , ct_IPCBANX   :: Maybe Day   -- Anchor of interest calc base cycle
   -- Fee
   , ct_FECL      :: Maybe Cycle
   , ct_FEANX     :: Maybe Day

@@ -2,15 +2,16 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
 
-import           Data.Maybe                                               (fromJust, fromMaybe)
+import           Data.Maybe                                                 (fromJust, fromMaybe)
 
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (IPCB, PR, FP, IED, IP, IPCI, MD, PP, PRD, PY, RR, RRF, SC, TD))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (ContractTerms (..), ContractType (LAM, PAM))
-import           Language.Marlowe.ACTUS.Definitions.Schedule              (ShiftedDay(calculationDay))
-import           Language.Marlowe.ACTUS.Definitions.ContractState         (ContractStatePoly(tmd))
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel    (_INIT_LAM)
-import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator   (inf, sup)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IED, IP, IPCB, IPCI, MD, PP, PR, PRD, PY, RR, RRF, SC, TD))
+import           Language.Marlowe.ACTUS.Definitions.ContractState           (ContractStatePoly (tmd))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
+                                                                             ContractType (LAM, PAM))
+import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]

@@ -1,14 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs where
 
-import           Data.Maybe                                                 (fromMaybe, fromJust)
+import           Data.Maybe                                                 (fromJust, fromMaybe)
 import           Language.Marlowe
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP, PR))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
                                                                              ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.MarloweCompat                       (stateInitialisation)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_PAM, _INIT_LAM)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_LAM, _INIT_PAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 

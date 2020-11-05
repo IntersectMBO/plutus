@@ -6,7 +6,7 @@ where
 import           Data.Aeson                                       (decode, encode)
 import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
-import           Data.Validation                                  (Validation(..))
+import           Data.Validation                                  (Validation (..))
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator

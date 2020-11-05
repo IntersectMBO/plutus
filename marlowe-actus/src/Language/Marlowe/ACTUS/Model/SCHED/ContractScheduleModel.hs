@@ -4,11 +4,12 @@
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
 import           Data.Maybe                                             (fromJust, isJust, isNothing)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (PREF (..), PYTP (..), SCEF (..), ScheduleConfig(..), IPCB(IPCB_NTL))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (IPCB (IPCB_NTL), PREF (..), PYTP (..),
+                                                                         SCEF (..), ScheduleConfig (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            ()
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          plusCycle, remove)
-import           Language.Marlowe.ACTUS.Definitions.Schedule      ()
 
 _S = generateRecurrentScheduleWithCorrections
 shift = applyBDCWithCfg

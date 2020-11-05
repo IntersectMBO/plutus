@@ -10,7 +10,7 @@ import           Data.Maybe                                             (fromJus
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  
+import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
@@ -81,7 +81,7 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
                     SC   -> _STF_SC_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER ct_CNTRL ct_SCEF __o_rf_SCMO __SCIED
                     CE   -> _STF_CE_PAM st time y_sd_t
                     _    -> st
-        LAM -> 
+        LAM ->
             addComment $ stateTransitionMarlowe ev t continue $ \event st ->
                 case event of
                     AD   -> _STF_AD_LAM st time y_sd_t

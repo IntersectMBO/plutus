@@ -1,15 +1,17 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms(..), ContractType(..), ScheduleConfig(..), TermValidationError(..))
-import Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
-import Data.Maybe (isJust)
-import Data.Validation
+import           Data.Maybe                                                    (isJust)
+import           Data.Validation
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms              (ContractTerms (..), ContractType (..),
+                                                                                ScheduleConfig (..),
+                                                                                TermValidationError (..))
+import           Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
 
 validateTerms :: ContractTerms -> Validation [TermValidationError] ContractTerms
 validateTerms t =
     case contractType t of
-        Just PAM -> 
+        Just PAM ->
             pure t <*
             _X (calendar . scfg) t "calendar" <*
             _X (eomc . scfg) t "end of month convention" <*

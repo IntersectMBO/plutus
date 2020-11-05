@@ -49,7 +49,7 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
                 SC   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_SCEF o_rf_SCMO ct_SCIED
                 CE   -> _STF_CE_PAM st t y_sd_t
                 _    -> st
-        LAM -> 
+        LAM ->
             case ev of
                 AD   -> _STF_AD_LAM st t y_sd_t
                 IED  -> _STF_IED_LAM st t y_ipanx_t ct_IPNR ct_IPANX ct_CNTRL ct_IPAC (fromJust ct_NT) ct_IPCB ct_IPCBA

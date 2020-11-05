@@ -8,29 +8,32 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                               as L (zip6)
-import           Data.Maybe                                              (fromMaybe, isNothing, maybeToList)
+import qualified Data.List                                                as L (zip6)
+import           Data.Maybe                                               (fromMaybe, isNothing, maybeToList)
 import           Data.Monoid
-import           Data.String                                             (IsString (fromString))
-import           Data.Time                                               (Day)
-import           Data.Validation                                         (Validation(..))
-import           Language.Marlowe                                        (Action (Choice, Deposit), Bound (Bound),
-                                                                          Case (Case), ChoiceId (ChoiceId),
-                                                                          Contract (Close, Let, Pay, When), Observation,
-                                                                          Party (Role), Payee (Party), Slot (..),
-                                                                          Value (ChoiceValue, Constant, NegValue, UseValue),
-                                                                          ValueId (ValueId), ada)
-import           Language.Marlowe.ACTUS.Analysis                         (genProjectedCashflows, genZeroRiskAssertions)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (AssertionContext (..), Assertions (..),
-                                                                          ContractTerms (constraints, ct_CURS, ct_SD), TermValidationError(..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                    (constnt, dayToSlotNumber, toMarloweFixedPoint)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
-import           Language.Marlowe.ACTUS.Model.POF.PayoffFs               (payoffFs)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs      (stateTransitionFs)
+import           Data.String                                              (IsString (fromString))
+import           Data.Time                                                (Day)
+import           Data.Validation                                          (Validation (..))
+import           Language.Marlowe                                         (Action (Choice, Deposit), Bound (Bound),
+                                                                           Case (Case), ChoiceId (ChoiceId),
+                                                                           Contract (Close, Let, Pay, When),
+                                                                           Observation, Party (Role), Payee (Party),
+                                                                           Slot (..),
+                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
+                                                                           ValueId (ValueId), ada)
+import           Language.Marlowe.ACTUS.Analysis                          (genProjectedCashflows, genZeroRiskAssertions)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (AssertionContext (..), Assertions (..),
+                                                                           ContractTerms (constraints, ct_CURS, ct_SD),
+                                                                           TermValidationError (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
+import           Language.Marlowe.ACTUS.MarloweCompat                     (constnt, dayToSlotNumber,
+                                                                           toMarloweFixedPoint)
 import           Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability (validateTerms)
-import           Ledger.Value                                            (TokenName (TokenName))
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs  (inititializeStateFs)
+import           Language.Marlowe.ACTUS.Model.POF.PayoffFs                (payoffFs)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs       (stateTransitionFs)
+import           Ledger.Value                                             (TokenName (TokenName))
 
 
 

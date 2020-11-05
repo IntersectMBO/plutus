@@ -2,7 +2,7 @@
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
 import qualified Data.List                                             as L (scanl, tail, zip)
-import           Data.Maybe                                            (fromMaybe, fromJust)
+import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day, fromGregorian)
 

@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.Model.POF.PayoffFs where
 import           Data.Maybe                                        (fromJust)
 import           Data.Time                                         (Day)
 import           Language.Marlowe                                  (Observation, Value)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (FP, IED, IP, MD, PP, PRD, PY, TD, PR))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (FP, IED, IP, MD, PP, PR, PRD, PY, TD))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerms (..), ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel

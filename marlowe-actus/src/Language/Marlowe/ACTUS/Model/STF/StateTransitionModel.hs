@@ -7,7 +7,8 @@ module Language.Marlowe.ACTUS.Model.STF.StateTransitionModel where
 
 import           Data.Maybe                                       (fromJust, fromMaybe, isJust, isNothing)
 import           Language.Marlowe.ACTUS.Definitions.ContractState (ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms (FEB (FEB_N), SCEF (SE_00M, SE_0N0, SE_0NM, SE_I00), IPCB(IPCB_NT))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (FEB (FEB_N), IPCB (IPCB_NT),
+                                                                   SCEF (SE_00M, SE_0N0, SE_0NM, SE_I00))
 import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_max, _min, _zero),
                                                                    DateOps (_lt), RoleSignOps (_r))
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
@@ -138,7 +139,7 @@ _STF_PR_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
         fac' = case _FEB of
             FEB_N -> fac + y_sd_t * nt * _FER
             _     -> (y_tfpminus_t / y_tfpminus_tfpplus) * _r _CNTRL * _FER
-        
+
         ipcb' = case (fromJust _IPCB) of
             IPCB_NT -> nt'
             _       -> ipcb
@@ -154,7 +155,7 @@ _STF_MD_LAM st@ContractStatePoly{..} t = st {
 }
 
 _STF_PP_LAM st@ContractStatePoly{..} t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _IPCB =
-    let 
+    let
         st' = _STF_PY_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
         nt' = nt - pp_payoff
         ipcb' = case (fromJust _IPCB) of
@@ -192,7 +193,7 @@ _STF_IPCI_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
             _       -> ipcb
     in st' {nt = nt', ipcb = ipcb'}
 
-_STF_IPCB_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL = 
+_STF_IPCB_LAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL =
     let
         st' = _STF_PRD_LAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
     in st' { ipcb = nt }

@@ -37,7 +37,7 @@ import           Network.Wai.Middleware.Cors                      (cors, corsReq
 import           Servant                                          ((:<|>) ((:<|>)), (:>), Application,
                                                                    Handler (Handler), Server, ServerError, hoistServer,
                                                                    serve, throwError)
-import           Servant.Server.Internal.ServerError              (ServerError(..), err400)
+import           Servant.Server.Internal.ServerError              (ServerError (..), err400)
 import           System.Environment                               (lookupEnv)
 import qualified Web.JWT                                          as JWT
 

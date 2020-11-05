@@ -28,7 +28,7 @@ payoff ev RiskFactors{..} ContractTerms{..} ContractStatePoly {..} t =
                 TD  -> _POF_TD_PAM o_rf_CURS ct_CNTRL (fromJust ct_PTD) ipac ipnr nt y_sd_t
                 IP  -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
                 _   -> 0.0
-        LAM -> 
+        LAM ->
             case ev of
                 IED -> _POF_IED_LAM o_rf_CURS ct_CNTRL (fromJust ct_NT) ct_PDIED
                 PR  -> _POF_PR_LAM o_rf_CURS ct_CNTRL nsc prnxt

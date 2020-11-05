@@ -169,6 +169,7 @@
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
             (hsPkgs."time" or (errorHandler.buildDepError "time"))
+            (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
             ];
           buildable = true;
           modules = [ "Spec/Marlowe/Actus" ];
