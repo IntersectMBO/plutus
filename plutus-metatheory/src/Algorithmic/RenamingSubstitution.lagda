@@ -127,7 +127,7 @@ ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
 ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
   refl
-  (abstract3-ren _ _ _ _ _ As' p _ σ ρ⋆)
+  (abstract3'-ren _ _ _ _ _ As' p _ σ ρ⋆)
   (pbuiltin b Ψ' (renNf ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
 ren ρ⋆ ρ (ibuiltin b σ⋆ σ) = let _ ,, _ ,, A = ISIG b in conv⊢
   refl
@@ -265,7 +265,7 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
 subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p ts) = let _ ,, _ ,, A = SIG b in conv⊢
   refl
-  (abstract3-subst _ _ _ _ _ _ p A σ⋆' σ⋆)
+  (abstract3'-subst _ _ _ _ _ _ p A σ⋆' σ⋆)
   (pbuiltin b Ψ' (substNf σ⋆ ∘ σ⋆') As' p (substTel σ⋆ σ ts))
 subst σ⋆ σ (ibuiltin b σ⋆' σ') = let _ ,, _ ,, A = ISIG b in conv⊢
   refl

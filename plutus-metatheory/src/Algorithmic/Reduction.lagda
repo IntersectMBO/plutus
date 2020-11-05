@@ -5,7 +5,7 @@ module Algorithmic.Reduction where
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -239,6 +239,30 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → (ts : Tel Γ Δ σ As)
     → Any Error ts
     → builtin bn σ ts —→ error (substNf σ C)
+  E-pbuiltin : ∀{Φ Γ}(b :  Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      ∀ Ψ' → 
+      (σ : SubNf Ψ' Φ)
+    → (As' : List (Ψ' ⊢Nf⋆ *))
+    → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
+    → (ts : Tel Γ Ψ' σ As')
+    → pbuiltin b Ψ' σ As' p ts —→ error (abstract3' Φ Ψ Ψ' As As' p C σ)
+  E-ibuiltin : ∀{Φ Γ}
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      (σ⋆ : SubNf Ψ Φ)
+    → (σ : ITel Δ Γ σ⋆)
+    → ibuiltin b σ⋆ σ —→ error (substNf σ⋆ C)
+
+  E-ipbuiltin : ∀{Φ Γ}
+      (b : Builtin)
+    → let Ψ ,, Δ ,, C = ISIG b in
+      ∀ Ψ'
+    → (Δ' : Ctx Ψ')
+    → (p : Δ' ≤C Δ)
+      (σ⋆ : SubNf Ψ' Φ)
+    → (σ : ITel Δ' Γ σ⋆)
+    → ipbuiltin b Ψ' Δ' p σ⋆ σ —→ error (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
 
 data _—→T_ {Φ}{Γ}{Δ}{σ} where
   here  : ∀{A}{As}{t t'}{ts : Tel Γ Δ σ As}
@@ -389,7 +413,10 @@ progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap A B M) = progress-wrap p (progress p M)
 progress p (unwrap M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
-progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
+progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
+progress p (pbuiltin b Ψ' σ As' q ts) = step (E-pbuiltin b Ψ' σ As' q ts)
+progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
+progress p (ipbuiltin b Ψ' Δ' q σ⋆ σ) = step (E-ipbuiltin b Ψ' Δ' q σ⋆ σ)
 progress p (error A)            = error E-error
 
 --
@@ -514,6 +541,9 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
+det (E-pbuiltin b Ψ' σ As' p₁ x) (E-pbuiltin .b .Ψ' .σ .As' .p₁ .x) = refl
+det (E-ibuiltin b σ⋆ σ) (E-ibuiltin .b .σ⋆ .σ) = refl
+det (E-ipbuiltin b Ψ' Δ' p₁ σ⋆ σ) (E-ipbuiltin .b .Ψ' .Δ' .p₁ .σ⋆ .σ) = refl
 
 detT (here p)    (here q)    = cong (_∷ _) (det p q)
 detT (here p)    (there w q) = ⊥-elim (val-red w (_ ,, p))
