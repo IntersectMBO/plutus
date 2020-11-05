@@ -34,7 +34,7 @@ import           Language.PlutusCore.TypeCheck.Internal
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import           Data.Ix
+import           Data.Array
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.

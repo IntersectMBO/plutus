@@ -35,7 +35,6 @@ import qualified Language.PlutusCore.StdLib.Data.List                       as P
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Data.Bifunctor
 import           Data.Either
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc

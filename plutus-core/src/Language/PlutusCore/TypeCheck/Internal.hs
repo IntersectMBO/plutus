@@ -80,6 +80,20 @@ functions that cannot fail looks like this:
 
 -- | Mapping from 'Builtin's to their 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
+    -- We need to kind check types of all built-in functions before proceeding to type checking a
+    -- program, so when we do that we don't have any normalized types of built-in functions yet
+    -- (as normalization has to be preceded by kind/type checking, which is the very thing that
+    -- we are up to). And since both kind and type checking run in the same 'TypeCheckM' monad,
+    -- we do need to provide a 'BuiltinTypes' argument, even though we know that at kind checking
+    -- time no built-in function can be encountered (as those live at the value level, not the type
+    -- one). So we could wrap an empty 'Array' with 'BuiltinTypes' but how to construct an empty
+    -- array? This works:
+    --
+    --     listArray (maxBound, minBound) []
+    --
+    -- but only when 'maxBound' is not equal to 'minBound' (and both exist). Which sucks.
+    --
+    -- So we use 'Nothing' to say "no builtins". It's sufficient and doesn't complicate anything.
     { unBuiltinTypes :: Maybe (Array fun (Dupable (Normalized (Type TyName uni ()))))
     }
 
