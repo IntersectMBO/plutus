@@ -3,11 +3,11 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
-import           Data.Maybe                                             (fromJust, isJust, isNothing, fromMaybe)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (PREF (..), PYTP (..), SCEF (..), ScheduleConfig(..), IPCB(IPCB_NTL), n)
+import           Data.Maybe                                             (fromJust, isJust, isNothing)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (PREF (..), PYTP (..), SCEF (..), ScheduleConfig(..), IPCB(IPCB_NTL))
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
-                                                                         plusCycle, shiftedPlusCycle, remove, sup)
+                                                                         plusCycle, remove)
 import           Language.Marlowe.ACTUS.Definitions.Schedule      ()
 
 _S = generateRecurrentScheduleWithCorrections
@@ -103,18 +103,9 @@ _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
     let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
                 | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
                 | otherwise                          = _PRANX
-    in (\s -> _S s (fromJust _PRCL) (fromJust _MD) (scfg { includeEndDay = False })) <$> maybeS
+    in (\s -> _S s (fromJust _PRCL) _MD (scfg { includeEndDay = False })) <$> maybeS
 
-_SCHED_MD_LAM scfg _IED _SD _PRANX _PRNXT _NT _PRCL _MD =
-    let maybeTMinus | isJust _PRANX && ((fromJust _PRANX) >= _SD) = _PRANX
-                    | (_IED `plusCycle` fromJust _PRCL) >= _SD = Just $ _IED `plusCycle` fromJust _PRCL
-                    | otherwise                           = Nothing
-        maybeSupPR | isNothing maybeTMinus = sup (fromMaybe [] $ _SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD) _SD
-                   | otherwise = Nothing
-        result  | isJust _MD = Just [shift scfg $ fromJust _MD]
-                | isJust maybeTMinus = Just [shift scfg $ (fromJust maybeTMinus) `plusCycle` ((fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) })]
-                | otherwise = Just [(fromJust maybeSupPR) `shiftedPlusCycle` ((fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) })]
-    in result
+_SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
 
 _SCHED_PP_LAM = _SCHED_PP_PAM
 

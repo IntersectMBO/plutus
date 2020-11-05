@@ -4,7 +4,6 @@
 module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
   , plusCycle
-  , shiftedPlusCycle
   , sup
   , inf
   , remove
@@ -77,10 +76,6 @@ generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig
       (fmap $ applyEOMC anchorDate cycle eomc) >>>
       (fmap $ applyBDC bdc calendar) >>>
       stubCorrection (stub cycle) endDate)
-
--- Very unsure about the necessity of this thing
-shiftedPlusCycle :: ShiftedDay -> Cycle -> ShiftedDay
-shiftedPlusCycle sd cycle = sd { paymentDay = shiftDate (paymentDay sd) (n cycle) (p cycle), calculationDay = shiftDate (calculationDay sd) (n cycle) (p cycle) }
 
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)
