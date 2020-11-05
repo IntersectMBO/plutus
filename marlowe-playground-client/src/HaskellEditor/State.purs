@@ -22,7 +22,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.State (_result)
+import Simulation (_result)
 import Simulation.Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData

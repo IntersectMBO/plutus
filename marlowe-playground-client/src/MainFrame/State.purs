@@ -65,7 +65,7 @@ import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _error, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation as Simulation
+import Simulation.State as Simulation
 import Simulation.Types (_source)
 import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalStorageKey, marloweBufferLocalStorageKey)

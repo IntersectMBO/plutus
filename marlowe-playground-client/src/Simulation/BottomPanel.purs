@@ -29,7 +29,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.State (MarloweEvent(..), _SimulationRunning, _SimulationNotStarted, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _slot, _state, _transactionError, _transactionWarnings)
+import Simulation (MarloweEvent(..), _SimulationRunning, _SimulationNotStarted, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 

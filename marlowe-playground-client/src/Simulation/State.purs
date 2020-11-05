@@ -1,519 +1,803 @@
 module Simulation.State where
 
-import Control.Bind
-import Control.Monad.State (class MonadState)
-import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
-import Data.BigInteger (BigInteger)
+import Control.Alternative (map, void, when, (<*>), (<|>))
+import Control.Monad.Except (ExceptT, runExceptT, runExcept)
+import Control.Monad.Reader (runReaderT)
+import Data.EuclideanRing ((*))
+import Data.RawJson (RawJson(..))
+import Data.Array (delete, filter, intercalate, snoc, sortWith)
+import Data.Array as Array
+import Data.BigInteger (BigInteger, fromString, fromInt)
+import Data.Decimal (truncated, fromNumber)
+import Data.Decimal as Decimal
 import Data.Either (Either(..))
-import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Generic.Rep (class Generic)
-import Data.Lens (Getter', Lens', Prism', Traversal', has, lens, modifying, nearly, over, preview, previewOn, prism, set, to, use, view, (^.))
-import Data.Lens.At (at)
+import Data.Enum (toEnum, upFromIncluding)
+import Data.HeytingAlgebra (not, (&&))
+import Data.Lens (assign, has, modifying, only, over, preview, to, use, view, (^.))
+import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
-import Data.Lens.Record (prop)
-import Data.List (List(..))
-import Data.List as List
+import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype, unwrap, wrap)
-import Data.NonEmpty (foldl1, (:|))
-import Data.NonEmptyList.Extra (extendWith)
-import Data.NonEmptyList.Lens (_Tail)
-import Data.Symbol (SProxy(..))
-import Data.Tuple (Tuple(..))
-import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
-import Marlowe.Holes (Holes, fromTerm)
-import Marlowe.Linter (lint)
-import Marlowe.Linter as L
+import Data.Newtype (wrap)
+import Data.NonEmptyList.Extra (tailIfNotEmpty)
+import Data.String (codePointFromChar)
+import Data.String as String
+import Data.Traversable (for_, traverse)
+import Data.Tuple (Tuple(..), snd)
+import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Console (log)
+import FileEvents (readFileFromDragEvent)
+import FileEvents as FileEvents
+import Foreign.Generic (ForeignError, decode)
+import Foreign.JSON (parseJSON)
+import Halogen (HalogenM, get, query)
+import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes as Classes
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
+import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
+import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, src, type_, value)
+import Halogen.HTML.Properties as HTML
+import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import Halogen.Monaco (monacoComponent)
+import Help (HelpContext(..), toHTML)
+import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import Marlowe (SPParams_)
+import Marlowe as Server
+import Marlowe.Linter as Linter
+import Marlowe.Monaco (updateAdditionalContext)
+import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
-import Marlowe.Semantics as S
-import Monaco (IMarker)
-import Prelude (class Eq, class HeytingAlgebra, class Monoid, class Ord, class Semigroup, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
-
-data ActionInputId
-  = DepositInputId AccountId Party Token BigInteger
-  | ChoiceInputId ChoiceId
-  | NotifyInputId
-  | MoveToSlotId
-
-derive instance eqActionInputId :: Eq ActionInputId
-
-derive instance ordActionInputId :: Ord ActionInputId
-
-derive instance genericActionInputId :: Generic ActionInputId _
-
-instance encodeActionInputId :: Encode ActionInputId where
-  encode a = genericEncode aesonCompatibleOptions a
-
-instance decodeActionInputId :: Decode ActionInputId where
-  decode = genericDecode aesonCompatibleOptions
-
--- | On the front end we need Actions however we also need to keep track of the current
--- | choice that has been set for Choices
-data ActionInput
-  = DepositInput AccountId Party Token BigInteger
-  | ChoiceInput ChoiceId (Array Bound) ChosenNum
-  | NotifyInput
-  | MoveToSlot Slot
-
-derive instance eqActionInput :: Eq ActionInput
-
-derive instance ordActionInput :: Ord ActionInput
-
-derive instance genericActionInput :: Generic ActionInput _
-
-instance encodeActionInput :: Encode ActionInput where
-  encode a = genericEncode aesonCompatibleOptions a
-
-instance decodeActionInput :: Decode ActionInput where
-  decode = genericDecode aesonCompatibleOptions
-
-minimumBound :: Array Bound -> ChosenNum
-minimumBound bnds = case uncons (map boundFrom bnds) of
-  Just { head, tail } -> foldl1 min (head :| tail)
-  Nothing -> zero
-
-actionToActionInput :: State -> Action -> Tuple ActionInputId ActionInput
-actionToActionInput state (Deposit accountId party token value) =
-  let
-    minSlot = state ^. _minSlot
-
-    evalResult = evalValue env state value
-
-    env = Environment { slotInterval: (SlotInterval minSlot minSlot) }
-  in
-    Tuple (DepositInputId accountId party token evalResult) (DepositInput accountId party token evalResult)
-
-actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId) (ChoiceInput choiceId bounds (minimumBound bounds))
-
-actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput
-
-combineChoices :: ActionInput -> ActionInput -> ActionInput
-combineChoices (ChoiceInput choiceId1 bounds1 _) (ChoiceInput choiceId2 bounds2 _)
-  | choiceId1 == choiceId2 = (ChoiceInput choiceId2 combinedBounds (minimumBound combinedBounds))
-    where
-    combinedBounds = bounds1 <> bounds2
-
-combineChoices a1 a2 = a2
-
-simplifyActionInput :: ActionInput -> ActionInput
-simplifyActionInput (ChoiceInput choiceId bounds minBound) = ChoiceInput choiceId (simplifyBounds bounds) minBound
-
-simplifyActionInput other = other
-
-simplifyBounds :: Array Bound -> Array Bound
-simplifyBounds bounds = fromFoldable (simplifyBoundList (toUnfoldable (sort bounds)))
-
-simplifyBoundList :: List Bound -> List Bound
-simplifyBoundList (Cons (Bound low1 high1) (Cons b2@(Bound low2 high2) rest))
-  | high1 >= low2 = simplifyBoundList (Cons (Bound (min low1 low2) (max high1 high2)) rest)
-  | otherwise = (Cons (Bound low1 high1) (simplifyBoundList (Cons b2 rest)))
-
-simplifyBoundList l = l
-
-data MarloweEvent
-  = InputEvent TransactionInput
-  | OutputEvent SlotInterval Payment
-
-derive instance genericMarloweEvent :: Generic MarloweEvent _
-
-instance encodeMarloweEvent :: Encode MarloweEvent where
-  encode a = genericEncode aesonCompatibleOptions a
-
-instance decodeMarloweEvent :: Decode MarloweEvent where
-  decode = genericDecode aesonCompatibleOptions
-
-newtype Parties
-  = Parties (Map Party (Map ActionInputId ActionInput))
-
-derive instance newtypeParties :: Newtype Parties _
-
-derive newtype instance semigroupParties :: Semigroup Parties
-
-derive newtype instance monoidParties :: Monoid Parties
-
-mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
-mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
-
-derive newtype instance encodeParties :: Encode Parties
-
-derive newtype instance decodeParties :: Decode Parties
-
-_actionInput :: Party -> ActionInputId -> Traversal' Parties ActionInput
-_actionInput party id = _Newtype <<< ix party <<< ix id
-
-_otherActions :: Traversal' Parties (Map ActionInputId ActionInput)
-_otherActions = _Newtype <<< ix otherActionsParty
-
-_moveToAction :: Lens' Parties (Maybe ActionInput)
-_moveToAction = lens get' set'
-  where
-  get' = preview (_actionInput otherActionsParty MoveToSlotId)
-
-  set' p ma =
-    let
-      m = case preview _otherActions p, ma of
-        Nothing, Nothing -> Nothing
-        Just m', Nothing -> Just $ Map.delete MoveToSlotId m'
-        Nothing, Just a -> Just $ Map.singleton MoveToSlotId a
-        Just m', Just a -> Just $ Map.insert MoveToSlotId a m'
-    in
-      set (_Newtype <<< at otherActionsParty) m p
-
-type ExecutionStateRecord
-  = { possibleActions :: Parties
-    , pendingInputs :: Array Input
-    , transactionError :: Maybe TransactionError
-    , transactionWarnings :: Array TransactionWarning
-    , log :: Array MarloweEvent
-    , state :: State
-    , slot :: Slot
-    , moneyInContract :: Assets
-    }
-
-_possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
-_possibleActions = prop (SProxy :: SProxy "possibleActions")
-
-_pendingInputs :: forall s a. Lens' { pendingInputs :: a | s } a
-_pendingInputs = prop (SProxy :: SProxy "pendingInputs")
-
-_state :: forall s a. Lens' { state :: a | s } a
-_state = prop (SProxy :: SProxy "state")
-
-_transactionError :: forall s a. Lens' { transactionError :: a | s } a
-_transactionError = prop (SProxy :: SProxy "transactionError")
-
-_transactionWarnings :: forall s a. Lens' { transactionWarnings :: a | s } a
-_transactionWarnings = prop (SProxy :: SProxy "transactionWarnings")
-
-_slot :: forall s a. Lens' { slot :: a | s } a
-_slot = prop (SProxy :: SProxy "slot")
-
-_moneyInContract :: forall s a. Lens' { moneyInContract :: a | s } a
-_moneyInContract = prop (SProxy :: SProxy "moneyInContract")
-
-_log :: forall s a. Lens' { log :: a | s } a
-_log = prop (SProxy :: SProxy "log")
-
-_payments :: forall s. Getter' { log :: Array MarloweEvent | s } (Array Payment)
-_payments = _log <<< to (mapMaybe f)
-  where
-  f (InputEvent _) = Nothing
-
-  f (OutputEvent _ payment) = Just payment
-
-type InitialConditionsRecord
-  = { initialSlot :: Slot }
-
-_initialSlot :: forall s a. Lens' { initialSlot :: a | s } a
-_initialSlot = prop (SProxy :: SProxy "initialSlot")
-
-data ExecutionState
-  = SimulationRunning ExecutionStateRecord
-  | SimulationNotStarted InitialConditionsRecord
-
--- | Prism for the `ExecutionState` constructor of `SimulationRunning`.
-_SimulationRunning :: Prism' ExecutionState ExecutionStateRecord
-_SimulationRunning =
-  prism SimulationRunning
-    $ ( \x -> case x of
-          SimulationRunning record -> Right record
-          anotherCase -> Left anotherCase
-      )
-
--- | Prism for the `ExecutionState` constructor of `SimulationNotStarted`.
-_SimulationNotStarted :: Prism' ExecutionState InitialConditionsRecord
-_SimulationNotStarted =
-  prism SimulationNotStarted
-    $ ( \x -> case x of
-          SimulationNotStarted record -> Right record
-          anotherCase -> Left anotherCase
-      )
-
-emptyExecutionStateWithSlot :: Slot -> ExecutionState
-emptyExecutionStateWithSlot sn =
-  SimulationRunning
-    { possibleActions: mempty
-    , pendingInputs: mempty
-    , transactionError: Nothing
-    , transactionWarnings: mempty
-    , log: mempty
-    , state: emptyState sn
-    , slot: sn
-    , moneyInContract: mempty
-    }
-
-simulationNotStartedWithSlot :: Slot -> ExecutionState
-simulationNotStartedWithSlot slot = SimulationNotStarted { initialSlot: slot }
-
-simulationNotStarted :: ExecutionState
-simulationNotStarted = simulationNotStartedWithSlot zero
-
-type MarloweState
-  = { executionState :: ExecutionState
-    , contract :: Maybe Contract
-    , editorErrors :: Array IMarker
-    , editorWarnings :: Array IMarker
-    , holes :: Holes
-    }
-
-_executionState :: forall s a. Lens' { executionState :: a | s } a
-_executionState = prop (SProxy :: SProxy "executionState")
-
-_contract :: forall s a. Lens' { contract :: a | s } a
-_contract = prop (SProxy :: SProxy "contract")
-
-_editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
-_editorErrors = prop (SProxy :: SProxy "editorErrors")
-
-_editorWarnings :: forall s a. Lens' { editorWarnings :: a | s } a
-_editorWarnings = prop (SProxy :: SProxy "editorWarnings")
-
-_holes :: forall s a. Lens' { holes :: a | s } a
-_holes = prop (SProxy :: SProxy "holes")
-
---- Language.Haskell.Interpreter ---
-_result :: forall s a. Lens' { result :: a | s } a
-_result = prop (SProxy :: SProxy "result")
-
-emptyMarloweState :: MarloweState
-emptyMarloweState =
-  { contract: Nothing
-  , editorErrors: mempty
-  , editorWarnings: mempty
-  , holes: mempty
-  , executionState: simulationNotStarted
-  }
-
-emptyMarloweStateWithSlot :: Slot -> MarloweState
-emptyMarloweStateWithSlot sn =
-  { contract: Nothing
-  , editorErrors: mempty
-  , editorWarnings: mempty
-  , holes: mempty
-  , executionState: emptyExecutionStateWithSlot sn
-  }
-
-getAsMuchStateAP :: forall m t0. MonadState { marloweState :: NonEmptyList MarloweState | t0 } m => m State
-getAsMuchStateAP = do
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
+import Marlowe.Symbolic.Types.Request as MSReq
+import Monaco (IMarker, isError, isWarning)
+import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
+import Network.RemoteData (RemoteData(..))
+import Network.RemoteData as RemoteData
+import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
+import Projects.Types (Lang(..))
+import Reachability (startReachabilityAnalysis)
+import Servant.PureScript.Ajax (AjaxError, errorToString)
+import Servant.PureScript.Settings (SPSettings_)
+import Simulation.BottomPanel (bottomPanel)
+import Simulation (ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), _SimulationNotStarted, _SimulationRunning, _editorErrors, _editorWarnings, _executionState, _initialSlot, _moveToAction, _pendingInputs, _possibleActions, _slot, applyInput, emptyExecutionStateWithSlot, emptyMarloweState, getAsMuchStateAP, hasHistory, inFuture, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _bottomPanelView, _currentContract, _currentMarloweState, _editorKeybindings, _helpContext, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _source, isContractValid)
+import StaticData (marloweBufferLocalStorageKey)
+import StaticData as StaticData
+import Text.Pretty (genericPretty, pretty)
+import Web.DOM.Document as D
+import Web.DOM.Element (setScrollTop)
+import Web.DOM.Element as E
+import Web.DOM.HTMLCollection as WC
+import Web.HTML as Web
+import Web.HTML.HTMLDocument (toDocument)
+import Web.HTML.Window as W
+
+handleAction ::
+  forall m.
+  MonadEffect m =>
+  MonadAff m =>
+  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
+handleAction settings Init = do
+  editorSetTheme
+  setOraclePrice settings
+
+handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
+  assign _marloweState $ NEL.singleton emptyMarloweState
+  assign _oldContract Nothing
+  updateContractInState ""
+
+handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
+  assign _selectedHole Nothing
+  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
+  updateContractInState text
+  assign _activeDemo ""
   executionState <- use (_currentMarloweState <<< _executionState)
-  pure
-    ( case executionState of
-        SimulationRunning runRecord -> runRecord.state
-        SimulationNotStarted notRunRecord -> emptyState notRunRecord.initialSlot
+  let
+    state = case executionState of
+      SimulationRunning runRecord -> runRecord.state
+      SimulationNotStarted notRunRecord -> emptyState $ notRunRecord.initialSlot
+
+    (Tuple markerData additionalContext) = Linter.markers state text
+  markers <- query _marloweEditorSlot unit (Monaco.SetModelMarkers markerData identity)
+  void $ traverse editorSetMarkers markers
+  objects <- query _marloweEditorSlot unit (Monaco.GetObjects identity)
+  case objects of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
+
+handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
+
+handleAction settings (HandleDropEvent event) = do
+  liftEffect $ FileEvents.preventDefault event
+  contents <- liftAff $ readFileFromDragEvent event
+  void $ editorSetValue contents
+  updateContractInState contents
+  setOraclePrice settings
+
+handleAction _ (MoveToPosition lineNumber column) = do
+  void $ query _marloweEditorSlot unit (Monaco.SetPosition { column, lineNumber } unit)
+
+handleAction _ (SelectEditorKeyBindings bindings) = do
+  assign _editorKeybindings bindings
+  void $ query _marloweEditorSlot unit (Monaco.SetKeyBindings bindings unit)
+
+handleAction settings (LoadScript key) = do
+  for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
+    let
+      prettyContents = case parseContract contents of
+        Right pcon -> show $ pretty pcon
+        Left _ -> contents
+    editorSetValue prettyContents
+    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    updateContractInState prettyContents
+    resetContract
+    assign _activeDemo key
+    setOraclePrice settings
+
+handleAction settings (SetEditorText contents) = do
+  editorSetValue contents
+  updateContractInState contents
+
+handleAction settings (SetInitialSlot initialSlot) = do
+  assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
+  setOraclePrice settings
+
+handleAction settings StartSimulation = do
+  maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
+  for_ maybeInitialSlot \initialSlot -> do
+    saveInitialState
+    assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
+    moveToSignificantSlot initialSlot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
+      Nothing -> pure unit
+
+handleAction settings (MoveSlot slot) = do
+  inTheFuture <- inFuture <$> get <*> pure slot
+  significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
+  when inTheFuture do
+    saveInitialState
+    if slot >= (fromMaybe zero significantSlot) then
+      moveToSignificantSlot slot
+    else
+      moveToSlot slot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
+      Nothing -> pure unit
+
+handleAction settings (SetSlot slot) = do
+  assign (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
+  setOraclePrice settings
+
+handleAction settings (AddInput input bounds) = do
+  when validInput do
+    saveInitialState
+    applyInput ((flip snoc) input)
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> do
+        editorSetValue (show $ genericPretty currContract)
+        setOraclePrice settings
+      Nothing -> pure unit
+  where
+  validInput = case input of
+    (IChoice _ chosenNum) -> inBounds chosenNum bounds
+    _ -> true
+
+handleAction settings (RemoveInput input) = do
+  updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) (delete input))
+  currContract <- editorGetValue
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      updateContractInState contract
+      setOraclePrice settings
+
+handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
+  where
+  updateChoice :: ChoiceId -> ActionInput -> ActionInput
+  updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
+    | wantedChoiceId == currentChoiceId = ChoiceInput choiceId bounds chosenNum
+
+  updateChoice _ input = input
+
+handleAction settings ResetSimulator = do
+  oldContract <- use _oldContract
+  currContract <- editorGetValue
+  let
+    newContract = fromMaybe mempty $ oldContract <|> currContract
+  editorSetValue newContract
+  resetContract
+  setOraclePrice settings
+
+handleAction settings ResetContract = do
+  resetContract
+  setOraclePrice settings
+
+handleAction settings Undo = do
+  modifying _marloweState tailIfNotEmpty
+  mCurrContract <- use _currentContract
+  case mCurrContract of
+    Just currContract -> do
+      editorSetValue (show $ genericPretty currContract)
+      setOraclePrice settings
+    Nothing -> pure unit
+
+handleAction _ (SelectHole hole) = assign _selectedHole hole
+
+handleAction _ (ChangeSimulationView view) = do
+  assign _bottomPanelView view
+  assign _showBottomPanel true
+  editorResize
+
+handleAction _ (ChangeHelpContext help) = do
+  assign _helpContext help
+  scrollHelpPanel
+
+handleAction _ (ShowRightPanel val) = assign _showRightPanel val
+
+handleAction _ (ShowBottomPanel val) = do
+  assign _showBottomPanel val
+  editorResize
+
+handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
+
+handleAction _ SetBlocklyCode = pure unit
+
+handleAction _ EditHaskell = pure unit
+
+handleAction _ EditJavascript = pure unit
+
+handleAction _ EditActus = pure unit
+
+handleAction settings AnalyseContract = do
+  currContract <- use _currentContract
+  currState <- getAsMuchStateAP
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      assign _analysisState (WarningAnalysis Loading)
+      response <- checkContractForWarnings contract currState
+      assign _analysisState (WarningAnalysis response)
+  where
+  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+
+handleAction settings AnalyseReachabilityContract = do
+  currContract <- use _currentContract
+  currState <- getAsMuchStateAP
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+
+handleAction _ Save = pure unit
+
+setOraclePrice ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
+setOraclePrice settings = do
+  execState <- use (_currentMarloweState <<< _executionState)
+  case execState of
+    SimulationRunning esr -> do
+      let
+        (Parties actions) = esr.possibleActions
+      case Map.lookup (Role "kraken") actions of
+        Just acts -> do
+          case Array.head (Map.toUnfoldable acts) of
+            Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _)) _) -> do
+              price <- getPrice settings "kraken" pair
+              handleAction settings (SetChoice choiceId price)
+            _ -> pure unit
+        Nothing -> pure unit
+    _ -> pure unit
+
+type Resp
+  = { result :: { price :: Number }, allowance :: { remaining :: Number, upgrade :: String, cost :: Number } }
+
+getPrice :: forall m. MonadAff m => SPSettings_ SPParams_ -> String -> String -> HalogenM State Action ChildSlots Void m BigInteger
+getPrice settings exchange pair = do
+  result <- runAjax (runReaderT (Server.getApiOracleByExchangeByPair exchange pair) settings)
+  calculatedPrice <-
+    liftEffect case result of
+      NotAsked -> pure "0"
+      Loading -> pure "0"
+      Failure e -> do
+        log $ "Failure" <> errorToString e
+        pure "0"
+      Success (RawJson json) -> do
+        let
+          response :: Either (NonEmptyList ForeignError) Resp
+          response =
+            runExcept
+              $ do
+                  foreignJson <- parseJSON json
+                  decode foreignJson
+        case response of
+          Right resp -> do
+            let
+              price = fromNumber resp.result.price
+            let
+              adjustedPrice = price * fromNumber 100000000.0
+            log $ "Got price: " <> show resp.result.price <> ", remaining calls: " <> show resp.allowance.remaining
+            pure $ Decimal.toString (truncated adjustedPrice)
+          Left err -> do
+            log $ "Left " <> show err
+            pure "0"
+  let
+    price = fromMaybe zero (fromString calculatedPrice)
+  pure price
+
+getCurrentContract :: forall m. HalogenM State Action ChildSlots Void m String
+getCurrentContract = do
+  oldContract <- use _oldContract
+  currContract <- editorGetValue
+  pure $ fromMaybe mempty $ oldContract <|> currContract
+
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
+
+scrollHelpPanel :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
+scrollHelpPanel =
+  liftEffect do
+    window <- Web.window
+    document <- toDocument <$> W.document window
+    mSidePanel <- WC.item 0 =<< D.getElementsByClassName "sidebar-composer" document
+    mDocPanel <- WC.item 0 =<< D.getElementsByClassName "documentation-panel" document
+    case mSidePanel, mDocPanel of
+      Just sidePanel, Just docPanel -> do
+        sidePanelHeight <- E.scrollHeight sidePanel
+        docPanelHeight <- E.scrollHeight docPanel
+        availableHeight <- E.clientHeight sidePanel
+        let
+          newScrollHeight =
+            if sidePanelHeight < availableHeight then
+              sidePanelHeight
+            else
+              sidePanelHeight - docPanelHeight - 120.0
+        setScrollTop newScrollHeight sidePanel
+      _, _ -> pure unit
+
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+
+editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorResize = void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+
+editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
+editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
+
+editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
+editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
+
+saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
+saveInitialState = do
+  oldContract <- editorGetValue
+  modifying _oldContract
+    ( \x -> case x of
+        Nothing -> Just $ fromMaybe "" oldContract
+        _ -> x
     )
 
-inFuture :: forall b r. HeytingAlgebra b => { marloweState :: NonEmptyList MarloweState | r } -> Slot -> b
-inFuture state slot = has (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< nearly zero ((>) slot)) state
+resetContract :: forall m. HalogenM State Action ChildSlots Void m Unit
+resetContract = do
+  newContract <- editorGetValue
+  assign _marloweState $ NEL.singleton emptyMarloweState
+  assign _oldContract Nothing
+  updateContractInState $ fromMaybe "" newContract
 
--- We have a special person for notifications
-otherActionsParty :: Party
-otherActionsParty = Role "marlowe_other_actions"
-
-updateContractInStateP :: String -> MarloweState -> MarloweState
-updateContractInStateP text state = case parseContract text of
-  Right parsedContract ->
-    let
-      lintResult = lint marloweState parsedContract
-
-      mContract = fromTerm parsedContract
-    in
-      case mContract of
-        Just contract -> do
-          set _editorErrors [] <<< set _contract (Just contract) $ state
-        Nothing -> do
-          let
-            holes = view L._holes lintResult
-          (set _holes holes) state
-  Left error -> (set _holes mempty) state
-  where
-  marloweState = fromMaybe (emptyState zero) (previewOn state (_executionState <<< _SimulationRunning <<< _state))
-
-updatePossibleActions :: MarloweState -> MarloweState
-updatePossibleActions oldState@{ executionState: SimulationRunning executionState } =
+editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
+editorSetMarkers markers = do
   let
-    contract = fromMaybe Close (oldState ^. _contract)
+    warnings = filter (\{ severity } -> isWarning severity) markers
 
-    state = executionState ^. _state
-
-    currentSlot = executionState ^. _slot
-
-    txInput = stateToTxInput executionState
-
-    (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
-
-    usefulActions = mapMaybe removeUseless actions
-
-    slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
-
-    rawActionInputs = Map.fromFoldableWith combineChoices $ map (actionToActionInput nextState) usefulActions
-
-    actionInputs = map simplifyActionInput rawActionInputs
-
-    moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
-
-    newExecutionState =
-      executionState # over _possibleActions (updateActions actionInputs)
-        # set (_possibleActions <<< _moveToAction) moveTo
-  in
-    oldState # set _executionState (SimulationRunning newExecutionState)
-  where
-  removeUseless :: Action -> Maybe Action
-  removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
-
-  removeUseless action = Just action
-
-  updateActions :: Map ActionInputId ActionInput -> Parties -> Parties
-  updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
-
-  addButPreserveActionInputs :: Parties -> ActionInputId -> Parties -> ActionInput -> Parties
-  addButPreserveActionInputs oldInputs actionInputIdx m actionInput =
-    let
-      party = actionPerson actionInput
-    in
-      wrap $ appendValue (unwrap m) (unwrap oldInputs) party actionInputIdx actionInput
-
-  actionPerson :: ActionInput -> Party
-  actionPerson (DepositInput _ party _ _) = party
-
-  actionPerson (ChoiceInput (ChoiceId _ party) _ _) = party
-
-  -- We have a special person for notifications
-  actionPerson _ = otherActionsParty
-
-  appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
-  appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
-
-  alterMap :: forall k v. Ord k => k -> v -> Maybe (Map k v) -> Maybe (Map k v)
-  alterMap k v Nothing = Just $ Map.singleton k v
-
-  alterMap k v (Just vs) = Just $ Map.insert k v vs
-
-  findWithDefault2 :: forall k k2 v2. Ord k => Ord k2 => v2 -> k -> k2 -> Map k (Map k2 v2) -> v2
-  findWithDefault2 def k k2 m = case Map.lookup k m of
-    Just m2 -> case Map.lookup k2 m2 of
-      Just v -> v
-      Nothing -> def
-    Nothing -> def
-
-updatePossibleActions oldState = oldState
-
-updateStateP :: MarloweState -> MarloweState
-updateStateP oldState@{ executionState: SimulationRunning executionState } = actState
-  where
-  txInput@(TransactionInput txIn) = stateToTxInput executionState
-
-  actState = case computeTransaction txInput (executionState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
-    (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
-      let
-        newExecutionState =
-          ( set _transactionError Nothing
-              <<< set _transactionWarnings (fromFoldable txOutWarnings)
-              <<< set _pendingInputs mempty
-              <<< set _state txOutState
-              <<< set _moneyInContract (moneyInContract txOutState)
-              <<< over _log (append (fromFoldable (map (OutputEvent txIn.interval) txOutPayments)))
-              <<< over _log (append [ InputEvent txInput ])
-          )
-            executionState
-      in
-        ( set _executionState (SimulationRunning newExecutionState)
-            <<< set _contract (Just txOutContract)
+    trimHoles =
+      map
+        ( \marker ->
+            let
+              trimmedMessage =
+                if String.take 6 marker.source == "Hole: " then
+                  String.takeWhile (\c -> c /= codePointFromChar '\n') marker.message
+                else
+                  marker.message
+            in
+              marker { message = trimmedMessage }
         )
-          oldState
-    (Error txError) ->
-      let
-        newExecutionState =
-          ( set _transactionError (Just txError)
-              -- apart from setting the error, we also removing the pending inputs
-              
-              -- otherwise there can be hidden pending inputs in the simulation
-              
-              <<< set _pendingInputs mempty
+        warnings
+  let
+    errors = filter (\{ severity } -> isError severity) markers
+  assign (_marloweState <<< _Head <<< _editorWarnings) trimHoles
+  assign (_marloweState <<< _Head <<< _editorErrors) errors
+  pure unit
+
+render ::
+  forall m.
+  MonadAff m =>
+  State ->
+  ComponentHTML Action ChildSlots m
+render state =
+  div [ classes [ fullHeight, scroll, ClassName "simulation-panel" ] ]
+    [ section [ class_ (ClassName "code-panel") ]
+        [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
+            [ marloweEditor state ]
+        , sidebar state
+        ]
+    , bottomPanel state
+    ]
+  where
+  showRightPanel = state ^. _showRightPanel
+
+  demoScriptLink key =
+    li [ state ^. _activeDemo <<< activeClasses (eq key) ]
+      [ a [ onClick $ const $ Just $ LoadScript key ] [ text key ] ]
+
+otherActions :: forall p. State -> HTML p Action
+otherActions state =
+  div [ classes [ ClassName "group" ] ]
+    ( [ editorOptions state
+      , sendToBlocklyButton state
+      ]
+        <> ( if has (_source <<< only Haskell) state then
+              [ haskellSourceButton state ]
+            else
+              []
           )
-            executionState
-      in
-        set _executionState (SimulationRunning newExecutionState) oldState
+        <> ( if has (_source <<< only Javascript) state then
+              [ javascriptSourceButton state ]
+            else
+              []
+          )
+        <> ( if has (_source <<< only Actus) state then
+              [ actusSourceButton state ]
+            else
+              []
+          )
+    )
 
-updateStateP oldState = oldState
+sendToBlocklyButton :: forall p. State -> HTML p Action
+sendToBlocklyButton state =
+  button
+    [ onClick $ const $ Just $ SetBlocklyCode
+    , enabled isBlocklyEnabled
+    , classes [ Classes.disabled (not isBlocklyEnabled) ]
+    ]
+    [ text "View in Blockly Editor" ]
+  where
+  isBlocklyEnabled = view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
 
-stateToTxInput :: ExecutionStateRecord -> TransactionInput
-stateToTxInput executionState =
+haskellSourceButton :: forall p. State -> HTML p Action
+haskellSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditHaskell
+    ]
+    [ text "Edit Haskell Source" ]
+
+javascriptSourceButton :: forall p. State -> HTML p Action
+javascriptSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditJavascript
+    ]
+    [ text "Edit Javascript Source" ]
+
+actusSourceButton :: forall p. State -> HTML p Action
+actusSourceButton state =
+  button
+    [ onClick $ const $ Just $ EditActus
+    ]
+    [ text "Edit Actus Source" ]
+
+editorOptions :: forall p. State -> HTML p Action
+editorOptions state =
+  div [ class_ (ClassName "editor-options") ]
+    [ select
+        [ HTML.id_ "editor-options"
+        , class_ (ClassName "dropdown-header")
+        , onSelectedIndexChange (\idx -> SelectEditorKeyBindings <$> toEnum idx)
+        ]
+        (map keybindingItem (upFromIncluding bottom))
+    ]
+  where
+  keybindingItem item =
+    if state ^. _editorKeybindings == item then
+      option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
+    else
+      option [ HTML.value (show item) ] [ text $ show item ]
+
+marloweEditor ::
+  forall m.
+  MonadAff m =>
+  State ->
+  ComponentHTML Action ChildSlots m
+marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< HandleEditorMessage)
+  where
+  setup editor = do
+    mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
+    let
+      contents = fromMaybe "?contract" (mContents <|> Map.lookup "Example" StaticData.marloweContracts)
+    model <- liftEffect $ Monaco.getModel editor
+    liftEffect do
+      Monaco.setValue model contents
+      -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
+      monaco <- Monaco.getMonaco
+      Monaco.setTheme monaco MM.daylightTheme.name
+
+  component = monacoComponent $ MM.settings setup
+
+sidebar ::
+  forall p.
+  State ->
+  HTML p Action
+sidebar state =
   let
-    slot = executionState ^. _slot
-
-    interval = SlotInterval slot slot
-
-    inputs = executionState ^. _pendingInputs
+    showRightPanel = state ^. _showRightPanel
   in
-    TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
+    aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
+      [ div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
+          [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
+              [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
+          ]
+      , div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
+          [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
+              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Available Actions" ] ]
+          , a [ onClick $ const $ Just $ ChangeHelpContext AvailableActionsHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
+          ]
+      , transactionComposer state
+      , article [ class_ (ClassName "documentation-panel") ]
+          (toHTML (state ^. _helpContext))
+      ]
 
---
--- Functions that can be used by records that contain MarloweState
---
-_marloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } (NonEmptyList MarloweState)
-_marloweState = prop (SProxy :: SProxy "marloweState")
+transactionComposer ::
+  forall p.
+  State ->
+  HTML p Action
+transactionComposer state = case view (_marloweState <<< _Head <<< _executionState) state of
+  SimulationNotStarted { initialSlot } ->
+    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+      [ ul_
+          [ h6
+              [ classes
+                  [ ClassName "input-composer-heading"
+                  , noMargins
+                  ]
+              ]
+              [ text "Simulation has not started yet" ]
+          , div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
+              [ spanText "Initial slot:"
+              , marloweActionInput true (SetInitialSlot <<< wrap) initialSlot
+              ]
+          ]
+      , div [ class_ (ClassName "transaction-btns") ]
+          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+              [ li [ classes [ bold, pointer ] ]
+                  [ a [ onClick $ const $ Just StartSimulation ]
+                      [ text "Start simulation" ]
+                  ]
+              ]
+          ]
+      ]
+  SimulationRunning _ ->
+    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
+      [ ul [ class_ (ClassName "participants") ]
+          if (Map.isEmpty possibleActions) then
+            [ text "No valid inputs can be added to the transaction" ]
+          else
+            (actionsForParties possibleActions)
+      , div [ class_ (ClassName "transaction-btns") ]
+          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+              [ li [ classes [ bold, pointer ] ]
+                  [ a
+                      [ onClick $ const
+                          $ if hasHistory state then
+                              Just Undo
+                            else
+                              Nothing
+                      , class_ (Classes.disabled $ not isEnabled)
+                      ]
+                      [ text "Undo" ]
+                  ]
+              , li [ classes [ bold, pointer ] ]
+                  [ a
+                      [ onClick $ const
+                          $ if hasHistory state then
+                              Just ResetSimulator
+                            else
+                              Nothing
+                      , class_ (Classes.disabled $ not isEnabled)
+                      ]
+                      [ text "Reset" ]
+                  ]
+              ]
+          ]
+      ]
+  where
+  isEnabled = isContractValid state
 
-_currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
-_currentMarloweState = _marloweState <<< _Head
+  possibleActions = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _Newtype) state
 
-updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
-updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
+  kvs :: forall k v. Map k v -> Array (Tuple k v)
+  kvs = Map.toUnfoldable
 
-updateContractInState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => String -> m Unit
-updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+  vs :: forall k v. Map k v -> Array v
+  vs m = map snd (kvs m)
 
-applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
-applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
+  lastKey :: Maybe Party
+  lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-applyInput ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  (Array Input -> Array Input) ->
-  m Unit
-applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over (_executionState <<< _SimulationRunning <<< _pendingInputs) inputs)))
+  sortParties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
+  sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
-moveToSignificantSlot ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  Slot ->
-  m Unit
-moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set (_executionState <<< _SimulationRunning <<< _slot) slot)))
+  actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
+  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (sortParties (kvs m))
 
-moveToSlot ::
-  forall s m.
-  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
-  Slot ->
-  m Unit
-moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set (_executionState <<< _SimulationRunning <<< _slot) slot)))
+participant ::
+  forall p.
+  State ->
+  Boolean ->
+  Party ->
+  Array ActionInput ->
+  HTML p Action
+participant state isEnabled party actionInputs =
+  li [ classes [ ClassName "participant-a", noMargins ] ]
+    ( [ h6_ [ em_ title ] ]
+        <> (map (inputItem state isEnabled partyName) actionInputs)
+    )
+  where
+  title =
+    if party == otherActionsParty then
+      [ text "Other Actions" ]
+    else
+      [ text "Participant ", strong_ [ text partyName ] ]
 
-hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
-hasHistory state = has (_marloweState <<< _Tail) state
+  partyName = case party of
+    (PK name) -> name
+    (Role name) -> name
 
-evalObservation :: MarloweState -> Observation -> Boolean
-evalObservation state@{ executionState: SimulationRunning executionState } observation =
-  let
-    txInput = stateToTxInput executionState
-  in
-    case fixInterval (unwrap txInput).interval (executionState ^. _state) of
-      IntervalTrimmed env state' -> S.evalObservation env state' observation
-      -- if there is an error in the state we will say that the observation is false. 
-      -- Nothing should happen anyway because applying the input will fail later
-      IntervalError _ -> false
+inputItem ::
+  forall p.
+  State ->
+  Boolean ->
+  PubKey ->
+  ActionInput ->
+  HTML p Action
+inputItem _ isEnabled person (DepositInput accountId party token value) =
+  div [ classes [ aHorizontal ] ]
+    [ p_ (renderDeposit accountId party token value)
+    , div [ class_ (ClassName "align-top") ]
+        [ button
+            [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+            , enabled isEnabled
+            , onClick $ const $ Just
+                $ AddInput (IDeposit accountId party token value) []
+            ]
+            [ text "+" ]
+        ]
+    ]
 
-evalObservation state observation = false
+inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+  div
+    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    ( [ div []
+          [ p [ class_ (ClassName "choice-input") ]
+              [ spanText "Choice "
+              , b_ [ spanText (show choiceName <> ":") ]
+              , br_
+              , spanText "Choose value "
+              , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
+  where
+  addButton =
+    if isEnabled && inBounds chosenNum bounds then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just
+              $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
 
-nextSignificantSlot :: MarloweState -> Maybe Slot
-nextSignificantSlot state =
-  state
-    ^. ( _contract
-          <<< to (fromMaybe Close)
-          <<< to timeouts
-          <<< to unwrap
-          <<< to _.minTime
-      )
+  error = if inBounds chosenNum bounds then [] else [ text boundsError ]
+
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
+
+  boundError (Bound from to) = show from <> " and " <> show to
+
+inputItem _ isEnabled person NotifyInput =
+  li
+    [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ p_ [ text "Notify Contract" ]
+    , button
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled), ClassName "align-top" ]
+        , enabled isEnabled
+        , onClick $ const $ Just
+            $ AddInput INotify []
+        ]
+        [ text "+" ]
+    ]
+
+inputItem state isEnabled person (MoveToSlot slot) =
+  div
+    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    ( [ div []
+          [ p [ class_ (ClassName "slot-input") ]
+              [ spanText "Move to slot "
+              , marloweActionInput isEnabled (SetSlot <<< wrap) slot
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
+  where
+  addButton =
+    if isEnabled && inFuture state slot then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just $ MoveSlot slot
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
+  error = if inFuture state slot then [] else [ text boundsError ]
+
+  boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
+
+marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Action) -> a -> HTML p Action
+marloweActionInput isEnabled f current =
+  input
+    [ type_ InputNumber
+    , enabled isEnabled
+    , placeholder "BigInteger"
+    , class_ $ ClassName "action-input"
+    , value $ show current
+    , onValueChange
+        $ ( \x ->
+              Just
+                $ f
+                    ( case fromString x of
+                        Just y -> y
+                        Nothing -> fromInt 0
+                    )
+          )
+    ]
+
+renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
+renderDeposit accountOwner party tok money =
+  [ spanText "Deposit "
+  , b_ [ spanText (show money) ]
+  , spanText " units of "
+  , b_ [ spanText (showPrettyToken tok) ]
+  , spanText " into Account "
+  , b_ [ spanText (show accountOwner) ]
+  , spanText " as "
+  , b_ [ spanText (show party) ]
+  ]

@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Semantics (ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
-import Simulation.State (_SimulationRunning, _contract, _executionState, _pendingInputs, _transactionError, applyTransactions, emptyExecutionStateWithSlot, updateContractInState, updateMarloweState)
+import Simulation (_SimulationRunning, _contract, _executionState, _pendingInputs, _transactionError, applyTransactions, emptyExecutionStateWithSlot, updateContractInState, updateMarloweState)
 import Simulation.Types (_marloweState, mkState)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)

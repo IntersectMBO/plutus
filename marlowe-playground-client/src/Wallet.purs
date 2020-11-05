@@ -52,7 +52,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _executionState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import Web.DOM.Document as D

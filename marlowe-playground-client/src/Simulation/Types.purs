@@ -25,7 +25,7 @@ import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
 import Projects.Types (Lang(..))
 import Servant.PureScript.Ajax (AjaxError)
-import Simulation.State (MarloweState, _contract, _editorErrors, emptyMarloweState)
+import Simulation (MarloweState, _contract, _editorErrors, emptyMarloweState)
 import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
