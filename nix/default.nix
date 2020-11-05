@@ -31,6 +31,8 @@ let
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
+      # fix r-modules
+      (import ./overlays/r.nix)
     ];
 
   pkgs = import sources.nixpkgs {
