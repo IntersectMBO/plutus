@@ -33,10 +33,10 @@
         mkdir -p $out/nix-support
         for pdf in $out/*.pdf; do
           echo "doc-pdf $(basename $pdf .pdf) $pdf" >> $out/nix-support/hydra-build-products
-        done 
+        done
         runHook postInstall
       '';
     });
   # A typical good filter for latex sources.
-  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ];
+  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 }

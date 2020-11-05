@@ -31,9 +31,6 @@ let
   inherit (pkgsLocal) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (pkgsLocal) easyPS sphinxcontrib-haddock nodejs-headers;
 
-  # provides `buildLatex` and `filterLatex`
-  latex = pkgs.callPackage ./nix/lib/latex.nix { };
-
   # common files for frontend clients
   webCommon = import ./web-common { };
 in
@@ -52,29 +49,7 @@ rec {
     };
   };
 
-  docs = pkgs.recurseIntoAttrs rec {
-    papers = pkgs.callPackage ./papers { inherit agdaPackages latex; };
-
-    site = pkgs.callPackage ./doc {
-      inherit (pkgsLocal) sphinx-markdown-tables sphinxemoji;
-      inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
-      combined-haddock = pkgsLocal.plutus-haddock-combined;
-      pythonPackages = pkgs.python3Packages;
-    };
-
-    plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
-    plutus-core-spec = pkgs.callPackage ./plutus-core-spec { inherit latex; };
-    multi-currency = pkgs.callPackage ./notes/multi-currency { inherit latex; };
-    extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
-    lazy-machine = pkgs.callPackage ./notes/fomega/lazy-machine { inherit latex; };
-    plutus-report = pkgs.callPackage ./notes/plutus-report/default.nix { inherit latex; };
-    cost-model-notes = pkgs.callPackage ./notes/cost-model-notes { inherit latex; };
-    marlowe-tutorial = pkgs.callPackage ./marlowe/doc { };
-
-    inherit (pkgsLocal) plutus-haddock-combined;
-
-  };
-
+  docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
     inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
