@@ -1,6 +1,57 @@
-@import '../../web-common/static/variables.scss';
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+@import 'variables.scss';
+
+$heading-color: $lightPurple;
+$input-color: rgba(255, 255, 255, 0.7);
+$input-border-color: $purple05;
+$badge: $gray-900;
+$badge-background: $lightPurple;
+$btn-group-separator: $gray-700;
+$nav-link: $lightPurple;
+$nav-link-active-border: dotted 2px $nav-link;
+$nav-link-hover: $white;
+$nav-link-border-radius: 0;
+$clipboard-button-color: $white;
+
 @import '../../web-common/static/common.scss';
 @import '../../web-common/static/chain.scss';
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background: $body-bg;
+}
+
+p, a, button, i, em {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+b, strong {
+    color: $gray-100;
+}
+
+.btn {
+    border-radius: 1.5rem;
+
+    &:focus,
+    &:active {
+        outline: none !important;
+        box-shadow: none;
+    }
+}
+
+.main-frame {
+    .container {
+        margin-top: 15px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}
+
+.main-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
 
 .contract-status {
     table {
@@ -57,5 +108,14 @@
     &.web-socket-status-open {
         background-color: $green;
         opacity: 0.0;
+    }
+}
+
+.btn-group {
+    .btn-info {
+        border-left: solid 1px $btn-group-separator;
+        &:first-child {
+            border-left: none;
+        }
     }
 }

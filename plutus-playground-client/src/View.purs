@@ -2,23 +2,25 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container_, empty, justifyContentBetween, noGutters, row, row_)
+import Bootstrap (btn, btnLink, colSm5, colSm6, colXs12, container, empty, justifyContentBetween, mlAuto, mrAuto, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, noGutters, row, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
+import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
-import Data.Tuple (Tuple(Tuple))
-import Editor.View (compileButton, editorFeedback, editorView)
+import Data.Tuple.Nested (type (/\), (/\))
+import Editor.Types (_keyBindings)
+import Editor.View (compileButton, editorFeedback, editorPreferencesPane, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, span, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, footer, img, nav, span, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
-import Halogen.HTML.Properties (class_, classes, href, id_, target)
+import Halogen.HTML.Properties (class_, classes, height, href, id_, src, target, width)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
 import NavTabs (mainTabBar, viewContainer)
@@ -37,143 +39,209 @@ render ::
 render state@(State { currentView, blockchainVisualisationState, contractDemos, editorState }) =
   div
     [ class_ $ ClassName "main-frame" ]
-    [ container_
+    [ div_
         [ mainHeader
-        , div [ classes [ row, noGutters, justifyContentBetween ] ]
-            [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
-            , div
-                [ classes [ colXs12, colSm5 ] ]
-                [ GistAction <$> gistControls (unwrap state) ]
+        , subHeader contractDemos
+        , div
+            [ id_ "main-content"
+            , class_ container
             ]
-        ]
-    , viewContainer currentView Editor
-        let
-          compilationResult = view _compilationResult state
-        in
-          [ row_
-              [ div
-                  [ classes [ colXs12, colMd4, colLg7 ] ]
-                  [ compileButton CompileProgram compilationResult ]
-              , div
-                  [ classes [ colXs12, colMd8, colLg5 ] ]
-                  [ documentationLinksPane
-                  , contractDemosPane contractDemos
-                  ]
-              ]
-          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
-          , compileButton CompileProgram compilationResult
-          , mapComponent EditorAction $ editorFeedback compilationResult
-          , case compilationResult of
-              Failure error -> ajaxErrorPane error
-              _ -> empty
-          ]
-    , viewContainer currentView Simulations
-        $ let
-            knownCurrencies = evalState getKnownCurrencies state
+            [ div [ classes [ row, noGutters, justifyContentBetween ] ]
+                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
+                , div
+                    [ classes [ colXs12, colSm5 ] ]
+                    [ GistAction <$> gistControls (unwrap state) ]
+                ]
+            , row_
+                [ viewContainer currentView Editor
+                    let
+                      compilationResult = view _compilationResult state
+                    in
+                      [ div [ id_ "editor" ]
+                          [ mapComponent EditorAction $ editorPreferencesPane (view _keyBindings editorState)
+                          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
+                          , compileButton CompileProgram compilationResult
+                          , mapComponent EditorAction $ editorFeedback compilationResult
+                          , case compilationResult of
+                              Failure error -> ajaxErrorPane error
+                              _ -> empty
+                          ]
+                      ]
+                , viewContainer currentView Simulations
+                    $ let
+                        knownCurrencies = evalState getKnownCurrencies state
 
-            initialValue = mkInitialValue knownCurrencies zero
-          in
-            [ simulationPane
-                initialValue
-                (view _actionDrag state)
-                ( view
-                    ( _compilationResult
-                        <<< _Success
-                        <<< _Right
-                        <<< _Newtype
-                        <<< _result
-                        <<< _functionSchema
-                    )
-                    state
-                )
-                (view _simulations state)
-                (view _evaluationResult state)
-            , case (view _evaluationResult state) of
-                Failure error -> ajaxErrorPane error
-                Success (Left error) -> actionsErrorPane error
-                _ -> empty
+                        initialValue = mkInitialValue knownCurrencies zero
+                      in
+                        [ simulationPane
+                            initialValue
+                            (view _actionDrag state)
+                            ( view
+                                ( _compilationResult
+                                    <<< _Success
+                                    <<< _Right
+                                    <<< _Newtype
+                                    <<< _result
+                                    <<< _functionSchema
+                                )
+                                state
+                            )
+                            (view _simulations state)
+                            (view _evaluationResult state)
+                        , case (view _evaluationResult state) of
+                            Failure error -> ajaxErrorPane error
+                            Success (Left error) -> actionsErrorPane error
+                            _ -> empty
+                        ]
+                , viewContainer currentView Transactions
+                    $ case view _evaluationResult state of
+                        Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
+                        Success (Left error) ->
+                          [ text "Your simulation has errors. Click the "
+                          , strong_ [ text "Simulation" ]
+                          , text " tab above to fix them and recompile."
+                          ]
+                        Failure error ->
+                          [ text "Your simulation has errors. Click the "
+                          , strong_ [ text "Simulation" ]
+                          , text " tab above to fix them and recompile."
+                          ]
+                        Loading -> [ icon Spinner ]
+                        NotAsked ->
+                          [ text "Click the "
+                          , strong_ [ text "Simulation" ]
+                          , text " tab above and evaluate a simulation to see some results."
+                          ]
+                ]
             ]
-    , viewContainer currentView Transactions
-        $ case view _evaluationResult state of
-            Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
-            Success (Left error) ->
-              [ text "Your simulation has errors. Click the "
-              , strong_ [ text "Simulation" ]
-              , text " tab above to fix them and recompile."
-              ]
-            Failure error ->
-              [ text "Your simulation has errors. Click the "
-              , strong_ [ text "Simulation" ]
-              , text " tab above to fix them and recompile."
-              ]
-            Loading -> [ icon Spinner ]
-            NotAsked ->
-              [ text "Click the "
-              , strong_ [ text "Simulation" ]
-              , text " tab above and evaluate a simulation to see some results."
-              ]
+        , mainFooter
+        ]
     ]
   where
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
-contractDemosPane contractDemos =
-  div [ id_ "demos" ]
-    [ strong_ [ text "Demos: " ]
-    , span [ classes [ btnGroup ] ] (demoScriptButton <$> contractDemos)
-    ]
-
-demoScriptButton :: forall p. ContractDemo -> HTML p HAction
-demoScriptButton (ContractDemo { contractDemoName }) =
-  button
-    [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript contractDemoName
-    ]
-    [ text contractDemoName ]
+foreign import plutusLogo :: String
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
-  div_
-    [ h1
-        [ class_ $ ClassName "main-title" ]
-        [ text "Plutus Playground" ]
+  nav
+    [ id_ "main-header"
+    , classes [ navbar, navbarExpand ]
+    ]
+    [ span [ class_ navbarBrand ]
+        [ img
+            [ height 22
+            , width 22
+            , src plutusLogo
+            ]
+        , text
+            "Plutus Playground"
+        ]
+    , documentationLinksPane
     ]
 
 documentationLinksPane :: forall p i. HTML p i
 documentationLinksPane =
-  div [ id_ "docs" ]
-    [ strong_ [ text "Documentation: " ]
-    , span [ classes [ btnGroup ] ] (makeLink <$> links)
+  div
+    [ id_ "docs"
+    , classes [ navbarNav, mlAuto ]
     ]
+    (makeLink <$> links)
   where
   links =
-    [ Tuple "Getting Started" "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
-    , Tuple "Tutorial" "./tutorial/index.html"
-    , Tuple "API" "./tutorial/haddock/index.html"
-    , Tuple "Privacy" "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
+    [ text "Getting Started" /\ "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
+    , text "Tutorial" /\ "./tutorial/index.html"
+    , text "API" /\ "./tutorial/haddock/index.html"
+    , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 
-  makeLink (Tuple name link) =
-    a
-      [ classes [ btn, btnInfo, btnSmall ]
-      , href link
-      , target "_blank"
-      ]
-      [ text name ]
+makeLink :: forall p i. HTML p i /\ String -> HTML p i
+makeLink (label /\ link) =
+  a
+    [ class_ navLink
+    , href link
+    , target "_blank"
+    ]
+    [ label ]
 
-tabs :: Array { help :: String, link :: View, title :: String }
+subHeader :: forall p. Array ContractDemo -> HTML p HAction
+subHeader contractDemos =
+  nav
+    [ id_ "sub-header"
+    , classes [ navbar, navbarExpand ]
+    ]
+    [ contractDemosPane contractDemos
+    ]
+
+contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
+contractDemosPane contractDemos =
+  div
+    [ id_ "demos"
+    , classes [ navbarNav ]
+    ]
+    ( Array.cons
+        ( div [ class_ navbarText ]
+            [ text "Demos:" ]
+        )
+        (demoScriptButton <$> contractDemos)
+    )
+
+demoScriptButton :: forall p. ContractDemo -> HTML p HAction
+demoScriptButton (ContractDemo { contractDemoName }) =
+  button
+    [ classes [ btn, btnLink ]
+    , onClick $ const $ Just $ LoadScript contractDemoName
+    ]
+    [ text contractDemoName ]
+
+tabs ::
+  Array
+    { link :: View
+    , title :: String
+    }
 tabs =
   [ { link: Editor
     , title: "Editor"
-    , help: "Edit and compile your contract."
     }
   , { link: Simulations
     , title: "Simulation"
-    , help: "Set up simulations to test your contract's behavior."
     }
   , { link: Transactions
     , title: "Transactions"
-    , help: "See how your contract behaves on a simulated blockchain."
     }
   ]
+
+mainFooter :: forall p i. HTML p i
+mainFooter =
+  footer
+    [ id_ "main-footer"
+    , classes [ navbar, navbarExpand ]
+    ]
+    [ div
+        [ id_ "docs"
+        , classes [ navbarNav, mrAuto ]
+        ]
+        [ makeLink $ text "Cardano.org" /\ "https://cardano.org/"
+        , makeLink $ text "IOHK.io" /\ "https://iohk.io/"
+        ]
+    , div
+        [ classes [ navbarNav ]
+        ]
+        [ copyright
+        , nbsp
+        , text "2020 IOHK Ltd."
+        ]
+    , div
+        [ classes [ mlAuto ]
+        ]
+        [ a
+            [ href "https://twitter.com/hashtag/Plutus"
+            , target "_blank"
+            ]
+            [ text "Twitter" ]
+        ]
+    ]
+
+copyright :: forall p i. HTML p i
+copyright = text "\x00A9"

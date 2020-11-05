@@ -41,6 +41,11 @@ exports.create_ = function (monaco, nodeId, languageId) {
       enabled: true
     }
   });
+
+  window.addEventListener('resize', function () {
+    editor.layout();
+  });
+
   return editor;
 }
 

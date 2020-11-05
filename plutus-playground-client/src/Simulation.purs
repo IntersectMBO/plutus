@@ -4,7 +4,7 @@ module Simulation
   ) where
 
 import Types
-import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col_, formControl, formGroup_, formRow_, pullRight, responsiveThird, row, row_)
+import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col_, formControl, formGroup_, formRow_, pullRight, responsiveThird, row, row_)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -111,7 +111,7 @@ simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   where
   buttonClasses =
     [ btn, simulationNavItemClass ]
-      <> if activeIndex == index then [ btnPrimary ] else [ btnInfo ]
+      <> if activeIndex == index then [ btnInfo ] else [ btnDefault ]
 
 simulationNavItemClass :: ClassName
 simulationNavItemClass = ClassName "simulation-nav-item"
@@ -186,7 +186,7 @@ actionPane isValidWallet actionDrag index action =
                             [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
                             [ text $ show (index + 1) ]
                         , button
-                            [ classes [ btn, btnInfo, pullRight ]
+                            [ classes [ btn, pullRight ]
                             , onClick $ const $ Just $ ModifyActions $ RemoveAction index
                             ]
                             [ icon Close ]
@@ -277,18 +277,18 @@ waitTypeButtons index wait =
             Left slot -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitTime index $ view _InSlot slot ]
             Right _ -> [ classes activeClasses ]
         )
-        [ text "Wait For..." ]
+        [ text "Wait For…" ]
     , button
         ( case wait of
             Right blocks -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitUntilTime index $ review _InSlot blocks ]
             Left _ -> [ classes activeClasses ]
         )
-        [ text "Wait Until..." ]
+        [ text "Wait Until…" ]
     ]
   where
-  activeClasses = [ btn, btnSmall, btnPrimary ]
+  activeClasses = [ btn, btnSmall, btnInfo ]
 
-  inactiveClasses = [ btn, btnSmall, btnInfo ]
+  inactiveClasses = [ btn, btnSmall, btnDefault ]
 
 validationClasses ::
   forall a.

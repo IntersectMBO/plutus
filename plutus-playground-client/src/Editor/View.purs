@@ -2,7 +2,7 @@ module Editor.View where
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, customSelect, empty, formGroup, listGroupItem_, listGroup_, pullRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, customSelect, empty, formGroup, listGroupItem_, listGroup_, nbsp, pullRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, button, code_, div, div_, h3_, option, pre_, select, slot, small, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, button, code_, div, div_, h3_, option, pre, pre_, select, slot, small, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
@@ -31,8 +31,7 @@ editorView ::
   ComponentHTML Action ChildSlots m
 editorView initialContents bufferLocalStorageKey state@(State { keyBindings }) =
   div
-    [ id_ "editor"
-    , class_ (ClassName "code-editor")
+    [ class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
     , onDrop $ Just <<< HandleDropEvent
     ]
@@ -42,7 +41,7 @@ editorView initialContents bufferLocalStorageKey state@(State { keyBindings }) =
         (monacoComponent (HM.settings (initEditor initialContents bufferLocalStorageKey state)))
         unit
         (Just <<< HandleEditorMessage)
-    , editorPreferencesPane keyBindings
+    , pre [ id_ "statusline" ] [ nbsp ]
     ]
 
 editorFeedback ::
@@ -78,7 +77,8 @@ editorPreferencesPane active =
     [ id_ "editor-preferences"
     , class_ formGroup
     ]
-    [ select
+    [ text "Key bindings"
+    , select
         [ class_ customSelect
         , onSelectedIndexChange
             ( \index ->

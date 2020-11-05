@@ -3,7 +3,9 @@ module Editor.Types where
 import Data.Either (Either)
 import Data.Enum (enumFromTo)
 import Data.Lens (Lens')
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message) as Monaco
@@ -11,7 +13,7 @@ import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import LocalStorage (Key(..))
 import Monaco (IPosition)
 import Network.RemoteData (RemoteData)
-import Prelude (bottom, top)
+import Prelude (bottom, top, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Web.HTML.Event.DragEvent (DragEvent)
 
@@ -38,6 +40,8 @@ readKeyBindings _ = DefaultBindings
 newtype State
   = State { keyBindings :: KeyBindings }
 
+derive instance newtypeState :: Newtype State _
+
 ------------------------------------------------------------
 keybindingsLocalStorageKey :: Key
 keybindingsLocalStorageKey = Key "EditorPreferences.KeyBindings"
@@ -47,3 +51,6 @@ type CompilationState a
 
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
+
+_keyBindings :: Lens' State KeyBindings
+_keyBindings = _Newtype <<< prop (SProxy :: SProxy "keyBindings")

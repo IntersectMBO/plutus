@@ -1,4 +1,29 @@
-@import '../../web-common/static/variables.scss';
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+$body-bg: #F8F8F8;
+$main-header: #E7E7E9;
+@import 'variables.scss';
+
+$link-text: #3677f7;
+
+$headings-color: black;
+$input-color: $dark;
+$input-border-color: $purple05;
+$badge: $headings-color;
+$badge-background: $white;
+$btn-group-separator: $gray-700;
+$nav-link: $headings-color;
+$nav-link-active-border: solid 1px $nav-link;
+$nav-link-hover: $headings-color;
+$nav-link-border-radius: 4px;
+$clipboard-button-color: $white;
+
+$chart-bg: $sub-header;
+$chart-tooltip: $headings-color;
+$chart-title: $headings-color;
+$chart-label: $headings-color;
+$chart-grid-stroke: $section-border;
+
 @import '../../web-common/static/common.scss';
 @import '../../web-common/static/chain.scss';
 @import '../../web-common/static/chartist.scss';
@@ -7,23 +32,181 @@
 @import 'transactions.scss';
 @import 'editor.scss';
 
+body {
+    font-family: 'Open Sans', sans-serif;
+    background: $body-bg;
+    background: $body-bg;
+}
+
 .tab-help {
     font-style: italic;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+.table {
+    color: $body-color;
 }
 
 .action,
 .wallet,
 .gist-controls {
     h1, h2, h3, h4 {
-        color: $lightPurple;
+        color: $headings-color;
     }
 
     input {
-        color: rgba(255, 255, 255, 0.7);
+        color: lighten(black, 5%);
         background: $input-bg;
         border: $input-border-color;
         outline:none;
-        border-bottom:1px solid $purple05;
+        border-bottom:1px solid $section-border;
         padding: 0.375rem;
     }
+}
+
+#main-header {
+    font-size: 14px;
+    line-height: 16px;
+    color: $headings-color;
+    background: $main-header;
+    z-index: 10;
+    padding: 15px 15px;
+}
+
+#sub-header {
+    font-size: 13px;
+    line-height: 15px;
+    background-color: $sub-header;
+    z-index: 5;
+    margin: 0 15px 15px 15px;
+    border-bottom: 1px solid $section-border;
+    padding: 0 12px;
+}
+
+.navbar-brand {
+    font-size: 19px;
+    line-height: 21px;
+
+    img {
+        margin: 0 22px 0 7px;
+    }
+}
+
+#main-header,
+#sub-header {
+    .btn-link,
+    .nav-link {
+        color: #333333;
+        padding: 0;
+        margin-left: 1rem;
+        font-weight: bold;
+        &:hover {
+            color: $blue;
+            text-decoration: none;
+        }
+    }
+}
+
+#main-content {
+    min-height: 80vh;
+
+    .btn-link {
+        text-decoration: none;
+    }
+
+    @mixin main-button ($color, $background-color, $border-color: $color) {
+        color: $color;
+        border-color: $border-color;
+        background-color: $background-color;
+
+        &:hover {
+            color: $background-color;
+            border-color: $background-color;
+            background-color: $color;
+        }
+    };
+
+    .btn-primary {
+        @include main-button(white, $green);
+    }
+
+    .btn-secondary {
+        @include main-button(black, $body-bg);
+    }
+
+    .btn-info {
+        @include main-button(white, $blue, black);
+    }
+
+    .btn-default {
+        @include main-button($headings-color, $main-header);
+    }
+
+    .btn {
+        font-weight: bold;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+    }
+
+    #simulation-nav,
+    .wallet .card {
+        .btn {
+            font-weight: normal;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+    }
+}
+
+a.btn {
+    text-decoration: none;
+}
+
+a,
+.btn-link {
+    color: $link-text;
+    text-decoration: underline;
+
+    &:hover {
+        color: $blue;
+        text-decoration: none;
+    }
+
+    &:visited {
+        color: darken($link-text, 10%);
+    }
+}
+
+.btn {
+    border-radius: 4px;
+
+    &:focus,
+    &:active {
+        outline: none !important;
+        box-shadow: none;
+    }
+}
+
+.btn-secondary {
+    background-color: $sub-header;
+}
+
+footer {
+    border-top: solid 1px black;
+    color: #333333;
+    background: $footer;
+    margin: 15px 0 0 0;
+
+    a,
+    a:hover,
+    a:visited {
+        color: #333333;
+    }
+}
+
+.simulation-nav-item-close {
+    border-left: solid 1px $btn-group-separator;
 }

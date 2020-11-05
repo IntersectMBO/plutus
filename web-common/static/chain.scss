@@ -9,9 +9,6 @@
 
         th, .card-header {
             background-color: $color;
-            background: $color; /* Old browsers */
-            background: linear-gradient(130deg, $color 0%, $color 0%, lighten($color, 8%) 5%, $color 45%, $color 100%);
-
             color: $dark;
         }
     }

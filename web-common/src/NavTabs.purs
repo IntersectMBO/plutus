@@ -1,13 +1,11 @@
 module NavTabs where
 
 import Bootstrap (active, container, hidden, navItem_, navLink, navTabs_)
-import Bootstrap as Bootstrap
-import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.String as String
-import Halogen.HTML (ClassName(..), HTML, a, div, div_, text)
+import Halogen.HTML (HTML, a, div, div_, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, id_)
+import Halogen.HTML.Properties (classes, id_)
 import Prelude (class Eq, class Show, const, show, ($), (<$>), (<>), (==))
 
 mainTabBar ::
@@ -16,18 +14,14 @@ mainTabBar ::
   Show view =>
   (view -> i) ->
   Array
-    { help :: String
-    , link :: view
+    { link :: view
     , title :: String
     | r
     } ->
   view -> HTML p i
 mainTabBar mkAction tabs activeView =
   div_
-    [ navTabs_ (mkTab <$> tabs)
-    , div [ class_ $ ClassName "tab-help" ]
-        [ helpText ]
-    ]
+    [ navTabs_ (mkTab <$> tabs) ]
   where
   mkTab { link, title } =
     navItem_
@@ -44,10 +38,6 @@ mainTabBar mkAction tabs activeView =
         [ active ]
       else
         []
-
-  helpText = case Array.find (\({ link }) -> link == activeView) tabs of
-    Nothing -> Bootstrap.empty
-    Just { help } -> text help
 
 viewContainer :: forall view p i. Eq view => view -> view -> Array (HTML p i) -> HTML p i
 viewContainer currentView targetView =

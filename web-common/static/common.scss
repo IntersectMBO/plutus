@@ -1,5 +1,3 @@
-@import url(https://fonts.googleapis.com/css?family=Open+Sans);
-
 @import './node_modules/bootstrap/scss/functions';
 @import './node_modules/bootstrap/scss/variables';
 @import './node_modules/bootstrap/scss/mixins';
@@ -37,25 +35,12 @@
 @import './node_modules/bootstrap/scss/print';
 @import './node_modules/bootstrap/scss/spinners';
 
-body {
-    font-family: 'Open Sans', sans-serif;
-    background: $body-bg;
-}
-
-p, a, button, i, em {
-    color: rgba(255, 255, 255, 0.7);
-}
-
 .alert a {
     color: inherit;
     text-decoration: underline;
 }
 
 b, strong {
-    color: $gray-100;
-}
-
-h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
 }
 
@@ -67,28 +52,6 @@ h2 {
     &:not(:disabled):not(.disabled) {
         cursor: pointer;
     }
-}
-
-.main-title {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.main-frame {
-    .container {
-        margin-top: 15px;
-        padding-top: 5px;
-        padding-bottom: 5px;
-    }
-}
-
-#docs,
-#demos {
-    width: 100%;
-    display: inline-flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
 }
 
 .gist-controls {
@@ -108,16 +71,12 @@ h2 {
         padding: 5px;
     }
 
-    h1, h2, h3, h4 {
-        color: $lightPurple;
-    }
-
     input {
-        color: rgba(255, 255, 255, 0.7);
+        color: $input-color;
         background: $input-bg;
         border: $input-border-color;
         outline:none;
-        border-bottom:1px solid $purple05;
+        border-bottom:1px solid $input-border-color;
         padding-left: 0;
         padding-right: 0;
     }
@@ -134,16 +93,6 @@ h2 {
 .ajax-error {
     margin-top: 15px;
     margin-bottom: 15px;
-}
-
-.btn {
-    border-radius: 1.5rem;
-
-    &:focus,
-    &:active {
-        outline: none !important;
-        box-shadow: none;
-    }
 }
 
 .fa-close {
@@ -166,23 +115,15 @@ h2 {
     padding: 0.375rem;
 }
 
-.btn-group {
-    .btn-info {
-        border-left: solid 1px $gray-700;
-        &:first-child {
-            border-left: none;
-        }
-    }
-}
-
 .badge-action {
     $badge-width: 4rem;
     padding: 0.25rem 1.75rem 0.25rem 1.5rem;
     width: $badge-width;
     font-size: 100%;
-    background: $lightPurple;
+    background: $badge-background;
+    border-color: $section-border;
     border-radius: 1.5rem;
-    color: $gray-900;
+    color: $badge;
     line-height: inherit;
     position: absolute;
     top: -1rem;
@@ -202,9 +143,10 @@ h2 {
         margin:-0.5rem 0 0 0;
         padding:0;
     }
-    span.pull-right {
+    .pull-right {
+        float: right;
         .fa-plus {
-            font-size:1rem;
+            font-size: 1rem;
             margin-left: 1rem;
         }
     }
@@ -226,18 +168,23 @@ h2 {
     border-bottom: none;
 
     a.nav-link {
-        color: $lightPurple;
+        color: $nav-link;
+        padding: 0.375rem 2rem;
+        line-height: 16px;
 
         &.active,
         &:hover {
-            color: $white;
-            border: dotted 1px $lightPurple;
+            color: $nav-link-hover;
+            font-weight: bold;
+            border: $nav-link-active-border;
             border-radius: 0;
+            border-top-left-radius: $nav-link-border-radius;
+            border-top-right-radius: $nav-link-border-radius;
         }
     }
 
     @include media-breakpoint-up(lg) {
-        border-bottom: dotted 1px $lightPurple;
+        border-bottom: $nav-link-active-border;
 
         a.nav-link {
             &.active,
@@ -295,7 +242,7 @@ input.form-control {
 
         &:active .fa {
             transition: color 50ms;
-            color: $white;
+            color: $clipboard-button-color;
         }
     }
 }

@@ -55,18 +55,6 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
     [ ChainAction <$> chainView namingFn state (wrap resultRollup)
     , br_
     , div_
-        [ h2_ [ text "Logs" ]
-        , case emulatorLog of
-            [] -> empty
-            logs ->
-              div
-                [ class_ $ ClassName "logs" ]
-                ((emulatorEventPane <<< eveEvent) <$> Array.reverse logs)
-        , h2_ [ text "Trace" ]
-        , code_ [ pre_ [ text emulatorTrace ] ]
-        ]
-    , br_
-    , div_
         [ h2_ [ text "Final Balances" ]
         , slot
             _balancesChartSlot
@@ -74,6 +62,20 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             (chartist balancesChartOptions)
             (balancesToChartistData fundsDistribution)
             (Just <<< HandleBalancesChartMessage)
+        ]
+    , br_
+    , div_
+        [ h2_ [ text "Logs" ]
+        , case emulatorLog of
+            [] -> empty
+            logs ->
+              div
+                [ class_ $ ClassName "logs" ]
+                ((emulatorEventPane <<< eveEvent) <$> logs)
+        , h2_ [ text "Trace" ]
+        , div
+            [ class_ $ ClassName "trace" ]
+            [ code_ [ pre_ [ text emulatorTrace ] ] ]
         ]
     ]
   where
