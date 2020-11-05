@@ -30,12 +30,13 @@ contractTerms = ContractTerms {
         , ct_SD = fromGregorian 2008 10 22 -- start date
         , ct_MD = Just $ fromGregorian 2009 10 22 -- maturity date
         , ct_TD = Just $ fromGregorian 2009 10 22  -- termination date
+        , ct_PRNXT = Nothing -- Next principal redemption date (N/A for PAM)
         , ct_PRD = Just $ fromGregorian 2008 10 20 -- purchase date
         , ct_CNTRL = CR_ST
         , ct_PDIED = -100.0 -- Discount At IED
-        , ct_NT = 1000.0 -- Notional
-        , ct_PPRD = 1200.0 -- Price At Purchase Date
-        , ct_PTD = 1200.0 -- Price At Termination Date
+        , ct_NT = Just 1000.0 -- Notional
+        , ct_PPRD = Just 1200.0 -- Price At Purchase Date
+        , ct_PTD = Just 1200.0 -- Price At Termination Date
         , ct_DCC = DCC_A_360 -- Date Count Convention
         , ct_PREF = PREF_Y -- allow PP
         , ct_PRF = CS_PF
@@ -74,6 +75,12 @@ contractTerms = ContractTerms {
         , ct_IPANX = Nothing
         , ct_IPNR  = Nothing
         , ct_IPAC  = Nothing
+        , ct_PRCL = Nothing
+        , ct_PRANX = Nothing
+        , ct_IPCB = Nothing   -- Interest calc base
+        , ct_IPCBA = Nothing -- Amount used for interest calculation
+        , ct_IPCBCL = Nothing  -- Cycle of interest calculation base
+        , ct_IPCBANX = Nothing   -- Anchor of interest calc base cycle
         -- Fee
         , ct_FECL  = Nothing
         , ct_FEANX  = Nothing
@@ -92,7 +99,7 @@ pamProjected = do
 
 pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
-  Failure errs -> assertFailure "Terms validation should not fail"
+  Failure _ -> assertFailure "Terms validation should not fail"
   Success contract ->
     do
       assertBool "Cashflows should not be Close" $ contract /= Close
@@ -103,8 +110,10 @@ pamFs = do
     writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
-    let Success contract = genFsContract contractTerms
-    writeFile "PamFs.marlowe" $ show $ pretty contract
-    assertBool "Cashflows should not be Close" $ contract /= Close
+    case genFsContract contractTerms of
+      Failure _ -> assertFailure "Terms validation should not fail"
+      Success contract -> do
+        writeFile "PamFs.marlowe" $ show $ pretty contract
+        assertBool "Cashflows should not be Close" $ contract /= Close
 
 
