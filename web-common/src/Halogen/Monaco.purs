@@ -83,7 +83,7 @@ data Query a
   | GetLineCount (Int -> a)
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
-  | SetDeltaDecorations Int Int a
+  | SetDeltaDecorations Int Int (String -> a)
   | SetPosition IPosition a
   | Focus a
   | Resize a
@@ -224,10 +224,10 @@ handleQuery (GetModelMarkers f) = do
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
 
-handleQuery (SetDeltaDecorations first last next) = do
+handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
-    liftEffect $ Monaco.setDeltaDecorations editor first last
-    pure next
+    decoId <- liftEffect $ Monaco.setDeltaDecorations editor first last
+    pure (f decoId)
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do

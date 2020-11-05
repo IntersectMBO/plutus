@@ -3,7 +3,9 @@ module JavascriptEditor.State where
 import Prelude hiding (div)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, to, use, view)
+import Data.Foldable (for_)
+import Data.Lens (_Just, assign, to, use, view)
+import Data.Lens.Extra (peruse)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
@@ -13,7 +15,7 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import JavascriptEditor.Types (Action(..), CompilationState(..), State, _compilationResult, _keybindings, _showBottomPanel)
+import JavascriptEditor.Types (Action(..), CompilationState(..), State, _compilationResult, _decorationIds, _keybindings, _showBottomPanel)
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
@@ -33,16 +35,20 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
-      mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
-      if (mContent == Just text) || (checkJSboilerplate text) then
-        ( do
-            let
-              numLines = Array.length $ lines text
-            liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
-            assign _compilationResult NotCompiled
-        )
-      else
-        editorSetValue (fromMaybe "" mContent)
+      mDecorIds <- peruse (_decorationIds <<< _Just)
+      case mDecorIds of
+        Just decorIds -> do
+          mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
+          if (mContent == Just text) || (checkJSboilerplate text) then
+            ( do
+                let
+                  numLines = Array.length $ lines text
+                liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
+                assign _compilationResult NotCompiled
+            )
+          else
+            editorSetValue (fromMaybe "" mContent)
+        Nothing -> editorSetValue (pruneJSboilerplate text)
   )
 
 handleAction _ (ChangeKeyBindings bindings) = do
@@ -126,15 +132,31 @@ decorationFooterString = joinWith "\n" decorationFooter
 lengthOfFooter :: Int
 lengthOfFooter = length decorationFooterString
 
-editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
+editorSetValue ::
+  forall m.
+  MonadAff m =>
+  String ->
+  HalogenM State Action ChildSlots Void m Unit
 editorSetValue contents = do
   let
     decoratedContent = joinWith "\n" [ decorationHeaderString, contents, decorationFooterString ]
 
     numLines = Array.length $ lines decoratedContent
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
-  void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) unit
-  void $ query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines unit
+  mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) identity
+  mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines identity
+  for_ mTopDecorationId
+    ( \topDecorationId ->
+        for_ mBottomDecorationId
+          ( \bottomDecorationId ->
+              assign _decorationIds
+                ( Just
+                    { topDecorationId: topDecorationId
+                    , bottomDecorationId: bottomDecorationId
+                    }
+                )
+          )
+    )
 
 checkJSboilerplate :: String -> Boolean
 checkJSboilerplate content =
@@ -152,7 +174,10 @@ pruneJSboilerplate content =
   in
     take (length noHeader - lengthOfFooter - 1) noHeader
 
-editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
+editorGetValue ::
+  forall m.
+  MonadAff m =>
+  HalogenM State Action ChildSlots Void m (Maybe String)
 editorGetValue = do
   mContent <- query _jsEditorSlot unit (Monaco.GetText identity)
   pure

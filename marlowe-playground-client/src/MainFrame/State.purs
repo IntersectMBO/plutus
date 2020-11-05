@@ -356,7 +356,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   -- reset all the editors
   toHaskellEditor $ HaskellEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
-  JavascriptEditor.editorSetValue mempty
+  toJavascriptEditor $ JavascriptEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
   toSimulation $ Simulation.editorSetValue mempty
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
@@ -369,7 +369,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
         liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        JavascriptEditor.editorSetValue contents
+        toJavascriptEditor $ JavascriptEditor.editorSetValue JE.example
         liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
     Marlowe -> do
       toSimulation $ Simulation.editorSetValue "?new_contract"
@@ -385,7 +385,7 @@ handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleActio
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> JavascriptEditor.editorSetValue contents
+    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> toJavascriptEditor $ JavascriptEditor.editorSetValue contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         Simulation.editorSetValue contents
@@ -506,7 +506,7 @@ handleGistAction settings PublishGist = do
   marlowe <- pruneEmpty <$> toSimulation Simulation.editorGetValue
   haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
   blockly <- pruneEmpty <$> query _blocklySlot unit (H.request Blockly.GetWorkspace)
-  javascript <- pruneEmpty <$> JavascriptEditor.editorGetValue
+  javascript <- pruneEmpty <$> (toJavascriptEditor JavascriptEditor.editorGetValue)
   actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
   let
     files = { playground, marlowe, haskell, blockly, javascript, actus }
@@ -582,7 +582,7 @@ loadGist gist = do
   toSimulation $ Simulation.editorSetValue $ fromMaybe mempty marlowe
   HaskellEditor.editorSetValue (fromMaybe mempty haskell)
   for_ blockly \xml -> query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
-  JavascriptEditor.editorSetValue (fromMaybe mempty javascript)
+  toJavascriptEditor $ JavascriptEditor.editorSetValue $ fromMaybe mempty javascript
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------

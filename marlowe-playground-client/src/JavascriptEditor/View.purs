@@ -15,7 +15,7 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import JavascriptEditor.State (decorationFooter, decorationFooterString, decorationHeader, decorationHeaderString)
+import JavascriptEditor.State (decorationFooterString, decorationHeaderString)
 import JavascriptEditor.Types (Action(..), State, _compilationResult, _keybindings, _showBottomPanel)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
@@ -23,7 +23,7 @@ import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Monaco as Monaco
-import Prelude (bind, bottom, const, discard, map, not, show, unit, ($), (+), (-), (<$>), (<<<), (<>), (==))
+import Prelude (bind, bottom, const, discard, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
 import Text.Pretty (pretty)
@@ -90,8 +90,7 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< HandleEditorMe
         numLines = Array.length $ lines decoratedContent
       model <- Monaco.getModel editor
       Monaco.setValue model decoratedContent
-      Monaco.setDeltaDecorations editor 1 (Array.length decorationHeader)
-      Monaco.setDeltaDecorations editor (numLines - Array.length decorationFooter + 1) numLines
+      pure unit
 
   component = monacoComponent $ JSM.settings setup
 

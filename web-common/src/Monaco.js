@@ -61,7 +61,7 @@ exports.addExtraTypesScriptLibsJS_ = function (monaco) {
 }
 
 exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
-  editor.deltaDecorations([], [
+  return editor.deltaDecorations([], [
     { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},
   ]);
 }
