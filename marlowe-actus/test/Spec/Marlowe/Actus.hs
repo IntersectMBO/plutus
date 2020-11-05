@@ -28,9 +28,9 @@ contractTerms = ContractTerms {
         , contractType = Just PAM
         , ct_IED = fromGregorian 2008 10 20 -- Initial Exchange Date
         , ct_SD = fromGregorian 2008 10 22 -- start date
-        , ct_MD = Just fromGregorian 2009 10 22 -- maturity date
-        , ct_TD = Just fromGregorian 2009 10 22  -- termination date
-        , ct_PRD = Just fromGregorian 2008 10 20 -- purchase date
+        , ct_MD = Just $ fromGregorian 2009 10 22 -- maturity date
+        , ct_TD = Just $ fromGregorian 2009 10 22  -- termination date
+        , ct_PRD = Just $ fromGregorian 2008 10 20 -- purchase date
         , ct_CNTRL = CR_ST
         , ct_PDIED = -100.0 -- Discount At IED
         , ct_NT = 1000.0 -- Notional
@@ -92,8 +92,8 @@ pamProjected = do
 
 pamStatic :: IO ()
 pamStatic = case genStaticContract contractTerms of
-  Failure errs _ -> assertFailure "Terms validation should not fail"
-  Success _ contract ->
+  Failure errs -> assertFailure "Terms validation should not fail"
+  Success contract ->
     do
       assertBool "Cashflows should not be Close" $ contract /= Close
 
@@ -103,7 +103,7 @@ pamFs = do
     writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
-    let Success _ contract = genFsContract contractTerms
+    let Success contract = genFsContract contractTerms
     writeFile "PamFs.marlowe" $ show $ pretty contract
     assertBool "Cashflows should not be Close" $ contract /= Close
 

@@ -123,6 +123,8 @@
             "Language/Marlowe/ACTUS/Definitions/ContractTerms"
             "Language/Marlowe/ACTUS/Definitions/ContractState"
             "Language/Marlowe/ACTUS/Definitions/Schedule"
+            "Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability"
+            "Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel"
             "Language/Marlowe/ACTUS/Model/POF/PayoffModel"
             "Language/Marlowe/ACTUS/Model/POF/Payoff"
             "Language/Marlowe/ACTUS/Model/POF/PayoffFs"
