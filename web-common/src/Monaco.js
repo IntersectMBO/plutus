@@ -66,6 +66,10 @@ exports.setStrictNullChecks_ = function (monaco, bool) {
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
 }
 
+exports.getDecorationRange_ = function (editor, identifier) {
+  return editor.getDecorationRange(identifier);
+}
+
 exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
   return editor.deltaDecorations([], [
     { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},

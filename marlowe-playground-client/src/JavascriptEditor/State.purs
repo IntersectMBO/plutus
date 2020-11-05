@@ -21,11 +21,20 @@ import Language.Javascript.Interpreter as JSI
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
 import Marlowe (SPParams_)
-import Monaco (isError)
+import Monaco (IRange, isError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
+
+checkDecorationPosition :: Int -> Maybe IRange -> Maybe IRange -> Boolean
+checkDecorationPosition numLines (Just { endLineNumber }) (Just { startLineNumber }) = (endLineNumber == headerLength) && (startLineNumber == numLines - footerLength + 1)
+  where
+  headerLength = Array.length decorationHeader
+
+  footerLength = Array.length decorationFooter
+
+checkDecorationPosition _ _ _ = false
 
 handleAction ::
   forall m.
@@ -35,20 +44,24 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
+      let
+        prunedText = pruneJSboilerplate text
+
+        numLines = Array.length $ lines text
       mDecorIds <- peruse (_decorationIds <<< _Just)
       case mDecorIds of
         Just decorIds -> do
+          mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
+          mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
-          if (mContent == Just text) || (checkJSboilerplate text) then
+          if (mContent == Just text) || (checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter) then
             ( do
-                let
-                  numLines = Array.length $ lines text
-                liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey (pruneJSboilerplate text)
+                liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
                 assign _compilationResult NotCompiled
             )
           else
             editorSetValue (fromMaybe "" mContent)
-        Nothing -> editorSetValue (pruneJSboilerplate text)
+        Nothing -> editorSetValue prunedText
   )
 
 handleAction _ (ChangeKeyBindings bindings) = do

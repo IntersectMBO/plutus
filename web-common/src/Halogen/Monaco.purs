@@ -25,7 +25,7 @@ import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
 import Monaco as Monaco
 import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, when, ($), (==), (>>=))
 
@@ -83,6 +83,7 @@ data Query a
   | GetLineCount (Int -> a)
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
+  | GetDecorationRange String (IRange -> a)
   | SetDeltaDecorations Int Int (String -> a)
   | SetPosition IPosition a
   | Focus a
@@ -225,6 +226,14 @@ handleQuery (GetModelMarkers f) = do
       model <- Monaco.getModel editor
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
+
+handleQuery (GetDecorationRange decoratorId f) = do
+  withEditor \editor -> do
+    liftEffect do
+      model <- liftEffect $ Monaco.getModel editor
+      let
+        decoRange = Monaco.getDecorationRange model decoratorId
+      pure $ f decoRange
 
 handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
