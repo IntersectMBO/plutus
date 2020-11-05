@@ -70,43 +70,34 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | isJust _MD = fromJust _MD
                 | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) }
 
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
+
         -- Same as PAM
-        nt
-                | _IED > t0                     = 0.0
-                | otherwise                     = r _CNTRL * _NT
+        _nt = nt pam_init
+
         -- Same as PAM
-        ipnr
-                | _IED > t0                     = 0.0
-                | otherwise                     = fromMaybe 0.0 _IPNR
+        _ipnr = ipnr pam_init
+
         -- Same as PAM
-        ipac
-                | isNothing _IPNR               = 0.0
-                | isJust _IPAC                  = fromJust _IPAC
-                | otherwise                     = y _DCC tminus t0 tmd * nt * ipnr
+        _ipac = ipac pam_init
+
         -- Same as PAM
-        fac
-                | isNothing _FER                = 0.0
-                | isJust _FEAC                  = fromJust _FEAC
-                | _FEB == FEB_N                  = y _DCC tfp_minus t0 tmd * nt * fromJust _FER
-                | otherwise                     = (y _DCC tfp_minus t0 tmd / y _DCC tfp_minus tfp_plus tmd) * fromJust _FER
+        _fac = fac pam_init
+
         -- Same as PAM
-        feac
-                | isNothing _FER                = 0.0
-                | isJust _FEAC                  = fromJust _FEAC
-                | _FEB == FEB_N                  = y _DCC tfp_minus t0 tmd * nt * fromJust _FER
-                | otherwise                     = (y _DCC tfp_minus t0 tmd / y _DCC tfp_minus tfp_plus tmd) * fromJust _FER
+        _feac = feac pam_init
+
         -- Same as PAM
-        nsc
-                | scef_xNx _SCEF                = _SCIXSD
-                | otherwise                     = 1.0
+        _nsc = nsc pam_init
+
         -- Same as PAM
-        isc
-                | scef_Ixx _SCEF                = _SCIXSD
-                | otherwise                     = 1.0
+        _isc = isc pam_init
+
         -- Same as PAM
-        prf                                     = _PRF
+        _prf = prf pam_init
+        
         -- Same as PAM
-        sd                                      = t0
+        _sd = sd pam_init
 
         -- PRNXT
         s
@@ -122,4 +113,4 @@ _INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC
                 | t0 < _IED                    = 0.0
                 | (fromJust _IPCB) == IPCB_NT              = r _CNTRL * _NT
                 | otherwise                     = r _CNTRL * (fromJust _IPCBA)
-    in ContractStatePoly { prnxt = prnxt, ipcb = ipcb, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
+    in ContractStatePoly { prnxt = prnxt, ipcb = ipcb, tmd = tmd, nt = _nt, ipnr = _ipnr, ipac = _ipac, fac = _fac, feac = _feac, nsc = _nsc, isc = _isc, prf = _prf, sd = _sd }
