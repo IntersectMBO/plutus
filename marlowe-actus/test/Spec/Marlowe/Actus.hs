@@ -6,6 +6,7 @@ where
 import           Data.Aeson                                       (decode, encode)
 import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
+import           Data.Validation                                  (Validation(..))
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
@@ -24,12 +25,12 @@ tests = testGroup "Actus"
 contractTerms :: ContractTerms
 contractTerms = ContractTerms {
           contractId = "0"
-        , contractType = PAM
+        , contractType = Just PAM
         , ct_IED = fromGregorian 2008 10 20 -- Initial Exchange Date
         , ct_SD = fromGregorian 2008 10 22 -- start date
-        , ct_MD = fromGregorian 2009 10 22 -- maturity date
-        , ct_TD = fromGregorian 2009 10 22  -- termination date
-        , ct_PRD = fromGregorian 2008 10 20 -- purchase date
+        , ct_MD = Just fromGregorian 2009 10 22 -- maturity date
+        , ct_TD = Just fromGregorian 2009 10 22  -- termination date
+        , ct_PRD = Just fromGregorian 2008 10 20 -- purchase date
         , ct_CNTRL = CR_ST
         , ct_PDIED = -100.0 -- Discount At IED
         , ct_NT = 1000.0 -- Notional
@@ -90,9 +91,11 @@ pamProjected = do
     assertBool "Cashflows should not be empty" (not cfsEmpty)
 
 pamStatic :: IO ()
-pamStatic = do
-    let contract = genStaticContract contractTerms
-    assertBool "Cashflows should not be Close" $ contract /= Close
+pamStatic = case genStaticContract contractTerms of
+  Failure errs _ -> assertFailure "Terms validation should not fail"
+  Success _ contract ->
+    do
+      assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do
@@ -100,7 +103,7 @@ pamFs = do
     writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
-    let contract = genFsContract contractTerms
+    let Success _ contract = genFsContract contractTerms
     writeFile "PamFs.marlowe" $ show $ pretty contract
     assertBool "Cashflows should not be Close" $ contract /= Close
 

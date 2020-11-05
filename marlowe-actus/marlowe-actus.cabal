@@ -173,7 +173,8 @@ test-suite marlowe-actus-test
         QuickCheck,
         template-haskell -any,
         marlowe -any,
-        time -any
+        time -any,
+        validation -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
