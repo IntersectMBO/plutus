@@ -8,7 +8,6 @@ pkgs.stdenv.mkDerivation rec {
   buildInputs = with pkgs; [
     terraform
     awscli
-    aws_shell
   ];
   shellHook = ''
       export EDITOR=nvim
