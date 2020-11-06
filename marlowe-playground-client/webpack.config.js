@@ -16,7 +16,7 @@ const plugins =
             });
         }
     ]
-    ;
+;
 
 // source map adds 20Mb to the output!
 const devtool = isWebpackDevServer ? 'eval-source-map' : false;

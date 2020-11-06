@@ -149,7 +149,6 @@ data TermG tyname name
     deriving (Typeable, Eq, Show)
 
 deriveBifunctor ''TermG
-deriveEnumerable ''StaticBuiltinName
 deriveEnumerable ''TermG
 
 type ClosedTermG = TermG Z Z
@@ -230,7 +229,7 @@ convertTerm
   -> NameState name     -- ^ Name environment with fresh name stream
   -> TypeG tyname       -- ^ Type of term below
   -> TermG tyname name  -- ^ Term to convert
-  -> m (Term TyName Name DefaultUni ())
+  -> m (Term TyName Name DefaultUni fun ())
 convertTerm _tns ns _ty (VarG i) =
   return (Var () (nameOf ns i))
 convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
@@ -253,7 +252,7 @@ convertClosedTerm
   -> Stream.Stream Text.Text
   -> ClosedTypeG
   -> ClosedTermG
-  -> m (Term TyName Name DefaultUni ())
+  -> m (Term TyName Name DefaultUni fun ())
 convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
 

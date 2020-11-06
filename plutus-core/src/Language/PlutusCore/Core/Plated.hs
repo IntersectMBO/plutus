@@ -68,25 +68,25 @@ typeSubtypesDeep :: Fold (Type tyname uni ann) (Type tyname uni ann)
 typeSubtypesDeep = cosmosOf typeSubtypes
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
-termTyBinds :: Traversal' (Term tyname name uni ann) tyname
+termTyBinds :: Traversal' (Term tyname name uni fun ann) tyname
 termTyBinds f = \case
     TyAbs ann tn k t -> f tn <&> \tn' -> TyAbs ann tn' k t
     x -> pure x
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
-termBinds :: Traversal' (Term tyname name uni ann) name
+termBinds :: Traversal' (Term tyname name uni fun ann) name
 termBinds f = \case
     LamAbs ann n ty t -> f n <&> \n' -> LamAbs ann n' ty t
     x -> pure x
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
-termVars :: Traversal' (Term tyname name uni ann) name
+termVars :: Traversal' (Term tyname name uni fun ann) name
 termVars f = \case
     Var ann n -> Var ann <$> f n
     x -> pure x
 
 -- | Get all the direct child 'Unique's of the given 'Term' (including the type-level ones).
-termUniques :: HasUniques (Term tyname name uni ann) => Traversal' (Term tyname name uni ann) Unique
+termUniques :: HasUniques (Term tyname name uni fun ann) => Traversal' (Term tyname name uni fun ann) Unique
 termUniques f = \case
     TyAbs ann tn k t -> theUnique f tn <&> \tn' -> TyAbs ann tn' k t
     LamAbs ann n ty t -> theUnique f n <&> \n' -> LamAbs ann n' ty t
@@ -95,7 +95,7 @@ termUniques f = \case
 
 {-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term'.
-termSubtypes :: Traversal' (Term tyname name uni ann) (Type tyname uni ann)
+termSubtypes :: Traversal' (Term tyname name uni fun ann) (Type tyname uni ann)
 termSubtypes f = \case
     LamAbs ann n ty t -> LamAbs ann n <$> f ty <*> pure t
     TyInst ann t ty -> TyInst ann t <$> f ty
@@ -109,12 +109,12 @@ termSubtypes f = \case
     b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
-termSubtypesDeep :: Fold (Term tyname name uni ann) (Type tyname uni ann)
+termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)
 termSubtypesDeep = termSubtermsDeep . termSubtypes . typeSubtypesDeep
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
-termSubterms :: Traversal' (Term tyname name uni ann) (Term tyname name uni ann)
+termSubterms :: Traversal' (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubterms f = \case
     LamAbs ann n ty t -> LamAbs ann n ty <$> f t
     TyInst ann t ty -> TyInst ann <$> f t <*> pure ty
@@ -128,7 +128,7 @@ termSubterms f = \case
     b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
-termSubtermsDeep :: Fold (Term tyname name uni ann) (Term tyname name uni ann)
+termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubtermsDeep = cosmosOf termSubterms
 
 -- | Get all the transitive child 'Unique's of the given 'Type'.
@@ -136,5 +136,5 @@ typeUniquesDeep :: HasUniques (Type tyname uni ann) => Fold (Type tyname uni ann
 typeUniquesDeep = typeSubtypesDeep . typeUniques
 
 -- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).
-termUniquesDeep :: HasUniques (Term tyname name uni ann) => Fold (Term tyname name uni ann) Unique
+termUniquesDeep :: HasUniques (Term tyname name uni fun ann) => Fold (Term tyname name uni fun ann) Unique
 termUniquesDeep = termSubtermsDeep . (termSubtypes . typeUniquesDeep <^> termUniques)

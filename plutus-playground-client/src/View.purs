@@ -12,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple (Tuple(Tuple))
-import Editor (compileButton, editorFeedback, editorView)
+import Editor.View (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, span, strong_, text)
@@ -34,7 +34,7 @@ render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { currentView, blockchainVisualisationState, contractDemos, editorPreferences }) =
+render state@(State { currentView, blockchainVisualisationState, contractDemos, editorState }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -60,7 +60,7 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
                   , contractDemosPane contractDemos
                   ]
               ]
-          , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
+          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
           , compileButton CompileProgram compilationResult
           , mapComponent EditorAction $ editorFeedback compilationResult
           , case compilationResult of

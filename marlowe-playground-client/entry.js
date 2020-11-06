@@ -10,6 +10,13 @@ global.EmacsExtension = EmacsExtension;
 import { initVimMode } from 'monaco-vim';
 global.initVimMode = initVimMode;
 
+import * as bignumberDTS from '!!raw-loader!bignumber.js/bignumber.d.ts';
+import * as marloweDTS from '!!raw-loader!src/Language/Javascript/MarloweJS.ts';
+global.monacoExtraTypeScriptLibs = [
+  [ bignumberDTS.default, 'inmemory://model/bignumber.js.d.ts'],
+  [ marloweDTS.default, "inmemory://model/marlowe-js.d.ts" ]
+];
+
 import { BigNumber } from 'bignumber';
 
 import './src/Main.purs';

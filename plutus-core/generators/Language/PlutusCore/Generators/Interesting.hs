@@ -21,6 +21,7 @@ module Language.PlutusCore.Generators.Interesting
     , fromInterestingTermGens
     ) where
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
@@ -45,13 +46,13 @@ import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
 -- | The type of terms-and-their-values generators.
-type TermGen uni a = Gen (TermOf (Term TyName Name uni ()) a)
+type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)
 
 -- | Generates application of a builtin that returns a function, immediately saturated afterwards.
 --
 -- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
 -- >     == if i < j then i + j else i - j
-genOverapplication :: Generatable uni => TermGen uni Integer
+genOverapplication :: TermGen Integer
 genOverapplication = do
     let typedInteger = AsKnownType
         integer = toTypeAst typedInteger
@@ -59,10 +60,10 @@ genOverapplication = do
     TermOf tj j <- genTypedBuiltinDef typedInteger
     let term =
             mkIterApp ()
-                (TyInst () (staticBuiltinNameAsTerm IfThenElse) . TyFun () integer $ TyFun () integer integer)
-                [ mkIterApp () (staticBuiltinNameAsTerm LessThanInteger) [ti, tj]
-                , staticBuiltinNameAsTerm AddInteger
-                , staticBuiltinNameAsTerm SubtractInteger
+                (TyInst () (Builtin () IfThenElse) . TyFun () integer $ TyFun () integer integer)
+                [ mkIterApp () (Builtin () LessThanInteger) [ti, tj]
+                , Builtin () AddInteger
+                , Builtin () SubtractInteger
                 , ti
                 , tj
                 ]
@@ -71,7 +72,7 @@ genOverapplication = do
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
 -- > \(i : integer) -> product (enumFromTo 1 i)
-factorial :: uni `IncludesAll` '[Integer, (), Bool] => Term TyName Name uni ()
+factorial :: Term TyName Name DefaultUni DefaultFun ()
 factorial = runQuote $ do
     i <- freshName "i"
     let int = mkTyBuiltin @Integer ()
@@ -92,7 +93,7 @@ factorial = runQuote $ do
 -- >                         (rec (subtractInteger i 1))
 -- >                         (rec (subtractInteger i 2)))
 -- >         i0
-naiveFib :: uni `IncludesAll` '[Integer, (), Bool] => Integer -> Term TyName Name uni ()
+naiveFib :: Integer -> Term TyName Name DefaultUni DefaultFun ()
 naiveFib iv = runQuote $ do
     i0  <- freshName "i0"
     rec <- freshName "rec"
@@ -105,13 +106,13 @@ naiveFib iv = runQuote $ do
             [   LamAbs () rec (TyFun () intS intS)
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
-                  [ mkIterApp () (staticBuiltinNameAsTerm LessThanEqInteger)
+                  [ mkIterApp () (Builtin () LessThanEqInteger)
                       [Var () i, mkConstant @Integer () 1]
                   , LamAbs () u unit $ Var () i
-                  , LamAbs () u unit $ mkIterApp () (staticBuiltinNameAsTerm AddInteger)
-                      [ Apply () (Var () rec) $ mkIterApp () (staticBuiltinNameAsTerm SubtractInteger)
+                  , LamAbs () u unit $ mkIterApp () (Builtin () AddInteger)
+                      [ Apply () (Var () rec) $ mkIterApp () (Builtin () SubtractInteger)
                           [Var () i, mkConstant @Integer () 1]
-                      , Apply () (Var () rec) $ mkIterApp () (staticBuiltinNameAsTerm SubtractInteger)
+                      , Apply () (Var () rec) $ mkIterApp () (Builtin () SubtractInteger)
                           [Var () i, mkConstant @Integer () 2]
                       ]
                   ]
@@ -121,7 +122,7 @@ naiveFib iv = runQuote $ do
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
-genFactorial :: uni `IncludesAll` '[Integer, (), Bool] => TermGen uni Integer
+genFactorial :: TermGen Integer
 genFactorial = do
     let m = 10
     iv <- Gen.integral $ Range.linear 1 m
@@ -130,7 +131,7 @@ genFactorial = do
 
 -- | Generate a term that computes the ith Fibonacci number and return it
 -- along with the corresponding 'Integer' computed on the Haskell side.
-genNaiveFib :: uni `IncludesAll` '[Integer, (), Bool] => TermGen uni Integer
+genNaiveFib :: TermGen Integer
 genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
@@ -142,19 +143,19 @@ genNaiveFib = do
 -- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
 genNatRoundtrip
-    :: forall uni. Generatable uni => TermGen uni Integer
+    :: TermGen Integer
 genNatRoundtrip = do
-    let typedInt = AsKnownType @(Term TyName Name uni ())
+    let typedInt = AsKnownType @(Term TyName Name DefaultUni DefaultFun ())
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
     let term = mkIterApp () natToInteger [metaIntegerToNat iv]
     return $ TermOf term iv
 
 -- | @sumNat@ as a PLC term.
-natSum :: uni `Includes` Integer => Term TyName Name uni ()
+natSum :: Term TyName Name DefaultUni DefaultFun ()
 natSum = runQuote $ do
     let int = mkTyBuiltin @Integer ()
         nat = _recursiveType natData
-        add = staticBuiltinNameAsTerm AddInteger
+        add = Builtin () AddInteger
     acc <- freshName "acc"
     n <- freshName "n"
     return
@@ -170,7 +171,7 @@ natSum = runQuote $ do
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
-genListSum :: Generatable uni => TermGen uni Integer
+genListSum :: TermGen Integer
 genListSum = do
     let typedInt = AsKnownType
         intS = toTypeAst typedInt
@@ -182,7 +183,7 @@ genListSum = do
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
-genIfIntegers :: Generatable uni => TermGen uni Integer
+genIfIntegers :: TermGen Integer
 genIfIntegers = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -198,7 +199,7 @@ genIfIntegers = do
     return $ TermOf term value
 
 -- | Check that builtins can be partially applied.
-genApplyAdd1 :: Generatable uni => TermGen uni Integer
+genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -206,13 +207,13 @@ genApplyAdd1 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, int])
-                [ Apply () (staticBuiltinNameAsTerm AddInteger) i
+                [ Apply () (Builtin () AddInteger) i
                 , j
                 ]
     return . TermOf term $ iv + jv
 
 -- | Check that builtins can be partially applied.
-genApplyAdd2 :: Generatable uni => TermGen uni Integer
+genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -220,22 +221,22 @@ genApplyAdd2 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
-                [ staticBuiltinNameAsTerm AddInteger
+                [ Builtin () AddInteger
                 , i
                 , j
                 ]
     return . TermOf term $ iv + jv
 
 -- | Check that division by zero results in 'Error'.
-genDivideByZero :: Generatable uni => TermGen uni (EvaluationResult Integer)
+genDivideByZero :: TermGen (EvaluationResult Integer)
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ AsKnownType @_ @Integer
-    let term = mkIterApp () (staticBuiltinNameAsTerm op) [i, mkConstant @Integer () 0]
+    let term = mkIterApp () (Builtin () op) [i, mkConstant @Integer () 0]
     return $ TermOf term EvaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
-genDivideByZeroDrop :: Generatable uni => TermGen uni (EvaluationResult Integer)
+genDivideByZeroDrop :: TermGen (EvaluationResult Integer)
 genDivideByZeroDrop = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     let typedInt = AsKnownType
@@ -243,15 +244,15 @@ genDivideByZeroDrop = do
     TermOf i iv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () Function.const [int, int])
-                [ mkIterApp () (staticBuiltinNameAsTerm op) [i, mkConstant @Integer () 0]
+                [ mkIterApp () (Builtin () op) [i, mkConstant @Integer () 0]
                 , mkConstant @Integer () iv
                 ]
     return $ TermOf term EvaluationFailure
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens
-    :: Generatable uni
-    => (forall a. KnownType (Term TyName Name uni ()) a => String -> TermGen uni a -> c) -> [c]
+    :: (forall a. KnownType (Term TyName Name DefaultUni DefaultFun ()) a => String -> TermGen a -> c)
+    -> [c]
 fromInterestingTermGens f =
     [ f "overapplication"  genOverapplication
     , f "factorial"        genFactorial

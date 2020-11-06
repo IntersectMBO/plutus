@@ -6,7 +6,7 @@
 , rev ? "fake"
 }:
 let
-  inherit (import ./nix/ci-lib.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive;
+  inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive;
   systems = nixpkgs: nixpkgs.lib.filterAttrs (_: v: builtins.elem v supportedSystems) {
     # I wanted to take these from 'lib.systems.examples', but apparently there isn't one for linux!
     linux = "x86_64-linux";
@@ -18,27 +18,31 @@ let
 in
 dimension "System" (systems genericPkgs) (systemName: system:
   let
-    packageSet = import ./default.nix { inherit system rev; checkMaterialization = true; };
-    pkgs = packageSet.pkgs;
+    packages = import ./default.nix { inherit system rev; checkMaterialization = true; };
+    pkgs = packages.pkgs;
+    pkgsLocal = packages.pkgsLocal;
+    pkgsMusl = packages.pkgsMusl;
     lib = pkgs.lib;
     platformFilter = platformFilterGeneric pkgs system;
   in
   filterAttrsOnlyRecursive (_: v: platformFilter v) {
-    inherit (packageSet) docs papers dev tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
-    inherit (packageSet.haskell.project) roots;
+    inherit (packages) docs papers tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+    inherit (pkgsLocal.haskell.project) roots;
+
     # build the shell expression to be sure it works on all platforms
-    shell = import ./shell.nix { inherit packageSet; };
+    shell = import ./shell.nix { inherit packages; };
+
     haskell =
       let
         # These functions pull out from the Haskell package set either all the components of a particular type, or
         # all the checks.
         collectChecks = _: ps: pkgs.recurseIntoAttrs (builtins.mapAttrs (_: p: p.checks) ps);
-        collectComponents = type: ps: packageSet.pkgs.haskell-nix.haskellLib.collectComponents' type ps;
+        collectComponents = type: ps: pkgs.haskell-nix.haskellLib.collectComponents' type ps;
         # This computes the Haskell package set sliced by component type
       in
       pkgs.recurseIntoAttrs (dimension
         "Haskell component"
         { "library" = collectComponents; "tests" = collectComponents; "benchmarks" = collectComponents; "exes" = collectComponents; "checks" = collectChecks; }
         # Apply the selector to the Haskell package set
-        (type: selector: (selector type) packageSet.haskell.projectPackages));
+        (type: selector: (selector type) pkgsLocal.haskell.projectPackages));
   })

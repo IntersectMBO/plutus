@@ -30,20 +30,18 @@ import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
-                                                                             search')
-import           Data.Coolean                                               (Cool, toCool, (!=>))
+import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
+import           Data.Coolean                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                                as Stream
-import qualified Data.Text                                                  as Text
+import qualified Data.Stream                                as Stream
+import qualified Data.Text                                  as Text
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -107,24 +105,25 @@ not exploited.
 
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
+  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
-  withExceptT TypeError $ checkKind defConfig () ty (Type ())
+  withExceptT TypeError $ checkKind tcConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
+  withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
-  tmCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
-  withExceptT TypeError $ checkType defConfig () tmCK (Normalized ty)
+  tmCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
 
-  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
+  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
   withExceptT
-    (\ (_ :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
-    (checkType defConfig () tmCEK (Normalized ty))
+    (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
+    (checkType tcConfig () tmCEK (Normalized ty))
     `catchError` \_ -> return () -- expecting this to fail at the moment
 
 -- |Property: check if both the CK and CEK machine produce the same ouput
@@ -139,17 +138,18 @@ prop_typePreservation tyG tmG = do
 
 prop_agree_Ck_Cek :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_agree_Ck_Cek tyG tmG = do
+  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
-  withExceptT TypeError $ checkKind defConfig () ty (Type ())
+  withExceptT TypeError $ checkKind tcConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
-  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
+  withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
   -- check if CK and CEK give the same output
 
-  tmCek <- withExceptT CekP $ liftEither $ evaluateCek mempty defaultCostModel tm
-  tmCk <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
+  tmCek <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
+  tmCk <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
@@ -168,14 +168,15 @@ prop_agree_Ck_Cek tyG tmG = do
 --
 prop_normalizeConvertCommuteTypes :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
 prop_normalizeConvertCommuteTypes k tyG = do
+  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
   -- Check if the kind checker for generated types is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  withExceptT TypeError $ checkKind defConfig () ty k
+  withExceptT TypeError $ checkKind tcConfig () ty k
 
   -- Check if the converted type, when reduced, still has the same kind:
   ty1 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
-  withExceptT TypeError $ checkKind defConfig () ty k
+  withExceptT TypeError $ checkKind tcConfig () ty k
 
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
@@ -222,11 +223,11 @@ testCaseGen name GenOptions{..} t prop =
 
 data TestFail
   = GenError GenError
-  | TypeError (TypeError (Term TyName Name DefaultUni ()) DefaultUni ())
+  | TypeError (TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ())
   | AgdaErrorP ()
   | FVErrorP FreeVariableError
-  | CkP (CkEvaluationException DefaultUni)
-  | CekP (CekEvaluationException DefaultUni)
+  | CkP (CkEvaluationException DefaultUni DefaultFun)
+  | CekP (CekEvaluationException DefaultUni DefaultFun)
   | Ctrex Ctrex
 
 data Ctrex
@@ -263,15 +264,15 @@ data Ctrex
   | CtrexTypePreservationFail
     ClosedTypeG
     ClosedTermG
-    (Term TyName Name DefaultUni ())
-    (Term TyName Name DefaultUni ())
+    (Term TyName Name DefaultUni DefaultFun ())
+    (Term TyName Name DefaultUni DefaultFun ())
   | CtrexTermEvaluationFail
     ClosedTypeG
     ClosedTermG
   | CtrexTermEvaluationMismatch
     ClosedTypeG
     ClosedTermG
-    [Term TyName Name DefaultUni ()]
+    [Term TyName Name DefaultUni DefaultFun ()]
 
 instance Show TestFail where
   show (TypeError e)  = show e

@@ -183,3 +183,7 @@ button.small-btn {
 .scroll {
   overflow: scroll;
 }
+
+.flip {
+  transform: rotate(180deg);
+}

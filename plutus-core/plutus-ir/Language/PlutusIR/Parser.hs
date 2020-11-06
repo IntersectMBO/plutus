@@ -5,7 +5,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusIR.Parser
-    ( parse
+    ( topSourcePos
+    , parse
     , parseQuoted
     , term
     , typ
@@ -27,7 +28,7 @@ import qualified Language.PlutusCore                as PLC
 import qualified Language.PlutusCore.MkPlc          as PLC
 import           Language.PlutusIR                  as PIR
 import qualified Language.PlutusIR.MkPir            as PIR
-import           PlutusPrelude                      (display)
+import           PlutusPrelude                      (Pretty, display)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 
@@ -58,6 +59,9 @@ type Error = Parsec.ParseError Char ParseError
 instance ShowErrorComponent ParseError where
     showErrorComponent (UnexpectedKeyword kw) = "Keyword " ++ kw ++ " used as identifier"
     showErrorComponent (InternalError cause)  = "Internal error: " ++ cause
+
+topSourcePos :: SourcePos
+topSourcePos = initialPos "top"
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -120,7 +124,6 @@ inBraces = between lbrace rbrace
 
 reservedWords :: [T.Text]
 reservedWords =
-    map display PLC.allStaticBuiltinNames ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -159,11 +162,9 @@ reservedWord w = lexeme $ try $ do
     notFollowedBy (satisfy isIdentifierChar)
     return p
 
--- FIXME: can't parse dynamic names
-staticBuiltinName :: Parser PLC.StaticBuiltinName
-staticBuiltinName = lexeme $ choice $ map parseBuiltinName PLC.allStaticBuiltinNames
-    where parseBuiltinName :: PLC.StaticBuiltinName -> Parser PLC.StaticBuiltinName
-          parseBuiltinName builtin = try $ string (display builtin) >> pure builtin
+builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
+builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
+    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
 name :: Parser Name
 name = lexeme $ try $ do
@@ -178,9 +179,6 @@ var = name
 
 tyVar :: Parser TyName
 tyVar = TyName <$> name
-
-builtinVar :: Parser PLC.BuiltinName
-builtinVar = PLC.StaticBuiltinName <$> staticBuiltinName
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer
@@ -260,27 +258,27 @@ typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
-varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni SourcePos)
+varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 varDecl = inParens $ VarDecl <$> reservedWord "vardecl" <*> var <*> typ
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> reservedWord "tyvardecl" <*> tyVar <*> kind
 
-datatype :: Parser (Datatype TyName Name PLC.DefaultUni SourcePos)
+datatype :: Parser (Datatype TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 datatype = inParens $ Datatype <$> reservedWord "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
     <*> var
     <*> many varDecl
 
-binding :: Parser (Binding TyName Name PLC.DefaultUni SourcePos)
+binding :: Parser (Binding TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 binding =  inParens $
     (try $ reservedWord "termbind" >> TermBind <$> getSourcePos <*> strictness <*> varDecl <*> term)
     <|> (reservedWord "typebind" >> TypeBind <$> getSourcePos <*> tyVarDecl <*> typ)
     <|> (reservedWord "datatypebind" >> DatatypeBind <$> getSourcePos <*> datatype)
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
-type Parametric = forall term. PIR.TermLike term TyName Name PLC.DefaultUni => Parser (term SourcePos) -> Parser (term SourcePos)
+type Parametric = forall term. PIR.TermLike term TyName Name PLC.DefaultUni PLC.DefaultFun => Parser (term SourcePos) -> Parser (term SourcePos)
 
 absTerm :: Parametric
 absTerm tm = PIR.tyAbs <$> reservedWord "abs" <*> tyVar <*> kind <*> tm
@@ -295,7 +293,7 @@ iwrapTerm :: Parametric
 iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
 builtinTerm :: Parametric
-builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinVar
+builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinFunction
 
 unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
@@ -303,7 +301,7 @@ unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
 errorTerm :: Parametric
 errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
-letTerm :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
+letTerm :: Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric
@@ -319,15 +317,15 @@ term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     <|> inBrackets (appTerm self)
     where self = term' other
 
-term :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
+term :: Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 term = term' letTerm
 
-plcTerm :: Parser (PLC.Term TyName Name PLC.DefaultUni SourcePos)
+plcTerm :: Parser (PLC.Term TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 plcTerm = term' empty
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
-program :: Parser (Program TyName Name PLC.DefaultUni SourcePos)
+program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 program = whitespace >> do
     prog <- inParens $ do
         p <- reservedWord "program"
@@ -336,7 +334,7 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
-plcProgram :: Parser (PLC.Program TyName Name PLC.DefaultUni SourcePos)
+plcProgram :: Parser (PLC.Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 plcProgram = whitespace >> do
     prog <- inParens $ PLC.Program <$> reservedWord "program" <*> version <*> plcTerm
     notFollowedBy anySingle

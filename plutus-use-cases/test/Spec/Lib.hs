@@ -15,6 +15,7 @@ import           Data.Maybe
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 import           Language.PlutusTx
 import qualified Language.PlutusTx.Prelude    as P
@@ -33,7 +34,7 @@ reasonable (Ledger.unValidatorScript -> s) maxSize = do
     liftIO $ putStrLn ("Script size: " ++ show sz)
     assertBool msg (sz <= maxSize)
 
-goldenPir :: FilePath -> CompiledCode PLC.DefaultUni a -> TestTree
+goldenPir :: FilePath -> CompiledCode PLC.DefaultUni PLC.DefaultFun a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
 
 staticFee :: Integer

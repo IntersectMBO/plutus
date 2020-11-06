@@ -1,80 +1,86 @@
-{ packageSet ? import ./default.nix { rev = "in-nix-shell"; }
+{ crossSystem ? null
+, system ? builtins.currentSystem
+, config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
+, rev ? "in-nix-shell"
+, sourcesOverride ? { }
+, packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
+, pkgs ? packages.pkgs
+, localPkgs ? packages.pkgsLocal
 }:
-with packageSet;
 let
+  inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
+  inherit (localPkgs) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+
   # For Sphinx, and ad-hoc usage
-  pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+  sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+
   # Called from Cabal to generate the Haskell source for the metatheory package
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
+
   # Configure project pre-commit hooks
-  pre-commit-check = pkgs.nix-pre-commit-hooks.run {
-    src = (pkgs.lib.cleanSource ./.);
+  pre-commit-check = nix-pre-commit-hooks.run {
+    src = (lib.cleanSource ./.);
     tools = {
-      stylish-haskell = dev.packages.stylish-haskell;
-      nixpkgs-fmt = pkgs.nixpkgs-fmt;
+      stylish-haskell = stylish-haskell;
+      nixpkgs-fmt = nixpkgs-fmt;
       shellcheck = pkgs.shellcheck;
+      purty = purty;
     };
     hooks = {
+      purty.enable = true;
       stylish-haskell.enable = true;
       nixpkgs-fmt = {
         enable = true;
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ];
+        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/yarn.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };
   };
-in
-haskell.packages.shellFor {
-  nativeBuildInputs = [
-    # From nixpkgs
-    pkgs.ghcid
-    pkgs.cacert
-    pkgs.niv
-    pkgs.nodejs
-    pkgs.shellcheck
-    pkgs.yarn
-    pkgs.zlib
-    pkgs.z3
-    pkgs.nixpkgs-fmt
-    # Broken on 20.03, needs a backport
-    # pkgs.sqlite-analyzer
-    pkgs.sqlite-interactive
 
-    pkgs.stack
+  # build inputs from nixpkgs ( -> ./nix/default.nix )
+  nixpkgsInputs = (with pkgs; [
+    # pkgs.sqlite-analyzer -- Broken on 20.03, needs a backport
+    aws_shell
+    awscli
+    cacert
+    ghcid
+    niv
+    nixpkgs-fmt
+    nodejs
+    pass
+    shellcheck
+    sqlite-interactive
+    stack
+    terraform_0_12
+    yarn
+    yubikey-manager
+    z3
+    zlib
+  ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
-    pyEnv
-
-    agdaWithStdlib
-
-    # Deployment tools
-    pkgs.terraform_0_12
-    pkgs.awscli
-    pkgs.aws_shell
-    pkgs.pass
-    pkgs.yubikey-manager
-
-    # Extra dev packages acquired from elsewhere
-    dev.packages.cabal-install
-    dev.packages.hlint
-    dev.packages.stylish-haskell
-    dev.packages.haskell-language-server
-    dev.packages.hie-bios
-    dev.packages.purty
-    dev.packages.purs
-    dev.packages.spago
-    dev.scripts.fixStylishHaskell
-    dev.scripts.fixPurty
-    dev.scripts.updateClientDeps
-    dev.scripts.updateMetadataSamples
-  ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
-    # This breaks compilation of R on macOS. The latest version of R
-    # does compile, so we can remove it when we upgrade to 20.09.
-    pkgs.rPackages.plotly # for generating R plots locally
-    pkgs.R
+  # local build inputs ( -> ./nix/pkgs/default.nix )
+  localInputs = (with localPkgs; [
+    cabal-install
+    fixPurty
+    fixStylishHaskell
+    haskell-language-server
+    hie-bios
+    hlint
+    easyPS.purs
+    easyPS.purty
+    easyPS.spago
+    stylish-haskell
+    updateClientDeps
+    updateMetadataSamples
   ]);
+
+in
+
+haskell.packages.shellFor {
+  nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
@@ -87,7 +93,7 @@ haskell.packages.shellFor {
   # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
   # Only necessary for linux - darwin doesn't even expose thread
   # affinity APIs!
-  + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
-    ${pkgs.utillinux}/bin/taskset -pc 0-1000 $$
+  + lib.optionalString stdenv.isLinux ''
+    ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
 }

@@ -14,14 +14,14 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
 import           Language.PlutusCore.Universe
 
-instance (GEq uni, Closed uni, uni `Everywhere` Eq, HasUnique name TermUnique) =>
-            Eq (Term name uni ann) where
+instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique) =>
+            Eq (Term name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
 
 -- | Check equality of two 'Term's.
 eqTermM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, HasUnique name TermUnique)
-    => Term name uni ann -> Term name uni ann -> EqRename (Renaming TermUnique)
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique)
+    => Term name uni fun ann -> Term name uni fun ann -> EqRename (Renaming TermUnique)
 eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
 eqTermM (Builtin _ bi1) (Builtin _ bi2) =

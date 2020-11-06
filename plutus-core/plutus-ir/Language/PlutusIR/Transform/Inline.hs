@@ -1,9 +1,9 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
-{-# LANGUAGE ConstraintKinds  #-}
 {-|
 A simple inlining pass.
 
@@ -13,21 +13,21 @@ In particular, we want to get rid of "trivial" let bindings which the Plutus Tx 
 module Language.PlutusIR.Transform.Inline where
 
 import           Language.PlutusIR
+import qualified Language.PlutusIR.Analysis.Dependencies as Deps
 import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Purity
-import qualified Language.PlutusIR.Analysis.Dependencies as Deps
 
+import qualified Language.PlutusCore                     as PLC
+import qualified Language.PlutusCore.Constant.Meaning    as PLC
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Constant.Typed
-import qualified Language.PlutusCore as PLC
 
-import           Control.Lens                           hiding (Strict)
+import           Control.Lens                            hiding (Strict)
 import           Control.Monad.Reader
 import           Control.Monad.State
 
-import qualified Algebra.Graph as G
+import qualified Algebra.Graph                           as G
 import           Data.Foldable
-import qualified Data.Map as Map
+import qualified Data.Map                                as Map
 import           Data.Witherable
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -72,40 +72,38 @@ contextually, so there's no point doing this.
 
 -- 'SubstRng' in the paper, no 'Susp' case
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni a = Done (Term tyname name uni a)
+newtype InlineTerm tyname name uni fun a = Done (Term tyname name uni fun a)
 
-newtype TermEnv tyname name uni a = TermEnv { unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni a) }
+newtype TermEnv tyname name uni fun a = TermEnv { unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
-newtype Subst tyname name uni a = Subst { sTermEnv :: TermEnv tyname name uni a }
+newtype Subst tyname name uni fun a = Subst { sTermEnv :: TermEnv tyname name uni fun a }
     deriving newtype (Semigroup, Monoid)
 
-type ExternalConstraints tyname name uni a term =
+type ExternalConstraints tyname name uni fun =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
-    , HasConstantIn uni term
-    , PLC.GShow uni
-    , PLC.GEq uni
-    , PLC.DefaultUni PLC.<: uni)
+    , PLC.ToBuiltinMeaning uni fun
+    )
 
-type Inlining tyname name uni a term m =
-    ( MonadState (Subst tyname name uni a) m
-    , MonadReader (Deps.StrictnessMap, DynamicBuiltinNameMeanings term) m
-    , ExternalConstraints tyname name uni a term)
+type Inlining tyname name uni fun a m =
+    ( MonadState (Subst tyname name uni fun a) m
+    , MonadReader (Deps.StrictnessMap) m
+    , ExternalConstraints tyname name uni fun)
 
 lookupSubst
     :: (HasUnique name TermUnique)
     => name
-    -> Subst tyname name uni a
-    -> Maybe (InlineTerm tyname name uni a)
+    -> Subst tyname name uni fun a
+    -> Maybe (InlineTerm tyname name uni fun a)
 lookupSubst n (Subst (TermEnv env)) = lookupName n env
 
 extendSubst
     :: (HasUnique name TermUnique)
     => name
-    -> InlineTerm tyname name uni a
-    -> Subst tyname name uni a
-    -> Subst tyname name uni a
+    -> InlineTerm tyname name uni fun a
+    -> Subst tyname name uni fun a
+    -> Subst tyname name uni fun a
 extendSubst n clos (Subst (TermEnv env)) = Subst $ TermEnv $ insertByName n clos env
 
 {- Note [Inlining and global uniqueness]
@@ -120,16 +118,15 @@ and rename everything when we substitute in, which GHC considers too expensive b
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
-    :: ExternalConstraints tyname name uni a term
-    => DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
-    -> Term tyname name uni a
-inline means t =
+    :: ExternalConstraints tyname name uni fun
+    => Term tyname name uni fun a
+    -> Term tyname name uni fun a
+inline t =
     let
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
-        deps = Deps.runTermDeps means t
-    in flip runReader (snd deps, means) $ flip evalStateT mempty $ processTerm t
+        deps = Deps.runTermDeps t
+    in flip runReader (snd deps) $ flip evalStateT mempty $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
@@ -144,15 +141,15 @@ This might mean reinventing GHC's OccAnal...
 -}
 
 processTerm
-    :: Inlining tyname name uni a term m
-    => Term tyname name uni a
-    -> m (Term tyname name uni a)
+    :: Inlining tyname name uni fun a m
+    => Term tyname name uni fun a
+    -> m (Term tyname name uni fun a)
 processTerm = \case
     v@(Var _ n) -> do
         subst <- get
         pure $ case lookupSubst n subst of
             -- Not substituted for, leave it as it is
-            Nothing -> v
+            Nothing       -> v
             -- Already processed term, just put it in, don't do any further optimization here.
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
             Just (Done t) -> t
@@ -179,9 +176,9 @@ won't get us much as they aren't created very often.
 -}
 
 processSingleBinding
-    :: Inlining tyname name uni a term m
-    => Binding tyname name uni a
-    -> m (Maybe (Binding tyname name uni a))
+    :: Inlining tyname name uni fun a m
+    => Binding tyname name uni fun a
+    -> m (Maybe (Binding tyname name uni fun a))
 processSingleBinding = \case
     -- See Note [Inlining various kinds of binding]
     TermBind a s v@(VarDecl _ n _) rhs -> do
@@ -191,11 +188,11 @@ processSingleBinding = \case
     b -> Just <$> forMOf bindingSubterms b processTerm
 
 maybeAddSubst
-    :: Inlining tyname name uni a term m
+    :: Inlining tyname name uni fun a m
     => Strictness
     -> name
-    -> Term tyname name uni a
-    -> m (Maybe (Term tyname name uni a))
+    -> Term tyname name uni fun a
+    -> m (Maybe (Term tyname name uni fun a))
 maybeAddSubst s n rhs = do
     -- Only do PostInlineUnconditional
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -228,18 +225,18 @@ unconditionally.
 
 -- | Should we inline? Should only inline things that won't duplicate work or code.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-postInlineUnconditional :: Inlining tyname name uni a term m => Strictness -> Term tyname name uni a -> m Bool
+postInlineUnconditional :: Inlining tyname name uni fun a m => Strictness -> Term tyname name uni fun a -> m Bool
 postInlineUnconditional s t = do
-    (strictnessMap, means) <- ask
+    strictnessMap <- ask
     let -- See Note [Inlining criteria]
         termIsTrivial = trivialTerm t
         -- See Note [Inlining and purity]
         strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strictnessMap
-        termIsPure = case s of { Strict -> isPure means strictnessFun t; NonStrict -> True; }
+        termIsPure = case s of { Strict -> isPure strictnessFun t; NonStrict -> True; }
     pure $ termIsTrivial && termIsPure
 
 -- | Is this a an utterly trivial term which might as well be inlined?
-trivialTerm :: Term tyname name uni a -> Bool
+trivialTerm :: Term tyname name uni fun a -> Bool
 trivialTerm = \case
     Builtin{} -> True
     Var{} -> True

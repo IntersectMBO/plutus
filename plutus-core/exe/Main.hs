@@ -5,43 +5,40 @@
 
 module Main (main) where
 
-import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.CBOR
-import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
-import qualified Language.PlutusCore.Generators                             as Gen
-import qualified Language.PlutusCore.Generators.Interesting                 as Gen
-import qualified Language.PlutusCore.Generators.Test                        as Gen
-import qualified Language.PlutusCore.Pretty                                 as PP
-import qualified Language.PlutusCore.StdLib.Data.Bool                       as StdLib
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Integer                    as StdLib
-import qualified Language.PlutusCore.StdLib.Data.Unit                       as StdLib
-import qualified Language.UntypedPlutusCore                                 as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
+import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
+import qualified Language.PlutusCore.Generators                    as Gen
+import qualified Language.PlutusCore.Generators.Interesting        as Gen
+import qualified Language.PlutusCore.Generators.Test               as Gen
+import qualified Language.PlutusCore.Pretty                        as PP
+import qualified Language.PlutusCore.StdLib.Data.Bool              as StdLib
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
+import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
+import qualified Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
-import           Control.DeepSeq                                            (rnf)
-import qualified Control.Exception                                          as Exn (evaluate)
+import           Control.DeepSeq                                   (rnf)
+import qualified Control.Exception                                 as Exn (evaluate)
 import           Control.Monad
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import           Data.Bifunctor                                             (second)
-import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Foldable                                              (traverse_)
-import           Data.Functor                                               ((<&>))
-import qualified Data.Text                                                  as T
-import           Data.Text.Encoding                                         (encodeUtf8)
-import qualified Data.Text.IO                                               as T
-import           Data.Text.Prettyprint.Doc                                  (Doc, pretty, (<+>))
+import           Control.Monad.Trans.Except                        (runExceptT)
+import           Data.Bifunctor                                    (second)
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Foldable                                     (traverse_)
+import           Data.Functor                                      ((<&>))
+import qualified Data.Text                                         as T
+import           Data.Text.Encoding                                (encodeUtf8)
+import qualified Data.Text.IO                                      as T
+import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
 import           Options.Applicative
-import           System.CPUTime                                             (getCPUTime)
-import           System.Exit                                                (exitFailure, exitSuccess)
+import           System.CPUTime                                    (getCPUTime)
+import           System.Exit                                       (exitFailure, exitSuccess)
 import           System.IO
-import           System.Mem                                                 (performGC)
-import           Text.Printf                                                (printf)
+import           System.Mem                                        (performGC)
+import           Text.Printf                                       (printf)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -57,8 +54,8 @@ import           Text.Printf                                                (pri
 
 
 -- | Our internal representation of programs is as ASTs over the Name type.
-type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni a
-type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni a
+type TypedProgram a = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun a
+type UntypedProgram a = UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun a
 
 data Program a =
       TypedProgram (TypedProgram a)
@@ -74,9 +71,9 @@ instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
 -- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
-type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni a
+type UntypedProgramDeBruijn a = UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun a
 
-type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
+type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 
 
 ---------------- Types for commands and arguments ----------------
@@ -464,7 +461,7 @@ runApply (ApplyOptions language inputfiles ifmt outp ofmt mode) = do
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
 data TermExample = TermExample
     (PLC.Type PLC.TyName PLC.DefaultUni ())
-    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
@@ -478,14 +475,17 @@ prettyExample (SomeTypeExample (TypeExample _ ty))   = PP.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
     PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
+toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
-    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
-        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PP.displayPlcDef err
-        Right vTy                                 -> PLC.unNormalized vTy
+    errOrTy = PLC.runQuote . runExceptT $ do
+        tcConfig <- PLC.getDefTypeCheckConfig ()
+        PLC.typecheckPipeline tcConfig program
+    ty = case errOrTy of
+        Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> error $ PP.displayPlcDef err
+        Right vTy                                                -> PLC.unNormalized vTy
 
-getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())]
+getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]
 getInteresting =
     sequence $ Gen.fromInterestingTermGens $ \name gen -> do
         Gen.TermOf term _ <- Gen.getSampleTermValue gen
@@ -530,11 +530,13 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
   TypedProgram prog <- getProgram TypedPLC fmt inp
   case PLC.runQuoteT $ do
-    types <- PLC.getStringBuiltinTypes ()
-    PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
+    tcConfig <- PLC.getDefTypeCheckConfig ()
+    PLC.typecheckPipeline tcConfig (void prog)
     of
-       Left (e :: PLC.Error PLC.DefaultUni ()) -> T.hPutStrLn stderr (PP.displayPlcDef e) >> exitFailure
-       Right ty                                -> T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
+      Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
+        T.hPutStrLn stderr (PP.displayPlcDef e) >> exitFailure
+      Right ty                                               ->
+        T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
 
 ---------------- Erasure ----------------
@@ -559,8 +561,8 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
         TypedProgram prog <- getProgram TypedPLC ifmt inp
         let evaluate =
                 case evalMode of
-                  CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
-                  CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
+                  CK  -> PLC.unsafeEvaluateCk  PLC.defBuiltinsRuntime
+                  CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
         -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
@@ -575,7 +577,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let evaluate = UPLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (UPLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
+                  let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
                   start <- getCPUTime

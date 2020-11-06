@@ -16,6 +16,7 @@ module Plutus.Benchmark.LastPiece where
 
 import           Data.Char                    (isSpace)
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import           Language.PlutusTx            as PlutusTx
@@ -296,7 +297,7 @@ unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 runLastPiece :: Solution
 runLastPiece = search (1,2) Female initialBoard initialPieces
 
-mkLastPieceTerm :: Term Name DefaultUni ()
+mkLastPieceTerm :: Term Name DefaultUni DefaultFun ()
 mkLastPieceTerm =
   let (Program _ _ code) = getPlc $ $$(compile [|| runLastPiece ||])
   in code

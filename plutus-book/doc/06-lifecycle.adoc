@@ -1,5 +1,0 @@
-[#06-lifecycle]
-= Lifecycle of a Plutus Contract
-
-… roles of user, wallet, plutus compiler, node
-.. role of time

@@ -12,7 +12,7 @@ import           Codec.Serialise
 import qualified Data.ByteString.Lazy            as BSL
 
 -- | Count the number of AST nodes in a term.
-termSize :: Term name uni ann -> Integer
+termSize :: Term name uni fun ann -> Integer
 termSize = \case
     Var{} -> 1
     Delay _ t -> 1 + termSize t
@@ -24,7 +24,7 @@ termSize = \case
     Error _ -> 1
 
 -- | Count the number of AST nodes in a program.
-programSize :: Program name uni ann -> Integer
+programSize :: Program name uni fun ann -> Integer
 programSize (Program _ _ t) = termSize t
 
 -- | Compute the size of the serializabled form of a value.

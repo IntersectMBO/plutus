@@ -87,9 +87,9 @@ instance DefaultUni `Includes` ()              where knownUni = DefaultUniUnit
 instance DefaultUni `Includes` Bool            where knownUni = DefaultUniBool
 
 {- Note [Stable encoding of tags]
-'tagOf' and 'uniAt' are used for serialisation and deserialisation of types from the universe and
-we need serialised things to be extremely stable, hence the definitions of 'tagOf' and 'uniAt'
-must be amended only in a backwards compatible manner.
+'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
+universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
+and 'decodeUni' must be amended only in a backwards compatible manner.
 
 See Note [Stable encoding of PLC]
 -}

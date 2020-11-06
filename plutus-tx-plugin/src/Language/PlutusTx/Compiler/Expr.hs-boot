@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
@@ -8,12 +9,12 @@ import           Language.PlutusTx.PIRTypes
 
 import qualified GhcPlugins                               as GHC
 
-compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)
+compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
 
 compileExpr
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
 
 compileExprWithDefs
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
