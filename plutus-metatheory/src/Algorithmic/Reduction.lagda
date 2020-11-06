@@ -63,6 +63,14 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
     → Value {Γ = Γ} (con {Φ} cn)
+
+
+  V-builtin⋆ : ∀{Φ Γ}(b : Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      ∀ Ψ' {K} → 
+      (σ : SubNf Ψ' Φ)
+    → (p : (Ψ' ,⋆ K) ≤C⋆' Ψ)
+    → Value {Γ = Γ} (pbuiltin b Ψ' σ [] (inj₁ (skip p ,, refl)) [])
 \end{code}
 
 \begin{code}
@@ -424,8 +432,9 @@ progress p (wrap A B M) = progress-wrap p (progress p M)
 progress p (unwrap M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
-progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) = step (tick-builtin σ)
-progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, r)) ts) = {!!}
+progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) =
+  step (tick-builtin σ)
+progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, r)) ts) = done {!!}
 progress p (pbuiltin b Ψ' σ As' (inj₂ (q ,, r)) ts) = {!!}
   -- step (E-pbuiltin b Ψ' σ As' q ts)
 progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
@@ -586,3 +595,4 @@ vTel:< : ∀ {Φ Γ Δ}
   → VTel Γ Δ σ (As :<L A) (ts :<T t)
 vTel:< []        t vs v = v ,, tt
 vTel:< (t' ∷ ts) t (v' ,, vs) v = v' ,, vTel:< ts t vs v
+
