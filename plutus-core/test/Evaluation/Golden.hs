@@ -18,6 +18,7 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
@@ -27,6 +28,14 @@ import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
+
+-- (con integer)
+integer :: Type TyName DefaultUni ()
+integer = mkTyBuiltin @ Integer ()
+
+-- (con string)
+string :: Type TyName DefaultUni ()
+string = mkTyBuiltin @ String ()
 
 evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
@@ -105,26 +114,172 @@ closure :: uni `Includes` Integer => Term TyName Name uni fun ()
 closure = runQuote $ do
     i <- freshName "i"
     j <- freshName "j"
-    let integer = mkTyBuiltin @Integer ()
+    let integer' = mkTyBuiltin @Integer ()
     pure
-        . Apply () (LamAbs () i integer . LamAbs () j integer $ Var () i)
+        . Apply () (LamAbs () i integer' . LamAbs () j integer' $ Var () i)
         $ mkConstant @Integer () 1
+
+{- Tests for evaluation of builtins, mainly checking that interleaving of term
+   and type arguments is correct.  At the moment the only polymorphic builtin
+   we have is ifThenElse. -}
+
+-- Various components that we'll use to build larger terms for testing
+
+lte :: Term TyName Name DefaultUni DefaultFun ()
+lte = Builtin () LessThanEqInteger
+
+eleven :: Term TyName Name DefaultUni DefaultFun ()
+eleven = mkConstant @Integer () 11
+
+twentytwo :: Term TyName Name DefaultUni DefaultFun ()
+twentytwo = mkConstant @Integer () 22
+
+stringResultTrue :: Term TyName Name DefaultUni DefaultFun ()
+stringResultTrue = mkConstant @String () "11 <= 22"
+
+stringResultFalse :: Term TyName Name DefaultUni DefaultFun ()
+stringResultFalse = mkConstant @String () "¬(11 <= 22)"
+
+-- 11 <= 22
+lteExpr :: Term TyName Name DefaultUni DefaultFun ()
+lteExpr = mkIterApp () lte [eleven, twentytwo]
+
+
+-- Various combinations of (partial) instantiation/application for ifThenElse
+
+-- (builtin ifThenElse)
+ite :: Term TyName Name DefaultUni DefaultFun ()
+ite = Builtin () IfThenElse
+
+-- { (builtin ifThenElse) (con integer) }
+iteAtInteger :: Term TyName Name DefaultUni DefaultFun ()
+iteAtInteger = TyInst () ite integer
+
+-- { (builtin ifThenElse) (con string) }
+iteAtString :: Term TyName Name DefaultUni DefaultFun ()
+iteAtString = TyInst () ite string
+
+-- { (builtin ifThenElse) (forall a . a -> a) }
+-- Evaluation should succeed, but typechecking should fail.
+-- You're not allowed to instantiate a builtin at a higher kind.
+iteAtHigherKind :: Term TyName Name DefaultUni DefaultFun ()
+iteAtHigherKind = TyInst () ite (TyForall () a (Type ()) aArrowA)
+    where a = TyName (Name "a" (Unique 0))
+          aArrowA = TyFun () (TyVar () a) (TyVar () a)
+
+-- [ (builtin ifThenElse) (11<=22) ]: should fail because ifThenElse isn't instantiated
+-- Type expected, term supplied.
+iteUninstantiatedOneArg :: Term TyName Name DefaultUni DefaultFun ()
+iteUninstantiatedOneArg  = Apply () ite lteExpr
+
+-- [ { (builtin ifThenElse) (con integer) } (11<=22)]: should succeed.
+iteAtIntegerOneArg :: Term TyName Name DefaultUni DefaultFun ()
+iteAtIntegerOneArg = Apply () iteAtInteger lteExpr
+
+-- [ { (builtin ifThenElse) (con string) } (11<=22) ]: should succeed.
+iteAtStringOneArg :: Term TyName Name DefaultUni DefaultFun ()
+iteAtStringOneArg = Apply () iteAtString lteExpr
+
+-- [ { (builtin ifThenElse) (forall a . a -> a) } (11<=22) ]: evaluation should
+-- succeed, typechecking should fail (illegal kind)
+iteAtHigherKindOneArg :: Term TyName Name DefaultUni DefaultFun ()
+iteAtHigherKindOneArg = Apply () iteAtHigherKind lteExpr
+
+-- (builtin ifThenElse) (11<=22) "11 <= 22" "¬(11<=22)": should succeed.
+iteUninstantiatedFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
+iteUninstantiatedFullyApplied = mkIterApp () ite [lteExpr, stringResultTrue, stringResultFalse]
+
+-- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ]: should succeed.
+iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
+iteAtStringFullyApplied = mkIterApp () iteAtStringOneArg [stringResultTrue, stringResultFalse]
+
+-- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ]:
+-- should also succeed.  However it's ill-typed because we're instantiating at
+-- `integer` but returning a string: at execution time we only check that type
+-- instantiations and term arguments are correctly interleaved, not that
+-- instantiations are correct.
+iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
+iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerOneArg [stringResultTrue, stringResultFalse]
+
+-- [ {(builtin ifThenElse) (forall a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]":
+-- illegal kind, but should succeed.
+iteAtHigherKindFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
+iteAtHigherKindFullyApplied = mkIterApp () (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
+
+-- { {(builtin ifThenElse) integer} integer }: should fail.
+iteAtIntegerAtInteger :: Term TyName Name DefaultUni DefaultFun ()
+iteAtIntegerAtInteger = TyInst () iteAtInteger integer
+
+-- { [ { (builtin ifThenElse) integer } (11<=22)] integer }: should fail:
+-- term expected, type supplied.
+iteTypeTermType :: Term TyName Name DefaultUni DefaultFun ()
+iteTypeTermType = TyInst () iteAtIntegerOneArg string
+
+
+-- Various attempts to instantiate the MultiplyInteger builtin
+
+mul ::  Term TyName Name DefaultUni DefaultFun ()
+mul = Builtin () MultiplyInteger
+
+-- [ [ (builtin multiplyInteger) 11 ] 22 ]
+mulOK :: Term TyName Name DefaultUni DefaultFun ()
+mulOK = Apply () (Apply () mul eleven) twentytwo
+
+-- [ [ { (builtin multiplyInteger) string } 11 ] 22 ]
+mulInstError1 :: Term TyName Name DefaultUni DefaultFun ()
+mulInstError1 = Apply () (Apply () (TyInst () mul string) eleven) twentytwo
+
+-- [ [ { (builtin multiplyInteger) 11 ] string } 22 ]
+mulInstError2 :: Term TyName Name DefaultUni DefaultFun ()
+mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
+
+-- { [ [ (builtin multiplyInteger) 11 ] 22 ] string }
+mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
+mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
+
+-- Running the tests
 
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
 
-goldenVsEvaluated :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
-goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek defBuiltinsRuntime
+goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
+goldenVsEvaluatedCK name = goldenVsPretty name . pure . evaluateCk defBuiltinsRuntime
 
--- TODO: ideally, we want to test this for all the machines.
+goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
+goldenVsEvaluatedCEK name = goldenVsPretty name . pure . evaluateCek defBuiltinsRuntime
+
+namesAndTests :: [(String, Term TyName Name DefaultUni DefaultFun ())]
+namesAndTests =
+   [ ("even2", Apply () even $ metaIntegerToNat 2)
+   , ("even3", Apply () even $ metaIntegerToNat 3)
+   , ("evenList", Apply () natSum $ Apply () evenList smallNatList)
+   , ("polyError", polyError)
+   , ("polyErrorInst", TyInst () polyError (mkTyBuiltin @Integer ()))
+   , ("closure", closure)
+   , ("ite", ite)
+   , ("iteAtInteger", iteAtInteger)
+   , ("iteAtString", iteAtString)
+   , ("iteAtHigherKind", iteAtHigherKind)
+   , ("iteUninstantiatedOneArg", iteUninstantiatedOneArg)
+   , ("iteAtIntegerOneArg", iteAtIntegerOneArg)
+   , ("iteAtStringOneArg", iteAtStringOneArg)
+   , ("iteAtHigherKindOneArg", iteAtHigherKindOneArg)
+   , ("iteAtStringFullyApplied", iteAtStringFullyApplied)
+   , ("iteUninstantiatedFullyApplied", iteUninstantiatedFullyApplied)
+   , ("iteAtIntegerFullyApplied", iteAtIntegerFullyApplied)
+   , ("iteAtHigherKindFullyApplied", iteAtHigherKindFullyApplied)
+   , ("iteAtIntegerAtInteger", iteAtIntegerAtInteger)
+   , ("iteTypeTermType", iteTypeTermType)
+   , ("mulOK", mulOK)
+   , ("mulInstError1", mulInstError1)
+   , ("mulInstError2", mulInstError2)
+   , ("mulInstError3", mulInstError3)
+    ]
+
 test_golden :: TestTree
 test_golden = testGroup "golden"
-    [ goldenVsEvaluated "even2" $ Apply () even $ metaIntegerToNat 2
-    , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
-    , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
-    , goldenVsEvaluated "polyError" polyError
-    , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer ())
-    , goldenVsEvaluated "closure" closure
-    ]
+              [ testGroup "CK"  $ fmap (uncurry goldenVsEvaluatedCK)  namesAndTests
+              , testGroup "CEK" $ fmap (uncurry goldenVsEvaluatedCEK) namesAndTests
+              ]
