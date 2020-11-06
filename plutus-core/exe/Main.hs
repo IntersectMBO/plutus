@@ -87,10 +87,10 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
-data NameType    = Named | DeBruijn
+data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
-data Format = Plc | Cbor NameType | Flat NameType -- Input/output format for programs
+data Format = Plc | Cbor AstNameType | Flat AstNameType -- Input/output format for programs
 instance Show Format where
     show Plc             = "plc"
     show (Cbor Named)    = "cbor-named"
@@ -362,7 +362,7 @@ getBinaryInput (FileInput file) = BSL.readFile file
 
 -- Read and deserialise a CBOR-encoded AST
 -- There's no (un-)deBruijnifier for typed PLC, so we don't handle that case.
-loadASTfromCBOR :: Language -> NameType -> Input -> IO (Program ())
+loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
          (TypedPLC,   Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
@@ -376,7 +376,7 @@ loadASTfromCBOR language cborMode inp =
                Right r -> return $ wrapper r
 
 -- Read and deserialise a Flat-encoded AST
-loadASTfromFlat :: Language -> NameType -> Input -> IO (Program ())
+loadASTfromFlat :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromFlat language flatMode inp =
     case (language, flatMode) of
          (TypedPLC,   Named)    -> getBinaryInput inp <&> unflat >>= handleResult TypedProgram
@@ -413,7 +413,7 @@ serialiseDbProgramCBOR :: Serialise a => Program a -> IO (BSL.ByteString)
 serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
 serialiseDbProgramCBOR (UntypedProgram p) = serialise <$> toDeBruijn p
 
-writeCBOR :: Output -> NameType -> Program a -> IO ()
+writeCBOR :: Output -> AstNameType -> Program a -> IO ()
 writeCBOR outp cborMode prog = do
   cbor <- case cborMode of
             Named    -> pure $ serialiseProgramCBOR (() <$ prog) -- Change annotations to (): see Note [Annotation types].
@@ -434,7 +434,7 @@ serialiseDbProgramFlat :: Flat a => Program a -> IO (BSL.ByteString)
 serialiseDbProgramFlat (TypedProgram _)   = typedDeBruijnNotSupportedError
 serialiseDbProgramFlat (UntypedProgram p) = BSL.fromStrict . flat <$> toDeBruijn p
 
-writeFlat :: Output -> NameType -> Program a -> IO ()
+writeFlat :: Output -> AstNameType -> Program a -> IO ()
 writeFlat outp flatMode prog = do
   flatProg <- case flatMode of
             Named    -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
