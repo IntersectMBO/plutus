@@ -37,6 +37,12 @@ in
 rec {
   inherit pkgs pkgsLocal pkgsMusl;
 
+  inherit (haskell.packages.plutus-scb.components.exes)
+    plutus-game
+    plutus-currency
+    plutus-atomic-swap
+    plutus-pay-to-wallet;
+
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix haskell;
     src = ./.;
@@ -61,15 +67,6 @@ rec {
   deployment = pkgs.callPackage ./deployment {
     inherit pkgsLocal marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
   };
-
-  # FIXME: this shouldn't be exposed here but instead passed to `deployment` (the only dependent) directly
-  inherit (pkgsLocal) web-ghc;
-
-  inherit (haskell.packages.plutus-scb.components.exes)
-    plutus-game
-    plutus-currency
-    plutus-atomic-swap
-    plutus-pay-to-wallet;
 
   plutus-scb = pkgs.callPackage ./plutus-scb-client {
     inherit set-git-rev haskell nodejs-headers webCommon easyPS;
