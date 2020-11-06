@@ -412,6 +412,7 @@ executable plc
         base <5,
         bytestring -any,
         deepseq -any,
+        flat -any,
         optparse-applicative -any,
         plutus-core -any,
         prettyprinter -any,
