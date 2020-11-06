@@ -77,6 +77,7 @@ data Action
   | OpenModal ModalView
   | CloseModal
   | ChangeProjectName String
+  | OpenLoginPopup Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -102,6 +103,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
   toEvent CloseModal = Just $ defaultEvent "CloseModal"
   toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
+  toEvent (OpenLoginPopup _) = Just $ defaultEvent "OpenLoginPopup"
 
 data View
   = HomePage

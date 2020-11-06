@@ -1,5 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
+import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -14,8 +15,9 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
@@ -40,6 +42,7 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
+import LoginPopup (openLoginPopup, informParentIfPresentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -191,9 +194,10 @@ handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleSubRoute _ Router.Wallets = selectView WalletEmulator
 
+handleSubRoute _ Router.GithubAuthCallback = pure unit
+
 handleRoute ::
   forall m.
-  MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
@@ -447,6 +451,19 @@ handleAction _ CloseModal = assign _showModal Nothing
 
 handleAction _ (ChangeProjectName name) = assign _projectName name
 
+handleAction settings (OpenLoginPopup intendedAction) = do
+  authRole <- liftAff openLoginPopup
+  handleAction settings CloseModal
+  assign (_authStatus <<< _Success <<< authStatusAuthRole) authRole
+  case authRole of
+    Anonymous -> do
+      liftEffect $ Console.log "User not authenticated, omiting action"
+      pure unit
+    GithubUser -> do
+      liftEffect $ Console.log "User authenticated, executing action"
+      handleAction settings intendedAction
+
+
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
   assign (_simulationState <<< _source) language
@@ -489,6 +506,11 @@ checkAuthStatus settings = do
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
+  -- TODO: not sure if we should either:
+  --          leave this check here put this check here
+  --          add a new route for the callback
+  --          add this check at the beginning of the Init
+  liftEffect $ informParentIfPresentAndClose authResult
 
 handleGistAction ::
   forall m.
