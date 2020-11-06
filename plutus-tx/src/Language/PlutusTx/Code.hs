@@ -31,20 +31,20 @@ import qualified Data.ByteString.Lazy             as BSL
 --
 -- Note: the compiled PLC program does *not* have normalized types,
 -- if you want to put it on the chain you must normalize the types first.
-data CompiledCode uni a =
+data CompiledCode uni fun a =
     -- | Serialized UPLC code and possibly serialized PIR code.
     SerializedCode BS.ByteString (Maybe BS.ByteString)
     -- | Deserialized UPLC program and possibly deserialized PIR program.
-    | DeserializedCode (UPLC.Program PLC.Name uni ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni ()))
+    | DeserializedCode (UPLC.Program PLC.Name uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ()))
 
 -- | Apply a compiled function to a compiled argument.
 applyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni (a -> b) -> CompiledCode uni a -> CompiledCode uni b
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    => CompiledCode uni fun (a -> b) -> CompiledCode uni fun a -> CompiledCode uni fun b
 applyCode fun arg = DeserializedCode (getPlc fun `UPLC.applyProgram` getPlc arg) Nothing
 
 -- | The size of a 'CompiledCode', in AST nodes.
-sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise) => CompiledCode uni a -> Integer
+sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun) => CompiledCode uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
 
 {- Note [Deserializing the AST]
@@ -59,8 +59,8 @@ instance Exception ImpossibleDeserialisationFailure
 
 -- | Get the actual Plutus Core program out of a 'CompiledCode'.
 getPlc
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni a -> UPLC.Program PLC.Name uni ()
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    => CompiledCode uni fun a -> UPLC.Program PLC.Name uni fun ()
 getPlc wrapper = case wrapper of
     SerializedCode plc _ -> case deserialiseOrFail (BSL.fromStrict plc) of
         Left e  -> throw $ ImpossibleDeserialisationFailure e
@@ -69,8 +69,8 @@ getPlc wrapper = case wrapper of
 
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCode'.
 getPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise)
-    => CompiledCode uni a -> Maybe (PIR.Program PIR.TyName PIR.Name uni ())
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    => CompiledCode uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
 getPir wrapper = case wrapper of
     SerializedCode _ pir -> case pir of
         Just bs -> case deserialiseOrFail (BSL.fromStrict bs) of

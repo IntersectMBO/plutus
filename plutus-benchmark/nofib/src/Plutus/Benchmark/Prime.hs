@@ -19,6 +19,7 @@ import           GHC.Generics
 import qualified Prelude                      (Eq (..), String)
 
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
@@ -290,7 +291,7 @@ runPrimalityTest :: Integer -> Result
 runPrimalityTest n = testInteger n initState
 
 -- % Run the program on an arbitrary integer, for testing
-mkPrimalityTestTerm :: Integer -> Term Name DefaultUni ()
+mkPrimalityTestTerm :: Integer -> Term Name DefaultUni DefaultFun ()
 mkPrimalityTestTerm n =
   let (Program _ _ code) = Tx.getPlc $
                            $$(Tx.compile [|| runPrimalityTest ||])
@@ -304,7 +305,7 @@ runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
-mkPrimalityBenchTerm :: PrimeID -> Term Name DefaultUni ()
+mkPrimalityBenchTerm :: PrimeID -> Term Name DefaultUni DefaultFun ()
 mkPrimalityBenchTerm pid =
   let (Program _ _ code) = Tx.getPlc $
         $$(Tx.compile [|| runFixedPrimalityTest ||])

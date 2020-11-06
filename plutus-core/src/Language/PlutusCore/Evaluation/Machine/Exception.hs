@@ -34,7 +34,6 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
-import           Language.PlutusCore.Core.Type                   (BuiltinName)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
@@ -52,9 +51,9 @@ newtype UnliftingError
 
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
-data ConstAppError term
-    =  TooFewArgumentsConstAppError BuiltinName
-    | TooManyArgumentsConstAppError BuiltinName [term]
+data ConstAppError fun term
+    =  TooFewArgumentsConstAppError fun
+    | TooManyArgumentsConstAppError fun [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
@@ -63,7 +62,7 @@ data ConstAppError term
     deriving (Show, Eq, Functor)
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError err term
+data MachineError fun term
     = NonPolymorphicInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -72,7 +71,7 @@ data MachineError err term
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
-    | ConstAppMachineError (ConstAppError term)
+    | ConstAppMachineError (ConstAppError fun term)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | BuiltinTermArgumentExpectedMachineError
       -- ^ A builtin expected a term argument, but something else was received
@@ -82,13 +81,13 @@ data MachineError err term
       -- ^ We've reached a state where a builtin instantiation or application is attempted
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
-    | OtherMachineError err
+    | UnknownBuiltin fun
     deriving (Show, Eq, Functor)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
-data EvaluationError internal user term
-    = InternalEvaluationError (MachineError internal term)
+data EvaluationError user fun term
+    = InternalEvaluationError (MachineError fun term)
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
@@ -101,17 +100,17 @@ mtraverse makeClassyPrisms
     , ''EvaluationError
     ]
 
-instance AsMachineError (EvaluationError internal user term) internal term where
+instance AsMachineError (EvaluationError user fun term) fun term where
     _MachineError = _InternalEvaluationError
-instance AsConstAppError (MachineError err term) term where
+instance AsConstAppError (MachineError fun term) fun term where
     _ConstAppError = _ConstAppMachineError
-instance AsConstAppError (EvaluationError internal user term) term where
+instance AsConstAppError (EvaluationError user fun term) fun term where
     _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
-instance AsUnliftingError (ConstAppError term) where
+instance AsUnliftingError (ConstAppError fun term) where
     _UnliftingError = _UnliftingConstAppError
-instance AsUnliftingError (EvaluationError internal user term) where
+instance AsUnliftingError (EvaluationError user fun term) where
     _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
-instance AsUnliftingError (MachineError err term) where
+instance AsUnliftingError (MachineError fun term) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 
 -- | An error and (optionally) what caused it.
@@ -122,11 +121,11 @@ data ErrorWithCause err term
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
 
-type MachineException internal term =
-    ErrorWithCause (MachineError internal term) term
+type MachineException fun term =
+    ErrorWithCause (MachineError fun term) term
 
-type EvaluationException internal user term =
-    ErrorWithCause (EvaluationError internal user term) term
+type EvaluationException user fun term =
+    ErrorWithCause (EvaluationError user fun term) term
 
 mapErrorWithCauseF
     :: Functor f
@@ -141,8 +140,6 @@ throwingWithCause
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
-
-
 {- Note [Ignoring context in UserEvaluationError]
 The UserEvaluationError error has a term argument, but
 extractEvaluationResult just discards this and returns
@@ -154,14 +151,14 @@ UserEvaluationError is used in cases when a PLC program itself goes
 wrong (for example, a failure due to `(error)`, a failure during
 builtin evavluation, or exceeding the gas limit).  This is used to
 signal unsuccessful in validation and so is not regarded as a real
-error; in contrast, internal machine errors, typechecking failures,
+error; in contrast, machine errors, typechecking failures,
 and so on are genuine errors and we report their context if available.
  -}
 
 -- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
-    :: Either (EvaluationException internal user term) a
-    -> Either (MachineException internal term) (EvaluationResult a)
+    :: Either (EvaluationException user fun term) a
+    -> Either (MachineException fun term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left  $ ErrorWithCause err cause
@@ -173,8 +170,8 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance (PrettyBy config term, HasPrettyDefaults config ~ 'True) =>
-        PrettyBy config (ConstAppError term) where
+instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
+        PrettyBy config (ConstAppError fun term) where
     prettyBy _ (TooFewArgumentsConstAppError name) =
         "The constant" <+> pretty name <+> "was applied to too few arguments."
     prettyBy config (TooManyArgumentsConstAppError name args) = fold
@@ -183,8 +180,8 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True) =>
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
-            PrettyBy config (MachineError err term) where
+instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
+            PrettyBy config (MachineError fun term) where
     prettyBy _      NonPolymorphicInstantiationMachineError =
         "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -201,15 +198,15 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
         "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy config (ConstAppMachineError constAppError)  =
         prettyBy config constAppError
-    prettyBy _      (OtherMachineError err)               =
-        pretty err
+    prettyBy _      (UnknownBuiltin fun)                  =
+        "Encountered an unknown built-in function:" <+> pretty fun
 
 instance
         ( PrettyBy config term, HasPrettyDefaults config ~ 'True
-        , Pretty internal, Pretty user
-        ) => PrettyBy config (EvaluationError internal user term) where
+        , Pretty fun, Pretty user
+        ) => PrettyBy config (EvaluationError user fun term) where
     prettyBy config (InternalEvaluationError err) = fold
-        [ "Internal error:", hardline
+        [ "error:", hardline
         , prettyBy config err
         ]
     prettyBy _      (UserEvaluationError err) = fold

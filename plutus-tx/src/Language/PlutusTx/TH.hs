@@ -9,6 +9,7 @@ import           Data.Proxy
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin.Utils
 
+import qualified Language.PlutusCore.Builtins   as PLC
 import qualified Language.PlutusCore.Universe   as PLC
 
 import qualified Language.Haskell.TH            as TH
@@ -16,7 +17,7 @@ import qualified Language.Haskell.TH.Syntax     as TH
 
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
-compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp (CompiledCode PLC.DefaultUni a))
+compile :: TH.Q (TH.TExp a) -> TH.Q (TH.TExp (CompiledCode PLC.DefaultUni PLC.DefaultFun a))
 -- See note [Typed TH]
 compile e = TH.unsafeTExpCoerce $ compileUntyped $ TH.unType <$> e
 

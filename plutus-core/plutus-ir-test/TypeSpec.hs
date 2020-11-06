@@ -8,7 +8,7 @@ import           Language.PlutusIR.Transform.Rename ()
 
 types :: TestNested
 types = testNested "types"
-    $ map (goldenTypeFromPir term)
+    $ map (goldenTypeFromPir topSourcePos term)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -41,7 +41,7 @@ types = testNested "types"
 
 typeErrors :: TestNested
 typeErrors = testNested "type-errors"
-    $ map (goldenTypeFromPirCatch term)
+    $ map (goldenTypeFromPirCatch topSourcePos term)
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
     ]

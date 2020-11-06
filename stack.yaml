@@ -171,6 +171,8 @@ flags:
 extra-package-dbs: []
 
 ghc-options:
+  # TODO: remove whenn inline-r version>0.10.3  is pushed to hackage
+  inline-r: "-XStandaloneKindSignatures"
   # Newer versions of persistent-template require some extra language extensions. Fortunately
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"

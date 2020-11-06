@@ -9,9 +9,6 @@ import           Language.PlutusIR.Optimizer.DeadCode
 import           Language.PlutusIR.Parser
 import           Language.PlutusIR.Transform.Rename   ()
 
-import qualified Language.PlutusCore                  as PLC
-import qualified Language.PlutusCore.Constant.Dynamic as PLC
-
 optimizer :: TestNested
 optimizer = testNested "optimizer" [
     deadCode
@@ -19,9 +16,8 @@ optimizer = testNested "optimizer" [
 
 deadCode :: TestNested
 deadCode =
-    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
-    in testNested "deadCode"
-    $ map (goldenPir (removeDeadBindings means) term)
+    testNested "deadCode"
+    $ map (goldenPir removeDeadBindings term)
     [ "typeLet"
     , "termLet"
     , "strictLet"

@@ -143,5 +143,23 @@ SIG ifThenElse =
   con bool ∷ ` Z ∷ ` Z ∷ []
   ,,
   ` Z
+SIG charToString =
+  ∅
+  ,,
+  con char ∷ []
+  ,,
+  con string
+SIG append =
+  ∅
+  ,,
+  con string ∷ con string ∷ []
+  ,,
+  con string
+SIG trace =
+  ∅
+  ,,
+  con string ∷ []
+  ,,
+  con unit
 
 \end{code}

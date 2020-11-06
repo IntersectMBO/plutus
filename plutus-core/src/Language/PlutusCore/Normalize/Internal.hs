@@ -170,6 +170,6 @@ substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesInM
     :: (HasUnique tyname TypeUnique, MonadQuote m)
-    => Term tyname name uni ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni ann)
+    => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
 normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

@@ -80,9 +80,10 @@ decodeTerm = dBEBits8 termTagWidth
 
 instance ( Closed uni
          , uni `Everywhere` Flat
+         , Flat fun
          , Flat ann
          , Flat name
-         ) => Flat (Term name uni ann) where
+         ) => Flat (Term name uni fun ann) where
     encode = \case
         Var      ann n    -> encodeTerm 0 <> encode ann <> encode n
         Delay    ann t    -> encodeTerm 1 <> encode ann <> encode t
@@ -116,8 +117,9 @@ instance ( Closed uni
 
 instance ( Closed uni
          , uni `Everywhere` Flat
+         , Flat fun
          , Flat ann
          , Flat name
-         ) => Flat (Program name uni ann) where
+         ) => Flat (Program name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode

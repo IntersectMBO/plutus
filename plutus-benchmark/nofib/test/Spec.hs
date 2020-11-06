@@ -7,21 +7,18 @@ run to completion. -}
 
 module Main where
 
-import qualified Plutus.Benchmark.Clausify                                  as Clausify
-import qualified Plutus.Benchmark.Knights                                   as Knights
-import           Plutus.Benchmark.Prime                                     (Result (Composite, Prime))
-import qualified Plutus.Benchmark.Prime                                     as Prime
-import qualified Plutus.Benchmark.Queens                                    as Queens
+import qualified Plutus.Benchmark.Clausify                         as Clausify
+import qualified Plutus.Benchmark.Knights                          as Knights
+import           Plutus.Benchmark.Prime                            (Result (Composite, Prime))
+import qualified Plutus.Benchmark.Prime                            as Prime
+import qualified Plutus.Benchmark.Queens                           as Queens
 
-import qualified Data.Map                                                   as Map
-import           Language.PlutusCore                                        (Name (..))
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
-import           Language.PlutusCore.Universe                               (DefaultUni)
-import qualified Language.PlutusTx                                          as Tx
-import qualified Language.UntypedPlutusCore                                 as UPLC
-import           Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC (CekValue, EvaluationResult (..),
-                                                                                     unsafeEvaluateCek)
+import           Language.PlutusCore                               (Name (..))
+import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.Universe                      (DefaultUni)
+import qualified Language.PlutusTx                                 as Tx
+import qualified Language.UntypedPlutusCore                        as UPLC
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCek)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
@@ -29,14 +26,10 @@ import           Test.Tasty.QuickCheck
 
 ---------------- Evaluation ----------------
 
-type Term = UPLC.Term Name DefaultUni ()
-
-emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
-emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
+type Term = UPLC.Term Name DefaultUni DefaultFun ()
 
 runCek :: Term -> EvaluationResult Term
-runCek term =
-    UPLC.unsafeEvaluateCek emptyBuiltins defaultCostModel term
+runCek = UPLC.unsafeEvaluateCek defBuiltinsRuntime
 
 termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
 termOfHaskellValue v =
@@ -45,7 +38,7 @@ termOfHaskellValue v =
 
 runCekWithErrMsg :: Term -> String -> IO Term
 runCekWithErrMsg term errMsg =
-    case UPLC.unsafeEvaluateCek emptyBuiltins defaultCostModel term of
+    case UPLC.unsafeEvaluateCek defBuiltinsRuntime term of
       EvaluationFailure        -> assertFailure errMsg
       EvaluationSuccess result -> pure result
 
@@ -178,4 +171,3 @@ allTests =
 
 main :: IO ()
 main = defaultMain allTests
-

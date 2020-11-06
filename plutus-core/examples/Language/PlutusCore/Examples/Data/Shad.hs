@@ -61,7 +61,7 @@ shad = runQuote $ do
 -- But that problem is already solved before type checking starts as we rename the program and that
 -- makes all binders uniques, so no variable capture is possible due to the outer and inner bindings
 -- being distinct.
-mkShad :: uni `Includes` Integer => Term TyName Name uni ()
+mkShad :: uni `Includes` Integer => Term TyName Name uni fun ()
 mkShad = runQuote $ do
     a     <- freshTyName "a"
     f     <- freshTyName "f"
@@ -116,7 +116,7 @@ recUnit = TyIFix () recUnitF $ mkTyBuiltin @() ()
 -- But this doesn't happen in the actual code, since when a variable gets looked up during type
 -- normalization, its value gets renamed, which means that a fresh variable will be generated for
 -- the inner binder and there will be no shadowing.
-runRecUnit :: uni `Includes` () => Term TyName Name uni ()
+runRecUnit :: uni `Includes` () => Term TyName Name uni fun ()
 runRecUnit = runQuote $ do
     a  <- freshTyName "a"
     ru <- freshName "ru"

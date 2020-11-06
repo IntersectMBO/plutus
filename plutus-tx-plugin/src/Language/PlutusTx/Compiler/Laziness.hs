@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 -- | Simulating laziness.
 module Language.PlutusTx.Compiler.Laziness where
@@ -27,32 +28,32 @@ with the standard library because it makes the generated terms simpler without t
 a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
-delay :: Compiling uni m => PIRTerm uni -> m (PIRTerm uni)
+delay :: Compiling uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
 delay body = PIR.LamAbs () <$> liftQuote (freshName "thunk") <*> compileType GHC.unitTy <*> pure body
 
-delayType :: Compiling uni m => PIRType uni -> m (PIRType uni)
+delayType :: Compiling uni fun m => PIRType uni -> m (PIRType uni)
 delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
 
-delayVar :: Compiling uni m => PIRVar uni -> m (PIRVar uni)
+delayVar :: Compiling uni fun m => PIRVar uni fun -> m (PIRVar uni fun)
 delayVar (PIR.VarDecl () n ty) = do
     ty' <- delayType ty
     pure $ PIR.VarDecl () n ty'
 
 force
-    :: Compiling uni m
-    => PIRTerm uni -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => PIRTerm uni fun -> m (PIRTerm uni fun)
 force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
 
-maybeDelay :: Compiling uni m => Bool -> PIRTerm uni -> m (PIRTerm uni)
+maybeDelay :: Compiling uni fun m => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t
 
-maybeDelayVar :: Compiling uni m => Bool -> PIRVar uni -> m (PIRVar uni)
+maybeDelayVar :: Compiling uni fun m => Bool -> PIRVar uni fun -> m (PIRVar uni fun)
 maybeDelayVar yes v = if yes then delayVar v else pure v
 
-maybeDelayType :: Compiling uni m => Bool -> PIRType uni -> m (PIRType uni)
+maybeDelayType :: Compiling uni fun m => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
 maybeForce
-    :: Compiling uni m
-    => Bool -> PIRTerm uni -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeForce yes t = if yes then force t else pure t

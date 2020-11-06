@@ -9,6 +9,7 @@ import           Common
 import           Data.Char
 import qualified Data.Text                        as T
 
+import qualified Language.PlutusCore.Builtins     as PLC
 import qualified Language.PlutusCore.Universe     as PLC
 
 import           Language.PlutusIR
@@ -22,7 +23,7 @@ import qualified Hedgehog.Range                   as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni SourcePos }
+newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
 instance Show PrettyProg where
     show = display . prog
 
