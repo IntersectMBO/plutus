@@ -26,7 +26,7 @@ dimension "System" (systems genericPkgs) (systemName: system:
     platformFilter = platformFilterGeneric pkgs system;
   in
   filterAttrsOnlyRecursive (_: v: platformFilter v) {
-    inherit (packages) docs papers tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+    inherit (packages) docs tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
     inherit (pkgsLocal.haskell.project) roots;
 
     # build the shell expression to be sure it works on all platforms
