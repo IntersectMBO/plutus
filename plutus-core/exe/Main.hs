@@ -33,6 +33,7 @@ import qualified Data.Text                                         as T
 import           Data.Text.Encoding                                (encodeUtf8)
 import qualified Data.Text.IO                                      as T
 import           Data.Text.Prettyprint.Doc                         (Doc, pretty, (<+>))
+import           Flat
 import           Options.Applicative
 import           System.CPUTime                                    (getCPUTime)
 import           System.Exit                                       (exitFailure, exitSuccess)
@@ -67,7 +68,7 @@ instance (PP.PrettyBy PP.PrettyConfigPlc (Program a)) where
     prettyBy cfg (UntypedProgram p) = PP.prettyBy cfg p
 
 -- | Untyped AST with names consisting solely of De Bruijn indices. This is
--- currently only used for intermediate values during CBOR
+-- currently only used for intermediate values during CBOR/Flat
 -- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
 -- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
 -- support for this is lacking elsewhere at the moment.
@@ -86,14 +87,16 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
-data CborMode    = Named | DeBruijn
+data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
-data Format = Plc | Cbor CborMode -- Input/output format for programs
+data Format = Plc | Cbor AstNameType | Flat AstNameType -- Input/output format for programs
 instance Show Format where
     show Plc             = "plc"
     show (Cbor Named)    = "cbor-named"
     show (Cbor DeBruijn) = "cbor-deBruijn"
+    show (Flat Named)    = "flat-named"
+    show (Flat DeBruijn) = "flat-deBruijn"
 
 data TypecheckOptions = TypecheckOptions Input Format
 data ConvertOptions   = ConvertOptions Language Input Format Output Format PrintMode
@@ -158,7 +161,7 @@ stdOutput = flag' StdOutput
   <> help "Write to stdout (default)" )
 
 formatHelp :: String
-formatHelp = "plc, cbor (de Bruijn indices), or cbor-named (names)"
+formatHelp = "plc, cbor (de Bruijn indices), cbor-named (names), flat (de Bruijn indices), or flat-named (names)"
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -167,6 +170,9 @@ formatReader =
          "cbor-named"    -> Just (Cbor Named)
          "cbor"          -> Just (Cbor DeBruijn)
          "cbor-deBruijn" -> Just (Cbor DeBruijn)
+         "flat-named"    -> Just (Flat Named)
+         "flat"          -> Just (Flat DeBruijn)
+         "flat-deBruijn" -> Just (Flat DeBruijn)
          _               -> Nothing
 
 inputformat :: Parser Format
@@ -257,13 +263,13 @@ evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <
 
 helpText :: String
 helpText =
-    "This program provides a number of utilities for dealing with "
-    ++ "Plutus Core programs, including typechecking, evaluation, and conversion "
-    ++ "between various formats.  The program also provides a number of example "
+       "This program provides a number of utilities for dealing with Plutus Core "
+    ++ "programs, including typechecking, evaluation, and conversion between a "
+    ++ "number of differnt formats.  The program also provides a number of example "
     ++ "typed Plutus Core programs.  Some commands read or write Plutus Core abstract "
-    ++ "syntax trees serialised in CBOR format: ASTs are always written with "
-    ++ "unit annotations, and any CBOR-encoded AST supplied as input must also be "
-    ++ "equipped with unit annotations.  Attempting to read a CBOR AST with any "
+    ++ "syntax trees serialised in CBOR or Flat format: ASTs are always written with "
+    ++ "unit annotations, and any CBOR/Flat-encoded AST supplied as input must also be "
+    ++ "equipped with unit annotations.  Attempting to read a serialised AST with any "
     ++ "non-unit annotation type will cause an error."
 
 plutus :: ParserInfo Command
@@ -301,9 +307,14 @@ plutusOpts = hsubparser (
 
 ---------------- Name conversions ----------------
 
+-- We don't support de Bruijn names for typed programs because we really only
+-- want serialisation for on-chain programs (and some of the functionality we'd
+-- need isn't available anyway).
+typedDeBruijnNotSupportedError :: IO a
+typedDeBruijnNotSupportedError =
+    hPutStrLn stderr "De-Bruijn-named ASTs are not supported for typed Plutus Core" >> exitFailure
+
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
--- We don't support this for typed programs because we only want CBOR for on-chain
--- programs (and some of the functionality we'd need isn't available anyway).
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
   r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
@@ -344,24 +355,37 @@ parsePlcInput language inp = do
                   Right (Right p)      -> return $ wrapper p
             failWith (err :: PlcParserError) =  T.hPutStrLn stderr (PP.displayPlcDef err) >> exitFailure
 
-
--- Read a CBOR-encoded PLC AST
-getCborInput :: Input -> IO BSL.ByteString
-getCborInput StdInput         = BSL.getContents
-getCborInput (FileInput file) = BSL.readFile file
+-- Read a binary-encoded file (eg, CBOR- or Flat-encoded PLC)
+getBinaryInput :: Input -> IO BSL.ByteString
+getBinaryInput StdInput         = BSL.getContents
+getBinaryInput (FileInput file) = BSL.readFile file
 
 -- Read and deserialise a CBOR-encoded AST
-loadASTfromCBOR :: Language -> CborMode -> Input -> IO (Program ())
+-- There's no (un-)deBruijnifier for typed PLC, so we don't handle that case.
+loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
-         (TypedPLC,   Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getCborInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
-         (TypedPLC,   DeBruijn) -> hPutStrLn stderr "No CBOR for typed de-Bruijn-named PLC" >> exitFailure
-         (UntypedPLC, DeBruijn) -> getCborInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+         (TypedPLC,   Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
+         (UntypedPLC, Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+         (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
-                   hPutStrLn stderr ("Deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
+                   hPutStrLn stderr ("CBOR deserialisation failure at offset " ++ Prelude.show offset ++ ": " ++ msg) >> exitFailure
+               Right r -> return $ wrapper r
+
+-- Read and deserialise a Flat-encoded AST
+loadASTfromFlat :: Language -> AstNameType -> Input -> IO (Program ())
+loadASTfromFlat language flatMode inp =
+    case (language, flatMode) of
+         (TypedPLC,   Named)    -> getBinaryInput inp <&> unflat >>= handleResult TypedProgram
+         (UntypedPLC, Named)    -> getBinaryInput inp <&> unflat >>= handleResult UntypedProgram
+         (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+    where handleResult wrapper =
+              \case
+               Left e -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
                Right r -> return $ wrapper r
 
 
@@ -373,30 +397,54 @@ getProgram language fmt inp =
       Cbor cborMode -> do
                prog <- loadASTfromCBOR language cborMode inp
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
+      Flat flatMode -> do
+               prog <- loadASTfromFlat language flatMode inp
+               return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
----------------- Convert a PLC source file to CBOR ----------------
+---------------- Serialise an program using CBOR ----------------
 
-serialiseProgram :: Serialise a => Program a -> BSL.ByteString
-serialiseProgram (TypedProgram p)   = serialise p
-serialiseProgram (UntypedProgram p) = serialise p
+serialiseProgramCBOR :: Serialise a => Program a -> BSL.ByteString
+serialiseProgramCBOR (TypedProgram p)   = serialise p
+serialiseProgramCBOR (UntypedProgram p) = serialise p
 
 -- | Convert names to de Bruijn indices and then serialise
-serialiseDbProgram :: Serialise a => Program a -> IO (BSL.ByteString)
-serialiseDbProgram (TypedProgram _)   = hPutStrLn stderr "No CBOR for typed de-Bruijn-named PLC" >> exitFailure
-serialiseDbProgram (UntypedProgram p) = serialise <$> toDeBruijn p
+serialiseDbProgramCBOR :: Serialise a => Program a -> IO (BSL.ByteString)
+serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
+serialiseDbProgramCBOR (UntypedProgram p) = serialise <$> toDeBruijn p
 
-writeCBOR :: Output -> CborMode -> Program a -> IO ()
+writeCBOR :: Output -> AstNameType -> Program a -> IO ()
 writeCBOR outp cborMode prog = do
   cbor <- case cborMode of
-            Named    -> pure $ serialiseProgram (() <$ prog) -- Change annotations to (): see Note [Annotation types].
-            DeBruijn -> serialiseDbProgram (() <$ prog)
+            Named    -> pure $ serialiseProgramCBOR (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+            DeBruijn -> serialiseDbProgramCBOR (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
 
 
----------------- Convert a CBOR file to PLC source ----------------
+---------------- Serialise a program using Flat ----------------
+
+serialiseProgramFlat :: Flat a => Program a -> BSL.ByteString
+serialiseProgramFlat (TypedProgram p)   = BSL.fromStrict $ flat p
+serialiseProgramFlat (UntypedProgram p) = BSL.fromStrict $ flat p
+
+-- | Convert names to de Bruijn indices and then serialise
+serialiseDbProgramFlat :: Flat a => Program a -> IO (BSL.ByteString)
+serialiseDbProgramFlat (TypedProgram _)   = typedDeBruijnNotSupportedError
+serialiseDbProgramFlat (UntypedProgram p) = BSL.fromStrict . flat <$> toDeBruijn p
+
+writeFlat :: Output -> AstNameType -> Program a -> IO ()
+writeFlat outp flatMode prog = do
+  flatProg <- case flatMode of
+            Named    -> pure $ serialiseProgramFlat (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+            DeBruijn -> serialiseDbProgramFlat (() <$ prog)
+  case outp of
+    FileOutput file -> BSL.writeFile file flatProg
+    StdOutput       -> BSL.putStr flatProg >> T.putStrLn ""  -- FIXME: no newline
+
+
+---------------- Write an AST as PLC source ----------------
 
 getPrintMethod :: PP.PrettyPlc a => PrintMode -> (a -> Doc ann)
 getPrintMethod = \case
@@ -415,6 +463,7 @@ writePlc outp mode prog = do
 writeProgram :: Output -> Format -> PrintMode -> Program a -> IO ()
 writeProgram outp Plc mode prog          = writePlc outp mode prog
 writeProgram outp (Cbor cborMode) _ prog = writeCBOR outp cborMode prog
+writeProgram outp (Flat flatMode) _ prog = writeFlat outp flatMode prog
 
 
 ---------------- Conversions ----------------
@@ -549,6 +598,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
+    Flat flatMode -> writeCBOR outp flatMode untypedProg
 
 
 ---------------- Evaluation ----------------
