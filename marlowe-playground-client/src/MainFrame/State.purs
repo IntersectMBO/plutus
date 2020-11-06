@@ -385,7 +385,10 @@ handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleActio
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> toJavascriptEditor $ JavascriptEditor.editorSetValue contents
+    Javascript ->
+      for_ (Map.lookup key StaticData.demoFilesJS) \contents -> do
+        toJavascriptEditor $ JavascriptEditor.editorSetValue contents
+        liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         Simulation.editorSetValue contents

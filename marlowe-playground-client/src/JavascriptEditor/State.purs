@@ -54,7 +54,7 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
           mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
           mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
-          if (mContent == Just text) || (checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter) then
+          if (mContent == Just prunedText) || (checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter) then
             ( do
                 liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
                 assign _compilationResult NotCompiled
