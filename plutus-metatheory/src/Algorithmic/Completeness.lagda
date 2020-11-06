@@ -291,7 +291,7 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
       ((nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn))))
       (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
 nfType (Syn.pbuiltin b Ψ' σ As' (inj₁ (p ,, q)) ts) = Norm.conv⊢ refl {!!} (Norm.pbuiltin b Ψ' (nf ∘ σ) (nfList As') (inj₁ (substEq (Ψ' ≤C⋆'_) (nfTypeSIG≡₁ b) p ,, cong nfList q)) (nfTypeTel σ As' ts))
-nfType (Syn.pbuiltin b Ψ' σ As' (inj₂ p) ts) = Norm.pbuiltin b Ψ' (nf ∘ σ) (nfList As') (inj₂ ({!!} ,, {!proj₂ p!}) ) (nfTypeTel σ As' ts)
+nfType (Syn.pbuiltin b Ψ' σ As' (inj₂ (p ,, q)) ts) = Norm.conv⊢ refl {!!} (Norm.pbuiltin b Ψ' (nf ∘ σ) (nfList As') (inj₂ (trans p (nfTypeSIG≡₁ b) ,, {! q!}) ) (nfTypeTel σ As' ts))
 nfType (Syn.ibuiltin b σ⋆ σ) = {!!}
 nfType (Syn.ipbuiltin b Ψ' Δ' p σ⋆ σ) = {!!}
 nfType (Syn.error A) = Norm.error (nf A)

@@ -149,6 +149,17 @@ data _≤C⋆'_ : Ctx⋆ → Ctx⋆ → Set where
  base : ∀{Φ} → Φ ≤C⋆' Φ
  skip : ∀{Φ Φ' K} → (Φ ,⋆ K) ≤C⋆' Φ' → Φ ≤C⋆' Φ'
 
-postulate ≤C⋆'to≤C⋆ : ∀ {Φ Φ'} → Φ ≤C⋆' Φ' → Φ ≤C⋆ Φ'
+open import Data.Empty
+lem1 : ∀{Φ K} → (Φ ,⋆ K) ≤C⋆' ∅ → ⊥
+lem1 {Φ} (skip p) = lem1 p
+
+lem3 : ∀{Φ Φ' K} → (Φ ,⋆ K) ≤C⋆ Φ' → Φ ≤C⋆ Φ'
+lem3 base = skip base
+lem3 (skip p) = skip (lem3 p)
+
+≤C⋆'to≤C⋆ : ∀ {Φ Φ'} → Φ ≤C⋆' Φ' → Φ ≤C⋆ Φ'
+≤C⋆'to≤C⋆ base = base
+≤C⋆'to≤C⋆ {Φ} {∅} (skip p) = ⊥-elim (lem1 p)
+≤C⋆'to≤C⋆ {Φ} {Φ' ,⋆ x} (skip p) = lem3 (≤C⋆'to≤C⋆ p)
 postulate ≤C⋆to≤C⋆' : ∀ {Φ Φ'} → Φ ≤C⋆ Φ' → Φ ≤C⋆' Φ'
 \end{code}

@@ -217,6 +217,14 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → ts —→T ts'
     → builtin bn σ ts —→ builtin bn σ ts'
 
+  tick-builtin : ∀{Φ Γ}{b : Builtin}
+      → let Ψ ,, As ,, C = SIG b in
+        (σ : SubNf Ψ Φ)
+      → {ts : Tel Γ Ψ σ []}
+      → pbuiltin b Ψ σ []  (inj₁ (base ,, refl)) ts
+        —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L _)) ts
+
+
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
     → Value L
     → L · error A —→ error B
@@ -239,6 +247,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → (ts : Tel Γ Δ σ As)
     → Any Error ts
     → builtin bn σ ts —→ error (substNf σ C)
+{-    
   E-pbuiltin : ∀{Φ Γ}(b :  Builtin)
     → let Ψ ,, As ,, C = SIG b in
       ∀ Ψ' → 
@@ -247,6 +256,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
     → (ts : Tel Γ Ψ' σ As')
     → pbuiltin b Ψ' σ As' p ts —→ error (abstract3' Φ Ψ Ψ' As As' p C σ)
+-}
   E-ibuiltin : ∀{Φ Γ}
       (b : Builtin)
     → let Ψ ,, Δ ,, C = ISIG b in
@@ -414,7 +424,10 @@ progress p (wrap A B M) = progress-wrap p (progress p M)
 progress p (unwrap M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
-progress p (pbuiltin b Ψ' σ As' q ts) = step (E-pbuiltin b Ψ' σ As' q ts)
+progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) = step (tick-builtin σ)
+progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, r)) ts) = {!!}
+progress p (pbuiltin b Ψ' σ As' (inj₂ (q ,, r)) ts) = {!!}
+  -- step (E-pbuiltin b Ψ' σ As' q ts)
 progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
 progress p (ipbuiltin b Ψ' Δ' q σ⋆ σ) = step (E-ipbuiltin b Ψ' Δ' q σ⋆ σ)
 progress p (error A)            = error E-error
@@ -541,7 +554,6 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
-det (E-pbuiltin b Ψ' σ As' p₁ x) (E-pbuiltin .b .Ψ' .σ .As' .p₁ .x) = refl
 det (E-ibuiltin b σ⋆ σ) (E-ibuiltin .b .σ⋆ .σ) = refl
 det (E-ipbuiltin b Ψ' Δ' p₁ σ⋆ σ) (E-ipbuiltin .b .Ψ' .Δ' .p₁ .σ⋆ .σ) = refl
 
