@@ -2,39 +2,37 @@
 
 module Main where
 
-import           Prelude                                                    ((<>))
-import qualified Prelude                                                    as P
+import           Prelude                                           ((<>))
+import qualified Prelude                                           as P
 
 import           Codec.Serialise
 import           Control.Monad
-import           Control.Monad                                              ()
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import qualified Data.ByteString.Lazy                                       as BSL
-import           Data.Char                                                  (isSpace)
-import qualified Data.Map                                                   as Map
-import           Options.Applicative                                        as Opt hiding (action)
-import           System.Exit                                                (exitFailure)
+import           Control.Monad                                     ()
+import           Control.Monad.Trans.Except                        (runExceptT)
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Char                                         (isSpace)
+import           Options.Applicative                               as Opt hiding (action)
+import           System.Exit                                       (exitFailure)
 import           System.IO
-import           Text.PrettyPrint.ANSI.Leijen                               (Doc, indent, line, string, text, vsep)
+import           Text.PrettyPrint.ANSI.Leijen                      (Doc, indent, line, string, text, vsep)
 
-import           Language.PlutusCore                                        (Name (..))
-import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.CBOR                                   ()
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
-import           Language.PlutusCore.Evaluation.Machine.Cek                 ()
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import qualified Language.PlutusCore.Pretty                                 as PLC
+import           Language.PlutusCore                               (Name (..))
+import qualified Language.PlutusCore                               as PLC
+import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.CBOR                          ()
+import           Language.PlutusCore.Evaluation.Machine.Cek        ()
+import qualified Language.PlutusCore.Pretty                        as PLC
 import           Language.PlutusCore.Universe
-import           Language.PlutusTx.Prelude                                  as TxPrelude hiding (fmap, mappend, (<$),
-                                                                                          (<$>), (<*>), (<>))
-import           Language.UntypedPlutusCore                                 as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn                        as UPLC
+import           Language.PlutusTx.Prelude                         as TxPrelude hiding (fmap, mappend, (<$), (<$>),
+                                                                                 (<*>), (<>))
+import           Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import qualified Plutus.Benchmark.Clausify                                  as Clausify
-import qualified Plutus.Benchmark.Knights                                   as Knights
-import qualified Plutus.Benchmark.LastPiece                                 as LastPiece
-import qualified Plutus.Benchmark.Prime                                     as Prime
-import qualified Plutus.Benchmark.Queens                                    as Queens
+import qualified Plutus.Benchmark.Clausify                         as Clausify
+import qualified Plutus.Benchmark.Knights                          as Knights
+import qualified Plutus.Benchmark.LastPiece                        as LastPiece
+import qualified Plutus.Benchmark.Prime                            as Prime
+import qualified Plutus.Benchmark.Queens                           as Queens
 
 failWithMsg :: String -> IO a
 failWithMsg s = hPutStrLn stderr s >> exitFailure
@@ -188,14 +186,10 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
-emptyBuiltins = DynamicBuiltinNameMeanings Map.empty
+evaluateWithCek :: Term Name DefaultUni DefaultFun () -> EvaluationResult (Term Name DefaultUni DefaultFun ())
+evaluateWithCek = unsafeEvaluateCek defBuiltinsRuntime
 
-evaluateWithCek :: Term Name DefaultUni () -> EvaluationResult (Term Name DefaultUni ())
-evaluateWithCek term =
-  unsafeEvaluateCek emptyBuiltins defaultCostModel term
-
-toDeBruijn :: Program Name DefaultUni a -> IO (Program UPLC.DeBruijn DefaultUni a)
+toDeBruijn :: Program Name DefaultUni DefaultFun a -> IO (Program UPLC.DeBruijn DefaultUni DefaultFun a)
 toDeBruijn prog = do
   r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
   case r of
@@ -204,7 +198,7 @@ toDeBruijn prog = do
 
 data CborMode = Named | DeBruijn
 
-writeCBOR :: CborMode -> Program Name DefaultUni () -> IO ()
+writeCBOR :: CborMode -> Program Name DefaultUni DefaultFun () -> IO ()
 writeCBOR cborMode prog =
     case cborMode of
       Named    -> BSL.putStr $ serialise prog
@@ -243,7 +237,7 @@ main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
     RunPLC pa -> do
         let program = getProgram pa
-            result = unsafeEvaluateCek emptyBuiltins defaultCostModel program
+            result = unsafeEvaluateCek defBuiltinsRuntime program
         print . PLC.prettyPlcClassicDebug $ result
     RunHaskell pa ->
         case pa of

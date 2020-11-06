@@ -5,6 +5,8 @@
 
 module Language.PlutusCore.Parser.Internal where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer
@@ -15,6 +17,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 
+import           Data.List                      (find)
 import           Data.Proxy
 import qualified Data.Text                      as T
 
@@ -27,32 +30,8 @@ parseError = throwError . Unexpected
 
 --- Static built-in functions ---
 
-getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
-getStaticBuiltinName = \case
-    "addInteger"               -> Just AddInteger
-    "subtractInteger"          -> Just SubtractInteger
-    "multiplyInteger"          -> Just MultiplyInteger
-    "divideInteger"            -> Just DivideInteger
-    "quotientInteger"          -> Just QuotientInteger
-    "modInteger"               -> Just ModInteger
-    "remainderInteger"         -> Just RemainderInteger
-    "lessThanInteger"          -> Just LessThanInteger
-    "lessThanEqualsInteger"    -> Just LessThanEqInteger
-    "greaterThanInteger"       -> Just GreaterThanInteger
-    "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
-    "equalsInteger"            -> Just EqInteger
-    "concatenate"              -> Just Concatenate
-    "takeByteString"           -> Just TakeByteString
-    "dropByteString"           -> Just DropByteString
-    "equalsByteString"         -> Just EqByteString
-    "lessThanByteString"       -> Just LtByteString
-    "greaterThanByteString"    -> Just GtByteString
-    "sha2_256"                 -> Just SHA2
-    "sha3_256"                 -> Just SHA3
-    "verifySignature"          -> Just VerifySignature
-    "ifThenElse"               -> Just IfThenElse
-    _                          -> Nothing
-
+parseBuiltinFunction :: (Bounded fun, Enum fun, Pretty fun) => T.Text -> Maybe fun
+parseBuiltinFunction name = find (\fun -> display fun == name) enumeration
 
 --- Parsing built-in types and constants ---
 
@@ -95,8 +74,10 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
 -- | Produce (the contents of) a builtin function term from a type name and a literal constant.
 -- We return a pair of the position and the value rather than the actual term, since we want
 -- to share this between UPLC and TPLC.
-mkBuiltinFunction :: a -> T.Text -> (a, BuiltinName)
+mkBuiltinFunction
+    :: (Bounded fun, Enum fun, Pretty fun)
+    => AlexPosn -> T.Text -> Parse (AlexPosn, fun)
 mkBuiltinFunction loc ident =
-    case getStaticBuiltinName ident of
-        Just b  -> (loc, StaticBuiltinName b)
-        Nothing -> (loc, (DynBuiltinName (DynamicBuiltinName ident)))
+    case parseBuiltinFunction ident of
+        Just b  -> pure (loc, b)
+        Nothing -> throwError $ UnknownBuiltinFunction loc ident

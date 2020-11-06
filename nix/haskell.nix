@@ -14,7 +14,7 @@
 }:
 
 let
-  r-packages = with rPackages; [ R tidyverse dplyr stringr MASS ];
+  r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
@@ -161,7 +161,6 @@ let
           playground-common.package.ghcOptions = "-Werror";
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
-          plutus-book.package.ghcOptions = "-Werror";
           plutus-contract.package.ghcOptions = "-Werror";
           plutus-ledger.package.ghcOptions = "-Werror";
           plutus-playground-server.package.ghcOptions = "-Werror";

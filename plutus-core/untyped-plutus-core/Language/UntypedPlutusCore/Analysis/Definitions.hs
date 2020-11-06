@@ -23,7 +23,7 @@ termDefs
         HasUnique name TermUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
-    => Term name uni ann
+    => Term name uni fun ann
     -> m ()
 termDefs = cata $ \case
     VarF ann n           -> addUsage n ann TermScope
@@ -34,7 +34,6 @@ runTermDefs
     :: (Ord ann,
         HasUnique name TermUnique,
         Monad m)
-    => Term name uni ann
+    => Term name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
-

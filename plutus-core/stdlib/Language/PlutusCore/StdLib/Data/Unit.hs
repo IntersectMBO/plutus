@@ -21,11 +21,11 @@ unit :: uni `Includes` () => Type TyName uni ()
 unit = mkTyBuiltin @() ()
 
 -- | '()' as a PLC term.
-unitval :: (TermLike term TyName Name uni, uni `Includes` ()) => term ()
+unitval :: (TermLike term TyName Name uni fun, uni `Includes` ()) => term ()
 unitval = mkConstant () ()
 
 -- | 'seq' specified to '()' as a PLC term.
-sequ :: (TermLike term TyName Name uni, uni `Includes` ()) => term ()
+sequ :: (TermLike term TyName Name uni fun, uni `Includes` ()) => term ()
 sequ = runQuote $ do
     x <- freshName "x"
     y <- freshName "y"

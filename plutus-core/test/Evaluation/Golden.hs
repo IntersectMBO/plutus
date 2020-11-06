@@ -18,7 +18,6 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
@@ -29,7 +28,7 @@ import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
-evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni) uni ()
+evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -47,10 +46,10 @@ evenAndOdd = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-even :: uni `Includes` Bool => Term TyName Name uni ()
+even :: uni `Includes` Bool => Term TyName Name uni fun ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
-evenAndOddList :: Tuple (Term TyName Name uni) uni ()
+evenAndOddList :: Tuple (Term TyName Name uni fun) uni ()
 evenAndOddList = runQuote $ do
     let list = _recursiveType listData
         nat  = _recursiveType natData
@@ -87,22 +86,22 @@ evenAndOddList = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-evenList :: Term TyName Name uni ()
+evenList :: Term TyName Name uni fun ()
 evenList = runQuote $ tupleTermAt () 0 evenAndOddList
 
-smallNatList :: Term TyName Name uni ()
+smallNatList :: Term TyName Name uni fun ()
 smallNatList = metaListToList nat nats where
     nats = Prelude.map metaIntegerToNat [1,2,3]
     nat = _recursiveType natData
 
-polyError :: Term TyName Name uni ()
+polyError :: Term TyName Name uni fun ()
 polyError = runQuote $ do
     a <- freshTyName "a"
     pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
 
 -- | For checking that evaluating a term to a non-constant results in all remaining variables
 -- being instantiated.
-closure :: uni `Includes` Integer => Term TyName Name uni ()
+closure :: uni `Includes` Integer => Term TyName Name uni fun ()
 closure = runQuote $ do
     i <- freshName "i"
     j <- freshName "j"
@@ -116,8 +115,8 @@ goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
         either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
 
-goldenVsEvaluated :: String -> Term TyName Name DefaultUni () -> TestTree
-goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel
+goldenVsEvaluated :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
+goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek defBuiltinsRuntime
 
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree

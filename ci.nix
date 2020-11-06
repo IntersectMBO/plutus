@@ -18,18 +18,20 @@ let
 in
 dimension "System" (systems genericPkgs) (systemName: system:
   let
-    packageSet = import ./default.nix { inherit system rev; checkMaterialization = true; };
-    packages = import ./nix { inherit system rev; checkMaterialization = true; };
+    packages = import ./default.nix { inherit system rev; checkMaterialization = true; };
     pkgs = packages.pkgs;
     pkgsLocal = packages.pkgsLocal;
+    pkgsMusl = packages.pkgsMusl;
     lib = pkgs.lib;
     platformFilter = platformFilterGeneric pkgs system;
   in
   filterAttrsOnlyRecursive (_: v: platformFilter v) {
-    inherit (packageSet) docs papers tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+    inherit (packages) docs papers tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
     inherit (pkgsLocal.haskell.project) roots;
+
     # build the shell expression to be sure it works on all platforms
-    shell = import ./shell.nix { };
+    shell = import ./shell.nix { inherit packages; };
+
     haskell =
       let
         # These functions pull out from the Haskell package set either all the components of a particular type, or

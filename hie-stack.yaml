@@ -250,10 +250,6 @@ cradle:
     config:
       cradle:
         none:
-  - path: ./plutus-book
-    config:
-      cradle:
-        none:
   - path: ./plutus-playground-server
     config:
       cradle:

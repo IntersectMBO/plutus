@@ -27,7 +27,7 @@ import           Data.Proxy
 -- This instance ensures that we can apply typeable type constructors to typeable arguments and get a typeable
 -- type. We need the kind variable, so that partial application of type constructors works.
 instance (Typeable uni (f :: * -> k), Typeable uni (a :: *)) => Typeable uni (f a) where
-    typeRep _ = TyApp () <$> typeRep (undefined :: Proxy f) <*> typeRep (undefined :: Proxy a)
+    typeRep _ = TyApp () <$> typeRep (Proxy :: Proxy f) <*> typeRep (Proxy :: Proxy a)
 
 {- Note [Typeable instances for function types]
 Surely there is an obvious 'Typeable' instance for 'a -> b': we just turn it directly
@@ -52,13 +52,13 @@ instance Typeable uni (->) where
 -- Primitives
 
 typeRepBuiltin
-    :: forall a uni. uni `PLC.Includes` a
-    => Proxy a -> RTCompile uni (Type TyName uni ())
+    :: forall a uni fun. uni `PLC.Includes` a
+    => Proxy a -> RTCompile uni fun (Type TyName uni ())
 typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @a ()
 
 liftBuiltin
-    :: forall a uni. uni `PLC.Includes` a
-    => a -> RTCompile uni (Term TyName Name uni ())
+    :: forall a uni fun. uni `PLC.Includes` a
+    => a -> RTCompile uni fun (Term TyName Name uni fun ())
 liftBuiltin = pure . mkConstant ()
 
 instance uni `PLC.Includes` Integer => Typeable uni Integer where

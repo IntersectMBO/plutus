@@ -50,6 +50,7 @@ import qualified Language.Plutus.Contract.StateMachine as SM
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..))
 
+import qualified Language.PlutusCore.Builtins          as PLC
 import qualified Language.PlutusCore.Universe          as PLC
 
 --   $multisig
@@ -232,7 +233,7 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ SM.mkStateMachine (transition p) (const False)
 
-validatorCode :: Params -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MultiSigSym)
+validatorCode :: Params -> PlutusTx.CompiledCode PLC.DefaultUni PLC.DefaultFun (Scripts.ValidatorType MultiSigSym)
 validatorCode params = $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 
 type MultiSigSym = StateMachine MSState Input

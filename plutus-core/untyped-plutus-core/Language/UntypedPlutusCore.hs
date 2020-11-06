@@ -25,7 +25,7 @@ import qualified Data.ByteString.Lazy                          as BSL
 
 
 -- | Take one PLC program and apply it to another.
-applyProgram :: Program name uni () -> Program name uni () -> Program name uni ()
+applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
@@ -36,8 +36,6 @@ parseScoped
         MonadError e m,
         PLC.MonadQuote m)
     => BSL.ByteString
-    -> m (Program PLC.Name PLC.DefaultUni PLC.AlexPosn)
+    -> m (Program PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< Rename.rename <=< Parser.parseProgram
-
-
