@@ -42,14 +42,7 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix haskell;
-    src = ./.;
-  };
-
-  docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
-
-  webCommon = import ./web-common { };
+  webCommon = import ./web-common { inherit lib; };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
     inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
@@ -59,18 +52,31 @@ rec {
     inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
   };
 
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
+  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix {
+    haskellPackages = haskell.muslPackages;
+  };
 
-  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
+  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix {
+    haskellPackages = haskell.muslPackages;
+  };
 
-  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix { haskellPackages = haskell.muslPackages; };
-
-  deployment = pkgs.callPackage ./deployment {
-    inherit pkgsLocal marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
+  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix {
+    haskellPackages = haskell.muslPackages;
   };
 
   plutus-scb = pkgs.callPackage ./plutus-scb-client {
     inherit set-git-rev haskell nodejs-headers webCommon easyPS;
+  };
+
+  tests = import ./nix/tests/default.nix {
+    inherit pkgs iohkNix haskell;
+    src = ./.;
+  };
+
+  docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
+
+  deployment = pkgs.callPackage ./deployment {
+    inherit plutus marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
   };
 
   docker = import ./nix/docker.nix {
