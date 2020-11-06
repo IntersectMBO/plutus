@@ -23,7 +23,7 @@ _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t =
         PYTP_I ->
             let c = o_rf_CURS * _r _CNTRL * y_sd_t * nt
             in  c * _max _zero (ipnr - o_rf_RRMO)
-        PYTP_O -> undefined --todo ask Neils
+        PYTP_O -> _zero --todo ask Neils
 
 _POF_FP_PAM _FEB _FER o_rf_CURS _CNTRL nt fac y_sd_t =
     let c = o_rf_CURS * _FER
