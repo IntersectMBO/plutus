@@ -39,14 +39,7 @@ rec {
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix haskell;
-    # Just do some basic cleaning here, the tests do more
-    src = lib.cleanSourceWith {
-      filter = lib.cleanSourceFilter;
-      src = ./.;
-      # Otherwise this depends on the name in the parent directory, which reduces caching, and is
-      # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
-      name = "plutus";
-    };
+    src = ./.;
   };
 
   docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
