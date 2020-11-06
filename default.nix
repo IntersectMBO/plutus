@@ -30,12 +30,11 @@ let
   inherit (pkgs) lib haskell-nix;
   inherit (pkgsLocal) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (pkgsLocal) easyPS sphinxcontrib-haddock nodejs-headers;
-
-  # common files for frontend clients
-  webCommon = import ./web-common { };
 in
 rec {
   inherit pkgs pkgsLocal pkgsMusl;
+
+  inherit (pkgsLocal) web-ghc;
 
   inherit (haskell.packages.plutus-scb.components.exes)
     plutus-game
@@ -49,6 +48,8 @@ rec {
   };
 
   docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
+
+  webCommon = import ./web-common { };
 
   plutus-playground = pkgs.callPackage ./plutus-playground-client {
     inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
