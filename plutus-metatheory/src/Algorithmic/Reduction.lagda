@@ -64,6 +64,15 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → (cn : TermCon (con tcn))
     → Value {Γ = Γ} (con {Φ} cn)
 
+  V-builtin : ∀{Φ Γ}(b : Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      (σ : SubNf Ψ Φ)
+    → (A : Ψ ⊢Nf⋆ *)
+    → (As' : List (Ψ ⊢Nf⋆ *))
+    → (p : (A ∷ As') ≤L' As)
+    → (ts : Tel Γ Ψ σ As')
+    → Value {Γ = Γ} (pbuiltin b Ψ σ As' (inj₂ (refl ,, skip p)) ts)
+
 
   V-builtin⋆ : ∀{Φ Γ}(b : Builtin)
     → let Ψ ,, As ,, C = SIG b in
@@ -230,7 +239,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
         (σ : SubNf Ψ Φ)
       → {ts : Tel Γ Ψ σ []}
       → pbuiltin b Ψ σ []  (inj₁ (base ,, refl)) ts
-        —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L _)) ts
+        —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L' _)) ts
 
 
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
@@ -328,7 +337,7 @@ data Progress {Φ}{Γ}{A : Φ ⊢Nf⋆ *} (M : Γ ⊢ A) : Set where
 data TelProgress
   {Φ Γ}
   {Δ}
-  {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
+  {σ : SubNf Δ Φ}
   {As : List (Δ ⊢Nf⋆ *)}
   (ts : Tel Γ Δ σ As)
   : Set where
@@ -371,7 +380,7 @@ progress-unwrap {A = A} (error E-error) =
   step (E-unwrap {A = A})
 
 progress-builtin : ∀{Φ Γ} bn
-  (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → Φ ⊢Nf⋆ J)
+  (σ : SubNf (proj₁ (SIG bn)) Φ)
   (tel : Tel Γ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
   → TelProgress tel
   → Progress (builtin bn σ tel)
@@ -379,6 +388,15 @@ progress-builtin bn σ tel (done vtel)                       =
   step (β-builtin bn σ tel vtel)
 progress-builtin bn σ tel (step p) = step (ξ-builtin bn σ p)
 progress-builtin bn σ tel (error p) = step (E-builtin bn σ tel p)
+
+progress-pbuiltin : ∀{Φ Γ} bn
+  (σ : SubNf (proj₁ (SIG bn)) Φ)
+  (tel : Tel Γ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
+  → TelProgress tel
+  → Progress (pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel)
+progress-pbuiltin bn σ tel (done vs) = {!!}
+progress-pbuiltin bn σ tel (step p)  = {!!}
+progress-pbuiltin bn σ tel (error e) = {!!}
 
 NoVar : ∀{Φ} → Ctx Φ → Set 
 NoVar ∅        = ⊤
@@ -406,7 +424,7 @@ progressTelCons n (done v)  (step p)    = step (there v p)
 progressTelCons n (done v)  (error p)   = error (there v p)
 
 progressTel : ∀ {Φ Γ} → NoVar Γ → ∀{Δ}
-  → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
+  → {σ : SubNf Δ Φ}
   → {As : List (Δ ⊢Nf⋆ *)}
   → (tel : Tel Γ Δ σ As)
   → TelProgress tel
@@ -434,9 +452,12 @@ progress p (con c)              = done (V-con c)
 progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
 progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) =
   step (tick-builtin σ)
-progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, r)) ts) = done {!!}
-progress p (pbuiltin b Ψ' σ As' (inj₂ (q ,, r)) ts) = {!!}
-  -- step (E-pbuiltin b Ψ' σ As' q ts)
+progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, refl)) []) =
+  done (V-builtin⋆ b Ψ' σ q)
+progress p (pbuiltin b Ψ' σ _ (inj₂ (refl ,, base)) ts) =
+  progress-pbuiltin b σ ts (progressTel p ts)
+progress p (pbuiltin b Ψ' σ As' (inj₂ (refl ,, skip r)) ts) =
+  done (V-builtin b σ _ _ r ts)
 progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
 progress p (ipbuiltin b Ψ' Δ' q σ⋆ σ) = step (E-ipbuiltin b Ψ' Δ' q σ⋆ σ)
 progress p (error A)            = error E-error
@@ -595,4 +616,3 @@ vTel:< : ∀ {Φ Γ Δ}
   → VTel Γ Δ σ (As :<L A) (ts :<T t)
 vTel:< []        t vs v = v ,, tt
 vTel:< (t' ∷ ts) t (v' ,, vs) v = v' ,, vTel:< ts t vs v
-

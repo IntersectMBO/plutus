@@ -1,3 +1,4 @@
+
 \begin{code}
 module Utils where
 
@@ -5,7 +6,7 @@ open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Nat
 open import Data.Nat.Properties
-open import Data.Vec hiding (map;_>>=_)
+open import Data.Vec hiding (map;_>>=_;_++_)
 open import Data.List hiding (map)
 open import Data.Sum
 open import Relation.Nullary
@@ -88,6 +89,28 @@ data _≤L_ {A : Set} : List A → List A → Set where
 []≤L : {A : Set}(as : List A) → [] ≤L as
 []≤L []       = base
 []≤L (a ∷ as) = skip ([]≤L as)
+
+
+data _≤L'_ {A : Set} : List A → List A → Set where
+ base : ∀{as} → as ≤L' as
+ skip : ∀{as as' a} → (a ∷ as) ≤L' as' → as ≤L' as'
+
+lem0 : {A : Set}{a a' : A}{as as' : List A}
+  → (a ∷ as) ≤L' (a' ∷ as') → as ≤L' as'
+lem0 base     = base
+lem0 (skip p) = skip (lem0 p)
+
+lem1 : {A : Set}{a : A}{as as' : List A} → as ≤L' as' → as ≤L' (a ∷ as')
+lem1 base = skip base
+lem1 (skip p) = skip (lem1 p)
+
+≤Lto≤L' : {A : Set}{as as' : List A} → as ≤L as' → as ≤L' as'
+≤Lto≤L' base = base
+≤Lto≤L' (skip p) = lem1 (≤Lto≤L' p)
+
+[]≤L' : {A : Set}(as : List A) → [] ≤L' as
+[]≤L' as = ≤Lto≤L' ([]≤L as)
+
 
 -- Monads
 
