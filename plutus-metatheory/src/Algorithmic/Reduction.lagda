@@ -234,13 +234,28 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → ts —→T ts'
     → builtin bn σ ts —→ builtin bn σ ts'
 
-  tick-builtin : ∀{Φ Γ}{b : Builtin}
+  tick-pbuiltin : ∀{Φ Γ}{b : Builtin}
       → let Ψ ,, As ,, C = SIG b in
         (σ : SubNf Ψ Φ)
       → {ts : Tel Γ Ψ σ []}
       → pbuiltin b Ψ σ []  (inj₁ (base ,, refl)) ts
         —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L' _)) ts
 
+  β-pbuiltin : ∀{Φ Γ}
+    → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (tel : Tel Γ Δ σ As)
+    → (vtel : VTel Γ Δ σ As tel)
+      -----------------------------
+    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel —→ BUILTIN bn σ tel vtel
+    
+  ξ-pbuiltin : ∀{Φ Γ} → (bn : Builtin)
+    → let Δ ,, As ,, C = SIG bn in
+      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → {ts ts' : Tel Γ Δ σ As}
+    → ts —→T ts'
+    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts —→ pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts'
 
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
     → Value L
@@ -264,16 +279,14 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → (ts : Tel Γ Δ σ As)
     → Any Error ts
     → builtin bn σ ts —→ error (substNf σ C)
-{-    
+
   E-pbuiltin : ∀{Φ Γ}(b :  Builtin)
     → let Ψ ,, As ,, C = SIG b in
-      ∀ Ψ' → 
-      (σ : SubNf Ψ' Φ)
-    → (As' : List (Ψ' ⊢Nf⋆ *))
-    → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
-    → (ts : Tel Γ Ψ' σ As')
-    → pbuiltin b Ψ' σ As' p ts —→ error (abstract3' Φ Ψ Ψ' As As' p C σ)
--}
+      (σ : SubNf Ψ Φ)
+    → (ts : Tel Γ Ψ σ As)
+    → Any Error ts
+    → pbuiltin b Ψ σ As (inj₂ (refl ,, base)) ts —→ error (abstractArg As As (inj₂ (refl ,, base)) C σ)
+
   E-ibuiltin : ∀{Φ Γ}
       (b : Builtin)
     → let Ψ ,, Δ ,, C = ISIG b in
@@ -394,9 +407,9 @@ progress-pbuiltin : ∀{Φ Γ} bn
   (tel : Tel Γ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
   → TelProgress tel
   → Progress (pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel)
-progress-pbuiltin bn σ tel (done vs) = {!!}
-progress-pbuiltin bn σ tel (step p)  = {!!}
-progress-pbuiltin bn σ tel (error e) = {!!}
+progress-pbuiltin bn σ tel (done vs) = step (β-pbuiltin bn σ tel vs)
+progress-pbuiltin bn σ tel (step p)  = step (ξ-pbuiltin bn σ p)
+progress-pbuiltin bn σ tel (error e) = step (E-pbuiltin bn σ tel e)
 
 NoVar : ∀{Φ} → Ctx Φ → Set 
 NoVar ∅        = ⊤
@@ -451,7 +464,7 @@ progress p (unwrap M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
 progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) =
-  step (tick-builtin σ)
+  step (tick-pbuiltin σ)
 progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, refl)) []) =
   done (V-builtin⋆ b Ψ' σ q)
 progress p (pbuiltin b Ψ' σ _ (inj₂ (refl ,, base)) ts) =
