@@ -242,12 +242,12 @@ iteAtHigherKind = iteAt (TyLam () a (Type ()) aArrowA)
     where a = TyName (Name "a" (Unique 0))
           aArrowA = TyFun () (TyVar () a) (TyVar () a)
 
--- [ { (builtin ifThenElse) (forall a . a -> a) } (11<=22) ]: evaluation should
+-- [ { (builtin ifThenElse) (lam a . a -> a) } (11<=22) ]: evaluation should
 -- succeed, typechecking should fail (illegal kind)
 iteAtHigherKindWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtHigherKindWithCond = Apply () iteAtHigherKind lteExpr
 
--- [ {(builtin ifThenElse) (forall a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]":
+-- [ {(builtin ifThenElse) (lam a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]":
 -- illegal kind, but should run
 iteAtHigherKindFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtHigherKindFullyApplied = mkIterApp () (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
