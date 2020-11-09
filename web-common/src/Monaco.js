@@ -1,4 +1,5 @@
 /*eslint-env node*/
+/*global exports global*/
 
 'use strict';
 
@@ -146,7 +147,8 @@ exports.focus_ = function (editor) {
 }
 
 exports.enableVimBindings_ = function (editor) {
-  var vimMode = global.initVimMode(editor);
+  var statusNode = document.getElementById('statusline');
+  var vimMode = global.initVimMode(editor, statusNode);
   return (() => vimMode.dispose());
 }
 
