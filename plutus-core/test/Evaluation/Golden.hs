@@ -147,7 +147,7 @@ lteExpr = mkIterApp () lte [eleven, twentytwo]
 
 
 -- Various combinations of (partial) instantiation/application for ifThenElse
--- These
+
 -- (builtin ifThenElse)
 ite :: Term TyName Name DefaultUni DefaultFun ()
 ite = Builtin () IfThenElse
@@ -263,7 +263,8 @@ iteTypeTermType :: Term TyName Name DefaultUni DefaultFun ()
 iteTypeTermType = TyInst () iteAtIntegerWithCond string
 
 
--- Various attempts to instantiate the MultiplyInteger builtin
+-- Various attempts to instantiate the MultiplyInteger builtin. This is not
+-- polymorphic, so most should fail (and we're checking that they _do_ fail).
 
 mul ::  Term TyName Name DefaultUni DefaultFun ()
 mul = Builtin () MultiplyInteger
