@@ -18,7 +18,7 @@ numberType :: String
 numberType = "Integer"
 
 payoff :: Declaration
-payoff = genModule "POF" defs where
+payoff = genModule "POF" (imports ++ defs) where
     _POF_PY_PAM_PYTP_A = _POF_PY_PAM PYTP_A o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t
     _POF_PY_PAM_PYTP_N = _POF_PY_PAM PYTP_N o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t
     _POF_PY_PAM_PYTP_I = _POF_PY_PAM PYTP_I o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t
@@ -40,3 +40,4 @@ payoff = genModule "POF" defs where
     nt = ident "nt"
     ipnr = ident "ipnr"
     y_sd_t = ident "y_sd_t"
+    imports = [genImport "Utils"]

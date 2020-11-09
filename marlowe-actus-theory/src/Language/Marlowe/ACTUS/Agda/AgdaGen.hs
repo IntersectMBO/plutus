@@ -1,22 +1,25 @@
-module Language.Marlowe.ACTUS.Agda.AgdaGen(genDefinition, genModule, ident) where
+module Language.Marlowe.ACTUS.Agda.AgdaGen(genDefinition, genModule, ident, genImport) where
 
-import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, ExpandedEllipsis(..), noPlaceholder, defaultNamedArg, defaultArgInfo, defaultArg)
+import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, ExpandedEllipsis(..), ImportDirective'(..), Using'(..), RawName(..), noPlaceholder, defaultNamedArg, defaultArgInfo, defaultArg)
 import           Agda.Syntax.Position                                  (Range'(..))
 import           Agda.Syntax.Literal                                   (Literal(..))
-import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..), Declaration(..), WhereClause'(..), LHS(..), RHS'(..), Pattern(..))
+import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..), Declaration(..), WhereClause'(..), LHS(..), RHS'(..), Pattern(..), OpenShortHand(..))
 import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
 import           Data.List.NonEmpty                                    (NonEmpty(..))
 import           Agda.Utils.List2                                      (List2(..))
 
+paramName :: RawName -> Name
+paramName nm = Name NoRange NotInScope $ Id nm :| []
+
 ident :: String -> Expr
 ident param = Ident $ QName $ paramName param where
-    paramName nm = Name NoRange NotInScope $ Id nm :| []
 
+genImport :: String -> Declaration
+genImport name = Import NoRange (QName $ paramName name) Nothing DoOpen $ ImportDirective NoRange UseEverything [] [] Nothing
 
 genDefinition :: Expr -> String -> String -> [String] -> [String] -> String -> [Declaration]
 genDefinition expr name param1 params inputTypes outputType = 
     let fName = Name NoRange NotInScope $ Id name :| []
-        paramName nm = Name NoRange NotInScope $ Id nm :| []
         toParamP param = IdentP $ QName $ paramName param
         toParam param = Ident $ QName $ paramName param
         lhsPattern = 
