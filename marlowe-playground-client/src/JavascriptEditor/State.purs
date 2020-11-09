@@ -1,9 +1,10 @@
 module JavascriptEditor.State where
 
 import Prelude hiding (div)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Foldable (for_)
 import Data.Lens (assign, to, use, view)
 import Data.List ((:))
 import Data.List as List
@@ -161,18 +162,11 @@ editorSetValue contents = do
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
   mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 decorationHeaderLines identity
   mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - decorationFooterLines + 1) numLines identity
-  for_ mTopDecorationId
-    ( \topDecorationId ->
-        for_ mBottomDecorationId
-          ( \bottomDecorationId ->
-              assign _decorationIds
-                ( Just
-                    { topDecorationId: topDecorationId
-                    , bottomDecorationId: bottomDecorationId
-                    }
-                )
-          )
-    )
+  void
+    $ runMaybeT do
+        topDecorationId <- hoistMaybe mTopDecorationId
+        bottomDecorationId <- hoistMaybe mBottomDecorationId
+        assign _decorationIds $ Just { topDecorationId, bottomDecorationId }
 
 checkJSboilerplate :: String -> Boolean
 checkJSboilerplate content =
