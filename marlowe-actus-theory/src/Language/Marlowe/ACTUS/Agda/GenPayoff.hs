@@ -15,7 +15,7 @@ import           Agda.Utils.List2                                      (List2(..
 import           Control.Monad                                         (join)
 
 numberType :: String
-numberType = "Integer"
+numberType = "ℤ"
 
 payoff :: Declaration
 payoff = genModule "POF" (imports ++ defs) where
@@ -40,4 +40,4 @@ payoff = genModule "POF" (imports ++ defs) where
     nt = ident "nt"
     ipnr = ident "ipnr"
     y_sd_t = ident "y_sd_t"
-    imports = [genImport "Utils"]
+    imports = genImport <$> ["Data.Integer", "Definitions", "Utils"]
