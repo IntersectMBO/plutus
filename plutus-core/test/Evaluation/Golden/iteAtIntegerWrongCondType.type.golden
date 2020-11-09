@@ -1,0 +1,6 @@
+(Left Type mismatch at () in term
+  '(con string "11 <= 22")'.
+Expected type
+  '(con string)',
+found type
+  '(con bool)')
