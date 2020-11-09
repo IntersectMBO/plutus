@@ -91,6 +91,12 @@ let
     inherit git-rev;
   };
 
+  # Thorp is an S3 sync tool used for deployments
+  thorp =
+    let
+      sources = import ../sources.nix;
+    in
+    import ./thorp { inherit sources pkgs; };
 
   # not available in 20.03 and we depend on several recent changes
   # including stylish-haskell support
@@ -119,6 +125,6 @@ in
   inherit nix-pre-commit-hooks nodejs-headers;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios purty;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev;
+  inherit iohkNix set-git-rev thorp;
   inherit easyPS;
 }
