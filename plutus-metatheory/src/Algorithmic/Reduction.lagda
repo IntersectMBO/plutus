@@ -21,6 +21,7 @@ open import Data.Unit using (tt)
 
 
 open import Type
+import Type.RenamingSubstitution as T
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Type.BetaNBE
@@ -170,56 +171,56 @@ data _—→T_ {Φ}{Γ : Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf�
   
 infix 2 _—→_
 
-data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
+data _—→_ {Φ Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
 
-  ξ-·₁ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
+  ξ-·₁ : {A B : Φ ⊢Nf⋆ *} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A}
     → L —→ L′
       -----------------
     → L · M —→ L′ · M
 
-  ξ-·₂ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A}
+  ξ-·₂ : {A B : Φ ⊢Nf⋆ *}{V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A}
     → Value V
     → M —→ M′
       --------------
     → V · M —→ V · M′
 
-  ξ-·⋆ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L' : Γ ⊢ Π B}{A}
+  ξ-·⋆ : ∀ {K}{B : Φ ,⋆ K ⊢Nf⋆ *}{L L' : Γ ⊢ Π B}{A}
     → L —→ L'
       -----------------
     → L ·⋆ A —→ L' ·⋆ A
 
-  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {V : Γ ⊢ A}
+  β-ƛ : {A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {V : Γ ⊢ A}
     → Value V
       -------------------
     → (ƛ N) · V —→ N [ V ]
 
-  β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A}
+  β-Λ : ∀ {K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A}
       -------------------
     → (Λ N) ·⋆ A —→ N [ A ]⋆
 
-  β-wrap : ∀{Φ Γ K}
+  β-wrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → {M : Γ ⊢ _}
     → Value M
     → unwrap (wrap A B M) —→ M
 
-  ξ-unwrap : ∀{Φ Γ K}
+  ξ-unwrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → {M M' : Γ ⊢ μ A B}
     → M —→ M'
     → unwrap M —→ unwrap M'
     
-  ξ-wrap : ∀{Φ Γ K}
+  ξ-wrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → {M M' : Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)}
     → M —→ M'
     → wrap A B M —→ wrap A B M'
 
-  β-builtin : ∀{Φ Γ}
-    → (bn : Builtin)
+  β-builtin :
+      (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
@@ -227,74 +228,86 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       -----------------------------
     → builtin bn σ tel —→ BUILTIN bn σ tel vtel
     
-  ξ-builtin : ∀{Φ Γ} → (bn : Builtin)
+  ξ-builtin : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → {ts ts' : Tel Γ Δ σ As}
     → ts —→T ts'
     → builtin bn σ ts —→ builtin bn σ ts'
 
-  tick-pbuiltin : ∀{Φ Γ}{b : Builtin}
+  tick-pbuiltin : {b : Builtin}
       → let Ψ ,, As ,, C = SIG b in
         (σ : SubNf Ψ Φ)
       → {ts : Tel Γ Ψ σ []}
       → pbuiltin b Ψ σ []  (inj₁ (base ,, refl)) ts
         —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L' _)) ts
 
-  β-pbuiltin : ∀{Φ Γ}
-    → (bn : Builtin)
+  β-pbuiltin : 
+      (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+      (σ : SubNf Δ Φ)
     → (tel : Tel Γ Δ σ As)
     → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
     → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel —→ BUILTIN bn σ tel vtel
     
-  ξ-pbuiltin : ∀{Φ Γ} → (bn : Builtin)
+  ξ-pbuiltin : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+      (σ : SubNf Δ Φ)
     → {ts ts' : Tel Γ Δ σ As}
     → ts —→T ts'
     → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts —→ pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts'
 
-  E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
+  sat⋆ : (b : Builtin)
+    → let Δ ,, As ,, C = SIG b in
+      ∀ Ψ K
+    → (σ : SubNf Ψ Φ)
+    → (A : Φ ⊢Nf⋆ K)
+    → (p : (Ψ ,⋆ K) ≤C⋆' Δ)
+    → pbuiltin b Ψ σ [] (inj₁ (skip p ,, refl)) [] ·⋆ A
+      —→ conv⊢ refl
+               (substNf-cons-[]Nf
+                 (abstractTy Δ (Ψ ,⋆ _) p (abstractTm Δ As [] ([]≤L' As) C)))
+               (pbuiltin b (Ψ ,⋆ K) (substNf-cons σ A) [] (inj₁ (p ,, refl)) [])
+
+  E-·₂ : {A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
     → Value L
     → L · error A —→ error B
-  E-·₁ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{M : Γ ⊢ A}
+  E-·₁ : {A B : Φ ⊢Nf⋆ *}{M : Γ ⊢ A}
     → error (A ⇒ B) · M —→ error B
-  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K}
+  E-·⋆ : ∀{K}{B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K}
     → error {Γ = Γ} (Π B) ·⋆ A —→ error (B [ A ]Nf)
-  E-unwrap : ∀{Φ Γ K}
+  E-unwrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → unwrap (error (μ A B))
         —→ error {Γ = Γ} (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
-  E-wrap : ∀{Φ Γ K}
+  E-wrap : ∀{K}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → wrap A B (error _) —→ error {Γ = Γ} (μ A B) 
-  E-builtin : ∀{Φ Γ}  → (bn : Builtin)
+  E-builtin : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (ts : Tel Γ Δ σ As)
     → Any Error ts
     → builtin bn σ ts —→ error (substNf σ C)
 
-  E-pbuiltin : ∀{Φ Γ}(b :  Builtin)
+  E-pbuiltin : (b :  Builtin)
     → let Ψ ,, As ,, C = SIG b in
       (σ : SubNf Ψ Φ)
     → (ts : Tel Γ Ψ σ As)
     → Any Error ts
     → pbuiltin b Ψ σ As (inj₂ (refl ,, base)) ts —→ error (abstractArg As As (inj₂ (refl ,, base)) C σ)
 
-  E-ibuiltin : ∀{Φ Γ}
+  E-ibuiltin : 
       (b : Builtin)
     → let Ψ ,, Δ ,, C = ISIG b in
       (σ⋆ : SubNf Ψ Φ)
     → (σ : ITel Δ Γ σ⋆)
     → ibuiltin b σ⋆ σ —→ error (substNf σ⋆ C)
 
-  E-ipbuiltin : ∀{Φ Γ}
+  E-ipbuiltin :
       (b : Builtin)
     → let Ψ ,, Δ ,, C = ISIG b in
       ∀ Ψ'
@@ -370,6 +383,7 @@ progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
 progress-·V v       (step q)        = step (ξ-·₂ v q)
 progress-·V v       (error E-error) = step (E-·₂ v)
 progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
+progress-·V (V-builtin b σ A As' p ts) (done v) = step {! !}
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
@@ -378,13 +392,16 @@ progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
 progress-· (step p)        q = step (ξ-·₁ p)
 progress-· (done (V-ƛ t))  q = progress-·V (V-ƛ t) q
 progress-· (error E-error) q = step E-·₁
+progress-· (done (V-builtin _ _ _ _ _ _)) q = {!!}
+
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
 progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
-
+progress-·⋆ {Φ}{Γ} (done (V-builtin⋆ b Ψ σ p)) A = step (sat⋆ b Ψ _ σ A p)
+{-
 progress-unwrap : ∀{Φ Γ K}{A}{B : Φ ⊢Nf⋆ K}{t : Γ ⊢ μ A B}
   → Progress t → Progress (unwrap t)
 progress-unwrap (step q) = step (ξ-unwrap q)
@@ -554,7 +571,7 @@ progress-xor t with progress _ t
 progress-xor t | step p  = (inj₂ ((inj₁ (_ ,, p)) ,, λ{(p ,, e) → red-err p e})) ,, λ { (v ,, inj₁ p ,, q) → val-red v p ; (v ,, inj₂ e ,, q) → val-err v e}
 progress-xor t | done v  = (inj₁ v) ,, (λ { (v' ,, inj₁ p ,, q) → val-red v p ; (v' ,, inj₂ e ,, q) → val-err v e})
 progress-xor t | error e = (inj₂ ((inj₂ e) ,, (λ { (p ,, e) → red-err p e}))) ,, λ { (v ,, q) → val-err v e }
-
+{-
 -- the reduction rules are deterministic
 det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢ σ}
   → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
@@ -629,3 +646,5 @@ vTel:< : ∀ {Φ Γ Δ}
   → VTel Γ Δ σ (As :<L A) (ts :<T t)
 vTel:< []        t vs v = v ,, tt
 vTel:< (t' ∷ ts) t (v' ,, vs) v = v' ,, vTel:< ts t vs v
+-}
+-}
