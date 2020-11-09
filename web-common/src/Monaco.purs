@@ -226,7 +226,7 @@ foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMa
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
-foreign import addExtraTypesScriptLibsJS_ :: EffectFn1 Monaco Unit
+foreign import addExtraTypeScriptLibsJS_ :: EffectFn1 Monaco Unit
 
 foreign import getDecorationRange_ :: Fn2 ITextModel String IRange
 
@@ -304,8 +304,8 @@ defineTheme = runEffectFn2 defineTheme_
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
-addExtraTypesScriptLibsJS :: Monaco -> Effect Unit
-addExtraTypesScriptLibsJS = runEffectFn1 addExtraTypesScriptLibsJS_
+addExtraTypeScriptLibsJS :: Monaco -> Effect Unit
+addExtraTypeScriptLibsJS = runEffectFn1 addExtraTypeScriptLibsJS_
 
 setStrictNullChecks :: Monaco -> Boolean -> Effect Unit
 setStrictNullChecks = runEffectFn2 setStrictNullChecks_

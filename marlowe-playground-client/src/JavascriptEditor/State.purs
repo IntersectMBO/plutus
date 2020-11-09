@@ -4,35 +4,35 @@ import Prelude hiding (div)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Lens (_Just, assign, to, use, view)
-import Data.Lens.Extra (peruse)
+import Data.Lens (assign, to, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Halogen (HalogenM, liftEffect, query)
+import Effect.Class (class MonadEffect)
+import Examples.JS.Contracts as JSE
+import Halogen (Component, HalogenM, gets, liftEffect, query)
 import Halogen.Blockly as Blockly
+import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import Halogen.Monaco (Message, Query, monacoComponent)
 import JavascriptEditor.Types (Action(..), CompilationState(..), State, _compilationResult, _decorationIds, _keybindings, _showBottomPanel)
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
+import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
 import Marlowe (SPParams_)
-import Monaco (IRange, isError)
+import Monaco (IRange, getModel, isError, setValue)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
 
 checkDecorationPosition :: Int -> Maybe IRange -> Maybe IRange -> Boolean
-checkDecorationPosition numLines (Just { endLineNumber }) (Just { startLineNumber }) = (endLineNumber == headerLength) && (startLineNumber == numLines - footerLength + 1)
-  where
-  headerLength = Array.length decorationHeader
-
-  footerLength = Array.length decorationFooter
+checkDecorationPosition numLines (Just { endLineNumber }) (Just { startLineNumber }) = (endLineNumber == decorationHeaderLines) && (startLineNumber == numLines - decorationFooterLines + 1)
 
 checkDecorationPosition _ _ _ = false
 
@@ -48,19 +48,23 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
         prunedText = pruneJSboilerplate text
 
         numLines = Array.length $ lines text
-      mDecorIds <- peruse (_decorationIds <<< _Just)
+      mDecorIds <- gets $ view _decorationIds
       case mDecorIds of
         Just decorIds -> do
           mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
           mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
-          if (mContent == Just prunedText) || (checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter) then
+          if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
             ( do
                 liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
                 assign _compilationResult NotCompiled
             )
           else
-            editorSetValue (fromMaybe "" mContent)
+            if (mContent == Just prunedText) then
+              -- To prevent infinite loops (should not be needed)
+              assign _compilationResult NotCompiled
+            else
+              editorSetValue (fromMaybe "" mContent)
         Nothing -> editorSetValue prunedText
   )
 
@@ -116,34 +120,33 @@ handleAction _ SendResultToBlockly = do
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 
-decorationHeader :: Array String
+decorationHeader :: String
 decorationHeader =
-  [ "import {"
-  , "    PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,"
-  , "    SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,"
-  , "    UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,"
-  , "    ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,"
-  , "    Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,"
-  , "    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract"
-  , "} from 'marlowe-js';"
-  , ""
-  , "(function (): Contract {"
-  ]
+  """import {
+    PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
+    SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
+    UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
+    ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
+    Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
+    ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract
+} from 'marlowe-js';
 
-decorationFooter :: Array String
-decorationFooter = [ "})" ]
+(function (): Contract {"""
 
-decorationHeaderString :: String
-decorationHeaderString = joinWith "\n" decorationHeader
+decorationFooter :: String
+decorationFooter = "})"
+
+decorationHeaderLines :: Int
+decorationHeaderLines = Array.length $ lines decorationHeader
+
+decorationFooterLines :: Int
+decorationFooterLines = Array.length $ lines decorationFooter
 
 lengthOfHeader :: Int
-lengthOfHeader = length decorationHeaderString
-
-decorationFooterString :: String
-decorationFooterString = joinWith "\n" decorationFooter
+lengthOfHeader = length decorationHeader
 
 lengthOfFooter :: Int
-lengthOfFooter = length decorationFooterString
+lengthOfFooter = length decorationFooter
 
 editorSetValue ::
   forall m.
@@ -152,12 +155,12 @@ editorSetValue ::
   HalogenM State Action ChildSlots Void m Unit
 editorSetValue contents = do
   let
-    decoratedContent = joinWith "\n" [ decorationHeaderString, contents, decorationFooterString ]
+    decoratedContent = joinWith "\n" [ decorationHeader, contents, decorationFooter ]
 
     numLines = Array.length $ lines decoratedContent
   void $ query _jsEditorSlot unit $ Monaco.SetText decoratedContent unit
-  mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 (Array.length decorationHeader) identity
-  mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - Array.length decorationFooter + 1) numLines identity
+  mTopDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations 1 decorationHeaderLines identity
+  mBottomDecorationId <- query _jsEditorSlot unit $ Monaco.SetDeltaDecorations (numLines - decorationFooterLines + 1) numLines identity
   for_ mTopDecorationId
     ( \topDecorationId ->
         for_ mBottomDecorationId
@@ -178,7 +181,7 @@ checkJSboilerplate content =
 
     footer = (drop (length content - lengthOfFooter - 1) content)
   in
-    (header == decorationHeaderString <> "\n") && (footer == "\n" <> decorationFooterString)
+    (header == decorationHeader <> "\n") && (footer == "\n" <> decorationFooter)
 
 pruneJSboilerplate :: String -> String
 pruneJSboilerplate content =
@@ -198,3 +201,19 @@ editorGetValue = do
         pruneJSboilerplate
         mContent
     )
+
+mkEditor :: forall m. MonadEffect m => MonadAff m => Component HTML Query Unit Message m
+mkEditor = monacoComponent $ JSM.settings setup
+  where
+  setup editor =
+    liftEffect do
+      mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
+      let
+        contents = fromMaybe JSE.escrow mContents
+
+        decoratedContent = joinWith "\n" [ decorationHeader, contents, decorationFooter ]
+
+        numLines = Array.length $ lines decoratedContent
+      model <- getModel editor
+      setValue model decoratedContent
+      pure unit

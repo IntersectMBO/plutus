@@ -155,7 +155,7 @@ handleAction settings Init = do
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
         when (languageId == "typescript") do
-          Monaco.addExtraTypesScriptLibsJS monaco
+          Monaco.addExtraTypeScriptLibsJS monaco
           Monaco.setStrictNullChecks monaco true
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         for_ settings.theme $ Monaco.defineTheme monaco
@@ -238,7 +238,7 @@ handleQuery (GetDecorationRange decoratorId f) = do
 handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
     decoId <- liftEffect $ Monaco.setDeltaDecorations editor first last
-    pure (f decoId)
+    pure $ f decoId
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do

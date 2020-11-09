@@ -54,7 +54,7 @@ exports.onDidChangeContent_ = function (editor, handler) {
   });
 }
 
-exports.addExtraTypesScriptLibsJS_ = function (monaco) {
+exports.addExtraTypeScriptLibsJS_ = function (monaco) {
     global.monacoExtraTypeScriptLibs.forEach(function ([dts, dtsFilename]) {
         monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, dtsFilename);
     });
