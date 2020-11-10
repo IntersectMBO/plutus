@@ -122,7 +122,18 @@ closure = runQuote $ do
    interleaving of term and type arguments is correct, but a number of other
    tests checking that ill-typed builtins execute successfully (because types
    are ignored at runtime) are included.  At the moment the only polymorphic
-   builtin we have is ifThenElse. -}
+   builtin we have is ifThenElse.
+
+   We test a number of terms to check whether they typecheck and whether they
+   evaluate without error.  There are three possible outcomes:
+
+     * The term typechecks and evaluates successfully
+     * The term is ill-typed but still evaluates successfully
+     * The term is ill-typed and evaluation fails
+
+   We'll denote these outcomes by WellTypedRuns, IllTypedRuns, and IllTypedFails
+   respectively; each test is labelled with one of these.
+-}
 
 -- Various components that we'll use to build larger terms for testing
 
@@ -148,7 +159,7 @@ lteExpr = mkIterApp () lte [eleven, twentytwo]
 
 -- Various combinations of (partial) instantiation/application for ifThenElse
 
--- (builtin ifThenElse)
+-- (builtin ifThenElse) : WellTypedRuns
 ite :: Term TyName Name DefaultUni DefaultFun ()
 ite = Builtin () IfThenElse
 
@@ -156,61 +167,61 @@ ite = Builtin () IfThenElse
 iteAt :: Type TyName DefaultUni () -> Term TyName Name DefaultUni DefaultFun ()
 iteAt ty = TyInst () ite ty
 
--- [ (builtin ifThenElse) (11<=22) ]: should fail to typecheck and fail during
--- execution because ifThenElse isn't instantiated: type expected, term supplied.
+-- [ (builtin ifThenElse) (11<=22) ] : IllTypedFails (ifThenElse isn't
+-- instantiated: type expected, term supplied.)
 iteUninstantiatedWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteUninstantiatedWithCond  = Apply () ite lteExpr
 
--- (builtin ifThenElse) (11<=22) "11 <= 22" "¬(11<=22)": should fail to
--- typecheck and fail during execution (no instantiation)
+-- (builtin ifThenElse) (11<=22) "11 <= 22" "¬(11<=22)" : IllTypedFails (no
+-- instantiation)
 iteUninstantiatedFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteUninstantiatedFullyApplied = mkIterApp () ite [lteExpr, stringResultTrue, stringResultFalse]
 
--- { (builtin ifThenElse) (con integer) }: should run and typecheck
+-- { (builtin ifThenElse) (con integer) } : WellTypedRuns
 iteAtInteger :: Term TyName Name DefaultUni DefaultFun ()
 iteAtInteger = iteAt integer
 
--- [ { (builtin ifThenElse) (con integer) } (11<=22)]: should run and typecheck
+-- [ { (builtin ifThenElse) (con integer) } (11<=22)] : WellTypedRuns
 iteAtIntegerWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 
--- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" ] This is
--- ill-typed, since the first term argument is a string and a boolean is
--- expected.  However, it will execute successfully (and the result will be
--- ill-typed) because it's not saturated and so the built-in application
--- machinery will never see it.
+-- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" ] :
+-- IllTypedRuns.  This is ill-typed because the first term argument is a string
+-- and a boolean is expected.  However, it will execute successfully (and the
+-- result will be ill-typed) because it's not saturated and so the built-in
+-- application machinery will never see it.
 iteAtIntegerWrongCondType :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
 
--- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ].
--- This should also succeed.  However it's ill-typed because we're instantiating
--- at `integer` but returning a string: at execution time we only check that
--- type instantiations and term arguments are correctly interleaved, not that
--- instantiations are correct.
+-- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ] :
+-- IllTypedRuns.  We're instantiating at `integer` but returning a string: at
+-- execution time we only check that type instantiations and term arguments are
+-- correctly interleaved, not that instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
 
--- { (builtin ifThenElse) (con string) }: should run and typecheck
+-- { (builtin ifThenElse) (con string) } : WellTypedRuns
 iteAtString :: Term TyName Name DefaultUni DefaultFun ()
 iteAtString = iteAt string
 
--- [ { (builtin ifThenElse) (con string) } (11<=22) ]: should run and typecheck
+-- [ { (builtin ifThenElse) (con string) } (11<=22) ] : WellTypedRuns
 iteAtStringWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringWithCond = Apply () iteAtString lteExpr
 
--- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ]: should run and typecheck
+-- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
 
--- { builtin ifThenElse (fun (con integer) (con integer)) }
+-- { builtin ifThenElse (fun (con integer) (con integer)) } : WellTypedRuns
 iteAtIntegerArrowInteger :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerArrowInteger = iteAt (TyFun () integer integer)
 
--- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) ]: should run and typecheck
+-- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) ] : WellTypedRuns
 iteAtIntegerArrowIntegerWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerArrowIntegerWithCond = Apply () iteAtIntegerArrowInteger lteExpr
 
--- Should succeed and typecheck, returning a function of type int -> int
+-- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (11 *) (22 -)] :
+-- WellTypedRuns (returns a function of type int -> int)
 iteAtIntegerArrowIntegerApplied1 ::  Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
                                    iteAtIntegerArrowInteger
@@ -219,7 +230,8 @@ iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
                                    , Apply () (Builtin () SubtractInteger) twentytwo
                                    ]
 
--- Should succeed, but fail to typecheck (int -> int -> int instead of int -> int)
+-- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (*) (-)] :
+-- IllTypedRuns (int -> int -> int instead of int -> int).
 iteAtIntegerArrowIntegerApplied2 ::  Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerArrowIntegerApplied2 =  mkIterApp ()
                                     iteAtIntegerArrowInteger
@@ -228,11 +240,12 @@ iteAtIntegerArrowIntegerApplied2 =  mkIterApp ()
                                     , Builtin () SubtractInteger
                                     ]
 
--- Should succeed and typecheck: ifThenElse returns a function which is then applied to a constant.
+-- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (11 *) (22 -) 22] :
+-- WellTypedRuns (ifThenElse returns a function which is then applied to a constant).
 iteAtIntegerArrowIntegerAppliedApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerArrowIntegerAppliedApplied =  Apply () iteAtIntegerArrowIntegerApplied1 twentytwo
 
--- { (builtin ifThenElse) (lam a . a -> a) }
+-- { (builtin ifThenElse) (lam a . a -> a) } : IllTypedRuns.
 -- Evaluation should succeed, but typechecking should fail with a kind error.
 -- The built-in function machinery does allow builtins which are polymorphic
 -- over higher-kinded types, but `ifThenElse` can only be instantiated with
@@ -242,23 +255,22 @@ iteAtHigherKind = iteAt (TyLam () a (Type ()) aArrowA)
     where a = TyName (Name "a" (Unique 0))
           aArrowA = TyFun () (TyVar () a) (TyVar () a)
 
--- [ { (builtin ifThenElse) (lam a . a -> a) } (11<=22) ]: evaluation should
--- succeed, typechecking should fail (illegal kind)
+-- [ { (builtin ifThenElse) (lam a . a -> a) } (11<=22) ] : IllTypedRuns
+-- (illegal kind)
 iteAtHigherKindWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtHigherKindWithCond = Apply () iteAtHigherKind lteExpr
 
--- [ {(builtin ifThenElse) (lam a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]":
--- illegal kind, but should run
+-- [ {(builtin ifThenElse) (lam a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]" :
+-- IllTypedRuns (illegal kind)
 iteAtHigherKindFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtHigherKindFullyApplied = mkIterApp () (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
 
--- { {(builtin ifThenElse) integer} integer }: should fail to typecheck and also
--- fail during execution (instantiated twice).
+-- { {(builtin ifThenElse) integer} integer } : IllTypedFails (instantiated twice).
 iteAtIntegerAtInteger :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerAtInteger = TyInst () iteAtInteger integer
 
--- { [ { (builtin ifThenElse) integer } (11<=22)] integer }: should fail
--- to typecheck and also fail during execution: term expected, type supplied.
+-- { [ { (builtin ifThenElse) integer } (11<=22)] integer } : IllTypedFails
+-- (term expected, type supplied).
 iteTypeTermType :: Term TyName Name DefaultUni DefaultFun ()
 iteTypeTermType = TyInst () iteAtIntegerWithCond string
 
@@ -266,24 +278,26 @@ iteTypeTermType = TyInst () iteAtIntegerWithCond string
 -- Various attempts to instantiate the MultiplyInteger builtin. This is not
 -- polymorphic, so most should fail (and we're checking that they _do_ fail).
 
+-- (builtin multiplyInteger) (not tested)
 mul ::  Term TyName Name DefaultUni DefaultFun ()
 mul = Builtin () MultiplyInteger
 
--- [ [ (builtin multiplyInteger) 11 ] 22 ]: OK
+-- [ [ (builtin multiplyInteger) 11 ] 22 ] : WellTypedRuns
 mulOK :: Term TyName Name DefaultUni DefaultFun ()
 mulOK = Apply () (Apply () mul eleven) twentytwo
 
--- [ [ { (builtin multiplyInteger) string } 11 ] 22 ]: should fail typechecking and also at runtime
+-- [ [ { (builtin multiplyInteger) string } 11 ] 22 ]: IllTypedFails
 mulInstError1 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError1 = Apply () (Apply () (TyInst () mul string) eleven) twentytwo
 
--- [ [ { (builtin multiplyInteger) 11 ] string } 22 ]: should fail typechecking and also at runtime
+-- [ [ { (builtin multiplyInteger) 11 ] string } 22 ]: IllTypedFails
 mulInstError2 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 
--- { [ [ (builtin multiplyInteger) 11 ] 22 ] string } : should fail typechecking and also at runtime
+-- { [ [ (builtin multiplyInteger) 11 ] 22 ] string } : IllTypedFails
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
+
 
 -- Running the tests
 
