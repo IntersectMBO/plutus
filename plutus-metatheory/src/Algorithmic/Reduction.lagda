@@ -42,6 +42,9 @@ open import Data.String using (String)
 ## Values
 
 \begin{code}
+VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
+  → Tel Γ Δ σ As → Set
+
 data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
   V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
@@ -72,6 +75,7 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → (As' : List (Ψ ⊢Nf⋆ *))
     → (p : (A ∷ As') ≤L' As)
     → (ts : Tel Γ Ψ σ As')
+    → VTel Γ Ψ σ As' ts
     → Value {Γ = Γ} (pbuiltin b Ψ σ As' (inj₂ (refl ,, skip p)) ts)
 
 
@@ -81,6 +85,9 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
       (σ : SubNf Ψ' Φ)
     → (p : (Ψ' ,⋆ K) ≤C⋆' Ψ)
     → Value {Γ = Γ} (pbuiltin b Ψ' σ [] (inj₁ (skip p ,, refl)) [])
+
+deval : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}{u : Γ ⊢ A} → Value u → Γ ⊢ A
+deval {u = u} _ = u
 \end{code}
 
 \begin{code}
@@ -89,9 +96,6 @@ voidVal Γ = V-con {Γ = Γ} unit
 \end{code}
 
 \begin{code}
-VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
-  → Tel Γ Δ σ As → Set
-
 data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- an actual error term
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
@@ -246,10 +250,10 @@ data _—→_ {Φ Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Se
       (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : SubNf Δ Φ)
-    → (tel : Tel Γ Δ σ As)
-    → (vtel : VTel Γ Δ σ As tel)
+    → (ts : Tel Γ Δ σ As)
+    → (vts : VTel Γ Δ σ As ts)
       -----------------------------
-    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel —→ BUILTIN bn σ tel vtel
+    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts —→ BUILTIN bn σ ts vts
     
   ξ-pbuiltin : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
@@ -269,6 +273,18 @@ data _—→_ {Φ Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Se
                (substNf-cons-[]Nf
                  (abstractTy Δ (Ψ ,⋆ _) p (abstractTm Δ As [] ([]≤L' As) C)))
                (pbuiltin b (Ψ ,⋆ K) (substNf-cons σ A) [] (inj₁ (p ,, refl)) [])
+
+  sat : (b : Builtin)
+    → let Δ ,, As ,, C = SIG b in
+      (σ : SubNf Δ Φ)
+    → (As' : List (Δ ⊢Nf⋆ *))
+    → (ts : Tel Γ Δ σ As')
+    → ∀ A
+    → ∀ t
+    → (p : (A ∷ As') ≤L' As)
+    → pbuiltin b Δ σ As' (inj₂ (refl ,, skip p)) ts · t
+      —→ pbuiltin b Δ σ (A ∷ As') (inj₂ (refl ,, p)) (t ∷ ts)
+
 
   E-·₂ : {A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
     → Value L
@@ -383,17 +399,16 @@ progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
 progress-·V v       (step q)        = step (ξ-·₂ v q)
 progress-·V v       (error E-error) = step (E-·₂ v)
 progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
-progress-·V (V-builtin b σ A As' p ts) (done v) = step {! !}
+progress-·V (V-builtin b σ A As' p ts vs) (done v) =
+  step (sat b σ As' ts A (deval v) p)
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
   → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
-progress-· (step p)        q = step (ξ-·₁ p)
-progress-· (done (V-ƛ t))  q = progress-·V (V-ƛ t) q
+progress-· (step p)  q = step (ξ-·₁ p)
+progress-· (done v)  q = progress-·V v q
 progress-· (error E-error) q = step E-·₁
-progress-· (done (V-builtin _ _ _ _ _ _)) q = {!!}
-
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
@@ -401,6 +416,7 @@ progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
 progress-·⋆ {Φ}{Γ} (done (V-builtin⋆ b Ψ σ p)) A = step (sat⋆ b Ψ _ σ A p)
+
 {-
 progress-unwrap : ∀{Φ Γ K}{A}{B : Φ ⊢Nf⋆ K}{t : Γ ⊢ μ A B}
   → Progress t → Progress (unwrap t)

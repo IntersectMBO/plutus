@@ -465,8 +465,7 @@ subst-nf-μ σ⋆ A B = trans
 substNf-cons-[]Nf : ∀{Φ K Ψ'}{σ : SubNf Ψ' Φ}{A : Φ ⊢Nf⋆ K}(X : Ψ' ,⋆ K ⊢Nf⋆ *) → 
   substNf (substNf-cons σ A) X
   ≡
-  reify (eval (subst (exts (embNf ∘ σ)) (embNf X)) (exte (idEnv Φ)))
-  [ A ]Nf
+  reify (eval (subst (exts (embNf ∘ σ)) (embNf X)) (exte (idEnv Φ))) [ A ]Nf
 substNf-cons-[]Nf {σ = σ}{A} X = trans
   (trans (substNf-cong {f = substNf-cons σ A}{g = substNf (substNf-cons (ne ∘ `) A) ∘ extsNf σ} (λ {Z → sym (stability A) ; (S α) → trans (trans (sym (stability (σ α))) (cong nf (sym (subst-id (embNf (σ α)))))) (substNf-renNf S (substNf-cons (ne ∘ `) A) (σ α)) }) X)
          (substNf-comp (extsNf σ)
