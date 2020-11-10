@@ -4,12 +4,11 @@
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
 , packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
-, pkgs ? packages.pkgs
-, localPkgs ? packages.pkgsLocal
 }:
 let
+  inherit (packages) pkgs pkgsLocal pkgsMusl;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (localPkgs) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (pkgsLocal) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
@@ -62,7 +61,7 @@ let
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
-  localInputs = (with localPkgs; [
+  localInputs = (with pkgsLocal; [
     cabal-install
     fixPurty
     fixStylishHaskell

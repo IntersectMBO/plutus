@@ -13,12 +13,6 @@
 , sourcesOverride ? { }
   # { pkgs pkgsMusl pkgsLocal }
 , packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization; }
-  # pinned nixpkgs
-, pkgs ? packages.pkgs
-  # local packages (./nix/pkgs)
-, pkgsLocal ? packages.pkgsLocal
-  # musl linked nixpkgs
-, pkgsMusl ? packages.pkgsMusl
   # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
   # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
@@ -27,6 +21,7 @@
 }:
 
 let
+  inherit (packages) pkgs pkgsLocal pkgsMusl;
   inherit (pkgs) lib haskell-nix;
   inherit (pkgsLocal) haskell iohkNix git-rev set-git-rev agdaPackages;
   inherit (pkgsLocal) easyPS sphinxcontrib-haddock nodejs-headers;
