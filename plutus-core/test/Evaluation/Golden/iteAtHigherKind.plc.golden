@@ -1,1 +1,1 @@
-(Right { (builtin ifThenElse) (all a_0 (type) (fun a_0 a_0)) })
+(Right { (builtin ifThenElse) (lam a_0 (type) (fun a_0 a_0)) })
