@@ -54,10 +54,26 @@ exports.onDidChangeContent_ = function (editor, handler) {
   });
 }
 
-exports.addExtraTypesScriptLibsJS_ = function (monaco) {
+exports.addExtraTypeScriptLibsJS_ = function (monaco) {
     global.monacoExtraTypeScriptLibs.forEach(function ([dts, dtsFilename]) {
         monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, dtsFilename);
     });
+}
+
+exports.setStrictNullChecks_ = function (monaco, bool) {
+  var compilerOptions = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
+  compilerOptions['strictNullChecks'] = bool;
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
+}
+
+exports.getDecorationRange_ = function (editor, identifier) {
+  return editor.getDecorationRange(identifier);
+}
+
+exports.setDeltaDecorations_ = function (editor, initialLine, finalLine) {
+  return editor.deltaDecorations([], [
+    { range: new monaco.Range(initialLine,0,finalLine,0), options: { isWholeLine: true, className: 'monaco-readonly-decoration' }},
+  ]);
 }
 
 exports.getModel_ = function (editor) {
@@ -74,6 +90,10 @@ exports.getValue_ = function (model) {
 
 exports.setValue_ = function (model, value) {
   return model.setValue(value);
+}
+
+exports.getLineCount_ = function (model) {
+  return model.getLineCount();
 }
 
 exports.setTokensProvider_ = function (monaco, languageId, provider) {

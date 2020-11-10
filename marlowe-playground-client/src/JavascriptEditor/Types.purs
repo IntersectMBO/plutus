@@ -55,10 +55,22 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
 
+type DecorationIds
+  = { topDecorationId :: String
+    , bottomDecorationId :: String
+    }
+
+_topDecorationId :: Lens' DecorationIds String
+_topDecorationId = prop (SProxy :: SProxy "topDecorationId")
+
+_bottomDecorationId :: Lens' DecorationIds String
+_bottomDecorationId = prop (SProxy :: SProxy "bottomDecorationId")
+
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: CompilationState
     , showBottomPanel :: Boolean
+    , decorationIds :: Maybe DecorationIds
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -70,9 +82,13 @@ _compilationResult = prop (SProxy :: SProxy "compilationResult")
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
+_decorationIds :: Lens' State (Maybe DecorationIds)
+_decorationIds = prop (SProxy :: SProxy "decorationIds")
+
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotCompiled
   , showBottomPanel: true
+  , decorationIds: Nothing
   }
