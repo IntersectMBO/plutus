@@ -30,6 +30,7 @@ let
 
 in
 {
+  inherit server-invoker;
 
   client = pkgs.callPackage ../nix/purescript.nix rec {
     inherit nodejs-headers;

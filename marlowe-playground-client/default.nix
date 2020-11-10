@@ -28,6 +28,7 @@ let
   '';
 in
 {
+  inherit server-invoker;
 
   tutorial = docs.marlowe-tutorial;
 
