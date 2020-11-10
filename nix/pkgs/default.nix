@@ -10,9 +10,6 @@
 let
 
   iohkNix =
-    let
-      sources = import ../sources.nix;
-    in
     import sources.iohk-nix {
       inherit system config;
       # Make iohk-nix use our nixpkgs
@@ -93,10 +90,13 @@ let
 
   # Thorp is an S3 sync tool used for deployments
   thorp =
-    let
-      sources = import ../sources.nix;
+    let mvn2nix = import sources.mvn2nix { };
     in
-    import ./thorp { inherit sources pkgs; };
+    pkgs.callPackage ./thorp {
+      thorpSrc = sources.thorp;
+      inherit mvn2nix;
+      inherit (pkgs) stdenv jdk11_headless maven makeWrapper graphviz;
+    };
 
   # not available in 20.03 and we depend on several recent changes
   # including stylish-haskell support

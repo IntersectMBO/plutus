@@ -1,18 +1,17 @@
-{ pkgs, sources }:
+{ thorpSrc, mvn2nix, stdenv, jdk11_headless, maven, makeWrapper, graphviz }:
 let
-  mvn2nix = import sources.mvn2nix { };
+
   # This file was generated from mvn2nix pom.xml > mvn2nix-lock.json however one of the hashes was incorrect
   # and so was changed manually, see https://github.com/fzakaria/mvn2nix/issues/29
   # also the format in the json file is base32 but the error is reported in base64 so you need to convert
   # nix-hash --type sha256 --to-base16 $expectedHash
-  file = ./mvn2nix-lock.json;
-  mavenRepository = mvn2nix.buildMavenRepositoryFromLockFile { inherit file; };
+  mavenRepository = mvn2nix.buildMavenRepositoryFromLockFile { file = ./mvn2nix-lock.json; };
 in
-with pkgs; stdenv.mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "thorp";
   version = "2.0.1";
   name = "${pname}-${version}";
-  src = sources.thorp;
+  src = thorpSrc;
   buildInputs = [ jdk11_headless maven makeWrapper graphviz ];
   buildPhase = ''
     echo "Building with maven repository ${mavenRepository}"
@@ -36,4 +35,9 @@ with pkgs; stdenv.mkDerivation rec {
     makeWrapper ${jdk11_headless}/bin/java $out/bin/${pname} \
           --add-flags "-jar $out/${name}.jar"
   '';
+  meta = {
+    description = "Synchronisation of files with S3 using the hash of the file contents.";
+    homepage = "https://github.com/kemitix/thorp";
+    license = stdenv.lib.licenses.mit;
+  };
 }
