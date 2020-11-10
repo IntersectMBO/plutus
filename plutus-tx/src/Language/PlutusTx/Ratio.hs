@@ -90,14 +90,13 @@ Plutus Core provides built-in functions 'divideInteger', 'modInteger',
 'quotientInteger' and 'remainderInteger' which are implemented as the Haskell
 functions 'div', 'mod', 'quot', and 'rem' respectively.
 
-
 The operations 'div' and 'mod' go together, as do 'quot' and 'rem': * DO NOT use
 'div' with 'rem' or 'quot' with 'mod' *.  For most purposes users shoud probably use
 'div' and 'mod': see below for details.
 
 For any integers a and b with b nonzero we have
 
-  a * (a  `div` b  + a `mod` b = a
+  a * (a  `div` b) + a `mod` b = a
   a * (a `quot` b) + a `rem` b = a
 
 (all operations give a "divide by zero" error if b = 0).
@@ -106,7 +105,8 @@ For positive divisors b, div truncates downwards and mod always returns a
 non-negative result (0 <= a `mod` b <= b-1), which is consistent with standard
 mathematical practice.  The `quot` operation truncates towards zero and `rem`
 will give a negative remainder if a<0 and b>0.  If a<0 and b<0 then `mod` willl
-also yield a negative result.
+also yield a negative result.  Results for different combinations of signs are
+shown below.
 
 -------------------------------
 |   n  d | div mod | quot rem |
@@ -135,9 +135,10 @@ We get a positive remainder in all cases (which is desirable), but note for
 instance that the pairs (41,5) and (-41,-5) give different results, which might
 be unexpected.
 
-See Raymond T. Boute, "The Euclidean definition of the functions div and mod",
-ACM Transactions on Programming Languages and Systems, April 1992.
-(PDF at https://core.ac.uk/download/pdf/187613369.pdf)
+For a discussion of the pros and cons of various versions of integer division,
+see Raymond T. Boute, "The Euclidean definition of the functions div and mod",
+ACM Transactions on Programming Languages and Systems, April 1992.  (PDF at
+https://core.ac.uk/download/pdf/187613369.pdf)
 -}
 
 
