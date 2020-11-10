@@ -29,7 +29,7 @@ let
     parseIndexState (builtins.readFile ../../../cabal.project);
 
   # The haskell project created by haskell-nix.stackProject'
-  project = import ../../haskell.nix {
+  project = import ./haskell.nix {
     inherit lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
     inherit agdaWithStdlib checkMaterialization;
   };
@@ -44,7 +44,7 @@ let
 
 
   # The haskell project created by haskell-nix.stackProject' (musl version)
-  muslProject = import ../../haskell.nix {
+  muslProject = import ./haskell.nix {
     inherit (pkgsMusl) lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
     inherit agdaWithStdlib checkMaterialization;
   };
