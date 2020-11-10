@@ -267,7 +267,7 @@ githubCallback (Just code) = do
     now <- getCurrentTime
     let cookie = createSessionCookie _configJWTSignature token now
     logDebugN "Sending cookie."
-    pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
+    pure . addHeader cookie . addHeader (_configRedirectUrl <> "/#/gh-oauth-cb") $ NoContent
 
 withErr ::
        (MonadLogger m, MonadError ServerError m)
