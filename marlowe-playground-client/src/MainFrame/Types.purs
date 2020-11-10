@@ -42,12 +42,22 @@ data ModalView
   | OpenDemo
   | RenameProject
   | SaveProjectAs
-  | GithubLogin
+  | GithubLogin Action
 
 derive instance genericModalView :: Generic ModalView _
 
 instance showModalView :: Show ModalView where
-  show = genericShow
+  show NewProject = "NewProject"
+  show OpenProject = "OpenProject"
+  show OpenDemo = "OpenDemo"
+  show RenameProject = "RenameProject"
+  show SaveProjectAs = "SaveProjectAs"
+  show (GithubLogin _) = "GithubLogin"
+  -- Before adding the intended action to GithubLogin, this instance was being
+  -- handled by the genericShow. Action does not have a show instance so genericShow
+  -- does not work. For the moment I've made a manual instance, but not sure why
+  -- ModalView requires show, or if we should make Action an instance of Show
+  -- show = genericShow
 
 data Query a
   = ChangeRoute Route a
@@ -103,7 +113,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
   toEvent CloseModal = Just $ defaultEvent "CloseModal"
   toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
-  toEvent (OpenLoginPopup _) = Just $ defaultEvent "OpenLoginPopup"
+  toEvent (OpenLoginPopup _)  = Just $ defaultEvent "OpenLoginPopup"
 
 data View
   = HomePage
@@ -175,6 +185,7 @@ newtype State
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
+  -- , popupError :: Maybe String
   }
 
 derive instance newtypeState :: Newtype State _

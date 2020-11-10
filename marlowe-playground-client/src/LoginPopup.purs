@@ -76,8 +76,8 @@ openLoginPopup = do
 
     removeWaitForEventListener :: Ref (Maybe EventListener) -> Aff Unit
     removeWaitForEventListener listenerRef = liftEffect do
-      maybeListener <- Ref.read listenerRef
-      for_ maybeListener \listener ->
+      mbListener <- Ref.read listenerRef
+      for_ mbListener \listener ->
         removeEventListener (EventType "message") listener false (Window.toEventTarget window)
 
   featureString <- features

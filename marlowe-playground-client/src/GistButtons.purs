@@ -4,18 +4,18 @@ import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole)
 import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..))
-import Gists (GistAction(..), idPublishGist)
+import Gists (idPublishGist)
 import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, p_, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, disabled, href)
+import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx, cy, d, fill, height, path, r, strokeLinecap, strokeWidth, svg, viewBox)
 import Halogen.SVG as SVG
 import Icons (Icon(..), icon)
 import MainFrame.Types (Action(..), State, _authStatus)
 import Network.RemoteData (RemoteData(..))
 
-authButton :: forall p. State -> HTML p Action
-authButton state =
+authButton :: forall p. Action -> State -> HTML p Action
+authButton intendedAction state =
   let
     authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
   in
@@ -33,7 +33,7 @@ authButton state =
               [ a
                   [ idPublishGist
                   , classes [ ClassName "auth-button" ]
-                  , onClick $ const $ Just (OpenLoginPopup $ GistAction PublishGist)
+                  , onClick $ const $ Just $ OpenLoginPopup intendedAction
                   ]
                   [ text "Login"
                   ]
