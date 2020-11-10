@@ -14,13 +14,13 @@ description:
 build-type: Simple
 
 data-files:
+        templates/*.tpl
         validation/data/crowdfunding/*.plc
         validation/data/future/*.plc
         validation/data/multisigSM/*.plc
         validation/data/vesting/*.plc
         validation/data/marlowe/trustfund/*.plc
         validation/data/marlowe/zerocoupon/*.plc
-        templates/*.tpl
 
 source-repository head
     type: git
@@ -165,3 +165,38 @@ test-suite plutus-benchmark-nofib-tests
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
+
+benchmark flat
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  ghc-options: -fno-full-laziness
+  hs-source-dirs:
+      flat
+  other-modules:
+      Dataset
+      Codec
+      Report
+       Paths_plutus_benchmark
+  build-depends:
+      base >=4.7 && <5
+    , boxes -any
+    , bytestring -any
+    , containers -any
+    , criterion -any
+    , deepseq -any
+    , flat -any
+    , lens -any
+    , plutus-core -any
+    , plutus-use-cases -any
+    , plutus-ledger -any
+    , plutus-core -any
+    , plutus-contract -any
+    , plutus-tx -any
+    , plutus-tx-plugin -any
+    , pure-zlib -any
+    , filepath -any
+    , serialise -any
+    , text -any
+    , transformers -any
+    , zlib
