@@ -23,17 +23,15 @@ import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
-import           Language.PlutusTx.Builtins   (divideInteger, remainderInteger)
+import           Language.PlutusTx.Builtins   (divideInteger, modInteger)
 import           Language.PlutusTx.Prelude    as Tx hiding (divMod, even)
+import           Language.PlutusTx.Ratio      (divMod)
 import           Language.UntypedPlutusCore
 
 ---------------- Extras ----------------
 
 even :: Integer -> Bool
-even n = (n `remainderInteger` 2) == 0
-
-divMod :: Integer -> Integer -> (Integer, Integer)
-divMod a b = (a `divideInteger` b, a `remainderInteger` b)
+even n = (n `modInteger` 2) == 0
 
 ---------------- IntLib ----------------
 
@@ -67,11 +65,11 @@ powerMod :: Integer -> Integer -> Integer -> Integer
 powerMod a b m =
     if b == 0 then 1
     else f a' (b-1) a'
-        where a' = a `remainderInteger` m
+        where a' = a `modInteger` m
               f a b c = if b == 0 then c
                         else g a b where
-                             g a b | even b = g ((a*a) `remainderInteger` m) (b `divideInteger` 2)
-                                   | otherwise = f a (b-1) ((a*c) `remainderInteger` m)
+                             g a b | even b = g ((a*a) `modInteger` m) (b `divideInteger` 2)
+                                   | otherwise = f a (b-1) ((a*c) `modInteger` m)
 
 {- The value $@y@=@cubeRoot x@$ is the integer cube root of @x@, {\it
    i.e.} $@y@ = \lfloor \sqrt[3]{@x@} \, \rfloor$. Given $@x@\geq 0$,
@@ -161,7 +159,7 @@ singleTestX n (k, q) x
          witness (t:ts) = if t == (n-1) then True
                           else if t == 1 then False
                                else witness ts
-         square x       = (x*x) `remainderInteger` n
+         square x       = (x*x) `modInteger` n
 
 -- The function @singleTest@ takes an odd, positive, @Integer@ @n@ and a
 -- pair of @Integer@'s derived from @n@ by the @findKQ@ function
@@ -218,10 +216,10 @@ boundedRandom n r = (makeNumber 65536 (uniform ns rs), r')
 -- in the range @0..ns@ from the random numbers @rs@.
 {-# INLINABLE uniform #-}
 uniform :: [Integer] -> [Integer] -> [Integer]
-uniform [n]    [r]    = [r `remainderInteger` n]
+uniform [n]    [r]    = [r `modInteger` n]
 uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
-                                  else t: map ((`remainderInteger` 65536). toInteger) rs
-                        where t  = toInteger r `remainderInteger` (n+1)
+                                  else t: map ((`modInteger` 65536). toInteger) rs
+                        where t  = toInteger r `modInteger` (n+1)
 
 
 ---------------- Main ----------------

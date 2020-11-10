@@ -25,6 +25,7 @@ module Language.PlutusTx.Ratio(
     , fromGHC
     , toGHC
     -- * Misc.
+    , divMod
     , quotRem
     , gcd
     , abs
@@ -68,8 +69,7 @@ instance  Show a => Show (Ratio a) where
 
 The implementation of 'Ratio' and related functions (most importantly
 'round' and Num/Ord instances) is the same as that found in 'GHC.Real',
-specialised to `Integer` and accounting for the fact that there is no
-primitive `quot` operation in Plutus.
+specialised to `Integer`.
 
 An important invariant is that the denominator is always positive. This is
 enforced by
@@ -83,6 +83,63 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 'GHC.Real'.
 
 -}
+
+{- NOTE [Integer division operations]
+
+Plutus Core provides built-in functions 'divideInteger', 'modInteger',
+'quotientInteger' and 'remainderInteger' which are implemented as the Haskell
+functions 'div', 'mod', 'quot', and 'rem' respectively.
+
+
+The operations 'div' and 'mod' go together, as do 'quot' and 'rem': * DO NOT use
+'div' with 'rem' or 'quot' with 'mod' *.  For most purposes users shoud probably use
+'div' and 'mod': see below for details.
+
+For any integers a and b with b nonzero we have
+
+  a * (a  `div` b  + a `mod` b = a
+  a * (a `quot` b) + a `rem` b = a
+
+(all operations give a "divide by zero" error if b = 0).
+
+For positive divisors b, div truncates downwards and mod always returns a
+non-negative result (0 <= a `mod` b <= b-1), which is consistent with standard
+mathematical practice.  The `quot` operation truncates towards zero and `rem`
+will give a negative remainder if a<0 and b>0.  If a<0 and b<0 then `mod` willl
+also yield a negative result.
+
+-------------------------------
+|   n  d | div mod | quot rem |
+|-----------------------------|
+|  41  5 |  8   1  |   8   1  |
+| -41  5 | -9   4  |  -8  -1  |
+|  41 -5 | -9  -4  |  -8   1  |
+| -41 -5 |  8  -1  |   8  -1  |
+-------------------------------
+
+There is another possibility (Euclidean division) which is arguably more
+mathematically correct than both of these. Given integers a and b with b != 0,
+this returns numbers q and r with a = q*b+r and 0 <= r < |b|.  For the numbers
+above this gives
+
+-------------------
+|   n  d |  q   r |
+|-----------------|
+|  41  5 |  8   1 |
+| -41  5 | -9   4 |
+|  41 -5 | -8   1 |
+| -41 -5 |  9   4 |
+-------------------
+
+We get a positive remainder in all cases (which is desirable), but note for
+instance that the pairs (41,5) and (-41,-5) give different results, which might
+be unexpected.
+
+See Raymond T. Boute, "The Euclidean definition of the functions div and mod",
+ACM Transactions on Programming Languages and Systems, April 1992.
+(PDF at https://core.ac.uk/download/pdf/187613369.pdf)
+-}
+
 
 type Rational = Ratio Integer
 
@@ -182,23 +239,24 @@ truncate r = let (m, _ :: Rational) = properFraction r in m
 properFraction :: Ratio Integer -> (Integer, Ratio Integer)
 properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
 
-{-# INLINABLE quot #-}
-quot :: Integer -> Integer -> Integer
-quot x y = let (q, _ :: Integer) = quotRem x y in q
+{-# INLINABLE divMod #-}
+-- | simultaneous div and mod
+-- TODO. This is doing twice as much work as it needs to: the Plutus Core
+-- builtins 'divideInteger' and 'modInteger' are implemented as the Haskell
+-- 'div' and 'mod' operations, which in turn are impemented as fst . divMod and
+-- snd . divMod, so we're calling Haskell's 'divMod' twice and throwing away
+-- useful information.  We could fix his by exposing 'divMod' as a PLC builtin,
+-- but that would require us to implement pairs as built-in types along with
+-- built-in introduction and elimination functions.  This would be non-trivial.
+divMod :: Integer -> Integer -> (Integer, Integer)
+divMod x y = ( x `Builtins.divideInteger` y, x `Builtins.modInteger` y)
 
 {-# INLINABLE quotRem #-}
 -- | simultaneous quot and rem
+-- TODO.  Provide a Plutus Core built-in function for this: see the comment for
+-- 'divMod'.
 quotRem :: Integer -> Integer -> (Integer, Integer)
-quotRem x y =
-    -- `quot` is integer division truncated towards 0, while the result of `div`
-    -- is truncated toward negative inf.
-    -- Cf. https://stackoverflow.com/questions/339719/when-is-the-difference-between-quotrem-and-divmod-useful
-    -- So we need to add 1 in some cases!
-    let d   = x `Builtins.divideInteger` y
-        rem = x `Builtins.remainderInteger` y
-    in if d P.< P.zero P.&& rem P./= P.zero
-       then (d P.+ P.one, rem)
-       else (d, rem)
+quotRem x y = ( x `Builtins.quotientInteger` y, x `Builtins.remainderInteger` y)
 
 {-# INLINABLE half #-}
 -- | 0.5
@@ -215,7 +273,7 @@ reduce x y
     | y P.== 0 = Builtins.error ()
     | True     =
         let d = gcd x y in
-        (x `quot` d) :% (y `quot` d)
+        (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
 
 {-# INLINABLE abs #-}
 abs :: (P.Ord n, P.AdditiveGroup n) => n -> n
