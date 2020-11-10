@@ -68,18 +68,17 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → (cn : TermCon (con tcn))
     → Value {Γ = Γ} (con {Φ} cn)
 
-  V-builtin : ∀{Φ Γ}(b : Builtin)
+  V-pbuiltin : ∀{Φ Γ}(b : Builtin)
     → let Ψ ,, As ,, C = SIG b in
       (σ : SubNf Ψ Φ)
     → (A : Ψ ⊢Nf⋆ *)
     → (As' : List (Ψ ⊢Nf⋆ *))
     → (p : (A ∷ As') ≤L' As)
     → (ts : Tel Γ Ψ σ As')
-    → VTel Γ Ψ σ As' ts
     → Value {Γ = Γ} (pbuiltin b Ψ σ As' (inj₂ (refl ,, skip p)) ts)
 
 
-  V-builtin⋆ : ∀{Φ Γ}(b : Builtin)
+  V-pbuiltin⋆ : ∀{Φ Γ}(b : Builtin)
     → let Ψ ,, As ,, C = SIG b in
       ∀ Ψ' {K} → 
       (σ : SubNf Ψ' Φ)
@@ -399,7 +398,7 @@ progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
 progress-·V v       (step q)        = step (ξ-·₂ v q)
 progress-·V v       (error E-error) = step (E-·₂ v)
 progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
-progress-·V (V-builtin b σ A As' p ts vs) (done v) =
+progress-·V (V-pbuiltin b σ A As' p ts) (done v) =
   step (sat b σ As' ts A (deval v) p)
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
@@ -415,15 +414,15 @@ progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ �
 progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
-progress-·⋆ {Φ}{Γ} (done (V-builtin⋆ b Ψ σ p)) A = step (sat⋆ b Ψ _ σ A p)
+progress-·⋆ {Φ}{Γ} (done (V-pbuiltin⋆ b Ψ σ p)) A = step (sat⋆ b Ψ _ σ A p)
 
-{-
 progress-unwrap : ∀{Φ Γ K}{A}{B : Φ ⊢Nf⋆ K}{t : Γ ⊢ μ A B}
   → Progress t → Progress (unwrap t)
 progress-unwrap (step q) = step (ξ-unwrap q)
 progress-unwrap (done (V-wrap v)) = step (β-wrap v)
 progress-unwrap {A = A} (error E-error) =
   step (E-unwrap {A = A})
+
 
 progress-builtin : ∀{Φ Γ} bn
   (σ : SubNf (proj₁ (SIG bn)) Φ)
@@ -499,11 +498,11 @@ progress p (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel p ts)
 progress p (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) =
   step (tick-pbuiltin σ)
 progress p (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, refl)) []) =
-  done (V-builtin⋆ b Ψ' σ q)
+  done (V-pbuiltin⋆ b Ψ' σ q)
 progress p (pbuiltin b Ψ' σ _ (inj₂ (refl ,, base)) ts) =
   progress-pbuiltin b σ ts (progressTel p ts)
 progress p (pbuiltin b Ψ' σ As' (inj₂ (refl ,, skip r)) ts) =
-  done (V-builtin b σ _ _ r ts)
+  done (V-pbuiltin b σ _ _ r ts)
 progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
 progress p (ipbuiltin b Ψ' Δ' q σ⋆ σ) = step (E-ipbuiltin b Ψ' Δ' q σ⋆ σ)
 progress p (error A)            = error E-error
@@ -516,7 +515,7 @@ open import Data.Empty
 
 
 -- a value cannot make progress
-
+{-
 val-red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
 val-red (V-wrap p) (.(wrap _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
 
