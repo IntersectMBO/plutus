@@ -177,7 +177,7 @@ NOTE: If you are a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] y
 
 
 ==== Cache setup via `.envrc`
-Alternatively you may want to configure the cache only for the plutus project. If you use
+Alternatively you may want to configure the cache only for the Plutus project. If you use
 lorri and/or direnv you can do so by adding the following to the `.envrc` at the project root:
 
 ----
