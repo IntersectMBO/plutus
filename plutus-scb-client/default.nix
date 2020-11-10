@@ -9,7 +9,7 @@ let
     ${server-invoker}/bin/plutus-scb psgenerator $out
   '';
   client =
-    pkgs.callPackage ../nix/purescript.nix rec {
+    pkgs.callPackage ../nix/lib/purescript.nix rec {
       inherit nodejs-headers;
       inherit easyPS webCommon;
       psSrc = generated-purescript;

@@ -32,7 +32,7 @@ in
 
   tutorial = docs.marlowe-tutorial;
 
-  client = pkgs.callPackage ../nix/purescript.nix rec {
+  client = pkgs.callPackage ../nix/lib/purescript.nix rec {
     inherit nodejs-headers;
     inherit easyPS webCommon;
     psSrc = generated-purescript;
