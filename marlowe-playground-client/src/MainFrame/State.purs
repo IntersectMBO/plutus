@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
@@ -42,7 +42,7 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
-import LoginPopup (openLoginPopup, informParentIfPresentAndClose)
+import LoginPopup (openLoginPopup, informParentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -194,7 +194,18 @@ handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleSubRoute _ Router.Wallets = selectView WalletEmulator
 
-handleSubRoute _ Router.GithubAuthCallback = pure unit
+-- This route is supposed to be called by the github oauth flow after the a succesful login flow
+-- It is only supposed to be run in a popup window
+handleSubRoute settings Router.GithubAuthCallback = do
+  -- TODO: This is being called twice
+  liftEffect $ Console.log "is this being called???"
+  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
+  -- case authResult of
+  --   Success ->  -- Anonymous shoud never happen but put a message
+  --   Failure ->
+  -- pure unit
+  liftEffect $ informParentAndClose authResult
+
 
 handleRoute ::
   forall m.
@@ -506,11 +517,6 @@ checkAuthStatus settings = do
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
-  -- TODO: not sure if we should either:
-  --          leave this check here put this check here
-  --          add a new route for the callback
-  --          add this check at the beginning of the Init
-  liftEffect $ informParentIfPresentAndClose authResult
 
 handleGistAction ::
   forall m.

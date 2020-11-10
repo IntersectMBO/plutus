@@ -14,13 +14,15 @@ import Effect (Effect)
 import Effect.Aff (Aff, bracket, makeAff, never, nonCanceler)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Effect.Ref (Ref)
+import Effect.Ref as Ref
 import Effect.Uncurried as FU
 import Foreign (Foreign)
 import Foreign.Generic.Class (encode, decode)
 import Network.RemoteData (RemoteData(..))
 import Types (WebData)
 import Web.Event.Event (EventType(..), Event)
-import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import Web.Event.EventTarget (EventListener, addEventListener, eventListener, removeEventListener)
 import Web.HTML as Web
 import Web.HTML.Window (open, opener, outerHeight, outerWidth)
 import Web.HTML.Window as WebWindow
@@ -61,84 +63,50 @@ openLoginPopup = do
         <> show left
         <> ",menubar=no,status=no,location=no"
 
-    -- I have:
-    -- eventListener :: forall a. (Event -> Effect a) -> Effect EventListener
-    -- addEventListener :: EventType -> EventListener -> Boolean -> EventTarget -> Effect Unit
-    -- removeEventListener :: EventType -> EventListener -> Boolean -> EventTarget -> Effect Unit
-    --
-    -- makeAff :: forall a. ((Either Error a -> Effect Unit) -> Effect Canceler) -> Aff a
-    -- never :: forall a. Aff a
-    -- bracket :: forall a b. Aff a -> (a -> Aff Unit) -> (a -> Aff b) -> Aff b
-
-    -- I need: Aff Boolean
-
     decodeMessageEvent :: Event -> Maybe AuthRole
     decodeMessageEvent event = do
       data' <- MessageEvent.data_ <$> MessageEvent.fromEvent event
       hush <<< runExcept <<< decode $ data'
 
-    -- TODO: in this version I cant clean the event listener
-    waitForEvent2 :: Aff AuthRole
-    waitForEvent2 = makeAff resolver where
-      -- resolver :: ((Either Error a -> Effect Unit) -> Effect Canceler)
+    waitForEvent :: Ref (Maybe EventListener) -> Aff AuthRole
+    waitForEvent listenerRef = makeAff resolver where
       resolver cb = do
         window <- Web.window
         listener <- eventListener \event -> do
-          log $ "waitForEvent2 event listener "
+          log $ "waitForEvent event listener "
           traceM event
 
           case decodeMessageEvent event  of
             Nothing -> pure unit
             Just role -> cb $ Right role
 
+        Ref.write (Just listener) listenerRef
         addEventListener (EventType "message") listener false $ WebWindow.toEventTarget window
         pure nonCanceler
-
-    -- TODO: in this version I cant get the value out
-    waitForEvent3 :: Aff Boolean
-    waitForEvent3 = bracket acquire release produce where
-      -- acquire :: Aff EventListener
-      acquire = liftEffect do
-        window <- Web.window
-        listener <- eventListener \event -> do
-          log $ "waitForEvent3 event listener "
-          traceM event
-          pure unit
-          -- case decodeMessageEvent event  of
-          --   Nothing -> pure unit
-          --   Just str -> case str of
-          --     "GithubUser" -> cb $ Right true
-          --     "Anonymous" -> cb $ Right false
-          --     _ -> pure unit
-
-        addEventListener (EventType "message") listener false (WebWindow.toEventTarget window)
-        pure listener
-      -- release :: EventListener -> Aff Unit
-      release listener = liftEffect $ do
-        window <- Web.window
-        removeEventListener (EventType "message") listener false (WebWindow.toEventTarget window)
-
-      -- produce :: EventListener -> Aff Boolean
-      produce _ = pure false
-
-    -- waitForEvent :: Aff Boolean
-    -- waitForEvent = bracket
-    --   (eventListener )
 
     popup :: Effect Unit
     popup = do
       ft <- features
       window <- Web.window
-      -- _ <- open "/" "_blank" ft window
-      _ <- open "/api/oauth/github" "_blank" ft window
+      _ <- open "/#/gh-oauth-cb" "_blank" ft window
+      -- _ <- open "/api/oauth/github" "_blank" ft window
       pure unit
   liftEffect popup
   -- never
-  waitForEvent2
+  listenerRef <- liftEffect $ Ref.new Nothing
+  authRole <- waitForEvent listenerRef
+  liftEffect do
+    window <- Web.window
+    maybeListener <- Ref.read listenerRef
+    for_ maybeListener \listener ->
+      removeEventListener (EventType "message") listener false (WebWindow.toEventTarget window)
+  pure authRole
+
+
 
 -- TODO: Move the WebData part to the route handling and rename as informParentAndClose
-informParentIfPresentAndClose :: WebData AuthStatus -> Effect Unit
-informParentIfPresentAndClose (Success authStatus) = do
+informParentAndClose :: WebData AuthStatus -> Effect Unit
+informParentAndClose (Success authStatus) = do
   let
     authRole = view authStatusAuthRole authStatus
   window <- Web.window
@@ -147,4 +115,4 @@ informParentIfPresentAndClose (Success authStatus) = do
     postMessage (encode authRole) parent
     close window
 
-informParentIfPresentAndClose _ = pure unit
+informParentAndClose _ = pure unit
