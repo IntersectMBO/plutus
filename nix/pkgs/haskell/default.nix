@@ -1,7 +1,7 @@
 { lib
 , fetchFromGitHub
 , fetchFromGitLab
-, agdaPackages
+, agdaWithStdlib
 , pkgsMusl
 , stdenv
 , haskell-nix
@@ -31,7 +31,7 @@ let
   # The haskell project created by haskell-nix.stackProject'
   project = import ../../haskell.nix {
     inherit lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaPackages checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization;
   };
 
   # All the packages defined by our project, including dependencies
@@ -46,7 +46,7 @@ let
   # The haskell project created by haskell-nix.stackProject' (musl version)
   muslProject = import ../../haskell.nix {
     inherit (pkgsMusl) lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaPackages checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization;
   };
 
   # All the packages defined by our project, built for musl

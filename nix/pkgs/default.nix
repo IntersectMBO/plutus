@@ -24,7 +24,7 @@ let
   haskell = pkgs.callPackage ./haskell {
     inherit pkgsMusl;
     inherit (pkgs) stdenv fetchFromGitHub fetchFromGitLab haskell-nix buildPackages nix-gitignore z3 R rPackages;
-    inherit agdaPackages checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization;
   };
 
 
@@ -58,6 +58,8 @@ let
       }) // { version = haskellNixAgda.identifier.version; };
     in
     pkgs.callPackage ./../lib/agda { Agda = frankenAgda; };
+
+  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
   #
   # dev convenience scripts
@@ -143,4 +145,5 @@ in
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
+  inherit agdaWithStdlib;
 }

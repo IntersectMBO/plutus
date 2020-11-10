@@ -9,12 +9,10 @@ let
   inherit (packages) pkgs pkgsLocal pkgsMusl;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (pkgsLocal) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (pkgsLocal) agdaWithStdlib;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
-
-  # Called from Cabal to generate the Haskell source for the metatheory package
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
   # Configure project pre-commit hooks
   pre-commit-check = nix-pre-commit-hooks.run {

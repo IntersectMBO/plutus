@@ -3,7 +3,7 @@
 let
 
   inherit (pkgs) lib;
-  inherit (pkgsLocal) agdaPackages;
+  inherit (pkgsLocal) agdaWithStdlib;
 
   latex = pkgs.callPackage ./lib/latex.nix { };
 
@@ -19,9 +19,6 @@ let
     '';
 
   buildLatexDoc = { name, description, src, texFiles ? null, withAgda ? false }:
-    let
-      agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
-    in
     latex.buildLatex {
       inherit name;
       inherit description;
@@ -130,7 +127,7 @@ in
     texFiles = [ "cost-model-notes.tex" ];
   };
 
-  unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { inherit (agdaPackages) agda; inherit latex; };
+  unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
 
   site = pkgs.callPackage ../doc {
     inherit (pkgsLocal) sphinx-markdown-tables sphinxemoji;

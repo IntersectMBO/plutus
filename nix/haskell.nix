@@ -5,7 +5,7 @@
 , stdenv
 , rPackages
 , haskell-nix
-, agdaPackages
+, agdaWithStdlib
 , buildPackages
 , nix-gitignore
 , checkMaterialization
@@ -15,7 +15,6 @@
 
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in
