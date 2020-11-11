@@ -57,11 +57,11 @@ executable actus-agda-gen
                       DeriveGeneric StandaloneDeriving DeriveLift
                       DeriveFunctor DeriveFoldable
                       DeriveTraversable
-  exposed-modules:
   other-modules:
     Language.Marlowe.ACTUS.Agda.AgdaOps
     Language.Marlowe.ACTUS.Agda.AgdaGen
     Language.Marlowe.ACTUS.Agda.GenPayoff
+    Language.Marlowe.ACTUS.Agda.GenStateTransition
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

@@ -5,4 +5,4 @@ import Agda.Syntax.Concrete.Pretty ()
 import Agda.Utils.Pretty
 
 main :: IO () = do
-    writeFile "PayOff.agda" $ show $ pretty payoff
+    writeFile "agda/generated/PayOff.agda" $ show $ pretty payoff
