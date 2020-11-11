@@ -10,7 +10,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Semantics (AccountId, Case(..), Contract(..), Observation(..), Payee, Timeout, Token, Value, ValueId)
+import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
@@ -19,18 +19,8 @@ import Network.RemoteData as RemoteData
 import Prelude (Unit, Void, bind, discard, map, pure, unit, ($), (+), (/=), (<$>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
 import MainFrame.Types (ChildSlots)
-
-data ContractZipper
-  = PayZip AccountId Payee Token Value ContractZipper
-  | IfTrueZip Observation ContractZipper Contract
-  | IfFalseZip Observation Contract ContractZipper
-  | WhenCaseZip (List Case) S.Action ContractZipper (List Case) Timeout Contract -- First list is stored reversed for efficiency
-  | WhenTimeoutZip (Array Case) Timeout ContractZipper
-  | LetZip ValueId Value ContractZipper
-  | AssertZip Observation ContractZipper
-  | HeadZip
 
 emptyContractPath :: ContractPath
 emptyContractPath = Nil

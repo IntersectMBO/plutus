@@ -19,7 +19,7 @@ import Data.Tuple.Nested (type (/\))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
-import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, Slot)
+import Marlowe.Semantics (AccountId, Bound, Case, ChoiceId, ChosenNum, Contract, Input, Observation, Payee, Slot, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData)
@@ -50,6 +50,16 @@ instance showContractPathStep :: Show ContractPathStep where
 
 type ContractPath
   = List ContractPathStep
+
+data ContractZipper
+  = PayZip AccountId Payee Token Value ContractZipper
+  | IfTrueZip Observation ContractZipper Contract
+  | IfFalseZip Observation Contract ContractZipper
+  | WhenCaseZip (List Case) S.Action ContractZipper (List Case) Timeout Contract -- First list is stored reversed for efficiency
+  | WhenTimeoutZip (Array Case) Timeout ContractZipper
+  | LetZip ValueId Value ContractZipper
+  | AssertZip Observation ContractZipper
+  | HeadZip
 
 data ReachabilityAnalysisData
   = NotStarted
