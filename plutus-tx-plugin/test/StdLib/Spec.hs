@@ -35,7 +35,7 @@ import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
-roundPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Ratio.Rational -> Integer)
+roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
@@ -116,5 +116,5 @@ genData =
             , List <$> genList genData
             ]
 
-errorTrace :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Integer)
+errorTrace :: CompiledCode (Integer)
 errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

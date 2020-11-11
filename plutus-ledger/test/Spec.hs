@@ -208,7 +208,7 @@ pubkeyHashOnChainAndOffChain :: Property
 pubkeyHashOnChainAndOffChain = property $ do
     pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
     let offChainHash = Crypto.pubKeyHash pk
-        onchainProg :: CompiledCode PLC.DefaultUni PLC.DefaultFun (PubKey -> PubKeyHash -> ())
+        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
         onchainProg = $$(PlutusTx.compile [|| \pk expected -> if (expected PlutusTx.== Validation.pubKeyHash pk) then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
         script = Scripts.fromCompiledCode $ onchainProg `applyCode` (liftCode pk) `applyCode` (liftCode offChainHash)
         result = runExcept $ evaluateScript script

@@ -123,7 +123,7 @@ pluginPass opts guts = do
 Working out what to process and where to put it is tricky. We are going to turn the result in
 to a 'CompiledCode', not the Haskell expression we started with!
 
-Currently we look for calls to the 'plc :: a -> CompiledCode' function, and we replace the whole application with the
+Currently we look for calls to the @plc :: a -> CompiledCode a@ function, and we replace the whole application with the
 generated code object, which will still be well-typed.
 -}
 
@@ -247,7 +247,7 @@ compileMarkedExprs opts markerName =
       e@(GHC.Type _) -> pure e
 
 -- Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode PLC.DefaultUni PLC.DefaultFun a
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> CompiledCode a
 mkCompiledCode plcBS pirBS = SerializedCode plcBS (Just pirBS)
 
 -- | Actually invokes the Core to PLC compiler to compile an expression into a PLC literal.
@@ -275,12 +275,9 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             in if poDeferErrors opts
             -- this will blow up at runtime
             then do
-                defUni <- GHC.lookupTyCon =<< thNameToGhcNameOrFail ''PLC.DefaultUni
-                defFun <- GHC.lookupTyCon =<< thNameToGhcNameOrFail ''()
                 tcName <- thNameToGhcNameOrFail ''CompiledCode
                 tc <- GHC.lookupTyCon tcName
-                let args = [GHC.mkTyConTy defUni, GHC.mkTyConTy defFun, codeTy]
-                pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc args) shown
+                pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
             -- this will actually terminate compilation
             else failCompilation shown
         Right (pirP, uplcP) -> do

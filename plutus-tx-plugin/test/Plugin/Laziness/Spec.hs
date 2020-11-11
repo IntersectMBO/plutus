@@ -27,7 +27,7 @@ laziness = testNested "Laziness" [
     , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
-joinErrorPir :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Bool -> Bool -> ())
+joinErrorPir :: CompiledCode (Bool -> Bool -> ())
 joinErrorPir = plc (Proxy @"joinError") joinError
 
 {-# NOINLINE monoId #-}
@@ -39,5 +39,5 @@ monoId x = x
 aByteString :: Builtins.ByteString
 aByteString = monoId Builtins.emptyByteString
 
-lazyDepUnit :: CompiledCode PLC.DefaultUni PLC.DefaultFun Builtins.ByteString
+lazyDepUnit :: CompiledCode Builtins.ByteString
 lazyDepUnit = plc (Proxy @"lazyDepUnit") aByteString

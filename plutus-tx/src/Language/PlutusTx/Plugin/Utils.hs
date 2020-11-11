@@ -11,9 +11,6 @@ import           GHC.TypeLits
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Utils
 
-import qualified Language.PlutusCore.Builtins as PLC
-import qualified Language.PlutusCore.Universe as PLC
-
 {- Note [plc and Proxy]
 It would be nice to use TypeApplications instead of passing a Proxy to plc.
 However, this means we need to create a type application in the TH-generated code which calls it.
@@ -28,6 +25,6 @@ a Proxy to avoid this.
 -- If we inline this then we won't be able to find it later!
 {-# NOINLINE plc #-}
 -- | Marks the given expression for compilation to PLC.
-plc :: forall (loc::Symbol) a . Proxy loc -> a -> CompiledCode PLC.DefaultUni PLC.DefaultFun a
+plc :: forall (loc::Symbol) a . Proxy loc -> a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
 plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir")

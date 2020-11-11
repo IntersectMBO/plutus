@@ -27,9 +27,9 @@ import           Language.PlutusTx.Prelude
 -- >>> import Data.Text.Prettyprint.Doc
 
 -- BLOCK2
-integerOne :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
+integerOne :: CompiledCode Integer
 {- 'compile' turns the 'TExpQ Integer' into a
-  'TExpQ (CompiledCode PLC.DefaultUni PLC.DefaultFun Integer)' and the splice
+  'TExpQ (CompiledCode Integer)' and the splice
   inserts it into the program. -}
 integerOne = $$(compile
     {- The quote has type 'TExpQ Integer'.
@@ -44,7 +44,7 @@ integerOne = $$(compile
 )
 -}
 -- BLOCK3
-integerIdentity :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Integer -> Integer)
+integerIdentity :: CompiledCode (Integer -> Integer)
 integerIdentity = $$(compile [|| \(x:: Integer) -> x ||])
 
 {- |
@@ -78,7 +78,7 @@ myProgram =
         externalTwo = plusOne 1
     in localTwo `addInteger` externalTwo
 
-functions :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
+functions :: CompiledCode Integer
 functions = $$(compile [|| myProgram ||])
 
 {- We’ve used the CK evaluator for Plutus Core to evaluate the program
@@ -88,7 +88,7 @@ functions = $$(compile [|| myProgram ||])
 (con 4)
 -}
 -- BLOCK5
-matchMaybe :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Maybe Integer -> Integer)
+matchMaybe :: CompiledCode (Maybe Integer -> Integer)
 matchMaybe = $$(compile [|| \(x:: Maybe Integer) -> case x of
     Just n  -> n
     Nothing -> 0
@@ -98,29 +98,29 @@ matchMaybe = $$(compile [|| \(x:: Maybe Integer) -> case x of
 data EndDate = Fixed Integer | Never
 
 -- | Check whether a given time is past the end date.
-pastEnd :: CompiledCode PLC.DefaultUni PLC.DefaultFun (EndDate -> Integer -> Bool)
+pastEnd :: CompiledCode (EndDate -> Integer -> Bool)
 pastEnd = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
     Fixed n -> n `lessThanEqInteger` current
     Never   -> False
   ||])
 -- BLOCK7
 -- | Check whether a given time is past the end date.
-pastEnd' :: CompiledCode PLC.DefaultUni PLC.DefaultFun (EndDate -> Integer -> Bool)
+pastEnd' :: CompiledCode (EndDate -> Integer -> Bool)
 pastEnd' = $$(compile [|| \(end::EndDate) (current::Integer) -> case end of
     Fixed n -> n < current
     Never   -> False
   ||])
 -- BLOCK8
-addOne :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Integer -> Integer)
+addOne :: CompiledCode (Integer -> Integer)
 addOne = $$(compile [|| \(x:: Integer) -> x `addInteger` 1 ||])
 -- BLOCK9
-addOneToN :: Integer -> CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
+addOneToN :: Integer -> CompiledCode Integer
 addOneToN n =
     addOne
     -- 'applyCode' applies one 'CompiledCode' to another.
     `applyCode`
     -- 'liftCode' lifts the argument 'n' into a
-    -- 'CompiledCode PLC.DefaultUni PLC.DefaultFun Integer'.
+    -- 'CompiledCode Integer'.
     liftCode n
 
 {- |
@@ -165,7 +165,7 @@ addOneToN n =
 -- 'makeLift' generates instances of 'Lift' automatically.
 makeLift ''EndDate
 
-pastEndAt :: EndDate -> Integer -> CompiledCode PLC.DefaultUni PLC.DefaultFun Bool
+pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
     `applyCode`
