@@ -238,4 +238,3 @@ updateWithResponse settings ( InProgress
 
 updateWithResponse _ rad _ = pure rad
 
--- ToDo: nullify assertions
