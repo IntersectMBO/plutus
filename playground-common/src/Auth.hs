@@ -23,7 +23,8 @@ module Auth
     , AuthRole
     , Config(..)
     , configJWTSignature
-    , configRedirectUrl
+    , configFrontendUrl
+    , configGithubCbPath
     , configGithubClientId
     , configGithubClientSecret
     , GithubEndpoints
@@ -128,7 +129,8 @@ mkGithubEndpoints = do
 data Config =
     Config
         { _configJWTSignature       :: !JWT.Signer
-        , _configRedirectUrl        :: !Text
+        , _configFrontendUrl        :: !Text
+        , _configGithubCbPath       :: !Text
         , _configGithubClientId     :: !OAuthClientId
         , _configGithubClientSecret :: !OAuthClientSecret
         }
@@ -141,7 +143,8 @@ instance FromJSON Config where
             _configGithubClientId <- o .: "github-client-id"
             _configGithubClientSecret <- o .: "github-client-secret"
             _configJWTSignature <- JWT.hmacSecret <$> o .: "jwt-signature"
-            _configRedirectUrl <- o .: "redirect-url"
+            _configFrontendUrl <- o .: "frontend-url"
+            _configGithubCbPath <- o .: "github-cb-path"
             pure Config {..}
 
 type Env = (GithubEndpoints, Config)
@@ -166,7 +169,7 @@ githubRedirect ::
     => m (Headers '[ Header "Location" Text] NoContent)
 githubRedirect = do
     logDebugN "Processing github redirect."
-    _configRedirectUrl <- view (_2 . configRedirectUrl)
+    _configFrontendUrl <- view (_2 . configFrontendUrl)
     _githubEndpointsCallbackUri <- view (_1 . githubEndpointsCallbackUri)
     _configGithubClientId <- view (_2 . configGithubClientId)
     _githubEndpointsAuthLocation <- view (_1 . githubEndpointsAuthLocation)
@@ -175,7 +178,7 @@ githubRedirect = do
             getUri .
             setQueryString
                 [ param "redirect_uri" $
-                  _configRedirectUrl <> _githubEndpointsCallbackUri
+                  _configFrontendUrl <> _githubEndpointsCallbackUri
                 , param "scope" oauthScopes
                 , param "client_id" (unpack _configGithubClientId)
                 ] $
@@ -267,7 +270,7 @@ githubCallback (Just code) = do
     now <- getCurrentTime
     let cookie = createSessionCookie _configJWTSignature token now
     logDebugN "Sending cookie."
-    pure . addHeader cookie . addHeader (_configRedirectUrl <> "/#/gh-oauth-cb") $ NoContent
+    pure . addHeader cookie . addHeader (_configFrontendUrl <> _configGithubCbPath) $ NoContent
 
 withErr ::
        (MonadLogger m, MonadError ServerError m)
