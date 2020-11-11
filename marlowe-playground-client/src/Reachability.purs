@@ -4,10 +4,12 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Function (flip)
 import Data.Lens (assign)
-import Data.List (List(..), concatMap, foldl, fromFoldable, length, reverse, snoc, toUnfoldable)
+import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
+import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
+import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
@@ -16,14 +18,10 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, discard, map, pure, unit, ($), (+), (/=), (<$>))
+import Prelude (Void, bind, discard, map, pure, ($), (+), (/=), (<$>), (<>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), State, WebData, _analysisState)
-import MainFrame.Types (ChildSlots)
-
-emptyContractPath :: ContractPath
-emptyContractPath = Nil
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), State, WebData, RemainingSubProblemInfo, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -33,35 +31,23 @@ splitArrayAux _ Nil = Nil
 
 splitArrayAux l (Cons h t) = Cons (l /\ h /\ t) (splitArrayAux (Cons h l) t)
 
-foldBreadthContractWithZipperAuxStep :: ContractZipper /\ Contract -> List (ContractZipper /\ Contract)
-foldBreadthContractWithZipperAuxStep (_ /\ Close) = Nil
+expandChildren :: ContractZipper -> Contract -> RemainingSubProblemInfo
+expandChildren _ Close = Nil
 
-foldBreadthContractWithZipperAuxStep (zipper /\ Pay accId payee tok val cont) = Cons (PayZip accId payee tok val zipper /\ cont) Nil
+expandChildren zipper (Pay accId payee tok val cont) = Cons (PayZip accId payee tok val zipper /\ cont) Nil
 
-foldBreadthContractWithZipperAuxStep (zipper /\ If obs cont1 cont2) = Cons (IfTrueZip obs zipper cont2 /\ cont1) (Cons (IfFalseZip obs cont1 zipper /\ cont2) Nil)
+expandChildren zipper (If obs cont1 cont2) = Cons (IfTrueZip obs zipper cont2 /\ cont1) (Cons (IfFalseZip obs cont1 zipper /\ cont2) Nil)
 
-foldBreadthContractWithZipperAuxStep (zipper /\ When cases tim tcont) =
+expandChildren zipper (When cases tim tcont) =
   snoc
     ( map (\(before /\ Case act cont /\ after) -> WhenCaseZip before act zipper after tim tcont /\ cont)
         (splitArray (fromFoldable cases))
     )
     (WhenTimeoutZip cases tim zipper /\ tcont)
 
-foldBreadthContractWithZipperAuxStep (zipper /\ Let valId val cont) = Cons (LetZip valId val zipper /\ cont) Nil
+expandChildren zipper (Let valId val cont) = Cons (LetZip valId val zipper /\ cont) Nil
 
-foldBreadthContractWithZipperAuxStep (zipper /\ Assert obs cont) = Cons (AssertZip obs zipper /\ cont) Nil
-
-foldBreadthContractWithZipperAux :: forall b. (b -> ContractZipper -> Contract -> b) -> b -> List (ContractZipper /\ Contract) -> b
-foldBreadthContractWithZipperAux f acc Nil = acc
-
-foldBreadthContractWithZipperAux f acc list = foldBreadthContractWithZipperAux f newAcc thisLevel
-  where
-  thisLevel = concatMap foldBreadthContractWithZipperAuxStep list
-
-  newAcc = foldl (\b (cz /\ c) -> f b cz c) acc thisLevel
-
-foldBreadthContractWithZipper :: forall b. (b -> ContractZipper -> Contract -> b) -> b -> Contract -> b
-foldBreadthContractWithZipper f acc c = foldBreadthContractWithZipperAux f acc (Cons (HeadZip /\ c) Nil)
+expandChildren zipper (Assert obs cont) = Cons (AssertZip obs zipper /\ cont) Nil
 
 closeZipperContract :: ContractZipper -> Contract -> Contract
 closeZipperContract (PayZip accId payee tok val zipper) cont = closeZipperContract zipper (Pay accId payee tok val cont)
@@ -124,17 +110,17 @@ checkContractForReachability settings contract state = runAjax $ (flip runReader
 expandSubproblem :: ContractZipper -> (ContractPath /\ Contract)
 expandSubproblem z = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)
 
-generateSubproblem :: List (Unit -> ContractPath /\ Contract) -> ContractZipper -> Contract -> List (Unit -> ContractPath /\ Contract)
-generateSubproblem acc (z@(IfTrueZip _ _ _)) c
-  | c /= Close = (Cons (\_ -> expandSubproblem z) acc)
+isValidSubproblem :: ContractZipper -> Contract -> Boolean
+isValidSubproblem (IfTrueZip _ _ _) c
+  | c /= Close = true
 
-generateSubproblem acc (z@(IfFalseZip _ _ _)) c
-  | c /= Close = (Cons (\_ -> expandSubproblem z) acc)
+isValidSubproblem (IfFalseZip _ _ _) c
+  | c /= Close = true
 
-generateSubproblem acc (z@(WhenCaseZip _ _ _ _ _ _)) c
-  | c /= Close = (Cons (\_ -> expandSubproblem z) acc)
+isValidSubproblem (WhenCaseZip _ _ _ _ _ _) c
+  | c /= Close = true
 
-generateSubproblem acc _ _ = acc
+isValidSubproblem _ _ = false
 
 nullifyAsserts :: Contract -> Contract
 nullifyAsserts Close = Close
@@ -156,9 +142,6 @@ nullifyAsserts (Let valId val cont) = Let valId val (nullifyAsserts cont)
 
 nullifyAsserts (Assert obs cont) = Assert TrueObs cont
 
-generateSubproblems :: Contract -> List (Unit -> ContractPath /\ Contract)
-generateSubproblems contract = reverse (foldBreadthContractWithZipper generateSubproblem Nil (nullifyAsserts contract))
-
 startReachabilityAnalysis ::
   forall m.
   MonadAff m =>
@@ -166,18 +149,20 @@ startReachabilityAnalysis ::
   Contract ->
   S.State -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 startReachabilityAnalysis settings contract state = do
-  case subproblemList of
-    Cons head tail -> do
+  case getNextSubproblem isValidSubproblem initialSubproblems Nil of
+    Nothing -> pure AllReachable
+    Just ((path /\ subcontract /\ newChildren) /\ newSubproblems) -> do
       let
-        path /\ subcontract = head unit
+        numSubproblems = countSubproblems isValidSubproblem newChildren
       let
         progress =
           ( InProgress
               { currPath: path
               , currContract: subcontract
+              , currChildren: newChildren
               , originalState: state
-              , subproblems: tail
-              , numSubproblems: 1 + length tail
+              , subproblems: newSubproblems
+              , numSubproblems: 1 + numSubproblems
               , numSolvedSubproblems: 0
               }
           )
@@ -185,9 +170,44 @@ startReachabilityAnalysis settings contract state = do
       response <- checkContractForReachability settings subcontract state
       result <- updateWithResponse settings progress response
       pure result
-    Nil -> pure AllReachable
   where
-  subproblemList = generateSubproblems contract
+  initialSubproblems = initSubproblems contract
+
+initSubproblems :: Contract -> RemainingSubProblemInfo
+initSubproblems c = Cons (HeadZip /\ c) Nil
+
+countFix :: forall a. (a -> Maybe a) -> a -> Int
+countFix fun a0 = countFix_tailrec fun a0 0
+  where
+  countFix_tailrec :: (a -> Maybe a) -> a -> Int -> Int
+  countFix_tailrec f a acc = case f a of
+    Nothing -> acc
+    Just newA -> countFix_tailrec f newA (acc + 1)
+
+countSubproblems :: (ContractZipper -> Contract -> Boolean) -> RemainingSubProblemInfo -> Int
+countSubproblems _ Nil = 0
+
+countSubproblems filterFun subproblemInfo = countFix fixpointFun (Nil /\ subproblemInfo)
+  where
+  fixpointFun :: (RemainingSubProblemInfo /\ RemainingSubProblemInfo) -> Maybe (RemainingSubProblemInfo /\ RemainingSubProblemInfo)
+  fixpointFun (children /\ subproblems) = map (\((_ /\ _ /\ c) /\ a) -> (c /\ a)) $ getNextSubproblem filterFun subproblems children
+
+getNextSubproblem ::
+  (ContractZipper -> Contract -> Boolean) ->
+  RemainingSubProblemInfo ->
+  RemainingSubProblemInfo ->
+  Maybe ((ContractPath /\ Contract /\ RemainingSubProblemInfo) /\ RemainingSubProblemInfo)
+getNextSubproblem _ Nil Nil = Nothing
+
+getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
+  if f zipper contract then
+    Just ((zipperToContractPath zipper /\ contract /\ children) /\ rest)
+  else
+    getNextSubproblem f rest children
+  where
+  children = expandChildren zipper contract
+
+getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
 
 updateWithResponse ::
   forall m.
@@ -199,32 +219,32 @@ updateWithResponse _ (InProgress _) (Failure (AjaxError err)) = pure (Reachabili
 
 updateWithResponse _ (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
 
-updateWithResponse _ (InProgress { currPath: path }) (Success Valid) = pure (UnreachableSubcontract path)
-
-updateWithResponse _ (InProgress { subproblems: Nil }) (Success (CounterExample _)) = pure AllReachable
+updateWithResponse _ (InProgress { currPath: path }) (Success Valid) = pure (UnreachableSubcontract path) -- ToDo: continue checking rest
 
 updateWithResponse settings ( InProgress
     ( rad@{ originalState: state
-    , subproblems: (Cons head tail)
+    , subproblems: oldSubproblems
+    , currChildren: oldChildren
     , numSolvedSubproblems: n
     }
   )
-) (Success (CounterExample _)) = do
-  let
-    path /\ subcontract = head unit
-  let
-    progress =
-      InProgress
-        ( rad
-            { currPath = path
-            , currContract = subcontract
-            , subproblems = tail
-            , numSolvedSubproblems = n + 1
-            }
-        )
-  assign _analysisState (ReachabilityAnalysis progress)
-  response <- checkContractForReachability settings subcontract state
-  updateWithResponse settings progress response
+) (Success (CounterExample _)) = case getNextSubproblem isValidSubproblem oldSubproblems oldChildren of
+  Nothing -> pure AllReachable
+  Just ((contractPath /\ subcontract /\ newChildren) /\ newSubproblems) -> do
+    let
+      progress =
+        InProgress
+          ( rad
+              { currPath = contractPath
+              , currContract = subcontract
+              , currChildren = newChildren
+              , subproblems = newSubproblems
+              , numSolvedSubproblems = n + 1
+              }
+          )
+    assign _analysisState (ReachabilityAnalysis progress)
+    response <- checkContractForReachability settings subcontract state
+    updateWithResponse settings progress response
 
 updateWithResponse _ rad _ = pure rad
 

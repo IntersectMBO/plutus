@@ -61,13 +61,17 @@ data ContractZipper
   | AssertZip Observation ContractZipper
   | HeadZip
 
+type RemainingSubProblemInfo
+  = List (ContractZipper /\ Contract)
+
 data ReachabilityAnalysisData
   = NotStarted
   | InProgress
     { currPath :: ContractPath
     , currContract :: Contract
+    , currChildren :: RemainingSubProblemInfo
     , originalState :: S.State
-    , subproblems :: List (Unit -> ContractPath /\ Contract)
+    , subproblems :: RemainingSubProblemInfo
     , numSubproblems :: Int
     , numSolvedSubproblems :: Int
     }
