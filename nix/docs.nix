@@ -18,7 +18,7 @@ let
       cp -aR ${files}/images $out || true
     '';
 
-  buildLatexDoc = { name, description, src, texFiles ? null, withAgda ? false }:
+  buildLatexDoc = { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
     latex.buildLatex {
       inherit name;
       inherit description;
@@ -40,7 +40,7 @@ let
           scheme-small;
       };
       preBuild = lib.optionalString withAgda ''
-        agda --latex paper.lagda --latex-dir .
+        agda --latex ${agdaFile} --latex-dir .
       '';
       meta = with lib; {
         inherit description;

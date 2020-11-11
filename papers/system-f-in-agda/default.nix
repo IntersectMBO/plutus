@@ -6,4 +6,5 @@ buildLatexDoc {
   description = "system-f in agda";
   texFiles = [ "paper.tex" ];
   withAgda = true;
+  agdaFile = "paper.lagda";
 }
