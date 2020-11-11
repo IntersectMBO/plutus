@@ -91,15 +91,17 @@ Plutus Core provides built-in functions 'divideInteger', 'modInteger',
 functions 'div', 'mod', 'quot', and 'rem' respectively.
 
 The operations 'div' and 'mod' go together, as do 'quot' and 'rem': * DO NOT use
-'div' with 'rem' or 'quot' with 'mod' *.  For most purposes users shoud probably use
-'div' and 'mod': see below for details.
+'div' with 'rem' or 'quot' with 'mod' *.  For most purposes users shoud probably
+use 'div' and 'mod': see below for details.
 
 For any integers a and b with b nonzero we have
 
   a * (a  `div` b) + a `mod` b = a
   a * (a `quot` b) + a `rem` b = a
 
-(all operations give a "divide by zero" error if b = 0).
+(all operations give a "divide by zero" error if b = 0).  The analagous
+identities for div/rem and quot/mod don't hold in general, and this can
+lead to problems if you use the wrong combination of operations.
 
 For positive divisors b, div truncates downwards and mod always returns a
 non-negative result (0 <= a `mod` b <= b-1), which is consistent with standard
@@ -117,10 +119,15 @@ shown below.
 | -41 -5 |  8  -1  |   8  -1  |
 -------------------------------
 
+For many purposes (in particular if you're doing modular arithmetic),
+a positive remainder is what you want.  Using 'div' and 'mod' achieves
+this for positive values of b (but not for b negative, although doing
+artimetic modulo a negative number would be unusual).
+
 There is another possibility (Euclidean division) which is arguably more
-mathematically correct than both of these. Given integers a and b with b != 0,
-this returns numbers q and r with a = q*b+r and 0 <= r < |b|.  For the numbers
-above this gives
+mathematically correct than both div/mod and quot/rem. Given integers a and b
+with b != 0, this returns numbers q and r with a = q*b+r and 0 <= r < |b|.  For
+the numbers above this gives
 
 -------------------
 |   n  d |  q   r |
@@ -131,9 +138,8 @@ above this gives
 | -41 -5 |  9   4 |
 -------------------
 
-We get a positive remainder in all cases (which is desirable), but note for
-instance that the pairs (41,5) and (-41,-5) give different results, which might
-be unexpected.
+We get a positive remainder in all cases, but note for instance that the pairs
+(41,5) and (-41,-5) give different results, which might be unexpected.
 
 For a discussion of the pros and cons of various versions of integer division,
 see Raymond T. Boute, "The Euclidean definition of the functions div and mod",
