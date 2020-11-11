@@ -39,12 +39,21 @@ rec {
 
   webCommon = import ./web-common { inherit lib; };
 
-  plutus-playground = pkgs.callPackage ./plutus-playground-client {
-    inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+  plutus-playground = {
+    tutorial = docs.site;
+    haddock = docs.plutus-haddock-combined;
+
+    client = pkgs.callPackage ./plutus-playground-client {
+      inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+    };
   };
 
-  marlowe-playground = pkgs.callPackage ./marlowe-playground-client {
-    inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+  marlowe-playground = {
+    tutorial = docs.marlowe-tutorial;
+
+    client = pkgs.callPackage ./marlowe-playground-client {
+      inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+    };
   };
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix {

@@ -27,23 +27,17 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 in
-{
-  inherit server-invoker;
-
-  tutorial = docs.marlowe-tutorial;
-
-  client = pkgs.callPackage ../nix/lib/purescript.nix rec {
-    inherit nodejs-headers;
-    inherit easyPS webCommon;
-    psSrc = generated-purescript;
-    src = ./.;
-    packageJSON = ./package.json;
-    yarnLock = ./yarn.lock;
-    yarnNix = ./yarn.nix;
-    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
-    packages = pkgs.callPackage ./packages.nix { };
-    spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-    name = (pkgs.lib.importJSON packageJSON).name;
-  };
-
+pkgs.callPackage ../nix/lib/purescript.nix rec {
+  inherit nodejs-headers;
+  inherit easyPS webCommon;
+  psSrc = generated-purescript;
+  src = ./.;
+  packageJSON = ./package.json;
+  yarnLock = ./yarn.lock;
+  yarnNix = ./yarn.nix;
+  additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+  packages = pkgs.callPackage ./packages.nix { };
+  spagoPackages = pkgs.callPackage ./spago-packages.nix { };
+  name = (pkgs.lib.importJSON packageJSON).name;
+  passthru = { inherit server-invoker; };
 }

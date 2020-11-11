@@ -29,23 +29,18 @@ let
   '';
 
 in
-{
-  inherit server-invoker;
-
-  client = pkgs.callPackage ../nix/lib/purescript.nix rec {
-    inherit nodejs-headers;
-    inherit easyPS webCommon;
-    psSrc = generated-purescript;
-    src = ./.;
-    packageJSON = ./package.json;
-    yarnLock = ./yarn.lock;
-    yarnNix = ./yarn.nix;
-    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
-    packages = pkgs.callPackage ./packages.nix { };
-    spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-    name = (pkgs.lib.importJSON packageJSON).name;
-    checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
-  };
-  tutorial = docs.site;
-  haddock = docs.plutus-haddock-combined;
+pkgs.callPackage ../nix/lib/purescript.nix rec {
+  inherit nodejs-headers;
+  inherit easyPS webCommon;
+  psSrc = generated-purescript;
+  src = ./.;
+  packageJSON = ./package.json;
+  yarnLock = ./yarn.lock;
+  yarnNix = ./yarn.nix;
+  additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+  packages = pkgs.callPackage ./packages.nix { };
+  spagoPackages = pkgs.callPackage ./spago-packages.nix { };
+  name = (pkgs.lib.importJSON packageJSON).name;
+  checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
+  passthru = { inherit server-invoker; };
 }
