@@ -41,7 +41,7 @@ rec {
 
   plutus-playground = {
     tutorial = docs.site;
-    haddock = docs.plutus-haddock-combined;
+    haddock = plutus.plutus-haddock-combined;
 
     client = pkgs.callPackage ./plutus-playground-client {
       inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;

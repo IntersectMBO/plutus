@@ -75,7 +75,4 @@ in
     combined-haddock = plutus.plutus-haddock-combined;
     pythonPackages = pkgs.python3Packages;
   };
-
-  # FIXME: needed by plutus-playground-client
-  inherit (plutus) plutus-haddock-combined;
 }
