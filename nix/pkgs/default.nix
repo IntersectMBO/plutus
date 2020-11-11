@@ -95,7 +95,6 @@ let
     pkgs.callPackage ./thorp {
       thorpSrc = sources.thorp;
       inherit mvn2nix;
-      inherit (pkgs) stdenv jdk11_headless maven makeWrapper graphviz;
     };
 
   # not available in 20.03 and we depend on several recent changes
