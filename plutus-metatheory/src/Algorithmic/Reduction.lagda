@@ -281,6 +281,7 @@ data _—→_ {Φ Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Se
     → ∀ A
     → ∀ t
     → (p : (A ∷ As') ≤L' As)
+    → Value t
     → pbuiltin b Δ σ As' (inj₂ (refl ,, skip p)) ts · t
       —→ pbuiltin b Δ σ (A ∷ As') (inj₂ (refl ,, p)) (t ∷ ts)
 
@@ -399,7 +400,7 @@ progress-·V v       (step q)        = step (ξ-·₂ v q)
 progress-·V v       (error E-error) = step (E-·₂ v)
 progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
 progress-·V (V-pbuiltin b σ A As' p ts) (done v) =
-  step (sat b σ As' ts A (deval v) p)
+  step (sat b σ As' ts A (deval v) p v)
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
@@ -515,7 +516,7 @@ open import Data.Empty
 
 
 -- a value cannot make progress
-{-
+
 val-red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
 val-red (V-wrap p) (.(wrap _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
 
@@ -525,7 +526,6 @@ valT-redT (v ,, vs) (.(_ ∷ _) ,, here p)    = val-red v (_ ,, p)
 valT-redT (v ,, vs) (.(_ ∷ _) ,, there w p) = valT-redT vs (_ ,, p)
 
 -- a value cannot be an error
-
 val-err : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Error t)
 val-err () E-error
 
@@ -535,7 +535,6 @@ valT-errT (v ,, vs) (here p)    = val-err v p
 valT-errT (v ,, vs) (there w p) = valT-errT vs p
 
 -- an error cannot make progress
-
 red-err : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Σ (Γ ⊢ σ) (t —→_) → ¬ (Error t)
 red-err () E-error
 
@@ -552,6 +551,9 @@ valUniq .(ƛ _)         (V-ƛ _)    (V-ƛ _)     = refl
 valUniq .(Λ _)         (V-Λ _)    (V-Λ _)     = refl
 valUniq .(wrap _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
 valUniq .(con cn)      (V-con cn) (V-con .cn) = refl
+valUniq _ (V-pbuiltin⋆ _ _ _ _) (V-pbuiltin⋆ _ _ _ _) = refl
+valUniq _ (V-pbuiltin _ _ _ _ _ _ ) (V-pbuiltin _ _ _ _ _ _ ) = refl
+
 
 -- telescopes of values are unique for that telescope
 vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
@@ -586,7 +588,6 @@ progress-xor t with progress _ t
 progress-xor t | step p  = (inj₂ ((inj₁ (_ ,, p)) ,, λ{(p ,, e) → red-err p e})) ,, λ { (v ,, inj₁ p ,, q) → val-red v p ; (v ,, inj₂ e ,, q) → val-err v e}
 progress-xor t | done v  = (inj₁ v) ,, (λ { (v' ,, inj₁ p ,, q) → val-red v p ; (v' ,, inj₂ e ,, q) → val-err v e})
 progress-xor t | error e = (inj₂ ((inj₂ e) ,, (λ { (p ,, e) → red-err p e}))) ,, λ { (v ,, q) → val-err v e }
-{-
 -- the reduction rules are deterministic
 det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢ σ}
   → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
@@ -614,9 +615,9 @@ det (β-builtin bn σ ts vs) (ξ-builtin .bn .σ p) =
 det (ξ-builtin bn σ p) (β-builtin .bn .σ ts vs) =
   ⊥-elim (valT-redT vs (_ ,, p))
 det (ξ-builtin bn σ p) (ξ-builtin .bn .σ p') = cong (builtin bn σ) (detT p p')
-det (β-builtin .bn .σ ts vs) (E-builtin bn σ ts' p) = ⊥-elim (valT-errT vs p)
-det (ξ-builtin bn σ p) (E-builtin bn .σ ts q) = ⊥-elim (redT-errT (_ ,, p) q)
-det (E-builtin bn σ ts p) (E-builtin bn σ ts q) = refl
+det (β-builtin _ _ _ vs) (E-builtin _ _ _ p) = ⊥-elim (valT-errT vs p)
+det (ξ-builtin _ _ p) (E-builtin _ _ _ q) = ⊥-elim (redT-errT (_ ,, p) q)
+det (E-builtin _ _ _ _) (E-builtin _ _ _ _) = refl
 det (E-builtin bn σ ts p) (β-builtin .bn .σ .ts vs) = ⊥-elim (valT-errT vs p)
 det (E-builtin bn σ ts p) (ξ-builtin .bn .σ q) = ⊥-elim (redT-errT (_ ,, q) p)
 det E-·₁ (ξ-·₁ ())
@@ -631,14 +632,33 @@ det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
 det (E-ibuiltin b σ⋆ σ) (E-ibuiltin .b .σ⋆ .σ) = refl
 det (E-ipbuiltin b Ψ' Δ' p₁ σ⋆ σ) (E-ipbuiltin .b .Ψ' .Δ' .p₁ .σ⋆ .σ) = refl
+det (ξ-·₂ x p) (sat b σ As' ts A _ p₁ v) = ⊥-elim (val-red v (_ ,, p))
+det (tick-pbuiltin σ) (tick-pbuiltin .σ) = refl
+det (β-pbuiltin bn σ ts vts) (β-pbuiltin .bn .σ .ts vts') =
+  cong (BUILTIN bn σ ts) (vTelUniq _ _ σ _ ts vts vts')
+det (β-pbuiltin bn σ ts vts) (ξ-pbuiltin .bn .σ p) =
+  ⊥-elim (valT-redT vts (_ ,, p))
+det (β-pbuiltin bn σ ts vts) (E-pbuiltin .bn .σ .ts e) =
+  ⊥-elim (valT-errT vts e)
+det (ξ-pbuiltin bn σ p) (β-pbuiltin .bn .σ _ vts) =
+  ⊥-elim (valT-redT vts (_ ,, p))
+det (ξ-pbuiltin bn σ p) (ξ-pbuiltin .bn .σ q) =
+  cong (pbuiltin bn _ σ _ _) (detT p q)
+det (ξ-pbuiltin bn σ p) (E-pbuiltin .bn .σ _ e) = ⊥-elim (redT-errT (_ ,, p) e)
+det (sat⋆ b Ψ K σ A p) (sat⋆ .b .Ψ .K .σ .A .p) = refl
+det (sat b σ As' ts A t p _) (sat .b .σ .As' .ts .A .t .p _) = refl
+det (E-pbuiltin b σ ts e) (β-pbuiltin .b .σ .ts vts) = ⊥-elim (valT-errT vts e)
+det (E-pbuiltin b σ ts e) (ξ-pbuiltin .b .σ p) =
+  ⊥-elim (redT-errT (_ ,, p) e)
+det (E-pbuiltin b σ ts e) (E-pbuiltin .b .σ .ts e') = refl
+det (sat _ _ _ _ _ _ _ v) (ξ-·₂ _ q) = ⊥-elim (val-red v (_ ,, q))
 
-detT (here p)    (here q)    = cong (_∷ _) (det p q)
 detT (here p)    (there w q) = ⊥-elim (val-red w (_ ,, p))
 detT (there v p) (here q)    = ⊥-elim (val-red v (_ ,, q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
-
+detT (here p) (here q) = cong (_∷ _) (det p q)
 -- some auxiliary functions
-
+{-
 vTel++ : ∀ {Φ Γ Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   → {As As' : List (Δ ⊢Nf⋆ *)}
@@ -661,5 +681,4 @@ vTel:< : ∀ {Φ Γ Δ}
   → VTel Γ Δ σ (As :<L A) (ts :<T t)
 vTel:< []        t vs v = v ,, tt
 vTel:< (t' ∷ ts) t (v' ,, vs) v = v' ,, vTel:< ts t vs v
--}
 -}
