@@ -20,14 +20,14 @@ dimension "System" (systems genericPkgs) (systemName: system:
   let
     packages = import ./default.nix { inherit system rev; checkMaterialization = true; };
     pkgs = packages.pkgs;
-    pkgsLocal = packages.pkgsLocal;
-    pkgsMusl = packages.pkgsMusl;
+    plutus = packages.plutus;
+    plutusMusl = packages.plutusMusl;
     lib = pkgs.lib;
     platformFilter = platformFilterGeneric pkgs system;
   in
   filterAttrsOnlyRecursive (_: v: platformFilter v) {
     inherit (packages) docs tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
-    inherit (pkgsLocal.haskell.project) roots;
+    inherit (plutus.haskell.project) roots;
 
     # build the shell expression to be sure it works on all platforms
     shell = import ./shell.nix { inherit packages; };
@@ -44,5 +44,5 @@ dimension "System" (systems genericPkgs) (systemName: system:
         "Haskell component"
         { "library" = collectComponents; "tests" = collectComponents; "benchmarks" = collectComponents; "exes" = collectComponents; "checks" = collectChecks; }
         # Apply the selector to the Haskell package set
-        (type: selector: (selector type) pkgsLocal.haskell.projectPackages));
+        (type: selector: (selector type) plutus.haskell.projectPackages));
   })

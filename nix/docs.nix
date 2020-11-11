@@ -1,9 +1,9 @@
-{ pkgs, pkgsLocal }:
+{ pkgs, plutus }:
 
 let
 
   inherit (pkgs) lib;
-  inherit (pkgsLocal) agdaWithStdlib;
+  inherit (plutus) agdaWithStdlib;
 
   latex = pkgs.callPackage ./lib/latex.nix { };
 
@@ -70,12 +70,12 @@ in
   unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
 
   site = pkgs.callPackage ../doc {
-    inherit (pkgsLocal) sphinx-markdown-tables sphinxemoji;
-    inherit (pkgsLocal.sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
-    combined-haddock = pkgsLocal.plutus-haddock-combined;
+    inherit (plutus) sphinx-markdown-tables sphinxemoji;
+    inherit (plutus.sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
+    combined-haddock = plutus.plutus-haddock-combined;
     pythonPackages = pkgs.python3Packages;
   };
 
   # FIXME: needed by plutus-playground-client
-  inherit (pkgsLocal) plutus-haddock-combined;
+  inherit (plutus) plutus-haddock-combined;
 }

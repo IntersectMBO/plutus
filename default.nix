@@ -11,7 +11,7 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
   # Overrides for niv
 , sourcesOverride ? { }
-  # { pkgs pkgsMusl pkgsLocal }
+  # { pkgs plutusMusl plutus }
 , packages ? import ./nix { inherit system crossSystem config sourcesOverride rev checkMaterialization; }
   # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
@@ -21,15 +21,15 @@
 }:
 
 let
-  inherit (packages) pkgs pkgsLocal pkgsMusl;
+  inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) lib haskell-nix;
-  inherit (pkgsLocal) haskell iohkNix git-rev set-git-rev agdaPackages;
-  inherit (pkgsLocal) easyPS sphinxcontrib-haddock nodejs-headers;
+  inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
+  inherit (plutus) easyPS sphinxcontrib-haddock nodejs-headers;
 in
 rec {
-  inherit pkgs pkgsLocal pkgsMusl;
+  inherit pkgs plutus plutusMusl;
 
-  inherit (pkgsLocal) web-ghc;
+  inherit (plutus) web-ghc;
 
   inherit (haskell.packages.plutus-scb.components.exes)
     plutus-game
@@ -56,15 +56,15 @@ rec {
     };
   };
 
-  marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix {
+  marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {
     haskellPackages = haskell.muslPackages;
   };
 
-  marlowe-playground-lambda = pkgsMusl.callPackage ./marlowe-playground-server/lambda.nix {
+  marlowe-playground-lambda = plutusMusl.callPackage ./marlowe-playground-server/lambda.nix {
     haskellPackages = haskell.muslPackages;
   };
 
-  plutus-playground-lambda = pkgsMusl.callPackage ./plutus-playground-server/lambda.nix {
+  plutus-playground-lambda = plutusMusl.callPackage ./plutus-playground-server/lambda.nix {
     haskellPackages = haskell.muslPackages;
   };
 
@@ -77,7 +77,7 @@ rec {
     src = ./.;
   };
 
-  docs = import ./nix/docs.nix { inherit pkgs pkgsLocal; };
+  docs = import ./nix/docs.nix { inherit pkgs plutus; };
 
   deployment = pkgs.callPackage ./deployment {
     inherit plutus marlowe-playground plutus-playground marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;

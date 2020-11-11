@@ -73,7 +73,7 @@ However, to avoid doing too much work all the time, we have checked the generate
 IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver.
 But the CI will tell you if you've failed to do so.
 
-You can regenerate the files by running `$(nix-build default.nix -A pkgsLocal.updateMaterialized)`.
+You can regenerate the files by running `$(nix-build default.nix -A plutus.updateMaterialized)`.
 
 === How to add a new Haskell package
 
@@ -84,7 +84,7 @@ You need to do a few things when adding a new package, in the following order:
 . Add the package to link:cabal.project[`cabal.project`].
 . Update the xref:update-generated[package set].
 . Update the `xref:update-hie[hie-*.yaml` files].
-. Check that you can run `nix build -f default.nix pkgsLocal.haskell.projectPackages.<package name>` successfully.
+. Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.
 
 [[update-haskell-pins]]
 === How to update our pinned Haskell dependencies

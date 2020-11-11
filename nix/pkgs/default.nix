@@ -1,5 +1,5 @@
 { pkgs
-, pkgsMusl
+, plutusMusl
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
@@ -22,7 +22,7 @@ let
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit pkgsMusl;
+    inherit plutusMusl;
     inherit (pkgs) stdenv fetchFromGitHub fetchFromGitLab haskell-nix buildPackages nix-gitignore z3 R rPackages;
     inherit agdaWithStdlib checkMaterialization;
   };
