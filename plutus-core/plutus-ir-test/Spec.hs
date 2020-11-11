@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -45,7 +46,7 @@ tests = testGroup "plutus-ir" <$> sequence
 
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting"
-    $ map (goldenPir id term)
+    $ map (goldenPir id $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "basic"
     , "maybe"
     ]

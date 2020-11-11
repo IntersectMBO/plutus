@@ -29,14 +29,6 @@ import qualified Data.Kind                                        as GHC
 import           Data.Proxy
 import           GHC.TypeLits
 
--- TODO: can we put @term@ inside? Would it make things nicer?
---
---     data BuiltinMeaning uni dyn cost =
---         forall args res. BuiltinMeaning
---             (forall term. uni ~ UniOf term => TypeScheme term args res)
---             (dyn -> FoldArgs args res)
---             (cost -> FoldArgsEx args)
-
 -- | The meaning of a dynamic built-in function consists of its type represented as a 'TypeScheme',
 -- its Haskell denotation and a costing function (both in uninstantiated form).
 --
@@ -65,6 +57,14 @@ data BuiltinMeaning term dyn cost =
         (TypeScheme term args res)
         (dyn -> FoldArgs args res)
         (cost -> FoldArgsEx args)
+-- I tried making it @(forall term. HasConstantIn uni term => TypeScheme term args res)@ instead of
+-- @TypeScheme term args res@, but 'toDynamicBuiltinMeaning' has to talk about
+-- @KnownPolytype binds term args res a@ (note the @term@), because instances of 'KnownMonotype'
+-- are constrained with @KnownType term arg@ and @KnownType term res@, and so the earliest we can
+-- generalize from @term@ to @UniOf term@ is in 'toBuiltinMeaning'.
+-- Besides, for 'BuiltinRuntime' we want to have a concrete 'TypeScheme' anyway for performance
+-- reasons (there isn't much point in caching a value of a type with a constraint as it becomes a
+-- function at runtime anyway, due to constraints being compiled as dictionaries).
 
 -- | A 'BuiltinRuntime' is an instantiated (via 'toBuiltinRuntime') 'BuiltinMeaning'.
 -- It contains info that is used during evaluation:
