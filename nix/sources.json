@@ -48,6 +48,18 @@
         "url": "https://github.com/input-output-hk/iohk-nix/archive/24ddc8f531f320c9e2394d205d0df39857222901.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "mvn2nix": {
+        "branch": "master",
+        "description": "Easily package your Maven Java application with the Nix package manager.",
+        "homepage": "",
+        "owner": "fzakaria",
+        "repo": "mvn2nix",
+        "rev": "a4c9ec1cd6118e22a6a5e5fc04c30c406d0d80ea",
+        "sha256": "1xf2i5cjpgsw42631mp9n20nj1rvw2swyhlqjxyrwydvk6vlf22p",
+        "type": "tarball",
+        "url": "https://github.com/fzakaria/mvn2nix/archive/a4c9ec1cd6118e22a6a5e5fc04c30c406d0d80ea.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "naersk": {
         "branch": "master",
         "builtin": false,
@@ -144,6 +156,18 @@
         "sha256": "18dpgyk5hrc6w3f9nwsb22k5ar9q5c8x40mszxzqmrdhkrymrykk",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/stackage.nix/archive/e32c8b06d56954865725514ce0d98d5d1867e43a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "thorp": {
+        "branch": "master",
+        "description": "Synchronisation of files with the cloud using the hash of the file contents",
+        "homepage": "https://github.com/kemitix/thorp",
+        "owner": "kemitix",
+        "repo": "thorp",
+        "rev": "42634f9c09664ff9d5981fbd1212fe3b9b419afc",
+        "sha256": "0bxh4b3kkpm5ls3v3329gd3zljzfph5315z8plvi2ac8y2y10bs6",
+        "type": "tarball",
+        "url": "https://github.com/kemitix/thorp/archive/42634f9c09664ff9d5981fbd1212fe3b9b419afc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

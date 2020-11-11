@@ -1,9 +1,24 @@
-{ pkgs, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
+{ pkgs, pkgsLocal, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
 with pkgs;
 let
   # 20.03 version of terraform is broken on some versions of OSX so I have copied the last 0_12 version from nixpkgs
   terraform = (callPackage ./terraform.nix { }).terraform_0_12;
 
+  # We want to combine clients and tutorials in one directory so that we can sync one folder with S3
+  static = {
+    plutus = pkgs.runCommand "plutus" { } ''
+      mkdir -p $out/tutorial
+      find ${plutus-playground.client} -mindepth 1 -maxdepth 1 -exec ln -s -t $out {} +
+      find ${plutus-playground.tutorial} -mindepth 1 -maxdepth 1 -exec ln -s -t $out/tutorial {} +
+    '';
+    marlowe = pkgs.runCommand "marlowe" { } ''
+      mkdir -p $out/tutorial
+      find ${marlowe-playground.client} -mindepth 1 -maxdepth 1 -exec ln -s -t $out {} +
+      find ${marlowe-playground.tutorial} -mindepth 1 -maxdepth 1 -exec ln -s -t $out/tutorial {} +
+    '';
+  };
+
+  # This creates a script that will set AWS env vars by getting a session token based on your user name and MFA
   getCreds = pkgs.writeShellScript "getcreds" ''
     set -eou pipefail
 
@@ -46,18 +61,8 @@ let
       set -eou pipefail
 
       echo "sync with S3"
-      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.client} s3://plutus-playground-website-${env}/
-      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.client} s3://marlowe-playground-website-${env}/
-      ${awscli}/bin/aws s3 cp --recursive ${marlowe-playground.tutorial} s3://marlowe-playground-website-${env}/tutorial
-    '';
-
-  syncPlutusTutorial = env:
-    writeShellScript "syncPlutusTutorial" ''
-      set -eou pipefail
-
-      echo "sync plutus tutorial with S3"
-      ${awscli}/bin/aws s3 sync --delete ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
-      ${awscli}/bin/aws s3 cp --recursive ${plutus-playground.tutorial} s3://plutus-playground-website-${env}/tutorial
+      ${pkgsLocal.thorp}/bin/thorp -b marlowe-playground-website-${env} -s ${static.marlowe}
+      ${pkgsLocal.thorp}/bin/thorp -b plutus-playground-website-${env} -s ${static.plutus}
     '';
 
   applyTerraform = env: region:
@@ -111,7 +116,6 @@ let
 
       ${applyTerraform env region}
       ${syncS3 env}
-      ${syncPlutusTutorial env}
       echo "done"
     '';
 
@@ -146,7 +150,6 @@ let
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env);
-    syncPlutusTutorial = (syncPlutusTutorial env);
     applyTerraform = (applyTerraform env region);
     deploy = (deploy env region);
     destroy = (destroy env region);
@@ -160,4 +163,4 @@ let
     wyohack = mkEnv "wyohack" "us-west-2";
   };
 in
-envs // { inherit getCreds; }
+envs // { inherit getCreds static; }
