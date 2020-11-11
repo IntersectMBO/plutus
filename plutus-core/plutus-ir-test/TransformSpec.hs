@@ -29,21 +29,21 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir ThunkRec.thunkRecursions term)
+    $ map (goldenPir ThunkRec.thunkRecursions $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "listFold"
     , "monoMap"
     ]
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) term)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "nonStrict1"
     ]
 
 letFloat :: TestNested
 letFloat =
     testNested "letFloat"
-    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) term)
+    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -82,7 +82,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (Inline.inline . runQuote . PLC.rename) term)
+    $ map (goldenPir (Inline.inline . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "var"
     , "builtin"
     , "constant"

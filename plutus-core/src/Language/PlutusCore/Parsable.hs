@@ -23,14 +23,14 @@ import           Data.Char       (ord)
 import qualified Data.Text       as T
 import           Text.Read       (readMaybe)
 
-
-class Parsable a
-  where
-  parseConstant :: T.Text -> Maybe a
-  -- ^ Return Nothing if the string is invalid, otherwise the corresponding value of type a.
-  default parseConstant :: Read a => T.Text -> Maybe a
-  parseConstant = readMaybe . T.unpack
-  -- ^ The default implmentation is 'read'
+-- | A class for things that are parsable. Those include tags for built-in types and constants of
+-- such types.
+class Parsable a where
+    parse :: T.Text -> Maybe a
+    -- ^ Return Nothing if the string is invalid, otherwise the corresponding value of type a.
+    default parse :: Read a => T.Text -> Maybe a
+    parse = readMaybe . T.unpack
+    -- ^ The default implementation is in terms of 'Read'.
 
 instance Parsable Bool
 instance Parsable Char
@@ -39,7 +39,7 @@ instance Parsable String
 instance Parsable ()
 
 instance Parsable ByteString
-  where parseConstant = parseByteStringConstant
+  where parse = parseByteStringConstant
 
 
 --- Parsing bytestrings ---
@@ -76,4 +76,3 @@ asBSLiteral s =
     mapM hexDigitToWord8 s >>= pairs      -- convert s into a list of pairs of Word8 values in [0..0xF]
     <&> map (\(a,b) -> shiftL a 4 .|. b)  -- convert pairs of values in [0..0xF] to values in [0..xFF]
     <&> BS.pack
-

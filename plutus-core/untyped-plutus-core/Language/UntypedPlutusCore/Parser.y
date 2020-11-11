@@ -121,6 +121,9 @@ mapParseRun run = do
     liftQuote $ markNonFreshBelow u
     pure p
 
+-- Generalizing this and functions below to work over any @uni@ and @fun@ makes @happy@ unhappy and
+-- it starts throwing ambiguous type errors that I've no idea how to fix.
+-- See https://github.com/input-output-hk/plutus/pull/2458#issuecomment-725706274
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program Name DefaultUni DefaultFun AlexPosn)
