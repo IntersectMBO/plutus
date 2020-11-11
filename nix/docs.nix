@@ -50,82 +50,20 @@ let
 in
 {
   papers = {
-    system-f-in-agda = buildLatexDoc {
-      name = "system-f-in-agda";
-      src = ../papers/system-f-in-agda;
-      description = "system-f in agda";
-      texFiles = [ "paper.tex" ];
-      withAgda = true;
-    };
-    eutxo = buildLatexDoc {
-      name = "eutxo";
-      description = "eutxo";
-      src = ../papers/eutxo;
-      texFiles = [ "eutxo.tex" ];
-    };
-    utxoma = buildLatexDoc {
-      name = "utxoma";
-      description = "utxoma";
-      src = ../papers/utxoma;
-      texFiles = [ "utxoma.tex" ];
-    };
-    eutxoma = buildLatexDoc {
-      name = "eutxoma";
-      description = "eutxoma";
-      src = ../papers/eutxoma;
-      texFiles = [ "eutxoma.tex" ];
-    };
+    system-f-in-agda = import ../papers/system-f-in-agda { inherit buildLatexDoc; };
+    eutxo = import ../papers/eutxo { inherit buildLatexDoc; };
+    utxoma = import ../papers/utxoma { inherit buildLatexDoc; };
+    eutxoma = import ../papers/eutxoma { inherit buildLatexDoc; };
   };
 
-  plutus-contract = buildAsciiDoc {
-    src = ../plutus-contract/doc;
-    file = "contract-api.adoc";
-  };
-
-  marlowe-tutorial = buildAsciiDoc {
-    src = ../marlowe/doc;
-    file = "index.adoc";
-  };
-
-  plutus-core-spec = buildLatexDoc {
-    name = "plutus-core-spec";
-    description = "Plutus core specification";
-    src = ../plutus-core-spec;
-
-  };
-
-  multi-currency = buildLatexDoc {
-    name = "multi-currency";
-    src = ../notes/multi-currency;
-    description = "Multi-currency paper";
-  };
-
-  extended-utxo-spec = buildLatexDoc {
-    name = "extended-utxo-spec";
-    src = ../extended-utxo-spec;
-    description = "Extended UTXO specification";
-  };
-
-  lazy-machine = buildLatexDoc {
-    name = "lazy-machine";
-    src = ../notes/fomega/lazy-machine;
-    texFiles = [ "lazy-plutus-core.tex" ];
-    description = "lazy machine discussion";
-  };
-
-  plutus-report = buildLatexDoc {
-    name = "plutus";
-    src = ../notes/plutus-report;
-    texFiles = [ "plutus.tex" ];
-    description = "plutus report";
-  };
-
-  cost-model-notes = buildLatexDoc {
-    name = "cost-model-notes";
-    src = ../notes/cost-model-notes;
-    description = "Notes on cost models";
-    texFiles = [ "cost-model-notes.tex" ];
-  };
+  plutus-contract = import ../plutus-contract/doc { inherit buildAsciiDoc; };
+  marlowe-tutorial = import ../marlowe/doc { inherit buildAsciiDoc; };
+  plutus-core-spec = import ../plutus-core-spec { inherit buildLatexDoc; };
+  multi-currency = import ../notes/multi-currency { inherit buildLatexDoc; };
+  extended-utxo-spec = import ../extended-utxo-spec { inherit buildLatexDoc; };
+  lazy-machine = import ../notes/fomega/lazy-machine { inherit buildLatexDoc; };
+  plutus-report = import ../notes/plutus-report { inherit buildLatexDoc; };
+  cost-model-notes = import ../notes/cost-model-notes { inherit buildLatexDoc; };
 
   unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
 
