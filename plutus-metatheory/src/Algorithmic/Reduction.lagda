@@ -657,28 +657,3 @@ detT (here p)    (there w q) = ⊥-elim (val-red w (_ ,, p))
 detT (there v p) (here q)    = ⊥-elim (val-red v (_ ,, q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
 detT (here p) (here q) = cong (_∷ _) (det p q)
--- some auxiliary functions
-{-
-vTel++ : ∀ {Φ Γ Δ}
-  → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
-  → {As As' : List (Δ ⊢Nf⋆ *)}
-  → (ts : Tel Γ Δ σ As)
-  → (ts' : Tel Γ Δ σ As')
-  → VTel Γ Δ σ As ts
-  → VTel Γ Δ σ As' ts'
-  → VTel Γ Δ σ (As ++ As') (ts ++T ts')
-vTel++ []       ts' vs        vs' = vs'
-vTel++ (t ∷ ts) ts' (v ,, vs) vs' = v ,, vTel++ ts ts' vs vs' 
-
-vTel:< : ∀ {Φ Γ Δ}
-  → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {A : Δ ⊢Nf⋆ *}
-  → (ts : Tel Γ Δ σ As)
-  → (t : Γ ⊢ substNf σ A)
-  → VTel Γ Δ σ As ts
-  → Value t
-  → VTel Γ Δ σ (As :<L A) (ts :<T t)
-vTel:< []        t vs v = v ,, tt
-vTel:< (t' ∷ ts) t (v' ,, vs) v = v' ,, vTel:< ts t vs v
--}

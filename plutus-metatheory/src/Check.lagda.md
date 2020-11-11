@@ -22,6 +22,7 @@ open import Data.Nat hiding (_*_)
 open import Data.Fin
 open import Data.Product renaming (_,_ to _,,_) hiding (map)
 open import Data.Vec hiding ([_];_>>=_) hiding (map)
+import Data.List as L
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
@@ -310,7 +311,7 @@ checkType Γ L A = do
 inferTypeBuiltin : ∀{Φ m n}{Γ : Ctx Φ}(bn : Builtin)
   → Tel⋆ (len⋆ Φ) m → Scoped.Tel (len Γ) n
   → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
-inferTypeBuiltin addInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin addInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
+inferTypeBuiltin addInteger [] [] = return (con integer ⇒ con integer ⇒ con integer ,, pbuiltin addInteger ∅ (λ ()) L.[] (inj₁ (base ,, refl)) [])
 inferTypeBuiltin subtractInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin subtractInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
 inferTypeBuiltin multiplyInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin multiplyInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
 inferTypeBuiltin divideInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin divideInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))

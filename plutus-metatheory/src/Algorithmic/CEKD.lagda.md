@@ -9,6 +9,7 @@ open import Function using (_∘_;id)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;inspect) renaming ([_] to [[_]];subst to substEq)
 import Data.List as L
 open import Data.List.Properties
+import Data.Sum as Sum
 
 open import Type
 open import Type.BetaNormal
@@ -66,6 +67,12 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 
 discharge : ∀{Γ A}{M : Γ ⊢ A} → Value M → Env Γ → Σ (∅ ⊢ A) Value
 
+dischargeTel : ∀{Γ Δ As}
+    → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
+    → (ts : Tel Γ Δ σ As)
+    → Env Γ
+    → Tel ∅ Δ σ As
+
 env2ren : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
 env2ren (ρ ∷ (_ ,, M ,, V ,, ρ')) Z     =
  conv⊢ refl (sym (substNf-id _)) (proj₁ (discharge V ρ'))
@@ -93,6 +100,9 @@ discharge (V-ƛ M)    ρ = _ ,, V-ƛ (dischargeBody M ρ)
 discharge (V-Λ M)    ρ = _ ,, V-Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) ρ = _ ,, V-wrap (proj₂ (discharge V ρ))
 discharge (V-con c)  ρ = _ ,, V-con c
+discharge (V-pbuiltin⋆ b Φ σ p) ρ = _ ,, V-pbuiltin⋆ b Φ σ p
+discharge (V-pbuiltin b σ A As' p ts) ρ =
+  _ ,, V-pbuiltin b σ A As' p (dischargeTel σ ts ρ)
 
 -- telescope rangling
 vtel-lem : ∀{Φ}{Γ Δ}{As As' : L.List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -127,12 +137,6 @@ extendVTel : ∀{Φ Γ Δ As} Bs
 extendVTel L.[] σ [] _ t' vt' refl = vt' ,, _
 extendVTel (B L.∷ Bs) σ (t ∷ ts) (v ,, vs) t' v' refl =
   v ,, extendVTel Bs σ ts vs t' v' refl
-
-dischargeTel : ∀{Γ Δ As}
-    → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (ts : Tel Γ Δ σ As)
-    → Env Γ
-    → Tel ∅ Δ σ As
     
 dischargeTel σ [] ρ = []
 dischargeTel {As = A L.∷ As} σ (t ∷ ts) ρ = conv⊢ refl (substNf-id (substNf σ A)) (subst (ne ∘ `) (env2ren ρ) t) Tel.∷ dischargeTel σ ts ρ 
@@ -152,7 +156,7 @@ step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (p
 step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
   (s , builtin- bn σ L.[] [] _ A As p (dischargeTel σ ts ρ)) ; ρ ▻ t
 step (x ; x₁ ▻ pbuiltin b Ψ' σ As' p x₂) =
-  ◆ (abstract3' _ _ Ψ' _ As' p (proj₂ (proj₂ (SIG b))) σ)
+  ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
 step (x ; x₁ ▻ ibuiltin b σ⋆ σ) = ◆ (substNf σ⋆ (proj₂ (proj₂ (ISIG b))))
 step (x ; x₁ ▻ ipbuiltin b Ψ' Δ' p σ⋆ σ) =
   ◆ (apply⋆ _ _ _ Ψ' _ Δ' p (proj₂ (proj₂ (ISIG b))) σ⋆ σ)
@@ -180,6 +184,10 @@ step ((s , builtin- b σ As ts vs A (A' L.∷ As') p (t' ∷ ts')) ; ρ ◅ V) 
         As'
         (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As')))) ts')
   ; [] ▻ t'
+step ((s , -·⋆ A) ; ρ ◅ V-pbuiltin⋆ b Φ σ p) =
+  ◆ (abstractArg (proj₁ (proj₂ (SIG b))) _ (Sum.inj₁ (p ,, refl)) (proj₂ (proj₂ (SIG b))) (substNf-cons σ A))
+step ((s , ((_ ,, _ ,, V-pbuiltin b σ A As' p ts ,, _) ·-)) ; ρ ◅ V) =
+  ◆ (abstractArg (proj₁ (proj₂ (SIG b))) (A L.∷ As') (Sum.inj₂ (refl ,, p)) (proj₂ (proj₂ (SIG b))) σ)
 step (□ C)       = □ C
 step (◆ A)       = ◆ A
 

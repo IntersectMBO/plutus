@@ -13,6 +13,7 @@ open import Relation.Binary.PropositionalEquality using (inspect;sym;trans;_≡_
   renaming ([_] to [[_]];subst to substEq)
 open import Data.Unit using (tt)
 open import Data.Product renaming (_,_ to _,,_)
+import Data.Sum as Sum
 open import Data.Empty
 open import Utils
 open import Type
@@ -150,7 +151,7 @@ step (s ▻ builtin bn σ []) | [] | [[ p ]] =
 step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
   (s , builtin- bn σ [] [] _ A As p ts) ▻ t
 step (x ▻ pbuiltin b Ψ' σ As' p ts) =
-  ◆ (abstract3' _ _ Ψ' _ As' p (proj₂ (proj₂ (SIG b))) σ)
+  ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
 step (x ▻ ibuiltin b σ⋆ σ) = ◆ (substNf σ⋆ (proj₂ (proj₂ (ISIG b))))
 step (x ▻ ipbuiltin b Ψ' Δ' p σ⋆ σ) =
   ◆ (apply⋆ _ _ _ Ψ' _ Δ' p (proj₂ (proj₂ (ISIG b))) σ⋆ σ)
@@ -170,6 +171,10 @@ step (_◅_ (s , builtin- b σ As ts vts A (A' ∷ As') p (t' ∷ ts')) {t = t} 
         As'
         (trans p (sym (++-assoc As L.[ A ] (A' ∷ As')))) ts')
   ▻ t'
+step ((s , (V-pbuiltin b σ A As' p ts ·-)) ◅ x₁) =
+  ◆ (abstractArg _ (A ∷ As') (Sum.inj₂ (refl ,, p)) (proj₂ (proj₂ (SIG b))) σ)
+step ((t , -·⋆ A) ◅ V-pbuiltin⋆ b Φ σ p) =
+  ◆ (abstractArg (proj₁ (proj₂ (SIG b))) _ (Sum.inj₁ (p ,, refl)) (proj₂ (proj₂ (SIG b))) (substNf-cons σ A))
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
