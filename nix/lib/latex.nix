@@ -37,6 +37,6 @@
         runHook postInstall
       '';
     });
-  # A typical good filter for latex sources.
+  # A typical good filter for latex sources. This also includes files for cases where agda sources are being compiled
   filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 }
