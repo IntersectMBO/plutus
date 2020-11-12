@@ -155,11 +155,13 @@ startReachabilityAnalysis settings contract state = do
     Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
       let
         numSubproblems = countSubproblems isValidSubproblem newChildren
-      let
+
+        newPath /\ newContract = expandSubproblem contractZipper
+
         progress =
           ( InProgress
-              { currPath: zipperToContractPath contractZipper
-              , currContract: subcontract
+              { currPath: newPath
+              , currContract: newContract
               , currChildren: newChildren
               , originalState: state
               , subproblems: newSubproblems
@@ -222,17 +224,20 @@ stepSubproblem isReachable ( rad@{ currPath: oldPath
   }
 ) = case getNextSubproblem isValidSubproblem oldSubproblems (if isReachable then oldChildren else Nil) of
   Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) ->
-    true
-      /\ ( rad
-            { currPath = zipperToContractPath contractZipper
-            , currContract = subcontract
-            , currChildren = newChildren
-            , subproblems = newSubproblems
-            , numSolvedSubproblems = newN
-            , numSubproblems = newTotalN
-            , unreachableSubcontracts = newResults
-            }
-        )
+    let
+      newPath /\ newContract = expandSubproblem contractZipper
+    in
+      true
+        /\ ( rad
+              { currPath = newPath
+              , currContract = newContract
+              , currChildren = newChildren
+              , subproblems = newSubproblems
+              , numSolvedSubproblems = newN
+              , numSubproblems = newTotalN
+              , unreachableSubcontracts = newResults
+              }
+          )
   Nothing ->
     false
       /\ ( rad
@@ -252,9 +257,9 @@ stepSubproblem isReachable ( rad@{ currPath: oldPath
 stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InProgressRecord -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 stepAnalysis settings isReachable rad =
   let
-    areThereMore /\ newRad = stepSubproblem isReachable rad
+    thereAreMore /\ newRad = stepSubproblem isReachable rad
   in
-    if areThereMore then do
+    if thereAreMore then do
       assign _analysisState (ReachabilityAnalysis (InProgress newRad))
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
       updateWithResponse settings (InProgress newRad) response
