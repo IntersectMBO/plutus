@@ -64,9 +64,7 @@ data ContractZipper
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-data ReachabilityAnalysisData
-  = NotStarted
-  | InProgress
+type InProgressRecord =
     { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
@@ -74,9 +72,14 @@ data ReachabilityAnalysisData
     , subproblems :: RemainingSubProblemInfo
     , numSubproblems :: Int
     , numSolvedSubproblems :: Int
+    , unreachableSubcontracts :: List ContractPath
     }
+
+data ReachabilityAnalysisData
+  = NotStarted
+  | InProgress InProgressRecord
   | ReachabilityFailure String
-  | UnreachableSubcontract ContractPath
+  | UnreachableSubcontract (NonEmptyList ContractPath)
   | AllReachable
 
 data AnalysisState

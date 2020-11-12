@@ -10,8 +10,9 @@ import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
 import Data.Lens (_Just, has, only, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
-import Data.List (List, toUnfoldable)
+import Data.List (List, null, toUnfoldable)
 import Data.List as List
+import Data.List.NonEmpty (toList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Newtype (unwrap)
@@ -486,9 +487,20 @@ analysisResultPane state =
         InProgress
           { numSubproblems: totalSteps
         , numSolvedSubproblems: doneSteps
+        , unreachableSubcontracts: foundUnreachableSubcontracts
         } ->
           explanation
-            [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+            ( [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+                <> if null foundUnreachableSubcontracts then
+                    [ text "No unreachable subcontracts found so far." ]
+                  else
+                    ( [ text "Found the following unreachable subcontracts so far:" ]
+                        <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                              contractPath <- toUnfoldable foundUnreachableSubcontracts
+                              pure (li_ [ text (show contractPath) ])
+                          ]
+                    )
+            )
         ReachabilityFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
@@ -499,12 +511,16 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        UnreachableSubcontract contractPath ->
+        UnreachableSubcontract contractPaths ->
           explanation
-            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
-            , text "Static analysis found the following subcontract that is unreachable:"
-            , text (show contractPath)
-            ]
+            ( [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
+              , text "Static analysis found the following subcontracts that are unreachable:"
+              ]
+                <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                      contractPath <- toUnfoldable (toList contractPaths)
+                      pure (li_ [ text (show contractPath) ])
+                  ]
+            )
         AllReachable ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]

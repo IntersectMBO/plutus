@@ -5,7 +5,8 @@ import Control.Monad.Reader (runReaderT)
 import Data.Function (flip)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
-import Data.Maybe (Maybe(..))
+import Data.List.NonEmpty (fromList)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
@@ -18,10 +19,10 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, map, pure, ($), (+), (/=), (<$>), (<>))
+import Prelude (Void, bind, discard, map, pure, ($), (+), (-), (/=), (<$>), (<>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), State, WebData, RemainingSubProblemInfo, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -164,6 +165,7 @@ startReachabilityAnalysis settings contract state = do
               , subproblems: newSubproblems
               , numSubproblems: 1 + numSubproblems
               , numSolvedSubproblems: 0
+              , unreachableSubcontracts: Nil
               }
           )
       assign _analysisState (ReachabilityAnalysis progress)
@@ -209,6 +211,56 @@ getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
 
 getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
 
+stepSubproblem :: Boolean -> InProgressRecord -> Boolean /\ InProgressRecord
+stepSubproblem isReachable ( rad@{ currPath: oldPath
+  , originalState: state
+  , subproblems: oldSubproblems
+  , currChildren: oldChildren
+  , numSolvedSubproblems: n
+  , numSubproblems: oldTotalN
+  , unreachableSubcontracts: results
+  }
+) = case getNextSubproblem isValidSubproblem oldSubproblems (if isReachable then oldChildren else Nil) of
+  Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) ->
+    true
+      /\ ( rad
+            { currPath = zipperToContractPath contractZipper
+            , currContract = subcontract
+            , currChildren = newChildren
+            , subproblems = newSubproblems
+            , numSolvedSubproblems = newN
+            , numSubproblems = newTotalN
+            , unreachableSubcontracts = newResults
+            }
+        )
+  Nothing ->
+    false
+      /\ ( rad
+            { subproblems = Nil
+            , numSolvedSubproblems = newN
+            , numSubproblems = newTotalN
+            , unreachableSubcontracts = newResults
+            }
+        )
+  where
+  newN = n + 1
+
+  newTotalN = oldTotalN - (if isReachable then 0 else countSubproblems isValidSubproblem oldChildren)
+
+  newResults = results <> (if isReachable then Nil else Cons oldPath Nil)
+
+stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InProgressRecord -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
+stepAnalysis settings isReachable rad =
+  let
+    areThereMore /\ newRad = stepSubproblem isReachable rad
+  in
+    if areThereMore then do
+      assign _analysisState (ReachabilityAnalysis (InProgress newRad))
+      response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
+      updateWithResponse settings (InProgress newRad) response
+    else
+      pure (maybe AllReachable UnreachableSubcontract (fromList newRad.unreachableSubcontracts))
+
 updateWithResponse ::
   forall m.
   MonadAff m =>
@@ -219,32 +271,9 @@ updateWithResponse _ (InProgress _) (Failure (AjaxError err)) = pure (Reachabili
 
 updateWithResponse _ (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
 
-updateWithResponse _ (InProgress { currPath: path }) (Success Valid) = pure (UnreachableSubcontract path) -- ToDo: continue checking rest
+updateWithResponse settings (InProgress rad) (Success Valid) = stepAnalysis settings false rad
 
-updateWithResponse settings ( InProgress
-    ( rad@{ originalState: state
-    , subproblems: oldSubproblems
-    , currChildren: oldChildren
-    , numSolvedSubproblems: n
-    }
-  )
-) (Success (CounterExample _)) = case getNextSubproblem isValidSubproblem oldSubproblems oldChildren of
-  Nothing -> pure AllReachable
-  Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
-    let
-      progress =
-        InProgress
-          ( rad
-              { currPath = zipperToContractPath contractZipper
-              , currContract = subcontract
-              , currChildren = newChildren
-              , subproblems = newSubproblems
-              , numSolvedSubproblems = n + 1
-              }
-          )
-    assign _analysisState (ReachabilityAnalysis progress)
-    response <- checkContractForReachability settings subcontract state
-    updateWithResponse settings progress response
+updateWithResponse settings (InProgress rad) (Success (CounterExample _)) = stepAnalysis settings true rad
 
 updateWithResponse _ rad _ = pure rad
 
