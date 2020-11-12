@@ -194,14 +194,15 @@ handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleSubRoute _ Router.Wallets = selectView WalletEmulator
 
--- This route is supposed to be called by the github oauth flow after the a succesful login flow
--- It is only supposed to be run in a popup window
+-- This route is supposed to be called by the github oauth flow after a succesful login flow
+-- It is supposed to be run inside a popup window
 handleSubRoute settings Router.GithubAuthCallback = do
-  -- TODO: This is being called twice
-  liftEffect $ Console.log "is this being called???"
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   case authResult of
     (Success authStatus) -> liftEffect $ informParentAndClose $ view authStatusAuthRole authStatus
+    -- TODO: is it worth showing a particular view for Failure, NotAsked and Loading?
+    -- Modifying this will mean to also modify the render function in the mainframe to be able to draw without
+    -- the headers/footers as this is supposed to be a dialog/popup
     (Failure _) -> pure unit
     NotAsked -> pure unit
     Loading -> pure unit

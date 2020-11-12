@@ -185,7 +185,6 @@ newtype State
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
-  -- , popupError :: Maybe String
   }
 
 derive instance newtypeState :: Newtype State _

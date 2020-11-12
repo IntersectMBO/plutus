@@ -11,9 +11,6 @@ import Effect.Uncurried as FU
 import Foreign (Foreign)
 import Web.HTML (Window)
 
--- Not sure why close is not a part of Web.HTML.Window
--- TODO: ask in FP slack to see if there is a particular reason and if a PR would be
---       welcome
 foreign import _close :: FU.EffectFn1 Window Unit
 
 close :: Window -> Effect Unit

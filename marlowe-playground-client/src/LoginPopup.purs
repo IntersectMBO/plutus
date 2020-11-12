@@ -33,7 +33,6 @@ openLoginPopup = do
 
     githubLoginPage = "/api/oauth/github"
 
-    -- githubLoginPage = "/#/gh-oauth-cb"
     features :: Aff String
     features =
       liftEffect do
