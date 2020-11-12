@@ -26,18 +26,20 @@ let
     mkdir $out
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
+
+  buildPursPackage = pkgs.callPackage ../nix/lib/purescript.nix {
+    inherit nodejs-headers;
+    inherit easyPS;
+  };
+
 in
-pkgs.callPackage ../nix/lib/purescript.nix rec {
-  inherit nodejs-headers;
-  inherit easyPS webCommon;
-  psSrc = generated-purescript;
+buildPursPackage rec {
+  inherit webCommon;
   src = ./.;
-  packageJSON = ./package.json;
-  yarnLock = ./yarn.lock;
-  yarnNix = ./yarn.nix;
+  name = "marlowe-playground-client";
+  psSrc = generated-purescript;
   additionalPurescriptSources = [ "../web-common/**/*.purs" ];
   packages = pkgs.callPackage ./packages.nix { };
   spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-  name = (pkgs.lib.importJSON packageJSON).name;
   passthru = { inherit server-invoker; };
 }

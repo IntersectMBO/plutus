@@ -1,24 +1,29 @@
 { stdenv
-, pkgs
+, lib
+, cacert
+, nodejs-10_x
+, nodePackages_10_x
+, python2
+, git
 , fetchurl
-, psSrc
-, easyPS
 , yarn2nix-moretea
 , nodejs-headers
+, easyPS
+}:
+
+{ psSrc
 , src
+, name
+, yarnLock ? src + "/yarn.lock"
+, yarnNix ? src + "/yarn.nix"
+, packageJSON ? src + "/package.json"
 , additionalPurescriptSources ? [ ]
 , packages
 , spagoPackages
-, name
-, packageJSON
-, yarnLock
-, yarnNix
 , webCommon
 , checkPhase ? "yarn --offline test"
 , passthru ? { }
 }:
-
-with pkgs;
 
 let
 
@@ -34,10 +39,10 @@ let
 
   packagesJson = "${src}/packages.json";
 
-  cleanSrcs = pkgs.lib.cleanSourceWith {
-    filter = pkgs.lib.cleanSourceFilter;
+  cleanSrcs = lib.cleanSourceWith {
+    filter = lib.cleanSourceFilter;
     src = lib.cleanSourceWith {
-      filter = (path: type: !(pkgs.lib.elem (baseNameOf path)
+      filter = (path: type: !(lib.elem (baseNameOf path)
         [ ".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode" ]));
       inherit src;
     };
@@ -114,5 +119,5 @@ yarn2nix-moretea.mkYarnPackage {
   '';
 
   # A bunch of this stuff doesn't seem to work on darwin
-  meta.platforms = pkgs.lib.platforms.linux;
+  meta.platforms = lib.platforms.linux;
 }

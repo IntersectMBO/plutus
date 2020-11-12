@@ -28,10 +28,14 @@ let
     ${server-invoker}/bin/plutus-playground psgenerator $out
   '';
 
+  buildPursPackage = pkgs.callPackage ../nix/lib/purescript.nix {
+    inherit nodejs-headers;
+    inherit easyPS;
+  };
+
 in
-pkgs.callPackage ../nix/lib/purescript.nix rec {
-  inherit nodejs-headers;
-  inherit easyPS webCommon;
+buildPursPackage rec {
+  inherit webCommon;
   psSrc = generated-purescript;
   src = ./.;
   packageJSON = ./package.json;
