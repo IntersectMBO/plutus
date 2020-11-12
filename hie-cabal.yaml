@@ -6,6 +6,8 @@ cradle:
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
   - path: ./plutus-core/src
     config: { cradle: { cabal: { component: "lib:plutus-core" } } }
+  - path: ./plutus-core/exe
+    config: { cradle: { cabal: { component: "plutus-core:plc" } } }
   - path: ./plutus-core/untyped-plutus-core
     config: { cradle: { cabal: { component: "lib:untyped-plutus-core" } } }
   - path: ./plutus-core/plutus-ir
@@ -31,12 +33,22 @@ cradle:
   - path: ./plutus-core/test-cost-model
     config: { cradle: { none: } }
 
+  - path: ./prettyprinter-configurable/src
+    config: { cradle: { cabal: { component: "lib:prettyprinter-configurable" } } }
+  - path: ./prettyprinter-configurable/test
+    config: { cradle: { cabal: { component: "prettyprinter-configurable:prettyprinter-configurable-test" } } }
+  - path: ./prettyprinter-configurable/doctest
+    config: { cradle: { cabal: { component: "prettyprinter-configurable:prettyprinter-configurable-doctest" } } }
+
   - path: ./plutus-tx/src
     config: { cradle: { cabal: { component: "lib:plutus-tx" } } }
   - path: ./plutus-tx-plugin/src
     config: { cradle: { cabal: { component: "lib:plutus-tx-plugin" } } }
   - path: ./plutus-tx-plugin/test
-    config: { cradle: { cabal: { component: "plutus-tx-plugin:plutus-tx-test" } } }
+    config: { cradle: { cabal: { component: "plutus-tx-plugin:plutus-tx-tests" } } }
+
+  - path: ./doc
+    config: { cradle: { cabal: { component: "plutus-doc:doc-doctests" } } }
 
   - path: ./playground-common/src
     config: { cradle: { cabal: { component: "lib:playground-common" } } }
@@ -47,6 +59,21 @@ cradle:
     config: { cradle: { cabal: { component: "lib:marlowe-playground-server" } } }
   - path: ./marlowe-playground-server/test
     config: { cradle: { cabal: { component: "marlowe-playground-server:marlowe-playground-server-test" } } }
+
+  - path: ./plutus-playground-server/src
+    config: { cradle: { cabal: { component: "lib:plutus-playground-server" } } }
+  - path: ./plutus-playground-server/test
+    config: { cradle: { cabal: { component: "plutus-playground-server:plutus-playground-server-test" } } }
+
+  - path: ./marlowe/src
+    config: { cradle: { cabal: { component: "lib:marlowe" } } }
+  - path: ./marlowe/test
+    config: { cradle: { cabal: { component: "marlowe:marlowe-test" } } }
+
+  - path: ./marlowe-actus/src
+    config: { cradle: { cabal: { component: "lib:marlowe-actus" } } }
+  - path: ./marlowe-actus/test
+    config: { cradle: { cabal: { component: "marlowe-actus:marlowe-actus-test" } } }
 
   - path: ./marlowe-symbolic/src
     config: { cradle: { cabal: { component: "lib:marlowe-symbolic" } } }
@@ -61,6 +88,18 @@ cradle:
   - path: ./plutus-contract/test
     config: { cradle: { cabal: { component: "plutus-contract:plutus-contract-test" } } }
 
+  - path: ./plutus-scb/src
+    config: { cradle: { cabal: { component: "lib:plutus-scb" } } }
+  - path: ./plutus-scb/app
+    config: { cradle: { cabal: { component: "plutus-scb:plutus-scb" } } }
+  - path: ./plutus-scb/test
+    config: { cradle: { cabal: { component: "plutus-scb:plutus-scb-test" } } }
+
+  - path: ./plutus-use-cases/src
+    config: { cradle: { cabal: { component: "lib:plutus-use-cases" } } }
+  - path: ./plutus-use-cases/test
+    config: { cradle: { cabal: { component: "plutus-use-cases:plutus-use-cases-test" } } }
+
   - path: ./deployment-server/src
     config: { cradle: { cabal: { component: "lib:deployment-server" } } }
   - path: ./deployment-server/test
@@ -71,14 +110,14 @@ cradle:
   - path: ./iots-export/test
     config: { cradle: { cabal: { component: "iots-export:iots-export-test" } } }
 
-  - path: ./metatheory/src
-    config: { cradle: { cabal: { component: "lib:metatheory" } } }
-  - path: ./metatheory/test
-    config: { cradle: { cabal: { component: "metatheory:metatheory-test" } } }
+  - path: ./plutus-metatheory/src
+    config: { cradle: { cabal: { component: "lib:plutus-metatheory" } } }
+  - path: ./plutus-metatheory/test
+    config: { cradle: { cabal: { component: "plutus-metatheory:test1" } } }
 
   - path: ./web-ghc/src
     config: { cradle: { cabal: { component: "lib:web-ghc" } } }
-  - path: ./web-ghc/src
+  - path: ./web-ghc/app
     config: { cradle: { cabal: { component: "exe:web-ghc-server" } } }
   - path: ./web-ghc/test
     config: { cradle: { cabal: { component: "web-ghc:web-ghc-test" } } }
