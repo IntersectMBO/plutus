@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, easyPS, nodejs-headers, webCommon }:
+{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
 
 let
   server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
@@ -9,18 +9,14 @@ let
     ${server-invoker}/bin/plutus-scb psgenerator $out
   '';
   client =
-    pkgs.callPackage ../nix/lib/purescript.nix rec {
-      inherit nodejs-headers;
-      inherit easyPS webCommon;
-      psSrc = generated-purescript;
+    buildPursPackage {
+      inherit webCommon;
       src = ./.;
-      packageJSON = ./package.json;
-      yarnLock = ./yarn.lock;
-      yarnNix = ./yarn.nix;
+      name = "plutus-scb-client";
+      psSrc = generated-purescript;
       additionalPurescriptSources = [ "../web-common/**/*.purs" ];
       packages = pkgs.callPackage ./packages.nix { };
       spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-      name = (pkgs.lib.importJSON packageJSON).name;
       checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
     };
 

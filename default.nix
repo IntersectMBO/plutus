@@ -44,7 +44,8 @@ rec {
     haddock = plutus.plutus-haddock-combined;
 
     client = pkgs.callPackage ./plutus-playground-client {
-      inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+      inherit (plutus.lib) buildPursPackage;
+      inherit set-git-rev haskell webCommon;
     };
   };
 
@@ -52,7 +53,8 @@ rec {
     tutorial = docs.marlowe-tutorial;
 
     client = pkgs.callPackage ./marlowe-playground-client {
-      inherit set-git-rev haskell docs easyPS nodejs-headers webCommon;
+      inherit (plutus.lib) buildPursPackage;
+      inherit set-git-rev haskell webCommon;
     };
   };
 
@@ -69,7 +71,8 @@ rec {
   };
 
   plutus-scb = pkgs.callPackage ./plutus-scb-client {
-    inherit set-git-rev haskell nodejs-headers webCommon easyPS;
+    inherit (plutus.lib) buildPursPackage;
+    inherit set-git-rev haskell webCommon;
   };
 
   tests = import ./nix/tests/default.nix {

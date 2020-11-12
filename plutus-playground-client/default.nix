@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, docs, easyPS, webCommon, nodejs-headers }:
+{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
 
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
@@ -29,18 +29,14 @@ let
   '';
 
 in
-pkgs.callPackage ../nix/lib/purescript.nix rec {
-  inherit nodejs-headers;
-  inherit easyPS webCommon;
-  psSrc = generated-purescript;
+buildPursPackage {
+  inherit webCommon;
   src = ./.;
-  packageJSON = ./package.json;
-  yarnLock = ./yarn.lock;
-  yarnNix = ./yarn.nix;
+  name = "plutus-playground-client";
+  psSrc = generated-purescript;
   additionalPurescriptSources = [ "../web-common/**/*.purs" ];
   packages = pkgs.callPackage ./packages.nix { };
   spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-  name = (pkgs.lib.importJSON packageJSON).name;
   checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
   passthru = { inherit server-invoker; };
 }
