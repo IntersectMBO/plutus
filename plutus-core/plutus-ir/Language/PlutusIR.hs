@@ -95,7 +95,7 @@ data Recursivity = NonRec | Rec
 -- The semigroup operation is the "join" of the lattice.
 instance Semigroup Recursivity where
   NonRec <> x = x
-  Rec <> _ = Rec
+  Rec <> _    = Rec
 
 instance Serialise Recursivity
 
@@ -121,8 +121,8 @@ instance ( PLC.Closed uni
 -- | Get all the direct child 'Term's of the given 'Binding'.
 bindingSubterms :: Traversal' (Binding tyname name uni fun a) (Term tyname name uni fun a)
 bindingSubterms f = \case
-    TermBind x s d t -> TermBind x s d <$> f t
-    b@TypeBind {} -> pure b
+    TermBind x s d t  -> TermBind x s d <$> f t
+    b@TypeBind {}     -> pure b
     d@DatatypeBind {} -> pure d
 
 {-# INLINE varDeclSubtypes #-}
@@ -141,7 +141,7 @@ bindingSubtypes :: Traversal' (Binding tyname name uni fun a) (Type tyname uni a
 bindingSubtypes f = \case
     TermBind x s d t -> TermBind x s <$> varDeclSubtypes f d <*> pure t
     DatatypeBind x d -> DatatypeBind x <$> datatypeSubtypes f d
-    TypeBind a d ty -> TypeBind a d <$> f ty
+    TypeBind a d ty  -> TypeBind a d <$> f ty
 
 -- | All the identifiers/names introduced by this binding
 -- In case of a datatype-binding it has multiple identifiers: the type, constructors, match function
@@ -241,40 +241,40 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
 termSubterms :: Traversal' (Term tyname name uni fun a) (Term tyname name uni fun a)
 termSubterms f = \case
-    Let x r bs t -> Let x r <$> (traverse . bindingSubterms) f bs <*> f t
-    TyAbs x tn k t -> TyAbs x tn k <$> f t
-    LamAbs x n ty t -> LamAbs x n ty <$> f t
-    Apply x t1 t2 -> Apply x <$> f t1 <*> f t2
-    TyInst x t ty -> TyInst x <$> f t <*> pure ty
+    Let x r bs t      -> Let x r <$> (traverse . bindingSubterms) f bs <*> f t
+    TyAbs x tn k t    -> TyAbs x tn k <$> f t
+    LamAbs x n ty t   -> LamAbs x n ty <$> f t
+    Apply x t1 t2     -> Apply x <$> f t1 <*> f t2
+    TyInst x t ty     -> TyInst x <$> f t <*> pure ty
     IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
-    Unwrap x t -> Unwrap x <$> f t
-    e@Error {} -> pure e
-    v@Var {} -> pure v
-    c@Constant {} -> pure c
-    b@Builtin {} -> pure b
+    Unwrap x t        -> Unwrap x <$> f t
+    e@Error {}        -> pure e
+    v@Var {}          -> pure v
+    c@Constant {}     -> pure c
+    b@Builtin {}      -> pure b
 
 {-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
 termSubtypes :: Traversal' (Term tyname name uni fun a) (Type tyname uni a)
 termSubtypes f = \case
-    Let x r bs t -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
-    LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
-    TyInst x t ty -> TyInst x t <$> f ty
+    Let x r bs t      -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
+    LamAbs x n ty t   -> LamAbs x n <$> f ty <*> pure t
+    TyInst x t ty     -> TyInst x t <$> f ty
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
-    Error x ty -> Error x <$> f ty
-    t@TyAbs {} -> pure t
-    a@Apply {} -> pure a
-    u@Unwrap {} -> pure u
-    v@Var {} -> pure v
-    c@Constant {} -> pure c
-    b@Builtin {} -> pure b
+    Error x ty        -> Error x <$> f ty
+    t@TyAbs {}        -> pure t
+    a@Apply {}        -> pure a
+    u@Unwrap {}       -> pure u
+    v@Var {}          -> pure v
+    c@Constant {}     -> pure c
+    b@Builtin {}      -> pure b
 
 {-# INLINE termBindings #-}
 -- | Get all the direct child 'Binding's of the given 'Term'.
 termBindings :: Traversal' (Term tyname name uni fun a) (Binding tyname name uni fun a)
 termBindings f = \case
     Let x r bs t -> Let x r <$> traverse f bs <*> pure t
-    t -> pure t
+    t            -> pure t
 
 -- no version as PIR is not versioned
 data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deriving Generic
@@ -302,12 +302,12 @@ instance (PLC.PrettyClassicBy configName tyname) =>
 instance PrettyBy (PLC.PrettyConfigClassic configName) Recursivity where
     prettyBy _ = \case
         NonRec -> parens' "nonrec"
-        Rec -> parens' "rec"
+        Rec    -> parens' "rec"
 
 instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
     prettyBy _ = \case
         NonStrict -> parens' "nonstrict"
-        Strict -> parens' "strict"
+        Strict    -> parens' "strict"
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
@@ -326,7 +326,7 @@ instance ( PLC.PrettyClassicBy configName tyname
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni fun a) where
     prettyBy config = \case
         TermBind _ s d t -> parens' ("termbind" </> vsep' [prettyBy config s, prettyBy config d, prettyBy config t])
-        TypeBind _ d ty -> parens' ("typebind" </> vsep' [prettyBy config d, prettyBy config ty])
+        TypeBind _ d ty  -> parens' ("typebind" </> vsep' [prettyBy config d, prettyBy config ty])
         DatatypeBind _ d -> parens' ("datatypebind" </> prettyBy config d)
 
 instance ( PLC.PrettyClassicBy configName tyname

@@ -15,8 +15,8 @@ import           GitHub.Data.Webhooks.Events  (PullRequestEvent (evPullReqPayloa
 import           GitHub.Data.Webhooks.Payload (HookPullRequest (whPullReqBase, whPullReqMergedAt),
                                                PullRequestTarget (whPullReqTargetRef))
 import           Network.Wai                  (Application)
-import           Servant                      (Context ((:.), EmptyContext), Handler, serveWithContext)
-import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, Post)
+import           Servant                      (Context (EmptyContext, (:.)), Handler, serveWithContext)
+import           Servant.API                  (Get, JSON, Post, (:<|>) ((:<|>)), (:>))
 import           Servant.GitHub.Webhook       (GitHubEvent, GitHubKey, GitHubSignedReqBody,
                                                RepoWebhookEvent (WebhookPullRequestEvent))
 

@@ -34,8 +34,8 @@ import           Hedgehog                                   hiding (Var)
 import qualified Hedgehog.Gen                               as Gen
 import           Test.Tasty
 import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 main :: IO ()
 main = do

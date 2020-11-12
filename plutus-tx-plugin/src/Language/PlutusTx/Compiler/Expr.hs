@@ -2,9 +2,9 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
@@ -42,11 +42,11 @@ import qualified Language.PlutusCore.MkPlc              as PLC
 
 import           Control.Monad.Reader
 
+import qualified Data.ByteString                        as BS
 import           Data.List                              (elemIndex)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as Map
 import qualified Data.Set                               as Set
-import qualified Data.ByteString                        as BS
 import qualified Data.Text                              as T
 import qualified Data.Text.Encoding                     as TE
 import           Data.Traversable
@@ -142,8 +142,8 @@ stringExprContent = \case
 strip :: GHC.CoreExpr -> GHC.CoreExpr
 strip = \case
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
-    GHC.Tick _ expr -> strip expr
-    expr -> expr
+    GHC.Tick _ expr                                                                     -> strip expr
+    expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
 compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
@@ -405,7 +405,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.String nameInfo, Map.lookup 'String.stringToBuiltinString nameInfo) of
         (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
-        _ -> throwPlain $ CompilationError "No info for String builtin"
+        _                  -> throwPlain $ CompilationError "No info for String builtin"
 
     let top = NE.head stack
     case e of

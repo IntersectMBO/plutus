@@ -137,10 +137,10 @@ termDefs
     => Term tyname name uni fun ann
     -> m ()
 termDefs = cata $ \case
-    VarF ann n           -> addUsage n ann TermScope
-    LamAbsF ann n ty t   -> addDef n ann TermScope >> typeDefs ty >> t
+    VarF ann n         -> addUsage n ann TermScope
+    LamAbsF ann n ty t -> addDef n ann TermScope >> typeDefs ty >> t
     IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
-    TyAbsF ann tn _ t    -> addDef tn ann TypeScope >> t
+    TyAbsF ann tn _ t  -> addDef tn ann TypeScope >> t
     TyInstF _ t ty     -> t >> typeDefs ty
     x                  -> sequence_ x
 
@@ -155,7 +155,7 @@ typeDefs = cata $ \case
     TyVarF ann n         -> addUsage n ann TypeScope
     TyForallF ann tn _ t -> addDef tn ann TypeScope >> t
     TyLamF ann tn _ t    -> addDef tn ann TypeScope >> t
-    x                  -> sequence_ x
+    x                    -> sequence_ x
 
 runTermDefs
     :: (Ord ann,

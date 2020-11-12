@@ -34,8 +34,8 @@ import           Plutus.SCB.Types                (Config, ContractExe, SCBError 
 import           Plutus.SCB.Webserver.API        (API, DocumentationAPI, WSAPI)
 import           Plutus.SCB.Webserver.Handler    (handler)
 import           Plutus.SCB.Webserver.WebSocket  (handleWS)
-import           Servant                         ((:<|>) ((:<|>)), Application, Handler (Handler), Raw, ServerT, err400,
-                                                  err500, errBody, hoistServer, serve, serveDirectoryFileServer)
+import           Servant                         (Application, Handler (Handler), Raw, ServerT, err400, err500, errBody,
+                                                  hoistServer, serve, serveDirectoryFileServer, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort))
 
 asHandler :: Trace IO SCBLogMsg -> CM.Configuration -> Config -> App a -> Handler a

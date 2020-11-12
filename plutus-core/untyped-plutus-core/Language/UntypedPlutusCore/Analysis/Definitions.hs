@@ -26,9 +26,9 @@ termDefs
     => Term name uni fun ann
     -> m ()
 termDefs = cata $ \case
-    VarF ann n           -> addUsage n ann TermScope
-    LamAbsF ann n t      -> addDef n ann TermScope >> t
-    x                    -> sequence_ x
+    VarF ann n      -> addUsage n ann TermScope
+    LamAbsF ann n t -> addDef n ann TermScope >> t
+    x               -> sequence_ x
 
 runTermDefs
     :: (Ord ann,

@@ -65,9 +65,8 @@ import           Wallet.Effects                                    (ChainIndexEf
                                                                     SigningProcessEffect, WalletEffect)
 import qualified Wallet.Effects
 import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
-import           Wallet.Types                                      (AddressChangeRequest, AddressChangeResponse,
-                                                                    Notification, NotificationError)
-import           Wallet.Types                                      (AddressChangeRequest (..), ContractInstanceId)
+import           Wallet.Types                                      (AddressChangeRequest (..), AddressChangeResponse,
+                                                                    ContractInstanceId, Notification, NotificationError)
 
 
 -- | Request handlers that can choose whether to handle an effect (using

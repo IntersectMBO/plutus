@@ -11,7 +11,7 @@ module Playground.API
 import           Language.Haskell.Interpreter (InterpreterResult, SourceCode)
 import qualified Language.Haskell.Interpreter as HI
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
-import           Servant.API                  ((:<|>), (:>), Get, JSON, Post, ReqBody)
+import           Servant.API                  (Get, JSON, Post, ReqBody, (:<|>), (:>))
 
 type API
      = "contract" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either HI.InterpreterError (InterpreterResult CompilationResult))

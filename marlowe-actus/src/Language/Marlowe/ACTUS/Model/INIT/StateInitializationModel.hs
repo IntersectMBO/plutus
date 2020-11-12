@@ -4,7 +4,8 @@ module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
 
 import           Data.Maybe                                            (fromJust, fromMaybe, isJust, isNothing)
 import           Language.Marlowe.ACTUS.Definitions.ContractState      (ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (FEB (FEB_N), SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (FEB (FEB_N),
+                                                                        SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM))
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
 import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
 

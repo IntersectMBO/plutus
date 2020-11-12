@@ -206,7 +206,7 @@ headersBridge = do
     -- Headers should have two parameters, the list of headers and the return type.
     psTypeParameters >>= \case
         [_, returnType] -> pure returnType
-        _ -> empty
+        _               -> empty
 
 headerBridge :: BridgePart
 headerBridge = do

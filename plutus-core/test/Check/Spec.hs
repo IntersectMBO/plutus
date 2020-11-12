@@ -17,8 +17,8 @@ import           Control.Monad.Except
 import           Data.Either
 import           Hedgehog                           hiding (Var)
 import           Test.Tasty
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 tests :: TestTree
 tests = testGroup "checks"

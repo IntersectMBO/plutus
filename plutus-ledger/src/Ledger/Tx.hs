@@ -330,13 +330,13 @@ data TxOutType =
 
 instance PlutusTx.Eq TxOutType where
     PayToScript l == PayToScript r = l PlutusTx.== r
-    PayToPubKey == PayToPubKey = True
-    _ == _ = False
+    PayToPubKey == PayToPubKey     = True
+    _ == _                         = False
 
 instance Pretty TxOutType where
     pretty = \case
         PayToScript ds -> "PayToScript:" <+> pretty ds
-        PayToPubKey -> "PayToPubKey"
+        PayToPubKey    -> "PayToPubKey"
 
 -- | A transaction output, consisting of a target address, a value, and an output type.
 data TxOut = TxOut {

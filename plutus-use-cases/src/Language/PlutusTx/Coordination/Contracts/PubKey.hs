@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A "pay-to-pubkey" transaction output implemented as a Plutus
 --   contract. This is useful if you need something that behaves like
@@ -19,18 +19,18 @@ module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptIns
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-import Data.Aeson (ToJSON, FromJSON)
-import qualified Data.Map   as Map
-import GHC.Generics (Generic)
+import           Data.Aeson               (FromJSON, ToJSON)
+import qualified Data.Map                 as Map
+import           GHC.Generics             (Generic)
 
-import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       as Ledger hiding (initialise, to)
-import           Ledger.Typed.Scripts (ScriptInstance)
-import qualified Ledger.Typed.Scripts         as Scripts
-import           Ledger.Validation            as V
+import qualified Language.PlutusTx        as PlutusTx
+import           Ledger                   as Ledger hiding (initialise, to)
+import           Ledger.Typed.Scripts     (ScriptInstance)
+import qualified Ledger.Typed.Scripts     as Scripts
+import           Ledger.Validation        as V
 
-import           Language.Plutus.Contract     as Contract
-import qualified Ledger.Constraints           as Constraints
+import           Language.Plutus.Contract as Contract
+import qualified Ledger.Constraints       as Constraints
 
 mkValidator :: PubKeyHash -> () -> () -> ValidatorCtx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy (valCtxTxInfo p) pk'
@@ -83,6 +83,6 @@ pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
                 $ Map.filter ((==) address . txOutAddress)
                 $ unspentOutputsTx ledgerTx
     case output of
-        [] -> throwing _ScriptOutputMissing pk
+        []                   -> throwing _ScriptOutputMissing pk
         [(outRef, outTxOut)] -> pure (outRef, TxOutTx{txOutTxTx = ledgerTx, txOutTxOut = outTxOut}, inst)
-        _ -> throwing _MultipleScriptOutputs pk
+        _                    -> throwing _MultipleScriptOutputs pk

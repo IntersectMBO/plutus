@@ -13,8 +13,8 @@ import qualified Spec.MultiSigStateMachine
 import qualified Spec.PingPong
 import qualified Spec.Prism
 import qualified Spec.PubKey
-import qualified Spec.Rollup
 import qualified Spec.RPC
+import qualified Spec.Rollup
 import qualified Spec.Stablecoin
 import qualified Spec.TokenAccount
 import qualified Spec.Vesting

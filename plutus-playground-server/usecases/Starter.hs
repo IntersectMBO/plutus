@@ -2,9 +2,9 @@
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
@@ -26,16 +26,15 @@ module Starter where
 --   * publish
 --   * redeem
 
-import           Control.Monad              (void)
-import qualified Language.PlutusTx          as PlutusTx
-import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, ValidatorCtx,
-                                             scriptAddress)
-import           Ledger.Value               (Value)
-import           Playground.Contract
+import           Control.Monad             (void)
 import           Language.Plutus.Contract
-import qualified Ledger.Constraints as Constraints
-import qualified Ledger.Typed.Scripts as Scripts
+import qualified Language.PlutusTx         as PlutusTx
+import           Language.PlutusTx.Prelude hiding (Applicative (..))
+import           Ledger                    (Address, ValidatorCtx, scriptAddress)
+import qualified Ledger.Constraints        as Constraints
+import qualified Ledger.Typed.Scripts      as Scripts
+import           Ledger.Value              (Value)
+import           Playground.Contract
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.

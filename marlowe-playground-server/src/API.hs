@@ -11,8 +11,8 @@ import           Data.Aeson                                       (FromJSON, ToJ
 import           Data.Text                                        (Text)
 import           GHC.Generics                                     (Generic)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
-import           Servant.API                                      ((:<|>), (:>), Capture, Get, Header, JSON, NoContent,
-                                                                   PlainText, Post, Raw, ReqBody)
+import           Servant.API                                      (Capture, Get, Header, JSON, NoContent, PlainText,
+                                                                   Post, Raw, ReqBody, (:<|>), (:>))
 
 type API
      = "oracle" :> Capture "exchange" String :> Capture "pair" String :> Get '[JSON] Value

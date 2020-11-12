@@ -12,8 +12,8 @@ module Language.PlutusCore.Examples.Data.Shad
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 -- |
 --

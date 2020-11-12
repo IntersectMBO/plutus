@@ -33,7 +33,7 @@ import qualified Playground.Interpreter       as PI
 import           Playground.Types             (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
 import           Playground.Usecases          (vesting)
 import           Servant                      (Application, err400, errBody, hoistServer, serve)
-import           Servant.API                  ((:<|>) ((:<|>)), (:>), Get, JSON, PlainText, Post, ReqBody)
+import           Servant.API                  (Get, JSON, PlainText, Post, ReqBody, (:<|>) ((:<|>)), (:>))
 import           Servant.Client               (ClientEnv, mkClientEnv, parseBaseUrl)
 import           Servant.Server               (Handler (Handler), Server, ServerError)
 import           System.Environment           (lookupEnv)
@@ -76,7 +76,7 @@ evaluateSimulation clientEnv evaluation = do
 checkHealth :: ClientEnv -> Handler ()
 checkHealth clientEnv =
     compileSourceCode clientEnv vesting >>= \case
-        Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
+        Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API

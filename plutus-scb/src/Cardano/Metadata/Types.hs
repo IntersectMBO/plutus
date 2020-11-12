@@ -179,9 +179,9 @@ data HashFunction
 instance FromJSON HashFunction where
     parseJSON =
         withText "HashFunction" $ \case
-            "SHA256" -> pure SHA256
+            "SHA256"      -> pure SHA256
             "blake2b-256" -> pure Blake2B256
-            other -> fail $ "Unknown HashFunction '" <> Text.unpack other <> "'"
+            other         -> fail $ "Unknown HashFunction '" <> Text.unpack other <> "'"
 
 instance ToJSON HashFunction where
     toJSON SHA256     = JSON.String "SHA256"

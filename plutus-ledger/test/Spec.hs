@@ -43,9 +43,9 @@ import           Ledger.Value                 (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                 as Value
 import           LedgerBytes
 import           Test.Tasty
-import           Test.Tasty.Hedgehog          (testProperty)
 import           Test.Tasty.HUnit             (testCase)
 import qualified Test.Tasty.HUnit             as HUnit
+import           Test.Tasty.Hedgehog          (testProperty)
 
 main :: IO ()
 main = defaultMain tests
