@@ -158,8 +158,8 @@ BUILTIN
 ... | nothing = inj₂ (con bool)
 
 BUILTIN equalsByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (equals b b')))
-BUILTIN ifThenElse σ (V-con (bool false) ,, VT ,, VF ,, tt) = inj₁ VF
-BUILTIN ifThenElse σ (V-con (bool true)  ,, VT ,, VF ,, tt) = inj₁ VT
+BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool false) ,, tt) = inj₁ VF
+BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool true) ,, tt) = inj₁ VT
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)

@@ -159,8 +159,8 @@ BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) ,, tt) =
   con (bytestring (SHA3-256 b))
 BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
-BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
-BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
+BUILTIN ifThenElse _ (f ∷ (_ ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool false) ,, _) = f
+BUILTIN ifThenElse _ (_ ∷ (t ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool true) ,, _) = t
 \end{code}
 
 ## Intrinsically Type Preserving Reduction

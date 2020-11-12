@@ -139,7 +139,7 @@ unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 -- I have put this here as it needs to be a .hs file so that it can be
 -- imported in multiple places
 
-data ERROR = TypeError
+data ERROR = TypeError T.Text
            | ParseError (ParseError ())
            | ScopeError ScopeError
            | RuntimeError RuntimeError
