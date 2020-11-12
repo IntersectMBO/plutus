@@ -140,6 +140,9 @@ let
   lib = {
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
+    buildPursPackage = pkgs.callPackage ../lib/purescript.nix {
+      inherit easyPS nodejs-headers;
+    };
   };
 
 

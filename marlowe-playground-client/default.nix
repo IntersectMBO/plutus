@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, docs, easyPS, webCommon, nodejs-headers }:
+{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
 
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
@@ -27,13 +27,8 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
-  buildPursPackage = pkgs.callPackage ../nix/lib/purescript.nix {
-    inherit nodejs-headers;
-    inherit easyPS;
-  };
-
 in
-buildPursPackage rec {
+buildPursPackage {
   inherit webCommon;
   src = ./.;
   name = "marlowe-playground-client";
