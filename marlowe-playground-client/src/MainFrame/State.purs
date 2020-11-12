@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (class MonadEffect)
 import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
@@ -43,7 +43,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState,  _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -117,13 +117,13 @@ mkMainFrame settings =
     { initialState: const initialState
     , render: render settings
     , eval:
-        H.mkEval
-          { handleQuery: handleQuery settings
-          , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
-          , receive: const Nothing
-          , initialize: Just Init
-          , finalize: Nothing
-          }
+      H.mkEval
+        { handleQuery: handleQuery settings
+        , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
+        , receive: const Nothing
+        , initialize: Just Init
+        , finalize: Nothing
+        }
     }
 
 toSimulation ::
@@ -200,12 +200,11 @@ handleSubRoute settings Router.GithubAuthCallback = do
   -- TODO: This is being called twice
   liftEffect $ Console.log "is this being called???"
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
-  -- case authResult of
-  --   Success ->  -- Anonymous shoud never happen but put a message
-  --   Failure ->
-  -- pure unit
-  liftEffect $ informParentAndClose authResult
-
+  case authResult of
+    (Success authStatus) -> liftEffect $ informParentAndClose $ view authStatusAuthRole authStatus
+    (Failure _) -> pure unit
+    NotAsked -> pure unit
+    Loading -> pure unit
 
 handleRoute ::
   forall m.
@@ -473,7 +472,6 @@ handleAction settings (OpenLoginPopup intendedAction) = do
     GithubUser -> do
       liftEffect $ Console.log "User authenticated, executing action"
       handleAction settings intendedAction
-
 
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
