@@ -151,13 +151,13 @@ startReachabilityAnalysis ::
 startReachabilityAnalysis settings contract state = do
   case getNextSubproblem isValidSubproblem initialSubproblems Nil of
     Nothing -> pure AllReachable
-    Just ((path /\ subcontract /\ newChildren) /\ newSubproblems) -> do
+    Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
       let
         numSubproblems = countSubproblems isValidSubproblem newChildren
       let
         progress =
           ( InProgress
-              { currPath: path
+              { currPath: zipperToContractPath contractZipper
               , currContract: subcontract
               , currChildren: newChildren
               , originalState: state
@@ -196,12 +196,12 @@ getNextSubproblem ::
   (ContractZipper -> Contract -> Boolean) ->
   RemainingSubProblemInfo ->
   RemainingSubProblemInfo ->
-  Maybe ((ContractPath /\ Contract /\ RemainingSubProblemInfo) /\ RemainingSubProblemInfo)
+  Maybe ((ContractZipper /\ Contract /\ RemainingSubProblemInfo) /\ RemainingSubProblemInfo)
 getNextSubproblem _ Nil Nil = Nothing
 
 getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
   if f zipper contract then
-    Just ((zipperToContractPath zipper /\ contract /\ children) /\ rest)
+    Just ((zipper /\ contract /\ children) /\ rest)
   else
     getNextSubproblem f rest children
   where
@@ -230,12 +230,12 @@ updateWithResponse settings ( InProgress
   )
 ) (Success (CounterExample _)) = case getNextSubproblem isValidSubproblem oldSubproblems oldChildren of
   Nothing -> pure AllReachable
-  Just ((contractPath /\ subcontract /\ newChildren) /\ newSubproblems) -> do
+  Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
     let
       progress =
         InProgress
           ( rad
-              { currPath = contractPath
+              { currPath = zipperToContractPath contractZipper
               , currContract = subcontract
               , currChildren = newChildren
               , subproblems = newSubproblems
