@@ -15,6 +15,7 @@
 , yarnNix
 , webCommon
 , checkPhase ? "yarn --offline test"
+, passthru ? { }
 }:
 
 with pkgs;
@@ -51,7 +52,7 @@ let
 
 in
 yarn2nix-moretea.mkYarnPackage {
-  inherit name packageJSON yarnLock yarnNix checkPhase;
+  inherit name packageJSON yarnLock yarnNix checkPhase passthru;
   src = cleanSrcs;
   nodejs = nodejs-10_x;
 

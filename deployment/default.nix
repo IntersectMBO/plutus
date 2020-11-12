@@ -1,4 +1,4 @@
-{ pkgs, pkgsLocal, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
+{ pkgs, plutus, marlowe-playground, plutus-playground, marlowe-symbolic-lambda, marlowe-playground-lambda, plutus-playground-lambda }:
 with pkgs;
 let
   # 20.03 version of terraform is broken on some versions of OSX so I have copied the last 0_12 version from nixpkgs
@@ -61,8 +61,8 @@ let
       set -eou pipefail
 
       echo "sync with S3"
-      ${pkgsLocal.thorp}/bin/thorp -b marlowe-playground-website-${env} -s ${static.marlowe}
-      ${pkgsLocal.thorp}/bin/thorp -b plutus-playground-website-${env} -s ${static.plutus}
+      ${plutus.thorp}/bin/thorp -b marlowe-playground-website-${env} -s ${static.marlowe}
+      ${plutus.thorp}/bin/thorp -b plutus-playground-website-${env} -s ${static.plutus}
     '';
 
   applyTerraform = env: region:

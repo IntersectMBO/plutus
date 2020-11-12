@@ -4,18 +4,15 @@
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
 , packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
-, pkgs ? packages.pkgs
-, localPkgs ? packages.pkgsLocal
 }:
 let
+  inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (localPkgs) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (plutus) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (plutus) agdaWithStdlib;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
-
-  # Called from Cabal to generate the Haskell source for the metatheory package
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
   # Configure project pre-commit hooks
   pre-commit-check = nix-pre-commit-hooks.run {
@@ -62,7 +59,7 @@ let
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
-  localInputs = (with localPkgs; [
+  localInputs = (with plutus; [
     cabal-install
     fixPurty
     fixStylishHaskell

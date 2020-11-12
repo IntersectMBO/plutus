@@ -15,7 +15,7 @@
 ########################################################################
 
 { pkgs
-, plutus-scb
+, client
 , scb-exes # The haskell.nix "exes" component with the sample contracts
 , dbPath # Temporary location where the SQLite databases can be placed. This has to be outside the nix store.
 }:
@@ -40,7 +40,7 @@ let
 
       scbWebserverConfig:
         baseUrl: http://localhost:${conf.webserver-port}
-        staticDir: ${plutus-scb.client}
+        staticDir: ${client}
 
       walletServerConfig:
         baseUrl: http://localhost:${conf.walletserver-port}

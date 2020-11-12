@@ -1,5 +1,5 @@
 { pkgs
-, pkgsMusl
+, plutusMusl
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
@@ -22,9 +22,9 @@ let
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit pkgsMusl;
+    inherit plutusMusl;
     inherit (pkgs) stdenv fetchFromGitHub fetchFromGitLab haskell-nix buildPackages nix-gitignore z3 R rPackages;
-    inherit agdaPackages checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization;
   };
 
 
@@ -58,6 +58,8 @@ let
       }) // { version = haskellNixAgda.identifier.version; };
     in
     pkgs.callPackage ./../lib/agda { Agda = frankenAgda; };
+
+  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
   #
   # dev convenience scripts
@@ -118,12 +120,30 @@ let
   # nodejs headers  (needed for purescript builds)
   nodejs-headers = sources.nodejs-headers;
 
+  # ghc web service
+  web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
+
+  # combined haddock documentation for all public plutus libraries
+  plutus-haddock-combined =
+    let
+      haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix {
+        ghc = haskell.project.pkg-set.config.ghc.package;
+        inherit (sphinxcontrib-haddock) sphinxcontrib-haddock;
+      };
+    in
+    pkgs.callPackage ./plutus-haddock-combined {
+      inherit haskell haddock-combine;
+      inherit (pkgs) haskell-nix;
+    };
+
+
 in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks nodejs-headers;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios purty;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev thorp;
-  inherit easyPS;
+  inherit iohkNix set-git-rev web-ghc thorp;
+  inherit easyPS plutus-haddock-combined;
+  inherit agdaWithStdlib;
 }

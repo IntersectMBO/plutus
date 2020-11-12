@@ -5,7 +5,7 @@
 , stdenv
 , rPackages
 , haskell-nix
-, agdaPackages
+, agdaWithStdlib
 , buildPackages
 , nix-gitignore
 , checkMaterialization
@@ -15,12 +15,11 @@
 
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
-    src = let root = ../.; in
+    src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
-        filter = nix-gitignore.gitignoreFilter (nix-gitignore.gitignoreCompileIgnore [ ../.gitignore ] root) root;
+        filter = nix-gitignore.gitignoreFilter (nix-gitignore.gitignoreCompileIgnore [ ../../../.gitignore ] root) root;
         src = root;
         # Otherwise this depends on the name in the parent directory, which reduces caching, and is
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
@@ -28,7 +27,7 @@ let
       };
     # These files need to be regenerated when you change the cabal files or stack resolver.
     # See ../CONTRIBUTING.doc for more information.
-    materialized = ./stack.materialized;
+    materialized = ../../stack.materialized;
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {

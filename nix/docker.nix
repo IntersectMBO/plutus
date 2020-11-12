@@ -23,20 +23,30 @@ let defaultPlaygroundConfig = writeTextFile {
 };
 in
 {
-  plutusPlaygroundImage = with plutus-playground; dockerTools.buildLayeredImage {
-    name = "plutus-playgrounds";
-    contents = [ client server-invoker defaultPlaygroundConfig ];
-    config = {
-      Cmd = [ "${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+  plutusPlaygroundImage =
+    let
+      client = plutus-playground.client;
+      server-invoker = client.passthru.server-invoker;
+    in
+    dockerTools.buildLayeredImage {
+      name = "plutus-playgrounds";
+      contents = [ client server-invoker defaultPlaygroundConfig ];
+      config = {
+        Cmd = [ "${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+      };
     };
-  };
-  marlowePlaygroundImage = with marlowe-playground; dockerTools.buildLayeredImage {
-    name = "marlowe-playground";
-    contents = [ client server-invoker defaultPlaygroundConfig ];
-    config = {
-      Cmd = [ "${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+  marlowePlaygroundImage =
+    let
+      client = marlowe-playground.client;
+      server-invoker = client.passthru.server-invoker;
+    in
+    dockerTools.buildLayeredImage {
+      name = "marlowe-playground";
+      contents = [ client server-invoker defaultPlaygroundConfig ];
+      config = {
+        Cmd = [ "${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+      };
     };
-  };
 
   development = dockerTools.buildLayeredImage {
     name = "plutus-development";
