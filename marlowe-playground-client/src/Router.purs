@@ -1,7 +1,6 @@
 module Router where
 
 import Prelude hiding ((/))
-
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
 import Data.Newtype (unwrap)
@@ -45,7 +44,7 @@ route =
         , "Blockly": "blockly" / noArgs
         , "ActusBlocklyEditor": "actus" / noArgs
         , "Wallets": "wallets" / noArgs
-        , "GithubAuthCallback" : "gh-oauth-cb" / noArgs
+        , "GithubAuthCallback": "gh-oauth-cb" / noArgs
         }
   where
   _gistId = SProxy :: SProxy "gistId"

@@ -1,8 +1,7 @@
 module MainFrame.View where
 
-
 import Auth (_GithubUser, authStatusAuthRole)
-import Data.Lens ( has, to, (^.))
+import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
 import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
