@@ -154,7 +154,7 @@ startReachabilityAnalysis settings contract state = do
     Nothing -> pure AllReachable
     Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
       let
-        numSubproblems = countSubproblems isValidSubproblem newChildren
+        numSubproblems = countSubproblems isValidSubproblem (newChildren <> newSubproblems)
 
         newPath /\ newContract = expandSubproblem contractZipper
 
@@ -281,4 +281,3 @@ updateWithResponse settings (InProgress rad) (Success Valid) = stepAnalysis sett
 updateWithResponse settings (InProgress rad) (Success (CounterExample _)) = stepAnalysis settings true rad
 
 updateWithResponse _ rad _ = pure rad
-

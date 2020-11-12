@@ -64,8 +64,8 @@ data ContractZipper
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-type InProgressRecord =
-    { currPath :: ContractPath
+type InProgressRecord
+  = { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
     , originalState :: S.State
