@@ -85,7 +85,7 @@ safeLiftCode
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.ToBuiltinMeaning uni fun
        )
-    => a -> m (CompiledCode uni fun a)
+    => a -> m (CompiledCodeIn uni fun a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 unsafely
@@ -115,10 +115,10 @@ liftProgramDef
     => a -> UPLC.Program Name PLC.DefaultUni PLC.DefaultFun ()
 liftProgramDef = liftProgram
 
--- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
+-- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
     :: (Lift.Lift uni a, Throwable uni fun, PLC.ToBuiltinMeaning uni fun)
-    => a -> CompiledCode uni fun a
+    => a -> CompiledCodeIn uni fun a
 liftCode x = unsafely $ safeLiftCode x
 
 {- Note [Checking the type of a term with Typeable]
@@ -165,7 +165,7 @@ typeCheckAgainst p plcTerm = do
     let plcPrismatic = first (view (re PIR._PLCError)) plcConcrete
     liftEither plcPrismatic -- embed prismatic-either to a monaderror
 
--- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.
+-- | Try to interpret a PLC program as a 'CompiledCodeIn' of the given type. Returns successfully iff the program has the right type.
 typeCode
     :: forall e a uni fun m .
        ( Lift.Typeable uni a
@@ -178,7 +178,7 @@ typeCode
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
-    -> m (CompiledCode uni fun a)
+    -> m (CompiledCodeIn uni fun a)
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     pure $ DeserializedCode (UPLC.eraseProgram prog) Nothing
