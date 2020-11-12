@@ -311,26 +311,8 @@ checkType Γ L A = do
 inferTypeBuiltin : ∀{Φ m n}{Γ : Ctx Φ}(bn : Builtin)
   → Tel⋆ (len⋆ Φ) m → Scoped.Tel (len Γ) n
   → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
-inferTypeBuiltin addInteger [] [] = return (con integer ⇒ con integer ⇒ con integer ,, pbuiltin addInteger ∅ (λ ()) L.[] (inj₁ (base ,, refl)) [])
-inferTypeBuiltin subtractInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin subtractInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin multiplyInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin multiplyInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin divideInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin divideInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin quotientInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin quotientInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin remainderInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin remainderInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin modInteger [] []  = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin modInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin lessThanInteger [] [] = return ((con integer ⇒ con integer ⇒ con bool) ,, ƛ (ƛ (builtin lessThanInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin lessThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ con bool) ,, ƛ (ƛ (builtin lessThanEqualsInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin greaterThanInteger [] [] = return ((con integer ⇒ con integer ⇒ con bool) ,, ƛ (ƛ (builtin greaterThanInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin greaterThanEqualsInteger [] [] = return ((con integer ⇒ con integer ⇒ con bool) ,, ƛ (ƛ (builtin greaterThanEqualsInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin equalsInteger [] [] = return ((con integer ⇒ con integer ⇒ con bool) ,, ƛ (ƛ (builtin equalsInteger (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin concatenate [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring) ,, ƛ (ƛ (builtin concatenate (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin takeByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ (ƛ (builtin takeByteString (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin dropByteString [] [] = return ((con integer ⇒ con bytestring ⇒ con bytestring) ,, ƛ (ƛ (builtin dropByteString (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin sha2-256 [] [] = return ((con bytestring ⇒ con bytestring) ,, ƛ (builtin sha2-256 (λ()) (` Z ∷ [])))
-inferTypeBuiltin sha3-256 [] [] = return ((con bytestring ⇒ con bytestring) ,, ƛ (builtin sha3-256 (λ()) (` Z ∷ [])))
-inferTypeBuiltin verifySignature [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring ⇒ con bool) ,, ƛ (ƛ (ƛ (builtin verifySignature (λ()) (` (S (S Z)) ∷ ` (S Z) ∷ (` Z) ∷ [])))))
-inferTypeBuiltin equalsByteString [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bool) ,, ƛ (ƛ (builtin equalsByteString (λ()) (` (S Z) ∷ ` Z ∷ []))))
-inferTypeBuiltin ifThenElse [] [] = return (Π (con bool ⇒ ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z)) ,, Λ (ƛ (ƛ (ƛ (builtin ifThenElse (λ { Z → ne (` Z)}) (` (S (S Z)) ∷ ` (S Z) ∷ ` Z ∷ []))))))
+inferTypeBuiltin b [] [] = let Φ ,, As ,, C = SIG b in
+  inj₂ (_ ,, pbuiltin b ∅ (λ()) L.[] (inj₁ (∅≤C⋆' Φ ,, refl)) [])
 inferTypeBuiltin _ _ _ = inj₁ builtinError
   
 inferType Γ (` x) = do
