@@ -136,6 +136,12 @@ let
       inherit (pkgs) haskell-nix;
     };
 
+  # Collect everything to be exported under `plutus.lib`: builders/functions/utils
+  lib = {
+    haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
+    latex = pkgs.callPackage ../lib/latex.nix { };
+  };
+
 
 in
 {
@@ -146,4 +152,5 @@ in
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
+  inherit lib;
 }
