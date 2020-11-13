@@ -39,7 +39,7 @@ rec {
 
   webCommon = import ./web-common { inherit lib; };
 
-  plutus-playground = {
+  plutus-playground = pkgs.recurseIntoAttrs {
     tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 

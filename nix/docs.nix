@@ -48,8 +48,8 @@ let
       };
     };
 in
-{
-  papers = {
+pkgs.recurseIntoAttrs {
+  papers = pkgs.recurseIntoAttrs {
     system-f-in-agda = import ../papers/system-f-in-agda { inherit buildLatexDoc; };
     eutxo = import ../papers/eutxo { inherit buildLatexDoc; };
     utxoma = import ../papers/utxoma { inherit buildLatexDoc; };
