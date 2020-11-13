@@ -114,13 +114,13 @@ mkMainFrame settings =
     { initialState: const initialState
     , render: render settings
     , eval:
-      H.mkEval
-        { handleQuery: handleQuery settings
-        , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
-        , receive: const Nothing
-        , initialize: Just Init
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleQuery: handleQuery settings
+          , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
+          , receive: const Nothing
+          , initialize: Just Init
+          , finalize: Nothing
+          }
     }
 
 toSimulation ::

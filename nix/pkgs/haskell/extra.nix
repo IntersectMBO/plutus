@@ -97,30 +97,4 @@ in
   };
   in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
     hie-bios haskell-language-server;
-  purty =
-    let hspkgs = haskell-nix.stackProject {
-      src = fetchFromGitLab {
-        owner = "joneshf";
-        repo = "purty";
-        rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
-        sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
-      };
-      # Invalidate and update if you change the version
-      stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
-      inherit checkMaterialization;
-
-      # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
-      ghc = buildPackages.haskell-nix.compiler.ghc865;
-      modules = [{ compiler.nix-name = lib.mkForce "ghc865"; }];
-
-      pkg-def-extras = [
-        # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
-        (hackage: {
-          packages = {
-            "hsc2hs" = (((hackage.hsc2hs)."0.68.6").revisions).default;
-          };
-        })
-      ];
-    };
-    in hspkgs.purty;
 }

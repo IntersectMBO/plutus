@@ -72,10 +72,10 @@ jsonHandlingTests = do
         aValue =
           Value
             { getValue:
-              AssocMap.fromTuples
-                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 10) ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 20) ])
-                ]
+                AssocMap.fromTuples
+                  [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 10) ])
+                  , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 20) ])
+                  ]
             }
       equal
         (Right aValue)
@@ -85,11 +85,11 @@ jsonHandlingTests = do
         aValue =
           Value
             { getValue:
-              AssocMap.fromTuples
-                [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 40) ])
-                , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "EUR" }) (BigInteger.fromInt 40) ])
-                ]
+                AssocMap.fromTuples
+                  [ Tuple (CurrencySymbol { unCurrencySymbol: "0" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
+                  , Tuple (CurrencySymbol { unCurrencySymbol: "1" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "USD" }) (BigInteger.fromInt 40) ])
+                  , Tuple (CurrencySymbol { unCurrencySymbol: "2" }) (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "EUR" }) (BigInteger.fromInt 40) ])
+                  ]
             }
       assertEncodesTo
         aValue

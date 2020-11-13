@@ -118,23 +118,23 @@ monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Comp
 monacoComponent settings =
   H.mkComponent
     { initialState:
-      const
-        { editor: Nothing
-        , deactivateBindings: defaultCancelBindings
-        , objects:
-          { codeActionProvider: settings.codeActionProvider
-          , completionItemProvider: settings.completionItemProvider
+        const
+          { editor: Nothing
+          , deactivateBindings: defaultCancelBindings
+          , objects:
+              { codeActionProvider: settings.codeActionProvider
+              , completionItemProvider: settings.completionItemProvider
+              }
           }
-        }
     , render: render settings
     , eval:
-      H.mkEval
-        { handleAction: handleAction settings
-        , handleQuery
-        , initialize: Just Init
-        , receive: const Nothing
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleAction: handleAction settings
+          , handleQuery
+          , initialize: Just Init
+          , receive: const Nothing
+          , finalize: Nothing
+          }
     }
 
 render :: forall m p i. Settings m -> State -> HTML p i

@@ -32,7 +32,6 @@ let
   # additional haskell packages from ./nix/pkgs/haskell-extra
   #
   exeFromExtras = x: haskell.extraPackages."${x}".components.exes."${x}";
-  purty = exeFromExtras "purty";
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
   stylish-haskell = exeFromExtras "stylish-haskell";
   hlint = exeFromExtras "hlint";
@@ -83,7 +82,7 @@ let
   sphinx-markdown-tables = pkgs.python3Packages.callPackage ./sphinx-markdown-tables { };
   sphinxemoji = pkgs.python3Packages.callPackage ./sphinxemoji { };
 
-  # `set-git-rev` is a function that can be called on a haskellPackages 
+  # `set-git-rev` is a function that can be called on a haskellPackages
   # package to inject the git revision post-compile
   set-git-rev = pkgs.callPackage ./set-git-rev {
     inherit (haskell.packages) ghcWithPackages;
@@ -113,6 +112,10 @@ let
   # mean that e.g. we can't build the client dep updating
   # script on Darwin.
   easyPS = pkgs.callPackage (sources.easy-purescript-nix) { };
+  # We pull out some packages from easyPS that are a pain to get otherwise.
+  # In particular, we used to build purty ourselves, but now its build is a nightmare.
+  # This does mean we can't as easily control the version we get, though.
+  inherit (easyPS) purty purs spago;
 
   # sphinx haddock support
   sphinxcontrib-haddock = pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
@@ -150,7 +153,8 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks nodejs-headers;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios purty;
+  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
+  inherit purty purs spago;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;

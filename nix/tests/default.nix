@@ -1,4 +1,4 @@
-{ pkgs, iohkNix, src, haskell }:
+{ pkgs, iohkNix, stylish-haskell, purty, src }:
 let
   inherit (pkgs) lib;
   cleanSrc = lib.cleanSourceWith {
@@ -14,12 +14,12 @@ pkgs.recurseIntoAttrs {
 
   stylishHaskell = pkgs.callPackage ./stylish-haskell.nix {
     src = cleanSrc;
-    stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
+    inherit stylish-haskell;
   };
 
   purty = pkgs.callPackage ./purty.nix {
     src = cleanSrc;
-    purty = haskell.extraPackages.purty.components.exes.purty;
+    inherit purty;
   };
 
   nixpkgsFmt = pkgs.callPackage ./nixpkgs-fmt.nix {
