@@ -27,14 +27,16 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
+  client = buildPursPackage {
+    inherit webCommon;
+    src = ./.;
+    name = "marlowe-playground-client";
+    psSrc = generated-purescript;
+    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+    packages = pkgs.callPackage ./packages.nix { };
+    spagoPackages = pkgs.callPackage ./spago-packages.nix { };
+  };
 in
-buildPursPackage {
-  inherit webCommon;
-  src = ./.;
-  name = "marlowe-playground-client";
-  psSrc = generated-purescript;
-  additionalPurescriptSources = [ "../web-common/**/*.purs" ];
-  packages = pkgs.callPackage ./packages.nix { };
-  spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-  passthru = { inherit server-invoker; };
+{
+  inherit client server-invoker;
 }
