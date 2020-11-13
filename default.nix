@@ -39,7 +39,7 @@ rec {
 
   webCommon = import ./web-common { inherit lib; };
 
-  plutus-playground = pkgs.recurseIntoAttrs {
+  plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 
@@ -47,15 +47,19 @@ rec {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
     };
+
+    inherit (client.passthru) server-invoker;
   };
 
-  marlowe-playground = {
+  marlowe-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.marlowe-tutorial;
 
     client = pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
     };
+
+    inherit (client.passthru) server-invoker;
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {
@@ -70,9 +74,13 @@ rec {
     haskellPackages = haskell.muslPackages;
   };
 
-  plutus-scb = pkgs.callPackage ./plutus-scb-client {
-    inherit (plutus.lib) buildPursPackage;
-    inherit set-git-rev haskell webCommon;
+  plutus-scb = pkgs.recurseIntoAttrs rec {
+    client = pkgs.callPackage ./plutus-scb-client {
+      inherit (plutus.lib) buildPursPackage;
+      inherit set-git-rev haskell webCommon;
+    };
+
+    inherit (client.passthru) server-invoker;
   };
 
   tests = import ./nix/tests/default.nix {
