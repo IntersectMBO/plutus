@@ -53,7 +53,6 @@ import Algorithmic.Main
 --import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 import Algorithmic.CEKD
-import Algorithmic.CEKC
 import Algorithmic.CEKV
 
 import Algorithmic.Examples

@@ -316,23 +316,6 @@ data _—→_ {Φ Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A) → Se
     → Any Error ts
     → pbuiltin b Ψ σ As (inj₂ (refl ,, base)) ts —→ error (abstractArg As As (inj₂ (refl ,, base)) C σ)
 
-  E-ibuiltin : 
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      (σ⋆ : SubNf Ψ Φ)
-    → (σ : ITel Δ Γ σ⋆)
-    → ibuiltin b σ⋆ σ —→ error (substNf σ⋆ C)
-
-  E-ipbuiltin :
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      ∀ Ψ'
-    → (Δ' : Ctx Ψ')
-    → (p : Δ' ≤C Δ)
-      (σ⋆ : SubNf Ψ' Φ)
-    → (σ : ITel Δ' Γ σ⋆)
-    → ipbuiltin b Ψ' Δ' p σ⋆ σ —→ error (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
-
 data _—→T_ {Φ}{Γ}{Δ}{σ} where
   here  : ∀{A}{As}{t t'}{ts : Tel Γ Δ σ As}
     → t —→ t' → (_∷_ {A = A} t ts) —→T (t' ∷ ts)
@@ -504,8 +487,6 @@ progress p (pbuiltin b Ψ' σ _ (inj₂ (refl ,, base)) ts) =
   progress-pbuiltin b σ ts (progressTel p ts)
 progress p (pbuiltin b Ψ' σ As' (inj₂ (refl ,, skip r)) ts) =
   done (V-pbuiltin b σ _ _ r ts)
-progress p (ibuiltin b σ⋆ σ) = step (E-ibuiltin b σ⋆ σ)
-progress p (ipbuiltin b Ψ' Δ' q σ⋆ σ) = step (E-ipbuiltin b Ψ' Δ' q σ⋆ σ)
 progress p (error A)            = error E-error
 
 --
@@ -630,8 +611,6 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
-det (E-ibuiltin b σ⋆ σ) (E-ibuiltin .b .σ⋆ .σ) = refl
-det (E-ipbuiltin b Ψ' Δ' p₁ σ⋆ σ) (E-ipbuiltin .b .Ψ' .Δ' .p₁ .σ⋆ .σ) = refl
 det (ξ-·₂ x p) (sat b σ As' ts A _ p₁ v) = ⊥-elim (val-red v (_ ,, p))
 det (tick-pbuiltin σ) (tick-pbuiltin .σ) = refl
 det (β-pbuiltin bn σ ts vts) (β-pbuiltin .bn .σ .ts vts') =

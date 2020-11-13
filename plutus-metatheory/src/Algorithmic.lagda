@@ -97,31 +97,6 @@ open import Data.String
 
 data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
 
--- this is just a synonym for a substitution
-ITel : ∀ {Φ}{Ψ} Γ Δ → SubNf Φ Ψ → Set
-
-ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
-ISIG addInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG subtractInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG multiplyInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG divideInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG quotientInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG remainderInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG modInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG lessThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG lessThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG greaterThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG greaterThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG equalsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG concatenate = _ ,, (∅ , con bytestring , con bytestring) ,, con bytestring
-ISIG takeByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
-ISIG dropByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
-ISIG sha2-256 = _ ,, (∅ , con bytestring) ,, con bytestring
-ISIG sha3-256 = _ ,, (∅ , con bytestring) ,, con bytestring
-ISIG verifySignature = _ ,, (∅ , con bytestring , con bytestring , con bytestring) ,, con bool
-ISIG equalsByteString = _ ,, (∅ , con bytestring , con bytestring) ,, con bool
-ISIG ifThenElse = _ ,, (∅ , con bool ,⋆ * , ne (` Z) , ne (` Z)) ,, ne (` Z)
-
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
@@ -155,28 +130,7 @@ abstractArg As .[] (inj₁ (p ,, refl)) C σ =
   substNf σ (abstractTy _ _ p (abstractTm _ As [] ([]≤L' _) C))
 abstractArg As As' (inj₂ (refl ,, q)) C σ =
   substNf σ (abstractTm _ As As' q C) 
-{-
-abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As) → Ψ ⊢Nf⋆ * → (SubNf Ψ' Φ) → Φ ⊢Nf⋆ *
-abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = substNf σ (abstract2 Ψ As As' p C)
-abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
-  substNf σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
 
-abstract3' : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As) → Ψ ⊢Nf⋆ * → (SubNf Ψ' Φ) → Φ ⊢Nf⋆ *
-abstract3' Φ Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3 Φ Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q)) 
-abstract3' Φ Ψ Ψ' As As' (inj₂ p)        = abstract3 Φ Ψ Ψ' As As' (inj₂ p) 
-
-abstract3-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : ⋆.Ren Φ Φ') →
-  abstract3 Φ' Ψ Ψ' As As' p
-  C (λ x → renNf ρ⋆ (σ x)) 
-  ≡
-  renNf ρ⋆
-  (abstract3 Φ Ψ Ψ' As As' p
-   C σ)
-abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
-  renNf-substNf σ ρ⋆ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
-abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
-  renNf-substNf σ ρ⋆ (abstract2 Ψ As As' p C)
--}
 abstractArg-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : ⋆.Ren Φ Φ') →
   abstractArg As As' p
   C (λ x → renNf ρ⋆ (σ x)) 
@@ -189,20 +143,6 @@ abstractArg-ren Φ Φ' Ψ Ψ' As .[] (inj₁ (p ,, refl)) C σ ρ⋆ =
 abstractArg-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
   renNf-substNf σ ρ⋆ (abstractTm Ψ As As' p C)
 
-
-{-abstract3-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : SubNf Φ Φ') →
-  abstract3 Φ' Ψ Ψ' As As' p
-  C (λ x → substNf ρ⋆ (σ x)) 
-  ≡
-  substNf ρ⋆
-  (abstract3 Φ Ψ Ψ' As As' p
-   C σ)
-abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
-  substNf-comp σ ρ⋆ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
-abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
-  substNf-comp σ ρ⋆ (abstract2 Ψ As As' p C)
--}
-
 abstractArg-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : SubNf Φ Φ') →
   abstractArg As As' p
   C (λ x → substNf ρ⋆ (σ x)) 
@@ -214,15 +154,6 @@ abstractArg-subst Φ Φ' Ψ Ψ' As .[] (inj₁ (p ,, refl)) C σ σ' =
   substNf-comp σ σ' (abstractTy Ψ Ψ' p (abstractTm Ψ As [] ([]≤L' As) C))
 abstractArg-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, q)) C σ σ' =
   substNf-comp σ σ' (abstractTm Ψ As As' q C)
-
-apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
-  → (Δ' ≤C Δ)
-  → (C : Ψ ⊢Nf⋆ *)
-  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
-  → Φ ⊢Nf⋆ *
-apply⋆ Φ Γ Ψ .Ψ Δ .Δ base C σ⋆ σ = substNf σ⋆ C
-apply⋆ Φ Γ .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ Δ' p (Π C) σ⋆ σ 
-apply⋆ Φ Γ Ψ Ψ' (_ , A) Δ' (skip p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ _ p (A ⇒ C) σ⋆ σ
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
@@ -290,31 +221,11 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → Tel Γ Ψ' σ As'
     → Γ ⊢ abstractArg As As' p C σ
 
-  ibuiltin : 
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      (σ⋆ : SubNf Ψ Φ)
-    → (σ : ITel Δ Γ σ⋆)
-    → Γ ⊢ substNf σ⋆ C
-
-  ipbuiltin : 
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      ∀ Ψ'
-    → (Δ' : Ctx Ψ')
-    → (p : Δ' ≤C Δ)
-      (σ⋆ : SubNf Ψ' Φ)
-    → (σ : ITel Δ' Γ σ⋆)
-    → Γ ⊢ apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ
-
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
 data Tel {Φ} Γ Δ σ where
   []  : Tel Γ Δ σ []
   _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
-
-ITel {Φ} Γ Δ σ = {A : Φ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ A
-
 \end{code}
 
 Utility functions

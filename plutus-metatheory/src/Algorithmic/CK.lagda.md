@@ -152,9 +152,6 @@ step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
   (s , builtin- bn σ [] [] _ A As p ts) ▻ t
 step (x ▻ pbuiltin b Ψ' σ As' p ts) =
   ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
-step (x ▻ ibuiltin b σ⋆ σ) = ◆ (substNf σ⋆ (proj₂ (proj₂ (ISIG b))))
-step (x ▻ ipbuiltin b Ψ' Δ' p σ⋆ σ) =
-  ◆ (apply⋆ _ _ _ Ψ' _ Δ' p (proj₂ (proj₂ (ISIG b))) σ⋆ σ)
 step ( _◅_ (s , (builtin- b σ As ts vts A .[] p [])) {t = t} V) =
   s ▻ BUILTIN b
               σ

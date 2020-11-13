@@ -105,35 +105,10 @@ application.
 \begin{code}
 data Tel {Φ} Γ Δ (σ : Sub Δ Φ) : List (Δ ⊢⋆ *) → Set
 
--- this is just a synonym for a substitution
-ITel : ∀ {Φ}{Ψ} Γ Δ → Sub Φ Ψ → Set
-
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
-
-ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-ISIG addInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG subtractInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG multiplyInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG divideInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG quotientInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG remainderInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG modInteger = _ ,, (∅ , con integer , con integer) ,, con integer
-ISIG lessThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG lessThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG greaterThanInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG greaterThanEqualsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG equalsInteger = _ ,, (∅ , con integer , con integer) ,, con bool
-ISIG concatenate = _ ,, (∅ , con bytestring , con bytestring) ,, con bytestring
-ISIG takeByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
-ISIG dropByteString = _ ,, (∅ , con bytestring , con integer) ,, con bytestring
-ISIG sha2-256 = _ ,, (∅ , con bytestring) ,, con bytestring
-ISIG sha3-256 = _ ,, (∅ , con bytestring) ,, con bytestring
-ISIG verifySignature = _ ,, (∅ , con bytestring , con bytestring , con bytestring) ,, con bool
-ISIG equalsByteString = _ ,, (∅ , con bytestring , con bytestring) ,, con bool
-ISIG ifThenElse = _ ,, (∅ , con bool ,⋆ * , ` Z , ` Z) ,, ` Z
 
 sig2type : ∀ {Φ} → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
 sig2type ∅        C = C
@@ -202,15 +177,6 @@ abstract3'-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (�
    C σ)
 abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
 abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₂ p) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ p)
-
-apply⋆ : (Φ : Ctx⋆)(Γ : Ctx Φ)(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
-  → (Δ' ≤C Δ)
-  → (C : Ψ ⊢⋆ *)
-  → (σ⋆ : Sub Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
-  → Φ ⊢⋆ *
-apply⋆ Φ Γ Ψ .Ψ Δ .Δ base C σ⋆ σ = subst σ⋆ C
-apply⋆ Φ Γ .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ Δ' p (Π C) σ⋆ σ 
-apply⋆ Φ Γ Ψ Ψ' (_ , A) Δ' (skip p) C σ⋆ σ = apply⋆ Φ Γ _ _ _ _ p (A ⇒ C) σ⋆ σ
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
@@ -282,33 +248,12 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     → Tel Γ Ψ' σ As'
     → Γ ⊢ abstract3' Φ Ψ Ψ' As As' p C σ
 
-  ibuiltin : 
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      (σ⋆ : Sub Ψ Φ)
-    → (σ : ITel Δ Γ σ⋆)
-    → Γ ⊢ subst σ⋆ C
-
-  ipbuiltin : 
-      (b : Builtin)
-    → let Ψ ,, Δ ,, C = ISIG b in
-      ∀ Ψ'
-    → (Δ' : Ctx Ψ')
-    → (p : Δ' ≤C Δ)
-      (σ⋆ : Sub Ψ' Φ)
-    → (σ : ITel Δ' Γ σ⋆)
-    → Γ ⊢ apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ
-
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
 
 data Tel {Φ} Γ Δ σ where
   []  : Tel Γ Δ σ []
   _∷_ : ∀{A As} → Γ ⊢ subst σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
-
-
-ITel {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ subst σ A
-
 \end{code}
 
 \begin{code}

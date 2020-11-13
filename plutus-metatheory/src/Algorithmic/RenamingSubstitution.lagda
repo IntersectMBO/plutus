@@ -85,25 +85,6 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ Δ σ As
  → Tel Γ' Δ (renNf ρ⋆ ∘ σ) As
 
-apply⋆-ren : (Φ Φ' : Ctx⋆)(Γ : Ctx Φ)(Γ' : Ctx Φ')(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
-  → (p : Δ' ≤C Δ)
-  → (C : Ψ ⊢Nf⋆ *)
-  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
-  → (ρ⋆ : ⋆.Ren Φ Φ')
-  → (ρ : Ren ρ⋆ Γ Γ')
-  → 
-  apply⋆ _ _ Ψ Ψ' Δ Δ' p
-  C (λ x → renNf ρ⋆ (σ⋆ x))
-  (λ {A} x → conv⊢ refl (sym (renNf-substNf σ⋆ ρ⋆ A)) (ren ρ⋆ ρ (σ x)))
-  ≡
-  renNf ρ⋆
-  (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
-apply⋆-ren Φ Φ' Γ Γ' Ψ .Ψ Δ .Δ base C σ⋆ σ ρ⋆ ρ = renNf-substNf σ⋆ ρ⋆ C
-apply⋆-ren Φ Φ' Γ Γ' .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ ρ⋆ ρ =
-  apply⋆-ren _ _ _ _ _ _ _ _ p (Π C) σ⋆ σ ρ⋆ ρ
-apply⋆-ren Φ Φ' Γ Γ' Ψ Ψ' .(_ , _) Δ' (skip p) C σ⋆ σ ρ⋆ ρ =
-  apply⋆-ren _ _ _ _ _ _ _ _ p (_ ⇒ C) σ⋆ σ ρ⋆ ρ
-  
 ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)    = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
@@ -129,15 +110,6 @@ ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
   refl
   (abstractArg-ren _ _ _ _ _ As' p _ σ ρ⋆)
   (pbuiltin b Ψ' (renNf ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
-ren ρ⋆ ρ (ibuiltin b σ⋆ σ) = let _ ,, _ ,, A = ISIG b in conv⊢
-  refl
-  (renNf-substNf σ⋆ ρ⋆ A)
-  (ibuiltin b (renNf ρ⋆ ∘ σ⋆) λ {A  = A} → conv⊢ refl (sym (renNf-substNf σ⋆ ρ⋆ A)) ∘ ren ρ⋆ ρ ∘ σ)
-ren ρ⋆ ρ (ipbuiltin b Ψ' Δ' p σ⋆ σ) = let _ ,, _ ,, A = ISIG b in conv⊢
-  refl
-  (apply⋆-ren _ _ _ _ _ _ _ _ p A σ⋆ σ ρ⋆ ρ)
-  (ipbuiltin b Ψ' Δ' p (renNf ρ⋆ ∘ σ⋆) λ {A  = A} → conv⊢ refl (sym (renNf-substNf
-  σ⋆ ρ⋆ A)) ∘ ren ρ⋆ ρ ∘ σ)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 
 renTel ρ⋆ ρ     {As = []}     []       = []
@@ -222,20 +194,6 @@ subst : ∀ {Φ Ψ Γ Δ}
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
 
 
-apply⋆-subst : (Φ Φ' : Ctx⋆)(Γ : Ctx Φ)(Γ' : Ctx Φ')(Ψ Ψ' : Ctx⋆)(Δ  : Ctx Ψ)(Δ' : Ctx Ψ')
-  → (p : Δ' ≤C Δ)
-  → (C : Ψ ⊢Nf⋆ *)
-  → (σ⋆ : SubNf Ψ' Φ)(σ : ITel Δ' Γ σ⋆)
-  → (ρ⋆ : SubNf Φ Φ')
-  → (ρ : Sub ρ⋆ Γ Γ')
-  → 
-  apply⋆ _ _ Ψ Ψ' Δ Δ' p
-  C (λ x → substNf ρ⋆ (σ⋆ x))
-  (λ {A} x → conv⊢ refl (sym (substNf-comp σ⋆ ρ⋆ A)) (subst ρ⋆ ρ (σ x)))
-  ≡
-  substNf ρ⋆
-  (apply⋆ Φ Γ Ψ Ψ' Δ Δ' p C σ⋆ σ)
-
 substTel σ⋆ σ      {As = []}     []       = []
 substTel σ⋆ σ {σ'} {As = A ∷ As} (M ∷ Ms) =
   conv⊢ refl (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
@@ -267,21 +225,7 @@ subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p ts) = let _ ,, _ ,, A = SIG b in con
   refl
   (abstractArg-subst _ _ _ _ _ _ p A σ⋆' σ⋆)
   (pbuiltin b Ψ' (substNf σ⋆ ∘ σ⋆') As' p (substTel σ⋆ σ ts))
-subst σ⋆ σ (ibuiltin b σ⋆' σ') = let _ ,, _ ,, A = ISIG b in conv⊢
-  refl
-  (substNf-comp σ⋆' σ⋆ A)
-  (ibuiltin b (substNf σ⋆ ∘ σ⋆') λ {A = A} → conv⊢ refl (sym (substNf-comp σ⋆' σ⋆ A)) ∘ subst σ⋆ σ ∘ σ')
-subst σ⋆ σ (ipbuiltin b Ψ' Δ' p σ⋆' σ') = let _ ,, _ ,, A = ISIG b in conv⊢
-  refl
-  (apply⋆-subst _ _ _ _ _ _ _ _ p A σ⋆' σ' σ⋆ σ)
-  (ipbuiltin b Ψ' Δ' p (substNf σ⋆ ∘ σ⋆') λ {A = A} → conv⊢ refl (sym (substNf-comp σ⋆' σ⋆ A)) ∘ subst σ⋆ σ ∘ σ')
 subst σ⋆ σ (error A) = error (substNf σ⋆ A)
-
-apply⋆-subst Φ Φ' Γ Γ' Ψ .Ψ Δ .Δ base C σ⋆ σ ρ⋆ ρ = substNf-comp σ⋆ ρ⋆ C
-apply⋆-subst Φ Φ' Γ Γ' .(_ ,⋆ _) Ψ' .(_ ,⋆ _) Δ' (skip⋆ p) C σ⋆ σ ρ⋆ ρ =
-  apply⋆-subst _ _ _ _ _ _ _ _ p (Π C) σ⋆ σ ρ⋆ ρ
-apply⋆-subst Φ Φ' Γ Γ' Ψ Ψ' .(_ , _) Δ' (skip p) C σ⋆ σ ρ⋆ ρ =
-  apply⋆-subst _ _ _ _ _ _ _ _ p (_ ⇒ C) σ⋆ σ ρ⋆ ρ
 \end{code}
 
 \begin{code}
