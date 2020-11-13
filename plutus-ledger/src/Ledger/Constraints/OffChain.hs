@@ -299,15 +299,15 @@ data MkTxError =
 
 instance Pretty MkTxError where
     pretty = \case
-        TypeCheckFailed e -> "Type check failed:" <+> pretty e
-        TxOutRefNotFound t -> "Tx out reference not found:" <+> pretty t
-        TxOutRefWrongType t -> "Tx out reference wrong type:" <+> pretty t
-        DatumNotFound h -> "No datum with hash" <+> pretty h <+> "was found"
+        TypeCheckFailed e        -> "Type check failed:" <+> pretty e
+        TxOutRefNotFound t       -> "Tx out reference not found:" <+> pretty t
+        TxOutRefWrongType t      -> "Tx out reference wrong type:" <+> pretty t
+        DatumNotFound h          -> "No datum with hash" <+> pretty h <+> "was found"
         MonetaryPolicyNotFound h -> "No monetary policy with hash" <+> pretty h <+> "was found"
-        ValidatorHashNotFound h ->  "No validator with hash" <+> pretty h <+> "was found"
-        OwnPubKeyMissing -> "Own public key is missing"
-        ScriptInstanceMissing -> "Script instance is missing"
-        DatumWrongHash h d -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
+        ValidatorHashNotFound h  ->  "No validator with hash" <+> pretty h <+> "was found"
+        OwnPubKeyMissing         -> "Own public key is missing"
+        ScriptInstanceMissing    -> "Script instance is missing"
+        DatumWrongHash h d       -> "Wrong hash for datum" <+> pretty d <> colon <+> pretty h
 
 lookupTxOutRef
     :: ( MonadReader (ScriptLookups a) m

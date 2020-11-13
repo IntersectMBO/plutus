@@ -138,14 +138,14 @@ data LogLevel =
 
 instance Pretty LogLevel where
     pretty = \case
-        Debug      -> "[DEBUG]"
-        Info       -> "[INFO]"
-        Notice     -> "[NOTICE]"
-        Warning    -> "[WARNING]"
-        Error      -> "[ERROR]"
-        Critical   -> "[CRITICAL]"
-        Alert      -> "[ALERT]"
-        Emergency  -> "[EMERGENCY]"
+        Debug     -> "[DEBUG]"
+        Info      -> "[INFO]"
+        Notice    -> "[NOTICE]"
+        Warning   -> "[WARNING]"
+        Error     -> "[ERROR]"
+        Critical  -> "[CRITICAL]"
+        Alert     -> "[ALERT]"
+        Emergency -> "[EMERGENCY]"
 
 data LogMessage a = LogMessage { _logLevel :: LogLevel, _logMessageContent :: a }
     deriving stock (Show, Eq, Ord, Generic, Functor, Foldable, Traversable)

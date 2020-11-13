@@ -216,7 +216,7 @@ handleResumable ::
     ~> Eff effs
 handleResumable = interpret $ \case
     RRequest o -> yield o id
-    RSelect -> send MPlus
+    RSelect    -> send MPlus
 
 -- | Interpret 'Yield' as a prompt-type effect using 'NonDet' to
 --   branch out and choose a branch, and the 'State' effects to

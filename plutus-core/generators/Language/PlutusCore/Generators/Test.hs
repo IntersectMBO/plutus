@@ -21,8 +21,8 @@ import           PlutusPrelude                                         (ShowPret
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck

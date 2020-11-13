@@ -8,16 +8,16 @@
 module Plugin.Data.Spec where
 
 import           Common
-import           PlcTestUtils
 import           Lib
+import           PlcTestUtils
 import           Plugin.Lib
 
-import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
-import qualified Language.PlutusCore.Universe as PLC
 import qualified Language.PlutusCore.Builtins as PLC
+import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 

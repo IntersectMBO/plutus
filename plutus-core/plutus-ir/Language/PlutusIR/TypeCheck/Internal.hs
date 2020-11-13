@@ -388,9 +388,9 @@ withVarsOfBindings r bs k = foldr (withVarsOfBinding r) k bs
 -- | Scope a typechecking computation with the given binding's newly-introducing type (if there is one)
 withTyVarsOfBinding :: Binding TyName name uni fun ann -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withTyVarsOfBinding = \case
-       TypeBind _ tvdecl _ -> withTyVarDecls [tvdecl]
+       TypeBind _ tvdecl _                      -> withTyVarDecls [tvdecl]
        DatatypeBind _ (Datatype _ tvdecl _ _ _) -> withTyVarDecls [tvdecl]
-       TermBind{} -> id -- no type to introduce
+       TermBind{}                               -> id -- no type to introduce
 
 -- | Extend the typecheck reader environment with the kinds of the newly-introduced type variables of a binding.
 withTyVarsOfBindings :: Foldable f => f (Binding TyName name uni fun ann) -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res

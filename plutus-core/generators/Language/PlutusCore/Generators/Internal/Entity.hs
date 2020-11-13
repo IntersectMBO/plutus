@@ -28,8 +28,8 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.Dependent
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
+import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
 import           Language.PlutusCore.Builtins

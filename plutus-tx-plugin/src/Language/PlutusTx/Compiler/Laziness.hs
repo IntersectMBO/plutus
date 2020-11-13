@@ -5,16 +5,16 @@
 -- | Simulating laziness.
 module Language.PlutusTx.Compiler.Laziness where
 
-import {-# SOURCE #-} Language.PlutusTx.Compiler.Expr
-import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.PIRTypes
+import {-# SOURCE #-}           Language.PlutusTx.Compiler.Expr
+import {-# SOURCE #-}           Language.PlutusTx.Compiler.Type
+import                          Language.PlutusTx.Compiler.Types
+import                          Language.PlutusTx.PIRTypes
 
-import qualified Language.PlutusIR                as PIR
+import                qualified Language.PlutusIR                as PIR
 
-import           Language.PlutusCore.Quote
+import                          Language.PlutusCore.Quote
 
-import qualified GhcPlugins                       as GHC
+import                qualified GhcPlugins                       as GHC
 
 {- Note [Object- vs meta-language combinators]
 Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined

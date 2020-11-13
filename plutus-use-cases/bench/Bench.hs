@@ -122,7 +122,7 @@ sumB = bgroup "sum" [
         foldrRec :: (a -> b -> b) -> b -> [a] -> b
         foldrRec f z = go
             where go = Rec.fix1zSimple $ \r -> \case
-                      [] -> z
+                      []    -> z
                       (h:t) -> f h (r t)
 
         foldrScott :: (a -> b -> b) -> b -> Scott.ScottList a -> b
@@ -175,13 +175,13 @@ tailB = bgroup "tail" [
     where
         tail :: [a] -> Maybe a
         tail = \case
-            [] -> Nothing
+            []     -> Nothing
             (x:[]) -> Just x
             (_:xs) -> tail xs
 
         tailRec :: [a] -> Maybe a
         tailRec = Rec.fix1zSimple $ \r -> \case
-                [] -> Nothing
+                []     -> Nothing
                 (x:[]) -> Just x
                 (_:xs) -> r xs
 

@@ -97,12 +97,12 @@ makeClassyPrisms ''ContractError
 
 instance Pretty ContractError where
   pretty = \case
-    WalletError e -> "Wallet error:" <+> pretty e
-    EmulatorAssertionError a -> "Emulator assertion error:" <+> pretty a
-    OtherError t -> "Other error:" <+> pretty t
+    WalletError e               -> "Wallet error:" <+> pretty e
+    EmulatorAssertionError a    -> "Emulator assertion error:" <+> pretty a
+    OtherError t                -> "Other error:" <+> pretty t
     ConstraintResolutionError e -> "Constraint resolution error:" <+> pretty e
-    ResumableError e -> "Resumable error:" <+> pretty e
-    CCheckpointError e -> "Checkpoint error:" <+> pretty e
+    ResumableError e            -> "Resumable error:" <+> pretty e
+    CCheckpointError e          -> "Checkpoint error:" <+> pretty e
 
 -- | This lets people use 'T.Text' as their error type.
 instance AsContractError T.Text where

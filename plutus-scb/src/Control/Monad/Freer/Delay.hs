@@ -8,7 +8,7 @@
 module Control.Monad.Freer.Delay where
 
 import           Control.Concurrent     (threadDelay)
-import           Control.Monad.Freer    (Eff, LastMember, type (~>), interpret)
+import           Control.Monad.Freer    (Eff, LastMember, interpret, type (~>))
 import           Control.Monad.Freer.TH (makeEffect)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Time.Units        (TimeUnit, toMicroseconds)

@@ -11,8 +11,8 @@ module Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Unit

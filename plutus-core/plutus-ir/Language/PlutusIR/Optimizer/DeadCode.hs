@@ -75,4 +75,4 @@ processTerm
 processTerm = \case
     -- throw away dead bindings
     Let x r bs t -> mkLet x r <$> filterM liveBinding (NE.toList bs) <*> pure t
-    x -> pure x
+    x            -> pure x

@@ -14,8 +14,8 @@ import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import qualified Language.PlutusCore                               as Plc
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Name

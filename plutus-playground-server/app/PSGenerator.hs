@@ -50,6 +50,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
+import qualified PSGenerator.Common
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
@@ -63,12 +64,11 @@ import           Playground.Types                           (CompilationResult (
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
-import qualified PSGenerator.Common
 import           Schema                                     (FormSchema, formArgumentToJson)
 import           Servant                                    ((:<|>))
-import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                             defaultSettings, languageBridge,
-                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
+                                                             defaultBridge, defaultSettings, languageBridge,
+                                                             writeAPIModuleWithSettings)
 import qualified Starter
 import qualified StarterSimulations
 import           System.FilePath                            ((</>))

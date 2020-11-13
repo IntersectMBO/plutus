@@ -22,14 +22,14 @@ instance ( Closed uni
          , Serialise name
          ) => Serialise (Term name uni fun ann) where
     encode = \case
-        Var      ann n         -> encodeConstructorTag 0 <> encode ann <> encode n
-        Delay    ann t         -> encodeConstructorTag 1 <> encode ann <> encode t
-        LamAbs   ann n t       -> encodeConstructorTag 2 <> encode ann <> encode n <> encode t
-        Apply    ann t t'      -> encodeConstructorTag 3 <> encode ann <> encode t <> encode t'
-        Constant ann c         -> encodeConstructorTag 4 <> encode ann <> encode c
-        Force    ann t         -> encodeConstructorTag 5 <> encode ann <> encode t
-        Error    ann           -> encodeConstructorTag 6 <> encode ann
-        Builtin  ann bn        -> encodeConstructorTag 7 <> encode ann <> encode bn
+        Var      ann n    -> encodeConstructorTag 0 <> encode ann <> encode n
+        Delay    ann t    -> encodeConstructorTag 1 <> encode ann <> encode t
+        LamAbs   ann n t  -> encodeConstructorTag 2 <> encode ann <> encode n <> encode t
+        Apply    ann t t' -> encodeConstructorTag 3 <> encode ann <> encode t <> encode t'
+        Constant ann c    -> encodeConstructorTag 4 <> encode ann <> encode c
+        Force    ann t    -> encodeConstructorTag 5 <> encode ann <> encode t
+        Error    ann      -> encodeConstructorTag 6 <> encode ann
+        Builtin  ann bn   -> encodeConstructorTag 7 <> encode ann <> encode bn
 
     decode = go =<< decodeConstructorTag
         where go 0 = Var      <$> decode <*> decode

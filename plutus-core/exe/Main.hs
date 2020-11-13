@@ -385,7 +385,7 @@ loadASTfromFlat language flatMode inp =
          (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
-               Left e -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
+               Left e  -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
                Right r -> return $ wrapper r
 
 

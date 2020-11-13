@@ -5,24 +5,24 @@
 module Language.PlutusTx.Compiler.Names where
 
 
-import           Language.PlutusTx.Compiler.Kind
-import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.PLCTypes
+import                          Language.PlutusTx.Compiler.Kind
+import {-# SOURCE #-}           Language.PlutusTx.Compiler.Type
+import                          Language.PlutusTx.Compiler.Types
+import                          Language.PlutusTx.PLCTypes
 
-import qualified GhcPlugins                       as GHC
+import                qualified GhcPlugins                       as GHC
 
-import qualified Language.PlutusCore              as PLC
-import qualified Language.PlutusCore.MkPlc        as PLC
-import           Language.PlutusCore.Quote
+import                qualified Language.PlutusCore              as PLC
+import                qualified Language.PlutusCore.MkPlc        as PLC
+import                          Language.PlutusCore.Quote
 
-import           Language.PlutusIR.Compiler.Names
+import                          Language.PlutusIR.Compiler.Names
 
-import           Data.Char
-import           Data.List
-import qualified Data.List.NonEmpty               as NE
-import qualified Data.Map                         as Map
-import qualified Data.Text                        as T
+import                          Data.Char
+import                          Data.List
+import                qualified Data.List.NonEmpty               as NE
+import                qualified Data.Map                         as Map
+import                qualified Data.Text                        as T
 
 lookupName :: Scope uni fun -> GHC.Name -> Maybe (PLCVar uni fun)
 lookupName (Scope ns _) n = Map.lookup n ns

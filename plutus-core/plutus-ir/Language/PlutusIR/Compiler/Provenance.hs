@@ -31,9 +31,9 @@ data Provenance a = Original a
 
 instance Ord a => Semigroup (Provenance a) where
   MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
-  x <> MultipleSources ps2 = MultipleSources (S.insert x ps2)
-  MultipleSources ps1 <> x = MultipleSources (S.insert x ps1)
-  x <> y = MultipleSources (S.fromList [x,y])
+  x <> MultipleSources ps2                   = MultipleSources (S.insert x ps2)
+  MultipleSources ps1 <> x                   = MultipleSources (S.insert x ps1)
+  x <> y                                     = MultipleSources (S.fromList [x,y])
 
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
@@ -49,12 +49,12 @@ data DatatypeComponent = Constructor
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case
-        Constructor -> "constructor"
+        Constructor     -> "constructor"
         ConstructorType -> "constructor type"
-        Destructor -> "destructor"
-        DestructorType -> "destructor type"
-        DatatypeType -> "datatype type"
-        PatternFunctor -> "pattern functor"
+        Destructor      -> "destructor"
+        DestructorType  -> "destructor type"
+        DatatypeType    -> "datatype type"
+        PatternFunctor  -> "pattern functor"
 
 data GeneratedKind = RecursiveLet
     deriving (Show, Eq)

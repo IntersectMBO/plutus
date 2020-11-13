@@ -41,6 +41,7 @@ import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptio
                                                                     unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters         (A)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
+import qualified PSGenerator.Common
 import           Plutus.SCB.Core                                   (activateContract, callContractEndpoint,
                                                                     installContract)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
@@ -60,10 +61,9 @@ import qualified Plutus.SCB.Webserver.Handler                      as Webserver
 import           Plutus.SCB.Webserver.Types                        (ChainReport, ContractReport,
                                                                     ContractSignatureResponse, FullReport,
                                                                     StreamToClient, StreamToServer)
-import qualified PSGenerator.Common
-import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                                    defaultSettings, languageBridge,
-                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           Servant.PureScript                                (HasBridge, Settings, _generateSubscriberAPI,
+                                                                    apiModuleName, defaultBridge, defaultSettings,
+                                                                    languageBridge, writeAPIModuleWithSettings)
 import           System.FilePath                                   ((</>))
 import           Wallet.Effects                                    (AddressChangeRequest (..),
                                                                     AddressChangeResponse (..))

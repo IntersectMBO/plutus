@@ -45,12 +45,12 @@ data MockWalletMsg =
 
 instance Pretty MockWalletMsg where
     pretty = \case
-        CallWallets -> "wallets"
-        CallValueAt -> "valueAt"
-        ValueAtResponse addr vl -> "valueAt" <+> pretty addr <> ":" <+> pretty vl
+        CallWallets                    -> "wallets"
+        CallValueAt                    -> "valueAt"
+        ValueAtResponse addr vl        -> "valueAt" <+> pretty addr <> ":" <+> pretty vl
         CallSelectCoin walletID target -> "selectCoin" <+> pretty walletID <+> pretty target
-        SelectCoinResult result -> "selectCoin result:" <+> pretty result
-        CallAllocateAddress -> "allocateAddress"
+        SelectCoinResult result        -> "selectCoin result:" <+> pretty result
+        CallAllocateAddress            -> "allocateAddress"
 
 wallets :: (Member (LogMsg MockWalletMsg) effs) => Eff effs [Wallet]
 wallets = do

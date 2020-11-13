@@ -96,15 +96,15 @@ termMapNames f = go
         go :: Term name uni fun ann -> Term name' uni fun ann
         go = \case
             LamAbs ann name body -> LamAbs ann (f name) (go body)
-            Var ann name -> Var ann (f name)
+            Var ann name         -> Var ann (f name)
 
-            Apply ann t1 t2 -> Apply ann (go t1) (go t2)
-            Delay ann t -> Delay ann (go t)
-            Force ann t -> Force ann (go t)
+            Apply ann t1 t2      -> Apply ann (go t1) (go t2)
+            Delay ann t          -> Delay ann (go t)
+            Force ann t          -> Force ann (go t)
 
-            Constant ann c -> Constant ann c
-            Builtin ann b -> Builtin ann b
-            Error ann -> Error ann
+            Constant ann c       -> Constant ann c
+            Builtin ann b        -> Builtin ann b
+            Error ann            -> Error ann
 
 programMapNames
     :: forall name name' uni fun ann

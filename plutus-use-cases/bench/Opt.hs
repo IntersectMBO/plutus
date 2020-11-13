@@ -32,6 +32,6 @@ foldrOpt f z = go
 
 tailOpt :: [a] -> Maybe a
 tailOpt = \case
-    [] -> Nothing
+    []     -> Nothing
     (x:[]) -> Just x
     (_:xs) -> tailOpt xs

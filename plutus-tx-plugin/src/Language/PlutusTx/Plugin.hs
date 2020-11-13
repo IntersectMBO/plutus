@@ -203,13 +203,13 @@ makePrimitiveNameInfo names = do
 stripTicks :: GHC.CoreExpr -> GHC.CoreExpr
 stripTicks = \case
     GHC.Tick _ e -> stripTicks e
-    e -> e
+    e            -> e
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.
 compileMarkedExprsBind :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreBind -> GHC.CoreM GHC.CoreBind
 compileMarkedExprsBind opts markerName = \case
     GHC.NonRec b e -> GHC.NonRec b <$> compileMarkedExprs opts markerName e
-    GHC.Rec bs -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> compileMarkedExprs opts markerName e) bs
+    GHC.Rec bs     -> GHC.Rec <$> mapM (\(b, e) -> (,) b <$> compileMarkedExprs opts markerName e) bs
 
 -- | Compiles all the marked expressions in the given expression into PLC literals.
 compileMarkedExprs :: (PluginOptions, GHC.FamInstEnvs) -> GHC.Name -> GHC.CoreExpr -> GHC.CoreM GHC.CoreExpr

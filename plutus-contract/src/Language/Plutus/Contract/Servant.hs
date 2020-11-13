@@ -21,7 +21,7 @@ import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Proxy                      (Proxy (..))
 import           Data.Row
 import           Data.String                     (IsString (fromString))
-import           Servant                         ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody)
+import           Servant                         (Get, JSON, Post, ReqBody, (:<|>) ((:<|>)), (:>))
 import           Servant.Server                  (Application, Server, ServerError, err500, errBody, serve)
 
 import           Language.Plutus.Contract.Schema (Event, Handlers, Input, Output)
