@@ -60,7 +60,7 @@ in {
   mkEnv = lib.mapAttrsToList (key: value: "${key}=${value}");
 
   devShell = let
-    cluster = "plutus-testnet";
+    cluster = "plutus-playground";
     domain = final.clusters.${cluster}.proto.config.cluster.domain;
   in prev.mkShell {
     # for bitte-cli

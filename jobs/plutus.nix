@@ -22,7 +22,7 @@ let
 
         volumes.${name} = {
           type = "host";
-          source = "plutus-testnet";
+          source = "plutus-playground";
         };
 
         networks = [{
