@@ -75,9 +75,8 @@ rec {
     inherit set-git-rev haskell webCommon;
   };
 
-  tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix;
-    inherit (plutus) stylish-haskell purty;
+  tests = import ./nix/tests {
+    inherit pkgs iohkNix haskell plutus;
     src = ./.;
   };
 

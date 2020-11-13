@@ -27,9 +27,11 @@ lib.fix (jobsets: ciJobsets // {
     name = "plutus-required-checks";
 
     constituents =
-      # Misc tests
-      (allJobs [ "linux" "tests" ] jobsets)
-        ++ (allJobs [ "darwin" "tests" ] jobsets)
+      # Linting and VM Tests
+      (allJobs [ "linux" "tests" "lintingTests" ] jobsets)
+        ++ (allJobs [ "linux" "tests" "vmTests" ] jobsets)
+        ++ (allJobs [ "darwin" "tests" "lintingTests" ] jobsets)
+        ++ (allJobs [ "darwin" "tests" "vmTests" ] jobsets)
         # Haskell tests
         ++ (allJobs [ "linux" "haskell" ] jobsets)
         ++ (allJobs [ "darwin" "haskell" ] jobsets)
