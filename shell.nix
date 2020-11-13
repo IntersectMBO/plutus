@@ -8,8 +8,9 @@
 let
   inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (plutus) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
+  inherit (plutus) purty purs spargo;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
@@ -66,9 +67,9 @@ let
     haskell-language-server
     hie-bios
     hlint
-    easyPS.purs
-    easyPS.purty
-    easyPS.spago
+    purs
+    purty
+    spago
     stylish-haskell
     updateClientDeps
     updateMetadataSamples

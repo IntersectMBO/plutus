@@ -46,13 +46,13 @@ chartist options =
     { initialState: const { chart: Nothing }
     , render
     , eval:
-      H.mkEval
-        { handleAction
-        , handleQuery
-        , initialize: Just $ Init options
-        , receive: Just <<< SetData
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleAction
+          , handleQuery
+          , initialize: Just $ Init options
+          , receive: Just <<< SetData
+          , finalize: Nothing
+          }
     }
 
 handleQuery :: forall a input m. MonadEffect m => Query a -> HalogenM State Action input Message m (Maybe a)

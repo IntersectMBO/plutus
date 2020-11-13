@@ -126,13 +126,13 @@ mkMainFrame = do
         { initialState: const initialState
         , render: View.render
         , eval:
-          H.mkEval
-            { handleAction: handleActionWithAnalyticsTracking
-            , handleQuery: const $ pure Nothing
-            , initialize: Just Init
-            , receive: const Nothing
-            , finalize: Nothing
-            }
+            H.mkEval
+              { handleAction: handleActionWithAnalyticsTracking
+              , handleQuery: const $ pure Nothing
+              , initialize: Just Init
+              , receive: const Nothing
+              , finalize: Nothing
+              }
         }
 
 handleActionWithAnalyticsTracking ::

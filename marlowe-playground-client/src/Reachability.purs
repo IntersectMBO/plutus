@@ -237,4 +237,5 @@ updateWithResponse settings ( InProgress
   updateWithResponse settings progress response
 
 updateWithResponse _ rad _ = pure rad
- -- ToDo: nullify assertions
+
+-- ToDo: nullify assertions

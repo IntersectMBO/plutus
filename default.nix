@@ -76,7 +76,8 @@ rec {
   };
 
   tests = import ./nix/tests/default.nix {
-    inherit pkgs iohkNix haskell;
+    inherit pkgs iohkNix;
+    inherit (plutus) stylish-haskell purty;
     src = ./.;
   };
 

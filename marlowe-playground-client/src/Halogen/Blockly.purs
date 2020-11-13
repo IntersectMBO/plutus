@@ -71,13 +71,13 @@ blockly rootBlockName blockDefinitions =
     { initialState: const emptyState
     , render
     , eval:
-      H.mkEval
-        { handleQuery
-        , handleAction
-        , initialize: Just $ Inject rootBlockName blockDefinitions
-        , finalize: Nothing
-        , receive: Just <<< SetData
-        }
+        H.mkEval
+          { handleQuery
+          , handleAction
+          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , finalize: Nothing
+          , receive: Just <<< SetData
+          }
     }
 
 handleQuery :: forall slots m a. MonadEffect m => Query a -> DSL slots m (Maybe a)
