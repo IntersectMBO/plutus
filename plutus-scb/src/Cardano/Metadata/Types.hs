@@ -158,7 +158,7 @@ parsePreimage =
         "preImage"
         (\preImage -> do
              hash <- preImage .: "hashFn"
-             hex <- preImage .: "hex"
+             hex <- preImage .: "value"
              pure $ Preimage hash hex)
 
 parseOwner :: JSON.Object -> Parser (Property 'ExternalEncoding)
@@ -244,7 +244,7 @@ deriving anyclass instance
 instance ToJSON (Property 'ExternalEncoding) where
     toJSON (Preimage hash bytes) =
         JSON.object
-            ["preImage" .= JSON.object ["hashFn" .= hash, "hex" .= bytes]]
+            ["preImage" .= JSON.object ["hashFn" .= hash, "value" .= bytes]]
     toJSON (Name value signatures) =
         JSON.object
             [ "name" .=
