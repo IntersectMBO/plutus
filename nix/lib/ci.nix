@@ -159,4 +159,13 @@ rec {
         )
         (builtins.attrNames set)
     );
+
+  # Takes an array of systems and returns a `name: system` AttrSet
+  # filterSystems :: [ string ] -> AttrSet
+  filterSystems = systems: lib.filterAttrs (_: v: builtins.elem v systems) {
+    linux = "x86_64-linux";
+    darwin = "x86_64-darwin";
+  };
+
+
 }
