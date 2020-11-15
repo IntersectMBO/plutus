@@ -120,24 +120,24 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
     , sounds: true
     , oneBasedIndex: true
     , move:
-      { scrollbars: true
-      , drag: true
-      , wheel: true
-      }
+        { scrollbars: true
+        , drag: true
+        , wheel: true
+        }
     , zoom:
-      { controls: true
-      , wheel: false
-      , startScale: 1.0
-      , maxScale: 3.0
-      , minScale: 0.3
-      , scaleSpeed: 1.2
-      }
+        { controls: true
+        , wheel: false
+        , startScale: 1.0
+        , maxScale: 3.0
+        , minScale: 0.3
+        , scaleSpeed: 1.2
+        }
     , grid:
-      { spacing: 20
-      , length: 3
-      , colour: "#ccc"
-      , snap: true
-      }
+        { spacing: 20
+        , length: 3
+        , colour: "#ccc"
+        , snap: true
+        }
     }
 
 resize :: forall r. Blockly -> STRef r Workspace -> ST r Unit

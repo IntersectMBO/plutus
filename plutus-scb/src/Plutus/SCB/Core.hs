@@ -89,10 +89,10 @@ data CoreMsg t =
 
 instance Pretty t => Pretty (CoreMsg t) where
     pretty = \case
-        Installing d -> "Installing" <+> pretty d
-        Installed -> "Installed"
+        Installing d      -> "Installing" <+> pretty d
+        Installed         -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c -> "Found contract" <+> pretty c
+        FoundContract c   -> "Found contract" <+> pretty c
 
 instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
     toObject v = \case

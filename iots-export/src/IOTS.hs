@@ -33,8 +33,8 @@ import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Tree                    (Forest, Tree (Node), rootLabel)
-import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1, Constructor, D1, Datatype, Generic, M1 (M1),
-                                               Rec0, Rep, S1, Selector, U1, conIsRecord, conName, selName)
+import           GHC.Generics                 (C1, Constructor, D1, Datatype, Generic, M1 (M1), Rec0, Rep, S1, Selector,
+                                               U1, conIsRecord, conName, selName, (:*:) ((:*:)), (:+:))
 import qualified GHC.Generics                 as Generics
 import           GHC.TypeLits                 (KnownSymbol, symbolVal)
 import           IOTS.Leijen                  (jsArray, jsObject, jsParams, render, stringDoc, symbol, upperFirst)

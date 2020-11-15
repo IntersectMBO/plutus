@@ -93,13 +93,13 @@ initialMainFrame =
         { initialState: const initialState
         , render: View.render
         , eval:
-          H.mkEval
-            { handleAction: runHalogenApp <<< handleAction
-            , handleQuery: runHalogenApp <<< handleQuery
-            , initialize: Just Init
-            , receive: const Nothing
-            , finalize: Nothing
-            }
+            H.mkEval
+              { handleAction: runHalogenApp <<< handleAction
+              , handleQuery: runHalogenApp <<< handleQuery
+              , initialize: Just Init
+              , receive: const Nothing
+              , finalize: Nothing
+              }
         }
 
 handleQuery ::

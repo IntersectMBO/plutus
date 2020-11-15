@@ -78,12 +78,12 @@ invokeContractUpdate_ contract PartiallyDecodedResponse {newState = oldState} (E
 contractMessageToPayload :: Response ContractResponse -> EventPayload
 contractMessageToPayload = EventPayload . fmap go where
     go = JSON.object . (\(tag, vl) -> ["tag" .= tag, "value" .= vl]) . \case
-        AwaitSlotResponse slot -> ("slot", JSON.toJSON slot)
-        AwaitTxConfirmedResponse txid -> ("tx-confirmation", JSON.toJSON txid)
-        OwnPubkeyResponse pk -> ("own-pubkey", JSON.toJSON pk)
-        UtxoAtResponse u -> ("utxo-at", JSON.toJSON u)
-        NextTxAtResponse tx -> ("address", JSON.toJSON tx)
-        WriteTxResponse r -> ("tx", JSON.toJSON r)
+        AwaitSlotResponse slot                         -> ("slot", JSON.toJSON slot)
+        AwaitTxConfirmedResponse txid                  -> ("tx-confirmation", JSON.toJSON txid)
+        OwnPubkeyResponse pk                           -> ("own-pubkey", JSON.toJSON pk)
+        UtxoAtResponse u                               -> ("utxo-at", JSON.toJSON u)
+        NextTxAtResponse tx                            -> ("address", JSON.toJSON tx)
+        WriteTxResponse r                              -> ("tx", JSON.toJSON r)
         UserEndpointResponse (EndpointDescription n) r -> (n, JSON.toJSON r)
-        OwnInstanceResponse r -> ("own-instance-id", JSON.toJSON r)
-        NotificationResponse r -> ("notify", JSON.toJSON r)
+        OwnInstanceResponse r                          -> ("own-instance-id", JSON.toJSON r)
+        NotificationResponse r                         -> ("notify", JSON.toJSON r)

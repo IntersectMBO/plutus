@@ -12,8 +12,9 @@ module Language.Plutus.Contract(
     , selectEither
     , select
     , (>>)
-    , mapError
     , throwError
+    , handleError
+    , mapError
     , runError
     -- * Dealing with time
     , HasAwaitSlot
@@ -102,8 +103,9 @@ import           Language.Plutus.Contract.Request                  (ContractRow)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
 import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
                                                                     CheckpointError (..), Contract (..),
-                                                                    ContractError (..), checkpoint, mapError, runError,
-                                                                    select, selectEither, throwError)
+                                                                    ContractError (..), checkpoint, handleError,
+                                                                    mapError, runError, select, selectEither,
+                                                                    throwError)
 
 import qualified Control.Monad.Freer.Log                           as L
 import           Prelude                                           hiding (until)

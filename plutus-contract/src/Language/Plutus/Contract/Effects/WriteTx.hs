@@ -22,8 +22,9 @@ import           GHC.Generics                                      (Generic)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
 import           Language.Plutus.Contract.Request                  as Req
 import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types                    (AsContractError, Contract, throwError,
-                                                                    _ConstraintResolutionError, _WalletError)
+import           Language.Plutus.Contract.Types                    (AsContractError, Contract,
+                                                                    _ConstraintResolutionError, _WalletError,
+                                                                    throwError)
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import           Ledger.AddressMap                                 (UtxoMap)
@@ -45,7 +46,7 @@ data WriteTxResponse =
 
 instance Pretty WriteTxResponse where
   pretty = \case
-    WriteTxFailed e -> "WriteTxFailed:" <+> pretty e
+    WriteTxFailed e  -> "WriteTxFailed:" <+> pretty e
     WriteTxSuccess i -> "WriteTxSuccess:" <+> pretty (txId i)
 
 writeTxResponse :: Iso' WriteTxResponse (Either WalletAPIError Tx)

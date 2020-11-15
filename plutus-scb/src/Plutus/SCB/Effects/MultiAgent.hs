@@ -36,7 +36,7 @@ import           Cardano.Metadata.Server            (handleMetadata)
 import           Cardano.Metadata.Types             (MetadataEffect, MetadataLogMessage)
 import           Control.Lens                       (AReview, Lens', Prism', anon, at, below, makeClassyPrisms,
                                                      makeLenses, (&))
-import           Control.Monad.Freer                (Eff, Members, type (~>), interpret, subsume)
+import           Control.Monad.Freer                (Eff, Members, interpret, subsume, type (~>))
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
 import           Control.Monad.Freer.Extra.Log      (LogMsg)
 import           Control.Monad.Freer.Extras         (handleZoomedState, handleZoomedWriter, raiseEnd17, raiseEnd9)
@@ -74,8 +74,8 @@ import qualified Wallet.Emulator.Chain              as Chain
 import           Wallet.Emulator.ChainIndex         (ChainIndexControlEffect)
 import qualified Wallet.Emulator.ChainIndex         as ChainIndex
 import           Wallet.Emulator.Error              (WalletAPIError)
-import           Wallet.Emulator.MultiAgent         (EmulatorEvent, EmulatorTimeEvent, chainIndexEvent,
-                                                     emulatorTimeEvent, walletClientEvent, walletEvent, _singleton)
+import           Wallet.Emulator.MultiAgent         (EmulatorEvent, EmulatorTimeEvent, _singleton, chainIndexEvent,
+                                                     emulatorTimeEvent, walletClientEvent, walletEvent)
 import           Wallet.Emulator.NodeClient         (NodeClientControlEffect)
 import qualified Wallet.Emulator.NodeClient         as NC
 import           Wallet.Emulator.SigningProcess     (SigningProcessControlEffect)
@@ -125,14 +125,14 @@ data SCBMultiAgentMsg =
 
 instance Pretty SCBMultiAgentMsg where
     pretty = \case
-        EmulatorMsg m -> pretty m
-        ContractMsg m -> pretty m
-        NodeFollowerMsg m -> pretty m
-        MetadataLog m -> pretty m
+        EmulatorMsg m         -> pretty m
+        ContractMsg m         -> pretty m
+        NodeFollowerMsg m     -> pretty m
+        MetadataLog m         -> pretty m
         ChainIndexServerLog m -> pretty m
         ContractInstanceLog m -> pretty m
-        CoreLog m -> pretty m
-        RuntimeLog m -> pretty m
+        CoreLog m             -> pretty m
+        RuntimeLog m          -> pretty m
 
 makeClassyPrisms ''SCBMultiAgentMsg
 

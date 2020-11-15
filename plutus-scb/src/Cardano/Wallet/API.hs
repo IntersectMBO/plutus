@@ -9,7 +9,7 @@ import           Ledger            (PubKey, Value)
 import           Ledger.AddressMap (UtxoMap)
 import           Ledger.Slot       (Slot)
 import           Ledger.Tx         (Tx)
-import           Servant.API       ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
+import           Servant.API       (Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
 import           Wallet.Effects    (Payment)
 
 type API

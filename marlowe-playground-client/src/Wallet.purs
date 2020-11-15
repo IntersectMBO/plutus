@@ -289,13 +289,13 @@ mkComponent =
     { initialState: const mkState
     , render
     , eval:
-      H.mkEval
-        { handleAction: handleActionWithAnalyticsTracking handleAction
-        , handleQuery
-        , initialize: Just Init
-        , receive: const Nothing
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleAction: handleActionWithAnalyticsTracking handleAction
+          , handleQuery
+          , initialize: Just Init
+          , receive: const Nothing
+          , finalize: Nothing
+          }
     }
 
 applyTransactions :: forall m. MonadState State m => m Unit

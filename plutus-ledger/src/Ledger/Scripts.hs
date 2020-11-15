@@ -82,9 +82,9 @@ import           Ledger.Orphans                      ()
 import           LedgerBytes                         (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
-newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni () }
+newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving Serialise via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni
+  deriving Serialise via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
@@ -133,10 +133,10 @@ scriptSize (Script s) = UPLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
+fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni () -> Script
+fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun () -> Script
 fromPlc (UPLC.Program a v t) = case UPLC.deBruijnTerm $ t of
     Right t' ->
         let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t'
@@ -185,13 +185,13 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode PLC.DefaultUni (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script

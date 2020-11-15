@@ -30,11 +30,12 @@ import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Lift       as Lift
 import           Language.PlutusTx.Plugin
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
-roundPlc :: CompiledCode PLC.DefaultUni (Ratio.Rational -> Integer)
+roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
@@ -115,5 +116,5 @@ genData =
             , List <$> genList genData
             ]
 
-errorTrace :: CompiledCode PLC.DefaultUni (Integer)
+errorTrace :: CompiledCode (Integer)
 errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

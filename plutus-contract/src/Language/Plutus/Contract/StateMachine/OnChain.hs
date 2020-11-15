@@ -1,9 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -22,7 +22,7 @@ module Language.Plutus.Contract.StateMachine.OnChain(
     , mkValidator
     ) where
 
-import Data.Void (Void)
+import           Data.Void                        (Void)
 
 import qualified Language.PlutusTx                as PlutusTx
 import           Language.PlutusTx.Prelude        hiding (check)
@@ -31,7 +31,7 @@ import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
 import           Ledger                           (Address, Value)
 import           Ledger.Typed.Scripts
-import           Ledger.Validation                (ValidatorCtx (..), TxInInfo (..), findOwnInput)
+import           Ledger.Validation                (TxInInfo (..), ValidatorCtx (..), findOwnInput)
 import           Ledger.Value                     (isZero)
 
 data State s = State { stateData :: s, stateValue :: Value }

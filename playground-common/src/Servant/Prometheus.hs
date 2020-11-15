@@ -21,8 +21,8 @@ import           Control.Exception                              (bracket, bracke
 import           Control.Monad                                  (mplus)
 import           Control.Monad.IO.Class                         (MonadIO)
 import           Control.Monad.Logger                           (MonadLogger, MonadLoggerIO)
-import           Data.Hashable                                  (Hashable)
 import qualified Data.HashMap.Strict                            as H
+import           Data.Hashable                                  (Hashable)
 import           Data.Kind                                      (Type)
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
@@ -34,11 +34,11 @@ import           GHC.TypeLits                                   (KnownSymbol, Sy
 import           Network.HTTP.Types                             (Method, Status (Status, statusCode))
 import           Network.Wai                                    (Middleware, Request, pathInfo, requestMethod,
                                                                  responseStatus)
-import           Servant.API                                    ((:<|>), (:>), BasicAuth, Capture', CaptureAll,
-                                                                 Description, EmptyAPI, Header', HttpVersion, IsSecure,
-                                                                 QueryFlag, QueryParam', QueryParams, Raw,
-                                                                 ReflectMethod, RemoteHost, ReqBody', Stream, Summary,
-                                                                 Vault, Verb, WithNamedContext, reflectMethod)
+import           Servant.API                                    (BasicAuth, Capture', CaptureAll, Description, EmptyAPI,
+                                                                 Header', HttpVersion, IsSecure, QueryFlag, QueryParam',
+                                                                 QueryParams, Raw, ReflectMethod, RemoteHost, ReqBody',
+                                                                 Stream, Summary, Vault, Verb, WithNamedContext,
+                                                                 reflectMethod, (:<|>), (:>))
 #if MIN_VERSION_servant(0,15,0)
 import           Servant.API                                    (StreamBody')
 #endif

@@ -3,6 +3,7 @@
 ```
 module Algorithmic.CEKV where
 
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Function hiding (_∋_)
 open import Data.Product using (proj₁;proj₂)
 import Data.List as L
@@ -13,6 +14,7 @@ open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
+import Debug.Trace as Debug
 open import Utils
 
 open import Type
@@ -135,7 +137,7 @@ BUILTIN
 BUILTIN equalsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
   decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN concatenate σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  inj₁ (V-con (bytestring (append b b')))
+  inj₁ (V-con (bytestring (concat b b')))
 BUILTIN takeByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   inj₁ (V-con (bytestring (take i b)))
 BUILTIN dropByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -160,6 +162,9 @@ BUILTIN
 BUILTIN equalsByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (equals b b')))
 BUILTIN ifThenElse σ (V-con (bool false) ,, VT ,, VF ,, tt) = inj₁ VF
 BUILTIN ifThenElse σ (V-con (bool true)  ,, VT ,, VF ,, tt) = inj₁ VT
+BUILTIN charToString σ (V-con (char c) ,, tt) = inj₁ (V-con (string (primStringFromList L.[ c ])))
+BUILTIN append σ (V-con (string s) ,, V-con (string t) ,, tt) = inj₁ (V-con (string (primStringAppend s t)))
+BUILTIN trace σ (V-con (string s) ,, tt) = inj₁ (V-con (Debug.trace s unit))
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
@@ -174,7 +179,7 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
             (μ A B)
-            
+
   builtin- : ∀{Γ}(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
     → (As : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
@@ -201,7 +206,7 @@ step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
 step (s ; ρ ▻ ƛ L)             = s ◅ V-ƛ L ρ
 step (s ; ρ ▻ (L · M))         = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ L)             = s ◅ V-Λ L ρ
-step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L 
+step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L
 step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
 step (s ; ρ ▻ unwrap L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c

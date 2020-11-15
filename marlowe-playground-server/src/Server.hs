@@ -19,8 +19,8 @@ import           Control.Monad.Except                             (ExceptT)
 import           Control.Monad.IO.Class                           (MonadIO, liftIO)
 import           Control.Monad.Logger                             (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
 import           Control.Monad.Reader                             (ReaderT, runReaderT)
-import           Data.Aeson                                       as Aeson
 import           Data.Aeson                                       (FromJSON, ToJSON, eitherDecode, encode)
+import           Data.Aeson                                       as Aeson
 import qualified Data.HashMap.Strict                              as HM
 import           Data.Proxy                                       (Proxy (Proxy))
 import           Data.String                                      as S
@@ -34,10 +34,8 @@ import           Language.Marlowe.ACTUS.Generator                 (genFsContract
 import           Language.Marlowe.Pretty                          (pretty)
 import           Network.HTTP.Simple                              (getResponseBody, httpJSON)
 import           Network.Wai.Middleware.Cors                      (cors, corsRequestHeaders, simpleCorsResourcePolicy)
-import           Servant                                          ((:<|>) ((:<|>)), (:>), Application,
-                                                                   Handler (Handler), Server, ServerError, hoistServer,
-                                                                   serve, throwError)
-import           Servant.Server.Internal.ServerError              (ServerError (..), err400)
+import           Servant                                          (Application, Handler (Handler), Server, ServerError,
+                                                                   hoistServer, serve, (:<|>) ((:<|>)), (:>))
 import           System.Environment                               (lookupEnv)
 import qualified Web.JWT                                          as JWT
 

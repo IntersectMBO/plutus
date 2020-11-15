@@ -25,7 +25,7 @@ import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
 import Monaco as Monaco
 import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, when, ($), (==), (>>=))
 
@@ -80,8 +80,11 @@ type State
 data Query a
   = SetText String a
   | GetText (String -> a)
+  | GetLineCount (Int -> a)
   | GetModel (Monaco.ITextModel -> a)
   | GetModelMarkers (Array IMarker -> a)
+  | GetDecorationRange String (IRange -> a)
+  | SetDeltaDecorations Int Int (String -> a)
   | SetPosition IPosition a
   | Focus a
   | Resize a
@@ -115,23 +118,23 @@ monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Comp
 monacoComponent settings =
   H.mkComponent
     { initialState:
-      const
-        { editor: Nothing
-        , deactivateBindings: defaultCancelBindings
-        , objects:
-          { codeActionProvider: settings.codeActionProvider
-          , completionItemProvider: settings.completionItemProvider
+        const
+          { editor: Nothing
+          , deactivateBindings: defaultCancelBindings
+          , objects:
+              { codeActionProvider: settings.codeActionProvider
+              , completionItemProvider: settings.completionItemProvider
+              }
           }
-        }
     , render: render settings
     , eval:
-      H.mkEval
-        { handleAction: handleAction settings
-        , handleQuery
-        , initialize: Just Init
-        , receive: const Nothing
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleAction: handleAction settings
+          , handleQuery
+          , initialize: Just Init
+          , receive: const Nothing
+          , finalize: Nothing
+          }
     }
 
 render :: forall m p i. Settings m -> State -> HTML p i
@@ -151,7 +154,9 @@ handleAction settings Init = do
       let
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
-        when (languageId == "typescript") $ Monaco.addExtraTypesScriptLibsJS monaco
+        when (languageId == "typescript") do
+          Monaco.addExtraTypeScriptLibsJS monaco
+          Monaco.setStrictNullChecks monaco true
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         for_ settings.theme $ Monaco.defineTheme monaco
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
@@ -202,6 +207,13 @@ handleQuery (GetText f) = do
       s = Monaco.getValue model
     pure $ f s
 
+handleQuery (GetLineCount f) = do
+  withEditor \editor -> do
+    model <- liftEffect $ Monaco.getModel editor
+    let
+      i = Monaco.getLineCount model
+    pure $ f i
+
 handleQuery (GetModel f) = do
   withEditor \editor -> do
     m <- liftEffect $ Monaco.getModel editor
@@ -214,6 +226,19 @@ handleQuery (GetModelMarkers f) = do
       model <- Monaco.getModel editor
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
+
+handleQuery (GetDecorationRange decoratorId f) = do
+  withEditor \editor -> do
+    liftEffect do
+      model <- liftEffect $ Monaco.getModel editor
+      let
+        decoRange = Monaco.getDecorationRange model decoratorId
+      pure $ f decoRange
+
+handleQuery (SetDeltaDecorations first last f) = do
+  withEditor \editor -> do
+    decoId <- liftEffect $ Monaco.setDeltaDecorations editor first last
+    pure $ f decoId
 
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do

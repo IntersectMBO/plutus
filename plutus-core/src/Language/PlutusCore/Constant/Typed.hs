@@ -2,29 +2,23 @@
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE DerivingVia            #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE RankNTypes             #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
-    , TypedStaticBuiltinName (..)
     , FoldArgs
     , FoldArgsEx
-    , DynamicBuiltinNameMeaning (..)
-    , DynamicBuiltinNameDefinition (..)
-    , DynamicBuiltinNameMeanings (..)
     , unliftConstant
     , TyVarRep
     , TyAppRep
@@ -49,9 +43,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString                               as BS
+import qualified Data.ByteString                                    as BS
 import qualified Data.Kind                                          as GHC (Type)
-import           Data.Map                                           (Map)
 import           Data.Proxy
 import           Data.String
 import qualified Data.Text                                          as Text
@@ -93,16 +86,13 @@ data TypeScheme term (args :: [GHC.Type]) res where
         -> (forall ot. ot ~ Opaque term (TyVarRep text uniq) => Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
--- | A 'StaticBuiltinName' with an associated 'TypeScheme'.
-data TypedStaticBuiltinName term args res = TypedStaticBuiltinName StaticBuiltinName (TypeScheme term args res)
-
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --
 -- >>> :set -XDataKinds
 -- >>> :kind! FoldArgs [Char, Bool] Integer
 -- FoldArgs [Char, Bool] Integer :: *
 -- = Char -> Bool -> Integer
-type family FoldArgs args r where
+type family FoldArgs args res where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
@@ -110,36 +100,6 @@ type family FoldArgs args r where
 type family FoldArgsEx args where
     FoldArgsEx '[]           = ExBudget
     FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
-
-{- Note [DynamicBuiltinNameMeaning]
-We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
-We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
-well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
-actually computes. We do not need denotations for type checking, nor strongly typed 'TypeScheme'
-is required, however analogously to static built-ins, we compute the types of dynamic built-ins from
-their 'TypeScheme's. This way we only define a 'TypeScheme', which we anyway need, and then compute
-the corresponding 'Type' from it. And we can't go the other way around -- from untyped to typed --
-of course. Therefore a typed thing has to go before the corresponding untyped thing and in the
-final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
--}
-
--- See Note [DynamicBuiltinNameMeaning].
--- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
--- and its Haskell denotation.
-data DynamicBuiltinNameMeaning term =
-    forall args res. DynamicBuiltinNameMeaning
-        (TypeScheme term args res)
-        (FoldArgs args res)
-        (FoldArgsEx args)
-
--- | The definition of a dynamic built-in consists of its name and meaning.
-data DynamicBuiltinNameDefinition term =
-    DynamicBuiltinNameDefinition DynamicBuiltinName (DynamicBuiltinNameMeaning term)
-
--- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
-newtype DynamicBuiltinNameMeanings term = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning term)
-    } deriving (Semigroup, Monoid)
 
 {- Note [Motivation for polymorphic built-in functions]
 We need to support polymorphism for built-in functions for these reasons:
@@ -245,15 +205,15 @@ class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
-instance AsConstant (Term TyName Name uni ann) where
+instance AsConstant (Term TyName Name uni fun ann) where
     asConstant (Constant _ val) = Just val
     asConstant _                = Nothing
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
-            FromConstant (Term tyname name uni ExMemory) where
+            FromConstant (Term tyname name uni fun ExMemory) where
     fromConstant value = Constant (memoryUsage value) value
 
-instance FromConstant (Term tyname name uni ()) where
+instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
@@ -367,16 +327,16 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
     makeKnown = EvaluationSuccess . unOpaque
     readKnown = pure . Opaque
 
-instance uni `Includes` Integer        => KnownTypeAst uni Integer
+instance uni `Includes` Integer       => KnownTypeAst uni Integer
 instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Includes` String         => KnownTypeAst uni String
-instance uni `Includes` Char           => KnownTypeAst uni Char
-instance uni `Includes` ()             => KnownTypeAst uni ()
-instance uni `Includes` Bool           => KnownTypeAst uni Bool
+instance uni `Includes` String        => KnownTypeAst uni String
+instance uni `Includes` Char          => KnownTypeAst uni Char
+instance uni `Includes` ()            => KnownTypeAst uni ()
+instance uni `Includes` Bool          => KnownTypeAst uni Bool
 
-instance KnownBuiltinType term Integer        => KnownType term Integer
+instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term String         => KnownType term String
-instance KnownBuiltinType term Char           => KnownType term Char
-instance KnownBuiltinType term ()             => KnownType term ()
-instance KnownBuiltinType term Bool           => KnownType term Bool
+instance KnownBuiltinType term String        => KnownType term String
+instance KnownBuiltinType term Char          => KnownType term Char
+instance KnownBuiltinType term ()            => KnownType term ()
+instance KnownBuiltinType term Bool          => KnownType term Bool

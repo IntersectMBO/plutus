@@ -115,12 +115,8 @@
           "Language/PlutusCore/Core/Instance/Recursive"
           "Language/PlutusCore/Core/Instance"
           "Language/PlutusCore/Constant/Apply"
-          "Language/PlutusCore/Constant/Dynamic/BuiltinName"
-          "Language/PlutusCore/Constant/Dynamic/Call"
-          "Language/PlutusCore/Constant/Dynamic/Emit"
-          "Language/PlutusCore/Constant/Dynamic/OffChain"
+          "Language/PlutusCore/Constant/Meaning"
           "Language/PlutusCore/Constant/Function"
-          "Language/PlutusCore/Constant/Name"
           "Language/PlutusCore/Constant/Typed"
           "Language/PlutusCore/DeBruijn/Internal"
           "Language/PlutusCore/Lexer/Type"
@@ -190,15 +186,15 @@
           "Language/PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "Language/PlutusCore/Evaluation/Machine/Exception"
           "Language/PlutusCore/Evaluation/Machine/ExMemory"
-          "Language/PlutusCore/Evaluation/Evaluator"
           "Language/PlutusCore/Evaluation/Result"
           "Language/PlutusCore/Check/Value"
           "Language/PlutusCore/Check/Normal"
           "Language/PlutusCore/CBOR"
           "Language/PlutusCore/Flat"
           "Language/PlutusCore/Constant"
-          "Language/PlutusCore/Constant/Dynamic"
+          "Language/PlutusCore/Constant/Dynamic/Emit"
           "Language/PlutusCore/Universe"
+          "Language/PlutusCore/Builtins"
           "Language/PlutusCore/Rename/Internal"
           "Language/PlutusCore/Rename/Monad"
           "Language/PlutusCore/Rename"
@@ -294,6 +290,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))

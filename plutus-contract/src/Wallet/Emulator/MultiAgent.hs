@@ -84,9 +84,9 @@ data EmulatorEvent' =
 
 instance Pretty EmulatorEvent' where
     pretty = \case
-        ClientEvent w e -> pretty w <> colon <+> pretty e
-        ChainEvent e -> pretty e
-        WalletEvent w e -> pretty w <> colon <+> pretty e
+        ClientEvent w e     -> pretty w <> colon <+> pretty e
+        ChainEvent e        -> pretty e
+        WalletEvent w e     -> pretty w <> colon <+> pretty e
         ChainIndexEvent w e -> pretty w <> colon <+> pretty e
         NotificationEvent e -> pretty e
 

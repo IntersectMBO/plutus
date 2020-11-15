@@ -210,12 +210,12 @@ toDefinition BaseContractType =
         { type: show BaseContractType
         , message0: "%1 CONTRACT %2 %3 %4 %5"
         , args0:
-          [ DummyRight
-          , DummyRight
-          , DummyRight
-          , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
-          , DummyRight
-          ]
+            [ DummyRight
+            , DummyRight
+            , DummyRight
+            , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
+            , DummyRight
+            ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
         }
@@ -226,38 +226,38 @@ toDefinition (ActusContractType PaymentAtMaturity) =
     $ merge
         { type: show PaymentAtMaturity
         , message0:
-          "Principal At Maturity %1"
-            <> "start date * %2"
-            <> "maturity date * %3"
-            <> "notional * %4"
-            <> "premium/discount %5"
-            <> "interest rate %6"
-            <> "purchase date %7"
-            <> "purchase price %8"
-            <> "initial exchange date %9"
-            <> "termination date %10"
-            <> "termination price %11"
-            <> "rate reset cycle %12"
-            <> "interest payment cycle %13"
-            <> "observation constraints %14"
-            <> "payoff analysis constraints %15"
+            "Principal At Maturity %1"
+              <> "start date * %2"
+              <> "maturity date * %3"
+              <> "notional * %4"
+              <> "premium/discount %5"
+              <> "interest rate %6"
+              <> "purchase date %7"
+              <> "purchase price %8"
+              <> "initial exchange date %9"
+              <> "termination date %10"
+              <> "termination price %11"
+              <> "rate reset cycle %12"
+              <> "interest payment cycle %13"
+              <> "observation constraints %14"
+              <> "payoff analysis constraints %15"
         , args0:
-          [ DummyCentre
-          , Value { name: "start_date", check: "date", align: Right }
-          , Value { name: "maturity_date", check: "date", align: Right }
-          , Value { name: "notional", check: "decimal", align: Right }
-          , Value { name: "premium_discount", check: "decimal", align: Right }
-          , Value { name: "interest_rate", check: "decimal", align: Right }
-          , Value { name: "purchase_date", check: "date", align: Right }
-          , Value { name: "purchase_price", check: "decimal", align: Right }
-          , Value { name: "initial_exchange_date", check: "date", align: Right }
-          , Value { name: "termination_date", check: "date", align: Right }
-          , Value { name: "termination_price", check: "decimal", align: Right }
-          , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
-          , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
-          , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
-          , Value { name: "payoff_ctr", check: "assertion", align: Right }
-          ]
+            [ DummyCentre
+            , Value { name: "start_date", check: "date", align: Right }
+            , Value { name: "maturity_date", check: "date", align: Right }
+            , Value { name: "notional", check: "decimal", align: Right }
+            , Value { name: "premium_discount", check: "decimal", align: Right }
+            , Value { name: "interest_rate", check: "decimal", align: Right }
+            , Value { name: "purchase_date", check: "date", align: Right }
+            , Value { name: "purchase_price", check: "decimal", align: Right }
+            , Value { name: "initial_exchange_date", check: "date", align: Right }
+            , Value { name: "termination_date", check: "date", align: Right }
+            , Value { name: "termination_price", check: "decimal", align: Right }
+            , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
+            , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            ]
         , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
@@ -317,10 +317,10 @@ toDefinition (ActusValueType ActusDate) =
         { type: show ActusDate
         , message0: "year %1 month %2 day %3"
         , args0:
-          [ Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Just 0.0 }
-          , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
-          , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
-          ]
+            [ Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Just 0.0 }
+            , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
+            , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
+            ]
         , colour: blockColour (ActusValueType ActusDate)
         , output: Just "date"
         , inputsInline: Just true
@@ -333,10 +333,10 @@ toDefinition (ActusValueType ActusCycleType) =
         { type: show ActusCycleType
         , message0: "Cycle with anchor %1 and period %2 of %3 with short stub"
         , args0:
-          [ Value { name: "anchor", check: "date", align: Right }
-          , Input { name: "value", text: "1", spellcheck: false }
-          , Value { name: "period", check: "period", align: Right }
-          ]
+            [ Value { name: "anchor", check: "date", align: Right }
+            , Input { name: "value", text: "1", spellcheck: false }
+            , Value { name: "period", check: "period", align: Right }
+            ]
         , colour: blockColour (ActusValueType ActusCycleType)
         , output: Just "cycle"
         , inputsInline: Just true
@@ -349,8 +349,8 @@ toDefinition (ActusValueType ActusDecimalType) =
         { type: show ActusDecimalType
         , message0: "decimal %1"
         , args0:
-          [ Input { name: "value", text: "1000", spellcheck: false }
-          ]
+            [ Input { name: "value", text: "1000", spellcheck: false }
+            ]
         , colour: blockColour (ActusValueType ActusDecimalType)
         , inputsInline: Just false
         , output: Just "decimal"
@@ -363,9 +363,9 @@ toDefinition (ActusValueType ActusAssertionContextType) =
         { type: show ActusAssertionContextType
         , message0: "min interest rate %1, max interest rate %2"
         , args0:
-          [ Input { name: "min_rrmo", text: "0", spellcheck: false }
-          , Input { name: "max_rrmo", text: "1000", spellcheck: false }
-          ]
+            [ Input { name: "min_rrmo", text: "0", spellcheck: false }
+            , Input { name: "max_rrmo", text: "1000", spellcheck: false }
+            ]
         , colour: blockColour (ActusValueType ActusAssertionContextType)
         , inputsInline: Just false
         , output: Just "assertionCtx"
@@ -378,9 +378,9 @@ toDefinition (ActusValueType ActusAssertionType) =
         { type: show ActusAssertionType
         , message0: "net present value is more than %1 against zero-risk bond with rate %2"
         , args0:
-          [ Input { name: "npv", text: "0", spellcheck: false }
-          , Input { name: "rate", text: "0", spellcheck: false }
-          ]
+            [ Input { name: "npv", text: "0", spellcheck: false }
+            , Input { name: "rate", text: "0", spellcheck: false }
+            ]
         , colour: blockColour (ActusValueType ActusAssertionType)
         , inputsInline: Just false
         , output: Just "assertion"
@@ -393,7 +393,7 @@ toDefinition (ActusPeriodType PeriodDayType) =
         { type: show PeriodDayType
         , message0: "Days"
         , args0:
-          []
+            []
         , colour: blockColour (ActusPeriodType PeriodDayType)
         , inputsInline: Just true
         , output: Just "period"
@@ -700,11 +700,11 @@ blocklyCycleToCycle (CycleValue _ value period) =
     $ Cycle
         { n: value
         , p:
-          case period of
-            PeriodYearType -> P_Y
-            PeriodDayType -> P_D
-            PeriodMonthType -> P_M
-            PeriodQuarterType -> P_Q
+            case period of
+              PeriodYearType -> P_Y
+              PeriodDayType -> P_D
+              PeriodMonthType -> P_M
+              PeriodQuarterType -> P_Q
         , stub: ShortStub
         }
 
@@ -791,10 +791,10 @@ actusContractToTerms raw = do --todo use monad transformers?
       Assertions
         { context: ctx
         , assertions:
-          ( case assertion of
-              Just x -> [ x ]
-              Nothing -> []
-          )
+            ( case assertion of
+                Just x -> [ x ]
+                Nothing -> []
+            )
         }
   pure
     $ ContractTerms
@@ -815,12 +815,12 @@ actusContractToTerms raw = do --todo use monad transformers?
         , ct_PREF: PREF_N
         , ct_PRF: CS_PF
         , scfg:
-          ScheduleConfig
-            { calendar: []
-            , includeEndDay: true
-            , eomc: EOMC_EOM
-            , bdc: BDC_NULL
-            }
+            ScheduleConfig
+              { calendar: []
+              , includeEndDay: true
+              , eomc: EOMC_EOM
+              , bdc: BDC_NULL
+              }
         , ct_PYRT: 0.0
         , ct_PYTP: PYTP_A
         , ct_cPYRT: 0.0

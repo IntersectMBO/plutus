@@ -1,8 +1,7 @@
-{ pkgs ? (import ../lib.nix { }).pkgs
+{ pkgs
 , latex
-, texlive ? pkgs.texlive
+, texlive
 , agda
-,
 }:
 
 let

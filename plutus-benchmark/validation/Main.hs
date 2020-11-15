@@ -4,22 +4,20 @@
 
 module Main where
 
-import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import qualified Language.PlutusCore.Pretty                                 as PP
+import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.Pretty                        as PP
 
 import           Criterion.Main
-import           Criterion.Types                                            (Config (..))
-import qualified Language.UntypedPlutusCore                                 as UPLC
-import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC
-import           Paths_plutus_benchmark                                     (getDataFileName)
+import           Criterion.Types                                   (Config (..))
+import qualified Language.UntypedPlutusCore                        as UPLC
+import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
+import           Paths_plutus_benchmark                            (getDataFileName)
 
 import           Control.Monad
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import qualified Data.ByteString.Lazy                                       as BSL
+import           Control.Monad.Trans.Except                        (runExceptT)
+import qualified Data.ByteString.Lazy                              as BSL
 import           System.FilePath
-import           Text.Printf                                                (printf)
+import           Text.Printf                                       (printf)
 
 {-- | This set of benchmarks is based on validations occurring in the tests in
   plutus-use-cases.  Those tests are run on the blockchain simulator, and a
@@ -28,9 +26,9 @@ import           Text.Printf                                                (pri
   source code, along with README files explaining which scripts were involved in
   each validation during the tests.  --}
 
-type Term a    = UPLC.Term PLC.Name PLC.DefaultUni a
-type Program a = UPLC.Program PLC.Name PLC.DefaultUni a
-type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
+type Term a    = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun a
+type Program a = UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun a
+type PlcParserError = PLC.Error PLC.DefaultUni PLC.DefaultFun PLC.AlexPosn
 
 loadPlcSource :: FilePath -> IO (Program ())
 loadPlcSource file = do
@@ -40,7 +38,7 @@ loadPlcSource file = do
      Right p                    -> return $ () <$ p
 
 benchCek :: Term () -> Benchmarkable
-benchCek program = nf (UPLC.unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel) program
+benchCek program = nf (UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime) program
 
 
 plcSuffix :: String

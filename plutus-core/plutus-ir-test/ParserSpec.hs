@@ -9,6 +9,7 @@ import           Common
 import           Data.Char
 import qualified Data.Text                        as T
 
+import qualified Language.PlutusCore.Builtins     as PLC
 import qualified Language.PlutusCore.Universe     as PLC
 
 import           Language.PlutusIR
@@ -22,7 +23,7 @@ import qualified Hedgehog.Range                   as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni SourcePos }
+newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
 instance Show PrettyProg where
     show = display . prog
 
@@ -75,8 +76,10 @@ propRoundTrip = property $ do
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
-    let parse1 = display @String <$> (parse program "test" $ T.pack original)
-        parse2 = display <$> (parse program "test" $ T.pack scrambled)
+    let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos -> String
+        displayProgram = display
+        parse1 = displayProgram <$> (parse program "test" $ T.pack original)
+        parse2 = displayProgram <$> (parse program "test" $ T.pack scrambled)
     parse1 === parse2
 
 parsing :: TestNested

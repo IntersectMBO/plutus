@@ -6,7 +6,10 @@ module TypeSynthesis.Spec
     ( test_typecheck
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.FsTree              (foldPlcFolderContents)
 import           Language.PlutusCore.Pretty
 
@@ -20,14 +23,22 @@ import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-kindcheck :: MonadError (Error uni ()) m => Type TyName uni () -> m (Type TyName uni ())
+kindcheck
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind defConfig ty
+    _ <- runQuoteT $ do
+        tcConfig <- getDefTypeCheckConfig ()
+        inferKind tcConfig ty
     return ty
 
-typecheck :: (uni ~ DefaultUni, MonadError (Error uni ()) m) => Term TyName Name uni () -> m ()
+typecheck
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    => Term TyName Name uni fun () -> m ()
 typecheck term = do
-    _ <- runQuoteT $ inferType defConfig term
+    _ <- runQuoteT $ do
+        tcConfig <- getDefTypeCheckConfig ()
+        inferType tcConfig term
     return ()
 
 -- | Assert a 'Type' is well-kinded.
@@ -37,13 +48,13 @@ assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
+assertWellTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
+assertIllTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
 assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left  _  -> return ()
@@ -60,7 +71,7 @@ test_typecheckAvailable =
 -- | Self-application. An example of ill-typed term.
 --
 -- > /\ (A :: *) -> \(x : A) -> x x
-selfApply :: Term TyName Name uni ()
+selfApply :: Term TyName Name uni fun ()
 selfApply = runQuote $ do
     a <- freshTyName "a"
     x <- freshName "x"
@@ -77,20 +88,20 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckStaticBuiltinName :: StaticBuiltinName -> TestTree
-test_typecheckStaticBuiltinName name = goldenVsDoc testName path doc where
+test_typecheckDefaultFun :: DefaultFun -> TestTree
+test_typecheckDefaultFun name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfStaticBuiltinName @DefaultUni name
+    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
 
-test_typecheckStaticBuiltinNames :: TestTree
-test_typecheckStaticBuiltinNames =
-    testGroup "built-in name" $ map test_typecheckStaticBuiltinName allStaticBuiltinNames
+test_typecheckDefaultFuns :: TestTree
+test_typecheckDefaultFuns =
+    testGroup "built-in name" $ map test_typecheckDefaultFun enumeration
 
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
-        [ test_typecheckStaticBuiltinNames
+        [ test_typecheckDefaultFuns
         , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

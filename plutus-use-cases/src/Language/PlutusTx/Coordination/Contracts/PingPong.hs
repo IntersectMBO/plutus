@@ -35,8 +35,7 @@ import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Tx                       (tyTxOutData)
 
-import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), State (..), Void)
-import           Language.Plutus.Contract.StateMachine (OnChainState)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), OnChainState, State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
@@ -47,7 +46,7 @@ data PingPongState = Pinged | Ponged | Stopped
 instance Eq PingPongState where
     Pinged == Pinged = True
     Ponged == Ponged = True
-    _ == _ = False
+    _ == _           = False
 
 data Input = Ping | Pong | Stop
     deriving stock Show

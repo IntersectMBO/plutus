@@ -24,6 +24,7 @@ import           Hedgehog                     (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen                 as Gen
 import qualified Hedgehog.Range               as Range
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 import           Language.PlutusTx            (CompiledCode, applyCode, liftCode)
 import qualified Language.PlutusTx            as PlutusTx
@@ -42,9 +43,9 @@ import           Ledger.Value                 (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                 as Value
 import           LedgerBytes
 import           Test.Tasty
-import           Test.Tasty.Hedgehog          (testProperty)
 import           Test.Tasty.HUnit             (testCase)
 import qualified Test.Tasty.HUnit             as HUnit
+import           Test.Tasty.Hedgehog          (testProperty)
 
 main :: IO ()
 main = defaultMain tests
@@ -207,7 +208,7 @@ pubkeyHashOnChainAndOffChain :: Property
 pubkeyHashOnChainAndOffChain = property $ do
     pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
     let offChainHash = Crypto.pubKeyHash pk
-        onchainProg :: CompiledCode PLC.DefaultUni (PubKey -> PubKeyHash -> ())
+        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
         onchainProg = $$(PlutusTx.compile [|| \pk expected -> if (expected PlutusTx.== Validation.pubKeyHash pk) then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
         script = Scripts.fromCompiledCode $ onchainProg `applyCode` (liftCode pk) `applyCode` (liftCode offChainHash)
         result = runExcept $ evaluateScript script

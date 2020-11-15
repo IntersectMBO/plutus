@@ -59,12 +59,12 @@ import           Data.Functor.Identity
 import           Data.Int
 import           Data.List.NonEmpty    (NonEmpty (..))
 import           Data.Maybe
+import qualified Data.Text             as Strict
+import qualified Data.Text.Lazy        as Lazy
 import           Data.Void
 import           Data.Word
 import           GHC.Natural
 import           GHC.TypeLits
-import qualified Data.Text             as Strict
-import qualified Data.Text.Lazy        as Lazy
 
 -- ##########################
 -- ## The 'PrettyBy' class ##

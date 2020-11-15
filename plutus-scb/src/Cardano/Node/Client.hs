@@ -18,7 +18,7 @@ import           Control.Monad.Freer.Error
 import           Control.Monad.IO.Class
 import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Block, Slot, Tx)
-import           Servant                   ((:<|>) (..), NoContent)
+import           Servant                   (NoContent, (:<|>) (..))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects            (NodeClientEffect (..))
 import           Wallet.Emulator.Chain     (ChainEvent)
@@ -56,9 +56,9 @@ handleNodeFollowerClient clientEnv =
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure in
     interpret $ \case
-    NewFollower -> runClient newFollower
+    NewFollower   -> runClient newFollower
     GetBlocks fid -> runClient (getBlocks fid)
-    GetSlot -> runClient getCurrentSlot
+    GetSlot       -> runClient getCurrentSlot
 
 handleRandomTxClient ::
     forall m effs.
@@ -89,5 +89,5 @@ handleNodeClientClient clientEnv =
         runClient :: forall a. ClientM a -> Eff effs a
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure in
     interpret $ \case
-        PublishTx tx -> void (runClient (addTx tx))
+        PublishTx tx  -> void (runClient (addTx tx))
         GetClientSlot -> runClient getCurrentSlot

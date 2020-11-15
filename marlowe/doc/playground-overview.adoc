@@ -77,13 +77,13 @@ The editor supports the development of Marlowe contracts described in JavaScript
 
 image:js-editor.png[The JavaScript editor]
 
-The JS editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, the variable `contract` needs to be defined to something of type  `Contract`. 
+The JS editor is open here on the Escrow example contained in the examples. To describe a Marlowe contract in the editor, a value of the type `Contract` must be returned as result of the provided function by using the instruction `return`. 
 
-image:js-editor-cont.png[The value of `contract` defines the contract.]
+image:js-editor-cont.png[The value returned by `return` defines the contract.]
 
 The editor supports auto-complete, error checking during editing, and information about bindings on mouse over. In particular, using mouse over on any of the imported bindings will show its type (in TypeScript).
 
-When you click the *Compile* button (in the top right-hand corner), the code in the editor is executed, and the JSON object in the variable `contract` resulting from the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
+When you click the *Compile* button (in the top right-hand corner), the code in the editor is executed, and the JSON object returned by the function resulting from the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
 
 If compilation is successful, the compiled code is shown in an overlay (which can be minimised):
 

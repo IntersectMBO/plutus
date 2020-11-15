@@ -31,6 +31,6 @@ instance Pretty Data where
     pretty = \case
         Constr _ ds -> angles (sep (punctuate comma (fmap pretty ds)))
         Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
-        List ds -> brackets (sep (punctuate comma (fmap pretty ds)))
-        I i -> pretty i
-        B b -> viaShow b
+        List ds     -> brackets (sep (punctuate comma (fmap pretty ds)))
+        I i         -> pretty i
+        B b         -> viaShow b
