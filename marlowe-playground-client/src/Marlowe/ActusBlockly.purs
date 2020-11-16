@@ -269,42 +269,42 @@ toDefinition (ActusContractType LinearAmortizer) =
     $ merge
         { type: show LinearAmortizer
         , message0:
-          "Linear Amortizer %1"
-            <> "start date * %2"
-            <> "maturity date %3"
-            <> "notional * %4"
-            <> "premium/discount %5"
-            <> "interest rate * %6"
-            <> "purchase date %7"
-            <> "purchase price %8"
-            <> "initial exchange date %9"
-            <> "termination date %10"
-            <> "termination price %11"
-            <> "periodic payment amount %12"
-            <> "rate reset cycle %13"
-            <> "interest payment cycle %14"
-            <> "principal redemption cycle * %15"
-            <> "observation constraints %16"
-            <> "payoff analysis constraints %17"
+            "Linear Amortizer %1"
+              <> "start date * %2"
+              <> "maturity date %3"
+              <> "notional * %4"
+              <> "premium/discount %5"
+              <> "interest rate * %6"
+              <> "purchase date %7"
+              <> "purchase price %8"
+              <> "initial exchange date %9"
+              <> "termination date %10"
+              <> "termination price %11"
+              <> "periodic payment amount %12"
+              <> "rate reset cycle %13"
+              <> "interest payment cycle %14"
+              <> "principal redemption cycle * %15"
+              <> "observation constraints %16"
+              <> "payoff analysis constraints %17"
         , args0:
-          [ DummyCentre
-          , Value { name: "start_date", check: "date", align: Right }
-          , Value { name: "maturity_date", check: "date", align: Right }
-          , Value { name: "notional", check: "decimal", align: Right }
-          , Value { name: "premium_discount", check: "decimal", align: Right }
-          , Value { name: "interest_rate", check: "decimal", align: Right }
-          , Value { name: "purchase_date", check: "date", align: Right }
-          , Value { name: "purchase_price", check: "decimal", align: Right }
-          , Value { name: "initial_exchange_date", check: "date", align: Right }
-          , Value { name: "termination_date", check: "date", align: Right }
-          , Value { name: "termination_price", check: "decimal", align: Right }
-          , Value { name: "periodic_payment_amount", check: "decimal", align: Right }
-          , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
-          , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
-          , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
-          , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
-          , Value { name: "payoff_ctr", check: "assertion", align: Right }
-          ]
+            [ DummyCentre
+            , Value { name: "start_date", check: "date", align: Right }
+            , Value { name: "maturity_date", check: "date", align: Right }
+            , Value { name: "notional", check: "decimal", align: Right }
+            , Value { name: "premium_discount", check: "decimal", align: Right }
+            , Value { name: "interest_rate", check: "decimal", align: Right }
+            , Value { name: "purchase_date", check: "date", align: Right }
+            , Value { name: "purchase_price", check: "decimal", align: Right }
+            , Value { name: "initial_exchange_date", check: "date", align: Right }
+            , Value { name: "termination_date", check: "date", align: Right }
+            , Value { name: "termination_price", check: "decimal", align: Right }
+            , Value { name: "periodic_payment_amount", check: "decimal", align: Right }
+            , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
+            , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
+            , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
+            , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            ]
         , colour: blockColour (ActusContractType LinearAmortizer)
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
