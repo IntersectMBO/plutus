@@ -598,7 +598,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
-    Flat flatMode -> writeCBOR outp flatMode untypedProg
+    Flat flatMode -> writeFlat outp flatMode untypedProg
 
 
 ---------------- Evaluation ----------------
