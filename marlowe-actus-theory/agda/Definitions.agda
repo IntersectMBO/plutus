@@ -86,3 +86,34 @@ record ContractTerms : Set where
     ct_FEAC      : ℤ
     ct_FEB       : FEB
     ct_FER       : ℤ
+
+data EventType : Set where
+    AD : EventType
+    IED : EventType
+    PR : EventType
+    PI : EventType
+    PRF : EventType
+    PY : EventType
+    FP : EventType
+    PRD : EventType
+    TD : EventType
+    IP : EventType
+    IPCI : EventType
+    IPCB : EventType
+    RR : EventType
+    PP : EventType
+    CE : EventType
+    MD : EventType
+    RRF : EventType
+    SC : EventType
+    STD : EventType
+    DV : EventType
+    XD : EventType
+    MR : EventType
+
+record RiskFactors : Set where
+    field
+      o_rf_CURS : ℤ
+      o_rf_RRMO : ℤ
+      o_rf_SCMO : ℤ
+      pp_payoff : ℤ
