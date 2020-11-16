@@ -56,7 +56,7 @@ genStateTransitionsForStateVariables nextState functionName param1 params types 
 
 
 stateTransition :: Declaration
-stateTransition = genModule "STF" (imports ++ defs) where
+stateTransition = genModule "Generated.StateTransition" (imports ++ defs) where
     _STF_IED_PAM_state_ALL = _STF_IED_PAM previousState t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT
     _STF_IED_PAM_state_IPNR_IPANX = _STF_IED_PAM previousState t y_ipanx_t _IPNR _IPANX _CNTRL Nothing _NT
     _STF_IED_PAM_state_IPNR_IPAC = _STF_IED_PAM previousState t y_ipanx_t _IPNR Nothing _CNTRL _IPAC _NT
