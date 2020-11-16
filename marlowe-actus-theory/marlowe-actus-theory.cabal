@@ -51,6 +51,7 @@ executable actus-agda-gen
     loch-th -any,
     sort -any,
     Agda -any,
+    pretty -any,
     marlowe-actus
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables

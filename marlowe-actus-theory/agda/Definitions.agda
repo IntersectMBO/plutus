@@ -1,4 +1,4 @@
-module TestProof where
+module Definitions where
 
 open import Data.Integer
 
