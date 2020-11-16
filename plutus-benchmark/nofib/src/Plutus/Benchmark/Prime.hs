@@ -19,7 +19,7 @@ import           GHC.Generics
 import qualified Prelude                      (Eq (..), String)
 
 import           Language.PlutusCore          (Name (..))
-import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.Builtins (DefaultFun)
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
