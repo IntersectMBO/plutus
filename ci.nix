@@ -61,6 +61,9 @@ let
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) {
           # build relevant top level attributes from default.nix
           inherit (packages) docs tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+          # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
+          # cache for users
+          inherit (plutus.haskell.project) roots;
 
           # build the shell expression to be sure it works on all platforms
           shell = import ./shell.nix { inherit packages; };

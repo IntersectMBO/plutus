@@ -35,7 +35,7 @@ lib.fix (jobsets: ciJobsets // {
         ++ (allJobs [ "darwin" "haskell" ] jobsets)
         # Various things that mostly just need to build on linux
         ++ (allJobs [ "linux" "docs" ] jobsets)
-        ++ (allJobs [ "linux" "papers" ] jobsets)
+        ++ (allJobs [ "linux" "docs" "papers" ] jobsets)
         ++ (allJobs [ "linux" "plutus-playground" ] jobsets)
         ++ (allJobs [ "linux" "marlowe-playground" ] jobsets)
         ++ (allJobs [ "linux" "plutus-scb" ] jobsets)

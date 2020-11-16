@@ -39,23 +39,23 @@ rec {
 
   webCommon = import ./web-common { inherit lib; };
 
-  plutus-playground = {
+  plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 
-    client = pkgs.callPackage ./plutus-playground-client {
+    inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
-    };
+    }) client server-invoker;
   };
 
-  marlowe-playground = {
+  marlowe-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.marlowe-tutorial;
 
-    client = pkgs.callPackage ./marlowe-playground-client {
+    inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
-    };
+    }) client server-invoker;
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {

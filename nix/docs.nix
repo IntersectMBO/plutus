@@ -48,12 +48,15 @@ let
       };
     };
 in
-{
-  papers = {
+pkgs.recurseIntoAttrs {
+  papers = pkgs.recurseIntoAttrs {
     system-f-in-agda = import ../papers/system-f-in-agda { inherit buildLatexDoc; };
     eutxo = import ../papers/eutxo { inherit buildLatexDoc; };
     utxoma = import ../papers/utxoma { inherit buildLatexDoc; };
     eutxoma = import ../papers/eutxoma { inherit buildLatexDoc; };
+    # This paper cannot be built via `buildLatexDoc` as the others because it features
+    # a somewhat more complex setup including some additional artifact that has to be compiled.
+    unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
   };
 
   plutus-contract = import ../plutus-contract/doc { inherit buildAsciiDoc; };
@@ -64,10 +67,6 @@ in
   lazy-machine = import ../notes/fomega/lazy-machine { inherit buildLatexDoc; };
   plutus-report = import ../notes/plutus-report { inherit buildLatexDoc; };
   cost-model-notes = import ../notes/cost-model-notes { inherit buildLatexDoc; };
-
-  # This paper cannot be built via `buildLatexDoc` as the others because it features
-  # a somewhat more complex setup including some additional artifact that has to be compiled.
-  unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
 
   site = pkgs.callPackage ../doc {
     inherit (plutus) sphinx-markdown-tables sphinxemoji;
