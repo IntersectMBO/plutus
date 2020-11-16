@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.Agda.GenStateTransition where
+module Language.Marlowe.ACTUS.Agda.GenStateTransition(stateTransition) where
 
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 
