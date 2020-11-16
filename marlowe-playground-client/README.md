@@ -36,7 +36,7 @@ Whenever you change any of these files you should run `$(nix-build -A dev.script
 The code is formatted using [purty](https://gitlab.com/joneshf/purty), and there is a CI task that will fail if the code is not properly formatted. You can apply purty to the project by calling:
 
 ```bash
-$(nix-build -A dev.scripts.fixPurty)/bin/fix-purty
+nix-shell shell.nix --run fix-purty
 ```
 
 ## VSCode notes
