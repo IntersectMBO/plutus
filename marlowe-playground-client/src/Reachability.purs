@@ -1,12 +1,13 @@
-module Reachability (startReachabilityAnalysis, updateWithResponse) where
+module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis, updateWithResponse) where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Function (flip)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
-import Data.List.NonEmpty (fromList)
-import Data.Maybe (Maybe(..), maybe)
+import Data.List.NonEmpty (NonEmptyList(..), toList)
+import Data.Maybe (Maybe(..))
+import Data.NonEmpty ((:|))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
@@ -19,10 +20,10 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, map, pure, ($), (+), (-), (/=), (<$>), (<>))
+import Prelude (Void, bind, discard, map, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, InProgressRecord, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -164,6 +165,7 @@ startReachabilityAnalysis settings contract state = do
               , currContract: newContract
               , currChildren: newChildren
               , originalState: state
+              , originalContract: contract
               , subproblems: newSubproblems
               , numSubproblems: 1 + numSubproblems
               , numSolvedSubproblems: 0
@@ -254,6 +256,11 @@ stepSubproblem isReachable ( rad@{ currPath: oldPath
 
   newResults = results <> (if isReachable then Nil else Cons oldPath Nil)
 
+finishAnalysis :: InProgressRecord -> ReachabilityAnalysisData
+finishAnalysis { originalState, originalContract, unreachableSubcontracts: Cons h t } = UnreachableSubcontract { originalState, originalContract, unreachableSubcontracts: NonEmptyList (h :| t) }
+
+finishAnalysis { unreachableSubcontracts: Nil } = AllReachable
+
 stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InProgressRecord -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 stepAnalysis settings isReachable rad =
   let
@@ -264,7 +271,7 @@ stepAnalysis settings isReachable rad =
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
       updateWithResponse settings (InProgress newRad) response
     else
-      pure (maybe AllReachable UnreachableSubcontract (fromList newRad.unreachableSubcontracts))
+      pure $ finishAnalysis newRad
 
 updateWithResponse ::
   forall m.
@@ -281,3 +288,17 @@ updateWithResponse settings (InProgress rad) (Success Valid) = stepAnalysis sett
 updateWithResponse settings (InProgress rad) (Success (CounterExample _)) = stepAnalysis settings true rad
 
 updateWithResponse _ rad _ = pure rad
+
+getUnreachableContracts :: AnalysisState -> List ContractPath
+getUnreachableContracts (ReachabilityAnalysis (InProgress ipr)) = ipr.unreachableSubcontracts
+
+getUnreachableContracts (ReachabilityAnalysis (UnreachableSubcontract us)) = toList us.unreachableSubcontracts
+
+getUnreachableContracts _ = Nil
+
+areContractAndStateTheOnesAnalysed :: AnalysisState -> Maybe Contract -> S.State -> Boolean
+areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (InProgress ipr)) (Just contract) state = ipr.originalContract == contract && ipr.originalState == state
+
+areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract us)) (Just contract) state = us.originalContract == contract && us.originalState == state
+
+areContractAndStateTheOnesAnalysed _ _ _ = false

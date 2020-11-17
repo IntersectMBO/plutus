@@ -30,8 +30,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.State (MarloweEvent(..), _SimulationRunning, _SimulationNotStarted, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _slot, _state, _transactionError, _transactionWarnings)
-import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), ReachabilityAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 
 bottomPanel :: forall p. State -> HTML p Action
@@ -511,13 +510,13 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        UnreachableSubcontract contractPaths ->
+        UnreachableSubcontract { unreachableSubcontracts } ->
           explanation
             ( [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
               , text "Static analysis found the following subcontracts that are unreachable:"
               ]
                 <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
-                      contractPath <- toUnfoldable (toList contractPaths)
+                      contractPath <- toUnfoldable (toList unreachableSubcontracts)
                       pure (li_ [ text (show contractPath) ])
                   ]
             )
