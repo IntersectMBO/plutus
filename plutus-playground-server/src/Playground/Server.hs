@@ -110,11 +110,13 @@ initializeContext = liftIO $ do
   githubClientId <- getEnvOrEmpty "GITHUB_CLIENT_ID"
   githubClientSecret <- getEnvOrEmpty "GITHUB_CLIENT_SECRET"
   jwtSignature <- getEnvOrEmpty "JWT_SIGNATURE"
-  redirectURL <- getEnvOrEmpty "GITHUB_REDIRECT_URL"
+  frontendURL <- getEnvOrEmpty "FRONTEND_URL"
+  cbPath <- getEnvOrEmpty "GITHUB_CALLBACK_PATH"
   let authConfig =
         Auth.Config
           { _configJWTSignature = JWT.hmacSecret jwtSignature,
-            _configRedirectUrl = redirectURL,
+            _configFrontendUrl = frontendURL,
+            _configGithubCbPath = cbPath,
             _configGithubClientId = OAuthClientId githubClientId,
             _configGithubClientSecret = OAuthClientSecret githubClientSecret
           }

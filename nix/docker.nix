@@ -18,7 +18,8 @@ let defaultPlaygroundConfig = writeTextFile {
       github-client-id: ""
       github-client-secret: ""
       jwt-signature: ""
-      redirect-url: "localhost:8080"
+      frontend-url: "localhost:8009"
+      github-cb-path: "/#/gh-oauth-cb"
   '';
 };
 in

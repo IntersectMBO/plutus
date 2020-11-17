@@ -163,7 +163,7 @@ modal state = case state ^. _showModal of
 
   modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
 
-  modalContent GithubLogin = authButton state
+  modalContent (GithubLogin intendedAction) = authButton intendedAction state
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
@@ -187,7 +187,7 @@ menuBar state =
     if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then
       menuButton action name
     else
-      menuButton (OpenModal GithubLogin) name
+      menuButton (OpenModal $ GithubLogin action) name
 
   -- Even if we end up writting more by selecting the cases in which the buttons should
   -- appear, I prefer this to selecting which views we shouldn't show the buttons. The
