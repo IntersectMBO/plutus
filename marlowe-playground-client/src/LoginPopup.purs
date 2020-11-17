@@ -1,7 +1,6 @@
 module LoginPopup where
 
 import Prelude
-
 import Auth (AuthRole)
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..), hush)
@@ -36,21 +35,21 @@ openLoginPopup = do
 
     features :: Effect String
     features = do
-        top <-
-          outerHeight window
-            <#> \windowHeight -> windowHeight / 2 - popupHeight / 2
-        left <-
-          outerWidth window
-            <#> \windowWidth -> windowWidth / 2 - popupWidth / 2
-        pure $ "width="
-          <> show popupWidth
-          <> ",height="
-          <> show popupHeight
-          <> ",top="
-          <> show top
-          <> ",left="
-          <> show left
-          <> ",menubar=no,status=no,location=no"
+      top <-
+        outerHeight window
+          <#> \windowHeight -> windowHeight / 2 - popupHeight / 2
+      left <-
+        outerWidth window
+          <#> \windowWidth -> windowWidth / 2 - popupWidth / 2
+      pure $ "width="
+        <> show popupWidth
+        <> ",height="
+        <> show popupHeight
+        <> ",top="
+        <> show top
+        <> ",left="
+        <> show left
+        <> ",menubar=no,status=no,location=no"
 
     decodeMessageEvent :: Event -> Maybe AuthRole
     decodeMessageEvent event = do
@@ -78,9 +77,9 @@ openLoginPopup = do
 
     removeWaitForEventListener :: Ref (Maybe EventListener) -> Effect Unit
     removeWaitForEventListener listenerRef = do
-        mbListener <- Ref.read listenerRef
-        for_ mbListener \listener ->
-          removeEventListener messageEvent listener false windowEventTarget
+      mbListener <- Ref.read listenerRef
+      for_ mbListener \listener ->
+        removeEventListener messageEvent listener false windowEventTarget
   featureString <- liftEffect $ features
   _ <- liftEffect $ Window.open githubLoginPage "_blank" featureString window
   listenerRef <- liftEffect $ Ref.new Nothing
@@ -105,4 +104,4 @@ informParentAndClose authRole = do
           close window
         -- If someone access the github callback url directly, we redirect them to
         -- the home page
-        Nothing ->  replace "/" location
+        Nothing -> replace "/" location
