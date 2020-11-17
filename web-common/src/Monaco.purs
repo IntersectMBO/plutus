@@ -8,6 +8,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
+import Data.Nullable (Nullable, toMaybe)
 import Data.String.Regex (Regex)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple)
@@ -228,7 +229,7 @@ foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
 foreign import addExtraTypeScriptLibsJS_ :: EffectFn1 Monaco Unit
 
-foreign import getDecorationRange_ :: Fn2 ITextModel String IRange
+foreign import getDecorationRange_ :: EffectFn2 ITextModel String (Nullable IRange)
 
 foreign import setStrictNullChecks_ :: EffectFn2 Monaco Boolean Unit
 
@@ -310,8 +311,8 @@ addExtraTypeScriptLibsJS = runEffectFn1 addExtraTypeScriptLibsJS_
 setStrictNullChecks :: Monaco -> Boolean -> Effect Unit
 setStrictNullChecks = runEffectFn2 setStrictNullChecks_
 
-getDecorationRange :: ITextModel -> String -> IRange
-getDecorationRange = runFn2 getDecorationRange_
+getDecorationRange :: ITextModel -> String -> Effect (Maybe IRange)
+getDecorationRange model id = toMaybe <$> runEffectFn2 getDecorationRange_ model id
 
 setDeltaDecorations :: Editor -> Int -> Int -> Effect String
 setDeltaDecorations = runEffectFn3 setDeltaDecorations_

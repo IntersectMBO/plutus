@@ -228,12 +228,15 @@ handleQuery (GetModelMarkers f) = do
       pure $ f markers
 
 handleQuery (GetDecorationRange decoratorId f) = do
-  withEditor \editor -> do
-    liftEffect do
+  mEditor <- H.gets _.editor
+  case mEditor of
+    Nothing -> pure Nothing
+    Just editor -> do
       model <- liftEffect $ Monaco.getModel editor
-      let
-        decoRange = Monaco.getDecorationRange model decoratorId
-      pure $ f decoRange
+      mRange <- liftEffect $ Monaco.getDecorationRange model decoratorId
+      case mRange of
+        Nothing -> pure Nothing
+        Just decoRange -> pure $ Just $ f decoRange
 
 handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
