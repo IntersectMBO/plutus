@@ -55,6 +55,7 @@ module Ledger.Scripts(
 
 import qualified Prelude                             as Haskell
 
+import           Codec.CBOR.Decoding                 (decodeBytes)
 import           Codec.Serialise                     (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                     (NFData)
 import           Control.Monad.Except                (MonadError, runExceptT, throwError)
@@ -85,13 +86,21 @@ import           LedgerBytes                         (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving Flat -- via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun
+  deriving newtype Flat
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
+{-| A lot of the plutus infrastructure uses CBOR for serialisation, but we are using
+  flat for encoding plutus terms. Here we are providing a CBOR instance for plutus
+  terms by encoding the term to a `ByteString` value using flat, and further encode
+  it using CBOR. -}
 instance Serialise Script where
-  decode = undefined
-  encode = undefined
+  encode = encode . flat
+  decode = do
+    bs <- decodeBytes
+    case unflat bs of
+      Left  err    -> fail (show err)
+      Right script -> return script
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
