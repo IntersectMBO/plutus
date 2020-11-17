@@ -17,7 +17,6 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
-import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
@@ -467,12 +466,8 @@ handleAction settings (OpenLoginPopup intendedAction) = do
   handleAction settings CloseModal
   assign (_authStatus <<< _Success <<< authStatusAuthRole) authRole
   case authRole of
-    Anonymous -> do
-      liftEffect $ Console.log "User not authenticated, omiting action"
-      pure unit
-    GithubUser -> do
-      liftEffect $ Console.log "User authenticated, executing action"
-      handleAction settings intendedAction
+    Anonymous -> pure unit
+    GithubUser -> handleAction settings intendedAction
 
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do

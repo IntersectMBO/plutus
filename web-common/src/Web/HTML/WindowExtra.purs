@@ -16,12 +16,10 @@ foreign import _close :: FU.EffectFn1 Window Unit
 close :: Window -> Effect Unit
 close = FU.runEffectFn1 _close
 
-foreign import _postMessage :: FU.EffectFn2 Foreign Window Unit
+foreign import _postMessage :: FU.EffectFn3 Foreign String Window Unit
 
 -- Post message dispatches a MessageEvent on a Window.
 -- Browser documentation: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
--- TODO: targetOrigin and transfer are not being modeled, see if needed later
--- TODO: the message is whatever that can be serialized, for the moment I'm representing it with
---       foreing, validate if it's the right approach
-postMessage :: Foreign -> Window -> Effect Unit
-postMessage = FU.runEffectFn2 _postMessage
+-- TODO: transfer is not being modeled, see if needed later
+postMessage :: Foreign -> String -> Window -> Effect Unit
+postMessage = FU.runEffectFn3 _postMessage

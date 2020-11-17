@@ -1,6 +1,7 @@
 module LoginPopup where
 
 import Prelude
+
 import Auth (AuthRole)
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..), hush)
@@ -12,10 +13,10 @@ import Effect.Class (liftEffect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Foreign.Generic.Class (encode, decode)
-import Web.Event.Event (EventType(..), Event)
+import Web.Event.Event (Event, EventType(..))
 import Web.Event.EventTarget (EventListener, addEventListener, eventListener, removeEventListener)
 import Web.HTML as Web
-import Web.HTML.Location (replace)
+import Web.HTML.Location (replace, origin)
 import Web.HTML.Window (outerHeight, outerWidth)
 import Web.HTML.Window as Window
 import Web.HTML.WindowExtra (close, postMessage)
@@ -33,9 +34,8 @@ openLoginPopup = do
 
     githubLoginPage = "/api/oauth/github"
 
-    features :: Aff String
-    features =
-      liftEffect do
+    features :: Effect String
+    features = do
         top <-
           outerHeight window
             <#> \windowHeight -> windowHeight / 2 - popupHeight / 2
@@ -57,6 +57,10 @@ openLoginPopup = do
       data' <- MessageEvent.data_ <$> MessageEvent.fromEvent event
       hush <<< runExcept <<< decode $ data'
 
+    messageEvent = EventType "message"
+
+    windowEventTarget = Window.toEventTarget window
+
     waitForEvent :: Ref (Maybe EventListener) -> Aff AuthRole
     waitForEvent listenerRef = makeAff resolver
       where
@@ -68,36 +72,37 @@ openLoginPopup = do
             Nothing -> pure unit
             Just role -> cb $ Right role
         Ref.write (Just listener) listenerRef
-        addEventListener (EventType "message") listener false $ Window.toEventTarget window
+        addEventListener messageEvent listener false windowEventTarget
         -- We can return a nonCanceler because the waitForEvent is called with a finally
         pure nonCanceler
 
-    removeWaitForEventListener :: Ref (Maybe EventListener) -> Aff Unit
-    removeWaitForEventListener listenerRef =
-      liftEffect do
+    removeWaitForEventListener :: Ref (Maybe EventListener) -> Effect Unit
+    removeWaitForEventListener listenerRef = do
         mbListener <- Ref.read listenerRef
         for_ mbListener \listener ->
-          removeEventListener (EventType "message") listener false (Window.toEventTarget window)
-  featureString <- features
+          removeEventListener messageEvent listener false windowEventTarget
+  featureString <- liftEffect $ features
   _ <- liftEffect $ Window.open githubLoginPage "_blank" featureString window
   listenerRef <- liftEffect $ Ref.new Nothing
   -- Make sure that the event listener is removed no matter what
   finally
-    (removeWaitForEventListener listenerRef)
+    (liftEffect $ removeWaitForEventListener listenerRef)
     (waitForEvent listenerRef)
 
 -- This function is intended to be called from the popup window created by openLoginPopup.
 informParentAndClose :: AuthRole -> Effect Unit
 informParentAndClose authRole = do
   window <- Web.window
+  location <- Window.location window
+  targetOrigin <- origin location
   Window.opener window
     >>= case _ of
         -- If the function is called from a poput window (expected behaviour)
         -- then we comunicate the login result with our parent window and close
         -- the popup
         Just parent -> do
-          postMessage (encode authRole) parent
+          postMessage (encode authRole) targetOrigin parent
           close window
         -- If someone access the github callback url directly, we redirect them to
         -- the home page
-        Nothing -> Window.location window >>= replace "/"
+        Nothing ->  replace "/" location
