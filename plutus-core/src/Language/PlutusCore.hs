@@ -107,7 +107,7 @@ module Language.PlutusCore
 import           PlutusPrelude
 
 import           Language.PlutusCore.Builtins
-import           Language.PlutusCore.CBOR                  ()
+-- import           Language.PlutusCore.CBOR                  ()
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error

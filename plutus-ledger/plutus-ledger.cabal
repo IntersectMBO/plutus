@@ -84,6 +84,7 @@ library
         cborg -any,
         containers -any,
         cryptonite >=0.25,
+        flat -any,
         hashable -any,
         hedgehog -any,
         iots-export -any,

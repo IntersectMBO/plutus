@@ -83,6 +83,7 @@ library
         mtl -any,
         containers -any,
         cborg -any,
+        flat -any,
         serialise -any,
         plutus-core -any,
         lens -any,

@@ -16,7 +16,9 @@ import qualified Language.PlutusIR                as PIR
 import qualified Language.PlutusCore              as PLC
 import qualified Language.UntypedPlutusCore       as UPLC
 
-import           Codec.Serialise                  (DeserialiseFailure, Serialise, deserialiseOrFail)
+import           Flat                             (Flat, unflat)
+import           Flat.Decoder                     (DecodeException)
+-- import           Codec.Serialise                  (DeserialiseFailure, Serialise, deserialiseOrFail)
 import           Control.Exception
 
 import qualified Data.ByteString                  as BS
@@ -42,12 +44,12 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
 -- | Apply a compiled function to a compiled argument.
 applyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 applyCode fun arg = DeserializedCode (getPlc fun `UPLC.applyProgram` getPlc arg) Nothing
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
-sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun) => CompiledCodeIn uni fun a -> Integer
+sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
 
 {- Note [Deserializing the AST]
@@ -55,28 +57,28 @@ The types suggest that we can fail to deserialize the AST that we embedded in th
 However, we just did it ourselves, so this should be impossible, and we signal this with an
 exception.
 -}
-newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DeserialiseFailure
+newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure DecodeException
 instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun a -> UPLC.Program PLC.Name uni fun ()
 getPlc wrapper = case wrapper of
-    SerializedCode plc _ -> case deserialiseOrFail (BSL.fromStrict plc) of
+    SerializedCode plc _ -> case unflat (BSL.fromStrict plc) of
         Left e  -> throw $ ImpossibleDeserialisationFailure e
         Right p -> p
     DeserializedCode plc _ -> plc
 
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.
 getPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Serialise, Serialise fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
 getPir wrapper = case wrapper of
     SerializedCode _ pir -> case pir of
-        Just bs -> case deserialiseOrFail (BSL.fromStrict bs) of
+        Just bs -> case unflat (BSL.fromStrict bs) of
             Left e  -> throw $ ImpossibleDeserialisationFailure e
             Right p -> Just p
         Nothing -> Nothing

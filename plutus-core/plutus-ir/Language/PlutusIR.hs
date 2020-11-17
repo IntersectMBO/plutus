@@ -37,16 +37,17 @@ import           PlutusPrelude
 
 import           Language.PlutusCore              (Kind, Name, TyName, Type (..), typeSubtypes)
 import qualified Language.PlutusCore              as PLC
-import           Language.PlutusCore.CBOR         ()
 import           Language.PlutusCore.Constant     (AsConstant (..), FromConstant (..))
 import           Language.PlutusCore.Core         (UniOf)
+import           Language.PlutusCore.Flat         ()
 import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Name         as PLC
 import qualified Language.PlutusCore.Pretty       as PLC
 
 import           Control.Lens                     hiding (Strict)
 
-import           Codec.Serialise                  (Serialise)
+-- import           Codec.Serialise                  (Serialise)
+import           Flat                             (Flat)
 
 import qualified Data.Text                        as T
 import           Data.Text.Prettyprint.Doc.Custom
@@ -66,11 +67,13 @@ data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl
     deriving (Functor, Show, Generic)
 
 instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Serialise
-         , Serialise a
-         , Serialise tyname
-         , Serialise name
-         ) => Serialise (Datatype tyname name uni fun a)
+         , uni `PLC.Everywhere` Flat
+         , Flat a
+         , Flat tyname
+         , Flat name
+         -- This was needed only for the Flat instance
+         , Flat fun
+         ) => Flat (Datatype tyname name uni fun a)
 
 varDeclNameString :: VarDecl tyname Name uni fun a -> String
 varDeclNameString = T.unpack . PLC.nameString . varDeclName
@@ -97,12 +100,12 @@ instance Semigroup Recursivity where
   NonRec <> x = x
   Rec <> _    = Rec
 
-instance Serialise Recursivity
+instance Flat Recursivity
 
 data Strictness = NonStrict | Strict
     deriving (Show, Eq, Generic)
 
-instance Serialise Strictness
+instance Flat Strictness
 
 data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni fun a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
@@ -110,12 +113,12 @@ data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name 
     deriving (Functor, Show, Generic)
 
 instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Serialise
-         , Serialise fun
-         , Serialise a
-         , Serialise tyname
-         , Serialise name
-         ) => Serialise (Binding tyname name uni fun a)
+         , uni `PLC.Everywhere` Flat
+         , Flat fun
+         , Flat a
+         , Flat tyname
+         , Flat name
+         ) => Flat (Binding tyname name uni fun a)
 
 {-# INLINE bindingSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Binding'.
@@ -216,12 +219,12 @@ instance FromConstant (Term tyname name uni fun ()) where
     fromConstant value = Constant () value
 
 instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Serialise
-         , Serialise fun
-         , Serialise a
-         , Serialise tyname
-         , Serialise name
-         ) => Serialise (Term tyname name uni fun a)
+         , uni `PLC.Everywhere` Flat
+         , Flat fun
+         , Flat a
+         , Flat tyname
+         , Flat name
+         ) => Flat (Term tyname name uni fun a)
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
     var      = Var
@@ -280,12 +283,12 @@ termBindings f = \case
 data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deriving Generic
 
 instance ( PLC.Closed uni
-         , uni `PLC.Everywhere` Serialise
-         , Serialise fun
-         , Serialise a
-         , Serialise tyname
-         , Serialise name
-         ) => Serialise (Program tyname name uni fun a)
+         , uni `PLC.Everywhere` Flat
+         , Flat fun
+         , Flat a
+         , Flat tyname
+         , Flat name
+         ) => Flat (Program tyname name uni fun a)
 
 -- Pretty-printing
 

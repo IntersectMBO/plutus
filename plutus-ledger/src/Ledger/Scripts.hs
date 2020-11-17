@@ -55,7 +55,7 @@ module Ledger.Scripts(
 
 import qualified Prelude                             as Haskell
 
-import           Codec.Serialise                     (Serialise, serialise)
+import           Codec.Serialise                     (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                     (NFData)
 import           Control.Monad.Except                (MonadError, runExceptT, throwError)
 import           Crypto.Hash                         (Digest, SHA256, hash)
@@ -68,6 +68,7 @@ import           Data.Hashable                       (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
+import           Flat                                (Flat, flat, unflat)
 import           GHC.Generics                        (Generic)
 import           IOTS                                (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                 as PLC
@@ -84,9 +85,13 @@ import           LedgerBytes                         (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving Serialise via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun
+  deriving Flat -- via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
+
+instance Serialise Script where
+  decode = undefined
+  encode = undefined
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
@@ -112,17 +117,17 @@ infrequently (I believe).
 -}
 instance Eq Script where
     {-# INLINABLE (==) #-}
-    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
+    a == b = flat a == flat b
 
 instance Haskell.Eq Script where
-    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
+    a == b = flat a == flat b
 
 instance Ord Script where
     {-# INLINABLE compare #-}
-    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
+    a `compare` b = flat a `compare` flat b
 
 instance Haskell.Ord Script where
-    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
+    a `compare` b = flat a `compare` flat b
 
 instance NFData Script
 
@@ -174,10 +179,10 @@ evaluateScript s = do
     Haskell.pure logOut
 
 instance ToJSON Script where
-    toJSON = JSON.String . JSON.encodeSerialise
+    toJSON = JSON.String . JSON.encodeFlat
 
 instance FromJSON Script where
-    parseJSON = JSON.decodeSerialise
+    parseJSON = JSON.decodeFlat
 
 instance ToJSON Data where
     toJSON = JSON.String . JSON.encodeSerialise
@@ -200,7 +205,7 @@ unMonetaryPolicyScript = getMonetaryPolicy
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Flat, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
   deriving Pretty via (PrettyShow Validator)
 
@@ -209,9 +214,9 @@ instance Show Validator where
 
 instance BA.ByteArrayAccess Validator where
     length =
-        BA.length . BSL.toStrict . serialise
+        BA.length . flat
     withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
+        BA.withByteArray . flat
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: Data  }
@@ -244,7 +249,7 @@ instance BA.ByteArrayAccess Redeemer where
 -- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
 newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Flat, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
   deriving Pretty via (PrettyShow MonetaryPolicy)
 
@@ -253,9 +258,9 @@ instance Show MonetaryPolicy where
 
 instance BA.ByteArrayAccess MonetaryPolicy where
     length =
-        BA.length . BSL.toStrict . serialise
+        BA.length . flat
     withByteArray =
-        BA.withByteArray . BSL.toStrict . serialise
+        BA.withByteArray . flat
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
@@ -309,15 +314,15 @@ redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
+    h :: Digest SHA256 = hash e
     h' :: Digest SHA256 = hash h
-    e = serialise vl
+    e = flat vl
 
 monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
 monetaryPolicyHash vl = MonetaryPolicyHash $ BA.convert h' where
-    h :: Digest SHA256 = hash $ BSL.toStrict e
+    h :: Digest SHA256 = hash e
     h' :: Digest SHA256 = hash h
-    e = serialise vl
+    e = flat vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
