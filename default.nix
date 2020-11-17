@@ -46,7 +46,7 @@ rec {
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
-    }) client server-invoker;
+    }) client server-invoker generated-purescript;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
@@ -55,7 +55,7 @@ rec {
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage;
       inherit set-git-rev haskell webCommon;
-    }) client server-invoker;
+    }) client server-invoker generated-purescript;
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {

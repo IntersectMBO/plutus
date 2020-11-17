@@ -24,5 +24,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker;
+  inherit client demo-scripts server-invoker generated-purescript;
 }
