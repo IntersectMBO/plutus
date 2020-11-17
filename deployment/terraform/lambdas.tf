@@ -124,7 +124,7 @@ resource "aws_lambda_function" "plutus_playground" {
       GITHUB_CLIENT_SECRET = var.plutus_github_client_secret
       JWT_SIGNATURE = var.plutus_jwt_signature
       GITHUB_REDIRECT_URL = "https://${var.env}.${var.plutus_tld}"
-      WEBGHC_URL = "https://${var.env}.${var.marlowe_tld}"
+      WEBGHC_URL = "https://${var.env}.${var.plutus_tld}"
     }
   }
 }
