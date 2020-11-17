@@ -143,7 +143,7 @@ failure into a 'Term', apart from the straightforward generalization of 'CekM'.
 -}
 
 -- | The CEK machine-specific 'EvaluationException', parameterized over @term@.
-type CekEvaluationExceptionCarrying fun term =
+type CekEvaluationExceptionCarrying term fun =
     EvaluationException CekUserError fun term
 
 -- See Note [Being generic over @term@ in 'CekM'].
@@ -151,11 +151,11 @@ type CekEvaluationExceptionCarrying fun term =
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
 type CekCarryingM term uni fun =
     ReaderT (CekEnv uni fun)
-        (ExceptT (CekEvaluationExceptionCarrying fun term)
+        (ExceptT (CekEvaluationExceptionCarrying term fun)
             (State (CekExBudgetState fun)))
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni fun = CekEvaluationExceptionCarrying fun (Plain Term uni fun)
+type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Plain Term uni fun) fun
 
 -- | The monad the CEK machine runs in.
 type CekM uni fun = CekCarryingM (Plain Term uni fun) uni fun
@@ -356,8 +356,8 @@ computeCek ctx env (Builtin ex bn) = do
   BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _ Error{} =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
+computeCek _ _ err@Error{} =
+    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just $ void err
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
