@@ -1,5 +1,4 @@
 { pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
-
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 

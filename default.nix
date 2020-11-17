@@ -19,7 +19,6 @@
   # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
 }:
-
 let
   inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) lib haskell-nix;

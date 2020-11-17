@@ -1,7 +1,6 @@
 # Copied from nixpkgs, remove when we hit 20.09
 
 { pkgs, lib, callPackage, newScope, Agda }:
-
 let
   mkAgdaPackages = Agda: lib.makeScope newScope (mkAgdaPackages' Agda);
   mkAgdaPackages' = Agda: self:

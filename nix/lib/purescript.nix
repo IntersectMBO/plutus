@@ -25,9 +25,7 @@
 , checkPhase ? "yarn --offline test"
 , passthru ? { }
 }:
-
 let
-
   # Note that these binaries are both versioned with the node-sass version *and* the NODE_MODULE_VERSION
   # version, so you may need to change that when updating to a new version of nodejs.
   # For reasons beyond my ken, these do *not* work if you try and get them with niv. Mysteriously you get snytax

@@ -12,7 +12,6 @@
 , rPackages
 , z3
 }:
-
 let
   # The Hackage index-state from cabal.project
   index-state =

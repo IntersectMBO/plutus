@@ -1,5 +1,4 @@
 { set-git-rev, haskell, makeWrapper, runCommand }:
-
 let
   web-ghc-server = set-git-rev haskell.packages.web-ghc.components.exes.web-ghc-server;
 

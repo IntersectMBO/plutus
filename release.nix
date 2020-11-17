@@ -2,7 +2,6 @@
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
 , plutus ? null
 }:
-
 let
   # The revision passed in by Hydra, if there is one
   rev = if builtins.isNull plutus then null else plutus.rev;

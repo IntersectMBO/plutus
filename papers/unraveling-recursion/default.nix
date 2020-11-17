@@ -3,7 +3,6 @@
 , texlive
 , agda
 }:
-
 let
   artifacts = pkgs.callPackage ./artifacts.nix { };
 in

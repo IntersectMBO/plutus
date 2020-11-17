@@ -12,7 +12,6 @@
 , z3
 , R
 }:
-
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.stackProject' {

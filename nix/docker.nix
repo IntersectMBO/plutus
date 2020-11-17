@@ -9,7 +9,6 @@
 , marlowe-playground
 , haskell
 }:
-
 let defaultPlaygroundConfig = writeTextFile {
   name = "playground.yaml";
   destination = "/etc/playground.yaml";

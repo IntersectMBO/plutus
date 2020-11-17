@@ -5,7 +5,6 @@
 { stdenv, lib, self, Agda, runCommandNoCC, makeWrapper, writeText, mkShell, ghcWithPackages }:
 
 with lib.strings;
-
 let
   withPackages' =
     { pkgs

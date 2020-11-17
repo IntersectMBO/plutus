@@ -1,5 +1,4 @@
 { pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
-
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 

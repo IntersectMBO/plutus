@@ -75,7 +75,6 @@ let
   ]);
 
 in
-
 haskell.packages.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
 

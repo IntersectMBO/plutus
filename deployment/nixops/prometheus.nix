@@ -13,7 +13,6 @@
     , deploymentName
     , ...
     }: node: { config, pkgs, lib, ... }:
-
     let
       servers = [ machines.webghcA machines.webghcB ];
       nginxPort = 80;

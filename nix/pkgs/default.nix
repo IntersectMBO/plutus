@@ -6,9 +6,7 @@
 , rev ? null
 , sources
 }:
-
 let
-
   iohkNix =
     import sources.iohk-nix {
       inherit system config;
