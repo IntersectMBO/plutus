@@ -38,5 +38,5 @@ let
   };
 in
 {
-  inherit client server-invoker;
+  inherit client server-invoker generated-purescript;
 }
