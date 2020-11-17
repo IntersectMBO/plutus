@@ -6,7 +6,7 @@
 module Main (main) where
 
 import qualified Language.PlutusCore                               as PLC
-import qualified Language.PlutusCore.CBOR                          as PLC
+-- import qualified Language.PlutusCore.CBOR                          as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
 import qualified Language.PlutusCore.Generators                    as Gen

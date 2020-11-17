@@ -351,6 +351,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
