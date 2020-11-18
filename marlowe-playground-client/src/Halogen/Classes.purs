@@ -50,6 +50,14 @@ foreign import option2 :: String
 
 foreign import option3 :: String
 
+foreign import newProjectHaskellIcon :: String
+
+foreign import newProjectJavascriptIcon :: String
+
+foreign import newProjectMarloweIcon :: String
+
+foreign import newProjectBlocklyIcon :: String
+
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
 

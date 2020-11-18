@@ -44,3 +44,8 @@ exports.option1 = require('static/images/option1.svg');
 exports.option2 = require('static/images/option2.svg');
 
 exports.option3 = require('static/images/option3.svg');
+
+exports.newProjectHaskellIcon = require('static/images/new-project-haskell-icon.svg')
+exports.newProjectJavascriptIcon = require('static/images/new-project-javascript-icon.svg')
+exports.newProjectMarloweIcon = require('static/images/new-project-marlowe-icon.svg')
+exports.newProjectBlocklyIcon = require('static/images/new-project-blockly-icon.svg')

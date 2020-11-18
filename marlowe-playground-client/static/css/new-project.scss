@@ -1,30 +1,56 @@
 .new-project-container {
   width: 90%;
+
+  .environment-selector-group {
+    display: flex;
+    justify-content: space-between;
+  }
+  .environment-selector {
+    background-color: var(--bg-dark);
+    // Vertically and horizontally align the contents of the "button"
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // Make the image be on top of the text
+    flex-direction: column;
+    // Font properties (TODO: maybe put an 'a' or 'span')
+    font-weight: 600;
+    color: var(--text-color); // TODO: wrong color
+    // TODO: is there a better way to define the size?
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    img {
+      height: 40px;
+    }
+  }
+
+  input {
+    margin: 1.5rem 0rem;
+    font-weight: normal;
+    font-size: 1.912em;
+    line-height: calc(18px + 1.8vw);
+    padding: 0;
+    display: block;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    border: none;
+    appearance: none;
+    background-color: var(--bg-light);
+    color: var(--text-color);
+  }
 }
 
-.new-project-container input {
-  margin: 1.5rem 0rem;
-  font-weight: normal;
-  font-size: 1.912em;
-  line-height: calc(18px + 1.8vw);
-  padding: 0;
-  display: block;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
-  border: none;
-  appearance: none;
-  background-color: var(--bg-light);
-  color: var(--text-color);
-}
-
-.new-project-container .language-links {
-  justify-content: flex-start;
-  text-decoration: none;
-}
-.new-project-container .language-links a {
-  margin: 0 1rem 0 0rem;
-  border: solid 1px;
-  border-radius: 1rem;
-  padding: 0 1rem;
-  background-color: white;
-}
+// .new-project-container .language-links {
+//   justify-content: flex-start;
+//   text-decoration: none;
+// }
+// .new-project-container .language-links a {
+//   margin: 0 1rem 0 0rem;
+//   border: solid 1px;
+//   border-radius: 1rem;
+//   padding: 0 1rem;
+//   background-color: white;
+// }
