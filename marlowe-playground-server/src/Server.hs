@@ -26,6 +26,7 @@ import           Data.Proxy                                       (Proxy (Proxy)
 import           Data.String                                      as S
 import           Data.Text                                        (Text)
 import qualified Data.Text                                        as Text
+import qualified Data.Validation                                  as Validation
 import           GHC.Generics                                     (Generic)
 import           Git                                              (gitRev)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
@@ -39,18 +40,23 @@ import           System.Environment                               (lookupEnv)
 import qualified Web.JWT                                          as JWT
 
 genActusContract :: ContractTerms -> Handler String
-genActusContract = pure . show . pretty . genFsContract
+genActusContract terms =
+    case genFsContract terms of
+        -- Should probably send this as a server error and handle it properly on the front end
+        Validation.Failure errs -> pure (unlines . (:) "ACTUS Term Validation Failed:" . map ((++) "    " . show) $ errs)
+        Validation.Success c -> pure . show . pretty $ c
 
 genActusContractStatic :: ContractTerms -> Handler String
-genActusContractStatic = pure . show . pretty . genStaticContract
-
+genActusContractStatic terms =
+    case genStaticContract terms of
+        Validation.Failure errs -> pure (unlines . (:) "ACTUS Term Validation Failed:" . map ((++) "    " . show) $ errs)
+        Validation.Success c -> pure . show . pretty $ c
 
 oracle :: MonadIO m => String -> String -> m Value
 oracle exchange pair = do
     response <- liftIO (httpJSON (fromString $ "GET https://api.cryptowat.ch/markets/" <> exchange <> "/" <> pair <> "/price"))
     let result = getResponseBody response :: Value
     pure result
-
 
 liftedAuthServer :: Auth.GithubEndpoints -> Auth.Config -> Server Auth.API
 liftedAuthServer githubEndpoints config =

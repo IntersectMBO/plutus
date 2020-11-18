@@ -4,7 +4,9 @@
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
 import           Data.Maybe                                             (fromJust, isJust, isNothing)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (PREF (..), PYTP (..), SCEF (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (IPCB (IPCB_NTL), PREF (..), PYTP (..),
+                                                                         SCEF (..), ScheduleConfig (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule            ()
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          plusCycle, remove)
@@ -95,3 +97,43 @@ _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
                 | otherwise                           = tt
     in result
 
+-- - Linear Amortizer - --
+_SCHED_IED_LAM = _SCHED_IED_PAM
+
+_SCHED_PR_LAM scfg _PRCL _IED _PRANX _MD =
+    let maybeS  | isNothing _PRANX && isNothing _PRCL = Nothing
+                | isNothing _PRANX                   = Just $ _IED `plusCycle` fromJust _PRCL
+                | otherwise                          = _PRANX
+    in (\s -> _S s (fromJust _PRCL) _MD (scfg { includeEndDay = False })) <$> maybeS
+
+_SCHED_MD_LAM scfg tmd = Just [shift scfg tmd]
+
+_SCHED_PP_LAM = _SCHED_PP_PAM
+
+_SCHED_PY_LAM = _SCHED_PY_PAM
+
+-- To avoid constraint error, we can't fixpoint this
+_SCHED_FP_LAM scfg _FER _FECL _IED _FEANX _MD = _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD
+
+_SCHED_PRD_LAM = _SCHED_PRD_PAM
+
+_SCHED_TD_LAM = _SCHED_TD_PAM
+
+_SCHED_IP_LAM = _SCHED_IP_PAM
+
+_SCHED_IPCI_LAM = _SCHED_IPCI_PAM
+
+_SCHED_IPCB_LAM scfg _IED _IPCB _IPCBCL _IPCBANX _MD =
+    let maybeS  | isNothing _IPCBANX && isNothing _IPCBCL = Nothing
+                | isNothing _IPCBANX                   = Just $ _IED `plusCycle` fromJust _IPCBCL
+                | otherwise                          = _IPCBANX
+
+        result  | (fromJust _IPCB) /= IPCB_NTL                   = Nothing -- This means that IPCB != 'NTL', since there is no cycle
+                | otherwise                          = (\s -> _S s (fromJust _IPCBCL) _MD scfg) <$> maybeS
+    in result
+
+_SCHED_RR_LAM = _SCHED_RR_PAM
+
+_SCHED_RRF_LAM = _SCHED_RRF_PAM
+
+_SCHED_SC_LAM = _SCHED_SC_PAM
