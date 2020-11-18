@@ -259,7 +259,7 @@ divMod :: Integer -> Integer -> (Integer, Integer)
 divMod x y = ( x `Builtins.divideInteger` y, x `Builtins.modInteger` y)
 
 {-# INLINABLE quotRem #-}
--- | simultaneous quot and rem
+-- | Simultaneous quot and rem.
 -- TODO.  Provide a Plutus Core built-in function for this: see the comment for
 -- 'divMod'.
 quotRem :: Integer -> Integer -> (Integer, Integer)
