@@ -95,6 +95,18 @@
         "url": "https://nodejs.org/download/release/v12.19.0/node-v12.19.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
     },
+    "npmlock2nix": {
+        "branch": "remove-path-assert",
+        "description": null,
+        "homepage": null,
+        "owner": "tweag",
+        "repo": "npmlock2nix",
+        "rev": "5d06a72115e7807f96c19f445ad8b1a20af49e59",
+        "sha256": "0az11kpjfsb57bx9rhmfzg179gplk7y4i5872sra0ssq1dzlpb7g",
+        "type": "tarball",
+        "url": "https://github.com/tweag/npmlock2nix/archive/5d06a72115e7807f96c19f445ad8b1a20af49e59.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "pre-commit-hooks.nix": {
         "branch": "master",
         "builtin": false,

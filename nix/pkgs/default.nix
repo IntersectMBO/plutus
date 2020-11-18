@@ -141,11 +141,12 @@ let
     };
 
   # Collect everything to be exported under `plutus.lib`: builders/functions/utils
-  lib = {
+  lib = rec {
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
+    npmlock2nix =  (import sources.npmlock2nix {});
     buildPursPackage = pkgs.callPackage ../lib/purescript.nix {
-      inherit easyPS nodejs-headers;
+      inherit easyPS nodejs-headers npmlock2nix;
     };
   };
 
