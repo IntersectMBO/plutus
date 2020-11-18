@@ -247,7 +247,6 @@ properFraction :: Ratio Integer -> (Integer, Ratio Integer)
 properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
 
 {-# INLINABLE divMod #-}
--- | simultaneous div and mod
 -- TODO. This is doing twice as much work as it needs to: the Plutus Core
 -- builtins 'divideInteger' and 'modInteger' are implemented as the Haskell
 -- 'div' and 'mod' operations, which in turn are impemented as fst . divMod and
@@ -255,13 +254,14 @@ properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
 -- useful information.  We could fix his by exposing 'divMod' as a PLC builtin,
 -- but that would require us to implement pairs as built-in types along with
 -- built-in introduction and elimination functions.  This would be non-trivial.
+-- | Simultaneous div and mod
 divMod :: Integer -> Integer -> (Integer, Integer)
 divMod x y = ( x `Builtins.divideInteger` y, x `Builtins.modInteger` y)
 
 {-# INLINABLE quotRem #-}
--- | simultaneous quot and rem
 -- TODO.  Provide a Plutus Core built-in function for this: see the comment for
 -- 'divMod'.
+-- | Simultaneous quot and rem
 quotRem :: Integer -> Integer -> (Integer, Integer)
 quotRem x y = ( x `Builtins.quotientInteger` y, x `Builtins.remainderInteger` y)
 
