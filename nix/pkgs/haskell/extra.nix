@@ -12,7 +12,6 @@
 , checkMaterialization
 , buildPackages
 }:
-
 let
   compiler-nix-name = "ghc8102";
 in
@@ -74,7 +73,8 @@ in
     plan-sha256 = "0pxqq5lnh7kd8pyhfyh81pq2v00g9lzkb1db8065cdxya6nirpjs";
     modules = [{ reinstallableLibGhc = false; }];
   };
-  inherit (let hspkgs = haskell-nix.cabalProject {
+  inherit (
+  let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
       name = "haskell-language-server";
       owner = "haskell";

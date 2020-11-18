@@ -10,7 +10,6 @@
     , # Additional build inputs
       ...
     }@attrs:
-
     let
       tex = texlive.combine (texInputs // { inherit (texlive) latexmk; });
       # mkDerivation doesn't like having this as an attr, and we don't need to pass it through

@@ -1,22 +1,21 @@
-{ lib
+{ stdenv
+, lib
 , writeScriptBin
 , runtimeShell
 , git
 , fd
-, purty
 , coreutils
 , python
 , gnumake
 , gnused
-, nodejs-10_x
-, node-gyp
+, nodejs
+, nodePackages
 , yarn
-, yarn2nix
+, yarn2nix-moretea
 , purs
 , psc-package
 , spago
 , spago2nix
-, isDarwin
 , clang
 }:
 
@@ -30,18 +29,15 @@ lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "upda
     python
     gnumake
     gnused
-    nodejs-10_x
-    node-gyp
+    nodejs
+    nodePackages.node-gyp
     yarn
-    # yarn2nix won't seem to build on hydra, see
-    # https://github.com/moretea/yarn2nix/pull/103
-    # I can't figure out how to fix this...
-    yarn2nix
+    yarn2nix-moretea.yarn2nix
     purs
     psc-package
     spago
     spago2nix
-  ] ++ lib.optionals isDarwin [ clang ])}
+  ] ++ lib.optionals stdenv.isDarwin [ clang ])}
 
   if [ ! -f package.json ]
   then

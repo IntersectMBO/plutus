@@ -1,8 +1,9 @@
 { stdenv
 , lib
+, linkFarm
 , cacert
-, nodejs-10_x
-, nodePackages_10_x
+, nodejs
+, nodePackages
 , python2
 , git
 , fetchurl
@@ -24,18 +25,23 @@
 , checkPhase ? "yarn --offline test"
 , passthru ? { }
 }:
-
 let
-
-  # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
+  # Note that these binaries are both versioned with the node-sass version *and* the NODE_MODULE_VERSION
+  # version, so you may need to change that when updating to a new version of nodejs.
+  # For reasons beyond my ken, these do *not* work if you try and get them with niv. Mysteriously you get snytax
+  # errors in the binding, even though diffing the files they look the same. I gave up and left them like ths.
   nodeSassBinLinux = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-64_binding.node";
-    sha256 = "0dl91l414na44h090cgghd06q0j2whlj9h98im2qb9823glq7xff";
+    url = "https://github.com/sass/node-sass/releases/download/v5.0.0/linux-x64-72_binding.node";
+    sha256 = "0ja9b462dzxmkqm15zc0flv33cq16jy86vigj7gbmmad2pgkryq8";
   };
   nodeSassBinDarwin = fetchurl {
-    url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-64_binding.node";
-    sha256 = "1p5gz1694vxar81hbrrbdmmr2wjw3ksfvfgwh0kzzgjkc2dpk5pa";
+    url = "https://github.com/sass/node-sass/releases/download/v5.0.0/darwin-x64-72_binding.node";
+    sha256 = "0b079cygjr3i70hwvb1ik83z2lxbbl1daqky0i8mnbibxbgr4jb7";
   };
+  nodeSassBinDir = linkFarm "node-sass-bin-dir" [
+    { name = "linux-x64-72/binding.node"; path = nodeSassBinLinux; }
+    { name = "darwin-x64-72/binding.node"; path = nodeSassBinDarwin; }
+  ];
 
   packagesJson = "${src}/packages.json";
 
@@ -57,28 +63,28 @@ let
 
 in
 yarn2nix-moretea.mkYarnPackage {
-  inherit name packageJSON yarnLock yarnNix checkPhase passthru;
+  inherit name packageJSON yarnLock yarnNix checkPhase passthru nodejs;
   src = cleanSrcs;
-  nodejs = nodejs-10_x;
 
   pkgConfig = {
     "libxmljs" = {
-      buildInputs = [ nodejs-10_x python2 ];
+      buildInputs = [ nodejs python2 ];
       postInstall = ''
         # To deal with some OSX setups we need to use the version of node-gyp that's patched in
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/web/nodejs/nodejs.nix#L106
-        ${nodejs-10_x}/lib/node_modules/npm/bin/node-gyp-bin/node-gyp --tarball ${nodejs-headers} rebuild
+        ${nodejs}/lib/node_modules/npm/bin/node-gyp-bin/node-gyp --tarball ${nodejs-headers} rebuild
       '';
     };
   };
 
   buildInputs = [ cacert ];
 
-  nativeBuildInputs = [ git easyPS.purs easyPS.spago easyPS.psc-package nodePackages_10_x.node-gyp nodejs-10_x python2 ];
+  nativeBuildInputs = [ git easyPS.purs easyPS.spago easyPS.psc-package nodePackages.node-gyp nodejs python2 ];
 
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
-    export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
+    # node-sass is terrible and we need to fix the binaries otherwise it will try and download them
+    export SASS_BINARY_DIR=${nodeSassBinDir}
 
     # Ensure that the shell expands 'foo/**/*.purs' to include 'foo/*.purs'.
     shopt -s globstar

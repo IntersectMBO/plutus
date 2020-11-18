@@ -6,9 +6,7 @@
 , rev ? null
 , sources
 }:
-
 let
-
   iohkNix =
     import sources.iohk-nix {
       inherit system config;
@@ -23,10 +21,8 @@ let
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit plutusMusl;
-    inherit (pkgs) stdenv fetchFromGitHub fetchFromGitLab haskell-nix buildPackages nix-gitignore z3 R rPackages;
     inherit agdaWithStdlib checkMaterialization;
   };
-
 
   #
   # additional haskell packages from ./nix/pkgs/haskell-extra
@@ -39,10 +35,14 @@ let
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
 
+  # We want to keep control of which version of Agda we use, so we supply our own and override
+  # the one from nixpkgs.
+  #
   # The Agda builder needs a derivation with:
   # - The 'agda' executable
   # - The 'agda-mode' executable
   # - A 'version' attribute
+  #
   # So we stitch one together here. It doesn't *seem* to need the library interface files,
   # but it seems like they should be there so I added them too.
   agdaPackages =
@@ -56,7 +56,7 @@ let
         ];
       }) // { version = haskellNixAgda.identifier.version; };
     in
-    pkgs.callPackage ./../lib/agda { Agda = frankenAgda; };
+    pkgs.agdaPackages.override { Agda = frankenAgda; };
 
   agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
@@ -68,12 +68,7 @@ let
   updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
-    inherit purty;
-    inherit (pkgs.nodePackages_10_x) node-gyp;
-    inherit (pkgs.yarn2nix-moretea) yarn2nix;
     inherit (easyPS) purs psc-package spago spago2nix;
-    inherit (pkgs.stdenv) isDarwin;
-    inherit (pkgs) clang;
   };
 
   #

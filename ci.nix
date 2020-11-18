@@ -6,7 +6,6 @@
   # which doesn't work in all situations. Set to null to get it from git.
 , rev ? "fake"
 }:
-
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
   sources = import ./nix/sources.nix;

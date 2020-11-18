@@ -1,7 +1,5 @@
 { pkgs, plutus }:
-
 let
-
   inherit (pkgs) lib;
   inherit (plutus) agdaWithStdlib;
 
