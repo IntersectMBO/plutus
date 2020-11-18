@@ -26,7 +26,7 @@ in
   plutusPlaygroundImage =
     let
       client = plutus-playground.client;
-      server-invoker = client.passthru.server-invoker;
+      server-invoker = plutus-playground.server-invoker;
     in
     dockerTools.buildLayeredImage {
       name = "plutus-playgrounds";
@@ -38,7 +38,7 @@ in
   marlowePlaygroundImage =
     let
       client = marlowe-playground.client;
-      server-invoker = client.passthru.server-invoker;
+      server-invoker = marlowe-playground.server-invoker;
     in
     dockerTools.buildLayeredImage {
       name = "marlowe-playground";
