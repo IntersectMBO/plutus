@@ -5,7 +5,6 @@ module Main where
 import           Prelude                                           ((<>))
 import qualified Prelude                                           as P
 
-import           Codec.Serialise
 import           Control.Monad
 import           Control.Monad                                     ()
 import           Control.Monad.Trans.Except                        (runExceptT)
@@ -201,8 +200,8 @@ data CborMode = Named | DeBruijn
 writeCBOR :: CborMode -> Program Name DefaultUni DefaultFun () -> IO ()
 writeCBOR cborMode prog =
     case cborMode of
-      Named    -> BSL.putStr $ serialise prog
-      DeBruijn -> toDeBruijn prog >>= BSL.putStr . serialise
+      Named    -> BSL.putStr $ serialiseOmittingUnits prog
+      DeBruijn -> toDeBruijn prog >>= BSL.putStr . serialiseOmittingUnits
 
 description :: String
 description = "This program provides operations on a number of Plutus programs "
