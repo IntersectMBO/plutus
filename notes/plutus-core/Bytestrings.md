@@ -32,7 +32,7 @@ and can be used to pass bytestrings into validators, but this isn't very
 general-purpose.
 
 
-### Characters and strings in Plutus Core.
+### Characters and strings in Plutus Core
 
 Plutus Core also provides built-in character and string types.  These both have
 concrete syntactical representations: `(con char 'q')` and `(con string
