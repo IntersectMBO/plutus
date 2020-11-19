@@ -232,8 +232,8 @@ stack |> Builtin _ bn            = do
     BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . ckEnvRuntime
     stack <| VBuiltin bn arity arity [] []
 stack |> Constant _ val          = stack <| VCon val
-_     |> err@Error{}             =
-    throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Just err
+_     |> Error{}                 =
+    throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 
