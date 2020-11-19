@@ -78,10 +78,10 @@ TAGS
 *.tfvars
 gh-pages
 .importify/
-marlowe-playground-server/playground.yaml
+playground.yaml
 .envrc
 *.org
-plutus-scb/plutus-scb.yaml
+plutus-scb.yaml
 *.db
 *.db-shm
 *.db-wal
