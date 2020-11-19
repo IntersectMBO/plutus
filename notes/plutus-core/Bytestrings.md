@@ -1,4 +1,5 @@
 ## Extending bytestring operations in PlutusTx and Plutus Core
+(19th November 2020)
 
 In a [Slack thread](https://input-output-rnd.slack.com/archives/C21UF2WVC/p1599120765047200)
 some time ago, Alex asked about extending support for bytestrings in Plutus Core.
