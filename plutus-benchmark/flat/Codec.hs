@@ -27,12 +27,12 @@ import           Flat                               (Flat, flat, unflat)
 
 type Tm name = Term name DefaultUni DefaultFun ()
 
-data Codec name = Codec
-  { serialize   :: name -> BS.ByteString
-  , deserialize :: BS.ByteString -> name
+data Codec a = Codec
+  { serialize   :: a -> BS.ByteString
+  , deserialize :: BS.ByteString -> a
   }
 
-fromDecoded :: Show error => Either error name -> name
+fromDecoded :: Show error => Either error a -> a
 fromDecoded (Left err) = error $ show err
 fromDecoded (Right  v) = v
 
@@ -59,13 +59,13 @@ cborCodec = Codec
   , deserialize = deserializeRestoringUnits . LBS.fromStrict
   }
 
-withZlib :: Codec name -> Codec name
+withZlib :: Codec a -> Codec a
 withZlib codec = Codec
   { serialize = LBS.toStrict . Zlib.compress . LBS.fromStrict . serialize codec
   , deserialize = (deserialize codec) . LBS.toStrict . Zlib.decompress . LBS.fromStrict
   }
 
-withPureZlib :: Codec name -> Codec name
+withPureZlib :: Codec a -> Codec a
 withPureZlib codec = Codec
   { serialize = serialize (withZlib codec)
   , deserialize = (deserialize codec) . LBS.toStrict . fromDecoded . PureZlib.decompress . LBS.fromStrict
