@@ -7,8 +7,8 @@ This document discusses some possibilities.
 
 ### Current bytestring support in PLC
 
-Plutus Core currently has a built-in bytestring type and provides the following
-operations:
+Plutus Core currently provides the following operations for its built-in
+bytestring type:
 
    * `concatenate`
    * `equalsByteString`
@@ -25,6 +25,15 @@ specification also mentions an `emptyByteString` builtin, but we don't support
 that.  However we do provide concrete syntax for bytestrings:
 `(con bytestring #91ef22)` for example; `(con bytestring #)` represents the empty bytestring.
 
+The problem is that there is no easy way to _construct_ a bytestring in Haskell
+and convert it into a PLC bytestring, or to programatically construct a new
+bytestring inside a Plutus Core program.  The `Data` type supports bytestrings
+and can be used to pass bytestrings into validators, but this isn't very
+general-purpose.
+
+
+### Characters and strings in Plutus Core.
+
 Plutus Core also provides built-in character and string types.  These both have
 concrete syntactical representations: `(con char 'q')` and `(con string
 "something")`.  Support for these is very limited: we only have `charToString`
@@ -32,12 +41,13 @@ and `append` (append one string to another); also the PlutusTx compiler can
 compile literal Haskell strings and characters into PLC values of the
 appropriate types (but see below for some complications involving Strings).
 
-The problem is that there is no easy way to _construct_ a bytestring in Haskell
-and convert it into a PLC bytestring, or to programatically construct a new
-bytestring inside a Plutus Core program.  The `Data` type supports bytestrings
-and can be used to pass bytestrings into validators, but this isn't very
-general-purpose.
-
+However there is a subtlety: Plutus Core actually has _two_ representations of
+Haskell Strings.  The PlutusTx plugin compiles normal Haskell strings into
+Scott-encoded lists of PLC's `char` type ("Scott strings" for short), but there
+is also a special type called `Language.PlutusTx.Builtins.String` which is
+compiled into PLCs' `string` type.  Many standard string operations can be
+compiled into PLC code acting on Scott strings, but support for builtin strings
+in PlutusTx is limited.
 
 ### Bytestrings in Haskell
 
@@ -75,11 +85,8 @@ this effectively gives you simple concrete syntax: using `OverloadedStrings`,
 
 The simplest way to improve bytestring support in PLC would probably be to add a
 `stringToBytestring` builtin implemented in terms of `Data.ByteString.Char8`.
-However there is a subtlety:  Plutus Core actually has _two_ representations
-of Haskell Strings.  Normal strings are compiled into Scott-encoded lists of
-PLC's `char` type, while the `Language.PlutusTx.Builtins.String` type are compiled
-into PLCs' `string` type.  For efficiency reasons we should probably use built-in PLC
-strings rather than Scott lists of characters.
+For efficiency reasons we should probably use built-in PLC strings rather than
+Scott strings.
 
 As noted above, support for built-in strings is limited, so we may also need to
 add some extra builtins for these at both the PlutusTx and PLC levels.
