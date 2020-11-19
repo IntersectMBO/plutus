@@ -16,6 +16,10 @@ module Language.PlutusCore.CBOR ( encode
                                 , decode
                                 , encodeConstructorTag
                                 , decodeConstructorTag
+                                , serialiseOmittingUnits
+                                , deserialiseRestoringUnits
+                                , deserialiseRestoringUnitsOrFail
+                                , InvisibleUnit (..)
                                 ) where
 
 import           Language.PlutusCore.Core
@@ -29,6 +33,8 @@ import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
 import           Data.Proxy
+
+import qualified Data.ByteString.Lazy           as BSL
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -216,3 +222,58 @@ instance Serialise DeBruijn where
 instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
+
+
+{- Note [Serialising unit annotations]
+
+Serialising the unit annotation takes up space: () is converted to the
+CBOR `null` value, which is encoded as the byte 0xF6.  In typical
+examples these account for 30% or more of the bytes in a serialised
+PLC program.  We don't actually need to serialise unit annotations
+since we know where they're going to appear when we're deserialising,
+and we know what the value has to be.  The `InvisibleUnit` type below
+has instances which takes care of this for us: if we have an
+`InvisibleUnit`-annotated program `prog` then `serialise prog` will
+serialise a program omitting the annotations, and `deserialise` (with
+an appropriate type ascription) will give us back an
+`InvisibleUnit`-annotated program.
+
+We usually deal with ()-annotated ASTs, so the annotations have to be
+converted to and from `InvisibleUnit` if we wish to save space.  The
+obvious way to do this is to use `InvisibleUnit <$ ...` and
+`() <$ ...`, but these have the disadvantage that they have to traverse the
+entire AST and visit every annotation, adding an extra cost which may
+be undesirable when deserialising things on-chain.  However,
+`InvisibleUnit` has the same underlying representation as `()`, and
+we can exploit this using Data.Coerce.coerce to convert entire ASTs
+with no run-time overhead.
+-}
+
+newtype InvisibleUnit = InvisibleUnit ()
+
+instance Serialise InvisibleUnit where
+    encode = mempty
+    decode = pure (InvisibleUnit ())
+
+newtype OmitUnitAnnotations name tyname uni fun = OmitUnitAnnotations { restoreUnitAnnotations :: Program name tyname uni fun () }
+    deriving Serialise via Program name tyname uni fun InvisibleUnit
+
+{-| Convenience functions for serialisation/deserialisation without units -}
+serialiseOmittingUnits ::
+    (Closed uni, Serialise name, Serialise tyname, uni `Everywhere` Serialise, Serialise fun)
+    => Program name tyname uni fun ()
+    -> BSL.ByteString
+serialiseOmittingUnits = serialise . OmitUnitAnnotations
+
+deserialiseRestoringUnits ::
+    (Closed uni, Serialise name, Serialise tyname, uni `Everywhere` Serialise, Serialise fun)
+    => BSL.ByteString
+    -> Program name tyname uni fun ()
+deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
+
+deserialiseRestoringUnitsOrFail ::
+    (Closed uni, Serialise name, Serialise tyname, uni `Everywhere` Serialise, Serialise fun)
+    => BSL.ByteString
+    -> Either DeserialiseFailure (Program name tyname uni fun ())
+deserialiseRestoringUnitsOrFail bs = restoreUnitAnnotations <$> deserialiseOrFail bs
+

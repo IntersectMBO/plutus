@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports    #-}
 
@@ -15,50 +16,62 @@ import qualified Data.ByteString.Lazy               as LBS
 import           Data.Text                          (Text)
 
 import           Language.PlutusCore                (DefaultFun (..))
+import           Language.PlutusCore.CBOR           (InvisibleUnit (..))
 import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore
+import           Language.UntypedPlutusCore         hiding (OmitUnitAnnotations, restoreUnitAnnotations)
 
 import           "pure-zlib" Codec.Compression.Zlib as PureZlib
 import           "zlib" Codec.Compression.Zlib      as Zlib
 import           Codec.Serialise                    (Serialise, deserialise, serialise)
 import           Flat                               (Flat, flat, unflat)
 
-type Tm a = Term a DefaultUni DefaultFun ()
+type Tm name = Term name DefaultUni DefaultFun ()
 
-data Codec a = Codec
-  { serialize   :: a -> BS.ByteString
-  , deserialize :: BS.ByteString -> a
+data Codec name = Codec
+  { serialize   :: name -> BS.ByteString
+  , deserialize :: BS.ByteString -> name
   }
 
-fromDecoded :: Show error => Either error a -> a
+fromDecoded :: Show error => Either error name -> name
 fromDecoded (Left err) = error $ show err
 fromDecoded (Right  v) = v
 
-flatCodec :: Flat a => Codec (Tm a)
+flatCodec :: Flat name => Codec (Tm name)
 flatCodec = Codec
   { serialize   = flat
   , deserialize = fromDecoded . unflat
   }
 
-cborCodec :: Serialise a => Codec (Tm a)
+{- CBOR serialisation omitting units: see Note [Serialising unit annotations] in
+ Language.PlutusCore.CBOR -}
+newtype OmitUnitAnnotations name  = OmitUnitAnnotations { restoreUnitAnnotations :: Tm name }
+    deriving Serialise via Term name DefaultUni DefaultFun InvisibleUnit
+
+serializeOmittingUnits :: Serialise name => Tm name  -> LBS.ByteString
+serializeOmittingUnits = serialise . OmitUnitAnnotations
+
+deserializeRestoringUnits :: Serialise name => LBS.ByteString -> Tm name
+deserializeRestoringUnits = restoreUnitAnnotations <$> deserialise
+
+cborCodec :: Serialise name => Codec (Tm name)
 cborCodec = Codec
-  { serialize   = LBS.toStrict . serialise
-  , deserialize = deserialise . LBS.fromStrict
+  { serialize = LBS.toStrict . serializeOmittingUnits
+  , deserialize = deserializeRestoringUnits . LBS.fromStrict
   }
 
-withZlib :: Codec a -> Codec a
+withZlib :: Codec name -> Codec name
 withZlib codec = Codec
   { serialize = LBS.toStrict . Zlib.compress . LBS.fromStrict . serialize codec
   , deserialize = (deserialize codec) . LBS.toStrict . Zlib.decompress . LBS.fromStrict
   }
 
-withPureZlib :: Codec a -> Codec a
+withPureZlib :: Codec name -> Codec name
 withPureZlib codec = Codec
   { serialize = serialize (withZlib codec)
   , deserialize = (deserialize codec) . LBS.toStrict . fromDecoded . PureZlib.decompress . LBS.fromStrict
   }
 
-codecs    :: (Flat a, Serialise a) => [ (Text, Codec (Tm a)) ]
+codecs    :: (Flat name, Serialise name) => [ (Text, Codec (Tm name)) ]
 codecs    =
   [ ("flat", flatCodec)
   , ("flat-zlib", withZlib flatCodec)
