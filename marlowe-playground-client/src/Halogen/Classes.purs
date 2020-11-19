@@ -10,6 +10,8 @@ foreign import closeDrawerIcon :: String
 
 foreign import closeDrawerArrowIcon :: String
 
+foreign import closeModal :: String
+
 foreign import githubIcon :: String
 
 foreign import downloadIcon :: String

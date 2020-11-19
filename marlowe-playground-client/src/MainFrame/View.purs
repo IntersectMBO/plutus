@@ -10,12 +10,12 @@ import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, closeModal, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text, img)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href, id_, target)
+import Halogen.HTML.Properties (class_, classes, href, id_, target, src)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor.View (otherActions, render) as HaskellEditor
@@ -144,12 +144,11 @@ modal ::
 modal state = case state ^. _showModal of
   Nothing -> text ""
   Just view ->
-    div [ classes [ ClassName "modal" ] ]
-      [ div [ classes [ ClassName "modal-container" ] ]
-          [ div [ classes [ ClassName "modal-content" ] ]
-              [ a [ class_ (ClassName "close"), onClick $ const $ Just CloseModal ] [ text "x" ]
-              , modalContent view
-              ]
+    div [ classes [ ClassName "overlay" ] ]
+      [ div [ classes [ ClassName "modal" ] ]
+          [ div [ class_ (ClassName "modal-close") ]
+              [ img [ src closeModal, onClick $ const $ Just CloseModal ] ]
+          , modalContent view
           ]
       ]
   where

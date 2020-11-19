@@ -9,7 +9,7 @@ import Data.Symbol (SProxy(..))
 import Projects.Types (Lang)
 
 data Action
-  = ChangeProjectName String
+  = ChangeProjectName String -- TODO: confirm that we dont want to change the project name and remove
   | CreateProject Lang
 
 defaultEvent :: String -> Event

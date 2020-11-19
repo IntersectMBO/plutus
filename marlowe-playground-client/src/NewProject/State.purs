@@ -5,9 +5,9 @@ import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, newProjectBlocklyIcon)
-import Halogen.HTML (button, div, h2_, hr_, input, text, img)
+import Halogen.HTML (button, div, h2_, h2, h3, hr_, input, text, img, span)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (class_, classes, value, src)
+import Halogen.HTML.Properties (class_, classes, src, value)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import NewProject.Types (Action(..), State, _error, _projectName)
@@ -31,11 +31,16 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div [ classes [ ClassName "new-project-container" ] ]
-    [ input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
-    , hr_
-    , h2_ [ text "Please choose your initial coding environment" ]
-    , div [ classes [ ClassName "environment-selector-group" ] ] (map link [ Haskell, Javascript, Marlowe, Blockly ])
-    , renderError (state ^. _error)
+    [ div [ classes [ ClassName "modal-header" ] ]
+        [ -- TODO: confirm that we dont want to change the project name and remove -- input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
+          -- TODO: create an HTML helper so all dialogs have the same header/title?
+          h2 [ classes [ ClassName "title" ] ] [ text "New Project" ]
+        ]
+    , div [ classes [ ClassName "modal-content" ] ]
+        [ h3 [ classes [ ClassName "text-base", ClassName "font-semibold" ] ] [ text "Please choose your initial coding environment" ]
+        , div [ classes [ ClassName "environment-selector-group" ] ] (map link [ Haskell, Javascript, Marlowe, Blockly ])
+        , renderError (state ^. _error)
+        ]
     ]
   where
   renderError Nothing = text ""
@@ -48,7 +53,8 @@ render state =
       , onClick (const <<< Just $ CreateProject lang)
       ]
       [ img [ src $ langIcon lang ]
-      , text $ langTitle lang
+      , span [ classes [ ClassName "font-semibold", ClassName "text-sm" ] ]
+          [ text $ langTitle lang ]
       ]
 
   langIcon = case _ of

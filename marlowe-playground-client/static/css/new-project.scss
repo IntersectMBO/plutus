@@ -1,9 +1,15 @@
 .new-project-container {
-  width: 90%;
-
+  h3 {
+    margin: 0;
+    margin-bottom: var(--medium-margin);
+  }
   .environment-selector-group {
     display: flex;
     justify-content: space-between;
+    // The negative margin is a way to remove the extra margin
+    // that the child view create. This is needed until
+    // the gap property is general available
+    margin: 0 calc(-1 * var(--small-margin));
   }
   .environment-selector {
     background-color: var(--bg-dark);
@@ -11,24 +17,31 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    // Make the image be on top of the text
+    // Align the logo and the tilte vertically
     flex-direction: column;
-    // Font properties (TODO: maybe put an 'a' or 'span')
-    font-weight: 600;
-    color: var(--text-color); // TODO: wrong color
+
     // TODO: is there a better way to define the size?
+    //       maybe use rem?
     width: 160px;
     height: 160px;
-    border-radius: 8px;
-    cursor: pointer;
 
+    border-radius: var(--bigger-border-radius);
+    cursor: pointer;
+    margin: 0 var(--small-margin);
     img {
       height: 40px;
     }
+    span {
+      margin-top: var(--small-margin);
+      color: var(--text-color);
+      opacity: 0.8;
+    }
   }
 
+  // This class is not used for the new project dialog any more
+  // but it is being used by the Save as and Rename modal.
+  // TODO: Move/Remove/Rename
   input {
-    margin: 1.5rem 0rem;
     font-weight: normal;
     font-size: 1.912em;
     line-height: calc(18px + 1.8vw);
@@ -42,15 +55,3 @@
     color: var(--text-color);
   }
 }
-
-// .new-project-container .language-links {
-//   justify-content: flex-start;
-//   text-decoration: none;
-// }
-// .new-project-container .language-links a {
-//   margin: 0 1rem 0 0rem;
-//   border: solid 1px;
-//   border-radius: 1rem;
-//   padding: 0 1rem;
-//   background-color: white;
-// }
