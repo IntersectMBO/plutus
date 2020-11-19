@@ -1,8 +1,8 @@
-### Bytestrings in PlutusTx and Plutus Core
+## Extending bytestring operations in PlutusTx and Plutus Core
 
 In a [Slack thread](https://input-output-rnd.slack.com/archives/C21UF2WVC/p1599120765047200)
-some time ago, Alex asked about support for bytestrings in Plutus Core.
-This document discusses some possibilities.
+some time ago, Alex asked about extending support for bytestrings in Plutus Core.
+This document describes the issue and suggests some possible extensions.
 
 
 ### Current bytestring support in PLC
