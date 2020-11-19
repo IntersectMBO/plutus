@@ -1,6 +1,7 @@
 module Definitions where
 
 open import Data.Integer
+open import Data.Maybe
 
 record ContractState : Set where
   field
@@ -59,7 +60,7 @@ data ContractType : Set where
 record ContractTerms : Set where
   field
     contractType : ContractType
-    ct_CNTRL     : ContractRole
+    ct_CNTRL     : ℤ
     ct_PDIED     : ℤ -- Premium / Discount At IED
     ct_NT        : ℤ -- Notional
     ct_PPRD      : ℤ -- Price At Purchase Date
@@ -80,8 +81,9 @@ record ContractTerms : Set where
     ct_RRLC      : ℤ
     ct_RRLF      : ℤ
   -- Interest
-    ct_IPNR      : ℤ
-    ct_IPAC      : ℤ
+    ct_IPNR      : Maybe ℤ
+    ct_IPAC      : Maybe ℤ
+    ct_IPANX     : Maybe ℤ
   -- Fee
     ct_FEAC      : ℤ
     ct_FEB       : FEB
