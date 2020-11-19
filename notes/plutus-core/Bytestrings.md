@@ -55,8 +55,8 @@ Plutus Core bytestrings are implemented using Haskell's (strict) `ByteString`
 type from `Data.ByteString`.  Internally these are implemented as arrays of
 `Word8` values.  Haskell doesn't provide any concrete syntax for the
 `ByteString` type, but there are functions `pack :: [Word8] -> ByteString` and
-`unpack :: ByteString -> [Word8]` which convert between `ByteStrings` and lists
-of `Word8`s.
+`unpack :: ByteString -> [Word8]` which convert back and forth between
+`ByteString`s and lists of `Word8` values.
 
 One way (and possbily the most efficient way) to improve support for bytestrings
 in Plutus Core would be to add the `Word8` type to the default PLC universe, but
@@ -66,8 +66,8 @@ SCP-1091 proposes bit operations for Plutus Core, and we might want some kind of
 
 Fortunately Haskell also provides the `Data.ByteString.Char8` interface to its
 `ByteString` type; this provides, for instance, functions `pack :: String ->
-ByteString` and `unpack :: ByteString -> String` which convert between `String`s
-`ByteString`s.  We already have support for strings and bytestrings in Plutus
+ByteString` and `unpack :: ByteString -> String` which convert between `String`
+and `ByteString`.  We already have support for strings and bytestrings in Plutus
 Core, so this looks like a more promising way to provide extended bytestring
 functionality.
 
