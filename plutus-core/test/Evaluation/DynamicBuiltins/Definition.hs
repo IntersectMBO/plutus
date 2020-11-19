@@ -43,8 +43,8 @@ import           GHC.Ix
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound

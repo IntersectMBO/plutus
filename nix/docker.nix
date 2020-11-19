@@ -9,7 +9,6 @@
 , marlowe-playground
 , haskell
 }:
-
 let defaultPlaygroundConfig = writeTextFile {
   name = "playground.yaml";
   destination = "/etc/playground.yaml";
@@ -18,25 +17,36 @@ let defaultPlaygroundConfig = writeTextFile {
       github-client-id: ""
       github-client-secret: ""
       jwt-signature: ""
-      redirect-url: "localhost:8080"
+      frontend-url: "localhost:8009"
+      github-cb-path: "/#/gh-oauth-cb"
   '';
 };
 in
 {
-  plutusPlaygroundImage = with plutus-playground; dockerTools.buildLayeredImage {
-    name = "plutus-playgrounds";
-    contents = [ client server-invoker defaultPlaygroundConfig ];
-    config = {
-      Cmd = [ "${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+  plutusPlaygroundImage =
+    let
+      client = plutus-playground.client;
+      server-invoker = plutus-playground.server-invoker;
+    in
+    dockerTools.buildLayeredImage {
+      name = "plutus-playgrounds";
+      contents = [ client server-invoker defaultPlaygroundConfig ];
+      config = {
+        Cmd = [ "${server-invoker}/bin/plutus-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+      };
     };
-  };
-  marlowePlaygroundImage = with marlowe-playground; dockerTools.buildLayeredImage {
-    name = "marlowe-playground";
-    contents = [ client server-invoker defaultPlaygroundConfig ];
-    config = {
-      Cmd = [ "${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+  marlowePlaygroundImage =
+    let
+      client = marlowe-playground.client;
+      server-invoker = marlowe-playground.server-invoker;
+    in
+    dockerTools.buildLayeredImage {
+      name = "marlowe-playground";
+      contents = [ client server-invoker defaultPlaygroundConfig ];
+      config = {
+        Cmd = [ "${server-invoker}/bin/marlowe-playground" "--config" "${defaultPlaygroundConfig}/etc/playground.yaml" "webserver" "-b" "0.0.0.0" "-p" "8080" "${client}" ];
+      };
     };
-  };
 
   development = dockerTools.buildLayeredImage {
     name = "plutus-development";

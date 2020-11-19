@@ -163,18 +163,20 @@ modal state = case state ^. _showModal of
 
   modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
 
-  modalContent GithubLogin = authButton state
+  modalContent (GithubLogin intendedAction) = authButton intendedAction state
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
   div [ classes [ ClassName "menu-bar" ] ]
-    [ menuButton (OpenModal NewProject) "New Project"
-    , gistModal (OpenModal OpenProject) "Open"
-    , menuButton (OpenModal OpenDemo) "Open Example"
-    , menuButton (OpenModal RenameProject) "Rename"
-    , gistModal (GistAction PublishGist) "Save"
-    , gistModal (OpenModal SaveProjectAs) "Save As..."
-    ]
+    $ [ menuButton (OpenModal NewProject) "New Project"
+      , gistModal (OpenModal OpenProject) "Open"
+      , menuButton (OpenModal OpenDemo) "Open Example"
+      ]
+    <> showInEditor
+        [ menuButton (OpenModal RenameProject) "Rename"
+        , gistModal (GistAction PublishGist) "Save"
+        , gistModal (OpenModal SaveProjectAs) "Save As..."
+        ]
   where
   menuButton action name =
     a [ onClick $ const $ Just action ]
@@ -185,7 +187,18 @@ menuBar state =
     if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then
       menuButton action name
     else
-      menuButton (OpenModal GithubLogin) name
+      menuButton (OpenModal $ GithubLogin action) name
+
+  -- Even if we end up writting more by selecting the cases in which the buttons should
+  -- appear, I prefer this to selecting which views we shouldn't show the buttons. The
+  -- reason is that if we add a new view, we don't need to adjust this.
+  -- TODO: Check if we should show the buttons for WalletEmulator and ActusBlocklyEditor
+  showInEditor buttons = case state ^. _view of
+    HaskellEditor -> buttons
+    JSEditor -> buttons
+    BlocklyEditor -> buttons
+    Simulation -> buttons
+    _ -> []
 
 marloweIcon :: forall p a. HTML p a
 marloweIcon =

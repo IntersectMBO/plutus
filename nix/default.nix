@@ -41,16 +41,16 @@ let
     config = haskellNix.config // config;
   };
 
-  pkgsMusl = import sources.nixpkgs {
+  plutusMusl = import sources.nixpkgs {
     system = "x86_64-linux";
     crossSystem = pkgs.lib.systems.examples.musl64;
     overlays = extraOverlays ++ overlays;
     config = haskellNix.config // config;
   };
 
-  pkgsLocal = import ./pkgs { inherit rev pkgs pkgsMusl checkMaterialization sources; };
+  plutus = import ./pkgs { inherit rev pkgs plutusMusl checkMaterialization sources; };
 
 in
 {
-  inherit pkgs pkgsMusl pkgsLocal;
+  inherit pkgs plutusMusl plutus;
 }

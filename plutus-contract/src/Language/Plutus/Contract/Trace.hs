@@ -169,7 +169,7 @@ instance Pretty EndpointError where
 
 toNotifyError :: ContractInstanceId -> EndpointError -> NotificationError
 toNotifyError i = \case
-    EndpointNotActive _ e -> EndpointNotAvailable i e
+    EndpointNotActive _ e       -> EndpointNotAvailable i e
     MoreThanOneEndpointActive e -> MoreThanOneEndpointAvailable i e
 
 -- | Error produced while running a trace. Either a contract-specific
@@ -307,9 +307,9 @@ addNamedEvent endpointName wallet event = do
                     == (endpointName, ())
             Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
     hks <- mapMaybe filterReq <$> getHooks @s @e @a wallet >>= \case
-            [] -> throwError $ EndpointNotActive Nothing $ EndpointDescription endpointName
+            []  -> throwError $ EndpointNotActive Nothing $ EndpointDescription endpointName
             [x] -> pure x
-            _ -> throwError $ MoreThanOneEndpointActive $ EndpointDescription endpointName
+            _   -> throwError $ MoreThanOneEndpointActive $ EndpointDescription endpointName
     addResponse @s @e @a wallet hks
 
 

@@ -28,18 +28,18 @@ showName n = T.pack $ case n of
 -- | Normalize a type, in particular getting rid of things like 'TH.ListT' in favour of applications of the actual name.
 normalizeType :: TH.Type -> TH.Type
 normalizeType = \case
-    TH.ForallT b c t -> TH.ForallT b c (normalizeType t)
-    TH.AppT t1 t2 -> TH.AppT (normalizeType t1) (normalizeType t2)
-    TH.SigT t _ -> normalizeType t
-    TH.InfixT t1 n t2 -> TH.ConT n `TH.AppT` normalizeType t1 `TH.AppT` normalizeType t2
-    TH.UInfixT t1 n t2 -> TH.ConT n `TH.AppT` normalizeType t1 `TH.AppT` normalizeType t2
-    TH.ParensT t -> normalizeType t
-    TH.ListT -> TH.ConT ''[]
-    TH.TupleT arity -> TH.ConT (TH.tupleTypeName arity)
+    TH.ForallT b c t       -> TH.ForallT b c (normalizeType t)
+    TH.AppT t1 t2          -> TH.AppT (normalizeType t1) (normalizeType t2)
+    TH.SigT t _            -> normalizeType t
+    TH.InfixT t1 n t2      -> TH.ConT n `TH.AppT` normalizeType t1 `TH.AppT` normalizeType t2
+    TH.UInfixT t1 n t2     -> TH.ConT n `TH.AppT` normalizeType t1 `TH.AppT` normalizeType t2
+    TH.ParensT t           -> normalizeType t
+    TH.ListT               -> TH.ConT ''[]
+    TH.TupleT arity        -> TH.ConT (TH.tupleTypeName arity)
     TH.UnboxedTupleT arity -> TH.ConT (TH.unboxedTupleTypeName arity)
-    TH.UnboxedSumT arity -> TH.ConT (TH.unboxedSumTypeName arity)
+    TH.UnboxedSumT arity   -> TH.ConT (TH.unboxedSumTypeName arity)
     -- some of this stuff probably should be normalized (like tuples) but I don't know quite what to do
-    t -> t
+    t                      -> t
 
 requireExtension :: TH.Extension -> TH.Q ()
 requireExtension ext = do

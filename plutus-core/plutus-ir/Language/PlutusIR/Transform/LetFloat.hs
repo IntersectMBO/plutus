@@ -11,8 +11,8 @@ import           Language.PlutusIR.MkPir                 hiding (error)
 import           Language.PlutusIR.Purity
 
 import           Control.Lens                            hiding (Strict)
-import           Control.Monad.Reader
 import           Control.Monad.RWS
+import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Language.PlutusCore                     as PLC
@@ -151,7 +151,7 @@ data Rank =
 -- It could also be made 'minBound' or 'Word', but this is conceptually clearer and allows us to use 'IM.IntMap's.
 depth :: Getting r Rank Int
 depth  = to $ \case
-  Top -> 0
+  Top     -> 0
   Dep d _ -> d
 
 instance Ord Rank where
@@ -408,7 +408,7 @@ p2Term pir fd =
   depGraph = AM.induceJust .
              AM.gmap (\case Variable u -> Just u;
                             -- we remove Root because we do not care about it
-                            Root -> Nothing)
+                            Root       -> Nothing)
              $ fst $ runTermDeps pir
 
   -- | the dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
@@ -532,8 +532,8 @@ floatTerm pir = p2Term pir
 -- See Note [Principal]. See also: 'bindingIds'.
 principal :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
             => Getting r (Binding tyname name uni fun a) PLC.Unique
-principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.theUnique
-                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.theUnique
+principal = to $ \case TermBind _ _ (VarDecl _ n _) _                            -> n ^. PLC.theUnique
+                       TypeBind _ (TyVarDecl _ n _) _                            -> n ^. PLC.theUnique
                        -- arbitrary: uses the type construtors' unique as the principal unique of this data binding group
                        DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.theUnique
 
@@ -577,7 +577,7 @@ splitSccs lets (scc:sccs) =
     -- CONS operator that skips consing empty-sets in the front
     (?:) :: S.Set a -> [NS.NESet a] -> [NS.NESet a]
     NS.IsNonEmpty n ?: l = n:l
-    _ ?: l = l -- id otherwise
+    _ ?: l               = l -- id otherwise
 
 -- | Returns if a foldable can be folded in 1 iteration, hence its length is 1.
 isSingleton :: NS.NESet a -> Bool

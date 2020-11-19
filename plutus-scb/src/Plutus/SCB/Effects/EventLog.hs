@@ -7,7 +7,7 @@
 
 module Plutus.SCB.Effects.EventLog where
 
-import           Control.Monad.Freer        (Eff, LastMember, Member, type (~>), interpret, sendM)
+import           Control.Monad.Freer        (Eff, LastMember, Member, interpret, sendM, type (~>))
 import           Control.Monad.Freer.Extras (monadStateToState)
 import           Control.Monad.Freer.Reader (Reader, ask)
 import           Control.Monad.Freer.State  (State)

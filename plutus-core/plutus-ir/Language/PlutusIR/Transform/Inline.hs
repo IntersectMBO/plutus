@@ -238,8 +238,8 @@ postInlineUnconditional s t = do
 -- | Is this a an utterly trivial term which might as well be inlined?
 trivialTerm :: Term tyname name uni fun a -> Bool
 trivialTerm = \case
-    Builtin{} -> True
-    Var{} -> True
+    Builtin{}  -> True
+    Var{}      -> True
     -- TODO: Should this depend on the size of the constant?
     Constant{} -> True
-    _ -> False
+    _          -> False

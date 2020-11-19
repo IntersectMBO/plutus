@@ -60,7 +60,7 @@ instance FromJSON OwnIdRequest where
     parseJSON =
         JSON.withText "OwnIdRequest" $ \case
             "WaitingForInstanceId" -> pure WaitingForInstanceId
-            other -> fail $ "Invalid constructor: " <> Text.unpack other
+            other                  -> fail $ "Invalid constructor: " <> Text.unpack other
 
 deriving via (PrettyShow OwnIdRequest) instance Pretty OwnIdRequest
 

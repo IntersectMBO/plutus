@@ -8,7 +8,7 @@ module Cardano.Metadata.API
 
 import           Cardano.Metadata.Types (JSONEncoding, Property, PropertyKey, Query, QueryResult, Subject,
                                          SubjectProperties)
-import           Servant.API            ((:<|>), (:>), Capture, Get, JSON, Post, ReqBody)
+import           Servant.API            (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 
 type API (encoding :: JSONEncoding)
      = "metadata" :> (Capture "subject" Subject :> ("properties" :> Get '[ JSON] (SubjectProperties encoding)

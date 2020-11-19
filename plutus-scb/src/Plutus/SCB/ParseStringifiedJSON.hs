@@ -32,7 +32,7 @@ data UnStringifyJSONLog =
 instance Pretty UnStringifyJSONLog where
     pretty = \case
         ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
+        ParseStringifiedJSONFailed  -> "parseStringifiedJSON: Failed, returning original string"
         ParseStringifiedJSONSuccess -> "parseStringifiedJSON: Succeeded"
 
 parseStringifiedJSON ::

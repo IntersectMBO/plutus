@@ -51,8 +51,8 @@ instance Applicative Maybe where
     {-# INLINABLE pure #-}
     pure = Just
     {-# INLINABLE (<*>) #-}
-    Nothing <*> _ = Nothing
-    _ <*> Nothing = Nothing
+    Nothing <*> _     = Nothing
+    _ <*> Nothing     = Nothing
     Just f <*> Just x = Just (f x)
 
 instance Applicative (Either a) where

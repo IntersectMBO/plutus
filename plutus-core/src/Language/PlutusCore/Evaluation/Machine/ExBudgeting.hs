@@ -115,8 +115,8 @@ import           Barbies
 import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
-import           Data.Hashable
 import           Data.HashMap.Monoidal
+import           Data.Hashable
 import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic

@@ -21,8 +21,7 @@ import           Control.Monad.Freer.State
 import           Control.Monad.Freer.Writer
 import qualified Control.Monad.State        as S
 import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.List                  (partition)
-import           Data.List                  ((\\))
+import           Data.List                  (partition, (\\))
 import           Data.Maybe                 (isNothing)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable           (for)
@@ -43,9 +42,9 @@ data ChainEvent =
 
 instance Pretty ChainEvent where
     pretty = \case
-        TxnValidate t -> "TxnValidate" <+> pretty t
+        TxnValidate t         -> "TxnValidate" <+> pretty t
         TxnValidationFail t e -> "TxnValidationFail" <+> pretty t <> colon <+> pretty e
-        SlotAdd sl -> "SlotAdd" <+> pretty sl
+        SlotAdd sl            -> "SlotAdd" <+> pretty sl
 
 -- | A pool of transactions which have yet to be validated.
 type TxPool = [Tx]
@@ -100,7 +99,7 @@ handleControlChain = interpret $ \case
 
 handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
 handleChain = interpret $ \case
-    QueueTx tx -> modify $ over txPool (addTxToPool tx)
+    QueueTx tx     -> modify $ over txPool (addTxToPool tx)
     GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.

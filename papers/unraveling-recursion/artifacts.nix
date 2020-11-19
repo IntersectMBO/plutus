@@ -1,8 +1,6 @@
-{ pkgs ? (import ../../lib.nix { }).pkgs
-,
-}:
+{ runCommand, zip }:
 
-pkgs.runCommand "FIR-compiler" { buildInputs = [ pkgs.zip ]; src = ./code; } ''
+runCommand "FIR-compiler" { buildInputs = [ zip ]; src = ./code; } ''
   mkdir -p $out
   cd $src
   zip -r $out/compiler.zip .

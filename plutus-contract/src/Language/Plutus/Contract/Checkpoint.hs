@@ -104,13 +104,13 @@ data CheckpointLogMsg =
 instance Pretty CheckpointLogMsg where
     pretty = \case
         LogFoundValueRestoringKey k -> "Found a value, restoring previous key" <+> pretty k
-        LogDecodingErrorAtKey k -> "Decoding error at key" <+> pretty k
-        LogNoValueForKey k -> "No value for key" <+> pretty k <> ". The action will be once."
-        LogDoCheckpoint -> "doCheckpoint"
-        LogAllocateKey -> "allocateKey"
-        LogRetrieve k -> "retrieve" <+> pretty k
-        LogStore k1 k2 -> "Store; key1:" <+> pretty k1 <> "; key2:" <+> pretty k2
-        LogKeyUpdate k1 k2 -> "Key update; key then:" <+> pretty k1 <> "; key now:" <+> pretty k2
+        LogDecodingErrorAtKey k     -> "Decoding error at key" <+> pretty k
+        LogNoValueForKey k          -> "No value for key" <+> pretty k <> ". The action will be once."
+        LogDoCheckpoint             -> "doCheckpoint"
+        LogAllocateKey              -> "allocateKey"
+        LogRetrieve k               -> "retrieve" <+> pretty k
+        LogStore k1 k2              -> "Store; key1:" <+> pretty k1 <> "; key2:" <+> pretty k2
+        LogKeyUpdate k1 k2          -> "Key update; key then:" <+> pretty k1 <> "; key now:" <+> pretty k2
 
 {-| Insert a new value into the checkpoint store. The first 'CheckpointKey' is
     the checkpoint key *before* running the checkpointed action, the second

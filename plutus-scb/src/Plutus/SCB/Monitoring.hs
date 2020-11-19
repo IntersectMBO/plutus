@@ -97,13 +97,13 @@ handleLogMsgTraceMap f t = handleLogMsgTrace (contramap (second (fmap f)) t)
 
 toSeverity :: L.LogLevel -> Severity
 toSeverity = \case
-  L.Debug -> Debug
-  L.Info  -> Info
-  L.Notice -> Notice
-  L.Warning -> Warning
-  L.Error -> Error
-  L.Critical -> Critical
-  L.Alert -> Alert
+  L.Debug     -> Debug
+  L.Info      -> Info
+  L.Notice    -> Notice
+  L.Warning   -> Warning
+  L.Error     -> Error
+  L.Critical  -> Critical
+  L.Alert     -> Alert
   L.Emergency -> Emergency
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'

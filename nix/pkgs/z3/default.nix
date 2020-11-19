@@ -1,6 +1,5 @@
 # TODO: We will move this into the upstream nixpkgs (iohk and nix organizations) and then we can remove it
 { lib, stdenv, fetchFromGitHub, python, fixDarwinDylibNames, staticbin ? false }:
-
 let
   extraFlags = lib.optionalString staticbin "--staticbin";
 in

@@ -13,7 +13,8 @@ Once created, you need to generate a new client secret. With these information y
 export GITHUB_CLIENT_ID= <client id>
 export GITHUB_CLIENT_SECRET= <client secret>
 export JWT_SIGNATURE= <random string>
-export GITHUB_REDIRECT_URL=https://localhost:8009
+export FRONTEND_URL=https://localhost:8009
+export GITHUB_CALLBACK_PATH="/#/gh-oauth-cb"
 ```
 
 The random string for `JWT_SIGNATURE` can be generated with the following command

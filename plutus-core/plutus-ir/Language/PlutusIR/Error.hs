@@ -84,6 +84,6 @@ instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, P
      prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
-        PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
-        PLCTypeError e -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
-        PIRTypeError e -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+        PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
+        PLCTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+        PIRTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]

@@ -133,7 +133,7 @@ scriptSize (Script s) = UPLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: CompiledCode PLC.DefaultUni PLC.DefaultFun a -> Script
+fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
 fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun () -> Script
@@ -185,13 +185,13 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script

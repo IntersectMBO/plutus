@@ -79,29 +79,29 @@ tests = testNested "TH" [
     , nestedGoldenVsDoc "someData" (pretty $ show someData)
   ]
 
-simple :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Bool -> Integer)
+simple :: CompiledCode (Bool -> Integer)
 simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
-powerPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun (Integer -> Integer)
+powerPlc :: CompiledCode (Integer -> Integer)
 powerPlc = $$(compile [|| $$(power (4::Integer)) ||])
 
-andPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun Bool
+andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
-allPlc :: CompiledCode PLC.DefaultUni PLC.DefaultFun Bool
+allPlc :: CompiledCode Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
-convertString :: CompiledCode PLC.DefaultUni PLC.DefaultFun Builtins.String
+convertString :: CompiledCode Builtins.String
 convertString = $$(compile [|| "test" ||])
 
-traceDirect :: CompiledCode PLC.DefaultUni PLC.DefaultFun ()
+traceDirect :: CompiledCode ()
 traceDirect = $$(compile [|| Builtins.trace "test" ||])
 
-tracePrelude :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
+tracePrelude :: CompiledCode Integer
 tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])
 
-traceRepeatedly :: CompiledCode PLC.DefaultUni PLC.DefaultFun Integer
+traceRepeatedly :: CompiledCode Integer
 traceRepeatedly = $$(compile
      [||
                let i1 = trace "Making my first int" (1::Integer)

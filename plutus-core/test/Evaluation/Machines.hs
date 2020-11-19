@@ -17,8 +17,8 @@ import           Data.Text.Prettyprint.Doc.Render.Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
@@ -28,8 +28,8 @@ import           Language.PlutusCore.Examples.Everything          (examples)
 import           Language.PlutusCore.StdLib.Everything            (stdLib)
 
 import           Test.Tasty
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 testMachine
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc termErr)

@@ -29,6 +29,8 @@ module Language.PlutusTx.Prelude (
     module Bool,
     -- * Int operators
     divide,
+    modulo,
+    quotient,
     remainder,
     -- * Tuples
     fst,
@@ -54,6 +56,7 @@ module Language.PlutusTx.Prelude (
     (%),
     fromInteger,
     round,
+    divMod,
     quotRem,
     module Prelude
     ) where
@@ -78,10 +81,10 @@ import           Language.PlutusTx.Semigroup   as Semigroup
 import           Language.PlutusTx.String      as String
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
                                                            Num (..), Ord (..), Rational, Semigroup (..), all, any,
-                                                           const, elem, error, filter, foldMap, foldl, foldr, fst, id,
-                                                           length, map, max, maybe, min, not, null, quotRem, reverse,
-                                                           round, sequence, snd, traverse, zip, (!!), ($), (&&), (++),
-                                                           (<$>), (||))
+                                                           const, divMod, elem, error, filter, foldMap, foldl, foldr,
+                                                           fst, id, length, map, max, maybe, min, not, null, quotRem,
+                                                           reverse, round, sequence, snd, traverse, zip, (!!), ($),
+                                                           (&&), (++), (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -133,19 +136,38 @@ traceIfTrue :: Builtins.String -> Bool -> Bool
 traceIfTrue str a = if a then trace str True else False
 
 {-# INLINABLE divide #-}
--- | Integer division
+-- | Integer division, rounding downwards
 --
---   >>> divide 3 2
---   1
+--   >>> divide (-41) 5
+--   -9
 --
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 
-{-# INLINABLE remainder #-}
--- | Remainder (of integer division)
+{-# INLINABLE modulo #-}
+-- | Integer remainder, always positive for a positive divisor
 --
---   >>> remainder 3 2
---   1
+--   >>> modulo (-41) 5
+--   4
+--
+modulo :: Integer -> Integer -> Integer
+modulo = Builtins.modInteger
+
+{-# INLINABLE quotient #-}
+-- | Integer division, rouding towards zero
+--
+--   >>> quotient (-41) 5
+--   -8
+--
+
+quotient :: Integer -> Integer -> Integer
+quotient = Builtins.quotientInteger
+
+{-# INLINABLE remainder #-}
+-- | Integer remainder, same sign as dividend
+--
+--   >>> remainder (-41) 5
+--   -1
 --
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger

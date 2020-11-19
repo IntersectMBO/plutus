@@ -6,7 +6,7 @@ module Cardano.ChainIndex.API where
 import           Ledger            (Address, TxId)
 import           Ledger.AddressMap (AddressMap)
 import           Ledger.Blockchain (Block)
-import           Servant.API       ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
+import           Servant.API       (Get, JSON, NoContent, Post, ReqBody, (:<|>), (:>))
 import           Wallet.Effects    (AddressChangeRequest, AddressChangeResponse)
 
 type API

@@ -63,8 +63,8 @@ data ContractTestMsg =
 instance Pretty ContractTestMsg where
     pretty = \case
         DoContractUpdate vl -> "doContractUpdate:" <+> pretty vl
-        Request rq -> "Request:" <+> fmap absurd rq
-        Response rsp -> "Response:" <+> pretty rsp
+        Request rq          -> "Request:" <+> fmap absurd rq
+        Response rsp        -> "Response:" <+> pretty rsp
 
 instance Pretty TestContracts where
     pretty = viaShow

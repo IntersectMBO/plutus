@@ -10,8 +10,8 @@ module Language.Marlowe.Pretty where
 import qualified Data.ByteString         as BS
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
-import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
-                                          Rep, S, U1, conName, from)
+import           GHC.Generics            (C, Constructor, D, Generic, K1 (K1), M1 (M1), Rep, S, U1, conName, from,
+                                          (:*:) ((:*:)), (:+:) (L1, R1))
 import qualified Language.PlutusTx.Ratio as P
 import           Ledger                  (PubKeyHash (..), Slot (..))
 import           Ledger.Ada              (Ada, getLovelace)

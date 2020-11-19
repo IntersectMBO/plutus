@@ -163,7 +163,7 @@ liftPir uni ty = TH.classPred ''Lift [uni, ty]
 toConstraint :: TH.Type -> Dep -> TH.Pred
 toConstraint uni = \case
     TypeableDep n -> typeablePir uni n
-    LiftDep ty -> liftPir uni ty
+    LiftDep ty    -> liftPir uni ty
 
 {- Note [Closed constraints]
 There is no point adding constraints that are "closed", i.e. don't mention any of the
@@ -201,9 +201,9 @@ tvNameAndKind = \case
 -- Note: we can actually do this entirely at TH-time, which is nice
 compileKind :: TH.Kind -> THCompile (Kind ())
 compileKind = \case
-    TH.StarT -> pure $ Type ()
+    TH.StarT                          -> pure $ Type ()
     TH.AppT (TH.AppT TH.ArrowT k1) k2 -> KindArrow () <$> compileKind k1 <*> compileKind k2
-    k -> dieTH $ "Unsupported kind: " ++ show k
+    k                                 -> dieTH $ "Unsupported kind: " ++ show k
 
 compileType :: TH.Type -> THCompile (TH.TExpQ (RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())))
 compileType = \case

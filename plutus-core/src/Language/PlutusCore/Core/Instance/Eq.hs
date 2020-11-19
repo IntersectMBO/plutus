@@ -27,8 +27,8 @@ import           Language.PlutusCore.Universe
 instance Eq (Kind ann) where
     Type _                == Type _                = True
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
-    Type{}      == _ = False
-    KindArrow{} == _ = False
+    Type{}      == _                               = False
+    KindArrow{} == _                               = False
 
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]

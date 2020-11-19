@@ -175,35 +175,35 @@ balancesChartOptions :: ChartistOptions
 balancesChartOptions =
   { seriesBarDistance: 45
   , chartPadding:
-    { top: 30
-    , bottom: 30
-    , right: 30
-    , left: 30
-    }
+      { top: 30
+      , bottom: 30
+      , right: 30
+      , left: 30
+      }
   , axisY: Chartist.intAutoScaleAxis
   , plugins:
-    [ Chartist.tooltipPlugin
-    , Chartist.axisTitlePlugin
-        { axisX:
-          { axisTitle: "Wallet"
-          , axisClass: "ct-x-axis-title"
-          , offset:
-            { x: 0
-            , y: 40
-            }
-          , textAnchor: "middle"
-          , flipTitle: false
+      [ Chartist.tooltipPlugin
+      , Chartist.axisTitlePlugin
+          { axisX:
+              { axisTitle: "Wallet"
+              , axisClass: "ct-x-axis-title"
+              , offset:
+                  { x: 0
+                  , y: 40
+                  }
+              , textAnchor: "middle"
+              , flipTitle: false
+              }
+          , axisY:
+              { axisTitle: "Final Balance"
+              , axisClass: "ct-y-axis-title"
+              , offset:
+                  { x: 0
+                  , y: 30
+                  }
+              , textAnchor: "middle"
+              , flipTitle: true
+              }
           }
-        , axisY:
-          { axisTitle: "Final Balance"
-          , axisClass: "ct-y-axis-title"
-          , offset:
-            { x: 0
-            , y: 30
-            }
-          , textAnchor: "middle"
-          , flipTitle: true
-          }
-        }
-    ]
+      ]
   }

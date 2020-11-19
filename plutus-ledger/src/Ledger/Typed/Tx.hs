@@ -157,13 +157,13 @@ data ConnectionError =
 instance Pretty ConnectionError where
     pretty = \case
         WrongValidatorAddress a1 a2 -> "Wrong validator address. Expected:" <+> pretty a1 <+> "Actual:" <+> pretty a2
-        WrongOutType t -> "Wrong out type:" <+> viaShow t
-        WrongInType t -> "Wrong in type:" <+> viaShow t
-        WrongValidatorType t -> "Wrong validator type:" <+> pretty t
-        WrongRedeemerType -> "Wrong redeemer type"
-        WrongDatumType -> "Wrong datum type"
-        NoDatum t d -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
-        UnknownRef -> "Unknown reference"
+        WrongOutType t              -> "Wrong out type:" <+> viaShow t
+        WrongInType t               -> "Wrong in type:" <+> viaShow t
+        WrongValidatorType t        -> "Wrong validator type:" <+> pretty t
+        WrongRedeemerType           -> "Wrong redeemer type"
+        WrongDatumType              -> "Wrong datum type"
+        NoDatum t d                 -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
+        UnknownRef                  -> "Unknown reference"
 
 -- | Checks that the given validator hash is consistent with the actual validator.
 checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()

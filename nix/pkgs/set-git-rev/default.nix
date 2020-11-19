@@ -1,7 +1,6 @@
 { pkgs, ghcWithPackages, git-rev, stdenv }:
 
 with pkgs.lib;
-
 let
   # Wraps a haskell package derivation so that it has all dynamic
   # linking, development and doc files removed.

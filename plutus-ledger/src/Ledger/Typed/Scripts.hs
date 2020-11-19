@@ -27,8 +27,6 @@ module Ledger.Typed.Scripts(
     , Any
     ) where
 
-import qualified Language.PlutusCore             as PLC
-
 import           Language.PlutusTx
 
 import qualified Ledger.Address                  as Addr
@@ -54,9 +52,9 @@ data ScriptInstance (a :: Type) =
 
 -- | The 'ScriptInstance' of a validator script and its wrapper.
 validator ::
-    CompiledCode PLC.DefaultUni PLC.DefaultFun (ValidatorType a)
+    CompiledCode (ValidatorType a)
     -- ^ Validator script (compiled)
-    -> CompiledCode PLC.DefaultUni PLC.DefaultFun (ValidatorType a -> WrappedValidatorType)
+    -> CompiledCode (ValidatorType a -> WrappedValidatorType)
     -- ^ A wrapper for the compiled validator
     -> ScriptInstance a
 validator vc wrapper =

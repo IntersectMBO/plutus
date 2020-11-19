@@ -1,6 +1,6 @@
 -- | @boolean@ and related functions.
 
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -12,12 +12,12 @@ module Language.PlutusCore.StdLib.Data.Bool
     , ifThenElse
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Unit
 

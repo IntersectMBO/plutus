@@ -4,18 +4,16 @@
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
 , packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
-, pkgs ? packages.pkgs
-, localPkgs ? packages.pkgsLocal
 }:
 let
+  inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (localPkgs) easyPS haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks purty;
+  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
+  inherit (plutus) agdaWithStdlib;
+  inherit (plutus) purty purs spargo;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
-
-  # Called from Cabal to generate the Haskell source for the metatheory package
-  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
 
   # Configure project pre-commit hooks
   pre-commit-check = nix-pre-commit-hooks.run {
@@ -43,7 +41,6 @@ let
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
     # pkgs.sqlite-analyzer -- Broken on 20.03, needs a backport
-    aws_shell
     awscli
     cacert
     ghcid
@@ -62,23 +59,22 @@ let
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
-  localInputs = (with localPkgs; [
+  localInputs = (with plutus; [
     cabal-install
     fixPurty
     fixStylishHaskell
     haskell-language-server
     hie-bios
     hlint
-    easyPS.purs
-    easyPS.purty
-    easyPS.spago
+    purs
+    purty
+    spago
     stylish-haskell
     updateClientDeps
     updateMetadataSamples
   ]);
 
 in
-
 haskell.packages.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
 

@@ -1304,9 +1304,9 @@ instance ToJSON TransactionWarning where
 
 instance Eq Party where
     {-# INLINABLE (==) #-}
-    (PK p1) == (PK p2) = p1 == p2
+    (PK p1) == (PK p2)     = p1 == p2
     (Role r1) == (Role r2) = r1 == r2
-    _ == _ = False
+    _ == _                 = False
 
 
 instance Eq ChoiceId where
@@ -1328,8 +1328,8 @@ instance Pretty ValueId where
 instance Eq Payee where
     {-# INLINABLE (==) #-}
     Account acc1 == Account acc2 = acc1 == acc2
-    Party p1 == Party p2 = p1 == p2
-    _ == _ = False
+    Party p1 == Party p2         = p1 == p2
+    _ == _                       = False
 
 
 instance Eq Payment where
@@ -1351,9 +1351,9 @@ instance Eq ReduceWarning where
 
 instance Eq ReduceEffect where
     {-# INLINABLE (==) #-}
-    ReduceNoPayment == ReduceNoPayment = True
+    ReduceNoPayment == ReduceNoPayment           = True
     ReduceWithPayment p1 == ReduceWithPayment p2 = p1 == p2
-    _ == _ = False
+    _ == _                                       = False
 
 
 instance Eq a => Eq (Value a) where
@@ -1375,18 +1375,18 @@ instance Eq a => Eq (Value a) where
 
 instance Eq Observation where
     {-# INLINABLE (==) #-}
-    AndObs o1l o2l == AndObs o1r o2r = o1l == o1r && o2l == o2r
-    OrObs  o1l o2l == OrObs  o1r o2r = o1l == o1r && o2l == o2r
-    NotObs ol == NotObs or = ol == or
+    AndObs o1l o2l == AndObs o1r o2r           = o1l == o1r && o2l == o2r
+    OrObs  o1l o2l == OrObs  o1r o2r           = o1l == o1r && o2l == o2r
+    NotObs ol == NotObs or                     = ol == or
     ChoseSomething cid1 == ChoseSomething cid2 = cid1 == cid2
-    ValueGE v1l v2l == ValueGE v1r v2r = v1l == v1r && v2l == v2r
-    ValueGT v1l v2l == ValueGT v1r v2r = v1l == v1r && v2l == v2r
-    ValueLT v1l v2l == ValueLT v1r v2r = v1l == v1r && v2l == v2r
-    ValueLE v1l v2l == ValueLE v1r v2r = v1l == v1r && v2l == v2r
-    ValueEQ v1l v2l == ValueEQ v1r v2r = v1l == v1r && v2l == v2r
-    TrueObs  == TrueObs  = True
-    FalseObs == FalseObs = True
-    _ == _ = False
+    ValueGE v1l v2l == ValueGE v1r v2r         = v1l == v1r && v2l == v2r
+    ValueGT v1l v2l == ValueGT v1r v2r         = v1l == v1r && v2l == v2r
+    ValueLT v1l v2l == ValueLT v1r v2r         = v1l == v1r && v2l == v2r
+    ValueLE v1l v2l == ValueLE v1r v2r         = v1l == v1r && v2l == v2r
+    ValueEQ v1l v2l == ValueEQ v1r v2r         = v1l == v1r && v2l == v2r
+    TrueObs  == TrueObs                        = True
+    FalseObs == FalseObs                       = True
+    _ == _                                     = False
 
 
 instance Eq Action where

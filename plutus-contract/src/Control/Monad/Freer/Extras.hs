@@ -250,7 +250,7 @@ raiseUnderN = loop where
 -- | Handle a 'State' effect in terms of a "larger" 'State' effect from which we have a lens.
 handleZoomedState :: Member (State s2) effs => Lens' s2 s1 -> (State s1 ~> Eff effs)
 handleZoomedState l = \case
-    Get -> view l <$> get
+    Get   -> view l <$> get
     Put v -> modify (set l v)
 
 -- | Handle a 'Writer' effect in terms of a "larger" 'Writer' effect from which we have a review.
@@ -281,7 +281,7 @@ stateToMonadState
     :: (MTL.MonadState s m)
     => (State s ~> m)
 stateToMonadState = \case
-    Get -> MTL.get
+    Get   -> MTL.get
     Put v -> MTL.put v
 
 monadStateToState

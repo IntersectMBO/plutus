@@ -19,7 +19,7 @@ import           Language.PlutusTx.Lift.Class
 import           Language.PlutusIR
 import           Language.PlutusIR.MkPir
 
-import qualified Data.ByteString as BS
+import qualified Data.ByteString              as BS
 import           Data.Proxy
 
 -- Derived instances

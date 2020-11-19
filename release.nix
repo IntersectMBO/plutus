@@ -2,7 +2,6 @@
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
 , plutus ? null
 }:
-
 let
   # The revision passed in by Hydra, if there is one
   rev = if builtins.isNull plutus then null else plutus.rev;
@@ -35,7 +34,7 @@ lib.fix (jobsets: ciJobsets // {
         ++ (allJobs [ "darwin" "haskell" ] jobsets)
         # Various things that mostly just need to build on linux
         ++ (allJobs [ "linux" "docs" ] jobsets)
-        ++ (allJobs [ "linux" "papers" ] jobsets)
+        ++ (allJobs [ "linux" "docs" "papers" ] jobsets)
         ++ (allJobs [ "linux" "plutus-playground" ] jobsets)
         ++ (allJobs [ "linux" "marlowe-playground" ] jobsets)
         ++ (allJobs [ "linux" "plutus-scb" ] jobsets)

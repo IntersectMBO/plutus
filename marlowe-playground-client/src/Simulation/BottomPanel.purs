@@ -10,8 +10,9 @@ import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
 import Data.Lens (_Just, has, only, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
-import Data.List (List, toUnfoldable)
+import Data.List (List, null, toUnfoldable)
 import Data.List as List
+import Data.List.NonEmpty (toList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Newtype (unwrap)
@@ -21,7 +22,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, showPrettyToken, timeouts)
@@ -486,9 +487,20 @@ analysisResultPane state =
         InProgress
           { numSubproblems: totalSteps
         , numSolvedSubproblems: doneSteps
+        , unreachableSubcontracts: foundUnreachableSubcontracts
         } ->
           explanation
-            [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+            ( [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+                <> if null foundUnreachableSubcontracts then
+                    [ br_, text "No unreachable subcontracts found so far." ]
+                  else
+                    ( [ br_, text "Found the following unreachable subcontracts so far:" ]
+                        <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                              contractPath <- toUnfoldable foundUnreachableSubcontracts
+                              pure (li_ [ text (show contractPath) ])
+                          ]
+                    )
+            )
         ReachabilityFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
@@ -499,12 +511,16 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        UnreachableSubcontract contractPath ->
+        UnreachableSubcontract contractPaths ->
           explanation
-            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
-            , text "Static analysis found the following subcontract that is unreachable:"
-            , text (show contractPath)
-            ]
+            ( [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
+              , text "Static analysis found the following subcontracts that are unreachable:"
+              ]
+                <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                      contractPath <- toUnfoldable (toList contractPaths)
+                      pure (li_ [ text (show contractPath) ])
+                  ]
+            )
         AllReachable ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]

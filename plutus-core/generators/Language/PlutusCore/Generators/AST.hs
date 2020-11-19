@@ -54,6 +54,9 @@ genVersion = Version () <$> int' <*> int' <*> int' where
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
+-- We do not attempt not to generate reserved words such as @all@ or @abs@ as the classic syntax
+-- parsers (both PLC and PIR ones) can handle names of variables clashing with reserved words.
+-- In the readable syntax that would be troubling, though, but we don't have a parser for that anyway.
 genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)

@@ -66,34 +66,34 @@ values :: Array Value
 values =
   [ Value
       { getValue:
-        AssocMap.fromTuples
-          [ currencies
-              /\ AssocMap.fromTuples
-                  [ usdToken /\ BigInteger.fromInt 10
-                  , eurToken /\ BigInteger.fromInt 20
-                  ]
-          ]
+          AssocMap.fromTuples
+            [ currencies
+                /\ AssocMap.fromTuples
+                    [ usdToken /\ BigInteger.fromInt 10
+                    , eurToken /\ BigInteger.fromInt 20
+                    ]
+            ]
       }
   , Value
       { getValue:
-        AssocMap.fromTuples
-          [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 30 ]
-          , currencies
-              /\ AssocMap.fromTuples
-                  [ usdToken /\ BigInteger.fromInt 40
-                  , eurToken /\ BigInteger.fromInt 50
-                  ]
-          ]
+          AssocMap.fromTuples
+            [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 30 ]
+            , currencies
+                /\ AssocMap.fromTuples
+                    [ usdToken /\ BigInteger.fromInt 40
+                    , eurToken /\ BigInteger.fromInt 50
+                    ]
+            ]
       }
   , Value
       { getValue:
-        AssocMap.fromTuples
-          [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 60 ]
-          , currencies
-              /\ AssocMap.fromTuples
-                  [ usdToken /\ BigInteger.fromInt 70
-                  ]
-          ]
+          AssocMap.fromTuples
+            [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 60 ]
+            , currencies
+                /\ AssocMap.fromTuples
+                    [ usdToken /\ BigInteger.fromInt 70
+                    ]
+            ]
       }
   ]
 

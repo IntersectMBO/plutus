@@ -82,10 +82,10 @@ data WalletEvent =
 
 instance Pretty WalletEvent where
     pretty = \case
-        GenericLog msg -> pretty msg
-        CheckpointLog msg -> pretty msg
+        GenericLog msg        -> pretty msg
+        CheckpointLog msg     -> pretty msg
         RequestHandlerLog msg -> pretty msg
-        TxBalanceLog msg -> pretty msg
+        TxBalanceLog msg      -> pretty msg
 
 makePrisms ''WalletEvent
 

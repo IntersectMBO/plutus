@@ -9,7 +9,7 @@ import           Data.Proxy               (Proxy (Proxy))
 import           Network.Wai.Handler.Warp as Warp
 import           Playground.Server        (initializeContext)
 import qualified Playground.Server        as Server
-import           Servant                  ((:<|>) ((:<|>)), serve)
+import           Servant                  (serve, (:<|>) ((:<|>)))
 import qualified Webghc.Server            as Webghc
 
 type API = Server.Web :<|> Webghc.API

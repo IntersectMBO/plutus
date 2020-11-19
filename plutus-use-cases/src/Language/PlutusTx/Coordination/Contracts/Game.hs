@@ -1,23 +1,23 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes        #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE MonoLocalBinds             #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE PartialTypeSignatures      #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | A guessing game
 module Language.PlutusTx.Coordination.Contracts.Game
@@ -40,30 +40,25 @@ module Language.PlutusTx.Coordination.Contracts.Game
     , lockTrace
     ) where
 
-import Control.Monad (void)
-import Data.Aeson (FromJSON, ToJSON)
-import GHC.Generics (Generic)
-import IOTS (IotsType)
-import Language.Plutus.Contract
-import Language.Plutus.Contract.Schema ()
-import Language.Plutus.Contract.Trace (ContractTrace)
-import qualified Language.Plutus.Contract.Trace as Trace
-import qualified Language.PlutusTx as PlutusTx
-import Language.PlutusTx.Prelude
-import qualified Ledger.Constraints as Constraints
-import qualified Ledger.Typed.Scripts as Scripts
-import Ledger
-    ( Address
-    , ValidatorCtx
-    , Validator
-    , Value
-    )
-import Schema (ToSchema, ToArgument)
+import           Control.Monad                   (void)
+import           Data.Aeson                      (FromJSON, ToJSON)
+import           GHC.Generics                    (Generic)
+import           IOTS                            (IotsType)
+import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Schema ()
+import           Language.Plutus.Contract.Trace  (ContractTrace)
+import qualified Language.Plutus.Contract.Trace  as Trace
+import qualified Language.PlutusTx               as PlutusTx
+import           Language.PlutusTx.Prelude
+import           Ledger                          (Address, Validator, ValidatorCtx, Value)
+import qualified Ledger.Constraints              as Constraints
+import qualified Ledger.Typed.Scripts            as Scripts
+import           Schema                          (ToArgument, ToSchema)
 
-import qualified Ledger as Ledger
-import qualified Ledger.Ada as Ada
+import qualified Ledger                          as Ledger
+import qualified Ledger.Ada                      as Ada
 
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8           as C
 import qualified Prelude
 
 newtype HashedString = HashedString ByteString deriving newtype PlutusTx.IsData

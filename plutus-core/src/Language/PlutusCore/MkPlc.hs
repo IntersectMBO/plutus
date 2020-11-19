@@ -43,13 +43,13 @@ module Language.PlutusCore.MkPlc
     , mkIterKindArrow
     ) where
 
-import           Prelude                               hiding (error)
+import           Prelude                      hiding (error)
 
-import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Universe
 
-import           Data.List                             (foldl')
-import           GHC.Generics                          (Generic)
+import           Data.List                    (foldl')
+import           GHC.Generics                 (Generic)
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term tyname name uni fun | term -> tyname name uni fun where

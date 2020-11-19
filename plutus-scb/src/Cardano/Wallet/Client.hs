@@ -55,8 +55,8 @@ handleWalletClient clientEnv =
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in
       interpret $ \case
-        SubmitTxn t -> runClient (submitTxn t)
-        OwnPubKey -> runClient ownPublicKey
+        SubmitTxn t                    -> runClient (submitTxn t)
+        OwnPubKey                      -> runClient ownPublicKey
         UpdatePaymentWithChange vl pmt -> runClient $ updatePaymentWithChange (vl, pmt)
-        WalletSlot -> runClient walletSlot
-        OwnOutputs -> runClient ownOutputs
+        WalletSlot                     -> runClient walletSlot
+        OwnOutputs                     -> runClient ownOutputs

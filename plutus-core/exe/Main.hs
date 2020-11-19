@@ -6,6 +6,7 @@
 module Main (main) where
 
 import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.CBOR                          as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
 import qualified Language.PlutusCore.Generators                    as Gen
@@ -365,10 +366,11 @@ getBinaryInput (FileInput file) = BSL.readFile file
 loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
-         (TypedPLC,   Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+         (TypedPLC,   Named)    -> getBinaryInput inp <&> PLC.deserialiseRestoringUnitsOrFail >>= handleResult TypedProgram
+         (UntypedPLC, Named)    -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>= handleResult UntypedProgram
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
-         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>=
+                                   mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
@@ -385,7 +387,7 @@ loadASTfromFlat language flatMode inp =
          (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> unflat >>= mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
-               Left e -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
+               Left e  -> hPutStrLn stderr ("Flat deserialisation failure:" ++ show e)  >> exitFailure
                Right r -> return $ wrapper r
 
 
@@ -402,16 +404,16 @@ getProgram language fmt inp =
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
----------------- Serialise an program using CBOR ----------------
+---------------- Serialise a program using CBOR ----------------
 
-serialiseProgramCBOR :: Serialise a => Program a -> BSL.ByteString
-serialiseProgramCBOR (TypedProgram p)   = serialise p
-serialiseProgramCBOR (UntypedProgram p) = serialise p
+serialiseProgramCBOR :: Program () -> BSL.ByteString
+serialiseProgramCBOR (TypedProgram p)   = PLC.serialiseOmittingUnits p
+serialiseProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits p
 
 -- | Convert names to de Bruijn indices and then serialise
-serialiseDbProgramCBOR :: Serialise a => Program a -> IO (BSL.ByteString)
+serialiseDbProgramCBOR :: Program () -> IO (BSL.ByteString)
 serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
-serialiseDbProgramCBOR (UntypedProgram p) = serialise <$> toDeBruijn p
+serialiseDbProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits <$> toDeBruijn p
 
 writeCBOR :: Output -> AstNameType -> Program a -> IO ()
 writeCBOR outp cborMode prog = do
@@ -598,7 +600,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg
-    Flat flatMode -> writeCBOR outp flatMode untypedProg
+    Flat flatMode -> writeFlat outp flatMode untypedProg
 
 
 ---------------- Evaluation ----------------

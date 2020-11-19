@@ -52,4 +52,4 @@ injectWith' postfix toInj orig = handle (pure . toLeft) (toRight <$> evaluateNF 
 parseArgs :: IO (ByteString, [FilePath])
 parseArgs = getArgs >>= \case
   (rev:prog:progs) -> pure (B8.pack rev, (prog:progs))
-  _ -> die "usage: set-git-rev REV PROG [PROGS...]" >> exitFailure
+  _                -> die "usage: set-git-rev REV PROG [PROGS...]" >> exitFailure

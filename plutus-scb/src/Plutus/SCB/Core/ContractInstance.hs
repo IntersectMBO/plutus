@@ -85,7 +85,8 @@ import           Plutus.SCB.Events.Contract                      (ContractEvent 
                                                                   unContractHandlersResponse)
 import qualified Plutus.SCB.Events.Contract                      as Events.Contract
 import qualified Plutus.SCB.Query                                as Query
-import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, WalletEventSource))
+import           Plutus.SCB.Types                                (SCBError (..),
+                                                                  Source (ContractEventSource, NodeEventSource, WalletEventSource))
 import           Plutus.SCB.Utils                                (tshow)
 
 import qualified Plutus.SCB.Core.Projections                     as Projections

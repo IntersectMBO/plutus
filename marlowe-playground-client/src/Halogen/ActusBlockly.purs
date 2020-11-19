@@ -78,13 +78,13 @@ blockly rootBlockName blockDefinitions =
     { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
     , render
     , eval:
-      H.mkEval
-        { handleQuery
-        , handleAction
-        , initialize: Just $ Inject rootBlockName blockDefinitions
-        , finalize: Nothing
-        , receive: const Nothing
-        }
+        H.mkEval
+          { handleQuery
+          , handleAction
+          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , finalize: Nothing
+          , receive: const Nothing
+          }
     }
 
 handleQuery :: forall m a. MonadEffect m => Query a -> DSL m (Maybe a)

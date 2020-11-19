@@ -1,5 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
+import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -14,7 +15,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
@@ -40,6 +41,7 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
+import LoginPopup (openLoginPopup, informParentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -114,13 +116,13 @@ mkMainFrame settings =
     { initialState: const initialState
     , render: render settings
     , eval:
-      H.mkEval
-        { handleQuery: handleQuery settings
-        , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
-        , receive: const Nothing
-        , initialize: Just Init
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleQuery: handleQuery settings
+          , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
+          , receive: const Nothing
+          , initialize: Just Init
+          , finalize: Nothing
+          }
     }
 
 toSimulation ::
@@ -191,9 +193,21 @@ handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleSubRoute _ Router.Wallets = selectView WalletEmulator
 
+-- This route is supposed to be called by the github oauth flow after a succesful login flow
+-- It is supposed to be run inside a popup window
+handleSubRoute settings Router.GithubAuthCallback = do
+  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
+  case authResult of
+    (Success authStatus) -> liftEffect $ informParentAndClose $ view authStatusAuthRole authStatus
+    -- TODO: is it worth showing a particular view for Failure, NotAsked and Loading?
+    -- Modifying this will mean to also modify the render function in the mainframe to be able to draw without
+    -- the headers/footers as this is supposed to be a dialog/popup
+    (Failure _) -> pure unit
+    NotAsked -> pure unit
+    Loading -> pure unit
+
 handleRoute ::
   forall m.
-  MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
@@ -446,6 +460,14 @@ handleAction _ (OpenModal modalView) = assign _showModal $ Just modalView
 handleAction _ CloseModal = assign _showModal Nothing
 
 handleAction _ (ChangeProjectName name) = assign _projectName name
+
+handleAction settings (OpenLoginPopup intendedAction) = do
+  authRole <- liftAff openLoginPopup
+  handleAction settings CloseModal
+  assign (_authStatus <<< _Success <<< authStatusAuthRole) authRole
+  case authRole of
+    Anonymous -> pure unit
+    GithubUser -> handleAction settings intendedAction
 
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
