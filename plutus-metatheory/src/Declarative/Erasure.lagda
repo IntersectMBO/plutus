@@ -64,33 +64,6 @@ lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
 
-lemmaI : (b : Builtin)
-  → lenI (proj₁ (proj₂ (ISIG b))) ≡ arity b
-lemmaI addInteger = refl
-lemmaI subtractInteger = refl
-lemmaI multiplyInteger = refl
-lemmaI divideInteger = refl
-lemmaI quotientInteger = refl
-lemmaI remainderInteger = refl
-lemmaI modInteger = refl
-lemmaI lessThanInteger = refl
-lemmaI lessThanEqualsInteger = refl
-lemmaI greaterThanInteger = refl
-lemmaI greaterThanEqualsInteger = refl
-lemmaI equalsInteger = refl
-lemmaI concatenate = refl
-lemmaI takeByteString = refl
-lemmaI dropByteString = refl
-lemmaI sha2-256 = refl
-lemmaI sha3-256 = refl
-lemmaI verifySignature = refl
-lemmaI equalsByteString = refl
-lemmaI ifThenElse = refl
-
-lemmaI≤ : (b : Builtin)
-  → lenI (proj₁ (proj₂ (ISIG b))) ≤‴ arity b
-lemmaI≤ b rewrite lemmaI b = ≤‴-refl
-
 lemma≤ : (b : Builtin) → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
 lemma≤ b rewrite lemma b = ≤‴-refl
 
@@ -127,7 +100,7 @@ open import Data.Nat.Properties
 ≤L2≤ base = ≤-refl
 ≤L2≤ (skip p) = ≤′⇒≤ (≤′-step (≤⇒≤′ (≤L2≤ p)))
 
-lem1 : ∀ Ψ Ψ' As As' →
+lem1' : ∀ Ψ Ψ' As As' →
       ((Ψ' ≤C⋆ Ψ) × As' ≡ [])
       ⊎
       Σ (Ψ' ≡ Ψ)
@@ -136,8 +109,8 @@ lem1 : ∀ Ψ Ψ' As As' →
          Relation.Binary.PropositionalEquality.subst (λ Φ₁ → List (Φ₁ ⊢⋆ *))
          (sym p) As)
       → len⋆ Ψ' + length As' ≤‴ len⋆ Ψ + length As
-lem1 Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤″⇒≤‴ (≤⇒≤″ (+-mono-≤ (≤C⋆2≤ p) z≤n))
-lem1 Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q)))
+lem1' Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤″⇒≤‴ (≤⇒≤″ (+-mono-≤ (≤C⋆2≤ p) z≤n))
+lem1' Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q)))
 
 eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
   → Declarative.Tel Γ Δ σ As
@@ -160,8 +133,6 @@ erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel ts)
 erase {Γ = Γ} (pbuiltin b Ψ' σ As' p ts) = error
-erase (ibuiltin b σ⋆ σ) = error
-erase (ipbuiltin b Ψ' Δ' p σ⋆ σ) = error
 erase (error A)         = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *

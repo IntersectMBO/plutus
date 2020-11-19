@@ -168,7 +168,7 @@ lem3 (skip p) = skip (lem3 p)
 
 lem3' : ∀{Φ Φ' K} → Φ ≤C⋆' Φ' → Φ ≤C⋆' (Φ' ,⋆ K)
 lem3' base = skip base
-lem3' (skip p) = skip (lem3' p)
+lem3' (skip p) = skip (lem3' p) 
 
 ≤C⋆to≤C⋆' : ∀ {Φ Φ'} → Φ ≤C⋆ Φ' → Φ ≤C⋆' Φ'
 ≤C⋆to≤C⋆' base     = base

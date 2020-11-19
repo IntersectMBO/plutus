@@ -95,6 +95,8 @@ application.
 \begin{code}
 open import Data.String
 
+
+
 data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
 
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
@@ -102,12 +104,36 @@ data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢Nf⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
 
+∅≤C : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C Γ
+∅≤C ∅       = base
+∅≤C (Γ ,⋆ K) = skip⋆ (∅≤C Γ)
+∅≤C (Γ , A) = skip (∅≤C Γ)
+
 data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C' Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
 
-postulate ≤C'to≤C : ∀{Φ Φ'}(Γ : Ctx Φ)(Γ' : Ctx Φ') → Γ ≤C Γ' → Γ ≤C' Γ'
+postulate ≤C'to≤C : ∀{Φ Φ'}(Γ : Ctx Φ)(Γ' : Ctx Φ') → Γ ≤C' Γ' → Γ ≤C Γ'
+
+skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
+skip⋆' base = skip⋆ base
+skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
+skip⋆' (skip p) = skip (skip⋆' p)
+
+skip' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A} → Γ ≤C' Γ' → Γ ≤C' (Γ' , A)
+skip' base = skip base
+skip' (skip⋆ p) = skip⋆ (skip' p)
+skip' (skip p) = skip (skip' p)
+
+≤Cto≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Γ ≤C' Γ'
+≤Cto≤C' base      = base
+≤Cto≤C' (skip⋆ p) = skip⋆' (≤Cto≤C' p)
+≤Cto≤C' (skip p)  = skip' (≤Cto≤C' p)
+
+∅≤C' : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C' Γ
+∅≤C' Γ = ≤Cto≤C' (∅≤C Γ)
+
 
 abstract2 : ∀ Ψ (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ ⊢Nf⋆ *))(p : As' ≤L As)(C : Ψ ⊢Nf⋆ *) → Ψ ⊢Nf⋆ *
 abstract2 Ψ As       .As base     C = C
@@ -155,6 +181,83 @@ abstractArg-subst Φ Φ' Ψ Ψ' As .[] (inj₁ (p ,, refl)) C σ σ' =
 abstractArg-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, q)) C σ σ' =
   substNf-comp σ σ' (abstractTm Ψ As As' q C)
 
+sig2type⇒ : ∀{Φ} → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+sig2type⇒ []       C = C
+sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
+
+sig2type' : ∀{Φ Φ'} → Φ ≤C⋆' Φ' → List (Φ' ⊢Nf⋆ *) → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+sig2type' base     As C = sig2type⇒ As C
+sig2type' (skip p) As C = Π (sig2type' p As C)
+
+btype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
+btype b = let Φ ,, As ,, C = SIG b in substNf (λ ()) (sig2type' (∅≤C⋆' Φ) As C)
+
+postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
+postulate btype-subst : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ substNf ρ (btype b)
+
+ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
+ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
+ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG concatenate = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
+ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bytestring
+ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
+
+
+isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
+isig2type .∅ ∅ C = C
+isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
+isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
+
+itype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
+itype b = let Φ ,, Γ ,, C = ISIG b in substNf (λ()) (isig2type Φ Γ C) 
+
+postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
+postulate itype-subst : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ substNf ρ (itype b)
+
+-- a context with at least one type after any kind entries
+Ctx+ : Ctx⋆ → Set
+Ctx+ Φ = Ctx Φ × Φ ⊢Nf⋆ *
+
+ISIG+ : Builtin → Σ Ctx⋆ λ Φ → Ctx+ Φ × Φ ⊢Nf⋆ *
+ISIG+ ifThenElse =
+  ∅ ,⋆ *
+  ,,
+  (∅ ,⋆ * , con bool , ne (` Z) ,, ne (` Z))
+  ,,
+  ne (` Z)
+ISIG+ _ = ∅ ,, (∅ ,, con bool) ,, con bool
+
+itype+ : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
+itype+ b = let Ψ ,, (Γ ,, A) ,, C = ISIG+ b in
+  substNf (λ ()) (isig2type Ψ Γ (A ⇒ C))
+
+postulate itype-ren+ : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype+ b ≡ renNf ρ (itype+ b)
+postulate itype-subst+ : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype+ b ≡ substNf ρ (itype+ b)
+
+{-
+data _<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set where
+  base : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → ∅ <C (Γ , A)
+  base⋆ : ∀{Φ}{Γ : Ctx Φ}{K} → ∅ <C (Γ ,⋆ K)
+  step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{A' : Φ' ⊢Nf⋆ *}
+    → Γ <C Γ' → (Γ , A) <C (Γ' , A')
+  step⋆ : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K K'}
+    → Γ <C Γ' → (Γ ,⋆ K) <C (Γ' ,⋆ K')
+-}
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
   ` : ∀ {A : Φ ⊢Nf⋆ *}
@@ -220,6 +323,10 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
     → Tel Γ Ψ' σ As'
     → Γ ⊢ abstractArg As As' p C σ
+
+--  sbuiltin : (b :  Builtin) → Γ ⊢ btype b
+
+  ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 

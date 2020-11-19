@@ -42,6 +42,8 @@ vtel-lem : ∀{Φ}{Γ Δ}{As As' : List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋
   → VTel Γ Δ σ As (substEq (Tel Γ Δ σ) p ts)
 vtel-lem σ refl ts vs = vs
 
+val-lem : ∀{Φ}{Γ}{A A' : Φ ⊢Nf⋆ *}{t : Γ ⊢ A}(p : A ≡ A') → Value t → Value (substEq (Γ ⊢_) p t)
+
 -- recontructing the telescope after an element has been evaluated
 
 reconstTel : ∀{Φ Γ Δ As} Bs Ds
@@ -79,7 +81,7 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
 
   builtin- : ∀(b : Builtin)
-    → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
+    → (σ : SubNf (proj₁ (SIG b)) ∅)
     → (As : List (proj₁ (SIG b) ⊢Nf⋆ *))
     → (ts : Tel ∅ (proj₁ (SIG b)) σ As)
     → VTel ∅ (proj₁ (SIG b)) σ As ts
@@ -88,6 +90,17 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → proj₁ (proj₂ (SIG b)) ≡ As L.++ A ∷ As'
     → Tel ∅ (proj₁ (SIG b)) σ As'
     → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
+
+  pbuiltin- : ∀(b : Builtin)
+    → let Ψ ,, As ,, C = SIG b in
+      (σ : SubNf Ψ ∅)
+    → (As' : List (Ψ ⊢Nf⋆ *))
+    → (ts : Tel ∅ Ψ σ As')
+    → VTel ∅ Ψ σ As' ts
+    → (A : Ψ ⊢Nf⋆ *)
+    → (p : (A ∷ As') ≤L' As)
+    → Frame (abstractArg As (A ∷ As') (Sum.inj₂ (refl ,, p)) C σ)
+            (substNf σ A)
 
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
@@ -101,7 +114,6 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   ◆   : (A : ∅ ⊢Nf⋆ *)  →  State T
 
 -- Plugging a term of suitable type into a frame yields a term again
-
 closeFrame : ∀{T H} → Frame T H → ∅ ⊢ H → ∅ ⊢ T
 closeFrame (-· u)          t = t · u
 closeFrame (_·- {t = t} v) u = t · u
@@ -110,7 +122,7 @@ closeFrame wrap-           t = wrap _ _ t
 closeFrame unwrap-         t = unwrap t
 closeFrame (builtin- b σ As ts vts A As' p ts') t =
   builtin b σ (reconstTel As As' σ ts t (sym p) ts' )
-
+closeFrame _ = {!!}
 -- Plugging a term into a stack yields a term again
 
 closeStack : ∀{T H} → Stack T H → ∅ ⊢ H → ∅ ⊢ T
@@ -143,15 +155,12 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
-
 step (s ▻ builtin bn σ tel)
   with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) bn
 step (s ▻ builtin bn σ []) | [] | [[ p ]] = 
   s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (vtel-lem σ (sym p) [] tt)
 step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
   (s , builtin- bn σ [] [] _ A As p ts) ▻ t
-step (x ▻ pbuiltin b Ψ' σ As' p ts) =
-  ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
 step ( _◅_ (s , (builtin- b σ As ts vts A .[] p [])) {t = t} V) =
   s ▻ BUILTIN b
               σ
@@ -168,12 +177,41 @@ step (_◅_ (s , builtin- b σ As ts vts A (A' ∷ As') p (t' ∷ ts')) {t = t} 
         As'
         (trans p (sym (++-assoc As L.[ A ] (A' ∷ As')))) ts')
   ▻ t'
-step ((s , (V-pbuiltin b σ A As' p ts ·-)) ◅ x₁) =
-  ◆ (abstractArg _ (A ∷ As') (Sum.inj₂ (refl ,, p)) (proj₂ (proj₂ (SIG b))) σ)
-step ((t , -·⋆ A) ◅ V-pbuiltin⋆ b Φ σ p) =
-  ◆ (abstractArg (proj₁ (proj₂ (SIG b))) _ (Sum.inj₁ (p ,, refl)) (proj₂ (proj₂ (SIG b))) (substNf-cons σ A))
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
+
+
+-- these are good steps:
+-- knocking off an impossible case
+step ((s , pbuiltin- b σ As' ts vts A p) ◅ V)
+  with proj₁ (proj₂ (SIG b)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) b
+... | []     | _ = ⊥-elim (lem⊥ p)
+-- getting the last arg and running BUILTIN
+step ((s , pbuiltin- b σ .Xs ts vts .X base) ◅ V)    | X ∷ Xs | [[ q ]] =
+  s ▻ BUILTIN b
+              σ
+              (substEq (Tel ∅ _ σ) (sym q) (_ ∷ ts))
+              (vtel-lem σ (sym q) (deval V ∷ ts) (V ,, vts))
+-- getting an intermediate arg and making a value
+step ((s , pbuiltin- b σ As' ts vts A (skip {a = Y} p)) ◅ V) | X ∷ Xs | [[ q ]]  =
+  s ◅ val-lem {!!} (V-pbuiltin b σ Y (A ∷ As') (substEq (_ ≤L'_) (sym q) p) (deval V ∷ ts)) 
+
+-- performing a term saturation step
+step ((s , (V-pbuiltin b σ A As' p ts ·-)) ◅ x₁) =
+  ◆ (abstractArg _ (A ∷ As') (Sum.inj₂ (refl ,, p)) (proj₂ (proj₂ (SIG b))) σ)
+-- performing an type saturation step
+step ((t , -·⋆ A) ◅ V-pbuiltin⋆ b Φ σ p) =
+  ◆ (abstractArg (proj₁ (proj₂ (SIG b))) _ (Sum.inj₁ (p ,, refl)) (proj₂ (proj₂ (SIG b))) (substNf-cons σ A))
+
+step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ .[] (Sum.inj₁ (base ,, refl)) ts) =
+  s ▻ pbuiltin b _ σ [] (Sum.inj₂ (refl ,, []≤L' _)) ts
+step (s ▻ pbuiltin b Ψ' σ .[] (Sum.inj₁ (skip p ,, refl)) ts) =
+  s ◅ V-pbuiltin⋆ b Ψ' σ p
+step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ .(proj₁ (proj₂ (SIG b))) (Sum.inj₂ (refl ,, base)) ts) =
+  s ▻ {!BUILTIN!}
+step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ As' (Sum.inj₂ (refl ,, skip q)) ts) =
+  s ◅ V-pbuiltin b σ _ As' q ts
+  -- ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
 
 open import Data.Nat
 
@@ -186,3 +224,4 @@ stepper (suc n) st | (s ▻ M) = stepper n (s ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
+
