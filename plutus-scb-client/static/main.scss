@@ -1,17 +1,16 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
+$body-bg: #121326;
+$main-header: $body-bg;
 @import 'variables.scss';
 
-$heading-color: $lightPurple;
-$input-color: rgba(255, 255, 255, 0.7);
-$input-border-color: $purple05;
 $badge: $gray-900;
 $badge-background: $lightPurple;
 $btn-group-separator: $gray-700;
 $nav-link: $lightPurple;
-$nav-link-active-border: dotted 2px $nav-link;
+$nav-link-active-border: solid 1px $nav-link;
 $nav-link-hover: $white;
-$nav-link-border-radius: 0;
+$nav-link-border-radius: 3px;
 $clipboard-button-color: $white;
 
 @import '../../web-common/static/common.scss';
