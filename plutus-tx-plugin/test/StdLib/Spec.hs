@@ -46,6 +46,7 @@ tests =
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
     , pure $ testProperty "ord" testOrd
+    , pure $ testProperty "divMod" testDivMod
     , pure $ testProperty "quotRem" testQuotRem
     , pure $ testProperty "reduce" testReduce
     , pure $ testProperty "Eq @Data" eqData
@@ -57,6 +58,16 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.prop
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
         plutusResult = plutusFunc $ Ratio.fromGHC rat
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
+
+testDivMod :: Property
+testDivMod = Hedgehog.property $ do
+    let gen = Gen.integral (Range.linear (-10000) 100000)
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let ghcResult = divMod n1 n2
+        plutusResult = Ratio.divMod n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)

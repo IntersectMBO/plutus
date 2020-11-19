@@ -183,6 +183,8 @@ builtinNames = [
     , 'Builtins.subtractInteger
     , 'Builtins.multiplyInteger
     , 'Builtins.divideInteger
+    , 'Builtins.modInteger
+    , 'Builtins.quotientInteger
     , 'Builtins.remainderInteger
     , 'Builtins.greaterThanInteger
     , 'Builtins.greaterThanEqInteger
@@ -288,6 +290,12 @@ defineBuiltinTerms = do
     do
         let term = mkBuiltin PLC.DivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
+    do
+        let term = mkBuiltin PLC.ModInteger
+        defineBuiltinTerm 'Builtins.modInteger term [int]
+    do
+        let term = mkBuiltin PLC.QuotientInteger
+        defineBuiltinTerm 'Builtins.quotientInteger term [int]
     do
         let term = mkBuiltin PLC.RemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
