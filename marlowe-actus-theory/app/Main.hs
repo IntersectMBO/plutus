@@ -1,10 +1,10 @@
 module Main where
 
-import Language.Marlowe.ACTUS.Agda.GenPayoff
-import Language.Marlowe.ACTUS.Agda.GenStateTransition
-import Agda.Syntax.Concrete.Pretty ()
-import Agda.Utils.Pretty
-import Text.PrettyPrint
+import           Agda.Syntax.Concrete.Pretty                    ()
+import           Agda.Utils.Pretty
+import           Language.Marlowe.ACTUS.Agda.GenPayoff
+import           Language.Marlowe.ACTUS.Agda.GenStateTransition
+import           Text.PrettyPrint
 
 main :: IO () = do
     let style = Style PageMode 1000 1.5

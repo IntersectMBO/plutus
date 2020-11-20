@@ -1,12 +1,15 @@
 module Language.Marlowe.ACTUS.Agda.AgdaGen(genDefinition, genModule, ident, genImport) where
 
-import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, ExpandedEllipsis(..), ImportDirective'(..), Using'(..), RawName(..), noPlaceholder, defaultNamedArg, defaultArgInfo, defaultArg)
-import           Agda.Syntax.Position                                  (Range'(..))
-import           Agda.Syntax.Literal                                   (Literal(..))
-import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..), Declaration(..), WhereClause'(..), LHS(..), RHS'(..), Pattern(..), OpenShortHand(..))
-import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
-import           Data.List.NonEmpty                                    (NonEmpty(..))
-import           Agda.Utils.List2                                      (List2(..))
+import           Agda.Syntax.Common        (ExpandedEllipsis (..), ImportDirective' (..), MaybePlaceholder, NamedArg,
+                                            RawName (..), Using' (..), defaultArg, defaultArgInfo, defaultNamedArg,
+                                            noPlaceholder)
+import           Agda.Syntax.Concrete      (Declaration (..), Expr (..), LHS (..), OpApp (..), OpenShortHand (..),
+                                            Pattern (..), RHS' (..), WhereClause' (..))
+import           Agda.Syntax.Concrete.Name (Name (..), NameInScope (..), NamePart (..), QName (..))
+import           Agda.Syntax.Literal       (Literal (..))
+import           Agda.Syntax.Position      (Range' (..))
+import           Agda.Utils.List2          (List2 (..))
+import           Data.List.NonEmpty        (NonEmpty (..))
 
 paramName :: RawName -> Name
 paramName nm = Name NoRange NotInScope $ Id nm :| []
@@ -18,11 +21,11 @@ genImport :: String -> Declaration
 genImport name = Import NoRange (QName $ paramName name) Nothing DoOpen $ ImportDirective NoRange UseEverything [] [] Nothing
 
 genDefinition :: Expr -> String -> String -> [String] -> [String] -> String -> [Declaration]
-genDefinition expr name param1 params inputTypes outputType = 
+genDefinition expr name param1 params inputTypes outputType =
     let fName = Name NoRange NotInScope $ Id name :| []
         toParamP param = IdentP $ QName $ paramName param
         toParam param = Ident $ QName $ paramName param
-        lhsPattern = 
+        lhsPattern =
             RawAppP NoRange $ List2 (IdentP $ QName fName) (toParamP param1) (toParamP <$> params)
         lhs = LHS lhsPattern [] [] NoEllipsis
         rhs = RHS $ expr
@@ -32,6 +35,6 @@ genDefinition expr name param1 params inputTypes outputType =
     in [TypeSig defaultArgInfo Nothing fName funsig, FunClause lhs rhs NoWhere False]
 
 genModule :: String -> [Declaration] -> Declaration
-genModule name declarations = 
+genModule name declarations =
     let moduleName = QName (Name NoRange NotInScope $ Id name :| [])
     in Module NoRange moduleName [] declarations

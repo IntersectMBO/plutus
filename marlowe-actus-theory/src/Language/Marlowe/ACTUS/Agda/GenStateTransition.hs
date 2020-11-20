@@ -2,24 +2,29 @@ module Language.Marlowe.ACTUS.Agda.GenStateTransition(stateTransition) where
 
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
 
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.Definitions.ContractState
+import           Agda.Syntax.Common                                    (ExpandedEllipsis (..), MaybePlaceholder,
+                                                                        NamedArg, defaultArg, defaultArgInfo,
+                                                                        defaultNamedArg, noPlaceholder)
+import           Agda.Syntax.Concrete                                  (Declaration (..), Expr (..), LHS (..),
+                                                                        OpApp (..), Pattern (..), RHS' (..),
+                                                                        WhereClause' (..))
+import           Agda.Syntax.Concrete.Name                             (Name (..), NameInScope (..), NamePart (..),
+                                                                        QName (..))
+import           Agda.Syntax.Literal                                   (Literal (..))
+import           Agda.Syntax.Position                                  (Range' (..))
+import           Agda.Utils.List2                                      (List2 (..))
+import           Control.Monad                                         (join)
+import           Data.List.NonEmpty                                    (NonEmpty (..))
 import           Language.Marlowe.ACTUS.Agda.AgdaGen
 import           Language.Marlowe.ACTUS.Agda.AgdaOps
-import           Agda.Syntax.Common                                    (NamedArg, MaybePlaceholder, ExpandedEllipsis(..), noPlaceholder, defaultNamedArg, defaultArgInfo, defaultArg)
-import           Agda.Syntax.Position                                  (Range'(..))
-import           Agda.Syntax.Literal                                   (Literal(..))
-import           Agda.Syntax.Concrete                                  (Expr(..), OpApp(..), Declaration(..), WhereClause'(..), LHS(..), RHS'(..), Pattern(..))
-import           Agda.Syntax.Concrete.Name                             (Name(..), QName(..), NameInScope(..), NamePart(..))
-import           Data.List.NonEmpty                                    (NonEmpty(..))
-import           Agda.Utils.List2                                      (List2(..))
-import           Control.Monad                                         (join)
+import           Language.Marlowe.ACTUS.Definitions.ContractState
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 
 numberType :: String
 numberType = "ℤ"
 
 previousState :: ContractStatePoly Expr Expr
-previousState = 
+previousState =
     ContractStatePoly {
         tmd = genAccessor "tmd"
         , nt = genAccessor "nt"
@@ -32,13 +37,13 @@ previousState =
         , sd = genAccessor "sd"
         , prnxt = genAccessor "prnxt"
         , ipcb = genAccessor "ipcb"
-    } where 
-        genAccessor varName = 
+    } where
+        genAccessor varName =
             Paren NoRange $ App NoRange (Ident $ QName $ quickname ("ContractState." ++ varName)) (defaultNamedArg $ ident "st")
         quickname op = Name NoRange NotInScope $ (Id op) :| []
 -- for every state variable - we generate specialised state transition function
 genStateTransitionsForStateVariables :: (ContractStatePoly Expr Expr) -> String -> String -> [String] -> [String] -> [Declaration]
-genStateTransitionsForStateVariables nextState functionName param1 params types = 
+genStateTransitionsForStateVariables nextState functionName param1 params types =
     join [
       genDefinition (tmd nextState) (mkFunctionName "tmd") param1 params types numberType
     , genDefinition (nt nextState) (mkFunctionName "nt") param1 params types numberType
@@ -64,7 +69,7 @@ stateTransition = genModule "Generated.StateTransition" (imports ++ defs) where
     _STF_IED_PAM_state_IPAC = _STF_IED_PAM previousState t y_ipanx_t Nothing Nothing _CNTRL _IPAC _NT
     _STF_IED_PAM_state_IPANX = _STF_IED_PAM previousState t y_ipanx_t Nothing _IPANX _CNTRL Nothing _NT
     _STF_IED_PAM_state_IPNR = _STF_IED_PAM previousState t y_ipanx_t _IPNR Nothing _CNTRL Nothing _NT
-    _STF_IED_PAM_param1 = "st" 
+    _STF_IED_PAM_param1 = "st"
     _STF_IED_PAM_params = ["t", "y_ipanx_t", "_IPNR", "_IPANX", "_CNTRL", "_IPAC", "_NT"]
     _STF_IED_PAM_types = "ContractState" : replicate (length _STF_IED_PAM_params) numberType
     defs = join
@@ -82,6 +87,6 @@ stateTransition = genModule "Generated.StateTransition" (imports ++ defs) where
     _IPANX = Just $ ident "_IPANX"
     _IPAC = Just $ ident "_IPAC"
     _CNTRL = ident "_CNTRL"
-    
+
     _NT = ident "_NT"
     imports = genImport <$> ["Data.Integer", "Definitions", "Utils"]
