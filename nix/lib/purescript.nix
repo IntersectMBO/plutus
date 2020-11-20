@@ -2,6 +2,7 @@
 , lib
 , nodejs
 , easyPS
+, nix-gitignore
 , buildNodeModules
 }:
 
@@ -16,15 +17,18 @@
 , checkPhase ? ""
 }:
 let
-  cleanSrcs = lib.cleanSourceWith {
-    filter = lib.cleanSourceFilter;
-    src = lib.cleanSourceWith {
-      filter = (path: type: !(lib.elem (baseNameOf path)
-        [ ".spago" ".spago2nix" "generated" "generated-docs" "output" "dist" "node_modules" ".psci_modules" ".vscode" ]));
-      inherit src;
-    };
-  };
+  # Cleans the source based on the patterns in ./.gitignore and
+  # the additionalIgnores
+  cleanSrcs =
+    let
+      additionalIgnores = ''
+        /*.adoc
+        /*.nix
+      '';
+    in
+    nix-gitignore.gitignoreSource additionalIgnores src;
 
+  # All sources to be passed to `purs`
   purescriptSources = [
     "src/**/*.purs"
     "test/**/*.purs"
