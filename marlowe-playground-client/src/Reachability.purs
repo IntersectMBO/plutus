@@ -306,9 +306,11 @@ areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract
 
 areContractAndStateTheOnesAnalysed _ _ _ = false
 
+-- It groups the contract paths by their head, discards empty contract paths
 initialisePrefixMap :: List ContractPath -> PrefixMap
 initialisePrefixMap unreachablePathList = fromFoldableWith union $ map (\x -> (head x /\ singleton x)) $ catMaybes $ map fromList unreachablePathList
 
+-- Returns Nothing when the path is unreachable according to one of the paths, otherwise it returns the updated PrefixMap for the subpath
 stepPrefixMap :: forall a. CMS.State a Unit -> PrefixMap -> ContractPathStep -> CMS.State a (Maybe PrefixMap)
 stepPrefixMap markUnreachable prefixMap contractPath = case lookup contractPath prefixMap of
   Just pathSet ->
