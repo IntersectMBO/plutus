@@ -3,7 +3,7 @@ module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State as CMS
-import Data.Function (flip)
+import Data.Function (flip, identity)
 import Data.Lens (assign)
 import Data.List (List(..), any, catMaybes, foldl, fromFoldable, length, null, snoc, toUnfoldable)
 import Data.List.NonEmpty (NonEmptyList(..), fromList, head, tail, toList)
@@ -13,8 +13,9 @@ import Data.NonEmpty ((:|))
 import Data.Set (singleton, union)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM)
-import MainFrame.Types (ChildSlots)
+import Halogen (HalogenM, query)
+import Halogen.Monaco as Monaco
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
@@ -23,7 +24,7 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, discard, map, mempty, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
+import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, PrefixMap, _analysisState)
@@ -271,10 +272,21 @@ stepAnalysis settings isReachable rad =
   in
     if thereAreMore then do
       assign _analysisState (ReachabilityAnalysis (InProgress newRad))
+      refreshEditor
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
       updateWithResponse settings (InProgress newRad) response
-    else
-      pure $ finishAnalysis newRad
+    else do
+      let
+        result = finishAnalysis newRad
+      assign _analysisState (ReachabilityAnalysis result)
+      refreshEditor
+      pure result
+  where
+  refreshEditor = do
+    mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
+    case mContent of
+      Just content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit
+      Nothing -> pure unit
 
 updateWithResponse ::
   forall m.
