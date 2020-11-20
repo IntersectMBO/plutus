@@ -11,26 +11,38 @@
     flags = {};
     package = {
       specVersion = "1.10";
-      identifier = { name = "typed-protocols"; version = "0.1.0.0"; };
-      license = "Apache-2.0";
-      copyright = "2019 Input Output (Hong Kong) Ltd.";
-      maintainer = "alex@well-typed.com, duncan@well-typed.com, marcin.szamotulski@iohk.io";
-      author = "Alexander Vieth, Duncan Coutts, Marcin Szamotulski";
+      identifier = { name = "unlit"; version = "0.4.0.1"; };
+      license = "BSD-3-Clause";
+      copyright = "2014 (c) Wen Kokke";
+      maintainer = "wen.kokke@gmail.com";
+      author = "Wen Kokke";
       homepage = "";
       url = "";
-      synopsis = "A framework for strongly typed protocols";
-      description = "";
+      synopsis = "Tool to convert literate code between styles or to code.";
+      description = "Tool to convert literate code between styles or to code.\nUsage:\n\n> unlit\n>   -f STYLE_NAME  --from=STYLE_NAME    Source style (all, bird, haskell, latex, markdown, tildefence, backtickfence)\n>   -t STYLE_NAME  --to=STYLE_NAME      Target style (bird, latex, tildefence, backtickfence, code)\n>   -i FILE        --input=FILE         Input file (optional)\n>   -o FILE        --output=FILE        Output file (optional)\n>   -l LANGUAGE    --language=LANGUAGE  Programming language (restrict fenced code blocks)\n>   -h             --help               Show help\n>   -v             --version            Show version\n";
       buildType = "Simple";
       };
     components = {
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
+          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
           ];
         buildable = true;
         };
+      exes = {
+        "unlit" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."unlit" or (errorHandler.buildDepError "unlit"))
+            ];
+          buildable = true;
+          };
+        };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/fyxakg4qyqyg8c2crvcp97nnvfv38ifi-ouroboros-network-75153af/typed-protocols;
+    src = (pkgs.lib).mkDefault /nix/store/181ykhfirmrnd6yvvlr02yfc01m0acrp-unlit-9ca1112;
     }

@@ -8,51 +8,131 @@
   , config
   , ... }:
   {
-    flags = {};
+    flags = { cpphs = false; debug = false; enable-cluster-counting = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "purescript-bridge"; version = "0.13.1.0"; };
-      license = "BSD-3-Clause";
-      copyright = "";
-      maintainer = "robert . klotzner A T gmx . at";
-      author = "Robert Klotzner";
-      homepage = "";
+      identifier = { name = "Agda"; version = "2.6.2"; };
+      license = "LicenseRef-OtherLicense";
+      copyright = "(c) 2005-2020 The Agda Team.";
+      maintainer = "Ulf Norell <ulfn@chalmers.se>";
+      author = "Ulf Norell and The Agda Team, see https://agda.readthedocs.io/en/latest/team.html";
+      homepage = "http://wiki.portal.chalmers.se/agda/";
       url = "";
-      synopsis = "Generate PureScript data types from Haskell data types";
-      description = "";
-      buildType = "Simple";
+      synopsis = "A dependently typed functional programming language and proof assistant";
+      description = "Agda is a dependently typed functional programming language: It has\ninductive families, which are similar to Haskell's GADTs, but they\ncan be indexed by values and not just types. It also has\nparameterised modules, mixfix operators, Unicode characters, and an\ninteractive Emacs interface (the type checker can assist in the\ndevelopment of your code).\n\nAgda is also a proof assistant: It is an interactive system for\nwriting and checking proofs. Agda is based on intuitionistic type\ntheory, a foundational system for constructive mathematics developed\nby the Swedish logician Per Martin-L&#xf6;f. It has many\nsimilarities with other proof assistants based on dependent types,\nsuch as Coq, Epigram and NuPRL.\n\nThis package includes both a command-line program (agda) and an\nEmacs mode. If you want to use the Emacs mode you can set it up by\nrunning @agda-mode setup@ (see the README).\n\nNote that the Agda package does not follow the package versioning\npolicy, because it is not intended to be used by third-party\npackages.";
+      buildType = "Custom";
+      setup-depends = [
+        (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (errorHandler.buildToolDepError "base")))
+        (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (errorHandler.buildToolDepError "Cabal")))
+        (hsPkgs.buildPackages.directory or (pkgs.buildPackages.directory or (errorHandler.buildToolDepError "directory")))
+        (hsPkgs.buildPackages.filepath or (pkgs.buildPackages.filepath or (errorHandler.buildToolDepError "filepath")))
+        (hsPkgs.buildPackages.process or (pkgs.buildPackages.process or (errorHandler.buildToolDepError "process")))
+        ];
       };
     components = {
       "library" = {
-        depends = [
+        depends = (((((([
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."array" or (errorHandler.buildDepError "array"))
+          (hsPkgs."async" or (errorHandler.buildDepError "async"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
+          (hsPkgs."binary" or (errorHandler.buildDepError "binary"))
+          (hsPkgs."blaze-html" or (errorHandler.buildDepError "blaze-html"))
+          (hsPkgs."boxes" or (errorHandler.buildDepError "boxes"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."case-insensitive" or (errorHandler.buildDepError "case-insensitive"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."data-hash" or (errorHandler.buildDepError "data-hash"))
+          (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+          (hsPkgs."edit-distance" or (errorHandler.buildDepError "edit-distance"))
+          (hsPkgs."equivalence" or (errorHandler.buildDepError "equivalence"))
+          (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."gitrev" or (errorHandler.buildDepError "gitrev"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+          (hsPkgs."hashtables" or (errorHandler.buildDepError "hashtables"))
+          (hsPkgs."haskeline" or (errorHandler.buildDepError "haskeline"))
+          (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."murmur-hash" or (errorHandler.buildDepError "murmur-hash"))
+          (hsPkgs."pretty" or (errorHandler.buildDepError "pretty"))
+          (hsPkgs."process" or (errorHandler.buildDepError "process"))
+          (hsPkgs."regex-tdfa" or (errorHandler.buildDepError "regex-tdfa"))
+          (hsPkgs."split" or (errorHandler.buildDepError "split"))
+          (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+          (hsPkgs."strict" or (errorHandler.buildDepError "strict"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          (hsPkgs."uri-encode" or (errorHandler.buildDepError "uri-encode"))
+          (hsPkgs."zlib" or (errorHandler.buildDepError "zlib"))
+          ] ++ (pkgs.lib).optional (flags.enable-cluster-counting) (hsPkgs."text-icu" or (errorHandler.buildDepError "text-icu"))) ++ (pkgs.lib).optional (system.isWindows) (hsPkgs."Win32" or (errorHandler.buildDepError "Win32"))) ++ (pkgs.lib).optional (compiler.isGhc && (compiler.version).ge "8.6.4" && (compiler.isGhc && (compiler.version).lt "8.10.3")) (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))) ++ (pkgs.lib).optional (compiler.isGhc && (compiler.version).ge "8.4" && (compiler.isGhc && (compiler.version).lt "8.6.4")) (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))) ++ (pkgs.lib).optional (compiler.isGhc && (compiler.version).lt "8.4") (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))) ++ [
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
-          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-          (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
-          (hsPkgs."generic-deriving" or (errorHandler.buildDepError "generic-deriving"))
-          ];
-        buildable = true;
+          ]) ++ (pkgs.lib).optional (compiler.isGhc && (compiler.version).ge "8.4") (hsPkgs."ghc-compact" or (errorHandler.buildDepError "ghc-compact"));
+        build-tools = [
+          (hsPkgs.buildPackages.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex")))
+          (hsPkgs.buildPackages.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy")))
+          ] ++ (pkgs.lib).optional (flags.cpphs) (hsPkgs.buildPackages.cpphs or (pkgs.buildPackages.cpphs or (errorHandler.buildToolDepError "cpphs")));
+        buildable = (if compiler.isGhc && (compiler.version).eq "8.6.1"
+          then false
+          else true) && (if system.isWindows && (compiler.isGhc && (compiler.version).eq "8.6.3")
+          then false
+          else true);
         };
-      tests = {
-        "tests" = {
+      exes = {
+        "agda" = {
+          depends = [
+            (hsPkgs."Agda" or (errorHandler.buildDepError "Agda"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            ];
+          buildable = true;
+          };
+        "agda-mode" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
-            (hsPkgs."hspec" or (errorHandler.buildDepError "hspec"))
-            (hsPkgs."hspec-expectations-pretty-diff" or (errorHandler.buildDepError "hspec-expectations-pretty-diff"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."process" or (errorHandler.buildDepError "process"))
             ];
           buildable = true;
           };
         };
+      tests = {
+        "agda-tests" = {
+          depends = [
+            (hsPkgs."Agda" or (errorHandler.buildDepError "Agda"))
+            (hsPkgs."array" or (errorHandler.buildDepError "array"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."filemanip" or (errorHandler.buildDepError "filemanip"))
+            (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
+            (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."process" or (errorHandler.buildDepError "process"))
+            (hsPkgs."process-extras" or (errorHandler.buildDepError "process-extras"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."regex-tdfa" or (errorHandler.buildDepError "regex-tdfa"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."tasty-silver" or (errorHandler.buildDepError "tasty-silver"))
+            (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
+            (hsPkgs."unix-compat" or (errorHandler.buildDepError "unix-compat"))
+            (hsPkgs."uri-encode" or (errorHandler.buildDepError "uri-encode"))
+            ] ++ [ (hsPkgs."text" or (errorHandler.buildDepError "text")) ];
+          buildable = (if compiler.isGhc && (compiler.version).eq "8.6.1"
+            then false
+            else true) && (if system.isWindows && (compiler.isGhc && (compiler.version).eq "8.6.3")
+            then false
+            else true);
+          };
+        };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/k471bw0gdbsfqnlx194jndbkviqcrb5v-purescript-bridge-28c3777;
+    src = (pkgs.lib).mkDefault /nix/store/v551p9ddfh29yvsr2wisqx071cvjqwrr-agda-08191e6;
     }

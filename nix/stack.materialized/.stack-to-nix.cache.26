@@ -8,17 +8,17 @@
   , config
   , ... }:
   {
-    flags = {};
+    flags = { disable-observables = false; performance-test-queue = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "tracer-transformers"; version = "0.1.0.1"; };
+      identifier = { name = "iohk-monitoring"; version = "0.1.10.1"; };
       license = "Apache-2.0";
-      copyright = "2019 IOHK";
+      copyright = "2018 IOHK";
       maintainer = "operations@iohk.io";
-      author = "Neil Davies, Alexander Diemand, Andreas Triantafyllos";
+      author = "Alexander Diemand, Andreas Triantafyllos";
       homepage = "";
       url = "";
-      synopsis = "tracer transformers and examples showing their use";
+      synopsis = "logging, benchmarking and monitoring framework";
       description = "";
       buildType = "Simple";
       };
@@ -27,32 +27,82 @@
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
-          (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."array" or (errorHandler.buildDepError "array"))
+          (hsPkgs."async" or (errorHandler.buildDepError "async"))
+          (hsPkgs."async-timer" or (errorHandler.buildDepError "async-timer"))
+          (hsPkgs."attoparsec" or (errorHandler.buildDepError "attoparsec"))
+          (hsPkgs."auto-update" or (errorHandler.buildDepError "auto-update"))
+          (hsPkgs."base64-bytestring" or (errorHandler.buildDepError "base64-bytestring"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."clock" or (errorHandler.buildDepError "clock"))
+          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."contravariant" or (errorHandler.buildDepError "contravariant"))
+          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+          (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."katip" or (errorHandler.buildDepError "katip"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."network" or (errorHandler.buildDepError "network"))
+          (hsPkgs."safe" or (errorHandler.buildDepError "safe"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
-          ] ++ (pkgs.lib).optional (compiler.isGhc && (compiler.version).lt "8.5") (hsPkgs."contravariant" or (errorHandler.buildDepError "contravariant"));
+          (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
+          (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
+          (hsPkgs."tracer-transformers" or (errorHandler.buildDepError "tracer-transformers"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+          (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
+          (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+          (hsPkgs."libyaml" or (errorHandler.buildDepError "libyaml"))
+          ] ++ (if system.isWindows
+          then [ (hsPkgs."Win32" or (errorHandler.buildDepError "Win32")) ]
+          else [ (hsPkgs."unix" or (errorHandler.buildDepError "unix")) ]);
         buildable = true;
         };
-      exes = {
-        "tracer-transfomers-example1" = {
+      tests = {
+        "tests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
-            (hsPkgs."time" or (errorHandler.buildDepError "time"))
-            (hsPkgs."tracer-transformers" or (errorHandler.buildDepError "tracer-transformers"))
-            ];
-          buildable = true;
-          };
-        "tracer-transfomers-example2" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+            (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."array" or (errorHandler.buildDepError "array"))
+            (hsPkgs."async" or (errorHandler.buildDepError "async"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."clock" or (errorHandler.buildDepError "clock"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."process" or (errorHandler.buildDepError "process"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+            (hsPkgs."split" or (errorHandler.buildDepError "split"))
+            (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
+            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."tracer-transformers" or (errorHandler.buildDepError "tracer-transformers"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."void" or (errorHandler.buildDepError "void"))
+            (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
+            (hsPkgs."libyaml" or (errorHandler.buildDepError "libyaml"))
             ];
           buildable = true;
           };
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/c504yyp7vb2zb9mcjx7hiwhiabl209xf-iohk-monitoring-framework-5c9627b/tracer-transformers;
+    src = (pkgs.lib).mkDefault /nix/store/c504yyp7vb2zb9mcjx7hiwhiabl209xf-iohk-monitoring-framework-5c9627b/iohk-monitoring;
     }

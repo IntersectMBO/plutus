@@ -11,33 +11,49 @@
     flags = { development = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "cardano-slotting"; version = "0.1.0.0"; };
+      identifier = { name = "cardano-crypto-class"; version = "2.0.0"; };
       license = "Apache-2.0";
-      copyright = "IOHK";
-      maintainer = "formal.methods@iohk.io";
-      author = "IOHK Formal Methods Team";
+      copyright = "2019 IOHK";
+      maintainer = "operations@iohk.io";
+      author = "IOHK";
       homepage = "";
       url = "";
-      synopsis = "Key slotting types for cardano libraries";
-      description = "";
+      synopsis = "Type classes abstracting over cryptography primitives for Cardano";
+      description = "Type classes abstracting over cryptography primitives for Cardano";
       buildType = "Simple";
       };
     components = {
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+          (hsPkgs."base16-bytestring" or (errorHandler.buildDepError "base16-bytestring"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
-          (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
-          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+          (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+          (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           ];
         buildable = true;
         };
+      tests = {
+        "test-crypto" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
+            (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
+            (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            ];
+          buildable = true;
+          };
+        };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/nwqdga9si1p4af53z3a58ryjqnahxfgl-cardano-base-5035c9e/slotting;
+    src = (pkgs.lib).mkDefault /nix/store/nwqdga9si1p4af53z3a58ryjqnahxfgl-cardano-base-5035c9e/cardano-crypto-class;
     }

@@ -11,57 +11,48 @@
     flags = {};
     package = {
       specVersion = "1.10";
-      identifier = { name = "servant-purescript"; version = "0.9.0.2"; };
+      identifier = { name = "purescript-bridge"; version = "0.13.1.0"; };
       license = "BSD-3-Clause";
-      copyright = "Copyright: (c) 2016 Robert Klotzner";
-      maintainer = "robert Dot klotzner A T gmx Dot at";
+      copyright = "";
+      maintainer = "robert . klotzner A T gmx . at";
       author = "Robert Klotzner";
-      homepage = "https://github.com/eskimor/servant-purescript#readme";
+      homepage = "";
       url = "";
-      synopsis = "Generate PureScript accessor functions for you servant API";
-      description = "Please see README.md";
+      synopsis = "Generate PureScript data types from Haskell data types";
+      description = "";
       buildType = "Simple";
       };
     components = {
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
-          (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-          (hsPkgs."mainland-pretty" or (errorHandler.buildDepError "mainland-pretty"))
-          (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
-          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
-          (hsPkgs."servant-foreign" or (errorHandler.buildDepError "servant-foreign"))
-          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."servant-subscriber" or (errorHandler.buildDepError "servant-subscriber"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
+          (hsPkgs."generic-deriving" or (errorHandler.buildDepError "generic-deriving"))
           ];
         buildable = true;
         };
       tests = {
-        "servant-purescript-test" = {
+        "tests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-            (hsPkgs."mainland-pretty" or (errorHandler.buildDepError "mainland-pretty"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
-            (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
-            (hsPkgs."servant-foreign" or (errorHandler.buildDepError "servant-foreign"))
-            (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
-            (hsPkgs."servant-subscriber" or (errorHandler.buildDepError "servant-subscriber"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
+            (hsPkgs."hspec" or (errorHandler.buildDepError "hspec"))
+            (hsPkgs."hspec-expectations-pretty-diff" or (errorHandler.buildDepError "hspec-expectations-pretty-diff"))
             ];
           buildable = true;
           };
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/frf1fqadrmjh1xyidhclj4f44pd2iz9i-servant-purescript-ece5d1d;
+    src = (pkgs.lib).mkDefault /nix/store/k471bw0gdbsfqnlx194jndbkviqcrb5v-purescript-bridge-28c3777;
     }

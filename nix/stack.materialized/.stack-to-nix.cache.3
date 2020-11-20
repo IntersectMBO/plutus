@@ -8,41 +8,89 @@
   , config
   , ... }:
   {
-    flags = {};
+    flags = { golden-tests = false; golden-tests-exe = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "unlit"; version = "0.4.0.1"; };
-      license = "BSD-3-Clause";
-      copyright = "2014 (c) Wen Kokke";
-      maintainer = "wen.kokke@gmail.com";
-      author = "Wen Kokke";
-      homepage = "";
+      identifier = { name = "cardano-crypto"; version = "1.1.0"; };
+      license = "MIT";
+      copyright = "2016-2017 IOHK";
+      maintainer = "contact@typed.io";
+      author = "Vincent Hanquez";
+      homepage = "https://github.com/input-output-hk/cardano-crypto#readme";
       url = "";
-      synopsis = "Tool to convert literate code between styles or to code.";
-      description = "Tool to convert literate code between styles or to code.\nUsage:\n\n> unlit\n>   -f STYLE_NAME  --from=STYLE_NAME    Source style (all, bird, haskell, latex, markdown, tildefence, backtickfence)\n>   -t STYLE_NAME  --to=STYLE_NAME      Target style (bird, latex, tildefence, backtickfence, code)\n>   -i FILE        --input=FILE         Input file (optional)\n>   -o FILE        --output=FILE        Output file (optional)\n>   -l LANGUAGE    --language=LANGUAGE  Programming language (restrict fenced code blocks)\n>   -h             --help               Show help\n>   -v             --version            Show version\n";
+      synopsis = "Cryptography primitives for cardano";
+      description = "";
       buildType = "Simple";
       };
     components = {
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+          (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."basement" or (errorHandler.buildDepError "basement"))
+          (hsPkgs."foundation" or (errorHandler.buildDepError "foundation"))
+          (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+          (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           ];
         buildable = true;
         };
       exes = {
-        "unlit" = {
+        "golden-tests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."unlit" or (errorHandler.buildDepError "unlit"))
+            (hsPkgs."basement" or (errorHandler.buildDepError "basement"))
+            (hsPkgs."foundation" or (errorHandler.buildDepError "foundation"))
+            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+            (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+            ] ++ (pkgs.lib).optional (flags.golden-tests-exe) (hsPkgs."inspector" or (errorHandler.buildDepError "inspector"));
+          buildable = if flags.golden-tests-exe then true else false;
+          };
+        };
+      tests = {
+        "cardano-crypto-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+            (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+            (hsPkgs."basement" or (errorHandler.buildDepError "basement"))
+            (hsPkgs."foundation" or (errorHandler.buildDepError "foundation"))
+            ];
+          buildable = true;
+          };
+        "cardano-crypto-golden-tests" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."basement" or (errorHandler.buildDepError "basement"))
+            (hsPkgs."foundation" or (errorHandler.buildDepError "foundation"))
+            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+            (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+            ] ++ (pkgs.lib).optional (flags.golden-tests) (hsPkgs."inspector" or (errorHandler.buildDepError "inspector"));
+          buildable = if flags.golden-tests then true else false;
+          };
+        };
+      benchmarks = {
+        "cardano-crypto-bench" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+            (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
+            (hsPkgs."gauge" or (errorHandler.buildDepError "gauge"))
             ];
           buildable = true;
           };
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/181ykhfirmrnd6yvvlr02yfc01m0acrp-unlit-9ca1112;
+    src = (pkgs.lib).mkDefault /nix/store/bvxsj0yv59b5k3yzsgbl2082i97lc5z8-cardano-crypto-2547ad1;
     }

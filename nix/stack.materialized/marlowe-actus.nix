@@ -59,7 +59,6 @@
           ];
         buildable = true;
         modules = [
-          "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/MarloweCompat"
           "Language/Marlowe/ACTUS/Generator"
           "Language/Marlowe/ACTUS/Analysis"
@@ -82,6 +81,7 @@
           "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
           "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
           "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
+          "Language/Marlowe/ACTUS/Ops"
           ];
         hsSourceDirs = [ "src" ];
         };
