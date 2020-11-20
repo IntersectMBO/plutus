@@ -1,155 +1,172 @@
-.chain {
-    $card-border-width: 2px;
-    $arrow-width: 15px;
-
-    @mixin entry-background($color) {
-        &.card {
-            border-color: $color;
-        }
-
-        th, .card-header {
-            background-color: $color;
-            color: $dark;
-        }
+@mixin entry-background($entry-color, $entry-background-color) {
+    &.card {
+        border-color: $entry-background-color;
     }
 
-
-    .card-footer {
-        background-color: $gray-800 !important;
-        border-top: solid 1px $gray-700;
+    th, .card-header {
+        color: $entry-color;
+        background-color: $entry-background-color;
     }
+}
 
-    .detail {
-        .card-header {
-            border-bottom: solid 1px $gray-700;
-        }
-    }
+@mixin chain (
+    $balances-table-background-color,
+    $balances-table-border-color,
 
-    .card {
-        border: solid $card-border-width $gray-800;
+    $entry-border-width,
+    $entry-border-color,
+    $entry-active-border-color,
+    $entry-inner-border-color,
+    $entry-separator-color,
+    $entry-footer-background-color,
+    $entry-arrow-width,
+    $entry-arrow-color,
 
-        &.active {
-            border-color: $gray-100;
-        }
-
-        .triangle-right {
-            position: absolute;
-            right: -1 * ((2 * $card-border-width) + $arrow-width);
-            top: 0;
-
-            height: 0;
-            width: 0;
-
-            border-style: solid;
-            border-width: 10px 0 10px $arrow-width;
-            border-color: transparent transparent transparent $gray-100;
-        }
-    }
-
-    .amount {
-        text-align: right;
-        vertical-align: middle;
-    }
-
-    .slot-empty {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .entry {
-        line-height: 1.2rem;
-
-        .card-header {
-            font-size: 1rem;
-        }
-
-        .card-header,
+    $entry-color,
+    $entry-detail-color-fee,
+    $entry-detail-color-not-found,
+    $entry-detail-color-forge,
+    $entry-detail-color-wallet,
+    $entry-detail-color-script,
+) {
+    .chain {
         .card-footer {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
+            background-color: $entry-footer-background-color !important;
+            border-top: solid 1px $entry-inner-border-color;
         }
 
-        .card-header,
-        .card-body,
-        .card-footer {
-            padding-left: 0.8rem;
-            padding-right: 0.8rem;
-        }
-
-        .card-body {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            hr {
-                margin-top: 0.2rem;
-                margin-bottom: 0.2rem;
-                border-top-color: $transparent-white;
+        .detail {
+            .card-header {
+                border-bottom: solid 1px $entry-inner-border-color;
             }
         }
-    }
 
-    .fee {
-        @include entry-background($pink);
-    }
-    .not-found {
-        @include entry-background($red);
-    }
-    .forge {
-        @include entry-background($cyan);
-    }
-    .wallet {
-        @include entry-background($green);
-    }
-    .script {
-        @include entry-background($yellow);
-    }
+        .card {
+            border: solid $entry-border-width $entry-border-color;
 
-    .blocks {
-        margin-right: $arrow-width;
-    }
+            &.active {
+                border-color: $entry-active-border-color;
+            }
 
-    overflow: hidden;
+            .triangle-right {
+                position: absolute;
+                right: -1 * ((2 * $entry-border-width) + $entry-arrow-width);
+                top: 0;
 
-    &.animation .detail {
-        opacity: 0;
-        position: relative;
-        left: 0;
-    }
+                height: 0;
+                width: 0;
 
-    &.chain-focus-older .detail {
-        left: -100%;
-    }
-
-    &.chain-focus-newer .detail {
-        left: 100%;
-    }
-
-    &.animation-done .detail {
-        opacity: 1;
-        transition: opacity 250ms, left 250ms;
-        left: 0;
-    }
-
-    .balances-table {
-        tr {
-            height: 3rem;
+                border-style: solid;
+                border-width: 10px 0 10px $entry-arrow-width;
+                border-color: transparent transparent transparent $entry-arrow-color;
+            }
         }
 
-        tbody tr th:first-child {
-            max-width: 12rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .amount {
+            text-align: right;
+            vertical-align: middle;
         }
 
-        thead {
-            background-color: $gray-800;
-            border-bottom: solid 2px $gray-700;
+        .slot-empty {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        th, td {
-            border-color: $gray-700;
-            border-width: 1px;
-            padding: 0.5rem 0.8rem;
+
+        .entry {
+            line-height: 1.2rem;
+
+            .card-header {
+                font-size: 1rem;
+            }
+
+            .card-header,
+            .card-footer {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+
+            .card-header,
+            .card-body,
+            .card-footer {
+                padding-left: 0.8rem;
+                padding-right: 0.8rem;
+            }
+
+            .card-body {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+                hr {
+                    margin-top: 0.2rem;
+                    margin-bottom: 0.2rem;
+                    border-top-color: $entry-separator-color;
+                }
+            }
+        }
+
+        .fee {
+            @include entry-background($entry-color, $entry-detail-color-fee);
+        }
+        .not-found {
+            @include entry-background($entry-color, $entry-detail-color-not-found);
+        }
+        .forge {
+            @include entry-background($entry-color, $entry-detail-color-forge);
+        }
+        .wallet {
+            @include entry-background($entry-color, $entry-detail-color-wallet);
+        }
+        .script {
+            @include entry-background($entry-color, $entry-detail-color-script);
+        }
+
+        .blocks {
+            margin-right: $entry-arrow-width;
+        }
+
+        overflow: hidden;
+
+        &.animation .detail {
+            opacity: 0;
+            position: relative;
+            left: 0;
+        }
+
+        &.chain-focus-older .detail {
+            left: -100%;
+        }
+
+        &.chain-focus-newer .detail {
+            left: 100%;
+        }
+
+        &.animation-done .detail {
+            opacity: 1;
+            transition: opacity 250ms, left 250ms;
+            left: 0;
+        }
+
+        .balances-table {
+            tr {
+                height: 3rem;
+            }
+
+            tbody tr th:first-child {
+                max-width: 12rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            thead {
+                background-color: $balances-table-background-color;
+                border-bottom: solid 2px $balances-table-border-color;
+            }
+            th, td {
+                border-color: $balances-table-border-color;
+                border-width: 1px;
+                padding: 0.5rem 0.8rem;
+            }
         }
     }
 }

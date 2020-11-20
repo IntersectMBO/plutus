@@ -15,6 +15,26 @@ $clipboard-button-color: $white;
 
 @import '../../web-common/static/common.scss';
 @import '../../web-common/static/chain.scss';
+@include chain (
+    $balances-table-background-color: $gray-800,
+    $balances-table-border-color: $gray-700,
+
+    $entry-border-width: 2px,
+    $entry-border-color: $gray-800,
+    $entry-active-border-color: $gray-100,
+    $entry-inner-border-color: $gray-700,
+    $entry-separator-color: $transparent-white,
+    $entry-footer-background-color: $gray-800,
+    $entry-arrow-width: 15px,
+    $entry-arrow-color: $gray-100,
+
+    $entry-color: $dark,
+    $entry-detail-color-fee: $pink,
+    $entry-detail-color-not-found: $red,
+    $entry-detail-color-forge: $cyan,
+    $entry-detail-color-wallet: $green,
+    $entry-detail-color-script: $yellow,
+);
 
 body {
     font-family: 'Open Sans', sans-serif;
