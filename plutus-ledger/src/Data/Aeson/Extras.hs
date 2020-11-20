@@ -5,8 +5,6 @@ module Data.Aeson.Extras(
     , decodeByteString
     , encodeSerialise
     , decodeSerialise
-    , encodeFlat
-    , decodeFlat
     , tryDecode
     ) where
 
@@ -21,7 +19,6 @@ import qualified Data.ByteString.Base16 as Base16
 import qualified Data.ByteString.Lazy   as BSL
 import qualified Data.Text              as Text
 import qualified Data.Text.Encoding     as TE
-import           Flat                   (Flat, flat, unflat)
 
 encodeByteString :: BSS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode
@@ -45,13 +42,4 @@ decodeSerialise = decodeByteString >=> go where
         case first show $ deserialiseOrFail $ BSL.fromStrict bs of
             Left e  -> fail e
             Right v -> pure v
-
-encodeFlat :: Flat a => a -> Text.Text
-encodeFlat = encodeByteString . flat
-
-decodeFlat :: Flat a => Aeson.Value -> Aeson.Parser a
-decodeFlat = decodeByteString >=> go where
-    go bs =
-        case first show $ unflat bs of
-            Left e  -> fail e
             Right v -> pure v

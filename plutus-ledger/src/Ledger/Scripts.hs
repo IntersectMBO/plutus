@@ -69,7 +69,7 @@ import           Data.Hashable                       (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           Flat                                (Flat, flat, unflat)
+import           Flat                                (flat, unflat)
 import           GHC.Generics                        (Generic)
 import           IOTS                                (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                 as PLC
@@ -86,7 +86,6 @@ import           LedgerBytes                         (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving newtype Flat
 -- | Don't include unit annotations in the CBOR when serialising.
 -- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
@@ -95,12 +94,12 @@ newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni 
   terms by encoding the term to a `ByteString` value using flat, and further encode
   it using CBOR. -}
 instance Serialise Script where
-  encode = encode . flat
+  encode = encode . flat . unScript
   decode = do
     bs <- decodeBytes
     case unflat bs of
       Left  err    -> fail (show err)
-      Right script -> return script
+      Right script -> return $ Script script
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
@@ -126,17 +125,17 @@ infrequently (I believe).
 -}
 instance Eq Script where
     {-# INLINABLE (==) #-}
-    a == b = flat a == flat b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Haskell.Eq Script where
-    a == b = flat a == flat b
+    a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Ord Script where
     {-# INLINABLE compare #-}
-    a `compare` b = flat a `compare` flat b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance Haskell.Ord Script where
-    a `compare` b = flat a `compare` flat b
+    a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance NFData Script
 
@@ -188,10 +187,10 @@ evaluateScript s = do
     Haskell.pure logOut
 
 instance ToJSON Script where
-    toJSON = JSON.String . JSON.encodeFlat
+    toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON Script where
-    parseJSON = JSON.decodeFlat
+    parseJSON = JSON.decodeSerialise
 
 instance ToJSON Data where
     toJSON = JSON.String . JSON.encodeSerialise
@@ -214,7 +213,7 @@ unMonetaryPolicyScript = getMonetaryPolicy
 -- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Flat, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
   deriving Pretty via (PrettyShow Validator)
 
@@ -223,9 +222,9 @@ instance Show Validator where
 
 instance BA.ByteArrayAccess Validator where
     length =
-        BA.length . flat
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . flat
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: Data  }
@@ -258,7 +257,7 @@ instance BA.ByteArrayAccess Redeemer where
 -- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
 newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
   deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Flat, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
   deriving Pretty via (PrettyShow MonetaryPolicy)
 
@@ -267,9 +266,9 @@ instance Show MonetaryPolicy where
 
 instance BA.ByteArrayAccess MonetaryPolicy where
     length =
-        BA.length . flat
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . flat
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
@@ -323,15 +322,15 @@ redeemerHash = RedeemerHash . Builtins.sha2_256 . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BA.convert h' where
-    h :: Digest SHA256 = hash e
+    h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
-    e = flat vl
+    e = serialise vl
 
 monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
 monetaryPolicyHash vl = MonetaryPolicyHash $ BA.convert h' where
-    h :: Digest SHA256 = hash e
+    h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
-    e = flat vl
+    e = serialise vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
