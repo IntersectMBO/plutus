@@ -29,7 +29,7 @@ authButton intendedAction state =
       Success Anonymous ->
         -- TODO: Validate this dialog with the designer, see if we should add a title
         --       based on the intendedAction
-        div [ classes [ClassName "modal-content", ClassName "auth-button-container"] ]
+        div [ classes [ ClassName "modal-content", ClassName "auth-button-container" ] ]
           [ p_ [ text "We use gists to save your projects, in order to save and load your projects you will need to login to Github." ]
           , p_ [ text "If you don't wish to login you can still use the Marlowe Playground however you won't be able to save your work." ]
           , div_

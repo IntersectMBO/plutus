@@ -30,8 +30,7 @@ render ::
 render state =
   div_
     [ div [ classes [ ClassName "modal-header" ] ]
-        [ -- TODO: create an HTML helper so all dialogs have the same header/title?
-          h2 [ classes [ ClassName "title" ] ] [ text "Rename Project" ]
+        [ h2 [ classes [ ClassName "title" ] ] [ text "Rename Project" ] -- TODO: create an HTML helper so all dialogs have the same header/title?
         ]
     , div [ classes [ ClassName "modal-content" ] ]
         [ input [ class_ (ClassName "project-name-input"), value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]

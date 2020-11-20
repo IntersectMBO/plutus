@@ -20,8 +20,7 @@ render ::
 render state =
   div_
     [ div [ classes [ ClassName "modal-header" ] ]
-        [ -- TODO: create an HTML helper so all dialogs have the same header/title?
-          h2 [ classes [ ClassName "title" ] ] [ text "Demo Files" ]
+        [ h2 [ classes [ ClassName "title" ] ] [ text "Demo Files" ] -- TODO: create an HTML helper so all dialogs have the same header/title?
         ]
     , div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
         [ demoFile (wrap "Escrow") "Escrow" "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction."

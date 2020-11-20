@@ -32,9 +32,11 @@ render ::
 render state =
   div_
     [ div [ classes [ ClassName "modal-header" ] ]
-        [ -- TODO: confirm that we dont want to change the project name and remove -- input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
-          -- TODO: create an HTML helper so all dialogs have the same header/title?
-          h2 [ classes [ ClassName "title" ] ] [ text "New Project" ]
+        [ {-
+            TODO: confirm that we dont want to change the project name and remove
+            input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
+             TODO: create an HTML helper so all dialogs have the same header/title?
+          -} h2 [ classes [ ClassName "title" ] ] [ text "New Project" ]
         ]
     , div [ classes [ ClassName "modal-content", ClassName "new-project-container" ] ]
         [ h3 [ classes [ ClassName "text-base", ClassName "font-semibold" ] ] [ text "Please choose your initial coding environment" ]

@@ -58,15 +58,11 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [
-      div [ classes [ ClassName "modal-header" ] ]
-        [
-          -- TODO: create an HTML helper so all dialogs have the same header/title?
-          h2 [ classes [ ClassName "title" ] ] [ text "Open Project" ]
-        ],
-      div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
-        [
-         body (view _projects state)
+    [ div [ classes [ ClassName "modal-header" ] ]
+        [ h2 [ classes [ ClassName "title" ] ] [ text "Open Project" ] -- TODO: create an HTML helper so all dialogs have the same header/title?
+        ]
+    , div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
+        [ body (view _projects state)
         ]
     ]
   where
@@ -75,6 +71,7 @@ render state =
   body (Success gists) = gistsTable $ filter playgroundGist gists
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
+
   -- TODO: fix loading design
   body Loading = span [ class_ (ClassName "loading") ] [ text "Loading..." ]
 
