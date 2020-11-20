@@ -9,8 +9,8 @@
 , npmlock2nix
 , nodejs-headers
 , easyPS
-, runCommand
-, copyPathToStore
+, CoreServices ? null # darwin only
+, xcodebuild ? null # darwin only
 }:
 
 { psSrc
@@ -48,7 +48,7 @@ let
   nodeModules = npmlock2nix.node_modules {
     inherit nodejs;
     src = packageLockJson;
-    buildInputs = [ python2 ];
+    buildInputs = [ python2 ] ++ lib.optionals (stdenv.isDarwin) [ CoreServices xcodebuild ];
   };
 in
 stdenv.mkDerivation {
