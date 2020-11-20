@@ -261,9 +261,9 @@ stepPrefixMapEnvGeneric :: LintEnv -> CMS.State State Unit -> ContractPathStep -
 stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Nothing }) markUnreachable cp = do
   pure $ LintEnv env { unreachablePaths = Nothing, isReachable = false }
 
-stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Just upOld }) markUnreachable cp = do
+stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Just upOld, isReachable: oldReachable }) markUnreachable cp = do
   mUpNew <- stepPrefixMap markUnreachable upOld cp
-  pure $ LintEnv env { unreachablePaths = mUpNew, isReachable = isNothing mUpNew }
+  pure $ LintEnv env { unreachablePaths = mUpNew, isReachable = oldReachable && (not $ isNothing mUpNew) }
 
 -- Wrapper for stepPrefixMap that marks unreachable code with a warning
 stepPrefixMapEnv :: forall a. Show a => LintEnv -> a -> Range -> ContractPathStep -> CMS.State State LintEnv
