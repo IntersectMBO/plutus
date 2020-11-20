@@ -96,15 +96,15 @@
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
     },
     "npmlock2nix": {
-        "branch": "remove-path-assert",
+        "branch": "github-experiment",
         "description": null,
         "homepage": null,
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "5d06a72115e7807f96c19f445ad8b1a20af49e59",
-        "sha256": "0az11kpjfsb57bx9rhmfzg179gplk7y4i5872sra0ssq1dzlpb7g",
+        "rev": "d52a174984eaf4bbca9844706beaafb5bcc5cc33",
+        "sha256": "1gfbhqsis3sn608prvxwvlizs32nyja04h7jzfz3jhamr9irc115",
         "type": "tarball",
-        "url": "https://github.com/tweag/npmlock2nix/archive/5d06a72115e7807f96c19f445ad8b1a20af49e59.tar.gz",
+        "url": "https://github.com/tweag/npmlock2nix/archive/d52a174984eaf4bbca9844706beaafb5bcc5cc33.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
