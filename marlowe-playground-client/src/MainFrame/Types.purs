@@ -33,7 +33,7 @@ import Router (Route)
 import SaveAs.Types as SaveAs
 import Simulation.Types as Simulation
 import Types (WebData)
-import Wallet as Wallet
+import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 
 data ModalView

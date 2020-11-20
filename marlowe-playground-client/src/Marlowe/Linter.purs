@@ -53,7 +53,8 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Simulation.Types (ContractPath)
+import Reachability (initialisePrefixMap)
+import Simulation.Types (ContractPath, PrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
@@ -223,6 +224,7 @@ newtype LintEnv
   , letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
   , isReachable :: Boolean
+  , unreachablePaths :: PrefixMap
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -242,14 +244,15 @@ _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 _isReachable :: Lens' LintEnv Boolean
 _isReachable = _Newtype <<< prop (SProxy :: SProxy "isReachable")
 
-emptyEnvironment :: LintEnv
-emptyEnvironment =
+emptyEnvironment :: List ContractPath -> LintEnv
+emptyEnvironment unreachablePathList =
   LintEnv
     { choicesMade: mempty
     , deposits: mempty
     , letBindings: mempty
     , maxTimeout: mempty
     , isReachable: true
+    , unreachablePaths: initialisePrefixMap unreachablePathList
     }
 
 data TemporarySimplification a b
@@ -341,7 +344,7 @@ lint unreachablePaths contractState contract = state
 
   deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
 
-  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) emptyEnvironment
+  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) (emptyEnvironment unreachablePaths)
 
   state = CMS.execState (lintContract env contract) mempty
 

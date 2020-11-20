@@ -1,4 +1,4 @@
-module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis, updateWithResponse) where
+module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, updateWithResponse) where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
@@ -6,6 +6,7 @@ import Data.Function (flip)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.NonEmpty (NonEmptyList(..), toList)
+import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
 import Data.Tuple.Nested (type (/\), (/\))
@@ -20,7 +21,7 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, map, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
+import Prelude (Void, bind, discard, map, mempty, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, InProgressRecord, _analysisState)
@@ -302,3 +303,6 @@ areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (InProgress ipr)) (Just
 areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract us)) (Just contract) state = us.originalContract == contract && us.originalState == state
 
 areContractAndStateTheOnesAnalysed _ _ _ = false
+
+initialisePrefixMap :: List ContractPath -> Map ContractPathStep (NonEmptyList ContractPathStep)
+initialisePrefixMap unreachablePathList = mempty

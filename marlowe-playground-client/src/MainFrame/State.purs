@@ -73,7 +73,7 @@ import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
-import Wallet as Wallet
+import WalletSimulation.Types as Wallet
 import Web.HTML (window) as Web
 import Web.HTML.HTMLDocument (toEventTarget)
 import Web.HTML.Window (document) as Web
