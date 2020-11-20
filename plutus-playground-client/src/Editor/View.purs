@@ -2,7 +2,7 @@ module Editor.View (editorPreferencesSelect, compileButton, editorView, editorFe
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
+import Bootstrap (btn, btnPrimary, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)

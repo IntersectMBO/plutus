@@ -3,7 +3,7 @@ module Gists.Types
   , parseGistUrl
   ) where
 
-import AjaxUtils (AjaxErrorPaneAction(..))
+import AjaxUtils (AjaxErrorPaneAction)
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either, note)
 import Data.String.Regex (Regex, match, regex)
