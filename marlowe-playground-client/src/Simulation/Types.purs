@@ -23,6 +23,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (class Newtype)
+import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
@@ -300,7 +301,7 @@ data ContractZipper
   | HeadZip
 
 type PrefixMap
-  = Map ContractPathStep (NonEmptyList ContractPathStep)
+  = Map ContractPathStep (Set (NonEmptyList ContractPathStep))
 
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)

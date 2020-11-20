@@ -34,7 +34,7 @@ import Data.Lens.Record (prop)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, maybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (abs)
 import Data.Set (Set)
@@ -53,7 +53,7 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Reachability (initialisePrefixMap)
+import Reachability (initialisePrefixMap, stepPrefixMap)
 import Simulation.Types (ContractPath, PrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
@@ -224,7 +224,7 @@ newtype LintEnv
   , letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
   , isReachable :: Boolean
-  , unreachablePaths :: PrefixMap
+  , unreachablePaths :: Maybe PrefixMap
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -252,8 +252,18 @@ emptyEnvironment unreachablePathList =
     , letBindings: mempty
     , maxTimeout: mempty
     , isReachable: true
-    , unreachablePaths: initialisePrefixMap unreachablePathList
+    , unreachablePaths: Just $ initialisePrefixMap unreachablePathList
     }
+
+stepPrefixMapEnv :: forall a. Show a => LintEnv -> a -> Range -> ContractPath -> CMS.State State LintEnv
+stepPrefixMapEnv (LintEnv env@{ unreachablePaths: Nothing }) t pos cp = do
+  pure $ LintEnv env { unreachablePaths = Nothing, isReachable = false }
+
+stepPrefixMapEnv (LintEnv env@{ unreachablePaths: Just upOld }) t pos cp = do
+  mUpNew <- stepPrefixMap markUnreachable upOld cp
+  pure $ LintEnv env { unreachablePaths = mUpNew, isReachable = isNothing mUpNew }
+  where
+  markUnreachable = do addWarning UnreachableContract t pos
 
 data TemporarySimplification a b
   = ConstantSimp

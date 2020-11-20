@@ -1,14 +1,16 @@
-module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, updateWithResponse) where
+module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap, updateWithResponse) where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
+import Control.Monad.State as CMS
 import Data.Function (flip)
 import Data.Lens (assign)
-import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
-import Data.List.NonEmpty (NonEmptyList(..), toList)
-import Data.Map (Map)
+import Data.List (List(..), catMaybes, foldl, fromFoldable, length, snoc, toUnfoldable)
+import Data.List.NonEmpty (NonEmptyList(..), fromList, head, toList)
+import Data.Map (fromFoldableWith)
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
+import Data.Set (singleton, union)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
@@ -21,10 +23,10 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, map, mempty, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
+import Prelude (Unit, Void, bind, discard, map, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, InProgressRecord, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, PrefixMap, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -304,5 +306,8 @@ areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract
 
 areContractAndStateTheOnesAnalysed _ _ _ = false
 
-initialisePrefixMap :: List ContractPath -> Map ContractPathStep (NonEmptyList ContractPathStep)
-initialisePrefixMap unreachablePathList = mempty
+initialisePrefixMap :: List ContractPath -> PrefixMap
+initialisePrefixMap unreachablePathList = fromFoldableWith union $ map (\x -> (head x /\ singleton x)) $ catMaybes $ map fromList unreachablePathList
+
+stepPrefixMap :: forall a. CMS.State a Unit -> PrefixMap -> ContractPath -> CMS.State a (Maybe PrefixMap)
+stepPrefixMap markUnreachable env contractPath = pure (Just env)
