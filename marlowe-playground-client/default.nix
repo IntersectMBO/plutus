@@ -31,7 +31,6 @@ let
     src = ./.;
     name = "marlowe-playground-client";
     psSrc = generated-purescript;
-    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
