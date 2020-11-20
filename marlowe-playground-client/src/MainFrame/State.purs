@@ -20,8 +20,8 @@ import Effect.Class (class MonadEffect)
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
-import Gists (GistAction(..))
-import Gists as Gists
+import Gists.Types (GistAction(..))
+import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly

@@ -6,7 +6,7 @@ import Data.Maybe (Maybe(..))
 import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
 import GistButtons (authButton)
-import Gists (GistAction(..))
+import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)

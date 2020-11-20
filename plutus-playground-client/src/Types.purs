@@ -22,7 +22,7 @@ import Data.Traversable (traverse)
 import Editor.Types as Editor
 import Foreign.Generic (encodeJSON)
 import Gist (Gist)
-import Gists (GistAction)
+import Gists.Types (GistAction)
 import Halogen as H
 import Halogen.Chartist as Chartist
 import Halogen.Monaco as Monaco
