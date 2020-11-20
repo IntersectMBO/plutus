@@ -1,27 +1,19 @@
 { stdenv
 , lib
-, cacert
 , nodejs
-, nodePackages
-, python2
-, git
-, fetchurl
-, npmlock2nix
-, nodejs-headers
 , easyPS
-, CoreServices ? null # darwin only
-, xcodebuild ? null # darwin only
+, buildNodeModules
 }:
 
 { psSrc
 , src
 , name
 , additionalPurescriptSources ? [ ]
+, additionalNpmBuildInputs ? [ ]
 , packages
 , spagoPackages
 , webCommon
 , checkPhase ? ""
-, passthru ? { }
 }:
 let
   cleanSrcs = lib.cleanSourceWith {
@@ -33,11 +25,6 @@ let
     };
   };
 
-  packageLockJson = lib.cleanSourceWith {
-    filter = (path: type: lib.elem (baseNameOf path) [ "package.json" "package-lock.json" ]);
-    inherit src;
-  };
-
   purescriptSources = [
     "src/**/*.purs"
     "test/**/*.purs"
@@ -45,16 +32,12 @@ let
     ".spago/*/*/src/**/*.purs"
   ] ++ additionalPurescriptSources;
 
-  nodeModules = npmlock2nix.node_modules {
-    inherit nodejs;
-    src = packageLockJson;
-    buildInputs = [ python2 ] ++ lib.optionals (stdenv.isDarwin) [ CoreServices xcodebuild ];
-  };
+  nodeModules = buildNodeModules { projectDir = src; buildInputs = additionalNpmBuildInputs; };
 in
 stdenv.mkDerivation {
   name = "plutus-playground-client";
   src = cleanSrcs;
-  buildInputs = [ nodeModules easyPS.purs easyPS.spago easyPS.psc-package python2 ];
+  buildInputs = [ nodeModules easyPS.purs easyPS.spago easyPS.psc-package ];
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
     shopt -s globstar

@@ -147,16 +147,15 @@ let
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
     npmlock2nix = (import sources.npmlock2nix { });
-    buildPursPackage = pkgs.callPackage ../lib/purescript.nix ({
-      inherit easyPS nodejs-headers npmlock2nix;
-      CoreServices = if stdenv.isDarwin then pkgs.darwin.apple_sdk.frameworks.CoreServices else null;
-      xcodebuild = if stdenv.isDarwin then pkgs.xcodebuild else null;
+    buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS buildNodeModules;inherit (pkgs) nodejs; };
+    buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
+      inherit npmlock2nix;
     } // pkgs.lib.optionalAttrs (stdenv.isDarwin) {
-      inherit (pkgs.darwin.apple_sdk.frameworks) CoreServices;
-      inherit (pkgs) xcodebuild;
+      CoreServices = pkgs.darwin.apple_sdk.frameworks.CoreServices;
+      xcodebuild = pkgs.xcodebuild;
     });
-  };
 
+  };
 
 in
 {
