@@ -17,7 +17,7 @@ import Effect.Aff.Class (class MonadAff)
 import Gist (Gist(..), gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (flex)
-import Halogen.HTML (HTML, a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
+import Halogen.HTML (HTML, a, div, div_, h2, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
@@ -57,10 +57,17 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ ClassName "projects-container" ] ]
-    [ h1_ [ text "Open Project" ]
-    , hr_
-    , body (view _projects state)
+  div_
+    [
+      div [ classes [ ClassName "modal-header" ] ]
+        [
+          -- TODO: create an HTML helper so all dialogs have the same header/title?
+          h2 [ classes [ ClassName "title" ] ] [ text "Open Project" ]
+        ],
+      div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
+        [
+         body (view _projects state)
+        ]
     ]
   where
   body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]
@@ -68,7 +75,7 @@ render state =
   body (Success gists) = gistsTable $ filter playgroundGist gists
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
-
+  -- TODO: fix loading design
   body Loading = span [ class_ (ClassName "loading") ] [ text "Loading..." ]
 
   body NotAsked = text mempty

@@ -37,21 +37,21 @@
       opacity: 0.8;
     }
   }
+}
 
-  // This class is not used for the new project dialog any more
-  // but it is being used by the Save as and Rename modal.
-  // TODO: Move/Remove/Rename
-  input {
-    font-weight: normal;
-    font-size: 1.912em;
-    line-height: calc(18px + 1.8vw);
-    padding: 0;
-    display: block;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    border: none;
-    appearance: none;
-    background-color: var(--bg-light);
-    color: var(--text-color);
-  }
+// This class is not used for the new project dialog any more
+// but it is being used by the Save as and Rename modal.
+// TODO: Move to more appropiate location
+.project-name-input {
+  font-weight: normal;
+  font-size: 1.912em;
+  line-height: calc(18px + 1.8vw);
+  padding: 0;
+  display: block;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  border: none;
+  appearance: none;
+  background-color: var(--bg-light);
+  color: var(--text-color);
 }

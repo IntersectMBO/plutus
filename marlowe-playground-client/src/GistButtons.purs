@@ -20,13 +20,16 @@ authButton intendedAction state =
     authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
   in
     case authStatus of
+      -- TODO: Check how it looks visually and rethink if it should have a CTA to retry
       Failure _ ->
         button
           [ idPublishGist
           ]
           [ text "Failed to login" ]
       Success Anonymous ->
-        div [ class_ (ClassName "auth-button-container") ]
+        -- TODO: Validate this dialog with the designer, see if we should add a title
+        --       based on the intendedAction
+        div [ classes [ClassName "modal-content", ClassName "auth-button-container"] ]
           [ p_ [ text "We use gists to save your projects, in order to save and load your projects you will need to login to Github." ]
           , p_ [ text "If you don't wish to login you can still use the Marlowe Playground however you won't be able to save your work." ]
           , div_

@@ -1,3 +1,10 @@
+/* TODO: this only works if set on body, need to check how to add it there
+without doing it as an Effect in a mainframe action
+*/
+.avoid-scrolling {
+  overflow-y: hidden;
+}
+
 /* The "grey" background that prevents other actions to be performed */
 .overlay {
   /*
@@ -14,11 +21,9 @@
   left: 0;
   top: 0;
   /* Full width */
-  width: 100%;
+  width: 100vw;
   /* Full height */
-  height: 100%;
-  /* Enable scroll if needed */
-  overflow: auto;
+  height: 100vh;
   /* Fallback color */
   background-color: rgb(0, 0, 0);
   /* Black w/ opacity */
@@ -32,6 +37,15 @@
   position: relative;
   border-radius: var(--border-radius);
   box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.34);
+
+  /* The width cant be bigger than the 1024 size minus margins of both sides*/
+  max-width: calc(var(--breakpoint-mid) - 2 * var(--medium-margin));
+  /*
+    The height cant be bigger than 90% of the vertical height and it's allowed
+    to scroll.
+  */
+  max-height: 90vh;
+  overflow: auto;
 }
 
 
@@ -75,4 +89,5 @@
 
 .modal-content {
   padding: var(--medium-margin);
+
 }

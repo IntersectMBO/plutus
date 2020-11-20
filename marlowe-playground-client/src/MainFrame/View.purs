@@ -43,7 +43,7 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render settings state =
-  div [ class_ (ClassName "site-wrap") ]
+  div [ class_ ( ClassName "site-wrap")]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]
               [ div [ classes [ ClassName "group", aHorizontal, ClassName "marlowe-title-group" ] ]

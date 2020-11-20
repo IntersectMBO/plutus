@@ -4,7 +4,7 @@ import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.HTML (button, div, input, text)
+import Halogen.HTML (button, div, div_, h2, input, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import Marlowe (SPParams_)
@@ -28,10 +28,16 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ ClassName "new-project-container" ] ]
-    [ input [ value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]
-    , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]
-    , renderError (state ^. _error)
+  div_
+    [ div [ classes [ ClassName "modal-header" ] ]
+        [ -- TODO: create an HTML helper so all dialogs have the same header/title?
+          h2 [ classes [ ClassName "title" ] ] [ text "Rename Project" ]
+        ]
+    , div [ classes [ ClassName "modal-content" ] ]
+        [ input [ class_ (ClassName "project-name-input"), value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]
+        , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]
+        , renderError (state ^. _error)
+        ]
     ]
   where
   renderError Nothing = text ""
