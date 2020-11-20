@@ -8,7 +8,7 @@ import Prelude
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
-import Chain.Eval (handleAction) as Chain
+import Chain.State (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
