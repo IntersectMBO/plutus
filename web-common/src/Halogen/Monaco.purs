@@ -16,6 +16,8 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
+import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
+import Control.Monad.Trans.Class (lift)
 import Data.Traversable (for_, traverse)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -227,13 +229,12 @@ handleQuery (GetModelMarkers f) = do
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
 
-handleQuery (GetDecorationRange decoratorId f) = do
-  withEditor \editor -> do
-    liftEffect do
-      model <- liftEffect $ Monaco.getModel editor
-      let
-        decoRange = Monaco.getDecorationRange model decoratorId
-      pure $ f decoRange
+handleQuery (GetDecorationRange decoratorId f) =
+  runMaybeT do
+    editor <- MaybeT $ H.gets _.editor
+    model <- lift $ liftEffect $ Monaco.getModel editor
+    decoRange <- MaybeT $ liftEffect $ Monaco.getDecorationRange model decoratorId
+    pure $ f decoRange
 
 handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
