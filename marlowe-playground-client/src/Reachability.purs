@@ -157,7 +157,7 @@ startReachabilityAnalysis ::
 startReachabilityAnalysis settings contract state = do
   case getNextSubproblem isValidSubproblem initialSubproblems Nil of
     Nothing -> pure AllReachable
-    Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
+    Just ((contractZipper /\ _ /\ newChildren) /\ newSubproblems) -> do
       let
         numSubproblems = countSubproblems isValidSubproblem (newChildren <> newSubproblems)
 
@@ -177,7 +177,7 @@ startReachabilityAnalysis settings contract state = do
               }
           )
       assign _analysisState (ReachabilityAnalysis progress)
-      response <- checkContractForReachability settings subcontract state
+      response <- checkContractForReachability settings newContract state
       result <- updateWithResponse settings progress response
       pure result
   where
