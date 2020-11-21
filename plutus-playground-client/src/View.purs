@@ -32,97 +32,25 @@ import Simulation (actionsErrorPane, simulationPane)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
+foreign import plutusLogo :: String
+
+-- renders the whole page
 render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { currentView, blockchainVisualisationState, contractDemos, editorState }) =
+render state@(State { contractDemos }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ div_
         [ mainHeader
         , subHeader contractDemos
-        , div
-            [ id_ "main-content"
-            , class_ container
-            ]
-            [ div [ classes [ row, noGutters, justifyContentBetween ] ]
-                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
-                , div
-                    [ classes [ colXs12, colSm5 ] ]
-                    [ GistAction <$> gistControls (unwrap state) ]
-                ]
-            , row_
-                [ viewContainer currentView Editor
-                    let
-                      compilationResult = view _compilationResult state
-                    in
-                      [ div [ id_ "editor" ]
-                          [ mapComponent EditorAction $ editorPreferencesPane (view _keyBindings editorState)
-                          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
-                          , compileButton CompileProgram compilationResult
-                          , mapComponent EditorAction $ editorFeedback compilationResult
-                          , case compilationResult of
-                              Failure error -> ajaxErrorPane error
-                              _ -> empty
-                          ]
-                      ]
-                , viewContainer currentView Simulations
-                    $ let
-                        knownCurrencies = evalState getKnownCurrencies state
-
-                        initialValue = mkInitialValue knownCurrencies zero
-                      in
-                        [ simulationPane
-                            initialValue
-                            (view _actionDrag state)
-                            ( view
-                                ( _compilationResult
-                                    <<< _Success
-                                    <<< _Right
-                                    <<< _Newtype
-                                    <<< _result
-                                    <<< _functionSchema
-                                )
-                                state
-                            )
-                            (view _simulations state)
-                            (view _evaluationResult state)
-                        , case (view _evaluationResult state) of
-                            Failure error -> ajaxErrorPane error
-                            Success (Left error) -> actionsErrorPane error
-                            _ -> empty
-                        ]
-                , viewContainer currentView Transactions
-                    $ case view _evaluationResult state of
-                        Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
-                        Success (Left error) ->
-                          [ text "Your simulation has errors. Click the "
-                          , strong_ [ text "Simulation" ]
-                          , text " tab above to fix them and recompile."
-                          ]
-                        Failure error ->
-                          [ text "Your simulation has errors. Click the "
-                          , strong_ [ text "Simulation" ]
-                          , text " tab above to fix them and recompile."
-                          ]
-                        Loading -> [ icon Spinner ]
-                        NotAsked ->
-                          [ text "Click the "
-                          , strong_ [ text "Simulation" ]
-                          , text " tab above and evaluate a simulation to see some results."
-                          ]
-                ]
-            ]
+        , mainContent state
         , mainFooter
         ]
     ]
-  where
-  defaultContents :: Maybe String
-  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-foreign import plutusLogo :: String
-
+-- renders the page header
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   nav
@@ -141,6 +69,7 @@ mainHeader =
     , documentationLinksPane
     ]
 
+-- renders the documentation links
 documentationLinksPane :: forall p i. HTML p i
 documentationLinksPane =
   div
@@ -156,15 +85,7 @@ documentationLinksPane =
     , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 
-makeLink :: forall p i. HTML p i /\ String -> HTML p i
-makeLink (label /\ link) =
-  a
-    [ class_ navLink
-    , href link
-    , target "_blank"
-    ]
-    [ label ]
-
+-- renders the page sub header
 subHeader :: forall p. Array ContractDemo -> HTML p HAction
 subHeader contractDemos =
   nav
@@ -174,6 +95,7 @@ subHeader contractDemos =
     [ contractDemosPane contractDemos
     ]
 
+-- renders the contract demos pane
 contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
 contractDemosPane contractDemos =
   div
@@ -187,6 +109,7 @@ contractDemosPane contractDemos =
         (demoScriptButton <$> contractDemos)
     )
 
+-- renders a demo button
 demoScriptButton :: forall p. ContractDemo -> HTML p HAction
 demoScriptButton (ContractDemo { contractDemoName }) =
   button
@@ -195,23 +118,132 @@ demoScriptButton (ContractDemo { contractDemoName }) =
     ]
     [ text contractDemoName ]
 
-tabs ::
-  Array
-    { link :: View
-    , title :: String
-    }
-tabs =
-  [ { link: Editor
-    , title: "Editor"
-    }
-  , { link: Simulations
-    , title: "Simulation"
-    }
-  , { link: Transactions
-    , title: "Transactions"
-    }
-  ]
+-- renders the page content (editor, simulation, and transactions)
+mainContent ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+mainContent state@(State { currentView }) =
+  div
+    [ id_ "main-content"
+    , class_ container
+    ]
+    [ div [ classes [ row, noGutters, justifyContentBetween ] ]
+        [ div
+            [ classes [ colXs12, colSm6 ] ]
+            [ mainTabBar ChangeView tabs currentView ]
+        , div
+            [ classes [ colXs12, colSm5 ] ]
+            [ GistAction <$> gistControls (unwrap state) ]
+        ]
+    , row_
+        [ editorTabPane state
+        , simulationTabPane state
+        , transactionsTabPane state
+        ]
+    ]
+  where
+  tabs ::
+    Array
+      { link :: View
+      , title :: String
+      }
+  tabs =
+    [ { link: Editor
+      , title: "Editor"
+      }
+    , { link: Simulations
+      , title: "Simulation"
+      }
+    , { link: Transactions
+      , title: "Transactions"
+      }
+    ]
 
+-- renders the editor tab pane
+editorTabPane ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+editorTabPane state@(State { currentView, contractDemos, editorState }) =
+  viewContainer currentView Editor
+    let
+      compilationResult = view _compilationResult state
+    in
+      [ div [ id_ "editor" ]
+          [ mapComponent EditorAction $ editorPreferencesPane (view _keyBindings editorState)
+          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
+          , compileButton CompileProgram compilationResult
+          , mapComponent EditorAction $ editorFeedback compilationResult
+          , case compilationResult of
+              Failure error -> ajaxErrorPane error
+              _ -> empty
+          ]
+      ]
+  where
+  defaultContents :: Maybe String
+  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
+
+-- renders the simulation tab pane
+simulationTabPane ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+simulationTabPane state@(State { currentView }) =
+  viewContainer currentView Simulations
+    $ let
+        knownCurrencies = evalState getKnownCurrencies state
+
+        initialValue = mkInitialValue knownCurrencies zero
+      in
+        [ simulationPane
+            initialValue
+            (view _actionDrag state)
+            ( view
+                ( _compilationResult
+                    <<< _Success
+                    <<< _Right
+                    <<< _Newtype
+                    <<< _result
+                    <<< _functionSchema
+                )
+                state
+            )
+            (view _simulations state)
+            (view _evaluationResult state)
+        , case (view _evaluationResult state) of
+            Failure error -> ajaxErrorPane error
+            Success (Left error) -> actionsErrorPane error
+            _ -> empty
+        ]
+
+-- renders the transactions tab pane
+transactionsTabPane ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+transactionsTabPane state@(State { currentView, blockchainVisualisationState }) =
+  viewContainer currentView Transactions
+    $ case view _evaluationResult state of
+        Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
+        Success (Left error) ->
+          [ text "Your simulation has errors. Click the "
+          , strong_ [ text "Simulation" ]
+          , text " tab above to fix them and recompile."
+          ]
+        Failure error ->
+          [ text "Your simulation has errors. Click the "
+          , strong_ [ text "Simulation" ]
+          , text " tab above to fix them and recompile."
+          ]
+        Loading -> [ icon Spinner ]
+        NotAsked ->
+          [ text "Click the "
+          , strong_ [ text "Simulation" ]
+          , text " tab above and evaluate a simulation to see some results."
+          ]
+
+-- renders the page footer
 mainFooter :: forall p i. HTML p i
 mainFooter =
   footer
@@ -235,13 +267,19 @@ mainFooter =
     , div
         [ classes [ mlAuto ]
         ]
-        [ a
-            [ href "https://twitter.com/hashtag/Plutus"
-            , target "_blank"
-            ]
-            [ text "Twitter" ]
-        ]
+        [ makeLink $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus" ]
     ]
 
+-- renders a link
+makeLink :: forall p i. HTML p i /\ String -> HTML p i
+makeLink (label /\ link) =
+  a
+    [ class_ navLink
+    , href link
+    , target "_blank"
+    ]
+    [ label ]
+
+-- copyright symbol
 copyright :: forall p i. HTML p i
 copyright = text "\x00A9"
