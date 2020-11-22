@@ -2,7 +2,7 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnLink, colSm5, colSm6, colXs12, container, empty, justifyContentBetween, mlAuto, mrAuto, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, noGutters, row, row_)
+import Bootstrap (btn, btnLink, colSm5, colSm6, colXs12, container, empty, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, noGutters, row, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Array as Array
@@ -41,7 +41,7 @@ render ::
   State -> ComponentHTML HAction ChildSlots m
 render state@(State { contractDemos }) =
   div
-    [ class_ $ ClassName "main-frame" ]
+    [ class_ $ ClassName "frame" ]
     [ div_
         [ mainHeader
         , subHeader contractDemos
@@ -54,8 +54,7 @@ render state@(State { contractDemos }) =
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   nav
-    [ id_ "main-header"
-    , classes [ navbar, navbarExpand ]
+    [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "header" ]
     ]
     [ span [ class_ navbarBrand ]
         [ img
@@ -74,9 +73,9 @@ documentationLinksPane :: forall p i. HTML p i
 documentationLinksPane =
   div
     [ id_ "docs"
-    , classes [ navbarNav, mlAuto ]
+    , classes [ navbarNav ]
     ]
-    (makeLink <$> links)
+    (makeNavItem <$> links)
   where
   links =
     [ text "Getting Started" /\ "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
@@ -89,8 +88,7 @@ documentationLinksPane =
 subHeader :: forall p. Array ContractDemo -> HTML p HAction
 subHeader contractDemos =
   nav
-    [ id_ "sub-header"
-    , classes [ navbar, navbarExpand ]
+    [ classes [ navbar, navbarExpand, ClassName "sub-header" ]
     ]
     [ contractDemosPane contractDemos
     ]
@@ -247,38 +245,36 @@ transactionsTabPane state@(State { currentView, blockchainVisualisationState }) 
 mainFooter :: forall p i. HTML p i
 mainFooter =
   footer
-    [ id_ "main-footer"
-    , classes [ navbar, navbarExpand ]
+    [ classes [ navbar, navbarExpand, ClassName "footer" ]
     ]
     [ div
-        [ id_ "docs"
-        , classes [ navbarNav, mrAuto ]
-        ]
-        [ makeLink $ text "Cardano.org" /\ "https://cardano.org/"
-        , makeLink $ text "IOHK.io" /\ "https://iohk.io/"
+        [ classes [ navbarNav, mrAuto ] ]
+        [ makeNavItem $ text "cardano.org" /\ "https://cardano.org/"
+        , makeNavItem $ text "iohk.io" /\ "https://iohk.io/"
         ]
     , div
-        [ classes [ navbarNav ]
-        ]
+        [ classes [ navbarNav ] ]
         [ copyright
         , nbsp
         , text "2020 IOHK Ltd."
         ]
     , div
-        [ classes [ mlAuto ]
-        ]
-        [ makeLink $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus" ]
+        [ classes [ navbarNav, mlAuto ] ]
+        [ makeNavItem $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus" ]
     ]
 
 -- renders a link
-makeLink :: forall p i. HTML p i /\ String -> HTML p i
-makeLink (label /\ link) =
-  a
-    [ class_ navLink
-    , href link
-    , target "_blank"
+makeNavItem :: forall p i. HTML p i /\ String -> HTML p i
+makeNavItem (label /\ link) =
+  span
+    [ classes [ navItem ] ]
+    [ a
+        [ class_ navLink
+        , href link
+        , target "_blank"
+        ]
+        [ label ]
     ]
-    [ label ]
 
 -- copyright symbol
 copyright :: forall p i. HTML p i
