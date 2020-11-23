@@ -10,7 +10,7 @@ let
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
-  inherit (plutus) purty purs spargo;
+  inherit (plutus) purty purty-pre-commit purs spargo;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
@@ -22,7 +22,7 @@ let
       stylish-haskell = stylish-haskell;
       nixpkgs-fmt = nixpkgs-fmt;
       shellcheck = pkgs.shellcheck;
-      purty = purty;
+      purty = purty-pre-commit;
     };
     hooks = {
       purty.enable = true;

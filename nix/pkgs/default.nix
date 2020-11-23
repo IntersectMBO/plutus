@@ -97,6 +97,12 @@ let
   # including stylish-haskell support
   nix-pre-commit-hooks = import (sources."pre-commit-hooks.nix");
 
+  # purty is unable to process several files but that is what pre-commit
+  # does. pre-commit-hooks.nix does provide a wrapper for that but when
+  # we pin our own `tools` attribute that gets overwritten so we have to
+  # instead provide the wrapper.
+  purty-pre-commit = pkgs.callPackage ./purty-pre-commit { inherit purty; };
+
   # easy-purescript-nix has some kind of wacky internal IFD
   # usage that breaks the logic that makes source fetchers
   # use native dependencies. This isn't easy to fix, since
@@ -149,7 +155,7 @@ in
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks nodejs-headers;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
-  inherit purty purs spago;
+  inherit purty purty-pre-commit purs spago;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
