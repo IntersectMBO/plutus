@@ -8,7 +8,7 @@ import Prelude
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
-import Chain.Eval (handleAction) as Chain
+import Chain.State (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
@@ -48,8 +48,8 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
 import Gist (_GistId, gistId)
-import Gists (GistAction(..))
-import Gists as Gists
+import Gists.Types (GistAction(..))
+import Gists.Types as Gists
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)

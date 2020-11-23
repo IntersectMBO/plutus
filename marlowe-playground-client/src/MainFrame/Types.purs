@@ -14,7 +14,7 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Demos.Types as Demos
 import Gist (Gist, GistId)
-import Gists (GistAction)
+import Gists.Types (GistAction)
 import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB

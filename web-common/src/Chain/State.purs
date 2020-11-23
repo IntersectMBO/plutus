@@ -1,4 +1,4 @@
-module Chain.Eval (handleAction) where
+module Chain.State (handleAction) where
 
 import Chain.Types (Action(..), AnnotatedBlockchain, State, _chainFocus, _chainFocusAge, _findTx, _sequenceId)
 import Clipboard (class MonadClipboard)

@@ -1,28 +1,24 @@
-module Gists
-  ( GistAction(..)
-  , gistControls
-  , parseGistUrl
+module Gists.View
+  ( gistControls
   , idPublishGist
   , idLoadGist
   ) where
 
+import Gists.Types (GistAction(..), parseGistUrl)
 import AjaxUtils (ajaxErrorPane)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
 import DOM.HTML.Indexed.InputType (InputType(..))
-import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..), isRight, note)
-import Data.Lens (findOf, traversed, view)
+import Data.Lens (view)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String.Regex (Regex, match, regex)
-import Data.String.Regex.Flags (ignoreCase)
-import Gist (Gist, GistFile, GistId(GistId), gistFileFilename, gistFiles, gistHtmlUrl)
+import Gist (Gist, GistId, gistHtmlUrl)
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
-import Prelude (bind, const, ($), (<$>), (<<<), (<>), (=<<), (==))
+import Prelude (const, ($), (<$>), (<<<), (<>), (=<<))
 import Servant.PureScript.Ajax (AjaxError)
 
 idPublishGist :: forall r i. IProp ( id :: String | r ) i
@@ -30,11 +26,6 @@ idPublishGist = id_ "publish-gist"
 
 idLoadGist :: forall r i. IProp ( id :: String | r ) i
 idLoadGist = id_ "load-gist"
-
-data GistAction
-  = PublishGist
-  | SetGistUrl String
-  | LoadGist
 
 gistControls ::
   forall a p.
@@ -177,15 +168,3 @@ gistPane gist =
         ]
         [ text $ "View on Github" ]
     ]
-
-gistIdInLinkRegex :: Either String Regex
-gistIdInLinkRegex = regex "^(.*/)?([0-9a-f]{32})$" ignoreCase
-
-parseGistUrl :: String -> Either String GistId
-parseGistUrl str = do
-  gistIdInLink <- gistIdInLinkRegex
-  note "Could not parse Gist Url"
-    $ do
-        matches <- match gistIdInLink str
-        match <- NonEmptyArray.index matches 2
-        GistId <$> match

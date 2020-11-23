@@ -31,7 +31,7 @@ import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
 import Foreign.Generic (decodeJSON)
 import Gist (Gist, GistId, gistId)
-import Gists (GistAction(..))
+import Gists.Types (GistAction(..))
 import Halogen.Monaco (KeyBindings(..)) as Editor
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(..))
 import MainFrame (handleAction, mkInitialState)

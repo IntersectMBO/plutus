@@ -8,7 +8,7 @@ module MainFrame
 import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
 import Cardano.Metadata.Types (Property, PropertyKey, Subject, SubjectProperties(..))
-import Chain.Eval (handleAction) as Chain
+import Chain.State (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
