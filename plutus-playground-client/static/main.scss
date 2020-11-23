@@ -16,6 +16,63 @@ body {
     color: $offblack;
 }
 
+//-- global styles for small elements --//
+
+a,
+a:hover {
+    color: inherit;
+}
+
+a {
+    text-decoration: none;
+
+    :hover {
+        text-decoration: underline;
+    }
+}
+
+.btn {
+    font-weight: bold;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+}
+
+@mixin button ($color, $text-color) {
+    color: $text-color;
+    border-color: $color;
+    background-color: $color;
+
+    &:hover {
+        color: $color;
+        border-color: $color;
+        background-color: $text-color;
+    }
+};
+
+.btn-primary {
+    @include button($blue, $white);
+}
+
+.btn-secondary {
+    @include button($white, $blue);
+}
+
+.btn-success {
+    @include button($green, $white);
+}
+
+.btn-info {
+    @include button($yellow, $white);
+}
+
+.btn-danger {
+    @include button($red, $white);
+}
+
+
+
+//-- styles for major elements on the page (header, subheader, main, footer) --//
+
 .header,
 .footer {
     background: $gray;
@@ -68,6 +125,8 @@ body {
 
 
 
+
+
 // still to sort through...
 .tab-help {
     font-style: italic;
@@ -109,6 +168,7 @@ h1, h2, h3, h4, h5, h6 {
         text-decoration: none;
     }
 
+    /*
     @mixin main-button ($color, $background-color, $border-color: $background-color) {
         color: $color;
         border-color: $border-color;
@@ -142,6 +202,7 @@ h1, h2, h3, h4, h5, h6 {
         letter-spacing: 1.6px;
         text-transform: uppercase;
     }
+    */
 
     #simulation-nav,
     .wallet .card {

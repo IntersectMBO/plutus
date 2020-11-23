@@ -170,12 +170,7 @@ editorTabPane state@(State { currentView, contractDemos, editorState }) =
               , compileButton CompileProgram compilationResult
               ]
           , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
-          , div [ class_ $ ClassName "editor-controls" ]
-              [ compileButton CompileProgram compilationResult ]
           , mapComponent EditorAction $ editorFeedback compilationResult
-          , case compilationResult of
-              Failure error -> ajaxErrorPane error
-              _ -> empty
           ]
       ]
   where

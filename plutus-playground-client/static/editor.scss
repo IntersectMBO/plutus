@@ -21,7 +21,7 @@
     }
 
     .code-editor {
-        margin-bottom: 15px;
+        margin-bottom: 1rem;
     }
 
     .monaco-editor-container {
@@ -35,6 +35,24 @@
 
         &.hidden {
             display: none;
+        }
+    }
+
+    .editor-feedback {
+        .raw-error,
+        .compilation-error {
+            .card-header {
+                background: $red;
+                color: $white;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+
+        .card-body {
+            pre {
+                margin: 0;
+            }
         }
     }
 }
