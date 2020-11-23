@@ -82,7 +82,7 @@ extra-deps:
 - witherable-class-0
 - git: https://github.com/agda/agda.git
   commit: 08191e66e65a4870bf43e21007909fc03150eabf
-  # nix-sha256: 0lp8rpndk376v0q7zzlw00g3cf946qqhqyshmxkij79vsdvy9xw1
+  # nix-sha256: 04w731n9nwqml15bfjy4sc277sdm3rvp280sq9y23wr8w7cazik5
 - data-hash-0.2.0.1@sha256:0277d99cb8b535ecc375c59e55f1c91faab966d9167a946ef18445dd468ba727,1135
 - equivalence-0.3.5@sha256:aedbd070b7ab5e58dd1678cd85607bc33cb9ff62331c1fa098ca45063b3072db,1626
 - geniplate-mirror-0.7.7@sha256:6a698c1bcec25f4866999001c4de30049d4f8f00ec83f8930cda2f767489c637,1106
