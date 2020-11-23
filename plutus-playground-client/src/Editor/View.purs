@@ -2,7 +2,7 @@ module Editor.View where
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, customSelect, empty, formGroup, listGroupItem_, listGroup_, nbsp, pullRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSecondary, btnSuccess, customSelect, empty, listGroupItem_, listGroup_, nbsp, pullRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -71,22 +71,16 @@ editorFeedback state =
           )
           state
 
-editorPreferencesPane :: forall p. KeyBindings -> HTML p Action
-editorPreferencesPane active =
-  div
-    [ id_ "editor-preferences"
-    , class_ formGroup
+editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
+editorPreferencesSelect active =
+  select
+    [ class_ customSelect
+    , onSelectedIndexChange
+        ( \index ->
+            SetKeyBindings <$> Array.index allKeyBindings index
+        )
     ]
-    [ text "Key bindings"
-    , select
-        [ class_ customSelect
-        , onSelectedIndexChange
-            ( \index ->
-                SetKeyBindings <$> Array.index allKeyBindings index
-            )
-        ]
-        (editor <$> allKeyBindings)
-    ]
+    (editor <$> allKeyBindings)
   where
   editor keyBindings =
     option
@@ -95,7 +89,7 @@ editorPreferencesPane active =
       ]
       [ text $ editorName keyBindings ]
 
-  editorName DefaultBindings = "Default"
+  editorName DefaultBindings = "Default Key Bindings"
 
   editorName Emacs = "Emacs"
 

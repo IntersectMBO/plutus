@@ -2,7 +2,7 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnLink, colSm5, colSm6, colXs12, container, empty, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, noGutters, row, row_)
+import Bootstrap (btn, btnLink, col_, container, empty, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Array as Array
@@ -14,10 +14,10 @@ import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
 import Editor.Types (_keyBindings)
-import Editor.View (compileButton, editorFeedback, editorPreferencesPane, editorView)
+import Editor.View (compileButton, editorFeedback, editorPreferencesSelect, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, footer, img, nav, span, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, footer, img, nav, span, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, height, href, id_, src, target, width)
@@ -39,15 +39,13 @@ render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { contractDemos }) =
+render state =
   div
     [ class_ $ ClassName "frame" ]
-    [ div_
-        [ mainHeader
-        , subHeader contractDemos
-        , mainContent state
-        , mainFooter
-        ]
+    [ mainHeader
+    , subHeader state
+    , mainContent state
+    , mainFooter
     ]
 
 -- renders the page header
@@ -85,12 +83,16 @@ documentationLinksPane =
     ]
 
 -- renders the page sub header
-subHeader :: forall p. Array ContractDemo -> HTML p HAction
-subHeader contractDemos =
+subHeader ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+subHeader state@(State { contractDemos }) =
   nav
-    [ classes [ navbar, navbarExpand, ClassName "sub-header" ]
+    [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ]
     ]
     [ contractDemosPane contractDemos
+    , GistAction <$> gistControls (unwrap state)
     ]
 
 -- renders the contract demos pane
@@ -126,14 +128,8 @@ mainContent state@(State { currentView }) =
     [ id_ "main-content"
     , class_ container
     ]
-    [ div [ classes [ row, noGutters, justifyContentBetween ] ]
-        [ div
-            [ classes [ colXs12, colSm6 ] ]
-            [ mainTabBar ChangeView tabs currentView ]
-        , div
-            [ classes [ colXs12, colSm5 ] ]
-            [ GistAction <$> gistControls (unwrap state) ]
-        ]
+    [ row_
+        [ col_ [ mainTabBar ChangeView tabs currentView ] ]
     , row_
         [ editorTabPane state
         , simulationTabPane state
@@ -168,10 +164,14 @@ editorTabPane state@(State { currentView, contractDemos, editorState }) =
     let
       compilationResult = view _compilationResult state
     in
-      [ div [ id_ "editor" ]
-          [ mapComponent EditorAction $ editorPreferencesPane (view _keyBindings editorState)
+      [ div [ class_ $ ClassName "editor" ]
+          [ div [ class_ $ ClassName "editor-controls" ]
+              [ mapComponent EditorAction $ editorPreferencesSelect (view _keyBindings editorState)
+              , compileButton CompileProgram compilationResult
+              ]
           , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
-          , compileButton CompileProgram compilationResult
+          , div [ class_ $ ClassName "editor-controls" ]
+              [ compileButton CompileProgram compilationResult ]
           , mapComponent EditorAction $ editorFeedback compilationResult
           , case compilationResult of
               Failure error -> ajaxErrorPane error

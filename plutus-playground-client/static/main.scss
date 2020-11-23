@@ -101,11 +101,15 @@ h1, h2, h3, h4, h5, h6 {
 #main-content {
     min-height: 80vh;
 
+    .nav-tabs .nav-link {
+        cursor: pointer;
+    }
+
     .btn-link {
         text-decoration: none;
     }
 
-    @mixin main-button ($color, $background-color, $border-color: $color) {
+    @mixin main-button ($color, $background-color, $border-color: $background-color) {
         color: $color;
         border-color: $border-color;
         background-color: $background-color;
