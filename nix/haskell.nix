@@ -51,7 +51,7 @@ let
               "ghc-boot"
               "ghc" "Cabal" "Win32" "array" "binary" "bytestring" "containers"
               "directory" "filepath" "ghc-boot" "ghc-compact" "ghc-prim"
-              "ghci" "haskeline"
+              "ghci"
               "hpc"
               "mtl" "parsec" "process" "text" "time" "transformers"
               "unix" "xhtml"
