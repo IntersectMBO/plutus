@@ -18,7 +18,7 @@ import           Data.Text                          (Text)
 import           Language.PlutusCore                (DefaultFun (..))
 import           Language.PlutusCore.CBOR           (InvisibleUnit (..))
 import           Language.PlutusCore.Universe
-import           Language.UntypedPlutusCore
+import           Language.UntypedPlutusCore         hiding (OmitUnitAnnotations, restoreUnitAnnotations)
 
 import           "pure-zlib" Codec.Compression.Zlib as PureZlib
 import           "zlib" Codec.Compression.Zlib      as Zlib
