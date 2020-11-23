@@ -28,7 +28,6 @@ import qualified Language.Marlowe.Semantics            as Marlowe
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.StateMachine (AsSMContractError, StateMachine (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
-import qualified Language.PlutusCore.Universe          as PLC
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.AssocMap            (Map)
 import qualified Language.PlutusTx.AssocMap            as Map
@@ -100,7 +99,7 @@ createContract :: (AsContractError e, AsSMContractError e MarloweData MarloweInp
     -> Marlowe.Contract
     -> Contract MarloweSchema e ()
 createContract params contract = do
-    slot <- awaitSlot 0
+    slot <- currentSlot
     _creator <- pubKeyHash <$> ownPubKey
     let marloweData = MarloweData {
             marloweContract = contract,
@@ -253,7 +252,7 @@ mkValidator p = SM.mkValidator $ SM.mkStateMachine (mkMarloweStateMachineTransit
 
 mkMarloweValidatorCode
     :: MarloweParams
-    -> PlutusTx.CompiledCode PLC.DefaultUni (Scripts.ValidatorType MarloweStateMachine)
+    -> PlutusTx.CompiledCode (Scripts.ValidatorType MarloweStateMachine)
 mkMarloweValidatorCode params =
     $$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode params
 

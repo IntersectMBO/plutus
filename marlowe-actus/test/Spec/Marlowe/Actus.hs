@@ -6,6 +6,7 @@ where
 import           Data.Aeson                                       (decode, encode)
 import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
+import           Data.Validation                                  (Validation (..))
 import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
@@ -24,17 +25,18 @@ tests = testGroup "Actus"
 contractTerms :: ContractTerms
 contractTerms = ContractTerms {
           contractId = "0"
-        , contractType = PAM
+        , contractType = Just PAM
         , ct_IED = fromGregorian 2008 10 20 -- Initial Exchange Date
         , ct_SD = fromGregorian 2008 10 22 -- start date
-        , ct_MD = fromGregorian 2009 10 22 -- maturity date
-        , ct_TD = fromGregorian 2009 10 22  -- termination date
-        , ct_PRD = fromGregorian 2008 10 20 -- purchase date
+        , ct_MD = Just $ fromGregorian 2009 10 22 -- maturity date
+        , ct_TD = Just $ fromGregorian 2009 10 22  -- termination date
+        , ct_PRNXT = Nothing -- Next principal redemption date (N/A for PAM)
+        , ct_PRD = Just $ fromGregorian 2008 10 20 -- purchase date
         , ct_CNTRL = CR_ST
         , ct_PDIED = -100.0 -- Discount At IED
-        , ct_NT = 1000.0 -- Notional
-        , ct_PPRD = 1200.0 -- Price At Purchase Date
-        , ct_PTD = 1200.0 -- Price At Termination Date
+        , ct_NT = Just 1000.0 -- Notional
+        , ct_PPRD = Just 1200.0 -- Price At Purchase Date
+        , ct_PTD = Just 1200.0 -- Price At Termination Date
         , ct_DCC = DCC_A_360 -- Date Count Convention
         , ct_PREF = PREF_Y -- allow PP
         , ct_PRF = CS_PF
@@ -73,6 +75,12 @@ contractTerms = ContractTerms {
         , ct_IPANX = Nothing
         , ct_IPNR  = Nothing
         , ct_IPAC  = Nothing
+        , ct_PRCL = Nothing
+        , ct_PRANX = Nothing
+        , ct_IPCB = Nothing   -- Interest calc base
+        , ct_IPCBA = Nothing -- Amount used for interest calculation
+        , ct_IPCBCL = Nothing  -- Cycle of interest calculation base
+        , ct_IPCBANX = Nothing   -- Anchor of interest calc base cycle
         -- Fee
         , ct_FECL  = Nothing
         , ct_FEANX  = Nothing
@@ -90,9 +98,11 @@ pamProjected = do
     assertBool "Cashflows should not be empty" (not cfsEmpty)
 
 pamStatic :: IO ()
-pamStatic = do
-    let contract = genStaticContract contractTerms
-    assertBool "Cashflows should not be Close" $ contract /= Close
+pamStatic = case genStaticContract contractTerms of
+  Failure _ -> assertFailure "Terms validation should not fail"
+  Success contract ->
+    do
+      assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do
@@ -100,8 +110,10 @@ pamFs = do
     writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
-    let contract = genFsContract contractTerms
-    writeFile "PamFs.marlowe" $ show $ pretty contract
-    assertBool "Cashflows should not be Close" $ contract /= Close
+    case genFsContract contractTerms of
+      Failure _ -> assertFailure "Terms validation should not fail"
+      Success contract -> do
+        writeFile "PamFs.marlowe" $ show $ pretty contract
+        assertBool "Cashflows should not be Close" $ contract /= Close
 
 

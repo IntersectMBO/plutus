@@ -54,14 +54,15 @@ library
         Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         Language.PlutusCore.Evaluation.Machine.Exception
         Language.PlutusCore.Evaluation.Machine.ExMemory
-        Language.PlutusCore.Evaluation.Evaluator
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
+        Language.PlutusCore.Flat
         Language.PlutusCore.Constant
-        Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Constant.Dynamic.Emit
         Language.PlutusCore.Universe
+        Language.PlutusCore.Builtins
         Language.PlutusCore.Rename.Internal
         Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
@@ -145,12 +146,8 @@ library
         Language.PlutusCore.Core.Instance.Recursive
         Language.PlutusCore.Core.Instance
         Language.PlutusCore.Constant.Apply
-        Language.PlutusCore.Constant.Dynamic.BuiltinName
-        Language.PlutusCore.Constant.Dynamic.Call
-        Language.PlutusCore.Constant.Dynamic.Emit
-        Language.PlutusCore.Constant.Dynamic.OffChain
+        Language.PlutusCore.Constant.Meaning
         Language.PlutusCore.Constant.Function
-        Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.DeBruijn.Internal
         Language.PlutusCore.Lexer.Type
@@ -203,6 +200,7 @@ library
         Language.UntypedPlutusCore.Core.Instance.Pretty.Readable
         Language.UntypedPlutusCore.Core.Instance.Recursive
         Language.UntypedPlutusCore.Core.Instance.CBOR
+        Language.UntypedPlutusCore.Core.Instance.Flat
         Language.UntypedPlutusCore.Core.Type
         Language.UntypedPlutusCore.Core.Plated
         Language.UntypedPlutusCore.Analysis.Definitions
@@ -235,6 +233,7 @@ library
         deriving-compat -any,
         deepseq -any,
         filepath -any,
+        flat -any,
         hashable,
         hedgehog >=1.0,
         integer-gmp -any,
@@ -309,6 +308,7 @@ test-suite plutus-core-test
         bytestring -any,
         containers -any,
         filepath -any,
+        flat -any,
         hedgehog -any,
         plutus-core -any,
         lazy-search -any,
@@ -406,16 +406,15 @@ executable plc
     hs-source-dirs: exe
     build-depends:
         base <5,
-        deepseq -any,
-        plutus-core -any,
-        transformers -any,
         bytestring -any,
         deepseq -any,
+        flat -any,
+        optparse-applicative -any,
+        plutus-core -any,
+        prettyprinter -any,
         serialise -any,
         text -any,
-        lens -any,
-        prettyprinter -any,
-        optparse-applicative -any
+        transformers -any
 
 benchmark plutus-core-budgeting-bench
     import: lang

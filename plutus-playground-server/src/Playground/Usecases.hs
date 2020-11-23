@@ -10,7 +10,7 @@ import qualified Data.Text.Encoding           as T
 import           Language.Haskell.Interpreter (SourceCode (SourceCode))
 
 marker :: T.Text
-marker = "TRIM TO HERE"
+marker = "TRIM TO HERE\n"
 
 strip :: T.Text -> T.Text
 strip text = snd $ T.breakOnEnd marker text

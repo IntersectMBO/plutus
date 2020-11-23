@@ -6,16 +6,15 @@ module StaticData
   , marloweBufferLocalStorageKey
   , marloweContract
   , marloweContracts
-  , showHomePageLocalStorageKey
+  , gistIdLocalStorageKey
   ) where
 
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Semigroup ((<>))
-import Data.Tuple.Nested ((/\), type (/\))
-import Examples.Haskell.Contracts (contractForDifference, escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
-import Examples.Marlowe.Contracts (contractForDifference, escrow, zeroCouponBond, option, swap) as ME
-import Examples.JS.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as JSE
+import Data.Tuple.Nested ((/\))
+import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, escrow, example, swap, zeroCouponBond) as HE
+import Examples.JS.Contracts (cfd, couponBondGuaranteed, escrow, example, swap, zeroCouponBond) as JSE
+import Examples.Marlowe.Contracts (contractForDifference, escrow, example, option, swap, zeroCouponBond) as ME
 import LocalStorage as LocalStorage
 
 type Label
@@ -28,48 +27,37 @@ demoFiles ::
   Map Label Contents
 demoFiles =
   Map.fromFoldable
-    [ "Escrow" /\ HE.escrow
+    [ "Example" /\ HE.example
+    , "Escrow" /\ HE.escrow
     , "ZeroCouponBond" /\ HE.zeroCouponBond
     , "CouponBondGuaranteed" /\ HE.couponBondGuaranteed
     , "Swap" /\ HE.swap
     , "CFD" /\ HE.contractForDifference
     ]
 
-addHeader :: Contents -> Contents
-addHeader c =
-  """import * as bignumber from 'bignumber.js';
-import { PK, Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
-         SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
-         UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
-         ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
-         Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-         ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract } from 'marlowe-js';
-
-/* === Code above this comment will be removed at compile time === */
-
-"""
-    <> c
-
 demoFilesJS ::
   Map Label Contents
 demoFilesJS =
   Map.fromFoldable
-    [ "Escrow" /\ addHeader JSE.escrow
-    , "ZeroCouponBond" /\ addHeader JSE.zeroCouponBond
-    , "CouponBondGuaranteed" /\ addHeader JSE.couponBondGuaranteed
-    , "Swap" /\ addHeader JSE.swap
+    [ "Example" /\ JSE.example
+    , "Escrow" /\ JSE.escrow
+    , "ZeroCouponBond" /\ JSE.zeroCouponBond
+    , "CouponBondGuaranteed" /\ JSE.couponBondGuaranteed
+    , "Swap" /\ JSE.swap
+    , "CFD" /\ JSE.cfd
     ]
 
 marloweContracts ::
-  Array (Label /\ Contents)
+  Map Label Contents
 marloweContracts =
-  [ "Escrow" /\ ME.escrow
-  , "ZeroCouponBond" /\ ME.zeroCouponBond
-  , "Option" /\ ME.option
-  , "Swap" /\ ME.swap
-  , "CFD" /\ ME.contractForDifference
-  , "Empty" /\ "?empty_contract"
-  ]
+  Map.fromFoldable
+    [ "Example" /\ ME.example
+    , "Escrow" /\ ME.escrow
+    , "ZeroCouponBond" /\ ME.zeroCouponBond
+    , "Option" /\ ME.option
+    , "Swap" /\ ME.swap
+    , "CFD" /\ ME.contractForDifference
+    ]
 
 marloweContract ::
   Contents
@@ -87,6 +75,6 @@ marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
 
-showHomePageLocalStorageKey ::
+gistIdLocalStorageKey ::
   LocalStorage.Key
-showHomePageLocalStorageKey = LocalStorage.Key "ShowHomePage"
+gistIdLocalStorageKey = LocalStorage.Key "GistId"

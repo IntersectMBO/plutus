@@ -28,55 +28,59 @@ import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
-type BlocklyState
+type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     }
 
-_blocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
+_blocklyState :: Lens' State (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
 
-_generator :: Lens' BlocklyState (Maybe Generator)
+_generator :: Lens' State (Maybe Generator)
 _generator = prop (SProxy :: SProxy "generator")
 
-_errorMessage :: Lens' BlocklyState (Maybe String)
+_errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
-data BlocklyQuery a
+emptyState :: State
+emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+
+data Query a
   = Resize a
   | SetCode String a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
+  | GetCodeQuery a
 
-data BlocklyAction
+data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
   | GetCode
 
-data BlocklyMessage
+data Message
   = CurrentCode String
 
-type DSL m a
-  = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
+type DSL slots m a
+  = HalogenM State Action slots Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
+blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+    { initialState: const emptyState
     , render
     , eval:
-      H.mkEval
-        { handleQuery
-        , handleAction
-        , initialize: Just $ Inject rootBlockName blockDefinitions
-        , finalize: Nothing
-        , receive: Just <<< SetData
-        }
+        H.mkEval
+          { handleQuery
+          , handleAction
+          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , finalize: Nothing
+          , receive: Just <<< SetData
+          }
     }
 
-handleQuery :: forall m a. MonadEffect m => BlocklyQuery a -> DSL m (Maybe a)
+handleQuery :: forall slots m a. MonadEffect m => Query a -> DSL slots m (Maybe a)
 handleQuery (Resize next) = do
   mState <- use _blocklyState
   case mState of
@@ -122,7 +126,28 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
+handleQuery (GetCodeQuery next) = do
+  res <-
+    runExceptT do
+      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
+      generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
+      let
+        workspace = blocklyState.workspace
+
+        rootBlockName = blocklyState.rootBlockName
+      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+      code <- except <<< lmap unexpected $ blockToCode block generator
+      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+  case res of
+    Left e -> assign _errorMessage $ Just e
+    Right contract -> do
+      assign _errorMessage Nothing
+      raise <<< CurrentCode <<< show <<< pretty $ contract
+  pure $ Just next
+  where
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+
+handleAction :: forall m slots. MonadEffect m => Action -> DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
@@ -164,7 +189,7 @@ handleAction GetCode = do
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: forall p. BlocklyState -> HTML p BlocklyAction
+render :: forall p. State -> HTML p Action
 render state =
   div []
     [ div
@@ -172,12 +197,16 @@ render state =
         , id_ "blocklyWorkspace"
         , classes [ ClassName "blockly-workspace", ClassName "container-fluid" ]
         ]
-        [ toCodeButton "Send To Simulator"
-        , errorMessage state.errorMessage
-        ]
+        [ errorMessage state.errorMessage ]
     ]
 
-toCodeButton :: forall p. String -> HTML p BlocklyAction
+otherActions :: forall p. State -> HTML p Action
+otherActions state =
+  div []
+    [ toCodeButton "Send To Simulator"
+    ]
+
+toCodeButton :: forall p. String -> HTML p Action
 toCodeButton key =
   button
     [ onClick $ const $ Just GetCode

@@ -33,6 +33,14 @@ exports.iohkLogo = require('static/images/IOHK-logo.svg');
 
 exports.haskellIcon = require('static/images/haskell-icon.svg');
 
+exports.javascriptIcon = require('static/images/icons8-javascript.svg');
+
 exports.marloweLogo = require('static/images/marlowe-logo.svg');
 
 exports.marloweLogo2 = require('static/images/marlowe-logo-2.svg');
+
+exports.option1 = require('static/images/option1.svg');
+
+exports.option2 = require('static/images/option2.svg');
+
+exports.option3 = require('static/images/option3.svg');

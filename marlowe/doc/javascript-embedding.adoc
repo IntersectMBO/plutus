@@ -1,5 +1,5 @@
 [#javascript-embedding]
-== Marlowe in JavaScript
+== Marlowe embedded in JavaScript
 
 Marlowe is written as a Haskell data type, and thus it is straightforward to generate Marlowe smart contracts using Haskell. Nevertheless, we also provide a library written in TypeScript that can be used to generate Marlowe smart contracts from TypeScript or JavaScript in a similar way to how one would by using Haskell. If you are not familiar with TypeScript, you can also use the API as if it was written in JavaScript since TypeScript is a superset of JavaScript.
 
@@ -28,7 +28,7 @@ Constructs that have arguments are represented as functions, as in the case of `
 const AvailableMoney: (token: Token, accountId: Party) => Value
 ----
 
-You can see the type declarations for each of the constructs and types by hovering over the identifier in the import declaration at the start of the file appearing in the editor of the JS Editor tab.
+You can see the type declarations for each of the constructs and types by hovering over the identifier in the import declaration at the start of the file appearing in the editor of the JS Editor tab. Both the import declaration and the function declaration are grayed-out to signal that they must not be modified, the code that generates the contract must be written inside the body of the function provided, and the resulting contract must be returned as result of the function (using the `return` instruction).
 
 Internally, the functions and constants of the JavaScript/TypeScript library return a JSON representation of the Marlowe constructs. For example, the function `AvailableMoney` is defined as follows:
 
@@ -41,7 +41,7 @@ const AvailableMoney =
     };
 ----
 
-When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object resulting from the execution – i.e. the result of the last statement – is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
+When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object returned by the function during the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
 
 The library implementation itself is quite simple, you can find all of its source code here.
 In principle you could write JavaScript code that produces the Marlowe’s JSON representation directly, but you should not have to worry about JSON at all when using the JS library. 
@@ -54,7 +54,7 @@ There is one important type that is not present in the Haskell definition of Mar
 
 [source,typescript]
 ----
-type SomeNumber = bignumber.BigNumber | string | number
+type SomeNumber = string | number | bigint
 ----
 
 The reason we have this type is that the native type for numbers in JavaScript and TypeScript loses precision when used with large integer numbers. This is because its implementation relies on floating point numbers.
@@ -68,7 +68,7 @@ The following expression is true in JavaScript:
 
 This can be problematic for financial contracts, since it could ultimately result in loss of money.
 
-We therefore recommend the use of `BigNumber` library, but we acknowledge that it is cumbersome to use for every single number, and sometimes we just know we are going to work with small numbers. For that reason we support three ways of representing numbers:
+We therefore recommend the use of `bigint` type. But we support three ways of representing numbers for convenience and retrocompatibility with old versions of JS:
 
 * Native numbers:
   - They are straightforward to use
@@ -78,12 +78,12 @@ We therefore recommend the use of `BigNumber` library, but we acknowledge that i
   - Notation just requires adding quotes around the numbers
   - You cannot use standard operators directly, e.g: `"32" + "57" = "3257"`
   - They do not lose precision
-* `BigNumber` library:
-  - They support algebraic operations as methods.
-  - Notation is more cumbersome than native numbers, e.g: `new bignumber.BigNumber(450);`
+* `bigint` type:
+  - They are straightforward to use (just add `n` after number literals)
+  - Notation is very simple and can be used with standard operators, e.g: `32n + 57n`
   - They do not lose precision
 
-All of these representations are converted to `BigNumber` internally, but a loss of precision may occur as it is constructed, before the conversion.
+All of these representations are converted to `BigNumber` internally, but a loss of precision may occur if native numbers are used, as the `BigNumber` is constructed, before the conversion occurs, and the API cannot do anything about it.
 
 === The `EValue` type and boolean overloading
 
@@ -96,27 +96,7 @@ type EValue = SomeNumber | Value
 
 === Example: Writing a Swap contract in TypeScript
 
-First of all we need to add the import list, we can get it from one of the examples on the top of the JS Tab, and it reaches down to the following comment:
-
-[source,typescript]
-----
-/* === Code above this comment will be removed at compile time === */
-----
-
-We can remove everything under the line and start coding our own contract. The import list looks like this:
-
-[source,typescript]
-----
-import * as bignumber from 'bignumber.js';
-import { Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
-        SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
-        UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
-        ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
-        Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-        ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract } from 'marlowe-js';
- 
-/* === Code above this comment will be removed at compile time === */
-----
+Whether we start by modifying an existing example, or by creating a new JavaScript contract, we are automatically provided with the import list and the function declaration. We can start by deleting everything that is not grayed-out, and start writing inside the curly brackets of the provided function definition.
 
 Let’s say we want to write a contract so that Alice can exchange 1000 Ada with Bob for $100.
 
@@ -124,10 +104,10 @@ First let’s calculate the amounts we want to work with of each unit, we can de
 
 [source,typescript]
 ----
-const lovelacePerAda : SomeNumber = new bignumber.BigNumber("1000000");
-const amountOfAda : SomeNumber = new bignumber.BigNumber("1000");
-const amountOfLovelace : SomeNumber = lovelacePerAda.times(amountOfAda);
-const amountOfDollars : SomeNumber = new bignumber.BigNumber("100");
+const lovelacePerAda : SomeNumber = 1000000n;
+const amountOfAda : SomeNumber = 1000n;
+const amountOfLovelace : SomeNumber = lovelacePerAda * amountOfAda;
+const amountOfDollars : SomeNumber = 100n;
 ----
 
 The amount in the contract must be written in Lovelace, which is 0.000001 Ada. So we calculate the amount of Lovelace by multiplying the 1,000 Ada for 1,000,000. The amount of dollars is 100 in our example.
@@ -203,11 +183,13 @@ Finally we can combine all the pieces:
 
 [source,typescript]
 ----
-makeDeposit(alice, 10,
-   makeDeposit(bob, 20,
-       makePayment(alice, bob,
-           makePayment(bob, alice,
-               Close))))
+const contract : Contract = makeDeposit(alice, 10n,
+                               makeDeposit(bob, 20n,
+                                   makePayment(alice, bob,
+                                       makePayment(bob, alice,
+                                           Close))));
+
+return contract;
 ----
 
 The contract has four steps:
@@ -217,4 +199,4 @@ The contract has four steps:
  . Then we pay Alice’s deposit to Bob
  . We pay Bob’s deposit to Alice.
 
-And that was all. You can find the full source code for the swap smart contract in the examples that are available at the top of the JS Tab.
+And that is it. You can find the full source code for the swap smart contract in the examples in the Marlowe Playground, which we look at next.

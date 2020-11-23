@@ -22,8 +22,10 @@ import           Language.PlutusCore.Universe
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
 
-instance (PrettyClassicBy configName name, GShow uni, Closed uni, uni `Everywhere` PrettyConst) =>
-            PrettyBy (PrettyConfigClassic configName) (Term name uni a) where
+instance
+        ( PrettyClassicBy configName name
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun a) where
     prettyBy config = go where
         go (Constant _ val)     = parens' $ "con" </> prettyTypeOf val </> pretty val  -- NB: actually calls prettyConst
         go (Builtin _ bi)       = parens' $ "builtin" </> pretty bi
@@ -32,7 +34,7 @@ instance (PrettyClassicBy configName name, GShow uni, Closed uni, uni `Everywher
         go (Apply _ fun arg)    = brackets' $ vsep' [go fun, go arg]
         go (Delay _ term)       = parens' ("delay" </> go term)
         go (Force _ term)       = parens' ("force" </> go term)
-        go (Error _)            = "error"
+        go (Error _)            = parens' "error"
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
@@ -40,6 +42,6 @@ instance (PrettyClassicBy configName name, GShow uni, Closed uni, uni `Everywher
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc ann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
 
-instance PrettyClassicBy configName (Term name uni a) =>
-        PrettyBy (PrettyConfigClassic configName) (Program name uni a) where
+instance PrettyClassicBy configName (Term name uni fun a) =>
+        PrettyBy (PrettyConfigClassic configName) (Program name uni fun a) where
     prettyBy config (Program _ version term) = parens' $ "program" <+> pretty version <//> prettyBy config term

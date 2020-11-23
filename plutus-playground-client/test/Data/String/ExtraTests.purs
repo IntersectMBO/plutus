@@ -6,7 +6,7 @@ import Prelude
 import Data.String as String
 import Data.String.Extra (abbreviate, leftPadTo, repeat, toHex)
 import Test.QuickCheck (arbitrary, (<=?), (===))
-import Test.QuickCheck.Gen (Gen, suchThat)
+import Test.QuickCheck.Gen (Gen, chooseInt)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
 import Test.Unit.QuickCheck (quickCheck)
@@ -32,8 +32,8 @@ abbreviateTests = do
       quickCheck
         $ do
             str <- arbitrary :: Gen String
-            n <- arbitrary `suchThat` (\n -> n >= 0)
-            pure $ abbreviate n (abbreviate n str) === str
+            n <- chooseInt 0 (String.length str * 2)
+            pure $ abbreviate n (abbreviate n str) === abbreviate n str
 
 toHexTests :: TestSuite
 toHexTests = do

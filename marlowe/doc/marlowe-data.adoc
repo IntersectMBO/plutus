@@ -1,5 +1,7 @@
+
 [#marlowe-data]
 == The Marlowe data types
+
 
 This tutorial formally introduces Marlowe as a Haskell data type, as well as presenting
 the different types used by the model, and discussing a
@@ -14,7 +16,7 @@ types in Haskell, with contracts being given by the `Contract` type:
 [source,haskell]
 ----
 data Contract = Close
-              | Pay AccountId Payee Token Value Contract
+              | Pay Party Payee Token Value Contract
               | If Observation Contract Contract
               | When [Case] Timeout Contract
               | Let ValueId Value Contract
@@ -82,12 +84,6 @@ data Slot    = Slot Integer
 type Timeout = Slot
 ----
 
-Each Party in the contract owns one account with the same name as the party.
-
-[source,haskell]
-----
-type AccountId = Party
-----
 
 Note that `"alice"` is the owner here in the sense that she will be refunded any money in the account when the contract terminates.
 
@@ -97,7 +93,7 @@ A payment can be made to one of the parties to the contract, or to one of the ac
 
 [source,haskell]
 ----
-data Payee = Account AccountId
+data Payee = Account Party
            | Party Party
 ----
 
@@ -120,7 +116,7 @@ Building on the basic types, we can describe three higher-level components of co
 
 [source,haskell]
 ----
-data Value = AvailableMoney AccountId Token
+data Value = AvailableMoney Party Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
@@ -167,7 +163,7 @@ Cases and actions are given by these types:
 ----
 data Case = Case Action Contract
 
-data Action = Deposit AccountId Party Token Value
+data Action = Deposit Party Party Token Value
             | Choice ChoiceId [Bound]
             | Notify Observation
 

@@ -11,7 +11,7 @@ import qualified Data.Aeson                 as JSON
 import           Data.Text                  (Text)
 import           Plutus.SCB.Events          (ContractInstanceState)
 import           Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport)
-import           Servant.API                ((:<|>), (:>), Capture, Get, JSON, Post, ReqBody)
+import           Servant.API                (Capture, Get, JSON, Post, ReqBody, (:<|>), (:>))
 import           Servant.API.WebSocket      (WebSocketPending)
 
 type API t

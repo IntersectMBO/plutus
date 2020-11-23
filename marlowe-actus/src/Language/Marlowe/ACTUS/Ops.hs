@@ -4,7 +4,8 @@
 module Language.Marlowe.ACTUS.Ops where
 
 import           Data.Time                                             (Day)
-import           Language.Marlowe                                      (Observation (ValueGT, ValueLT), Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
+import           Language.Marlowe                                      (Observation (ValueGT, ValueLT),
+                                                                        Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
                                                                         (%))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (ContractRole, DCC)
 import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)

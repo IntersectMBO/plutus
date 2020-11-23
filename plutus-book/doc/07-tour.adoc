@@ -1,2 +1,0 @@
-[#07-tour]
-= A Guided Tour of the Plutus Repository

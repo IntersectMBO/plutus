@@ -315,7 +315,7 @@ assertEqual msg expected actual =
         $ Text.unwords
             [ msg
             , "Expected: " <> tshow expected
-            , "Actual:" <> tshow actual
+            , "Actual: " <> tshow actual
             ]
 
 assertBool ::

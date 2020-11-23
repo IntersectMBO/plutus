@@ -1,8 +1,8 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -14,27 +14,26 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import           Control.Monad                     (void, when)
-import qualified Data.Map as Map
+import qualified Data.Map                          as Map
 import qualified Data.Text                         as T
 
 import           Language.Plutus.Contract          hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
-import Ledger.Constraints (TxConstraints, mustPayToTheScript, mustValidateIn, mustBeSignedBy)
-import           Language.PlutusTx.Prelude         hiding (Semigroup(..), fold)
-import           Ledger                            (Address, PubKeyHash, pubKeyHash, Slot (Slot),
-                                                    Validator)
+import           Language.PlutusTx.Prelude         hiding (Semigroup (..), fold)
+import           Ledger                            (Address, PubKeyHash, Slot (Slot), Validator, pubKeyHash)
 import qualified Ledger.Ada                        as Ada
+import           Ledger.Constraints                (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Slot                       as Slot
-import qualified Ledger.Tx as Tx
+import qualified Ledger.Tx                         as Tx
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 (ValidatorCtx (..), TxInfo (..) )
+import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
 import qualified Ledger.Validation                 as Validation
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import           Playground.Contract
-import           Prelude                           (Semigroup(..))
+import           Prelude                           (Semigroup (..))
 import           Wallet.Emulator.Types             (walletPubKey)
 
 {- |

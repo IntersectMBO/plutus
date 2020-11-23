@@ -40,7 +40,7 @@ instance Pretty Address where
 instance PlutusTx.Eq Address where
     PubKeyAddress pkh == PubKeyAddress pkh' = pkh PlutusTx.== pkh'
     ScriptAddress vh  == ScriptAddress vh'  = vh  PlutusTx.== vh'
-    _ == _ = False
+    _ == _                                  = False
 
 {-# INLINABLE pubKeyAddress #-}
 -- | The address that should be targeted by a transaction output locked by the given public key.

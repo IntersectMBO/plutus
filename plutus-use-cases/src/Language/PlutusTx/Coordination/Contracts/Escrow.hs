@@ -1,14 +1,14 @@
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 -- | A general-purpose escrow contract in Plutus
 module Language.PlutusTx.Coordination.Contracts.Escrow(
@@ -37,30 +37,31 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens                   (makeClassyPrisms, review)
-import           Control.Monad                  (void)
-import           Control.Monad.Error.Lens       (throwing)
+import           Control.Lens                      (makeClassyPrisms, review)
+import           Control.Monad                     (void)
+import           Control.Monad.Error.Lens          (throwing)
 
+import           Ledger                            (Datum (..), DatumHash, PubKeyHash, Slot, TxId, TxOutTx (..),
+                                                    ValidatorHash, interval, scriptOutputsAt, txId, txSignedBy,
+                                                    valuePaidTo)
 import qualified Ledger
-import           Ledger                         (Datum(..), PubKeyHash, Slot, ValidatorHash, DatumHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, TxOutTx (..), txId)
-import           Ledger.Interval                (after, before, from)
-import qualified Ledger.Interval                as Interval
-import qualified Ledger.Tx                      as Tx
-import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Typed.Scripts           (ScriptInstance)
-import           Ledger.Validation              (ValidatorCtx (..), TxInfo (..))
-import           Ledger.Value                   (Value, lt, geq)
-import Ledger.Constraints (TxConstraints)
-import qualified Ledger.Constraints as Constraints
+import           Ledger.Constraints                (TxConstraints)
+import qualified Ledger.Constraints                as Constraints
+import           Ledger.Interval                   (after, before, from)
+import qualified Ledger.Interval                   as Interval
+import qualified Ledger.Tx                         as Tx
+import           Ledger.Typed.Scripts              (ScriptInstance)
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
+import           Ledger.Value                      (Value, geq, lt)
 
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import           Language.Plutus.Contract
-import qualified Language.PlutusTx              as PlutusTx
-import           Language.PlutusTx.Prelude      hiding (Applicative (..), Semigroup(..), check, foldMap)
+import qualified Language.Plutus.Contract.Typed.Tx as Typed
+import qualified Language.PlutusTx                 as PlutusTx
+import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup (..), check, foldMap)
 
-import qualified Prelude                        as Haskell
-import           Prelude                        (Semigroup(..), foldMap)
+import           Prelude                           (Semigroup (..), foldMap)
+import qualified Prelude                           as Haskell
 
 type EscrowSchema =
     BlockchainActions
@@ -143,7 +144,7 @@ targetTotal = foldl (\vl tgt -> vl + targetValue tgt) mempty . escrowTargets
 -- | The 'Value' specified by an 'EscrowTarget'
 targetValue :: EscrowTarget d -> Value
 targetValue = \case
-    PubKeyTarget _ vl -> vl
+    PubKeyTarget _ vl   -> vl
     ScriptTarget _ _ vl -> vl
 
 -- | Create a 'Ledger.TxOut' value for the target
@@ -282,14 +283,14 @@ redeem
     -> Contract s e RedeemSuccess
 redeem inst escrow = mapError (review _EscrowError) $ do
     let addr = Scripts.scriptAddress inst
-    currentSlot <- awaitSlot 0
+    current <- currentSlot
     unspentOutputs <- utxoAt addr
     let
         valRange = Interval.to (pred $ escrowDeadline escrow)
         tx = Typed.collectFromScript unspentOutputs Redeem
                 <> foldMap mkTx (escrowTargets escrow)
                 <> Constraints.mustValidateIn valRange
-    if currentSlot >= escrowDeadline escrow
+    if current >= escrowDeadline escrow
     then throwing _RedeemFailed DeadlinePassed
     else if (foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs) `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress
@@ -353,4 +354,4 @@ payRedeemRefund params vl = do
     -- enough funds at the address and we refund our own contribution.
     case outcome of
         Right _ -> Right <$> redeem inst params
-        Left _ -> Left <$> refund inst params
+        Left _  -> Left <$> refund inst params

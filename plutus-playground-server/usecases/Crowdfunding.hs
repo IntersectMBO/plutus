@@ -22,28 +22,28 @@ module Crowdfunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
-import           Control.Applicative               (Applicative (pure))
-import           Control.Monad                     (void)
+import           Control.Applicative                  (Applicative (pure))
+import           Control.Monad                        (void)
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Constraints as Constraints
-import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import qualified Language.PlutusTx                 as PlutusTx
-import           Language.PlutusTx.Prelude         hiding (Applicative(..), Semigroup(..))
-import           Ledger                            (ValidatorCtx (..), TxInfo (..),  PubKeyHash, pubKeyHash,
-                                                    Validator, valueSpent, txId)
-import qualified Ledger                            as Ledger
-import qualified Ledger.Ada                        as Ada
-import qualified Ledger.Interval                   as Interval
-import           Ledger.Slot                       (Slot, SlotRange)
-import qualified Ledger.Typed.Scripts              as Scripts
-import qualified Ledger.Scripts                    as Scripts
-import qualified Ledger.Validation                 as V
-import           Ledger.Value                      (Value)
-import qualified Ledger.Value                      as Value
+import qualified Language.Plutus.Contract.Typed.Tx    as Typed
+import qualified Language.PlutusTx                    as PlutusTx
+import           Language.PlutusTx.Prelude            hiding (Applicative (..), Semigroup (..))
+import           Ledger                               (PubKeyHash, TxInfo (..), Validator, ValidatorCtx (..),
+                                                       pubKeyHash, txId, valueSpent)
+import qualified Ledger                               as Ledger
+import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Interval                      as Interval
+import qualified Ledger.Scripts                       as Scripts
+import           Ledger.Slot                          (Slot, SlotRange)
+import qualified Ledger.Typed.Scripts                 as Scripts
+import qualified Ledger.Validation                    as V
+import           Ledger.Value                         (Value)
+import qualified Ledger.Value                         as Value
 import           Playground.Contract
-import qualified Prelude                           as Haskell
-import           Prelude                           (Semigroup(..))
-import qualified Wallet.Emulator                   as Emulator
+import           Prelude                              (Semigroup (..))
+import qualified Prelude                              as Haskell
+import qualified Wallet.Emulator                      as Emulator
 
 -- | A crowdfunding campaign.
 data Campaign = Campaign
@@ -139,7 +139,7 @@ validCollection campaign txinfo =
 mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ValidatorCtx -> Bool
 mkValidator c con act p = case act of
     -- the "refund" branch
-    Refund -> validRefund c con (valCtxTxInfo p)
+    Refund  -> validRefund c con (valCtxTxInfo p)
     -- the "collection" branch
     Collect -> validCollection c (valCtxTxInfo p)
 

@@ -2,7 +2,7 @@
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
 import qualified Data.List                                             as L (scanl, tail, zip)
-import           Data.Maybe                                            (fromMaybe)
+import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day, fromGregorian)
 
@@ -26,7 +26,7 @@ genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
 sampleCashflows riskFactors terms =
     let
-        eventTypes   = [IED, MD, RR, IP]
+        eventTypes   = [IED, MD, RR, IP, PR, IPCB]
         analysisDate = fromGregorian 1970 1 1
 
         preserveDate e d = (e, d)
@@ -67,7 +67,7 @@ genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..
         cfs = genProjectedCashflows terms
 
         dateToYearFraction :: Day -> Double
-        dateToYearFraction dt = _y ct_DCC ct_SD dt ct_MD
+        dateToYearFraction dt = _y ct_DCC ct_SD dt (fromJust ct_MD)
 
         dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** (dateToYearFraction dt)
 

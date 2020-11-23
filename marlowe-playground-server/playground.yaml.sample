@@ -7,7 +7,9 @@ auth:
   jwt-signature: ""
 
   # This should match the client-facing schema/host/port.
-  redirect-url: https://localhost:8009
+  frontend-url: https://localhost:8009
+  # This is the path the API will call once authenticated
+  github-cb-path: "/#/gh-oauth-cb"
 marlowe:
   # The API Gateway url to trigger the marlowe symbolic lambda
   symbolic-url: "https://some-aws-api-gateway-url"

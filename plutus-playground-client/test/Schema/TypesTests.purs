@@ -92,11 +92,11 @@ toArgumentTests = do
       initialValue =
         Value
           { getValue:
-            AssocMap.fromTuples
-              [ ( Tuple (CurrencySymbol { unCurrencySymbol: "12345" })
-                    (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
-                )
-              ]
+              AssocMap.fromTuples
+                [ ( Tuple (CurrencySymbol { unCurrencySymbol: "12345" })
+                      (AssocMap.fromTuples [ Tuple (TokenName { unTokenName: "ADA" }) (BigInteger.fromInt 100) ])
+                  )
+                ]
           }
     test "FormIntF" do
       equal
@@ -111,12 +111,12 @@ makeTestAction :: FormArgument -> ContractCall FormArgument
 makeTestAction argument =
   CallEndpoint
     { caller:
-      Wallet { getWallet: one }
+        Wallet { getWallet: one }
     , argumentValues:
-      FunctionSchema
-        { endpointDescription: EndpointDescription { getEndpointDescription: "test" }
-        , argument
-        }
+        FunctionSchema
+          { endpointDescription: EndpointDescription { getEndpointDescription: "test" }
+          , argument
+          }
     }
 
 isValid :: ContractCall FormArgument -> Aff Unit
@@ -220,14 +220,14 @@ mkInitialValueTests =
       equalGenericShow
         ( Value
             { getValue:
-              AssocMap.fromTuples
-                [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 10 ]
-                , currencies
-                    /\ AssocMap.fromTuples
-                        [ usdToken /\ BigInteger.fromInt 10
-                        , eurToken /\ BigInteger.fromInt 10
-                        ]
-                ]
+                AssocMap.fromTuples
+                  [ ada /\ AssocMap.fromTuples [ adaToken /\ BigInteger.fromInt 10 ]
+                  , currencies
+                      /\ AssocMap.fromTuples
+                          [ usdToken /\ BigInteger.fromInt 10
+                          , eurToken /\ BigInteger.fromInt 10
+                          ]
+                  ]
             }
         )
         ( mkInitialValue

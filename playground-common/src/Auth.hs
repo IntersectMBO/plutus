@@ -23,7 +23,8 @@ module Auth
     , AuthRole
     , Config(..)
     , configJWTSignature
-    , configRedirectUrl
+    , configFrontendUrl
+    , configGithubCbPath
     , configGithubClientId
     , configGithubClientSecret
     , GithubEndpoints
@@ -36,7 +37,7 @@ module Auth
 
 import           Auth.Types                  (OAuthClientId, OAuthClientSecret, OAuthCode, OAuthToken, Token (Token),
                                               TokenProvider (Github), addUserAgent, oAuthTokenAccessToken)
-import           Control.Lens                (makeLenses, view, _1, _2)
+import           Control.Lens                (_1, _2, makeLenses, view)
 import           Control.Monad               (guard)
 import           Control.Monad.Except        (MonadError)
 import           Control.Monad.IO.Class      (MonadIO, liftIO)
@@ -60,16 +61,13 @@ import           Data.Time.Clock.POSIX       (POSIXTime, utcTimeToPOSIXSeconds)
 import           GHC.Generics                (Generic)
 import           Gist                        (Gist, GistId, NewGist)
 import qualified Gist
-import           Network.HTTP.Client         (managerModifyRequest)
 import           Network.HTTP.Client.Conduit (getUri)
-import           Network.HTTP.Client.TLS     (tlsManagerSettings)
-import           Network.HTTP.Conduit        (Request, newManager, parseRequest, responseBody, responseStatus,
-                                              setQueryString)
+import           Network.HTTP.Conduit        (Request, parseRequest, responseBody, responseStatus, setQueryString)
 import           Network.HTTP.Simple         (addRequestHeader)
 import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
-import           Servant                     ((:<|>) ((:<|>)), (:>), Get, Header, Headers, JSON, NoContent (NoContent),
-                                              QueryParam, ServerError, ServerT, StdMethod (GET), ToHttpApiData, Verb,
-                                              addHeader, err401, err500, errBody, throwError)
+import           Servant                     (Get, Header, Headers, JSON, NoContent (NoContent), QueryParam,
+                                              ServerError, ServerT, StdMethod (GET), ToHttpApiData, Verb, addHeader,
+                                              err401, err500, errBody, throwError, (:<|>) ((:<|>)), (:>))
 import           Servant.API.BrowserHeader   (BrowserHeader)
 import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
 import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
@@ -131,7 +129,8 @@ mkGithubEndpoints = do
 data Config =
     Config
         { _configJWTSignature       :: !JWT.Signer
-        , _configRedirectUrl        :: !Text
+        , _configFrontendUrl        :: !Text
+        , _configGithubCbPath       :: !Text
         , _configGithubClientId     :: !OAuthClientId
         , _configGithubClientSecret :: !OAuthClientSecret
         }
@@ -144,7 +143,8 @@ instance FromJSON Config where
             _configGithubClientId <- o .: "github-client-id"
             _configGithubClientSecret <- o .: "github-client-secret"
             _configJWTSignature <- JWT.hmacSecret <$> o .: "jwt-signature"
-            _configRedirectUrl <- o .: "redirect-url"
+            _configFrontendUrl <- o .: "frontend-url"
+            _configGithubCbPath <- o .: "github-cb-path"
             pure Config {..}
 
 type Env = (GithubEndpoints, Config)
@@ -165,9 +165,11 @@ redirect ::
 redirect a = addHeader a NoContent
 
 githubRedirect ::
-       MonadReader Env m => m (Headers '[ Header "Location" Text] NoContent)
+       (MonadLogger m, MonadReader Env m)
+    => m (Headers '[ Header "Location" Text] NoContent)
 githubRedirect = do
-    _configRedirectUrl <- view (_2 . configRedirectUrl)
+    logDebugN "Processing github redirect."
+    _configFrontendUrl <- view (_2 . configFrontendUrl)
     _githubEndpointsCallbackUri <- view (_1 . githubEndpointsCallbackUri)
     _configGithubClientId <- view (_2 . configGithubClientId)
     _githubEndpointsAuthLocation <- view (_1 . githubEndpointsAuthLocation)
@@ -176,11 +178,12 @@ githubRedirect = do
             getUri .
             setQueryString
                 [ param "redirect_uri" $
-                  _configRedirectUrl <> _githubEndpointsCallbackUri
+                  _configFrontendUrl <> _githubEndpointsCallbackUri
                 , param "scope" oauthScopes
                 , param "client_id" (unpack _configGithubClientId)
                 ] $
             _githubEndpointsAuthLocation
+    logDebugN $ "Redirecting to: " <> showText githubRedirectUrl
     pure $ redirect githubRedirectUrl
   where
     oauthScopes = "gist"
@@ -201,12 +204,15 @@ authStatus cookieHeader = do
     now <- getPOSIXTime
     _authStatusAuthRole <-
         case extractGithubToken jwtSignature now cookieHeader of
-            Right _ -> pure GithubUser
+            Right _ -> do
+              pure GithubUser
             Left err -> do
                 logDebugN $
                     "Failed to extract github token at step: " <> showText err
                 pure Anonymous
-    pure AuthStatus {..}
+    let authStatusResult = AuthStatus {..}
+    logDebugN $ "Authentication status is: " <> showText authStatusResult
+    pure authStatusResult
 
 extractGithubToken ::
        JWT.Signer -> POSIXTime -> Maybe Text -> Either Text (Token 'Github)
@@ -230,7 +236,7 @@ extractGithubToken signer now cookieHeader =
             Map.lookup githubTokenClaim .
             JWT.unClaimsMap . JWT.unregisteredClaims $
             claims
-        attempt $ "Extracting token as a string:" <> showText json
+        attempt $ "Extracting token as a string: " <> showText json
         withTrace $
             case json of
                 String token -> pure $ Token token
@@ -264,7 +270,7 @@ githubCallback (Just code) = do
     now <- getCurrentTime
     let cookie = createSessionCookie _configJWTSignature token now
     logDebugN "Sending cookie."
-    pure . addHeader cookie . addHeader _configRedirectUrl $ NoContent
+    pure . addHeader cookie . addHeader (_configFrontendUrl <> _configGithubCbPath) $ NoContent
 
 withErr ::
        (MonadLogger m, MonadError ServerError m)
@@ -328,6 +334,7 @@ createSessionCookie signer token now =
 getGists ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -339,6 +346,7 @@ getGists header = withGithubToken header (\token -> Gist.getGists $ Just token)
 createNewGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -352,6 +360,7 @@ createNewGist header newGist =
 getGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -365,6 +374,7 @@ getGist header gistId =
 updateGist ::
        ( MonadNow m
        , MonadLogger m
+       , MonadWeb m
        , MonadError ServerError m
        , MonadIO m
        , MonadReader Env m
@@ -382,6 +392,7 @@ withGithubToken ::
        ( MonadNow m
        , MonadLogger m
        , MonadError ServerError m
+       , MonadWeb m
        , MonadIO m
        , MonadReader Env m
        )
@@ -391,25 +402,27 @@ withGithubToken ::
 withGithubToken cookieHeader action = do
     baseUrl <- view (_1 . githubEndpointsApiBaseUrl)
     jwtSignature <- view (_2 . configJWTSignature)
-    manager <-
-        liftIO $
-        newManager $
-        tlsManagerSettings {managerModifyRequest = pure . addUserAgent}
+    logDebugN "Initialising connection manager."
+    manager <- makeManager
     let clientEnv = mkClientEnv manager baseUrl
     now <- getPOSIXTime
+    logDebugN "Extracting token."
     case extractGithubToken jwtSignature now cookieHeader of
         Left err -> do
             logErrorN $
                 "Failed to extract github token at step: " <> showText err
             throwError err401
         Right token -> do
+            logDebugN "Making github request with token."
             response <- liftIO $ flip runClientM clientEnv $ action token
             case response of
                 Left err -> do
                     logErrorN $
                         "Failed to read github endpoint: " <> showText err
                     throwError err500
-                Right result -> pure result
+                Right result -> do
+                  logDebugN "Github request successful."
+                  pure result
 
 server ::
        ( MonadNow m

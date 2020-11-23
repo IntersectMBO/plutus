@@ -22,8 +22,8 @@ import           Language.Marlowe                      (Contract, Slot (Slot), S
 import           Language.Marlowe.Analysis.FSSemantics (warningsTraceCustom)
 import           Marlowe.Symbolic.Types.Request        (Request (..))
 import           Marlowe.Symbolic.Types.Response       (Result (..))
-import           Servant                               ((:<|>) ((:<|>)), (:>), Application, Handler (Handler), JSON,
-                                                        Post, ReqBody, Server, ServerError, hoistServer, serve)
+import           Servant                               (Application, Handler (Handler), JSON, Post, ReqBody, Server,
+                                                        ServerError, hoistServer, serve, (:<|>) ((:<|>)), (:>))
 import           System.Process                        (system)
 import           Text.PrettyPrint.Leijen               (displayS, renderCompact)
 

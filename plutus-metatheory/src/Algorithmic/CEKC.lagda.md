@@ -3,6 +3,7 @@
 ```
 module Algorithmic.CEKC where
 
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Data.Bool using (Bool;true;false)
 open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Function using (_∘_;id)
@@ -11,6 +12,7 @@ import Data.List as L
 open import Data.List.Properties
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Unit using (⊤;tt)
+import Debug.Trace as Debug
 open import Utils
 
 open import Type
@@ -73,7 +75,7 @@ BUILTIN : (bn : Builtin)
     → (ctel : CTel Δ σ As)
       -----------------------------
     → Σ (Ctx ∅) λ Γ → Γ ⊢ substNf σ C × Env Γ
-    
+
 BUILTIN addInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i + i')) ,, []
 BUILTIN subtractInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i - i')) ,, []
 BUILTIN multiplyInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i ** i')) ,, []
@@ -86,7 +88,7 @@ BUILTIN lessThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ 
 BUILTIN greaterThanInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i Builtin.Constant.Type.>? i') (con (bool true)) (con (bool false)) ,, []
 BUILTIN greaterThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≥? i') (con (bool true)) (con (bool false)) ,, []
 BUILTIN equalsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≟ i') (con (bool true)) (con (bool false)) ,, []
-BUILTIN concatenate σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, (_ ,, _ ,, V-con (bytestring b') ,, _) ,, tt) = _ ,, con (bytestring (append b b')) ,, []
+BUILTIN concatenate σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, (_ ,, _ ,, V-con (bytestring b') ,, _) ,, tt) = _ ,, con (bytestring (concat b b')) ,, []
 BUILTIN takeByteString σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, con (bytestring (take i b)) ,, []
 BUILTIN dropByteString σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, con (bytestring (drop i b)) ,, []
 BUILTIN sha2-256 σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, (con (bytestring (SHA2-256 b))) ,, []
@@ -95,6 +97,10 @@ BUILTIN verifySignature σ ((_ ,, _ ,, V-con (bytestring k) ,, _) ,, (_ ,, _ ,, 
 BUILTIN equalsByteString σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, (_ ,, _ ,, V-con (bytestring b') ,, _) ,, tt) = _ ,, con (bool (equals b b')) ,, []
 BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool true) ,, _) ,, (_ ,, t ,, _ ,, ρ) ,, _ ,, tt) = _ ,, t ,, ρ
 BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool false) ,, _) ,, _ ,, (_ ,, u ,, _ ,, ρ) ,, tt) = _ ,, u ,, ρ
+BUILTIN charToString _ ((_ ,, _ ,, V-con (char c) ,, _) ,, tt) = _ ,, con (string (primStringFromList L.[ c ])) ,, []
+BUILTIN append _ ((_ ,, _ ,, V-con (string s) ,, _) ,, (_ ,, _ ,, V-con (string t) ,, _) ,, tt) =
+  _ ,, con (string (primStringAppend s t)) ,, []
+BUILTIN trace _ ((_ ,, _ ,, V-con (string s) ,, _) ,, tt) = _ ,, con (Debug.trace s unit) ,, []
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
@@ -190,9 +196,9 @@ dischargeTel : ∀{Γ Δ As}
     → (ts : Tel Γ Δ σ As)
     → Env Γ
     → Tel ∅ Δ σ As
-    
+
 dischargeTel σ [] ρ = []
-dischargeTel {As = A L.∷ As} σ (t ∷ ts) ρ = conv⊢ refl (substNf-id (substNf σ A)) (subst (ne ∘ `) (env2ren ρ) t) Tel.∷ dischargeTel σ ts ρ 
+dischargeTel {As = A L.∷ As} σ (t ∷ ts) ρ = conv⊢ refl (substNf-id (substNf σ A)) (subst (ne ∘ `) (env2ren ρ) t) Tel.∷ dischargeTel σ ts ρ
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V
@@ -213,10 +219,10 @@ step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
 step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M
 step ((s , ((_ ,, ƛ M ,, V-ƛ .M ,, ρ') ·-)) ; ρ ◅ V) =
   s ; ρ' ∷ (_ ,, _ ,, V ,, ρ) ▻ M
-step ((s , -·⋆ A) ; ρ ◅ V-Λ M) = s ; ρ ▻ (M [ A ]⋆) 
+step ((s , -·⋆ A) ; ρ ◅ V-Λ M) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap-) ; ρ ◅ V) = s ; ρ ◅ V-wrap V
 step ((s , unwrap-) ; ρ ◅ V-wrap V) = s ; ρ ◅ V
-step ((s , builtin- b σ As cs A .L.[] p [] ρ') ; ρ ◅ V) = 
+step ((s , builtin- b σ As cs A .L.[] p [] ρ') ; ρ ◅ V) =
   let _ ,, M ,, ρ' = BUILTIN b σ (extendCTel As σ cs (_ ,, _ ,, V ,, ρ) (sym p)) in s ; ρ' ▻ M
 step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts') ρ') ; ρ ◅ V) =
    (s , builtin-
@@ -229,8 +235,8 @@ step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts') ρ') ; ρ ◅ V)
         (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As'))))
         ts'
         ρ')
-        
-  ; ρ' ▻ t' 
+
+  ; ρ' ▻ t'
 step (□ C)       = □ C
 step (◆ A)       = ◆ A
 

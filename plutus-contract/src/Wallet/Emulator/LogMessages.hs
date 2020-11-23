@@ -47,8 +47,8 @@ data TxBalanceMsg =
 
 instance Pretty TxBalanceMsg where
     pretty = \case
-        BalancingUnbalancedTx utx -> "Balancing an unbalanced transaction:" <+> pretty utx
-        NoOutputsAdded -> "No outputs added"
+        BalancingUnbalancedTx utx   -> "Balancing an unbalanced transaction:" <+> pretty utx
+        NoOutputsAdded              -> "No outputs added"
         AddingPublicKeyOutputFor vl -> "Adding public key output for" <+> pretty vl
-        NoInputsAdded -> "No inputs added"
-        AddingInputsFor vl -> "Adding inputs for" <+> pretty vl
+        NoInputsAdded               -> "No inputs added"
+        AddingInputsFor vl          -> "Adding inputs for" <+> pretty vl

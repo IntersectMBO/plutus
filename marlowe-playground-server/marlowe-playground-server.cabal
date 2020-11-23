@@ -65,8 +65,10 @@ library
         time -any,
         time-units -any,
         transformers -any,
+        unordered-containers,
         wai-cors -any,
-        uuid -any
+        uuid -any,
+        validation -any
 
 executable marlowe-playground-server
     main-is: Main.hs
@@ -75,6 +77,7 @@ executable marlowe-playground-server
         PSGenerator
         Types
         Escrow
+        Example
         CouponBondGuaranteed
         ZeroCouponBond
         Swap
@@ -104,6 +107,7 @@ executable marlowe-playground-server
         monad-logger -any,
         mtl -any,
         plutus-ledger,
+        plutus-tx,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,

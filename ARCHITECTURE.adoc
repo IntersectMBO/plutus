@@ -108,8 +108,6 @@ include::plutus-scb/ARCHITECTURE.adoc[]
 
 include::marlowe/ARCHITECTURE.adoc[]
 
-include::plutus-book/ARCHITECTURE.adoc[]
-
 include::example/ARCHITECTURE.adoc[]
 
 include::notes/ARCHITECTURE.adoc[]

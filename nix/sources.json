@@ -6,10 +6,11 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "d4879bfd2b595d7fbd37da1a7bea5d0361975eb3",
-        "sha256": "0kzwg3mwziwx378kvbzhayy65abvk1axi12zvf2f92cs53iridwh",
+        "rev": "7b1c1635e16c7f12065db2f8ec049030fcc63655",
+        "sha256": "1nybcann9aiwbvj95p6wam8xyhxwaxmfnkxmgylxcw42np2lvbzr",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/7b1c1635e16c7f12065db2f8ec049030fcc63655.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hackage.nix": {
         "branch": "master",
@@ -17,10 +18,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "3d4f7ccc22ef066601bc7a06cf608b61ae3910b1",
-        "sha256": "10nird5ncxhr079c3wnjf4p940q41jpk4irazb798psnwly3kfjv",
+        "rev": "469ab02425cc691c400ee42637e6b379adc2f08d",
+        "sha256": "1yxz7fs4pc4rhlyir0ghjj9xa866hd2lb00b5z6i7q8m2xwda1x0",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/3d4f7ccc22ef066601bc7a06cf608b61ae3910b1.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/469ab02425cc691c400ee42637e6b379adc2f08d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -29,10 +30,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "91f4e94ebc4274eac3587cee518b4ad9407e4f90",
-        "sha256": "11h03l0zccjpazz52cj67sc46fhcyahnlqlylhab8zrb5jr1905w",
+        "rev": "c583fb3e775d0f071b58a53f82f726cec623c800",
+        "sha256": "0pzsaxwap6jmmpcyzwvygbrfcanjzkwfrmlqac4jnjrfixd8g27s",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/91f4e94ebc4274eac3587cee518b4ad9407e4f90.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/c583fb3e775d0f071b58a53f82f726cec623c800.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -46,6 +47,18 @@
         "sha256": "0x6zyh18c96a2kkchfmany475d8rb8qkmg1bd7y8xk6fb2vpad62",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/iohk-nix/archive/24ddc8f531f320c9e2394d205d0df39857222901.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "mvn2nix": {
+        "branch": "master",
+        "description": "Easily package your Maven Java application with the Nix package manager.",
+        "homepage": "",
+        "owner": "fzakaria",
+        "repo": "mvn2nix",
+        "rev": "a4c9ec1cd6118e22a6a5e5fc04c30c406d0d80ea",
+        "sha256": "1xf2i5cjpgsw42631mp9n20nj1rvw2swyhlqjxyrwydvk6vlf22p",
+        "type": "tarball",
+        "url": "https://github.com/fzakaria/mvn2nix/archive/a4c9ec1cd6118e22a6a5e5fc04c30c406d0d80ea.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nix-gitignore": {
@@ -62,25 +75,38 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
-        "branch": "nixos-20.03",
+        "branch": "nixos-20.09",
         "builtin": true,
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "db31e48c5c8d99dcaf4e5883a96181f6ac4ad6f6",
-        "sha256": "1j5j7vbnq2i5zyl8498xrf490jca488iw6hylna3lfwji6rlcaqr",
+        "rev": "d105075a1fd870b1d1617a6008cb38b443e65433",
+        "sha256": "1jcs44wn0s6mlf2jps25bvcai1rij9b2dil6zcj8zqwf2i8xmqjh",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/db31e48c5c8d99dcaf4e5883a96181f6ac4ad6f6.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d105075a1fd870b1d1617a6008cb38b443e65433.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nodejs-headers": {
         "builtin": false,
-        "rev": "v10.9.0",
-        "sha256": "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a",
+        "rev": "v12.19.0",
+        "sha256": "1fb0dkzsprilybg30nhgdy0fcaqx9kc89iyrw6871frkaqmcdwwn",
         "type": "file",
-        "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
+        "url": "https://nodejs.org/download/release/v12.19.0/node-v12.19.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
+    },
+    "pre-commit-hooks.nix": {
+        "branch": "master",
+        "builtin": false,
+        "description": "Seamless integration of https://pre-commit.com git hooks with Nix.",
+        "homepage": "",
+        "owner": "cachix",
+        "repo": "pre-commit-hooks.nix",
+        "rev": "431227b41d0aaa83fabdee6611e145b7d9bd150b",
+        "sha256": "0ff24n8i3mfw0jw5r5lsgvbahmh88zhi3qsk9yxrb8x82jprgzsy",
+        "type": "tarball",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/431227b41d0aaa83fabdee6611e145b7d9bd150b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {
         "branch": "master",
@@ -105,6 +131,18 @@
         "sha256": "18dpgyk5hrc6w3f9nwsb22k5ar9q5c8x40mszxzqmrdhkrymrykk",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/stackage.nix/archive/e32c8b06d56954865725514ce0d98d5d1867e43a.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "thorp": {
+        "branch": "master",
+        "description": "Synchronisation of files with the cloud using the hash of the file contents",
+        "homepage": "https://github.com/kemitix/thorp",
+        "owner": "kemitix",
+        "repo": "thorp",
+        "rev": "42634f9c09664ff9d5981fbd1212fe3b9b419afc",
+        "sha256": "0bxh4b3kkpm5ls3v3329gd3zljzfph5315z8plvi2ac8y2y10bs6",
+        "type": "tarball",
+        "url": "https://github.com/kemitix/thorp/archive/42634f9c09664ff9d5981fbd1212fe3b9b419afc.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

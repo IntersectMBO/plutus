@@ -63,6 +63,7 @@ import           Options.Applicative                             (CommandFields,
                                                                   metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
+import qualified PSGenerator
 import           Plutus.SCB.App                                  (AppBackend, monadLoggerTracer, runApp)
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
@@ -76,7 +77,6 @@ import           Plutus.SCB.Types                                (Config (Config
                                                                   signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
-import qualified PSGenerator
 import           System.Exit                                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 
 data Command
@@ -160,6 +160,7 @@ commandParser =
     mconcat
         [ migrationParser
         , allServersParser
+        , clientServicesParser
         , mockWalletParser
         , scbWebserverParser
         , psGeneratorCommandParser
@@ -257,6 +258,21 @@ allServersParser =
                   , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
+
+clientServicesParser :: Mod CommandFields Command
+clientServicesParser =
+    command "client-services" $
+    info
+        (pure
+             (ForkCommands
+                  [ ChainIndex
+                  , Metadata
+                  , MockWallet
+                  , SCBWebserver
+                  , SigningProcess
+                  , ProcessAllContractOutboxes
+                  ]))
+        (fullDesc <> progDesc "Run the client services (all services except the mock node).")
 
 signingProcessParser :: Mod CommandFields Command
 signingProcessParser =

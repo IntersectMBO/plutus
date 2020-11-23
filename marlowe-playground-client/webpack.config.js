@@ -16,7 +16,7 @@ const plugins =
             });
         }
     ]
-    ;
+;
 
 // source map adds 20Mb to the output!
 const devtool = isWebpackDevServer ? 'eval-source-map' : false;
@@ -28,7 +28,8 @@ module.exports = {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
-        https: true,
+        host: "0.0.0.0",
+        https: false,
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'

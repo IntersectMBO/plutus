@@ -11,6 +11,8 @@ data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriv
 
 data FEB = FEB_A | FEB_N deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
+data IPCB = IPCB_NT | IPCB_NTIED | IPCB_NTL deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+
 data EOMC = EOMC_EOM
           | EOMC_SD deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
@@ -97,6 +99,15 @@ data Cycle = Cycle
   } deriving (Show, Eq, Ord, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
+-- For applicability failures
+data TermValidationError =
+    Required String
+    | NotApplicable String
+    deriving (Eq)
+instance Show TermValidationError where
+    show (Required s)      = "Missing required term: " ++ s
+    show (NotApplicable s) = "Term not applicable to contract: " ++ s
+
 data ScheduleConfig = ScheduleConfig
   {
     calendar      :: [Day]
@@ -106,7 +117,7 @@ data ScheduleConfig = ScheduleConfig
   }   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass (FromJSON, ToJSON)
+data ContractType = PAM | LAM   deriving stock (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 
 data Assertions = Assertions
@@ -134,17 +145,18 @@ data Assertion = NpvAssertionAgainstZeroRiskBond
 
 data ContractTerms = ContractTerms {
   contractId     :: String
-  , contractType :: ContractType
+  , contractType :: Maybe ContractType
   , ct_IED       :: Day -- Initial Exchange Date
   , ct_SD        :: Day -- start date
-  , ct_MD        :: Day -- maturity date
-  , ct_TD        :: Day -- termination date
-  , ct_PRD       :: Day -- purchase date
+  , ct_MD        :: Maybe Day -- maturity date
+  , ct_TD        :: Maybe Day -- termination date
+  , ct_PRNXT     :: Maybe Double -- periodic payment amount
+  , ct_PRD       :: Maybe Day -- purchase date
   , ct_CNTRL     :: ContractRole
   , ct_PDIED     :: Double -- Premium / Discount At IED
-  , ct_NT        :: Double -- Notional
-  , ct_PPRD      :: Double -- Price At Purchase Date
-  , ct_PTD       :: Double -- Price At Termination Date
+  , ct_NT        :: Maybe Double -- Notional
+  , ct_PPRD      :: Maybe Double -- Price At Purchase Date
+  , ct_PTD       :: Maybe Double -- Price At Termination Date
   , ct_DCC       :: DCC -- Date Count Convention
   , ct_PREF      :: PREF -- allow PP
   , ct_PRF       :: ContractStatus
@@ -178,6 +190,12 @@ data ContractTerms = ContractTerms {
   , ct_IPANX     :: Maybe Day
   , ct_IPNR      :: Maybe Double
   , ct_IPAC      :: Maybe Double
+  , ct_PRCL      :: Maybe Cycle
+  , ct_PRANX     :: Maybe Day
+  , ct_IPCB      :: Maybe IPCB   -- Interest calc base
+  , ct_IPCBA     :: Maybe Double -- Amount used for interest calculation
+  , ct_IPCBCL    :: Maybe Cycle  -- Cycle of interest calculation base
+  , ct_IPCBANX   :: Maybe Day   -- Anchor of interest calc base cycle
   -- Fee
   , ct_FECL      :: Maybe Cycle
   , ct_FEANX     :: Maybe Day

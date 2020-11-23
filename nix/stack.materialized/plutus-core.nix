@@ -60,6 +60,7 @@
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
@@ -114,12 +115,8 @@
           "Language/PlutusCore/Core/Instance/Recursive"
           "Language/PlutusCore/Core/Instance"
           "Language/PlutusCore/Constant/Apply"
-          "Language/PlutusCore/Constant/Dynamic/BuiltinName"
-          "Language/PlutusCore/Constant/Dynamic/Call"
-          "Language/PlutusCore/Constant/Dynamic/Emit"
-          "Language/PlutusCore/Constant/Dynamic/OffChain"
+          "Language/PlutusCore/Constant/Meaning"
           "Language/PlutusCore/Constant/Function"
-          "Language/PlutusCore/Constant/Name"
           "Language/PlutusCore/Constant/Typed"
           "Language/PlutusCore/DeBruijn/Internal"
           "Language/PlutusCore/Lexer/Type"
@@ -169,6 +166,7 @@
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "Language/UntypedPlutusCore/Core/Instance/Recursive"
           "Language/UntypedPlutusCore/Core/Instance/CBOR"
+          "Language/UntypedPlutusCore/Core/Instance/Flat"
           "Language/UntypedPlutusCore/Core/Type"
           "Language/UntypedPlutusCore/Core/Plated"
           "Language/UntypedPlutusCore/Analysis/Definitions"
@@ -188,14 +186,15 @@
           "Language/PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "Language/PlutusCore/Evaluation/Machine/Exception"
           "Language/PlutusCore/Evaluation/Machine/ExMemory"
-          "Language/PlutusCore/Evaluation/Evaluator"
           "Language/PlutusCore/Evaluation/Result"
           "Language/PlutusCore/Check/Value"
           "Language/PlutusCore/Check/Normal"
           "Language/PlutusCore/CBOR"
+          "Language/PlutusCore/Flat"
           "Language/PlutusCore/Constant"
-          "Language/PlutusCore/Constant/Dynamic"
+          "Language/PlutusCore/Constant/Dynamic/Emit"
           "Language/PlutusCore/Universe"
+          "Language/PlutusCore/Builtins"
           "Language/PlutusCore/Rename/Internal"
           "Language/PlutusCore/Rename/Monad"
           "Language/PlutusCore/Rename"
@@ -289,15 +288,15 @@
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
           hsSourceDirs = [ "exe" ];
@@ -311,6 +310,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))

@@ -97,13 +97,13 @@ handleLogMsgTraceMap f t = handleLogMsgTrace (contramap (second (fmap f)) t)
 
 toSeverity :: L.LogLevel -> Severity
 toSeverity = \case
-  L.Debug -> Debug
-  L.Info  -> Info
-  L.Notice -> Notice
-  L.Warning -> Warning
-  L.Error -> Error
-  L.Critical -> Critical
-  L.Alert -> Alert
+  L.Debug     -> Debug
+  L.Info      -> Info
+  L.Notice    -> Notice
+  L.Warning   -> Warning
+  L.Error     -> Error
+  L.Critical  -> Critical
+  L.Alert     -> Alert
   L.Emergency -> Emergency
 
 -- | Handle the 'LogObserve' effect using the 'Cardano.BM.Observer.Monadic'
@@ -126,7 +126,7 @@ handleObserveTrace config t =
   -- 'observeBefore' makes the call to 'observeOpen' and 'observeAfter'
   -- makes the call to 'observeClose.'
 
-  let observeBefore :: (L.LogMessage Text) -> Eff effs (Maybe (SubTrace, CounterState))
+  let observeBefore :: L.LogMessage Text -> Eff effs (Maybe (SubTrace, CounterState))
       observeBefore L.LogMessage{L._logLevel, L._logMessageContent} = do
 
         -- find the correct subtrace using the logging config and the content

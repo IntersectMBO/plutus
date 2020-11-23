@@ -16,7 +16,7 @@ import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         ((:<|>) ((:<|>)), Application, hoistServer, serve)
+import           Servant                         (Application, hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort))
 
 import           Cardano.Node.API                (API)

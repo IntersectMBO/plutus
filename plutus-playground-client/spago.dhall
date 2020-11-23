@@ -5,8 +5,6 @@ You can edit this file as you like.
 { name = "plutus-playground-client"
 , dependencies =
   [ "prelude"
-  , "ace-halogen"
-  , "ace"
   , "aff"
   , "bigints"
   , "concurrent-queues"

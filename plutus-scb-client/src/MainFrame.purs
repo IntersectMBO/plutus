@@ -7,8 +7,8 @@ module MainFrame
 
 import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
-import Cardano.Metadata.Types (Property(..), PropertyDescription, PropertyKey, Subject)
-import Chain.Eval (handleAction) as Chain
+import Cardano.Metadata.Types (Property, PropertyKey, Subject, SubjectProperties(..))
+import Chain.State (handleAction) as Chain
 import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
@@ -57,9 +57,9 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _metadata, _webSocketMessage, _webSocketStatus, fromWebData, toPropertyKey)
 import Validation (_argument)
 import View as View
+import Wallet.Types (EndpointDescription)
 import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
-import Wallet.Types (EndpointDescription)
 
 initialValue :: Value
 initialValue = adaToValue $ Lovelace { getLovelace: zero }
@@ -93,13 +93,13 @@ initialMainFrame =
         { initialState: const initialState
         , render: View.render
         , eval:
-          H.mkEval
-            { handleAction: runHalogenApp <<< handleAction
-            , handleQuery: runHalogenApp <<< handleQuery
-            , initialize: Just Init
-            , receive: const Nothing
-            , finalize: Nothing
-            }
+            H.mkEval
+              { handleAction: runHalogenApp <<< handleAction
+              , handleQuery: runHalogenApp <<< handleQuery
+              , initialize: Just Init
+              , receive: const Nothing
+              , finalize: Nothing
+              }
         }
 
 handleQuery ::
@@ -127,23 +127,22 @@ handleMessageFromSocket (WS.ReceiveMessage (Right msg)) = case msg of
       (view _crActiveContractStates report)
   NewChainEvents events -> assign _events (Success events)
   ErrorResponse err -> assign _webSocketMessage $ Stream.Failure $ ServerError err
-  FetchedProperty property -> do
-    log $ "Websocket fetch property: " <> show property
-    modifying _metadata (upsertProperty property)
-  FetchedProperties properties -> do
-    traverse_ (\p -> log $ "Websocket fetch properties: " <> show p) properties
-    modifying _metadata (\m -> foldr upsertProperty m properties)
-  Pong -> log "Websocket heartbeat"
+  FetchedProperty subject property -> do
+    log $ "Websocket fetch property: " <> show msg
+    modifying _metadata (upsertProperty subject property)
+  FetchedProperties (SubjectProperties subject properties) -> do
+    log $ "Websocket fetch properties: " <> show msg
+    modifying _metadata (\m -> foldr (upsertProperty subject) m properties)
 
 handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessage $ Stream.Failure $ DecodingError err
 
 handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
   assign _webSocketStatus (WebSocketClosed (Just closeEvent))
 
-upsertProperty :: Property -> Map Subject (Map PropertyKey PropertyDescription) -> Map Subject (Map PropertyKey PropertyDescription)
-upsertProperty (Property { _propertySubject, _propertyDescription }) =
-  Map.insertWith append _propertySubject
-    $ Map.singleton (toPropertyKey _propertyDescription) _propertyDescription
+upsertProperty :: Subject -> Property -> Map Subject (Map PropertyKey Property) -> Map Subject (Map PropertyKey Property)
+upsertProperty subject property =
+  Map.insertWith append subject
+    $ Map.singleton (toPropertyKey property) property
 
 handleAction ::
   forall m.

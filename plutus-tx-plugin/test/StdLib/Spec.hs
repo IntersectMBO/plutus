@@ -30,11 +30,12 @@ import           Language.PlutusTx.Code
 import qualified Language.PlutusTx.Lift       as Lift
 import           Language.PlutusTx.Plugin
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
-roundPlc :: CompiledCode PLC.DefaultUni (Ratio.Rational -> Integer)
+roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
@@ -45,6 +46,7 @@ tests =
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
     , pure $ testProperty "ord" testOrd
+    , pure $ testProperty "divMod" testDivMod
     , pure $ testProperty "quotRem" testQuotRem
     , pure $ testProperty "reduce" testReduce
     , pure $ testProperty "Eq @Data" eqData
@@ -56,6 +58,16 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.prop
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
         plutusResult = plutusFunc $ Ratio.fromGHC rat
+    Hedgehog.annotateShow ghcResult
+    Hedgehog.annotateShow plutusResult
+    Hedgehog.assert (ghcResult == plutusResult)
+
+testDivMod :: Property
+testDivMod = Hedgehog.property $ do
+    let gen = Gen.integral (Range.linear (-10000) 100000)
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let ghcResult = divMod n1 n2
+        plutusResult = Ratio.divMod n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -115,5 +127,5 @@ genData =
             , List <$> genList genData
             ]
 
-errorTrace :: CompiledCode PLC.DefaultUni (Integer)
+errorTrace :: CompiledCode (Integer)
 errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

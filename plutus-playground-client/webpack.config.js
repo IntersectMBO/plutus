@@ -1,9 +1,8 @@
 'use strict';
 
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
 
@@ -11,15 +10,15 @@ const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
       isWebpackDevServer || !isWatch ? [] : [
-          function(){
-              this.plugin('done', function(stats){
+          function () {
+              this.plugin('done', function (stats) {
                   process.stderr.write(stats.toString('errors-only'));
               });
           }
       ]
 ;
 
-// source map adds many Mb to the output!
+// source map adds 20Mb to the output!
 const devtool = isWebpackDevServer ? 'eval-source-map' : false;
 
 module.exports = {
@@ -70,6 +69,9 @@ module.exports = {
                         }
                     }
                 ]
+            }, {
+                test: /\.tsx?$/,
+                loader: "ts-loader"
             },
             {
                 test: /\.css$/,
@@ -82,6 +84,10 @@ module.exports = {
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
                 use: 'url-loader'
+            },
+            {
+                test: /\.ttf$/,
+                use: ['file-loader'],
             }
         ]
     },
@@ -90,19 +96,30 @@ module.exports = {
         modules: [
             'node_modules'
         ],
-        extensions: [ '.purs', '.js']
+        alias: {
+            static: path.resolve(__dirname, './static'),
+            src: path.resolve(__dirname, './src')
+        },
+        extensions: ['.purs', '.js', '.ts', '.tsx']
+    },
+
+    resolveLoader: {
+        modules: [
+            'node_modules',
+            path.resolve(__dirname, '.')
+        ]
     },
 
     plugins: [
-        new webpack.LoaderOptionsPlugin({
-            debug: true
-        }),
         new HtmlWebpackPlugin({
             template: '../web-common/static/index.html',
             favicon: 'static/favicon.ico',
             title: 'Plutus Playground',
             productName: 'plutus',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
+        }),
+        new MonacoWebpackPlugin({
+            languages: ['haskell'],
         })
     ].concat(plugins)
 };

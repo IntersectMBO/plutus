@@ -1,16 +1,15 @@
-{-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 module Language.PlutusTx.Coordination.Contracts.Vesting (
@@ -26,28 +25,28 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     vestingScript
     ) where
 
-import Control.Lens
-import           Control.Monad        (void, when)
-import qualified Data.Map as Map
-import           Prelude (Semigroup(..))
+import           Control.Lens
+import           Control.Monad                     (void, when)
+import qualified Data.Map                          as Map
+import           Prelude                           (Semigroup (..))
 
-import           GHC.Generics                 (Generic)
-import           Language.Plutus.Contract     hiding (when)
+import           GHC.Generics                      (Generic)
+import           Language.Plutus.Contract          hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
-import           Language.PlutusTx.Prelude    hiding (Semigroup(..), fold)
-import qualified Language.PlutusTx            as PlutusTx
-import Ledger.Constraints (TxConstraints, mustPayToTheScript, mustValidateIn, mustBeSignedBy)
-import           Ledger                       (Address, Slot(..), PubKeyHash (..), Validator)
-import qualified Ledger.Interval              as Interval
-import qualified Ledger.Slot                  as Slot
-import Ledger.Typed.Scripts (ScriptType(..))
-import qualified Ledger.Typed.Scripts         as Scripts
-import qualified Ledger.Tx as Tx
-import           Ledger.Value                 (Value)
-import qualified Ledger.Value                 as Value
-import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (ValidatorCtx (..), TxInfo (..))
-import qualified Prelude as Haskell
+import qualified Language.PlutusTx                 as PlutusTx
+import           Language.PlutusTx.Prelude         hiding (Semigroup (..), fold)
+import           Ledger                            (Address, PubKeyHash (..), Slot (..), Validator)
+import           Ledger.Constraints                (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
+import qualified Ledger.Interval                   as Interval
+import qualified Ledger.Slot                       as Slot
+import qualified Ledger.Tx                         as Tx
+import           Ledger.Typed.Scripts              (ScriptType (..))
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Validation                 as Validation
+import           Ledger.Value                      (Value)
+import qualified Ledger.Value                      as Value
+import qualified Prelude                           as Haskell
 
 {- |
     A simple vesting scheme. Money is locked by a contract and may only be

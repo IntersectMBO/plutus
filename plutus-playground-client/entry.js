@@ -6,11 +6,12 @@ import 'chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js';
 import 'chartist-plugin-axistitle/dist/chartist-plugin-axistitle.min.js';
 import './static/main.scss';
 
-import 'ace-builds/src-min-noconflict/ace.js';
-import 'ace-builds/src-min-noconflict/mode-haskell.js';
-import 'ace-builds/src-min-noconflict/ext-language_tools.js';
-import 'ace-builds/src-min-noconflict/keybinding-emacs.js';
-import 'ace-builds/src-min-noconflict/keybinding-vim.js';
-import 'ace-builds/src-min-noconflict/theme-monokai.js';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+global.monaco = monaco;
+import { EmacsExtension } from 'monaco-emacs';
+global.EmacsExtension = EmacsExtension;
+import { initVimMode } from 'monaco-vim';
+global.initVimMode = initVimMode;
+global.monacoExtraTypeScriptLibs = [];
 
 import './src/Main.purs';

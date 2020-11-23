@@ -22,7 +22,10 @@ data Builtin : Set where
   verifySignature          : Builtin
   equalsByteString         : Builtin
   ifThenElse               : Builtin
+  charToString             : Builtin
+  append                   : Builtin
+  trace                    : Builtin
 
-{-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC Builtin = data StaticBuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString | IfThenElse) #-}
+{-# FOREIGN GHC import Language.PlutusCore.Builtins #-}
+{-# COMPILE GHC Builtin = data DefaultFun (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString | IfThenElse | CharToString | Append | Trace) #-}
 \end{code}

@@ -57,7 +57,6 @@ data SCBError
     | SCBContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
-    | MetadataClientError ClientError
     | MetadataError Metadata.MetadataError
     | SigningProcessError ClientError
     | ChainIndexError ClientError
@@ -71,21 +70,20 @@ data SCBError
 
 instance Pretty SCBError where
     pretty = \case
-        FileNotFound fp -> "File not found:" <+> pretty fp
-        ContractNotFound fp -> "Contract not found:" <+> pretty fp
+        FileNotFound fp            -> "File not found:" <+> pretty fp
+        ContractNotFound fp        -> "Contract not found:" <+> pretty fp
         ContractInstanceNotFound i -> "Contract instance not found:" <+> pretty i
-        SCBContractError e -> "Contract error:" <+> pretty e
-        WalletClientError e -> "Wallet client error:" <+> viaShow e
-        NodeClientError e -> "Node client error:" <+> viaShow e
-        MetadataClientError e -> "Metadata client error:" <+> viaShow e
-        MetadataError e -> "Metadata error:" <+> viaShow e
-        SigningProcessError e -> "Signing process error:" <+> viaShow e
-        ChainIndexError e -> "Chain index error:" <+> viaShow e
-        WalletError e -> "Wallet error:" <+> pretty e
-        ContractCommandError i t -> "Contract command error:" <+> pretty i <+> pretty t
-        InvalidUUIDError t -> "Invalid UUID:" <+> pretty t
-        OtherError t -> "Other error:" <+> pretty t
-        EndpointCallError i e -> "Endpoint call failed:" <+> pretty i <+> pretty e
+        SCBContractError e         -> "Contract error:" <+> pretty e
+        WalletClientError e        -> "Wallet client error:" <+> viaShow e
+        NodeClientError e          -> "Node client error:" <+> viaShow e
+        MetadataError e            -> "Metadata error:" <+> viaShow e
+        SigningProcessError e      -> "Signing process error:" <+> viaShow e
+        ChainIndexError e          -> "Chain index error:" <+> viaShow e
+        WalletError e              -> "Wallet error:" <+> pretty e
+        ContractCommandError i t   -> "Contract command error:" <+> pretty i <+> pretty t
+        InvalidUUIDError t         -> "Invalid UUID:" <+> pretty t
+        OtherError t               -> "Other error:" <+> pretty t
+        EndpointCallError i e      -> "Endpoint call failed:" <+> pretty i <+> pretty e
 
 data DbConfig =
     DbConfig

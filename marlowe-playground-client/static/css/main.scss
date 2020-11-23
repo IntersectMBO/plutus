@@ -1,20 +1,22 @@
-@import './normalize.css';
-@import './css_var_colors.css';
-@import './css_var_globals.css';
-@import './typo.css';
-@import './globals.css';
-@import './layout.css';
-@import './header.css';
-@import './panels.css';
-@import './panel-mobile.css';
-@import './wallet.css';
-@import './main-tabs.css';
-@import './table.css';
-@import './animations.css';
-@import './github-input.css';
-@import './home.css';
-@import './projects.css';
-@import './new-project.css';
+@import './normalize.scss';
+@import './css_var_colors.scss';
+@import './css_var_globals.scss';
+@import './typo.scss';
+@import './globals.scss';
+@import './layout.scss';
+@import './header.scss';
+@import './panels.scss';
+@import './panel-mobile.scss';
+@import './wallet.scss';
+@import './main-tabs.scss';
+@import './table.scss';
+@import './animations.scss';
+@import './github-input.scss';
+@import './home.scss';
+@import './projects.scss';
+@import './new-project.scss';
+@import './demos.scss';
+@import './modal.scss';
 
 .ace_editor {
     height: 100%;
@@ -67,6 +69,11 @@ a:hover {
 .auth-button-container {
     margin-top: 5px;
 }
+
+.auth-button-container div {
+    margin-top: 5px;
+}
+
 .auth-button {
     padding: 0.4rem 1.5rem;
     cursor: pointer;
@@ -190,4 +197,8 @@ button.start-simulation-btn {
 
 .monaco-editor-container {
     height: 100%;
+}
+
+.monaco-readonly-decoration {
+    background-color: #fafafa;
 }

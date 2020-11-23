@@ -13,7 +13,7 @@ benchData <- function(path) {
     stringsAsFactors=FALSE
   )
 
-  benchname <- regex("(\\w+)/ExMemory (\\d+)/ExMemory (\\d+)")
+  benchname <- regex("([:alnum:]+)/ExMemory (\\d+)(?:/ExMemory (\\d+)?)?")
 
   numbercols = c("x_mem", "y_mem")
 
@@ -29,7 +29,6 @@ benchData <- function(path) {
 
   mutated <- numbers %>% mutate_at(numbercols, function(x) { as.numeric(as.character(x))}) %>% mutate_at(c("BuiltinName"), as.character)
   cbind(dat, mutated) %>%
-    filter(x_mem < 2000) %>% filter(y_mem < 2000) %>%
     mutate_at(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), function(x) { x * 1000 * 1000 })
 }
 
@@ -37,30 +36,41 @@ benchData <- function(path) {
 
 modelFun <- function(path) {
   data <- benchData(path)
+
+  calibratingBenchModel <- {
+    # CalibratingBench is number of runs as ExMemory, because I'm too lazy to write a new parser.
+    filtered <- data %>% filter(BuiltinName == "CalibratingBench")
+    lm(Mean ~ x_mem, data=filtered)
+  }
+
+  baseCost <- calibratingBenchModel$coefficients[["(Intercept)"]]
+  data$Mean <- data$Mean - baseCost
+
   # filtered does leak from one model to the next, so make sure you don't mistype!
 
   addIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "AddInteger")
+    filtered <- data %>% filter(BuiltinName == "AddInteger") %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
+
     lm(Mean ~ I(x_mem + y_mem), filtered)
   }
 
   eqIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "EqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "EqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
 
   subtractIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "SubtractInteger")
+    filtered <- data %>% filter(BuiltinName == "SubtractInteger") %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     lm(Mean ~ I(x_mem + y_mem), filtered)
   }
 
   multiplyIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     lm(Mean ~ I(x_mem * y_mem), filtered)
   }
 
   divideIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     # This one does seem to underestimate the cost by a factor of two
     lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
   }
@@ -69,26 +79,55 @@ modelFun <- function(path) {
   modIntegerModel <- divideIntegerModel
 
   lessThanIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "LessThanInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "LessThanInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
   greaterThanIntegerModel <- lessThanIntegerModel
 
   lessThanEqIntegerModel <- {
-    filtered <- data %>% filter(BuiltinName == "LessThanEqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
+    filtered <- data %>% filter(BuiltinName == "LessThanEqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
   greaterThanEqIntegerModel <- lessThanEqIntegerModel
 
-  concatenateModel <- 0
-  takeByteStringModel <- 0
-  dropByteStringModel <- 0
-  sha2Model <- 0
-  sha3Model <- 0
-  verifySignatureModel <- 0
-  eqByteStringModel <- 0
-  ltByteStringModel <- 0
-  gtByteStringModel <- 0
+  eqByteStringModel <- {
+    filtered <- data %>% filter(BuiltinName == "EqByteString") %>% filter(x_mem == y_mem)
+    lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
+  }
+
+  ltByteStringModel <- {
+    filtered <- data %>% filter(BuiltinName == "LtByteString")
+    lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
+  }
+  gtByteStringModel <- ltByteStringModel
+
+  concatenateModel <- {
+    filtered <- data %>% filter(BuiltinName == "Concatenate") %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
+    lm(Mean ~ I(x_mem + y_mem), data=filtered)
+  }
+
+  takeByteStringModel <- {
+    filtered <- data %>% filter(BuiltinName == "TakeByteString")
+    lm(Mean ~ 1, data=filtered)
+  }
+  dropByteStringModel <- {
+    filtered <- data %>% filter(BuiltinName == "DropByteString")
+    lm(Mean ~ 1, data=filtered)
+  }
+
+  sHA2Model <- {
+    filtered <- data %>% filter(BuiltinName == "SHA2")
+    lm(Mean ~ x_mem, data=filtered)
+  }
+  sHA3Model <- {
+    filtered <- data %>% filter(BuiltinName == "SHA3")
+    lm(Mean ~ x_mem, data=filtered)
+  }
+  verifySignatureModel <- {
+    filtered <- data %>% filter(BuiltinName == "VerifySignature")
+    lm(Mean ~ 1, data=filtered)
+  }
+
   ifThenElseModel <- 0
 
   list(
@@ -107,8 +146,8 @@ modelFun <- function(path) {
     concatenateModel=concatenateModel,
     takeByteStringModel=takeByteStringModel,
     dropByteStringModel=dropByteStringModel,
-    sha2Model=sha2Model,
-    sha3Model=sha3Model,
+    sHA2Model=sHA2Model,
+    sHA3Model=sHA3Model,
     verifySignatureModel=verifySignatureModel,
     eqByteStringModel=eqByteStringModel,
     ltByteStringModel=ltByteStringModel,

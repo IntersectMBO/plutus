@@ -45,7 +45,7 @@ callAdder :: Contract AdderSchema AdderError (Either CancelRPC Integer)
 callAdder = do
     instanceId <- mapError AdderContractError $ endpoint @"target instance"
     logInfo @String $ "Calling contract " <> show instanceId
-    result <- mapError AdderCallRPCError $ callRPC @Adder instanceId (2, 2)
+    result <- mapError AdderCallRPCError $ callRPC @Adder NoRetries instanceId (2, 2)
     logInfo @String $ "2+2=" <> show result
     return result
 
@@ -53,7 +53,7 @@ callAdderCancel :: Contract AdderSchema AdderError (Either CancelRPC Integer)
 callAdderCancel = do
     instanceId <- mapError AdderContractError $ endpoint @"target instance"
     logInfo @String $ "Calling contract " <> show instanceId
-    result <- mapError AdderCallRPCError $ callRPC @Adder instanceId (10, 2)
+    result <- mapError AdderCallRPCError $ callRPC @Adder NoRetries instanceId (10, 2)
     logInfo @String $ "10+2=" <> show result
     return result
 

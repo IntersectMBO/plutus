@@ -17,6 +17,7 @@ import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
+import qualified Language.PlutusCore.Builtins as PLC
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
@@ -32,15 +33,15 @@ basic = testNested "Basic" [
   , goldenUEval "ifOptEval" [ifOpt]
   ]
 
-monoId :: CompiledCode PLC.DefaultUni (Integer -> Integer)
+monoId :: CompiledCode (Integer -> Integer)
 monoId = plc (Proxy @"monoId") (\(x :: Integer) -> x)
 
-monoK :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
+monoK :: CompiledCode (Integer -> Integer -> Integer)
 monoK = plc (Proxy @"monoK") (\(i :: Integer) -> \(j :: Integer) -> i)
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
-letFun :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
+letFun :: CompiledCode (Integer -> Integer -> Bool)
 letFun = plc (Proxy @"letFun") (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
 
-ifOpt :: CompiledCode PLC.DefaultUni Integer
+ifOpt :: CompiledCode Integer
 ifOpt = plc (Proxy @"ifOpt") (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)

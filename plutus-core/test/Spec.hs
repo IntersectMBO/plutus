@@ -8,34 +8,34 @@ module Main
 
 import           PlutusPrelude
 
-import qualified Check.Spec                                                 as Check
-import           Evaluation.Spec                                            (test_evaluation)
+import qualified Check.Spec                                 as Check
+import           Evaluation.Spec                            (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
-import           TypeSynthesis.Spec                                         (test_typecheck)
+import           TypeSynthesis.Spec                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST                         as AST
+import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
-import qualified Language.PlutusCore.Generators.NEAT.Spec                   as NEAT
+import qualified Language.PlutusCore.Generators.NEAT.Spec   as NEAT
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.Text                                                  as T
-import           Data.Text.Encoding                                         (encodeUtf8)
-import           Hedgehog                                                   hiding (Var)
-import qualified Hedgehog.Gen                                               as Gen
+import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.Text                                  as T
+import           Data.Text.Encoding                         (encodeUtf8)
+import qualified Flat                                       as Flat
+import           Hedgehog                                   hiding (Var)
+import qualified Hedgehog.Gen                               as Gen
 import           Test.Tasty
 import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 main :: IO ()
 main = do
@@ -53,8 +53,8 @@ compareTyName :: TyName -> TyName -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'
 
 compareTerm
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
-    => Term TyName Name uni a -> Term TyName Name uni a -> Bool
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
+    => Term TyName Name uni fun a -> Term TyName Name uni fun a -> Bool
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == k' && compareTerm t t'
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
@@ -81,12 +81,12 @@ compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && com
 compareType _ _                                       = False
 
 compareProgram
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a)
-    => Program TyName Name uni a -> Program TyName Name uni a -> Bool
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
+    => Program TyName Name uni fun a -> Program TyName Name uni fun a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
@@ -96,13 +96,18 @@ propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
+propFlat :: Property
+propFlat = property $ do
+    prog <- forAllPretty $ runAstGen genProgram
+    Hedgehog.tripping prog Flat.flat Flat.unflat
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni AlexPosn) p)
+    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni DefaultFun AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do
@@ -120,14 +125,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni ()) a) -> Property
+propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
         backward
-            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni a)
-            -> Except FreeVariableError (Term TyName Name DefaultUni a)
+            :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
+            -> Except FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -136,7 +141,8 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
   testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip" propCBOR
+    , testProperty "serialization round-trip (CBOR)" propCBOR
+    , testProperty "serialization round-trip (Flat)" propFlat
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $
@@ -156,7 +162,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     ]
 
 
-type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
+type TestFunction a = BSL.ByteString -> Either (Error DefaultUni DefaultFun a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -170,10 +176,10 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (Error DefaultUni DefaultFun AlexPosn) T.Text
 evalFile contents =
     second displayPlcDef $
-        unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
+        unsafeEvaluateCek defBuiltinsRuntime . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree
 testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
@@ -205,7 +211,7 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
-        term0, term1 :: Term TyName Name DefaultUni ()
+        term0, term1 :: Term TyName Name DefaultUni DefaultFun ()
 
         -- [(lam x a x) x]
         term0 = Apply () lamX varX

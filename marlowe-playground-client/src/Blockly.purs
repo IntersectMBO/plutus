@@ -66,6 +66,12 @@ newtype XML
 
 derive instance newtypeXML :: Newtype XML _
 
+derive newtype instance semigroupXML :: Semigroup XML
+
+derive newtype instance monoidXML :: Monoid XML
+
+derive newtype instance eqXML :: Eq XML
+
 -- Functions that mutate values always work on STRefs rather than regular values
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 
@@ -114,24 +120,24 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
     , sounds: true
     , oneBasedIndex: true
     , move:
-      { scrollbars: true
-      , drag: true
-      , wheel: true
-      }
+        { scrollbars: true
+        , drag: true
+        , wheel: true
+        }
     , zoom:
-      { controls: true
-      , wheel: false
-      , startScale: 1.0
-      , maxScale: 3.0
-      , minScale: 0.3
-      , scaleSpeed: 1.2
-      }
+        { controls: true
+        , wheel: false
+        , startScale: 1.0
+        , maxScale: 3.0
+        , minScale: 0.3
+        , scaleSpeed: 1.2
+        }
     , grid:
-      { spacing: 20
-      , length: 3
-      , colour: "#ccc"
-      , snap: true
-      }
+        { spacing: 20
+        , length: 3
+        , colour: "#ccc"
+        , snap: true
+        }
     }
 
 resize :: forall r. Blockly -> STRef r Workspace -> ST r Unit

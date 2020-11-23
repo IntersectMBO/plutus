@@ -62,8 +62,8 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni a) where
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ con         -> unitDocM $ pretty con
         Builtin _ bi           -> unitDocM $ pretty bi
@@ -89,8 +89,8 @@ instance
             compoundDocM juxtFixity $ \prettyIn ->
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
 
-instance PrettyReadableBy configName (Term tyname name uni a) =>
-        PrettyBy (PrettyConfigReadable configName) (Program tyname name uni a) where
+instance PrettyReadableBy configName (Term tyname name uni fun a) =>
+        PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
     prettyBy = inContextM $ \(Program _ version term) ->
         sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
             "program" <+> pretty version <+> prettyEl term

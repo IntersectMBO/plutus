@@ -9,7 +9,6 @@ import           TestLib
 import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusCore                         as PLC
-import qualified Language.PlutusCore.Constant.Dynamic        as PLC
 
 import           Language.PlutusIR.Parser
 import qualified Language.PlutusIR.Transform.Inline          as Inline
@@ -30,22 +29,21 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir ThunkRec.thunkRecursions term)
+    $ map (goldenPir ThunkRec.thunkRecursions $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "listFold"
     , "monoMap"
     ]
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) term)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "nonStrict1"
     ]
 
 letFloat :: TestNested
 letFloat =
-    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
-    in testNested "letFloat"
-    $ map (goldenPir (LetFloat.floatTerm means . runQuote . PLC.rename) term)
+    testNested "letFloat"
+    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -83,9 +81,8 @@ instance Monoid SourcePos where
 
 inline :: TestNested
 inline =
-    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
-    in testNested "inline"
-    $ map (goldenPir (Inline.inline means . runQuote . PLC.rename) term)
+    testNested "inline"
+    $ map (goldenPir (Inline.inline . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "var"
     , "builtin"
     , "constant"

@@ -31,26 +31,26 @@ foreign import sendContractToShiny ::
   String ->
   Effect Unit
 
-type BlocklyState
+type State
   = { actusBlocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , showShiny :: Boolean
     }
 
-_actusBlocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
+_actusBlocklyState :: Lens' State (Maybe BT.BlocklyState)
 _actusBlocklyState = prop (SProxy :: SProxy "actusBlocklyState")
 
-_generator :: Lens' BlocklyState (Maybe Generator)
+_generator :: Lens' State (Maybe Generator)
 _generator = prop (SProxy :: SProxy "generator")
 
-_errorMessage :: Lens' BlocklyState (Maybe String)
+_errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
-_showShiny :: Lens' BlocklyState Boolean
+_showShiny :: Lens' State Boolean
 _showShiny = prop (SProxy :: SProxy "showShiny")
 
-data BlocklyQuery a
+data Query a
   = Resize a
   | SetError String a
   | GetWorkspace (XML -> a)
@@ -60,34 +60,34 @@ data ContractFlavour
   = FS
   | F
 
-data BlocklyAction
+data Action
   = Inject String (Array BlockDefinition)
   | GetTerms ContractFlavour
   | RunAnalysis
 
-data BlocklyMessage
+data Message
   = Initialized
   | CurrentTerms ContractFlavour String
 
 type DSL m a
-  = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
+  = HalogenM State Action () Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
+blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
     { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
     , render
     , eval:
-      H.mkEval
-        { handleQuery
-        , handleAction
-        , initialize: Just $ Inject rootBlockName blockDefinitions
-        , finalize: Nothing
-        , receive: const Nothing
-        }
+        H.mkEval
+          { handleQuery
+          , handleAction
+          , initialize: Just $ Inject rootBlockName blockDefinitions
+          , finalize: Nothing
+          , receive: const Nothing
+          }
     }
 
-handleQuery :: forall m a. MonadEffect m => BlocklyQuery a -> DSL m (Maybe a)
+handleQuery :: forall m a. MonadEffect m => Query a -> DSL m (Maybe a)
 handleQuery (Resize next) = do
   mState <- use _actusBlocklyState
   case mState of
@@ -120,7 +120,7 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
+handleAction :: forall m. MonadEffect m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusBlocklyToolbox")
   let
@@ -182,11 +182,11 @@ handleAction RunAnalysis = do
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: forall p. BlocklyState -> HTML p BlocklyAction
+render :: forall p. State -> HTML p Action
 render state =
   div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
-        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+        [ div [ classes [ panelSubHeaderMain, aHorizontal, ClassName "actus-buttons" ] ]
             [ toCodeButton "Generate reactive contract"
             , toStaticCodeButton "Generate static contract"
             , runAnalysis
@@ -206,7 +206,7 @@ render state =
 
 shiny ::
   forall p.
-  BlocklyState -> HTML p BlocklyAction
+  State -> HTML p Action
 shiny state =
   aside [ classes ([ sidebarComposer, expanded false ] <> if state.showShiny then [] else [ hide ]) ]
     [ div [ attr (AttrName "style") "height: 100%;" ]
@@ -220,14 +220,14 @@ shiny state =
         ]
     ]
 
-toCodeButton :: forall p. String -> HTML p BlocklyAction
+toCodeButton :: forall p. String -> HTML p Action
 toCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms FS
     ]
     [ text key ]
 
-toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
+toStaticCodeButton :: forall p. String -> HTML p Action
 toStaticCodeButton key =
   button
     [ onClick $ const $ Just $ GetTerms F
@@ -235,7 +235,7 @@ toStaticCodeButton key =
     ]
     [ text key ]
 
-runAnalysis :: forall p. HTML p BlocklyAction
+runAnalysis :: forall p. HTML p Action
 runAnalysis =
   button
     [ onClick $ const $ Just $ RunAnalysis

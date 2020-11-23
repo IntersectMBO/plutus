@@ -1,122 +1,122 @@
 # VPC
 resource "aws_vpc" "plutus" {
-  cidr_block           = "${var.vpc_cidr}"
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
 
   tags = {
     Name        = "${var.project}_${var.env}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  vpc_id            = "${aws_vpc.plutus.id}"
+  vpc_id            = aws_vpc.plutus.id
   availability_zone = "${var.aws_region}${var.azs[count.index]}"
-  cidr_block        = "${var.public_subnet_cidrs[count.index]}"
-  count             = "${length(var.azs)}"
+  cidr_block        = var.public_subnet_cidrs[count.index]
+  count             = length(var.azs)
 
   map_public_ip_on_launch = true
 
   tags = {
     Name        = "${var.project}_${var.env}_public_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Internet Gateway
 resource "aws_internet_gateway" "plutus" {
-  vpc_id = "${aws_vpc.plutus.id}"
+  vpc_id = aws_vpc.plutus.id
 
   tags = {
     Name        = "${var.project}_${var.env}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Public Route
 resource "aws_route" "public" {
-  route_table_id         = "${aws_vpc.plutus.main_route_table_id}"
+  route_table_id         = aws_vpc.plutus.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.plutus.id}"
+  gateway_id             = aws_internet_gateway.plutus.id
 }
 
 # Elastic IPs
 resource "aws_eip" "nat" {
   vpc        = true
   depends_on = [aws_internet_gateway.plutus]
-  count      = "${length(var.azs)}"
+  count      = length(var.azs)
 
   tags = {
     Name        = "${var.project}_${var.env}_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # NATs
 resource "aws_nat_gateway" "plutus" {
-  count         = "${length(var.azs)}"
-  allocation_id = "${aws_eip.nat.*.id[count.index]}"
-  subnet_id     = "${aws_subnet.public.*.id[count.index]}"
+  count         = length(var.azs)
+  allocation_id = aws_eip.nat.*.id[count.index]
+  subnet_id     = aws_subnet.public.*.id[count.index]
   depends_on    = [aws_internet_gateway.plutus]
 
   tags = {
     Name        = "${var.project}_${var.env}_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Associate public subnets to public route tables
 resource "aws_route_table_association" "public" {
-  count          = "${length(var.azs)}"
-  subnet_id      = "${aws_subnet.public.*.id[count.index]}"
-  route_table_id = "${aws_vpc.plutus.main_route_table_id}"
+  count          = length(var.azs)
+  subnet_id      = aws_subnet.public.*.id[count.index]
+  route_table_id = aws_vpc.plutus.main_route_table_id
 }
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count             = "${length(var.azs)}"
-  vpc_id            = "${aws_vpc.plutus.id}"
+  count             = length(var.azs)
+  vpc_id            = aws_vpc.plutus.id
   availability_zone = "${var.aws_region}${var.azs[count.index]}"
-  cidr_block        = "${var.private_subnet_cidrs[count.index]}"
+  cidr_block        = var.private_subnet_cidrs[count.index]
 
   tags = {
     Name        = "${var.project}_${var.env}_private_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Private Route Tables
 resource "aws_route_table" "private" {
-  count  = "${length(var.azs)}"
-  vpc_id = "${aws_vpc.plutus.id}"
+  count  = length(var.azs)
+  vpc_id = aws_vpc.plutus.id
 
   tags = {
     Name        = "${var.project}_${var.env}_private_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 # Private Routes
 resource "aws_route" "private" {
-  count                  = "${length(var.azs)}"
-  route_table_id         = "${aws_route_table.private.*.id[count.index]}"
+  count                  = length(var.azs)
+  route_table_id         = aws_route_table.private.*.id[count.index]
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = "${aws_nat_gateway.plutus.*.id[count.index]}"
+  nat_gateway_id         = aws_nat_gateway.plutus.*.id[count.index]
 }
 
 # Associate private subnets to private route tables
 resource "aws_route_table_association" "private" {
-  count          = "${length(var.azs)}"
-  subnet_id      = "${aws_subnet.private.*.id[count.index]}"
-  route_table_id = "${aws_route_table.private.*.id[count.index]}"
+  count          = length(var.azs)
+  subnet_id      = aws_subnet.private.*.id[count.index]
+  route_table_id = aws_route_table.private.*.id[count.index]
 }
 
 # Bastion hosts
@@ -139,18 +139,18 @@ data "template_file" "bastion_user_data" {
 }
 
 resource "aws_instance" "bastion" {
-  count                       = "${length(var.azs)}"
-  ami                         = "${lookup(var.aws_amis, var.aws_region)}"
+  count                       = length(var.azs)
+  ami                         = lookup(var.aws_amis, var.aws_region)
   instance_type               = "t2.nano"
   associate_public_ip_address = true
-  user_data                   = "${data.template_file.bastion_user_data.rendered}"
+  user_data                   = data.template_file.bastion_user_data.rendered
   source_dest_check           = false
 
   vpc_security_group_ids = [
     "${aws_security_group.bastion.id}",
   ]
 
-  subnet_id = "${aws_subnet.public.*.id[count.index]}"
+  subnet_id = aws_subnet.public.*.id[count.index]
 
   root_block_device {
     volume_size = 20
@@ -158,13 +158,13 @@ resource "aws_instance" "bastion" {
 
   tags = {
     Name        = "${var.project}_${var.env}_bastion_${var.azs[count.index]}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 resource "aws_security_group" "bastion" {
-  vpc_id = "${aws_vpc.plutus.id}"
+  vpc_id = aws_vpc.plutus.id
 
   # inbound (world): ICMP 3:4 "Fragmentation Needed and Don't Fragment was Set"
   ingress {
@@ -219,33 +219,33 @@ resource "aws_security_group" "bastion" {
 
   tags = {
     Name        = "${var.project}_${var.env}_bastion"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 resource "aws_route53_zone" "plutus_private_zone" {
   vpc {
-    vpc_id = "${aws_vpc.plutus.id}"
+    vpc_id = aws_vpc.plutus.id
   }
   name   = "internal.${var.env}.${var.plutus_tld}"
 
   tags = {
     Name        = "${var.project}_${var.env}"
-    Project     = "${var.project}"
-    Environment = "${var.env}"
+    Project     = var.project
+    Environment = var.env
   }
 }
 
 locals {
   network = {
-    publicCidrBlockA = "${var.public_subnet_cidrs[0]}"
-    publicCidrBlockB = "${var.public_subnet_cidrs[1]}"
-    publicCidrBlockC = "${var.public_subnet_cidrs[2]}"
+    publicCidrBlockA = var.public_subnet_cidrs[0]
+    publicCidrBlockB = var.public_subnet_cidrs[1]
+    publicCidrBlockC = var.public_subnet_cidrs[2]
   }
 }
 
 resource "local_file" "network" {
-  content  = "${jsonencode(local.network)}"
+  content  = jsonencode(local.network)
   filename = "${pathexpand(var.nixops_root)}/network.json"
 }

@@ -13,10 +13,11 @@
         fi
       '';
       promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
-                            ''
-                            machine_role{role="webghc"} 1
-                            '';
-    in {
+        ''
+          machine_role{role="webghc"} 1
+        '';
+    in
+    {
       imports = [ (defaultMachine node pkgs) ];
 
       security.sudo = {
@@ -78,4 +79,3 @@
       };
     };
 }
-

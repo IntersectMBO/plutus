@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeOperators       #-}
-{-# LANGUAGE GADTs       #-}
+{-# LANGUAGE TypeOperators    #-}
 -- | Optimization passes for removing dead code, mainly dead let bindings.
 module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 
@@ -11,8 +11,8 @@ import           Language.PlutusIR.MkPir
 import           Language.PlutusIR.Transform.Rename      ()
 
 import qualified Language.PlutusCore                     as PLC
-import qualified Language.PlutusCore.Name                as PLC
 import qualified Language.PlutusCore.Constant            as PLC
+import qualified Language.PlutusCore.Name                as PLC
 
 import           Control.Lens
 import           Control.Monad
@@ -28,26 +28,24 @@ import qualified Data.List.NonEmpty                      as NE
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
-       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
-    -> Term tyname name uni a
-removeDeadBindings means t =
+       PLC.ToBuiltinMeaning uni fun)
+    => Term tyname name uni fun a
+    -> Term tyname name uni fun a
+removeDeadBindings t =
     let tRen = PLC.runQuote $ PLC.rename t
-    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness means tRen)
+    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
 
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
-       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
+       PLC.ToBuiltinMeaning uni fun)
+    => Term tyname name uni fun a
     -> Liveness
-calculateLiveness means t =
+calculateLiveness t =
     let
         depGraph :: G.Graph Deps.Node
-        depGraph = fst $ Deps.runTermDeps means t
+        depGraph = fst $ Deps.runTermDeps t
     in Set.fromList $ T.reachable Deps.Root depGraph
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool
@@ -58,7 +56,7 @@ live n =
 
 liveBinding
     :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Binding tyname name uni a
+    => Binding tyname name uni fun a
     -> m Bool
 liveBinding =
     let
@@ -72,9 +70,9 @@ liveBinding =
 
 processTerm
     :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
-    -> m (Term tyname name uni a)
+    => Term tyname name uni fun a
+    -> m (Term tyname name uni fun a)
 processTerm = \case
     -- throw away dead bindings
     Let x r bs t -> mkLet x r <$> filterM liveBinding (NE.toList bs) <*> pure t
-    x -> pure x
+    x            -> pure x

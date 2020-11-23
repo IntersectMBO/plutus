@@ -63,11 +63,11 @@ type ChartistData
 type ChartistOptions
   = { seriesBarDistance :: Int
     , chartPadding ::
-      { top :: Int
-      , bottom :: Int
-      , right :: Int
-      , left :: Int
-      }
+        { top :: Int
+        , bottom :: Int
+        , right :: Int
+        , left :: Int
+        }
     , axisY :: AxisScale
     , plugins :: Array ChartistPlugin
     }
@@ -76,9 +76,9 @@ type AxisTitleAxisOptions
   = { axisTitle :: String
     , axisClass :: String
     , offset ::
-      { x :: Int
-      , y :: Int
-      }
+        { x :: Int
+        , y :: Int
+        }
     , textAnchor :: String
     , flipTitle :: Boolean
     }

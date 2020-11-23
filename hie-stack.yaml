@@ -208,13 +208,45 @@ cradle:
         stack:
           component: "web-ghc:test:web-ghc-test"
 
-  # These use the plutus plugin - HIE doesn't support plugins yet
-
-  - path: ./marlowe
+  - path: ./plutus-benchmark/lib
     config:
       cradle:
-        none:
-  - path: ./plutus-book
+        stack:
+          component: "plutus-benchmark:lib"
+
+  - path: ./plutus-benchmark/nofib
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:nofib"
+
+  - path: ./plutus-benchmark/nofib
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:nofib-hs"
+
+  - path: ./plutus-benchmark/validation
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:validation"
+
+  - path: ./plutus-benchmark/nofib/exe
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:exe:nofib-exe"
+
+  - path: ./plutus-benchmark/nofib/test
+    config:
+      cradle:
+        stack:
+          component: "plutus-benchmark:plutus-benchmark-nofib-tests"
+
+# These use the plutus plugin - HIE doesn't support plugins yet
+
+  - path: ./marlowe
     config:
       cradle:
         none:

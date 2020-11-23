@@ -115,6 +115,8 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

@@ -17,8 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.Prism.Mirror(
     , mirror
     ) where
 
-import           Control.Monad                                               (void)
-import           Control.Monad                                               (forever)
+import           Control.Monad                                               (forever, void)
 import           Data.Aeson                                                  (FromJSON, ToJSON)
 import           GHC.Generics                                                (Generic)
 import           Language.Plutus.Contract
@@ -31,6 +30,9 @@ import qualified Ledger.Constraints                                          as 
 import           Ledger.Crypto                                               (PubKeyHash, pubKeyHash)
 import qualified Ledger.Typed.Scripts                                        as Scripts
 import           Ledger.Value                                                (TokenName)
+import           Schema                                                      (ToSchema)
+import           Wallet.Emulator                                             (walletPubKey)
+import           Wallet.Emulator.Wallet                                      (Wallet)
 
 -- | Reference to a credential tied to a specific owner (public key address).
 --   From this, and the public key of the Mirror instance, we can compute the
@@ -38,10 +40,10 @@ import           Ledger.Value                                                (To
 data CredentialOwnerReference =
     CredentialOwnerReference
         { coTokenName :: TokenName
-        , coOwner     :: PubKeyHash
+        , coOwner     :: Wallet
         }
     deriving stock (Generic, Eq, Show, Ord)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type MirrorSchema =
     BlockchainActions
@@ -74,7 +76,7 @@ createTokens authority = do
     _ <- mapError CreateTokenTxError $ do
             tx <- submitTxConstraintsWith @Scripts.Any lookups constraints
             awaitTxConfirmed (txId tx)
-    let stateMachine = StateMachine.mkMachineClient authority coOwner coTokenName
+    let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
     void $ mapError StateMachineError $ runInitialise stateMachine Active theToken
 
 revokeToken ::
@@ -85,7 +87,7 @@ revokeToken ::
     -> Contract s MirrorError ()
 revokeToken authority = do
     CredentialOwnerReference{coTokenName, coOwner} <- mapError RevokeEndpointError $ endpoint @"revoke"
-    let stateMachine = StateMachine.mkMachineClient authority coOwner coTokenName
+    let stateMachine = StateMachine.mkMachineClient authority (pubKeyHash $ walletPubKey coOwner) coTokenName
     void $ mapError StateMachineError $ runStep stateMachine RevokeCredential
 
 ---

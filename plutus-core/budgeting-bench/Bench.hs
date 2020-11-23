@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,54 +9,66 @@
 -- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import qualified Data.ByteString                                            as BS
+import qualified Criterion.Types                                   as C
+import qualified Data.ByteString                                   as BS
 import           Hedgehog
 import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
 import           Hedgehog.Range
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
+import           Language.UntypedPlutusCore                        as UT
+import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
+import           System.Directory
 
 import           Criterion.Main
-import qualified Criterion.Types                                            as C
 import           Data.Functor
+import qualified Data.Kind                                         as GHC
 
-runTermBench :: String -> Plain Term DefaultUni -> Benchmark
+type UntypedPlain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f Name uni fun ()
+
+runTermBench :: String -> UntypedPlain UT.Term DefaultUni DefaultFun -> Benchmark
 runTermBench name term = env
     (do
         (_result, budget) <-
-          pure $ runCekCounting mempty defaultCostModel term
+          pure $ runCekCounting defBuiltinsRuntime term
         pure budget
         )
-    (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
+    (\_ -> bench name $ nf (unsafeEvaluateCek defBuiltinsRuntime) term)
 
-benchSameTwoByteStrings :: StaticBuiltinName -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
+-- Copying the bytestring here, because otherwise it'll be exactly the same, and the equality will short-circuit.
+benchSameTwoByteStrings :: DefaultFun -> Benchmark
+benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) ((\(bs, e) -> (BS.copy bs, e)) <$> byteStringsToBench seedA)
 
-benchTwoByteStrings :: StaticBuiltinName -> Benchmark
+benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
 
-benchBytestringOperations :: StaticBuiltinName -> Benchmark -- TODO the numbers are a bit too big here
+benchBytestringOperations :: DefaultFun -> Benchmark -- TODO the numbers are a bit too big here
 benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BS.ByteString name numbers (byteStringsToBench seedA)
     where
         numbers = expToBenchingInteger <$> expsToBench
 
-createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => StaticBuiltinName -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
+createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => DefaultFun -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
 createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
         as <&> (\(x, xMem) ->
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
-                runTermBench (show yMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x), (mkConstant () y)]
+                runTermBench (show yMem) $ erase $ mkIterApp () (builtin () name) [(mkConstant () x), (mkConstant () y)]
             ))
 
-benchHashOperations :: StaticBuiltinName -> Benchmark
+benchComparison :: [Benchmark]
+benchComparison = (\n -> runTermBench ("CalibratingBench/ExMemory " <> show n) (erase $ createRecursiveTerm n)) <$> [1..20]
+
+-- Creates a cheap builtin operation to measure the base cost of executing one.
+createRecursiveTerm :: Integer -> Plain PLC.Term DefaultUni DefaultFun
+createRecursiveTerm d = mkIterApp () (builtin () AddInteger) [(mkConstant () (1::Integer)), if d == 0 then (mkConstant () (1::Integer)) else (createRecursiveTerm (d - 1))]
+
+benchHashOperations :: DefaultFun -> Benchmark
 benchHashOperations name =
     bgroup (show name) $
         byteStringsToBench seedA <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x)]
+            runTermBench (show xMem) $ erase $ mkIterApp () (builtin () name) [(mkConstant () x)]
         )
 
 -- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
@@ -67,14 +80,14 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
         bs <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
+            runTermBench (show xMem) $ erase $ mkIterApp () (builtin () name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
         )
     where
         name = VerifySignature
         bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 expsToBenchBS :: [Integer]
-expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..15])
+expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..20])
 
 byteStringsToBench :: Seed -> [(BS.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
@@ -101,7 +114,7 @@ expToBenchingInteger e =
                 x = ((3 :: Integer) ^ e)
             in (x, memoryUsage x)
 
-benchTwoInt :: StaticBuiltinName -> Benchmark
+benchTwoInt :: DefaultFun -> Benchmark
 benchTwoInt builtinName =
     createTwoTermBuiltinBench builtinName numbers numbers
     where
@@ -112,7 +125,8 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
+    createDirectoryIfMissing True "budgeting-bench/csvs/"
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString, LtByteString, GtByteString]) <> [benchVerifySignature] <> benchComparison
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]

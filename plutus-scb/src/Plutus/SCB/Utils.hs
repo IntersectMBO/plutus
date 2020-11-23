@@ -52,7 +52,7 @@ render = renderStrict . layoutPretty defaultLayoutOptions
 liftError :: MonadError e m => m (Either e a) -> m a
 liftError action =
     action >>= \case
-        Left err -> throwError err
+        Left err    -> throwError err
         Right value -> pure value
 
 liftLocalReader :: MonadReader f m => (f -> e) -> ReaderT e m a -> m a

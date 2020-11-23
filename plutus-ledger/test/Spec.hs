@@ -1,43 +1,51 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 module Main(main) where
 
 import           Control.Lens
-import           Control.Monad              (void)
-import           Control.Monad.Trans.Except (runExcept)
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import qualified Data.Aeson.Internal        as Aeson
-import qualified Data.ByteString            as BSS
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Either                (isLeft, isRight)
-import           Data.Foldable              (fold, foldl', traverse_)
-import           Data.List                  (sort)
-import qualified Data.Map                   as Map
-import           Data.Monoid                (Sum (..))
-import qualified Data.Set                   as Set
-import           Data.String                (IsString (fromString))
-import           Hedgehog                   (Property, forAll, property)
+import           Control.Monad                (void)
+import           Control.Monad.Trans.Except   (runExcept)
+import qualified Data.Aeson                   as JSON
+import qualified Data.Aeson.Extras            as JSON
+import qualified Data.Aeson.Internal          as Aeson
+import qualified Data.ByteString              as BSS
+import qualified Data.ByteString.Lazy         as BSL
+import           Data.Either                  (isLeft, isRight)
+import           Data.Foldable                (fold, foldl', traverse_)
+import           Data.List                    (sort)
+import qualified Data.Map                     as Map
+import           Data.Monoid                  (Sum (..))
+import qualified Data.Set                     as Set
+import           Data.String                  (IsString (fromString))
+import           Hedgehog                     (Property, forAll, property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen               as Gen
-import qualified Hedgehog.Range             as Range
-import qualified Language.PlutusTx.AssocMap as AssocMap
-import qualified Language.PlutusTx.Builtins as Builtins
-import qualified Language.PlutusTx.Prelude  as PlutusTx
+import qualified Hedgehog.Gen                 as Gen
+import qualified Hedgehog.Range               as Range
+import qualified Language.PlutusCore.Builtins as PLC
+import qualified Language.PlutusCore.Universe as PLC
+import           Language.PlutusTx            (CompiledCode, applyCode, liftCode)
+import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.PlutusTx.AssocMap   as AssocMap
+import qualified Language.PlutusTx.Builtins   as Builtins
+import qualified Language.PlutusTx.Prelude    as PlutusTx
 import           Ledger
-import qualified Ledger.Ada                 as Ada
-import qualified Ledger.Generators          as Gen
-import qualified Ledger.Index               as Index
-import qualified Ledger.Interval            as Interval
-import           Ledger.Value               (CurrencySymbol, Value (Value))
-import qualified Ledger.Value               as Value
+import qualified Ledger.Ada                   as Ada
+import qualified Ledger.Crypto                as Crypto
+import qualified Ledger.Generators            as Gen
+import qualified Ledger.Index                 as Index
+import qualified Ledger.Interval              as Interval
+import qualified Ledger.Scripts               as Scripts
+import qualified Ledger.Validation            as Validation
+import           Ledger.Value                 (CurrencySymbol, Value (Value))
+import qualified Ledger.Value                 as Value
 import           LedgerBytes
 import           Test.Tasty
-import           Test.Tasty.Hedgehog        (testProperty)
-import           Test.Tasty.HUnit           (testCase)
-import qualified Test.Tasty.HUnit           as HUnit
+import           Test.Tasty.HUnit             (testCase)
+import qualified Test.Tasty.HUnit             as HUnit
+import           Test.Tasty.Hedgehog          (testProperty)
 
 main :: IO ()
 main = defaultMain tests
@@ -60,7 +68,8 @@ tests = testGroup "all tests" [
     testGroup "Etc." [
         testProperty "splitVal" splitVal,
         testProperty "encodeByteString" encodeByteStringTest,
-        testProperty "encodeSerialise" encodeSerialiseTest
+        testProperty "encodeSerialise" encodeSerialiseTest,
+        testProperty "pubkey hash" pubkeyHashOnChainAndOffChain
         ],
     testGroup "LedgerBytes" [
         testProperty "show-fromHex" ledgerBytesShowFromHexProp,
@@ -192,3 +201,15 @@ byteStringJson jsonString value =
         HUnit.assertEqual "Simple Decode" (Right value) (JSON.eitherDecode jsonString)
     , testCase "encoding" $ HUnit.assertEqual "Simple Encode" jsonString (JSON.encode value)
     ]
+
+-- | Check that the on-chain version and the off-chain version of 'pubKeyHash'
+--   match.
+pubkeyHashOnChainAndOffChain :: Property
+pubkeyHashOnChainAndOffChain = property $ do
+    pk <- forAll $ PubKey . LedgerBytes <$> Gen.genSizedByteString 32 -- this won't generate a valid public key but that doesn't matter for the purposes of pubKeyHash
+    let offChainHash = Crypto.pubKeyHash pk
+        onchainProg :: CompiledCode (PubKey -> PubKeyHash -> ())
+        onchainProg = $$(PlutusTx.compile [|| \pk expected -> if (expected PlutusTx.== Validation.pubKeyHash pk) then PlutusTx.trace "correct" () else PlutusTx.traceError "not correct" ||])
+        script = Scripts.fromCompiledCode $ onchainProg `applyCode` (liftCode pk) `applyCode` (liftCode offChainHash)
+        result = runExcept $ evaluateScript script
+    Hedgehog.assert (result == Right ["correct"])

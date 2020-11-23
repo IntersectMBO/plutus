@@ -1,12 +1,22 @@
-{ stdenv, lib, buildEnv, buildGoPackage, fetchFromGitHub, makeWrapper, coreutils
-, runCommand, writeText, terraform-providers, fetchpatch }:
-
+{ stdenv
+, lib
+, buildEnv
+, buildGoPackage
+, fetchFromGitHub
+, makeWrapper
+, coreutils
+, runCommand
+, writeText
+, terraform-providers
+, fetchpatch
+}:
 let
   goPackagePath = "github.com/hashicorp/terraform";
 
   generic = { version, sha256, ... }@attrs:
     let attrs' = builtins.removeAttrs attrs [ "version" "sha256" ];
-    in buildGoPackage ({
+    in
+    buildGoPackage ({
       name = "terraform-${version}";
 
       inherit goPackagePath;
@@ -79,9 +89,10 @@ let
           };
           # Don't bother wrapping unless we actually have plugins, since the wrapper will stop automatic downloading
           # of plugins, which might be counterintuitive if someone just wants a vanilla Terraform.
-        in if actualPlugins == [ ] then
+        in
+        if actualPlugins == [ ] then
           terraform.overrideAttrs
-          (orig: { passthru = orig.passthru // passthru; })
+            (orig: { passthru = orig.passthru // passthru; })
         else
           lib.appendToName "with-plugins" (stdenv.mkDerivation {
             inherit (terraform) name;
@@ -101,14 +112,16 @@ let
 
             inherit passthru;
           });
-    in withPlugins (_: [ ]);
+    in
+    withPlugins (_: [ ]);
 
   plugins = removeAttrs terraform-providers [
     "override"
     "overrideDerivation"
     "recurseForDerivations"
   ];
-in rec {
+in
+rec {
   terraform_0_11 = pluggable (generic {
     version = "0.11.14";
     sha256 = "1bzz5wy13gh8j47mxxp6ij6yh20xmxd9n5lidaln3mf1bil19dmc";
@@ -122,12 +135,13 @@ in rec {
     version = "0.12.29";
     sha256 = "18i7vkvnvfybwzhww8d84cyh93xfbwswcnwfrgvcny1qwm8rsaj8";
     patches = [
-        ./provider-path.patch
-        (fetchpatch {
-            name = "fix-mac-mojave-crashes.patch";
-            url = "https://github.com/hashicorp/terraform/commit/cd65b28da051174a13ac76e54b7bb95d3051255c.patch";
-            sha256 = "1k70kk4hli72x8gza6fy3vpckdm3sf881w61fmssrah3hgmfmbrs";
-        }) ];
+      ./provider-path.patch
+      (fetchpatch {
+        name = "fix-mac-mojave-crashes.patch";
+        url = "https://github.com/hashicorp/terraform/commit/cd65b28da051174a13ac76e54b7bb95d3051255c.patch";
+        sha256 = "1k70kk4hli72x8gza6fy3vpckdm3sf881w61fmssrah3hgmfmbrs";
+      })
+    ];
     passthru = { inherit plugins; };
   });
 
@@ -142,20 +156,22 @@ in rec {
   # file pattern and if the plugin is not found it will try to download it
   # from the Internet. With sandboxing enable this test will fail if that is
   # the case.
-  terraform_plugins_test = let
-    mainTf = writeText "main.tf" ''
-      resource "random_id" "test" {}
-    '';
-    terraform = terraform_0_11.withPlugins (p: [ p.random ]);
-    test =
-      runCommand "terraform-plugin-test" { buildInputs = [ terraform ]; } ''
-        set -e
-        # make it fail outside of sandbox
-        export HTTP_PROXY=http://127.0.0.1:0 HTTPS_PROXY=https://127.0.0.1:0
-        cp ${mainTf} main.tf
-        terraform init
-        touch $out
+  terraform_plugins_test =
+    let
+      mainTf = writeText "main.tf" ''
+        resource "random_id" "test" {}
       '';
-  in test;
+      terraform = terraform_0_11.withPlugins (p: [ p.random ]);
+      test =
+        runCommand "terraform-plugin-test" { buildInputs = [ terraform ]; } ''
+          set -e
+          # make it fail outside of sandbox
+          export HTTP_PROXY=http://127.0.0.1:0 HTTPS_PROXY=https://127.0.0.1:0
+          cp ${mainTf} main.tf
+          terraform init
+          touch $out
+        '';
+    in
+    test;
 
 }

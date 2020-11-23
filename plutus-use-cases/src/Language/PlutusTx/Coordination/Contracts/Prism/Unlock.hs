@@ -29,14 +29,15 @@ import           Data.Aeson                                                     
 import           GHC.Generics                                                     (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Effects.RPC                             (HasRPCClient, RPCCallError,
-                                                                                   RPCClient, RPCResponse, callRPC)
+                                                                                   RPCClient, RPCResponse, Retries (..),
+                                                                                   callRPC)
 import           Language.PlutusTx.Coordination.Contracts.Prism.Credential        (Credential)
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.Credential        as Credential
 import           Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager (CredentialManager,
                                                                                    CredentialManagerClientError)
-import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine      (UserCredential (..))
 import           Language.PlutusTx.Coordination.Contracts.Prism.STO               (STOData (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.STO               as STO
+import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine      (UserCredential (..))
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount            (TokenAccountError)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount            as TokenAccount
 import           Ledger                                                           (pubKeyHash, txId)
@@ -46,6 +47,7 @@ import qualified Ledger.Constraints                                             
 import           Ledger.Crypto                                                    (PubKeyHash)
 import           Ledger.Value                                                     (TokenName)
 import           Prelude                                                          as Haskell
+import           Schema                                                           (ToSchema)
 
 data STOSubscriber =
     STOSubscriber
@@ -55,7 +57,7 @@ data STOSubscriber =
         , wSTOAmount    :: Integer
         }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type STOSubscriberSchema =
     BlockchainActions
@@ -142,10 +144,11 @@ obtainCredentialTokenData credential = do
             <*> pure (Credential.token credential)
     rpcResult <-
         mapError TokenManagerRPCError
-        $ callRPC @CredentialManager credentialManager userCredential
+        $ callRPC @CredentialManager (MaxRetries 5) credentialManager userCredential
     case rpcResult of
         Left err -> throwError (CredentialManagerError err)
         Right p  -> pure p
+
 
 ---
 -- logs / error
@@ -154,6 +157,7 @@ obtainCredentialTokenData credential = do
 data UnlockError =
     WithdrawEndpointError ContractError
     | TokenManagerRPCError RPCCallError
+    | TokenManagerAwaitError ContractError
     | WithdrawTxError ContractError
     | WithdrawPkError ContractError
     | CredentialManagerError CredentialManagerClientError

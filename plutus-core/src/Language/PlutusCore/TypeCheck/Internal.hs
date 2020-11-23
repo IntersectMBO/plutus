@@ -15,12 +15,10 @@ module Language.PlutusCore.TypeCheck.Internal
   -- export all because a lot are used by the pir-typechecker
   where
 
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import qualified Language.PlutusCore.Normalize.Internal as Norm
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
@@ -31,8 +29,7 @@ import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                               (Map)
-import qualified Data.Map                               as Map
+import           Data.Array
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -74,31 +71,44 @@ Functions that can fail start with either @infer@ or @check@ prefixes,
 functions that cannot fail looks like this:
 
     kindOfTypeBuiltin
-    typeOfConstant
-    typeOfBuiltinName
+    typeOfBuiltinFunction
 -}
 
 -- ######################
 -- ## Type definitions ##
 -- ######################
 
--- | Mapping from 'DynamicBuiltinName's to their 'Type's.
-newtype DynamicBuiltinNameTypes uni = DynamicBuiltinNameTypes
-    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Dupable (Normalized (Type TyName uni ())))
-    } deriving newtype (Semigroup, Monoid)
+-- | Mapping from 'Builtin's to their 'Type's.
+newtype BuiltinTypes uni fun = BuiltinTypes
+    -- We need to kind check types of all built-in functions before proceeding to type checking a
+    -- program, so when we do that we don't have any normalized types of built-in functions yet
+    -- (as normalization has to be preceded by kind/type checking, which is the very thing that
+    -- we are up to). And since both kind and type checking run in the same 'TypeCheckM' monad,
+    -- we do need to provide a 'BuiltinTypes' argument, even though we know that at kind checking
+    -- time no built-in function can be encountered (as those live at the value level, not the type
+    -- one). So we could wrap an empty 'Array' with 'BuiltinTypes' but how to construct an empty
+    -- array? This works:
+    --
+    --     listArray (maxBound, minBound) []
+    --
+    -- but only when 'maxBound' is not equal to 'minBound' (and both exist). Which sucks.
+    --
+    -- So we use 'Nothing' to say "no builtins". It's sufficient and doesn't complicate anything.
+    { unBuiltinTypes :: Maybe (Array fun (Dupable (Normalized (Type TyName uni ()))))
+    }
 
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
 type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni ())))
 
 -- | Configuration of the type checker.
-newtype TypeCheckConfig uni = TypeCheckConfig
-    { _tccDynamicBuiltinNameTypes :: DynamicBuiltinNameTypes uni
+newtype TypeCheckConfig uni fun = TypeCheckConfig
+    { _tccBuiltinTypes :: BuiltinTypes uni fun
     }
 makeClassy ''TypeCheckConfig
 
 -- | The environment that the type checker runs in.
-data TypeCheckEnv uni c = TypeCheckEnv
-    { _tceTypeCheckConfig :: c
+data TypeCheckEnv uni fun cfg = TypeCheckEnv
+    { _tceTypeCheckConfig :: cfg
     , _tceTyVarKinds      :: TyVarKinds
     , _tceVarTypes        :: VarTypes uni
     }
@@ -106,7 +116,7 @@ makeLenses ''TypeCheckEnv
 
 -- | The type checking monad that the type checker runs in.
 -- In contains a 'TypeCheckEnv' and allows to throw 'TypeError's.
-type TypeCheckM uni c e = ReaderT (TypeCheckEnv uni c) (ExceptT e Quote)
+type TypeCheckM uni fun cfg err = ReaderT (TypeCheckEnv uni fun cfg) (ExceptT err Quote)
 
 -- #########################
 -- ## Auxiliary functions ##
@@ -114,36 +124,33 @@ type TypeCheckM uni c e = ReaderT (TypeCheckEnv uni c) (ExceptT e Quote)
 
 
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
-runTypeCheckM :: (MonadError e m, MonadQuote m)
-              => c -> TypeCheckM uni c e a -> m a
+runTypeCheckM :: (MonadError err m, MonadQuote m) => cfg -> TypeCheckM uni fun cfg err a -> m a
 runTypeCheckM config a =
     liftEither =<< liftQuote (runExceptT $ runReaderT a env) where
         env = TypeCheckEnv config mempty mempty
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
-withTyVar :: TyName -> Kind () -> TypeCheckM uni c e a -> TypeCheckM uni c e a
+withTyVar :: TyName -> Kind () -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
 withTyVar name = local . over tceTyVarKinds . insertByName name
 
--- | Extend the context of a 'TypeCheckM' computation with a typed variable.
--- TODO: normalize here, and don't take normalized
-withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni c e a -> TypeCheckM uni c e a
-withVar name = local . over tceVarTypes . insertByName name . pure
-
--- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
-lookupDynamicBuiltinNameM
-    :: (HasTypeCheckConfig c uni, AsTypeError e term uni ann)
-    => ann -> DynamicBuiltinName -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
-lookupDynamicBuiltinNameM ann name = do
-    DynamicBuiltinNameTypes dbnts <- view $ tceTypeCheckConfig . tccDynamicBuiltinNameTypes
-    case Map.lookup name dbnts of
-        Nothing ->
-            throwing _TypeError $ UnknownDynamicBuiltinName ann (UnknownDynamicBuiltinNameErrorE name)
+-- | Look up the type of a built-in function.
+lookupBuiltinM
+    :: (AsTypeError err term uni fun ann, HasTypeCheckConfig cfg uni fun, Ix fun)
+    => ann -> fun -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
+lookupBuiltinM ann fun = do
+    BuiltinTypes mayArr <- view $ tceTypeCheckConfig . tccBuiltinTypes
+    case mayArr >>= preview (ix fun) of
+        Nothing -> throwing _TypeError $ UnknownBuiltinFunctionE ann fun
         Just ty -> liftDupable ty
+
+-- | Extend the context of a 'TypeCheckM' computation with a typed variable.
+withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
+withVar name = local . over tceVarTypes . insertByName name . pure
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
-    :: (AsTypeError e term uni ann)
-    => ann -> TyName -> TypeCheckM uni c e (Kind ())
+    :: (AsTypeError err term uni fun ann)
+    => ann -> TyName -> TypeCheckM uni fun cfg err (Kind ())
 lookupTyVarM ann name = do
     mayKind <- asks $ lookupName name . _tceTyVarKinds
     case mayKind of
@@ -152,8 +159,8 @@ lookupTyVarM ann name = do
 
 -- | Look up a term variable in the current context.
 lookupVarM
-    :: (AsTypeError e term uni ann)
-    => ann -> Name -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
+    :: AsTypeError err term uni fun ann
+    => ann -> Name -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
     mayTy <- asks $ lookupName name . _tceVarTypes
     case mayTy of
@@ -181,7 +188,9 @@ dummyType = TyVar () dummyTyName
 -- ########################
 
 -- | Normalize a 'Type'.
-normalizeTypeM :: Type TyName uni ann -> TypeCheckM uni c e (Normalized (Type TyName uni ann))
+normalizeTypeM
+    :: Type TyName uni ann
+    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ann))
 normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
@@ -189,7 +198,7 @@ substNormalizeTypeM
     :: Normalized (Type TyName uni ())  -- ^ @ty@
     -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
-    -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
+    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
 
 -- ###################
@@ -198,8 +207,8 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: (AsTypeError e term uni ann)
-    => Type TyName uni ann -> TypeCheckM uni c e (Kind ())
+    :: AsTypeError err term uni fun ann
+    => Type TyName uni ann -> TypeCheckM uni fun cfg err (Kind ())
 
 -- b :: k
 -- ------------------------
@@ -256,8 +265,8 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: (AsTypeError e term uni ann)
-    => ann -> Type TyName uni ann -> Kind () -> TypeCheckM uni c e ()
+    :: AsTypeError err term uni fun ann
+    => ann -> Type TyName uni ann -> Kind () -> TypeCheckM uni fun cfg err ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
 -- ---------------------------------
@@ -268,11 +277,11 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: (AsTypeError e term uni ann)
+    :: AsTypeError err term uni fun ann
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.
-    -> TypeCheckM uni c e ()
+    -> TypeCheckM uni fun cfg err ()
 checkKindOfPatternFunctorM ann pat k =
     checkKindM ann pat $ KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 
@@ -280,18 +289,12 @@ checkKindOfPatternFunctorM ann pat k =
 -- ## Type checking ##
 -- ###################
 
--- | Return the 'Type' of a 'BuiltinName'.
-typeOfStaticBuiltinName
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => StaticBuiltinName -> Type TyName uni ()
-typeOfStaticBuiltinName bn = withTypedStaticBuiltinName bn $ typeOfTypedStaticBuiltinName @(Term TyName Name _ ())
-
 -- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldIFixOf
     :: Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
     -> Kind ()                          -- ^ @k@
-    -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
+    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 unfoldIFixOf pat arg k = do
     let vPat = unNormalized pat
         vArg = unNormalized arg
@@ -311,24 +314,13 @@ unfoldIFixOf pat arg k = do
             , vArg
             ]
 
--- | Infer the type of a 'Builtin'.  The annotation is required for the error message if the name isn't found.
-inferTypeOfBuiltinNameM
-    :: (HasTypeCheckConfig c uni, GShow uni, GEq uni, DefaultUni <: uni, AsTypeError e term uni ann)
-    => ann -> BuiltinName -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
--- We have a weird corner case here: the type of a 'BuiltinName' can contain 'TypedBuiltinDyn', i.e.
--- a static built-in name is allowed to depend on a dynamic built-in type which are not required
--- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
--- with the normalization happening in this module, but what should we do for static built-in names?
--- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinNameM _ (StaticBuiltinName name) = normalizeType $ typeOfStaticBuiltinName name
--- TODO: inline this definition once we have only dynamic built-in names.
-inferTypeOfBuiltinNameM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann name
-
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: (HasTypeCheckConfig c uni, GShow uni, GEq uni, DefaultUni <: uni, AsTypeError e (Term TyName Name uni ()) uni ann)
-    => Term TyName Name uni ann -> TypeCheckM uni c e (Normalized (Type TyName uni ()))
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+       )
+    => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 
 -- c : vTy
 -- -------------------------
@@ -340,19 +332,19 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
-inferTypeM (Builtin ann bn)         =
-    inferTypeOfBuiltinNameM ann bn
+inferTypeM (Builtin ann fun) =
+    lookupBuiltinM ann fun
 
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
-inferTypeM (Var ann name)           =
+inferTypeM (Var ann name) =
     lookupVarM ann name
 
 -- [check| G !- dom :: *]    dom ~> vDom    [infer| G , n : dom !- body : vCod]
 -- ----------------------------------------------------------------------------
 -- [infer| G !- lam n dom body : vDom -> vCod]
-inferTypeM (LamAbs ann n dom body)  = do
+inferTypeM (LamAbs ann n dom body) = do
     checkKindM ann dom $ Type ()
     vDom <- normalizeTypeM $ void dom
     TyFun () <<$>> pure vDom <<*>> withVar n vDom (inferTypeM body)
@@ -360,14 +352,14 @@ inferTypeM (LamAbs ann n dom body)  = do
 -- [infer| G , n :: nK !- body : vBodyTy]
 -- ---------------------------------------------------
 -- [infer| G !- abs n nK body : all (n :: nK) vBodyTy]
-inferTypeM (TyAbs _ n nK body)      = do
+inferTypeM (TyAbs _ n nK body) = do
     let nK_ = void nK
     TyForall () n nK_ <<$>> withTyVar n nK_ (inferTypeM body)
 
 -- [infer| G !- fun : vDom -> vCod]    [check| G !- arg : vDom]
 -- ------------------------------------------------------------
 -- [infer| G !- fun arg : vCod]
-inferTypeM (Apply ann fun arg)      = do
+inferTypeM (Apply ann fun arg) = do
     vFunTy <- inferTypeM fun
     case unNormalized vFunTy of
         TyFun _ vDom vCod -> do
@@ -379,7 +371,7 @@ inferTypeM (Apply ann fun arg)      = do
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
 -- [infer| G !- body {ty} : NORM ([vTy / n] vCod)]
-inferTypeM (TyInst ann body ty)     = do
+inferTypeM (TyInst ann body ty) = do
     vBodyTy <- inferTypeM body
     case unNormalized vBodyTy of
         TyForall _ n nK vCod -> do
@@ -403,7 +395,7 @@ inferTypeM (IWrap ann pat arg term) = do
 -- [infer| G !- term : ifix vPat vArg]    [infer| G !- vArg :: k]
 -- -----------------------------------------------------------------------
 -- [infer| G !- unwrap term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
-inferTypeM (Unwrap ann term)        = do
+inferTypeM (Unwrap ann term) = do
     vTermTy <- inferTypeM term
     case unNormalized vTermTy of
         TyIFix _ vPat vArg -> do
@@ -415,15 +407,20 @@ inferTypeM (Unwrap ann term)        = do
 -- [check| G !- ty :: *]    ty ~> vTy
 -- ----------------------------------
 -- [infer| G !- error ty : vTy]
-inferTypeM (Error ann ty)           = do
+inferTypeM (Error ann ty) = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (HasTypeCheckConfig c uni, GShow uni, GEq uni, DefaultUni <: uni, AsTypeError e (Term TyName Name uni ()) uni ann)
-    => ann -> Term TyName Name uni ann -> Normalized (Type TyName uni ()) -> TypeCheckM uni c e ()
+    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann
+       , HasTypeCheckConfig cfg uni fun, GShow uni, GEq uni, Ix fun
+       )
+    => ann
+    -> Term TyName Name uni fun ann
+    -> Normalized (Type TyName uni ())
+    -> TypeCheckM uni fun cfg err ()
 
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------

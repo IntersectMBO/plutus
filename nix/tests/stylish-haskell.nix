@@ -1,18 +1,20 @@
 { runCommand, stylish-haskell, src, lib, diffutils, glibcLocales }:
-
 let
   # just haskell sources and the stylish-haskell config file
   src' = lib.cleanSourceWith {
-   inherit src;
-   filter = with lib;
-    name: type: let baseName = baseNameOf (toString name); in (
-      (type == "regular" && hasSuffix ".hs" baseName) ||
-      (type == "regular" && hasSuffix ".yaml" baseName) ||
-      (type == "directory" && (baseName != "docs" && baseName != "dist" && baseName != ".stack-work"))
-    );
+    inherit src;
+    filter = with lib;
+      name: type:
+        let baseName = baseNameOf (toString name); in
+        (
+          (type == "regular" && hasSuffix ".hs" baseName) ||
+          (type == "regular" && hasSuffix ".yaml" baseName) ||
+          (type == "directory" && (baseName != "docs" && baseName != "dist" && baseName != ".stack-work"))
+        );
   };
 in
-runCommand "stylish-check" {
+runCommand "stylish-check"
+{
   buildInputs = [ stylish-haskell diffutils glibcLocales ];
 } ''
   set +e

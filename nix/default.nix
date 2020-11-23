@@ -1,23 +1,22 @@
 { system ? builtins.currentSystem
 , crossSystem ? null
-, config ? {}
-, overlays ? []
-, sourcesOverride ? {}
+, config ? { }
+, overlays ? [ ]
+, sourcesOverride ? { }
+, rev ? null
+, checkMaterialization ? false
 }:
 let
   sources = import ./sources.nix { inherit pkgs; }
     // sourcesOverride;
-  iohkNix = import sources.iohk-nix {};
+  iohkNix = import sources.iohk-nix { };
   haskellNix = import sources."haskell.nix" {
     sourcesOverride = {
       hackage = sources."hackage.nix";
       stackage = sources."stackage.nix";
     };
   };
-  # Use our own nixpkgs
-  nixpkgs = sources.nixpkgs;
 
-  # for inclusion in pkgs:
   extraOverlays =
     # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
     haskellNix.overlays
@@ -27,24 +26,31 @@ let
     ++ iohkNix.overlays.iohkNix
     # our own overlays:
     ++ [
-      (pkgs: _: with pkgs; {
-
-        # commonLib: mix pkgs.lib with iohk-nix utils and our own:
-        commonLib = lib // iohkNix
-          // import ./util.nix { inherit lib haskell-nix; }
-          # also expose our sources and overlays
-          // { inherit overlays sources; };
-      })
+      # Modifications to derivations from nixpkgs
       (import ./overlays/nixpkgs-overrides.nix)
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
+      # fix r-modules
+      (import ./overlays/r.nix)
     ];
 
-  pkgs = import nixpkgs {
+  pkgs = import sources.nixpkgs {
     inherit system crossSystem;
     overlays = extraOverlays ++ overlays;
     config = haskellNix.config // config;
   };
 
-in pkgs
+  plutusMusl = import sources.nixpkgs {
+    system = "x86_64-linux";
+    crossSystem = pkgs.lib.systems.examples.musl64;
+    overlays = extraOverlays ++ overlays;
+    config = haskellNix.config // config;
+  };
+
+  plutus = import ./pkgs { inherit rev pkgs plutusMusl checkMaterialization sources; };
+
+in
+{
+  inherit pkgs plutusMusl plutus;
+}

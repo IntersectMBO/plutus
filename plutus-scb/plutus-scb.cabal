@@ -149,6 +149,8 @@ library
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
+        http-client-tls -any,
+        http-types -any,
         io-sim-classes -any,
         lens -any,
         memory -any,
@@ -156,6 +158,7 @@ library
         mtl -any,
         network -any,
         network-mux -any,
+        newtype-generics -any,
         optparse-applicative -any,
         ouroboros-network -any,
         ouroboros-network-framework -any,
@@ -297,6 +300,8 @@ test-suite plutus-scb-test
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
         Plutus.SCB.Events.ContractSpec
+        Cardano.Metadata.ServerSpec
+        Cardano.Metadata.TypesSpec
 
     build-depends:
         QuickCheck -any,
@@ -308,6 +313,8 @@ test-suite plutus-scb-test
         eventful-core -any,
         eventful-memory -any,
         freer-simple -any,
+        http-client -any,
+        http-client-tls -any,
         lens -any,
         monad-logger -any,
         mtl -any,
@@ -319,8 +326,58 @@ test-suite plutus-scb-test
         servant-client -any,
         tasty -any,
         tasty-hunit -any,
+        smallcheck -any,
+        tasty-smallcheck -any,
         tasty-quickcheck -any,
         text -any,
         transformers -any,
         prettyprinter -any,
         row-types -any
+
+executable prism-credential-manager
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/credential-manager
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-mirror
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/mirror
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-unlock-sto
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/unlock-sto
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any
+
+executable prism-unlock-exchange
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: prism/unlock-exchange
+    other-modules:
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb,
+        plutus-use-cases -any,
+        plutus-contract -any

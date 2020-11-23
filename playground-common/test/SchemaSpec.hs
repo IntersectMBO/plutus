@@ -16,7 +16,8 @@ import           GHC.Generics          (Generic)
 import           Ledger.Ada            (lovelaceValueOf)
 import           Ledger.Value          (Value)
 import           Playground.Types      (PayToWalletParams (PayToWalletParams), payTo, value)
-import           Schema                (FormArgument, FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormIntegerF, FormObjectF, FormRadioF, FormStringF, FormValueF),
+import           Schema                (FormArgument,
+                                        FormArgumentF (FormArrayF, FormBoolF, FormIntF, FormIntegerF, FormObjectF, FormRadioF, FormStringF, FormValueF),
                                         FormSchema (FormSchemaArray, FormSchemaBool, FormSchemaInt, FormSchemaInteger, FormSchemaMaybe, FormSchemaObject, FormSchemaRadio, FormSchemaString, FormSchemaTuple),
                                         ToArgument, ToSchema, toArgument, toSchema)
 import           Test.Tasty            (TestTree, testGroup)

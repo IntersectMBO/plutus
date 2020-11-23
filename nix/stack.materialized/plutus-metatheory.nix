@@ -32,7 +32,12 @@
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = "";
       dataFiles = [];
-      extraSrcFiles = [ "README.md" "Plutus.agda-lib" ];
+      extraSrcFiles = [
+        "README.md"
+        "Plutus.agda-lib"
+        "src/**/*.lagda"
+        "src/**/*.lagda.md"
+        ];
       extraTmpFiles = [];
       extraDocFiles = [];
       };
@@ -233,6 +238,7 @@
           "MAlonzo/Code/Codata/Thunk"
           "MAlonzo/Code/Data/BoundedVec"
           "MAlonzo/Code/Data/BoundedVec/Inefficient"
+          "MAlonzo/Code/Debug/Trace"
           "MAlonzo/Code/IO/Primitive"
           "MAlonzo/Code/Relation/Binary/Construct/FromRel"
           "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"

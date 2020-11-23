@@ -48,7 +48,8 @@ library
     marlowe -any,
     time -any,
     loch-th -any,
-    sort -any
+    sort -any,
+    validation -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -73,6 +74,8 @@ library
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
     Language.Marlowe.ACTUS.Model.INIT.StateInitialization
     Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+    Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
+    Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
@@ -96,6 +99,8 @@ executable marlowe-shiny
       Language.Marlowe.ACTUS.Definitions.ContractTerms
       Language.Marlowe.ACTUS.Definitions.ContractState
       Language.Marlowe.ACTUS.Definitions.Schedule
+      Language.Marlowe.ACTUS.Model.APPLICABILITY.Applicability
+      Language.Marlowe.ACTUS.Model.APPLICABILITY.ApplicabilityModel
       Language.Marlowe.ACTUS.Model.POF.PayoffModel
       Language.Marlowe.ACTUS.Model.POF.Payoff
       Language.Marlowe.ACTUS.Model.POF.PayoffFs
@@ -137,7 +142,8 @@ executable marlowe-shiny
       time -any,
       loch-th -any,
       sort -any,
-      inline-r -any
+      inline-r -any,
+      validation -any
 
 test-suite marlowe-actus-test
     default-language: Haskell2010
@@ -168,7 +174,8 @@ test-suite marlowe-actus-test
         QuickCheck,
         template-haskell -any,
         marlowe -any,
-        time -any
+        time -any,
+        validation -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

@@ -43,8 +43,7 @@ module Plutus.SCB.Core
     ) where
 
 import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
-import           Cardano.BM.Data.Tracer.Extras    (StructuredLog)
-import           Cardano.BM.Data.Tracer.Extras    (mkObjectStr)
+import           Cardano.BM.Data.Tracer.Extras    (StructuredLog, mkObjectStr)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer              (Eff, Member)
 import           Control.Monad.Freer.Error        (Error)
@@ -90,10 +89,10 @@ data CoreMsg t =
 
 instance Pretty t => Pretty (CoreMsg t) where
     pretty = \case
-        Installing d -> "Installing" <+> pretty d
-        Installed -> "Installed"
+        Installing d      -> "Installing" <+> pretty d
+        Installed         -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c -> "Found contract" <+> pretty c
+        FoundContract c   -> "Found contract" <+> pretty c
 
 instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
     toObject v = \case

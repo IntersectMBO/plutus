@@ -103,9 +103,9 @@ data Role = Long | Short
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Role where
-    Long == Long = True
+    Long == Long   = True
     Short == Short = True
-    _ == _ = False
+    _ == _         = False
 
 -- | The token accounts that represent ownership of the two sides of the future.
 --   When the contract is done, payments will be made to these accounts.
@@ -145,7 +145,7 @@ data FutureState =
 instance Eq FutureState where
     Running ma == Running ma' = ma == ma'
     Finished   == Finished    = True
-    _ == _ = False
+    _ == _                    = False
 
 -- | Actions that can be performed on the future contract.
 data FutureAction =
@@ -273,7 +273,7 @@ mkAccounts long short =
 {-# INLINABLE tokenFor #-}
 tokenFor :: Role -> FutureAccounts -> Value
 tokenFor = \case
-    Long -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
+    Long  -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
     Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
 
 {-# INLINABLE adjustMargin #-}

@@ -7,12 +7,12 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeOperators      #-}
 module Language.PlutusIR.TypeCheck.Internal
-    ( DynamicBuiltinNameTypes (..)
-    , PirTCConfig (..)
-    , defConfig
+    ( BuiltinTypes (..)
+    , TypeCheckConfig (..)
     , TypeCheckM
+    , tccBuiltinTypes
+    , PirTCConfig (..)
     , AllowEscape (..)
-    , tccDynamicBuiltinNameTypes
     , inferTypeM
     , checkTypeM
     , runTypeCheckM
@@ -23,6 +23,7 @@ import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Foldable
+import           Data.Ix
 import           Language.PlutusCore                    (typeAnn)
 import           Language.PlutusCore.Error              as PLC
 import           Language.PlutusCore.Quote
@@ -37,7 +38,6 @@ import           Language.PlutusIR.Transform.Rename     ()
 import           PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import qualified Language.PlutusCore.TypeCheck          as PLC
 import           Language.PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 import qualified Language.PlutusIR.MkPir                as PIR
 
@@ -89,12 +89,8 @@ is at the program's "top-level" position, and thus allow its type to escape. The
 when typechecking inside a let termbind's rhs term.
 -}
 
--- | The default 'TypeCheckConfig'.
-defConfig :: PirTCConfig uni
-defConfig = PirTCConfig PLC.defConfig YesEscape
-
 -- | a shorthand for our pir-specialized tc functions
-type PirTCEnv uni e a = TypeCheckM uni (PirTCConfig uni) e a
+type PirTCEnv uni fun e a = TypeCheckM uni fun (PirTCConfig uni fun) e a
 
 -- ###########################
 -- ## Port of Type checking ##
@@ -104,8 +100,8 @@ type PirTCEnv uni e a = TypeCheckM uni (PirTCConfig uni) e a
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (GShow uni, GEq uni, DefaultUni <: uni, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni ()) uni ann)
-    => ann -> Term TyName Name uni ann -> Normalized (Type TyName uni ()) -> PirTCEnv uni e ()
+    :: (GShow uni, GEq uni, Ix fun, AsTypeErrorExt e uni ann, AsTypeError e (Term TyName Name uni fun ()) uni fun ann)
+    => ann -> Term TyName Name uni fun ann -> Normalized (Type TyName uni ()) -> PirTCEnv uni fun e ()
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------
 -- [check| G !- term : vTy]
@@ -116,8 +112,8 @@ checkTypeM ann term vTy = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: forall uni ann e. (GShow uni, GEq uni, DefaultUni <: uni, AsTypeError e (Term TyName Name uni ()) uni ann, AsTypeErrorExt e uni ann)
-    => Term TyName Name uni ann -> PirTCEnv uni e (Normalized (Type TyName uni ()))
+    :: forall uni fun ann e. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun ann, AsTypeErrorExt e uni ann)
+    => Term TyName Name uni fun ann -> PirTCEnv uni fun e (Normalized (Type TyName uni ()))
 -- c : vTy
 -- -------------------------
 -- [infer| G !- con c : vTy]
@@ -129,7 +125,7 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
 inferTypeM (Builtin ann bn)         =
-    inferTypeOfBuiltinNameM ann bn
+    lookupBuiltinM ann bn
 
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
@@ -227,7 +223,7 @@ inferTypeM (Let ann r@NonRec bs inTerm) = do
     checkStarInferred ann ty
     pure ty
  where
-   checkBindingThenScope :: Binding TyName Name uni ann -> PirTCEnv uni e res -> PirTCEnv uni e res
+   checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun e res -> PirTCEnv uni fun e res
    checkBindingThenScope b acc = do
        -- check that the kinds of the declared types are correct
        checkKindFromBinding b
@@ -269,10 +265,10 @@ inferTypeM (Let ann r@Rec bs inTerm) = do
 --------------------------------------------------------------------------------------
 checkKindFromBinding(G,b)
 -}
-checkKindFromBinding :: forall e uni ann.
-                   AsTypeError e (Term TyName Name uni ()) uni ann
-                 => Binding TyName Name uni ann
-                 -> PirTCEnv uni e ()
+checkKindFromBinding :: forall e uni fun ann.
+                   AsTypeError e (Term TyName Name uni fun ()) uni fun ann
+                 => Binding TyName Name uni fun ann
+                 -> PirTCEnv uni fun e ()
 checkKindFromBinding = \case
     -- For a type binding, correct means that the the RHS is indeed kinded by the declared kind.
     TypeBind _ (TyVarDecl ann _ k) rhs ->
@@ -300,8 +296,8 @@ checkKindFromBinding = \case
 ---------------------------------------------------
 checkTypeFromBinding(G,b)
 -}
-checkTypeFromBinding :: forall e uni a. (GShow uni, GEq uni, DefaultUni <: uni, AsTypeError e (Term TyName Name uni ()) uni a, AsTypeErrorExt e uni a)
-                 => Recursivity -> Binding TyName Name uni a  -> PirTCEnv uni e ()
+checkTypeFromBinding :: forall e uni fun a. (GShow uni, GEq uni, Ix fun, AsTypeError e (Term TyName Name uni fun ()) uni fun a, AsTypeErrorExt e uni a)
+                 => Recursivity -> Binding TyName Name uni fun a -> PirTCEnv uni fun e ()
 checkTypeFromBinding recurs = \case
     TypeBind{} -> pure () -- no types to check
     TermBind _ _ (VarDecl ann _ ty) rhs ->
@@ -312,7 +308,7 @@ checkTypeFromBinding recurs = \case
             \ ty -> checkConRes ty *> checkNonRecScope ty
       where
        appliedTyCon :: Type TyName uni a = mkDatatypeValueType ann dt
-       checkConRes :: Type TyName uni a -> PirTCEnv uni e ()
+       checkConRes :: Type TyName uni a -> PirTCEnv uni fun e ()
        checkConRes ty =
            -- We earlier checked that datacons' type is *-kinded (using checkKindBinding), but this is not enough:
            -- we must also check that its result type is EXACTLY `[[TypeCon tyarg1] ... tyargn]`
@@ -320,7 +316,7 @@ checkTypeFromBinding recurs = \case
                throwing _TypeErrorExt $ MalformedDataConstrResType ann appliedTyCon
 
        -- if nonrec binding, make sure that type-constructor is not part of the data-constructor's argument types.
-       checkNonRecScope :: Type TyName uni a -> PirTCEnv uni e ()
+       checkNonRecScope :: Type TyName uni a -> PirTCEnv uni fun e ()
        checkNonRecScope ty = case recurs of
            Rec -> pure ()
            NonRec ->
@@ -331,8 +327,8 @@ checkTypeFromBinding recurs = \case
 
 -- | Check that the in-Term's inferred type of a Let has kind *.
 -- Skip this check at the top-level, to allow top-level types to escape; see Note [PIR vs Paper Escaping Types Difference].
-checkStarInferred :: AsTypeError e term uni ann
-                  => ann -> Normalized (Type TyName uni b) -> PirTCEnv uni e ()
+checkStarInferred :: AsTypeError e term uni fun ann
+                  => ann -> Normalized (Type TyName uni b) -> PirTCEnv uni fun e ()
 checkStarInferred ann t = do
     allowEscape <- view $ tceTypeCheckConfig . pirConfigAllowEscape
     case allowEscape of
@@ -343,13 +339,13 @@ checkStarInferred ann t = do
 
 
 -- | Changes the flag in nested-lets so to disallow returning a type outside of the type's scope
-withNoEscapingTypes :: PirTCEnv uni e a -> PirTCEnv uni e a
+withNoEscapingTypes :: PirTCEnv uni fun e a -> PirTCEnv uni fun e a
 withNoEscapingTypes = local $ set (tceTypeCheckConfig.pirConfigAllowEscape) NoEscape
 
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
 -- Differs from its PLC version in that is passes an extra env flag 'YesEscape'.
 runTypeCheckM :: (MonadError e m, MonadQuote m)
-              => PirTCConfig uni -> PirTCEnv uni e a -> m a
+              => PirTCConfig uni fun -> PirTCEnv uni fun e a -> m a
 runTypeCheckM config a =
     liftEither =<< liftQuote (runExceptT $ runReaderT a env) where
         env = TypeCheckEnv config mempty mempty
@@ -362,9 +358,9 @@ runTypeCheckM config a =
 -- Newly-declared term variables are: variables of termbinds, constructors, destructor
 -- Note: Assumes that the input is globally-unique and preserves global-uniqueness
 -- Note to self: actually passing here recursivity is unnecessary, but we do it for sake of compiler/datatype.hs api
-withVarsOfBinding :: forall uni c e a res.
-                    Recursivity -> Binding TyName Name uni a
-                  -> TypeCheckM uni c e res -> TypeCheckM uni c e res
+withVarsOfBinding :: forall uni fun c e a res.
+                    Recursivity -> Binding TyName Name uni fun a
+                  -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withVarsOfBinding _ TypeBind{} k = k
 withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
     vTy <- normalizeTypeM $ varDeclType vdecl
@@ -378,28 +374,28 @@ withVarsOfBinding r (DatatypeBind _ dt) k = do
     -- normalize, then rename, then only introduce the vardecl to scope
     foldr normRenameScope k structorDecls
     where
-      normRenameScope :: VarDecl TyName Name uni (Provenance a)
-                      -> TypeCheckM uni c e res -> TypeCheckM uni c e res
+      normRenameScope :: VarDecl TyName Name uni fun (Provenance a)
+                      -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
       normRenameScope v acc = do
           normRenamedTy <- rename =<< (normalizeTypeM $ varDeclType v)
           withVar (varDeclName v) (void <$> normRenamedTy) acc
 
 
-withVarsOfBindings :: Foldable t => Recursivity -> t (Binding TyName Name uni a)
-                   -> TypeCheckM uni c e res -> TypeCheckM uni c e res
+withVarsOfBindings :: Foldable t => Recursivity -> t (Binding TyName Name uni fun a)
+                   -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withVarsOfBindings r bs k = foldr (withVarsOfBinding r) k bs
 
 -- | Scope a typechecking computation with the given binding's newly-introducing type (if there is one)
-withTyVarsOfBinding :: Binding TyName name uni ann -> TypeCheckM uni c e res -> TypeCheckM uni c e res
+withTyVarsOfBinding :: Binding TyName name uni fun ann -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withTyVarsOfBinding = \case
-       TypeBind _ tvdecl _ -> withTyVarDecls [tvdecl]
+       TypeBind _ tvdecl _                      -> withTyVarDecls [tvdecl]
        DatatypeBind _ (Datatype _ tvdecl _ _ _) -> withTyVarDecls [tvdecl]
-       TermBind{} -> id -- no type to introduce
+       TermBind{}                               -> id -- no type to introduce
 
 -- | Extend the typecheck reader environment with the kinds of the newly-introduced type variables of a binding.
-withTyVarsOfBindings :: Foldable f => f (Binding TyName name uni ann) -> TypeCheckM uni c e res -> TypeCheckM uni c e res
+withTyVarsOfBindings :: Foldable f => f (Binding TyName name uni fun ann) -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
 withTyVarsOfBindings = flip $ foldr withTyVarsOfBinding
 
 -- | Helper to add type variables into a computation's environment.
-withTyVarDecls :: [TyVarDecl TyName ann] -> TypeCheckM uni c e a -> TypeCheckM uni c e a
+withTyVarDecls :: [TyVarDecl TyName ann] -> TypeCheckM uni fun c e a -> TypeCheckM uni fun c e a
 withTyVarDecls = flip . foldr $ \(TyVarDecl _ n k) -> withTyVar n $ void k

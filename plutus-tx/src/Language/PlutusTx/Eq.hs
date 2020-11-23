@@ -31,27 +31,27 @@ instance Eq Builtins.ByteString where
 
 instance Eq a => Eq [a] where
     {-# INLINABLE (==) #-}
-    [] == [] = True
+    [] == []         = True
     (x:xs) == (y:ys) = x == y && xs == ys
-    _ == _ = False
+    _ == _           = False
 
 instance Eq Bool where
     {-# INLINABLE (==) #-}
-    True == True = True
+    True == True   = True
     False == False = True
-    _ == _ = False
+    _ == _         = False
 
 instance Eq a => Eq (Maybe a) where
     {-# INLINABLE (==) #-}
     (Just a1) == (Just a2) = a1 == a2
-    Nothing == Nothing = True
-    _ == _ = False
+    Nothing == Nothing     = True
+    _ == _                 = False
 
 instance (Eq a, Eq b) => Eq (Either a b) where
     {-# INLINABLE (==) #-}
-    (Left a1) == (Left a2) = a1 == a2
+    (Left a1) == (Left a2)   = a1 == a2
     (Right b1) == (Right b2) = b1 == b2
-    _ == _ = False
+    _ == _                   = False
 
 instance Eq () where
     {-# INLINABLE (==) #-}
@@ -65,11 +65,11 @@ instance Eq Data where
     {-# INLINABLE (==) #-}
     Constr i ds == Constr i' ds' = i == i' && ds == ds'
     Constr _ _  == _             = False
-    Map ds == Map ds' = ds == ds'
-    Map _  == _       = False
-    I i == I i' = i == i'
-    I _ == _    = False
-    B b == B b' = b == b'
-    B _ == _    = False
-    List ls == List ls' = ls == ls'
-    List _  == _        = False
+    Map ds == Map ds'            = ds == ds'
+    Map _  == _                  = False
+    I i == I i'                  = i == i'
+    I _ == _                     = False
+    B b == B b'                  = b == b'
+    B _ == _                     = False
+    List ls == List ls'          = ls == ls'
+    List _  == _                 = False

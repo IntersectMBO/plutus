@@ -19,6 +19,7 @@ import Control.Monad.State as CMS
 import Data.Array (catMaybes, fold, foldMap, take)
 import Data.Array as Array
 import Data.Array.NonEmpty (index)
+import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..), hush)
 import Data.Foldable (foldM)
@@ -30,6 +31,7 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Lens (Lens', modifying, over, set, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
@@ -51,6 +53,7 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
+import Simulation.Types (ContractPath)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
@@ -219,13 +222,10 @@ newtype LintEnv
   , deposits :: Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger)
   , letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
+  , isReachable :: Boolean
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
-
-derive newtype instance semigroupLintEnv :: Semigroup LintEnv
-
-derive newtype instance monoidLintEnv :: Monoid LintEnv
 
 _choicesMade :: Lens' LintEnv (Set Semantics.ChoiceId)
 _choicesMade = _Newtype <<< prop (SProxy :: SProxy "choicesMade")
@@ -238,6 +238,19 @@ _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
 _deposits :: Lens' LintEnv (Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger))
 _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
+
+_isReachable :: Lens' LintEnv Boolean
+_isReachable = _Newtype <<< prop (SProxy :: SProxy "isReachable")
+
+emptyEnvironment :: LintEnv
+emptyEnvironment =
+  LintEnv
+    { choicesMade: mempty
+    , deposits: mempty
+    , letBindings: mempty
+    , maxTimeout: mempty
+    , isReachable: true
+    }
 
 data TemporarySimplification a b
   = ConstantSimp
@@ -319,8 +332,8 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
 -- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
-lint :: Semantics.State -> Term Contract -> State
-lint contractState contract = state
+lint :: List ContractPath -> Semantics.State -> Term Contract -> State
+lint unreachablePaths contractState contract = state
   where
   choices = contractState ^. (_choices <<< to Map.keys)
 
@@ -328,7 +341,7 @@ lint contractState contract = state
 
   deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
 
-  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) mempty
+  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) emptyEnvironment
 
   state = CMS.execState (lintContract env contract) mempty
 
@@ -375,19 +388,26 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
 
 lintContract env (Term (If obs c1 c2) _) = do
   sa <- lintObservation env obs
-  lintContract env c1
-  lintContract env c2
-  case sa of
-    (ConstantSimp _ _ c) ->
-      if c then do
-        addWarning UnreachableContract c2 (getRange c2)
-        pure unit
-      else do
-        addWarning UnreachableContract c1 (getRange c1)
-        pure unit
-    _ -> do
-      markSimplification constToObs SimplifiableObservation obs sa
-      pure unit
+  let
+    currReachable = view _isReachable env
+
+    newEnv reach = if reach then env else set _isReachable false env
+  c1Env /\ c2Env <-
+    bimap newEnv newEnv
+      <$> ( case sa of
+            (ConstantSimp _ _ c) ->
+              if c then do
+                when currReachable $ addWarning UnreachableContract c2 (getRange c2)
+                pure (currReachable /\ false)
+              else do
+                when currReachable $ addWarning UnreachableContract c1 (getRange c1)
+                pure (false /\ currReachable)
+            _ -> do
+              markSimplification constToObs SimplifiableObservation obs sa
+              pure (currReachable /\ currReachable)
+        )
+  lintContract c1Env c1
+  lintContract c2Env c2
 
 lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
   let
@@ -651,13 +671,15 @@ data Effect
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
-  effect <- lintAction env action
+  effect /\ isReachable <- lintAction env action
   let
-    newEnv = case effect of
+    tempEnv = case effect of
       ConstantDeposit accTerm tokenTerm amount -> addMoneyToEnvAccount amount accTerm tokenTerm env
       UnknownDeposit accTerm tokenTerm -> over _deposits (Map.insert (accTerm /\ tokenTerm) Nothing) env
       ChoiceMade choiceId -> over _choicesMade (Set.insert choiceId) env
       NoEffect -> env
+
+    newEnv = set _isReachable isReachable tempEnv
   lintContract newEnv contract
   pure unit
 
@@ -675,25 +697,28 @@ lintBounds restAreInvalid t@(Term (Bound l h) pos) = do
   when isInvalidBound $ addWarning InvalidBound t pos
   pure (isInvalidBound && restAreInvalid)
 
-lintAction :: LintEnv -> Term Action -> CMS.State State Effect
+lintAction :: LintEnv -> Term Action -> CMS.State State (Effect /\ Boolean) -- Booleans says whether the action is reachable
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
     accTerm = maybe NoEffect (maybe (const NoEffect) UnknownDeposit (fromTerm acc)) (fromTerm token)
 
+    isReachable = view _isReachable env
+
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
   modifying _holes (gatherHoles)
   sa <- lintValue env value
-  case sa of
-    (ConstantSimp _ _ v)
-      | v <= zero -> do
-        addWarning NegativeDeposit t pos
-        pure (makeDepositConstant accTerm zero)
-      | otherwise -> do
-        markSimplification constToVal SimplifiableValue value sa
-        pure (makeDepositConstant accTerm v)
-    _ -> do
-      markSimplification constToVal SimplifiableValue value sa
-      pure accTerm
+  (\effect -> effect /\ isReachable)
+    <$> case sa of
+        (ConstantSimp _ _ v)
+          | v <= zero -> do
+            addWarning NegativeDeposit t pos
+            pure (makeDepositConstant accTerm zero)
+          | otherwise -> do
+            markSimplification constToVal SimplifiableValue value sa
+            pure (makeDepositConstant accTerm v)
+        _ -> do
+          markSimplification constToVal SimplifiableValue value sa
+          pure accTerm
   where
   makeDepositConstant (UnknownDeposit ac to) v = ConstantDeposit ac to v
 
@@ -702,22 +727,32 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
   let
     choTerm = maybe NoEffect ChoiceMade (fromTerm choiceId)
+
+    isReachable = view _isReachable env
   modifying _holes (getHoles choiceId <> getHoles bounds)
   allInvalid <- foldM lintBounds true bounds
-  when (allInvalid) $ addWarning UnreachableCaseEmptyChoice t pos
-  pure choTerm
+  when (allInvalid && isReachable) $ addWarning UnreachableCaseEmptyChoice t pos
+  pure $ choTerm /\ (not allInvalid && isReachable)
 
 lintAction env t@(Term (Notify obs) pos) = do
+  let
+    isReachable = view _isReachable env
   sa <- lintObservation env obs
-  case sa of
+  newIsReachable <- case sa of
     (ConstantSimp _ _ c)
-      | not c -> addWarning UnreachableCaseFalseNotify t pos
-    _ -> markSimplification constToObs SimplifiableObservation obs sa
-  pure NoEffect
+      | not c -> do
+        when isReachable $ addWarning UnreachableCaseFalseNotify t pos
+        pure false
+    _ -> do
+      markSimplification constToObs SimplifiableObservation obs sa
+      pure isReachable
+  pure $ NoEffect /\ newIsReachable
 
 lintAction env hole@(Hole _ _ _) = do
+  let
+    isReachable = view _isReachable env
   modifying _holes (insertHole hole)
-  pure NoEffect
+  pure $ NoEffect /\ isReachable
 
 type AdditionalContext
   = { warnings :: Set Warning
@@ -734,18 +769,18 @@ suggestions original stripParens contractString range { contract } =
       Nothing -> hush $ parseContract contractString
       c -> c
     let
-      (Holes holes) = view _holes ((lint (emptyState zero)) parsedContract)
+      (Holes holes) = view _holes ((lint Nil (emptyState zero)) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
     { head } <- Array.uncons $ Set.toUnfoldable v
     pure $ holeSuggestions original stripParens range head
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker
-markers :: Semantics.State -> String -> Tuple (Array IMarkerData) AdditionalContext
-markers contractState contract = do
+markers :: List ContractPath -> Semantics.State -> String -> Tuple (Array IMarkerData) AdditionalContext
+markers unreachablePaths contractState contract = do
   let
     parsedContract = parseContract contract
-  case (lint contractState <$> parsedContract) of
+  case (lint unreachablePaths contractState <$> parsedContract) of
     Left EmptyInput -> (Tuple [] { warnings: mempty, contract: Nothing })
     Left e@(ContractParseError { message, row, column, token }) ->
       let

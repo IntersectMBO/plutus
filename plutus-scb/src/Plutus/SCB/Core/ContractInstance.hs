@@ -37,7 +37,7 @@ import           Cardano.BM.Data.Tracer                          (ToObject (..),
 import           Cardano.BM.Data.Tracer.Extras                   (Tagged (..), mkObjectStr)
 import           Control.Arrow                                   ((>>>), (>>^))
 import           Control.Lens
-import           Control.Monad                                   (void, when)
+import           Control.Monad                                   (unless, void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
@@ -85,7 +85,8 @@ import           Plutus.SCB.Events.Contract                      (ContractEvent 
                                                                   unContractHandlersResponse)
 import qualified Plutus.SCB.Events.Contract                      as Events.Contract
 import qualified Plutus.SCB.Query                                as Query
-import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, WalletEventSource))
+import           Plutus.SCB.Types                                (SCBError (..),
+                                                                  Source (ContractEventSource, NodeEventSource, WalletEventSource))
 import           Plutus.SCB.Utils                                (tshow)
 
 import qualified Plutus.SCB.Core.Projections                     as Projections
@@ -181,7 +182,7 @@ instance ToJSON v => ToObject (ContractInstanceMsg v) where
                     MaximalVerbosity -> Left m
                     _                -> Right ()
         MaxIterationsExceeded instanceID maxIts ->
-            mkObjectStr "exceeded maximum number of iterations" $
+            mkObjectStr "exceeded maximum number of iterations"
                 (instanceID, Tagged @"max_iterations" maxIts)
 
 -- TODO:
@@ -393,14 +394,14 @@ respondtoRequests (MaxIterations mi) handler = do
     let instances = Map.keys contractStates
     for_ instances $ \instanceId ->
         let go j
-             | j >= mi = do
+             | j >= mi =
                  logWarn @(ContractInstanceMsg t) $ MaxIterationsExceeded instanceId (MaxIterations mi)
              | otherwise = do
                  requests <- hooks . csCurrentState <$> lookupContractState @t instanceId
                  logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
                  events <- runReader instanceId $ runRequestHandler @t handler instanceId requests
                  processContractInbox @t instanceId
-                 when (not $ null events) (go $ succ j)
+                 unless (null events) (go $ succ j)
         in go 0
 
 -- | Run a 'RequestHandler' on the 'ContractSCBRequest' list of a contract
@@ -422,9 +423,8 @@ runRequestHandler h contractInstance requests = do
         tryHandler (wrapHandler h) requests
 
     case response of
-        Just rsp -> do
-            events <- sendContractMessage @t contractInstance rsp
-            pure events
+        Just rsp ->
+            sendContractMessage @t contractInstance rsp
         _ -> do
             logDebug @(ContractInstanceMsg t) RunRequestHandlerDidNotHandleAnyEvents
             pure []

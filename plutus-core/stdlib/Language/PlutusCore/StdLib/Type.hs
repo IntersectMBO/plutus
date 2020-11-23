@@ -487,9 +487,9 @@ are rather high while the benefits are minor, and thus we go with the semantic p
 
 -- | A recursive type packaged along with a specified 'Wrap' that allows to construct elements
 -- of this type.
-data RecursiveType uni ann = RecursiveType
+data RecursiveType uni fun ann = RecursiveType
     { _recursiveType :: Type TyName uni ann
-    , _recursiveWrap :: forall term . TermLike term TyName Name uni
+    , _recursiveWrap :: forall term . TermLike term TyName Name uni fun
                      => [Type TyName uni ann] -> term ann -> term ann
     }
 
@@ -641,13 +641,13 @@ getPackedType ann dataName argVars patBodyN = do
 
 -- | An auxiliary type for returning a polymorphic @wrap@. Haskell's support for impredicative
 -- polymorphism isn't good enough to do without this.
-newtype PolyWrap uni ann = PolyWrap
-    (forall term. TermLike term TyName Name uni => [Type TyName uni ann] -> term ann -> term ann)
+newtype PolyWrap uni fun ann = PolyWrap
+    (forall term. TermLike term TyName Name uni fun => [Type TyName uni ann] -> term ann -> term ann)
 
 -- | Make a generic @wrap@ that takes a spine of type arguments and the rest of a term, packs
 -- the spine using the CPS trick and passes the spine and the term to 'IWrap' along with a 1-ary
 -- pattern functor constructed from pieces of a data type passed as arguments to 'getWrap'.
-getPackedWrap :: FromDataPieces uni ann (PolyWrap uni ann)
+getPackedWrap :: FromDataPieces uni ann (PolyWrap uni fun ann)
 getPackedWrap ann dataName argVars patBodyN = do
     pat1 <- packPatternFunctorBodyN ann dataName argVars patBodyN
     toSpine <- getToSpine ann
@@ -711,7 +711,7 @@ makeRecursiveType0
     :: ann                  -- ^ An annotation placed everywhere we do not have annotations.
     -> TyName               -- ^ The name of the data type being defined.
     -> Type TyName uni ann  -- ^ The body of the pattern functor.
-    -> Quote (RecursiveType uni ann)
+    -> Quote (RecursiveType uni fun ann)
 makeRecursiveType0 ann dataName patBody0 = do
     rec <- freshTyName "rec"
     f   <- freshTyName "f"
@@ -741,7 +741,7 @@ makeRecursiveType1
     -> TyName                -- ^ The name of the data type being defined.
     -> TyVarDecl TyName ann  -- ^ The index type variable.
     -> Type TyName uni ann   -- ^ The body of the pattern functor.
-    -> Quote (RecursiveType uni ann)
+    -> Quote (RecursiveType uni fun ann)
 makeRecursiveType1 ann dataName argVar patBody1 = do
     let varName = tyVarDeclName argVar
         varKind = tyVarDeclKind argVar
@@ -758,7 +758,7 @@ makeRecursiveType1 ann dataName argVar patBody1 = do
 -- | Construct a 'RecursiveType' by encoding an n-ary pattern functor as the corresponding 1-ary one
 -- and passing it to 'TyIFix' and 'IWrap'. @n@ type arguments get packaged together as a CPS-encoded
 -- spine.
-makeRecursiveTypeN :: FromDataPieces uni ann (RecursiveType uni ann)
+makeRecursiveTypeN :: FromDataPieces uni ann (RecursiveType uni fun ann)
 makeRecursiveTypeN ann dataName argVars patBodyN = do
     recType <- getPackedType ann dataName argVars patBodyN
     PolyWrap wrap <- getPackedWrap ann dataName argVars patBodyN
@@ -768,7 +768,7 @@ makeRecursiveTypeN ann dataName argVars patBodyN = do
 -- and the body of the pattern functor. The 0- and 1-ary pattern functors are special-cased,
 -- while in the general case the pattern functor and type arguments get encoded into a 1-ary
 -- form first.
-makeRecursiveType :: FromDataPieces uni ann (RecursiveType uni ann)
+makeRecursiveType :: FromDataPieces uni ann (RecursiveType uni fun ann)
 makeRecursiveType ann dataName []       = makeRecursiveType0 ann dataName
 makeRecursiveType ann dataName [argVar] = makeRecursiveType1 ann dataName argVar
 makeRecursiveType ann dataName argVars  = makeRecursiveTypeN ann dataName argVars

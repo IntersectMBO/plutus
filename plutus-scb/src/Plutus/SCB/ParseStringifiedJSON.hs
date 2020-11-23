@@ -1,12 +1,11 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE MonoLocalBinds     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 module Plutus.SCB.ParseStringifiedJSON(
     UnStringifyJSONLog(..),
     parseStringifiedJSON
@@ -33,7 +32,7 @@ data UnStringifyJSONLog =
 instance Pretty UnStringifyJSONLog where
     pretty = \case
         ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
+        ParseStringifiedJSONFailed  -> "parseStringifiedJSON: Failed, returning original string"
         ParseStringifiedJSONSuccess -> "parseStringifiedJSON: Succeeded"
 
 parseStringifiedJSON ::
