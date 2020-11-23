@@ -1,33 +1,19 @@
-#simulation-nav {
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
+.simulations {
+    .simulation-nav-item-control {
+        .fa-close,
+        .fa-plus {
+            display: inline-block;
+            padding: .25em;
+            font-size: inherit;
 
-    button {
-        border-radius: 3px;
-        margin-bottom: 3px;
-    }
+            &:hover {
+                text-decoration: none;
+            }
+        }
 
-    button.simulation-nav-item-name {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-    }
-
-    button.simulation-nav-item-close {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-
-    button.simulation-nav-item-close,
-    button#simulation-nav-item-add {
-        width: 32px;
-    }
-
-    button.simulation-nav-item-close {
-        margin-right: 5px;
-    }
-
-    .simulation-nav-item .fa {
-        font-size: 20px;
+        .fa-close {
+            margin-left: .5em;
+        }
     }
 }
 

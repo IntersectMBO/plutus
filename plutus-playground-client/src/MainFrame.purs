@@ -393,7 +393,7 @@ handleAction CompileProgram = do
         )
         ( assign _simulations
             $ case newCurrencies of
-                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation 1"
+                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation #1"
                 Nothing -> Cursor.empty
         )
       pure unit

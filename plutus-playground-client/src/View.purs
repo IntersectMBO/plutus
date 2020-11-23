@@ -28,7 +28,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
 import Prelude (const, ($), (<$>), (<<<))
 import Schema.Types (mkInitialValue)
-import Simulation (actionsErrorPane, simulationPane)
+import Simulation (actionsErrorPane, simulationsPane)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
@@ -118,7 +118,7 @@ demoScriptButton (ContractDemo { contractDemoName }) =
     ]
     [ text contractDemoName ]
 
--- renders the page content (editor, simulation, and transactions)
+-- renders the page content (editor, simulations, and transactions)
 mainContent ::
   forall m.
   MonadAff m =>
@@ -132,7 +132,7 @@ mainContent state@(State { currentView }) =
         [ col_ [ mainTabBar ChangeView tabs currentView ] ]
     , row_
         [ editorTabPane state
-        , simulationTabPane state
+        , simulationsTabPane state
         , transactionsTabPane state
         ]
     ]
@@ -147,7 +147,7 @@ mainContent state@(State { currentView }) =
       , title: "Editor"
       }
     , { link: Simulations
-      , title: "Simulation"
+      , title: "Simulations"
       }
     , { link: Transactions
       , title: "Transactions"
@@ -177,19 +177,19 @@ editorTabPane state@(State { currentView, contractDemos, editorState }) =
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
--- renders the simulation tab pane
-simulationTabPane ::
+-- renders the simulations tab pane
+simulationsTabPane ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-simulationTabPane state@(State { currentView }) =
+simulationsTabPane state@(State { currentView }) =
   viewContainer currentView Simulations
     $ let
         knownCurrencies = evalState getKnownCurrencies state
 
         initialValue = mkInitialValue knownCurrencies zero
       in
-        [ simulationPane
+        [ simulationsPane
             initialValue
             (view _actionDrag state)
             ( view
@@ -221,18 +221,18 @@ transactionsTabPane state@(State { currentView, blockchainVisualisationState }) 
         Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
         Success (Left error) ->
           [ text "Your simulation has errors. Click the "
-          , strong_ [ text "Simulation" ]
+          , strong_ [ text "Simulations" ]
           , text " tab above to fix them and recompile."
           ]
         Failure error ->
           [ text "Your simulation has errors. Click the "
-          , strong_ [ text "Simulation" ]
+          , strong_ [ text "Simulations" ]
           , text " tab above to fix them and recompile."
           ]
         Loading -> [ icon Spinner ]
         NotAsked ->
           [ text "Click the "
-          , strong_ [ text "Simulation" ]
+          , strong_ [ text "Simulations" ]
           , text " tab above and evaluate a simulation to see some results."
           ]
 

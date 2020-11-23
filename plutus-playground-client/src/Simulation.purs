@@ -1,10 +1,10 @@
 module Simulation
-  ( simulationPane
+  ( simulationsPane
   , actionsErrorPane
   ) where
 
 import Types
-import Bootstrap (alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup, btnGroupSmall, btnGroup_, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col_, formControl, formGroup_, formRow_, pullRight, responsiveThird, row, row_)
+import Bootstrap (active, alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup_, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col_, formControl, formGroup_, formRow_, nav, navItem, navLink, pullRight, responsiveThird, row, row_)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -19,7 +19,7 @@ import Data.Lens (preview, review, view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, br_, button, code_, div, div_, h2_, h3_, input, label, p_, pre_, small_, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, br_, button, code_, div, div_, h2_, h3_, input, label, p_, pre_, small_, span, strong_, text, ul, li)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
@@ -42,7 +42,8 @@ import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
-simulationPane ::
+-- renders the simulations pane
+simulationsPane ::
   forall m.
   Value ->
   Maybe Int ->
@@ -50,7 +51,7 @@ simulationPane ::
   Cursor Simulation ->
   WebData (Either PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m
-simulationPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
+simulationsPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
   Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
     let
       isValidWallet :: Wallet -> Boolean
@@ -63,7 +64,8 @@ simulationPane initialValue actionDrag endpointSignatures simulations evaluation
               )
               simulationWallets
     in
-      div_
+      div
+        [ class_ $ ClassName "simulations" ]
         [ simulationsNav simulations
         , walletsPane endpointSignatures initialValue simulationWallets
         , br_
@@ -78,9 +80,8 @@ simulationPane initialValue actionDrag endpointSignatures simulations evaluation
 
 simulationsNav :: forall p. Cursor Simulation -> HTML p HAction
 simulationsNav simulations =
-  div
-    [ id_ "simulation-nav"
-    , classes [ btnGroup, btnGroupSmall ]
+  ul
+    [ classes [ nav, ClassName "nav-tabs" ]
     ]
     ( ( simulations
           # Cursor.mapWithIndex (simulationNavItem (Cursor.length simulations > 1) (Cursor.getIndex simulations))
@@ -92,44 +93,44 @@ simulationsNav simulations =
 
 simulationNavItem :: forall p. Boolean -> Int -> Int -> Simulation -> Array (HTML p HAction)
 simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
-  [ button
+  [ li
       [ id_ $ "simulation-nav-item-" <> show index
-      , classes $ buttonClasses <> [ simulationNavItemNameClass ]
-      , onClick $ const $ Just $ SetSimulationSlot index
+      , class_ navItem
       ]
-      [ text simulationName ]
-  , if canClose then
-      button
-        [ id_ $ "simulation-nav-item-" <> show index <> "-remove"
-        , classes $ buttonClasses <> [ simulationNavItemCloseClass ]
-        , onClick $ const $ Just $ RemoveSimulationSlot index
-        ]
-        [ icon Close ]
-    else
-      Bootstrap.empty
+      [ a
+          [ classes navLinkClasses
+          , onClick $ const $ Just $ SetSimulationSlot index
+          ]
+          [ text simulationName
+          , if canClose then
+              span
+                [ onClick $ const $ Just $ RemoveSimulationSlot index
+                , class_ $ ClassName "simulation-nav-item-control"
+                ]
+                [ icon Close ]
+            else
+              Bootstrap.empty
+          ]
+      ]
   ]
   where
-  buttonClasses =
-    [ btn, simulationNavItemClass ]
-      <> if activeIndex == index then [ btnInfo ] else [ btnDefault ]
-
-simulationNavItemClass :: ClassName
-simulationNavItemClass = ClassName "simulation-nav-item"
-
-simulationNavItemNameClass :: ClassName
-simulationNavItemNameClass = ClassName "simulation-nav-item-name"
-
-simulationNavItemCloseClass :: ClassName
-simulationNavItemCloseClass = ClassName "simulation-nav-item-close"
+  navLinkClasses = if activeIndex == index then [ navLink, active ] else [ navLink ]
 
 addSimulationControl :: forall p. HTML p HAction
 addSimulationControl =
-  button
+  li
     [ id_ "simulation-nav-item-add"
-    , classes [ btn, btnInfo, simulationNavItemClass ]
-    , onClick $ const $ Just $ AddSimulationSlot
+    , class_ navItem
     ]
-    [ icon Plus ]
+    [ a
+        [ onClick $ const $ Just $ AddSimulationSlot
+        , class_ navLink
+        ]
+        [ span
+            [ class_ $ ClassName "simulation-nav-item-control" ]
+            [ icon Plus ]
+        ]
+    ]
 
 actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
