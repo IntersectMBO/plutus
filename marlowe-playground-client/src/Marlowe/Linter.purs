@@ -23,6 +23,7 @@ import Data.Bifunctor (bimap)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..), hush)
 import Data.Foldable (foldM)
+import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.Function (on)
 import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
@@ -34,7 +35,7 @@ import Data.Lens.Record (prop)
 import Data.List (List(..))
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isNothing, maybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (abs)
 import Data.Set (Set)
@@ -43,7 +44,6 @@ import Data.String (codePointFromChar, fromCodePointArray, length, takeWhile, to
 import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
@@ -53,7 +53,8 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Simulation.Types (ContractPath)
+import Reachability (initialisePrefixMap, stepPrefixMap)
+import Simulation.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
@@ -223,6 +224,7 @@ newtype LintEnv
   , letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
   , isReachable :: Boolean
+  , unreachablePaths :: Maybe PrefixMap
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -242,15 +244,39 @@ _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 _isReachable :: Lens' LintEnv Boolean
 _isReachable = _Newtype <<< prop (SProxy :: SProxy "isReachable")
 
-emptyEnvironment :: LintEnv
-emptyEnvironment =
+emptyEnvironment :: List ContractPath -> LintEnv
+emptyEnvironment unreachablePathList =
   LintEnv
     { choicesMade: mempty
     , deposits: mempty
     , letBindings: mempty
     , maxTimeout: mempty
     , isReachable: true
+    , unreachablePaths: Just $ initialisePrefixMap unreachablePathList
     }
+
+-- Generic wrapper for stepPrefixMap. It steps the results of reachability analysis to see
+-- if the current node is unreachable, if it is unreachable it calls `markUnreachable`
+stepPrefixMapEnvGeneric :: LintEnv -> CMS.State State Unit -> ContractPathStep -> CMS.State State LintEnv
+stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Nothing }) markUnreachable cp = do
+  pure $ LintEnv env { unreachablePaths = Nothing, isReachable = false }
+
+stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Just upOld, isReachable: oldReachable }) markUnreachable cp = do
+  mUpNew <- stepPrefixMap markUnreachable upOld cp
+  pure $ LintEnv env { unreachablePaths = mUpNew, isReachable = oldReachable && (not $ isNothing mUpNew) }
+
+-- Wrapper for stepPrefixMap that marks unreachable code with a warning
+stepPrefixMapEnv :: forall a. Show a => LintEnv -> a -> Range -> ContractPathStep -> CMS.State State LintEnv
+stepPrefixMapEnv env t pos cp = stepPrefixMapEnvGeneric env markUnreachable cp
+  where
+  markUnreachable = addWarning UnreachableContract t pos
+
+-- Simpler version of the wrapper for places for where we know we won't get a root of unreachable code
+-- See isValidSubproblem in Reachability.purs for a list of roots of possible unreachable nodes
+stepPrefixMapEnv_ :: LintEnv -> ContractPathStep -> CMS.State State LintEnv
+stepPrefixMapEnv_ env cp = stepPrefixMapEnvGeneric env dontMarkUnreachable cp
+  where
+  dontMarkUnreachable = pure unit
 
 data TemporarySimplification a b
   = ConstantSimp
@@ -341,7 +367,7 @@ lint unreachablePaths contractState contract = state
 
   deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
 
-  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) emptyEnvironment
+  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) (emptyEnvironment unreachablePaths)
 
   state = CMS.execState (lintContract env contract) mempty
 
@@ -361,7 +387,7 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
       | otherwise -> pure (Just c)
     _ -> pure Nothing
   markSimplification constToVal SimplifiableValue payment sa
-  newEnv <- case (fromTerm acc /\ fromTerm token) of
+  tmpEnv <- case (fromTerm acc /\ fromTerm token) of
     Just accTerm /\ Just tokenTerm -> do
       let
         deposits = view _deposits env
@@ -384,49 +410,58 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
         Nothing /\ _ -> pure env
         _ -> pure (over _deposits (Map.insert key Nothing) env)
     _ -> pure env
+  newEnv <- stepPrefixMapEnv_ tmpEnv PayContPath
   lintContract newEnv cont
 
 lintContract env (Term (If obs c1 c2) _) = do
   sa <- lintObservation env obs
+  c1Env <- stepPrefixMapEnv env c1 (getRange c1) IfTruePath
+  c2Env <- stepPrefixMapEnv env c2 (getRange c2) IfFalsePath
   let
-    currReachable = view _isReachable env
+    reachable = view _isReachable
 
-    newEnv reach = if reach then env else set _isReachable false env
-  c1Env /\ c2Env <-
-    bimap newEnv newEnv
+    c1Reachable = reachable c1Env
+
+    c2Reachable = reachable c2Env
+
+    updateEnv lEnv reach = if reach then lEnv else set _isReachable false lEnv
+  c1NewEnv /\ c2NewEnv <-
+    bimap (updateEnv c1Env) (updateEnv c2Env)
       <$> ( case sa of
             (ConstantSimp _ _ c) ->
               if c then do
-                when currReachable $ addWarning UnreachableContract c2 (getRange c2)
-                pure (currReachable /\ false)
+                when c2Reachable $ addWarning UnreachableContract c2 (getRange c2)
+                pure (c1Reachable /\ false)
               else do
-                when currReachable $ addWarning UnreachableContract c1 (getRange c1)
-                pure (false /\ currReachable)
+                when c1Reachable $ addWarning UnreachableContract c1 (getRange c1)
+                pure (false /\ c2Reachable)
             _ -> do
               markSimplification constToObs SimplifiableObservation obs sa
-              pure (currReachable /\ currReachable)
+              pure (c1Reachable /\ c2Reachable)
         )
-  lintContract c1Env c1
-  lintContract c2Env c2
+  lintContract c1NewEnv c1
+  lintContract c2NewEnv c2
 
 lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
-  let
-    newEnv = (over _maxTimeout (max timeout)) env
-  traverse_ (lintCase newEnv) cases
   when (timeout <= view _maxTimeout env) (addWarning TimeoutNotIncreasing slot pos)
+  let
+    tmpEnv = (over _maxTimeout (max timeout)) env
+  traverseWithIndex_ (lintCase tmpEnv) cases
+  newEnv <- stepPrefixMapEnv_ tmpEnv WhenTimeoutPath
   lintContract newEnv cont
   pure unit
 
 lintContract env (Term (Let (TermWrapper valueId pos) value cont) _) = do
-  newEnv <- case fromTerm valueId of
+  tmpEnv <- case fromTerm valueId of
     Just valueIdSem -> do
       let
-        newEnv = over _letBindings (Set.insert valueIdSem) env
+        tmpEnv = over _letBindings (Set.insert valueIdSem) env
       when (Set.member valueIdSem (view _letBindings env)) $ addWarning ShadowedLet valueId pos
-      pure newEnv
+      pure tmpEnv
     Nothing -> pure env
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
+  newEnv <- stepPrefixMapEnv_ tmpEnv LetPath
   lintContract newEnv cont
 
 lintContract env hole@(Hole _ _ _) = do
@@ -435,7 +470,8 @@ lintContract env hole@(Hole _ _ _) = do
 
 lintContract env (Term (Assert obs cont) _) = do
   sa <- lintObservation env obs
-  lintContract env cont
+  newEnv <- stepPrefixMapEnv_ env AssertPath
+  lintContract newEnv cont
   markSimplification constToObs SimplifiableObservation obs sa
   pure unit
 
@@ -669,8 +705,9 @@ data Effect
   | ChoiceMade Semantics.ChoiceId
   | NoEffect
 
-lintCase :: LintEnv -> Term Case -> CMS.State State Unit
-lintCase env t@(Term (Case action contract) pos) = do
+lintCase :: LintEnv -> Int -> Term Case -> CMS.State State Unit
+lintCase iniEnv n t@(Term (Case action contract) pos) = do
+  env <- stepPrefixMapEnv iniEnv t pos $ WhenCasePath n
   effect /\ isReachable <- lintAction env action
   let
     tempEnv = case effect of
@@ -683,7 +720,7 @@ lintCase env t@(Term (Case action contract) pos) = do
   lintContract newEnv contract
   pure unit
 
-lintCase env hole@(Hole _ _ _) = do
+lintCase env n hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
 

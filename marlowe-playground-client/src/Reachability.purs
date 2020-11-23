@@ -1,17 +1,22 @@
-module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis, updateWithResponse) where
+module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap, updateWithResponse) where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Function (flip)
+import Control.Monad.State as CMS
+import Data.Foldable (for_)
+import Data.Function (flip, identity)
 import Data.Lens (assign)
-import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
-import Data.List.NonEmpty (NonEmptyList(..), toList)
+import Data.List (List(..), any, catMaybes, foldl, fromFoldable, length, null, snoc, toUnfoldable)
+import Data.List.NonEmpty (NonEmptyList(..), fromList, head, tail, toList)
+import Data.Map (fromFoldableWith, lookup, unionWith)
 import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
+import Data.Set (singleton, union)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM)
-import MainFrame.Types (ChildSlots)
+import Halogen (HalogenM, query)
+import Halogen.Monaco as Monaco
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
@@ -20,10 +25,10 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, map, pure, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
+import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, when, ($), (&&), (+), (-), (/=), (<$>), (<>), (==), (>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, InProgressRecord, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, PrefixMap, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -153,7 +158,7 @@ startReachabilityAnalysis ::
 startReachabilityAnalysis settings contract state = do
   case getNextSubproblem isValidSubproblem initialSubproblems Nil of
     Nothing -> pure AllReachable
-    Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) -> do
+    Just ((contractZipper /\ _ /\ newChildren) /\ newSubproblems) -> do
       let
         numSubproblems = countSubproblems isValidSubproblem (newChildren <> newSubproblems)
 
@@ -173,7 +178,7 @@ startReachabilityAnalysis settings contract state = do
               }
           )
       assign _analysisState (ReachabilityAnalysis progress)
-      response <- checkContractForReachability settings subcontract state
+      response <- checkContractForReachability settings newContract state
       result <- updateWithResponse settings progress response
       pure result
   where
@@ -265,13 +270,24 @@ stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InPr
 stepAnalysis settings isReachable rad =
   let
     thereAreMore /\ newRad = stepSubproblem isReachable rad
+
+    thereAreNewCounterExamples = length newRad.unreachableSubcontracts > length rad.unreachableSubcontracts
   in
     if thereAreMore then do
       assign _analysisState (ReachabilityAnalysis (InProgress newRad))
+      when thereAreNewCounterExamples refreshEditor
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
       updateWithResponse settings (InProgress newRad) response
-    else
-      pure $ finishAnalysis newRad
+    else do
+      let
+        result = finishAnalysis newRad
+      assign _analysisState (ReachabilityAnalysis result)
+      when thereAreNewCounterExamples refreshEditor
+      pure result
+  where
+  refreshEditor = do
+    mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
+    for_ mContent (\content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit)
 
 updateWithResponse ::
   forall m.
@@ -302,3 +318,21 @@ areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (InProgress ipr)) (Just
 areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract us)) (Just contract) state = us.originalContract == contract && us.originalState == state
 
 areContractAndStateTheOnesAnalysed _ _ _ = false
+
+-- It groups the contract paths by their head, discards empty contract paths
+initialisePrefixMap :: List ContractPath -> PrefixMap
+initialisePrefixMap unreachablePathList = fromFoldableWith union $ map (\x -> (head x /\ singleton x)) $ catMaybes $ map fromList unreachablePathList
+
+-- Returns Nothing when the path is unreachable according to one of the paths, otherwise it returns the updated PrefixMap for the subpath
+stepPrefixMap :: forall a. CMS.State a Unit -> PrefixMap -> ContractPathStep -> CMS.State a (Maybe PrefixMap)
+stepPrefixMap markUnreachable prefixMap contractPath = case lookup contractPath prefixMap of
+  Just pathSet ->
+    let
+      tails = map tail $ fromFoldable pathSet
+    in
+      if any null tails then do
+        markUnreachable
+        pure Nothing
+      else
+        pure $ Just $ unionWith union (initialisePrefixMap tails) mempty
+  Nothing -> pure (Just mempty)

@@ -5,9 +5,7 @@ import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (Lens', has, modifying, nearly, over, previewOn, set, to, use, view, (^.))
-import Data.Lens.NonEmptyList (_Head)
-import Data.Lens.Record (prop)
+import Data.Lens (has, modifying, nearly, over, previewOn, set, to, use, view, (^.))
 import Data.List (List(..))
 import Data.List as List
 import Data.List.Types (NonEmptyList)
@@ -18,7 +16,6 @@ import Data.Newtype (unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
-import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter (lint)
@@ -27,7 +24,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class HeytingAlgebra, class Ord, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
-import Simulation.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _editorErrors, _executionState, _holes, _log, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
+import Simulation.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -221,15 +218,6 @@ stateToTxInput executionState =
     inputs = executionState ^. _pendingInputs
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
-
---
--- Functions that can be used by records that contain MarloweState
---
-_marloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } (NonEmptyList MarloweState)
-_marloweState = prop (SProxy :: SProxy "marloweState")
-
-_currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
-_currentMarloweState = _marloweState <<< _Head
 
 updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
 updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))

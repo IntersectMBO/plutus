@@ -1,36 +1,26 @@
 module Wallet where
 
-import Analytics (class IsEvent, Event)
-import Analytics as A
 import Control.Alt ((<|>))
 import Control.Monad.State (class MonadState)
-import Data.Array (concatMap, delete, drop, elem, find, fold, foldMap, snoc)
+import Data.Array (concatMap, delete, drop, fold, foldMap, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Foldable (foldl, for_, intercalate, traverse_)
-import Data.Lens (Getter', Lens', _Just, assign, has, lens, modifying, over, preview, set, to, toArrayOf, traversed, use, (^.), (^?))
+import Data.Lens (_Just, assign, has, modifying, over, preview, to, toArrayOf, traversed, use, (^.), (^?))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Lens.NonEmptyList (_Head)
-import Data.Lens.Record (prop)
 import Data.List.NonEmpty as NEL
-import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Map.Lens (_MaxIndex, _NextIndex)
 import Data.Maybe (Maybe(..), fromMaybe, isNothing)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (unwrap)
 import Data.NonEmptyList.Extra (extendWith)
 import Data.NonEmptyList.Lens (_Tail)
-import Data.Profunctor.Choice (class Choice)
-import Data.Profunctor.Strong (class Strong)
-import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(..), split)
-import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Data.Tuple (Tuple(..), snd)
 import Data.Tuple.Nested (type (/\), (/\))
@@ -49,13 +39,14 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
-import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
-import Simulation.State (_currentMarloweState, _marloweState, updateContractInStateP, updatePossibleActions, updateStateP)
-import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
+import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Simulation.State (updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
+import WalletSimulation.Types (Action(..), ChildSlots, LoadedContract, Message(..), Query(..), State, View(..), Wallet(..), _addInputError, _assetChanges, _assets, _contracts, _currentLoadedMarloweState, _helpContext, _initialized, _loadContractError, _loadedMarloweState, _name, _openWallet, _parties, _runningContracts, _showRightPanel, _started, _tokens, _view, _walletContracts, _walletLoadedContract, _wallets, mkState)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -63,226 +54,6 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
-
-newtype Wallet
-  = Wallet
-  { name :: PubKey
-  , assets :: Map Token BigInteger
-  , loadedContract :: Maybe Int
-  }
-
-derive instance newtypeWallet :: Newtype Wallet _
-
-derive instance eqWallet :: Eq Wallet
-
-derive instance ordWallet :: Ord Wallet
-
-instance showWallet :: Show Wallet where
-  show (Wallet { name }) = name
-
-_assets :: Lens' Wallet (Map Token BigInteger)
-_assets = _Newtype <<< prop (SProxy :: SProxy "assets")
-
-_name :: Lens' Wallet PubKey
-_name = _Newtype <<< prop (SProxy :: SProxy "name")
-
-_loadedContract :: Lens' Wallet (Maybe Int)
-_loadedContract = _Newtype <<< prop (SProxy :: SProxy "loadedContract")
-
-type LoadedContract
-  = { idx :: Int
-    , owner :: PubKey
-    , contract :: S.Contract
-    , parties :: Map Party PubKey
-    , started :: Boolean
-    , marloweState :: NonEmptyList MarloweState
-    }
-
-_parties :: Lens' LoadedContract (Map Party PubKey)
-_parties = prop (SProxy :: SProxy "parties")
-
-isInvolvedInContract :: PubKey -> LoadedContract -> Boolean
-isInvolvedInContract pubKey contract = contract.owner == pubKey || elem pubKey contract.parties
-
-type ChildSlots
-  = ()
-
-data View
-  = Home
-  | WalletView PubKey
-
-data Action
-  = Init
-  | ShowRightPanel Boolean
-  | LoadContractFromSimulation
-  | StartContract
-  | ResetContract
-  | ResetAll
-  | NextSlot
-  | ApplyTransaction
-  | ChangeRoleOwner Int Party String
-  | SelectWallet Wallet
-  | AddInput Input (Array Bound)
-  | RemoveInput Input
-  | SetChoice ChoiceId ChosenNum
-  | ChangeCurrencyInput Token BigInteger
-  | AddCurrency Token
-  | RenameWallet String
-  | CreateWallet
-  | SelectContract LoadedContract
-  | ChangeHelpContext HelpContext
-
-defaultEvent :: String -> Event
-defaultEvent s = A.defaultEvent $ "Wallet." <> s
-
-instance actionIsEvent :: IsEvent Action where
-  toEvent Init = Just $ defaultEvent "Init"
-  toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
-  toEvent LoadContractFromSimulation = Just $ defaultEvent "LoadContractFromSimulation"
-  toEvent StartContract = Just $ defaultEvent "StartContract"
-  toEvent ResetContract = Just $ defaultEvent "ResetContract"
-  toEvent ResetAll = Just $ defaultEvent "ResetAll"
-  toEvent NextSlot = Just $ defaultEvent "NextSlot"
-  toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
-  toEvent (ChangeRoleOwner _ _ _) = Just $ defaultEvent "ChangeRoleOwner"
-  toEvent (SelectWallet _) = Just $ defaultEvent "SelectWallet"
-  toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
-  toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
-  toEvent (ChangeCurrencyInput _ _) = Just $ defaultEvent "ChangeCurrencyInput"
-  toEvent (AddCurrency _) = Just $ defaultEvent "AddCurrency"
-  toEvent (RenameWallet _) = Just $ defaultEvent "RenameWallet"
-  toEvent CreateWallet = Just $ defaultEvent "CreateWallet"
-  toEvent (SelectContract _) = Just $ defaultEvent "SelectContract"
-  toEvent (ChangeHelpContext _) = Just $ defaultEvent "ChangeHelpContext"
-
-data Query a
-  = LoadContract String a
-
-data Message
-  = SendContractToWallet
-
-type State
-  = { wallets :: Map String Wallet
-    , view :: View
-    , initialized :: Boolean
-    , showRightPanel :: Boolean
-    , loadContractError :: Maybe String
-    , contracts :: Map Int LoadedContract
-    , tokens :: Set Token
-    , slot :: Slot
-    , assetChanges :: Map Token BigInteger
-    , addInputError :: Maybe String
-    , helpContext :: HelpContext
-    }
-
-mkState :: State
-mkState =
-  { wallets: mempty
-  , view: Home
-  , initialized: false
-  , showRightPanel: true
-  , loadContractError: Nothing
-  , contracts: mempty
-  , tokens: Set.singleton (Token "" "")
-  , slot: zero
-  , assetChanges: mempty
-  , addInputError: Nothing
-  , helpContext: WalletsSimulatorHelp
-  }
-
-findWallet :: State -> PubKey -> Maybe Wallet
-findWallet state walletName =
-  let
-    wallets :: Array Wallet
-    wallets = state ^. (_wallets <<< to Map.values <<< to Array.fromFoldable)
-  in
-    find (\(Wallet { name }) -> name == walletName) wallets
-
-_openWallet :: Lens' State (Maybe Wallet)
-_openWallet = lens get' set'
-  where
-  get' state = do
-    walletName <- case state ^. _view of
-      WalletView w -> Just w
-      _ -> Nothing
-    findWallet state walletName
-
-  set' state (Just wallet@(Wallet { name })) = case state ^. _view of
-    WalletView walletName -> (set _view (WalletView name) <<< over _wallets (Map.insert name wallet)) state
-    _ -> over _wallets (Map.insert name wallet) state
-
-  set' state _ = state
-
-_view :: Lens' State View
-_view = prop (SProxy :: SProxy "view")
-
-_wallets :: Lens' State (Map String Wallet)
-_wallets = prop (SProxy :: SProxy "wallets")
-
-_walletContracts :: PubKey -> Getter' State (Map Int LoadedContract)
-_walletContracts pubKey = _contracts <<< to (Map.filter (isInvolvedInContract pubKey))
-
-_runningContracts :: Getter' State (Map Int LoadedContract)
-_runningContracts = _contracts <<< to (Map.filter _.started)
-
-_walletLoadedContract :: Lens' State (Maybe LoadedContract)
-_walletLoadedContract = lens get' set'
-  where
-  get' state = do
-    idx <- state ^? (_openWallet <<< _Just <<< _loadedContract <<< _Just)
-    Map.lookup idx state.contracts
-
-  set' state (Just contract) =
-    ( set (_openWallet <<< _Just <<< _loadedContract) (Just contract.idx)
-        <<< set _contracts (Map.insert contract.idx contract state.contracts)
-    )
-      state
-
-  set' state Nothing = set (_openWallet <<< _Just <<< _loadedContract) Nothing state
-
-_currentLoadedMarloweState ::
-  forall p.
-  Strong p =>
-  Choice p =>
-  p MarloweState MarloweState ->
-  p State State
-_currentLoadedMarloweState = _walletLoadedContract <<< _Just <<< _marloweState <<< _Head
-
-_loadedMarloweState ::
-  forall p.
-  Strong p =>
-  Choice p =>
-  p (NonEmptyList MarloweState) (NonEmptyList MarloweState) ->
-  p State State
-_loadedMarloweState = _walletLoadedContract <<< _Just <<< _marloweState
-
-_started :: forall s. Lens' { started :: Boolean | s } Boolean
-_started = prop (SProxy :: SProxy "started")
-
-_initialized :: Lens' State Boolean
-_initialized = prop (SProxy :: SProxy "initialized")
-
-_showRightPanel :: Lens' State Boolean
-_showRightPanel = prop (SProxy :: SProxy "showRightPanel")
-
-_loadContractError :: Lens' State (Maybe String)
-_loadContractError = prop (SProxy :: SProxy "loadContractError")
-
-_contracts :: Lens' State (Map Int LoadedContract)
-_contracts = prop (SProxy :: SProxy "contracts")
-
-_tokens :: Lens' State (Set Token)
-_tokens = prop (SProxy :: SProxy "tokens")
-
-_assetChanges :: Lens' State (Map Token BigInteger)
-_assetChanges = prop (SProxy :: SProxy "assetChanges")
-
-_addInputError :: Lens' State (Maybe String)
-_addInputError = prop (SProxy :: SProxy "addInputError")
-
-_helpContext :: Lens' State HelpContext
-_helpContext = prop (SProxy :: SProxy "helpContext")
 
 mkComponent :: forall m. MonadEffect m => Component HTML Query Unit Message m
 mkComponent =

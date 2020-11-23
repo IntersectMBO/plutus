@@ -23,6 +23,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (class Newtype)
+import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
@@ -279,6 +280,8 @@ data ContractPathStep
 
 derive instance eqContractPathStep :: Eq ContractPathStep
 
+derive instance ordContractPathStep :: Ord ContractPathStep
+
 derive instance genericContractPathStep :: Generic ContractPathStep _
 
 instance showContractPathStep :: Show ContractPathStep where
@@ -296,6 +299,9 @@ data ContractZipper
   | LetZip ValueId Value ContractZipper
   | AssertZip Observation ContractZipper
   | HeadZip
+
+type PrefixMap
+  = Map ContractPathStep (Set (NonEmptyList ContractPathStep))
 
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
@@ -348,11 +354,11 @@ type State
 _showRightPanel :: Lens' State Boolean
 _showRightPanel = prop (SProxy :: SProxy "showRightPanel")
 
-_currentMarloweState :: Lens' State MarloweState
-_currentMarloweState = _marloweState <<< _Head
-
-_marloweState :: Lens' State (NonEmptyList MarloweState)
+_marloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } (NonEmptyList MarloweState)
 _marloweState = prop (SProxy :: SProxy "marloweState")
+
+_currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
+_currentMarloweState = _marloweState <<< _Head
 
 _currentContract :: Lens' State (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
