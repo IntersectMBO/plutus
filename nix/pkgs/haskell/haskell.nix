@@ -97,6 +97,22 @@ let
             substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
           '';
           inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
+          # copy paste from extra.nix, but for Agda as a stack-library instead of executable: 
+          Agda.package.buildType = lib.mkForce "Simple";
+          Agda.components.library.postInstall = ''
+            # Compile the executable using the package DB we've just made, which contains
+            # the main Agda library
+            ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
+            # Find all the files in $out (would be $data if we had a separate data output)
+            shopt -s globstar
+            files=($out/**/*.agda)
+            for f in "''${files[@]}" ; do
+              echo "Compiling $f"
+              # This is what the custom setup calls in the end
+              ./agda --no-libraries --local-interfaces $f
+            done
+          '';
           # See https://github.com/input-output-hk/plutus/issues/1213
           marlowe.doHaddock = false;
           plutus-use-cases.doHaddock = false;
