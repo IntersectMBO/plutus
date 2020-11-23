@@ -134,5 +134,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/v551p9ddfh29yvsr2wisqx071cvjqwrr-agda-08191e6;
+    src = (pkgs.lib).mkDefault /nix/store/5g0px6qs0gkfbhrcp2py6qy1hgnpl5xx-agda-08191e6;
     }
