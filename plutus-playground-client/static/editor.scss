@@ -32,5 +32,9 @@
     #statusline {
         background-color: darken(white, 4%);
         border-top: 1px solid $section-border;
+
+        &.hidden {
+            display: none;
+        }
     }
 }
