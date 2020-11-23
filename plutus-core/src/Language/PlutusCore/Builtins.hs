@@ -22,9 +22,9 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
--- import           Codec.CBOR.Decoding
--- import           Codec.CBOR.Encoding
--- import           Codec.Serialise
+import           Codec.CBOR.Decoding
+import           Codec.CBOR.Encoding
+import           Codec.Serialise
 import           Control.DeepSeq
 import           Crypto
 import qualified Data.ByteString                                            as BS
@@ -238,61 +238,61 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             mempty  -- TODO: budget.
 
 -- See Note [Stable encoding of PLC]
--- instance Serialise DefaultFun where
---     encode = encodeWord . \case
---               AddInteger           -> 0
---               SubtractInteger      -> 1
---               MultiplyInteger      -> 2
---               DivideInteger        -> 3
---               RemainderInteger     -> 4
---               LessThanInteger      -> 5
---               LessThanEqInteger    -> 6
---               GreaterThanInteger   -> 7
---               GreaterThanEqInteger -> 8
---               EqInteger            -> 9
---               Concatenate          -> 10
---               TakeByteString       -> 11
---               DropByteString       -> 12
---               SHA2                 -> 13
---               SHA3                 -> 14
---               VerifySignature      -> 15
---               EqByteString         -> 16
---               QuotientInteger      -> 17
---               ModInteger           -> 18
---               LtByteString         -> 19
---               GtByteString         -> 20
---               IfThenElse           -> 21
---               CharToString         -> 22
---               Append               -> 23
---               Trace                -> 24
+instance Serialise DefaultFun where
+    encode = encodeWord . \case
+              AddInteger           -> 0
+              SubtractInteger      -> 1
+              MultiplyInteger      -> 2
+              DivideInteger        -> 3
+              RemainderInteger     -> 4
+              LessThanInteger      -> 5
+              LessThanEqInteger    -> 6
+              GreaterThanInteger   -> 7
+              GreaterThanEqInteger -> 8
+              EqInteger            -> 9
+              Concatenate          -> 10
+              TakeByteString       -> 11
+              DropByteString       -> 12
+              SHA2                 -> 13
+              SHA3                 -> 14
+              VerifySignature      -> 15
+              EqByteString         -> 16
+              QuotientInteger      -> 17
+              ModInteger           -> 18
+              LtByteString         -> 19
+              GtByteString         -> 20
+              IfThenElse           -> 21
+              CharToString         -> 22
+              Append               -> 23
+              Trace                -> 24
 
---     decode = go =<< decodeWord
---         where go 0  = pure AddInteger
---               go 1  = pure SubtractInteger
---               go 2  = pure MultiplyInteger
---               go 3  = pure DivideInteger
---               go 4  = pure RemainderInteger
---               go 5  = pure LessThanInteger
---               go 6  = pure LessThanEqInteger
---               go 7  = pure GreaterThanInteger
---               go 8  = pure GreaterThanEqInteger
---               go 9  = pure EqInteger
---               go 10 = pure Concatenate
---               go 11 = pure TakeByteString
---               go 12 = pure DropByteString
---               go 13 = pure SHA2
---               go 14 = pure SHA3
---               go 15 = pure VerifySignature
---               go 16 = pure EqByteString
---               go 17 = pure QuotientInteger
---               go 18 = pure ModInteger
---               go 19 = pure LtByteString
---               go 20 = pure GtByteString
---               go 21 = pure IfThenElse
---               go 22 = pure CharToString
---               go 23 = pure Append
---               go 24 = pure Trace
---               go _  = fail "Failed to decode BuiltinName"
+    decode = go =<< decodeWord
+        where go 0  = pure AddInteger
+              go 1  = pure SubtractInteger
+              go 2  = pure MultiplyInteger
+              go 3  = pure DivideInteger
+              go 4  = pure RemainderInteger
+              go 5  = pure LessThanInteger
+              go 6  = pure LessThanEqInteger
+              go 7  = pure GreaterThanInteger
+              go 8  = pure GreaterThanEqInteger
+              go 9  = pure EqInteger
+              go 10 = pure Concatenate
+              go 11 = pure TakeByteString
+              go 12 = pure DropByteString
+              go 13 = pure SHA2
+              go 14 = pure SHA3
+              go 15 = pure VerifySignature
+              go 16 = pure EqByteString
+              go 17 = pure QuotientInteger
+              go 18 = pure ModInteger
+              go 19 = pure LtByteString
+              go 20 = pure GtByteString
+              go 21 = pure IfThenElse
+              go 22 = pure CharToString
+              go 23 = pure Append
+              go 24 = pure Trace
+              go _  = fail "Failed to decode BuiltinName"
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're

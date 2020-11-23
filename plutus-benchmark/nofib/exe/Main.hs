@@ -5,11 +5,10 @@ module Main where
 import           Prelude                                           ((<>))
 import qualified Prelude                                           as P
 
--- import           Codec.Serialise
 import           Control.Monad
 import           Control.Monad                                     ()
 import           Control.Monad.Trans.Except                        (runExceptT)
--- import qualified Data.ByteString.Lazy                              as BSL
+import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Char                                         (isSpace)
 import           Options.Applicative                               as Opt hiding (action)
 import           System.Exit                                       (exitFailure)
@@ -19,7 +18,7 @@ import           Text.PrettyPrint.ANSI.Leijen                      (Doc, indent,
 import           Language.PlutusCore                               (Name (..))
 import qualified Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Builtins
---import           Language.PlutusCore.CBOR                          ()
+import           Language.PlutusCore.CBOR                          ()
 import           Language.PlutusCore.Evaluation.Machine.Cek        ()
 import qualified Language.PlutusCore.Pretty                        as PLC
 import           Language.PlutusCore.Universe
@@ -52,8 +51,8 @@ data Options
     = RunPLC           ProgAndArgs
     | RunHaskell       ProgAndArgs
     | DumpPLC          ProgAndArgs
-    -- | DumpCBORnamed    ProgAndArgs
-    -- | DumpCBORdeBruijn ProgAndArgs
+    | DumpCBORnamed    ProgAndArgs
+    | DumpCBORdeBruijn ProgAndArgs
 
 
 -- Clausify options --
@@ -172,15 +171,15 @@ options = hsubparser
   <> command "dumpPLC"
      (info (DumpPLC <$> progAndArgs)
       (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
-  -- <> command "dumpCBORnamed"
-  --    (info (DumpCBORnamed <$> progAndArgs)
-  --     (progDesc "dump the AST as CBOR, preserving names"))
-  -- <> command "dumpCBOR"
-  --    (info (DumpCBORdeBruijn <$> progAndArgs)
-  --     (progDesc "same as dumpCBORdeBruijn, but easier to type"))
-  -- <> command "dumpCBORdeBruijn"
-  --    (info (DumpCBORdeBruijn <$> progAndArgs)
-  --     (progDesc "dump the AST as CBOR, with names replaced by de Bruijn indices"))
+  <> command "dumpCBORnamed"
+     (info (DumpCBORnamed <$> progAndArgs)
+      (progDesc "dump the AST as CBOR, preserving names"))
+  <> command "dumpCBOR"
+     (info (DumpCBORdeBruijn <$> progAndArgs)
+      (progDesc "same as dumpCBORdeBruijn, but easier to type"))
+  <> command "dumpCBORdeBruijn"
+     (info (DumpCBORdeBruijn <$> progAndArgs)
+      (progDesc "dump the AST as CBOR, with names replaced by de Bruijn indices"))
   )
 
 
@@ -198,11 +197,11 @@ toDeBruijn prog = do
 
 data CborMode = Named | DeBruijn
 
--- writeCBOR :: CborMode -> Program Name DefaultUni DefaultFun () -> IO ()
--- writeCBOR cborMode prog =
---     case cborMode of
---       Named    -> BSL.putStr $ serialiseOmittingUnits prog
---       DeBruijn -> toDeBruijn prog >>= BSL.putStr . serialiseOmittingUnits
+writeCBOR :: CborMode -> Program Name DefaultUni DefaultFun () -> IO ()
+writeCBOR cborMode prog =
+    case cborMode of
+      Named    -> BSL.putStr $ serialiseOmittingUnits prog
+      DeBruijn -> toDeBruijn prog >>= BSL.putStr . serialiseOmittingUnits
 
 description :: String
 description = "This program provides operations on a number of Plutus programs "
@@ -250,8 +249,8 @@ main = do
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa -> mapM_ putStrLn $ unindent . PLC.prettyPlcClassicDebug $ getWrappedProgram pa
                where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
-    -- DumpCBORnamed pa   -> writeCBOR Named $ getWrappedProgram pa
-    -- DumpCBORdeBruijn pa-> writeCBOR DeBruijn $ getWrappedProgram pa
+    DumpCBORnamed pa   -> writeCBOR Named $ getWrappedProgram pa
+    DumpCBORdeBruijn pa-> writeCBOR DeBruijn $ getWrappedProgram pa
     -- ^ Write the output to stdout and let the user deal with redirecting it.
     where getProgram =
               \case

@@ -18,7 +18,6 @@ import qualified Language.UntypedPlutusCore       as UPLC
 
 import           Flat                             (Flat, unflat)
 import           Flat.Decoder                     (DecodeException)
--- import           Codec.Serialise                  (DeserialiseFailure, Serialise, deserialiseOrFail)
 import           Control.Exception
 
 import qualified Data.ByteString                  as BS

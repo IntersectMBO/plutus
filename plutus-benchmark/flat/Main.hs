@@ -3,7 +3,7 @@
 
 module Main where
 
--- import           Codec.Serialise        (Serialise)
+import           Codec.Serialise        (Serialise)
 import           Control.DeepSeq        (NFData, force)
 import           Criterion.Main
 import           Criterion.Types
@@ -27,7 +27,7 @@ serializedContracts = fromList $
   concatMap serializeContract contractsWithNames ++
   concatMap serializeContract contractsWithIndices
   where
-    serializeContract :: (Flat a{-, Serialise a-})
+    serializeContract :: (Flat a, Serialise a)
                       => (Text, Tm a)
                       -> [((Text, Text), BS.ByteString)]
     serializeContract (name, tm) = do

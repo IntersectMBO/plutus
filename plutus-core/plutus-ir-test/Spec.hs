@@ -24,7 +24,6 @@ import qualified Language.PlutusCore      as PLC
 
 import           Test.Tasty
 
--- import           Codec.Serialise
 import           Flat                     (flat, unflat)
 
 main :: IO ()

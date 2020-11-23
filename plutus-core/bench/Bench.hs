@@ -8,7 +8,7 @@ import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
 
--- import           Codec.Serialise
+import           Codec.Serialise
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.State
@@ -47,15 +47,15 @@ main =
                       , bench "stringLiteral" $ nf parse g
                       ]
 
-                -- , env sampleScript $ \ f ->
-                --   let typeCheckConcrete :: Program TyName Name DefaultUni DefaultFun () -> Either (Error DefaultUni DefaultFun ()) (Normalized (Type TyName DefaultUni ()))
-                --       typeCheckConcrete p = runQuoteT $ do
-                --             tcConfig <- getDefTypeCheckConfig ()
-                --             inferTypeOfProgram tcConfig p
-                --       mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
-                --   in
+                , env sampleScript $ \ f ->
+                  let typeCheckConcrete :: Program TyName Name DefaultUni DefaultFun () -> Either (Error DefaultUni DefaultFun ()) (Normalized (Type TyName DefaultUni ()))
+                      typeCheckConcrete p = runQuoteT $ do
+                            tcConfig <- getDefTypeCheckConfig ()
+                            inferTypeOfProgram tcConfig p
+                      mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
+                  in
 
-                --   bgroup "type-check" $ mkBench <$> [f]
+                  bgroup "type-check" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name DefaultUni DefaultFun AlexPosn -> Either (Error DefaultUni DefaultFun AlexPosn) (Normalized (Type TyName DefaultUni ()))
@@ -67,13 +67,13 @@ main =
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
 
-                -- , env sampleScript $ \ f ->
-                --     let renameConcrete :: Program TyName Name DefaultUni DefaultFun () -> Program TyName Name DefaultUni DefaultFun ()
-                --         renameConcrete = runQuote . rename
-                --         mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
-                --   in
+                , env sampleScript $ \ f ->
+                    let renameConcrete :: Program TyName Name DefaultUni DefaultFun () -> Program TyName Name DefaultUni DefaultFun ()
+                        renameConcrete = runQuote . rename
+                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
+                  in
 
-                --   bgroup "renamer" $ mkBench <$> [f]
+                  bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let renameConcrete :: Program TyName Name DefaultUni DefaultFun AlexPosn -> Program TyName Name DefaultUni DefaultFun AlexPosn
@@ -83,21 +83,21 @@ main =
 
                     bgroup "renamer" $ mkBench <$> [f, g, h]
 
-                -- , env largeTypeFiles $ \ ~(f, g, h) ->
-                --     let mkBench src = bench "serialise" $ nf (fmap (serialise . void)) $ parse src
-                --     in
+                , env largeTypeFiles $ \ ~(f, g, h) ->
+                    let mkBench src = bench "serialise" $ nf (fmap (serialise . void)) $ parse src
+                    in
 
-                --     bgroup "CBOR" $ mkBench <$> [f, g, h]
+                    bgroup "CBOR" $ mkBench <$> [f, g, h]
 
-                -- , env largeTypeFiles $ \ ~(f, g, h) ->
-                --     let deserialiseProgram :: BSL.ByteString -> Program TyName Name DefaultUni DefaultFun ()
-                --         deserialiseProgram = deserialise
-                --         parseAndSerialise :: BSL.ByteString -> Either (ParseError AlexPosn) BSL.ByteString
-                --         parseAndSerialise = fmap (serialise . void) . parse
-                --         mkBench src = bench "deserialise" $ nf (fmap deserialiseProgram) $ parseAndSerialise src
-                --     in
+                , env largeTypeFiles $ \ ~(f, g, h) ->
+                    let deserialiseProgram :: BSL.ByteString -> Program TyName Name DefaultUni DefaultFun ()
+                        deserialiseProgram = deserialise
+                        parseAndSerialise :: BSL.ByteString -> Either (ParseError AlexPosn) BSL.ByteString
+                        parseAndSerialise = fmap (serialise . void) . parse
+                        mkBench src = bench "deserialise" $ nf (fmap deserialiseProgram) $ parseAndSerialise src
+                    in
 
-                --     bgroup "CBOR" $ mkBench <$> [f, g, h]
+                    bgroup "CBOR" $ mkBench <$> [f, g, h]
 
                 , env evalFiles $ \ ~(f, g) ->
                     let processor :: BSL.ByteString -> Either (Error DefaultUni DefaultFun AlexPosn) (Program TyName Name DefaultUni DefaultFun ())
@@ -145,4 +145,4 @@ main =
           evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"
           evalFile1 = BSL.readFile "test/Evaluation/Golden/verifySignatureError.plc"
           evalFiles = (,) <$> evalFile0 <*> evalFile1
-          -- sampleScript = BSL.readFile "bench/script.plci"
+          sampleScript = BSL.readFile "bench/script.plci"

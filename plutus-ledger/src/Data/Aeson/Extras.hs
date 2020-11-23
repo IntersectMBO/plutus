@@ -42,4 +42,3 @@ decodeSerialise = decodeByteString >=> go where
         case first show $ deserialiseOrFail $ BSL.fromStrict bs of
             Left e  -> fail e
             Right v -> pure v
-            Right v -> pure v
