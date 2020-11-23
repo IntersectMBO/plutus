@@ -16,9 +16,9 @@ import qualified Language.PlutusIR                as PIR
 import qualified Language.PlutusCore              as PLC
 import qualified Language.UntypedPlutusCore       as UPLC
 
+import           Control.Exception
 import           Flat                             (Flat, unflat)
 import           Flat.Decoder                     (DecodeException)
-import           Control.Exception
 
 import qualified Data.ByteString                  as BS
 import qualified Data.ByteString.Lazy             as BSL

@@ -46,9 +46,9 @@ import qualified Language.PlutusCore.Pretty       as PLC
 
 import           Control.Lens                     hiding (Strict)
 
-import           Flat                             (Flat)
 import qualified Data.Text                        as T
 import           Data.Text.Prettyprint.Doc.Custom
+import           Flat                             (Flat)
 
 -- Datatypes
 
