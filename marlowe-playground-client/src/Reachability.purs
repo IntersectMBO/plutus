@@ -3,6 +3,7 @@ module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State as CMS
+import Data.Foldable (for_)
 import Data.Function (flip, identity)
 import Data.Lens (assign)
 import Data.List (List(..), any, catMaybes, foldl, fromFoldable, length, null, snoc, toUnfoldable)
@@ -24,7 +25,7 @@ import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, ($), (&&), (+), (-), (/=), (<$>), (<>), (==))
+import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, when, ($), (&&), (+), (-), (/=), (<$>), (<>), (==), (>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), InProgressRecord, ReachabilityAnalysisData(..), RemainingSubProblemInfo, State, WebData, PrefixMap, _analysisState)
@@ -269,24 +270,24 @@ stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InPr
 stepAnalysis settings isReachable rad =
   let
     thereAreMore /\ newRad = stepSubproblem isReachable rad
+
+    thereAreNewCounterExamples = length newRad.unreachableSubcontracts > length rad.unreachableSubcontracts
   in
     if thereAreMore then do
       assign _analysisState (ReachabilityAnalysis (InProgress newRad))
-      refreshEditor
+      when thereAreNewCounterExamples refreshEditor
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
       updateWithResponse settings (InProgress newRad) response
     else do
       let
         result = finishAnalysis newRad
       assign _analysisState (ReachabilityAnalysis result)
-      refreshEditor
+      when thereAreNewCounterExamples refreshEditor
       pure result
   where
   refreshEditor = do
     mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
-    case mContent of
-      Just content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit
-      Nothing -> pure unit
+    for_ mContent (\content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit)
 
 updateWithResponse ::
   forall m.

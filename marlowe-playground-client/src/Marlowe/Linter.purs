@@ -269,7 +269,7 @@ stepPrefixMapEnvGeneric (LintEnv env@{ unreachablePaths: Just upOld, isReachable
 stepPrefixMapEnv :: forall a. Show a => LintEnv -> a -> Range -> ContractPathStep -> CMS.State State LintEnv
 stepPrefixMapEnv env t pos cp = stepPrefixMapEnvGeneric env markUnreachable cp
   where
-  markUnreachable = do addWarning UnreachableContract t pos
+  markUnreachable = addWarning UnreachableContract t pos
 
 -- Simpler version of the wrapper for places for where we know we won't get a root of unreachable code
 -- See isValidSubproblem in Reachability.purs for a list of roots of possible unreachable nodes
