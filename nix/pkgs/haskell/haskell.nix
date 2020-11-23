@@ -39,6 +39,7 @@ let
       "https://github.com/raduom/cardano-ledger-specs"."2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3" = "0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447";
       "https://github.com/input-output-hk/iohk-monitoring-framework"."5c9627b6aee487f9b7ec44981aba57a6afc659b1" = "0ndnhff32h37xsc61b181m4vwaj4vm1z04p2rfwffnjjmgz23584";
       "https://github.com/input-output-hk/ouroboros-network"."75153affa23a0e68e035d7bb19880fe1ae35b1d4" = "0aj6rsqp93k2079bipv2ia7m56h2xwwlcjffr7mr99cz6l9xj96i";
+      "https://github.com/agda/agda"."08191e66e65a4870bf43e21007909fc03150eabf" = "04w731n9nwqml15bfjy4sc277sdm3rvp280sq9y23wr8w7cazik5";
     };
     modules = [
       {
@@ -74,6 +75,7 @@ let
             "ghc-prim"
             "ghci"
             "haskeline"
+            "exceptions"
             "hpc"
             "mtl"
             "parsec"
