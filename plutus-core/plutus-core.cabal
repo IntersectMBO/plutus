@@ -342,6 +342,7 @@ test-suite plutus-ir-test
         base >=4.9 && <5,
         hedgehog -any,
         filepath -any,
+        flat -any,
         text -any,
         plutus-core -any,
         lens -any,

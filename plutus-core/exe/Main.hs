@@ -424,7 +424,6 @@ writeCBOR outp cborMode prog = do
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
 
-
 ---------------- Serialise a program using Flat ----------------
 
 serialiseProgramFlat :: Flat a => Program a -> BSL.ByteString

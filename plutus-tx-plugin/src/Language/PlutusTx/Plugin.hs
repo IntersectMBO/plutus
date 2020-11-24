@@ -37,15 +37,14 @@ import qualified Language.PlutusIR.Compiler.Definitions as PIR
 
 import           Language.Haskell.TH.Syntax             as TH
 
-import           Codec.Serialise                        (serialise)
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Flat                                   (flat)
 
 import qualified Data.ByteString                        as BS
-import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.ByteString.Unsafe                 as BSUnsafe
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
@@ -281,8 +280,8 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             -- this will actually terminate compilation
             else failCompilation shown
         Right (pirP, uplcP) -> do
-            bsLitPir <- makeByteStringLiteral $ BSL.toStrict $ serialise pirP
-            bsLitPlc <- makeByteStringLiteral $ BSL.toStrict $ serialise uplcP
+            bsLitPir <- makeByteStringLiteral $ flat pirP
+            bsLitPlc <- makeByteStringLiteral $ flat uplcP
 
             builder <- GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 

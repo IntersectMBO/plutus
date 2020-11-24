@@ -59,6 +59,7 @@ library
         bytestring -any,
         containers -any,
         extra -any,
+        flat -any,
         ghc >=8.10 && <9,
         ghc-prim -any,
         plutus-core -any,
@@ -94,6 +95,7 @@ test-suite plutus-tx-tests
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        flat -any,
         integer-gmp -any,
         plutus-core -any,
         plutus-tx -any,

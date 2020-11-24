@@ -42,6 +42,7 @@
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
