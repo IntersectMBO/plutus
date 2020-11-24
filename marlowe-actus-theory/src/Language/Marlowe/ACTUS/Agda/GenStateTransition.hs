@@ -40,8 +40,7 @@ previousState =
     } where
         genAccessor varName =
             Paren NoRange $ App NoRange (Ident $ QName $ quickname ("ContractState." ++ varName)) (defaultNamedArg $ ident "st")
-        quickname op = Name NoRange NotInScope $ (Id op) :| []
-        
+        quickname op = Name NoRange NotInScope $ (Id op) :| []        
 -- for every state variable - we generate specialised state transition function
 genStateTransitionsForStateVariables :: (ContractStatePoly Expr Expr) -> String -> String -> [String] -> [String] -> [Declaration]
 genStateTransitionsForStateVariables nextState functionName param1 params types =
