@@ -12,6 +12,7 @@ module Spec.Marlowe.Marlowe
 where
 
 import           Control.Exception                     (SomeException, catch)
+import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
 import qualified Data.Text                             as T
 import qualified Data.Text.IO                          as T
@@ -27,6 +28,7 @@ import           Data.Aeson.Text                       (encodeToLazyText)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
 import           Data.Ratio                            ((%))
+import qualified Data.Set                              as Set
 import           Data.String
 
 import qualified Codec.CBOR.Write                      as Write
@@ -57,6 +59,7 @@ tests = testGroup "Marlowe"
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testCase "Mul analysis" mulAnalysisTest
+    , testCase "extractContractRoles" extractContractRolesTest
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
@@ -195,6 +198,20 @@ validatorSize = do
     let validator = validatorScript $ scriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
+
+
+extractContractRolesTest :: IO ()
+extractContractRolesTest = do
+    extractContractRoles Close @=? mempty
+    extractContractRoles
+        (Pay (Role "Alice") (Party (Role "Bob")) ada (Constant 1) Close)
+            @=? Set.fromList ["Alice", "Bob"]
+    extractContractRoles
+        (When [Case (Deposit (Role "Bob") (Role "Alice") ada (Constant 10)) Close] 10 Close)
+            @=? Set.fromList ["Alice", "Bob"]
+    extractContractRoles
+        (When [Case (Choice (ChoiceId "test" (Role "Alice")) [Bound 0 1]) Close] 10 Close)
+            @=? Set.fromList ["Alice"]
 
 
 checkEqValue :: Property
