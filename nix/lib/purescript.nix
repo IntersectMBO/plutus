@@ -20,8 +20,6 @@
 , spagoPackages
   # web-common project
 , webCommon
-  # test script
-, checkPhase ? ""
 }:
 let
   # Cleans the source based on the patterns in ./.gitignore and the additionalIgnores
@@ -48,5 +46,4 @@ stdenv.mkDerivation {
   installPhase = ''
     mv dist $out
   '';
-  doCheck = true;
 }
