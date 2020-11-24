@@ -16,16 +16,16 @@ let
 in {
   imports = [ ./iam.nix ];
 
-  services.consul.policies.developer.servicePrefix."catalyst-" = {
+  services.consul.policies.developer.servicePrefix."plutus-" = {
     policy = "write";
     intentions = "write";
   };
 
-  services.nomad.policies.admin.namespace."catalyst-*".policy = "write";
-  services.nomad.policies.developer.namespace."catalyst-*".policy = "write";
+  services.nomad.policies.admin.namespace."plutus-*".policy = "write";
+  services.nomad.policies.developer.namespace."plutus-*".policy = "write";
 
   services.nomad.namespaces = {
-    catalyst-dryrun = { description = "Catalyst (dryrun)"; };
+    plutus-playground = { description = "Plutus Playground"; };
   };
 
   cluster = {
@@ -33,10 +33,6 @@ in {
 
     adminNames = [
       "craige.mcwhirter"
-      "john.lotoski"
-      "michael.fellinger"
-      "sam.evans-powell"
-      "samuel.leathers"
     ];
     developerGithubNames = [ ];
     developerGithubTeamNames = [ "plutus" ];
@@ -83,7 +79,6 @@ in {
             "${self.inputs.nixpkgs}/nixos/modules/virtualisation/ec2-data.nix"
             "${extraConfig}"
             ./secrets.nix
-            ./ceph.nix
           ];
 
           securityGroupRules = {
@@ -125,7 +120,8 @@ in {
         ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh;
+          inherit (securityGroupRules)
+            internet internal ssh http https haproxyStats vault-http grpc;
         };
 
         initialVaultSecrets = {
@@ -153,7 +149,8 @@ in {
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh;
+          inherit (securityGroupRules)
+            internet internal ssh http https haproxyStats vault-http grpc;
         };
       };
 
@@ -165,7 +162,8 @@ in {
         modules = [ (bitte + /profiles/core.nix) ./secrets.nix ];
 
         securityGroupRules = {
-          inherit (securityGroupRules) internet internal ssh;
+          inherit (securityGroupRules)
+            internet internal ssh http https haproxyStats vault-http grpc;
         };
       };
 
