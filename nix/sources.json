@@ -87,14 +87,6 @@
     "url": "https://github.com/NixOS/nixpkgs/archive/d105075a1fd870b1d1617a6008cb38b443e65433.tar.gz",
     "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
   },
-  "nodejs-headers": {
-    "builtin": false,
-    "rev": "v12.19.0",
-    "sha256": "1fb0dkzsprilybg30nhgdy0fcaqx9kc89iyrw6871frkaqmcdwwn",
-    "type": "file",
-    "url": "https://nodejs.org/download/release/v12.19.0/node-v12.19.0-headers.tar.gz",
-    "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
-  },
   "npmlock2nix": {
     "branch": "github-experiment",
     "builtin": false,

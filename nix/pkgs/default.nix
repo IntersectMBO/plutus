@@ -123,9 +123,6 @@ let
   # sphinx haddock support
   sphinxcontrib-haddock = pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
 
-  # nodejs headers  (needed for purescript builds)
-  nodejs-headers = sources.nodejs-headers;
-
   # ghc web service
   web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 
@@ -160,7 +157,7 @@ let
 in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
-  inherit nix-pre-commit-hooks nodejs-headers;
+  inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
   inherit purty purty-pre-commit purs spago;
   inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;

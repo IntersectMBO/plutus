@@ -23,7 +23,7 @@ let
   inherit (packages) pkgs plutus plutusMusl;
   inherit (pkgs) lib haskell-nix;
   inherit (plutus) haskell iohkNix git-rev set-git-rev agdaPackages;
-  inherit (plutus) easyPS sphinxcontrib-haddock nodejs-headers;
+  inherit (plutus) easyPS sphinxcontrib-haddock;
 in
 rec {
   inherit pkgs plutus plutusMusl;
