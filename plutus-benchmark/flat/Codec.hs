@@ -5,7 +5,7 @@
 module Codec ( Codec(..)
              , Tm
              , flatCodec
-             -- , cborCodec
+             , cborCodec
              , withZlib
              , withPureZlib
              , codecs
