@@ -212,8 +212,7 @@ step (s ; ρ ▻ builtin bn σ [])       | L.[]     | [[ p ]]
 ... | inj₂ A = ◆ A
 step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
   (s , builtin- bn σ L.[] _ A As p ts ρ) ; ρ ▻ t
-step (x ; x₁ ▻ pbuiltin b Ψ' σ As' p x₂) =
-  ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)
+step (_ ; _ ▻ ibuiltin b) = ◆ (itype b)
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M

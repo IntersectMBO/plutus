@@ -79,7 +79,7 @@ import Scoped.Extrication
 
 import Scoped.CK
 
---import Check
---import Main
+import Check
+import Main
 \end{code}
 
