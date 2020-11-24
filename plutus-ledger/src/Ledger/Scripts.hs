@@ -86,13 +86,21 @@ import           LedgerBytes                         (LedgerBytes (..))
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
--- | Don't include unit annotations in the CBOR when serialising.
--- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 
-{-| A lot of the plutus infrastructure uses CBOR for serialisation, but we are using
-  flat for encoding plutus terms. Here we are providing a CBOR instance for plutus
-  terms by encoding the term to a `ByteString` value using flat, and further encode
-  it using CBOR. -}
+{-| Note [Using Flat inside CBOR instance of Script]
+`plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
+choice to use Flat was made to have a more efficient (most wins are in uncompressed
+size) data serialisation format and use less space on-chain.
+
+To make `plutus-ledger` work with scripts serialised with Flat, and keep the CBOR
+format otherwise we have defined a Serialise instance for Script, which is a wrapper
+over Programs serialised with Flat. The instance will see programs as an opaque
+ByteString, which is the result of encoding programs using Flat.
+
+Because Flat is not self-describing and it gets used in the encoding of Programs,
+data structures that include scripts (for example, transactions) no-longer benefit
+for CBOR's ability to self-describe it's format.
+-}
 instance Serialise Script where
   encode = encode . flat . unScript
   decode = do
