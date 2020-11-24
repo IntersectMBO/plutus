@@ -175,7 +175,6 @@
           "MAlonzo/RTE"
           "MAlonzo/Code/Algorithmic"
           "MAlonzo/Code/Algorithmic/CK"
-          "MAlonzo/Code/Algorithmic/CEKC"
           "MAlonzo/Code/Algorithmic/CEKV"
           "MAlonzo/Code/Check"
           "MAlonzo/Code/Scoped/CK"

@@ -38,6 +38,7 @@ open import Utils
 open import Untyped
 open import Scoped.CK
 open import Algorithmic
+open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
 open import Scoped.Erasure
@@ -156,9 +157,9 @@ postulate
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
 
 data EvalMode : Set where
-  U L TCK CK TCEKV : EvalMode
+  U TL L TCK CK TCEKV : EvalMode
 
-{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKV) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (U | TL | L | TCK | CK | TCEKV) #-}
 
 -- the Error's returned by `plc-agda` and the haskell interface to `metatheory`.
 
@@ -218,6 +219,12 @@ reportError (runtimeError _) = "gasError"
 
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = inj₁ (runtimeError gasError)
+executePLC TL t = do
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
+  just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
+    where nothing → inj₂ "ERROR"
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
+
 executePLC L t with S.run t maxsteps
 ... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (unshifter Z (extricateScope t')))
 ... | t' ,, p ,, inj₁ nothing  = inj₁ (runtimeError gasError)

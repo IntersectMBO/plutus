@@ -159,16 +159,16 @@ IBUILTIN : (b : Builtin)
     → (tel : ITel b Γ σ)
       -----------------------------
     → ∅ ⊢ substNf σ C
-IBUILTIN addInteger σ ((tt ,, .(con (integer i)) ,, V-con (integer i)) ,, .(con (integer i₁)) ,, V-con (integer i₁)) = con (integer (i + i₁))
-IBUILTIN subtractInteger σ tel = error _
-IBUILTIN multiplyInteger σ tel = error _
+IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i + j))
+IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i - j))
+IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i ** j))
 IBUILTIN divideInteger σ tel = error _
 IBUILTIN quotientInteger σ tel = error _
 IBUILTIN remainderInteger σ tel = error _
 IBUILTIN modInteger σ tel = error _
-IBUILTIN lessThanInteger σ tel = error _
-IBUILTIN lessThanEqualsInteger σ tel = error _
-IBUILTIN greaterThanInteger σ tel = error _
+IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i <? j) (con (bool true)) (con (bool false))
+IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i ≤? j) (con (bool true)) (con (bool false))
+IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
 IBUILTIN greaterThanEqualsInteger σ tel = error _
 IBUILTIN equalsInteger σ tel = error _
 IBUILTIN concatenate σ tel = error _
@@ -178,7 +178,10 @@ IBUILTIN sha2-256 σ tel = error _
 IBUILTIN sha3-256 σ tel = error _
 IBUILTIN verifySignature σ tel = error _
 IBUILTIN equalsByteString σ tel = error _
-IBUILTIN ifThenElse σ tel = error _
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
+  proj₁ f
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
+  proj₁ t
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -570,6 +573,14 @@ progress (ibuiltin verifySignature) = done (V-I⇒ verifySignature {Γ = proj₁
 progress (ibuiltin equalsByteString) = done (V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString))
 progress (ibuiltin ifThenElse) = done (V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse))
 progress (error A)            = error E-error
+
+open import Data.Nat
+progressor : ℕ → ∀{A} → (t : ∅ ⊢ A) → Either RuntimeError (Maybe (∅ ⊢ A))
+progressor zero t = inj₁ gasError
+progressor (suc n) t with progress t
+... | step {N = t'} _ = progressor n t'
+... | done v = inj₂ (just (deval v))
+... | error _ = inj₂ nothing -- should this be an runtime error?
 --
 
 open import Data.Empty

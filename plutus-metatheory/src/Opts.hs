@@ -23,7 +23,7 @@ stdInput = flag' StdInput
 input :: Parser Input
 input = fileInput <|> stdInput
 
-data EvalMode = U | L | TCK | CK | TCEKV deriving (Show, Read)
+data EvalMode = U | TL | L | TCK | CK | TCEKV deriving (Show, Read)
 
 data EvalOptions = EvalOpts Input EvalMode
 
