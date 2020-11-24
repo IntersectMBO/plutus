@@ -32,7 +32,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/yarn.nix$" ".*/packages.nix$" ];
+        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };
@@ -52,7 +52,6 @@ let
     sqlite-interactive
     stack
     terraform_0_12
-    yarn
     yubikey-manager
     z3
     zlib
