@@ -135,17 +135,17 @@ failure into a 'Term', apart from the straightforward generalization of 'CekM'.
 -}
 
 -- | The CEK machine-specific 'EvaluationException', parameterized over @term@.
-type CekEvaluationExceptionCarrying fun term =
+type CekEvaluationExceptionCarrying term fun =
     EvaluationException CekUserError fun term
 
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
 -- 'State' is inside the 'ExceptT', so we can get it back in case of error.
 type CekCarryingM term uni fun =
-    ReaderT (CekEnv uni fun) (ExceptT (CekEvaluationExceptionCarrying fun term) (State (CekExBudgetState fun)))
+    ReaderT (CekEnv uni fun) (ExceptT (CekEvaluationExceptionCarrying term fun) (State (CekExBudgetState fun)))
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni fun = CekEvaluationExceptionCarrying fun (Term Name uni fun ())
+type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
 
 -- | The monad the CEK machine runs in.
 type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
