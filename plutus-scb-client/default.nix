@@ -15,7 +15,6 @@ let
       psSrc = generated-purescript;
       packages = pkgs.callPackage ./packages.nix { };
       spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-      checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
     };
 
   demo-scripts = (dbPath: pkgs.callPackage ./pab-demo-scripts.nix { inherit pkgs dbPath client; scb-exes = haskell.packages.plutus-scb.components.exes; });

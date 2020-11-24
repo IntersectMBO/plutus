@@ -34,7 +34,6 @@ let
     psSrc = generated-purescript;
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-    checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
   };
 in
 {
