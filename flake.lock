@@ -20,7 +20,7 @@
         "utils": "utils_3"
       },
       "locked": {
-        "narHash": "sha256-WhJPe1mbZF03Of8VLrALWiVMuYGjZeOMGpesqfr07jg=",
+        "narHash": "sha256-nH+6snvy1ciX+Yf/Ih6lb+Y4Nv/O9ssVrWwxKkDy+Rs=",
         "path": "/home/craige/source/IOHK/bitte",
         "type": "path"
       },
