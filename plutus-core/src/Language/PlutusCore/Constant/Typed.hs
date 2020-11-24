@@ -340,3 +340,36 @@ instance KnownBuiltinType term String        => KnownType term String
 instance KnownBuiltinType term Char          => KnownType term Char
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool
+
+{- Note [Int as Integer]
+We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
+unlifting constants (and fail if it doesn't).
+
+There's a catch, though: an out-of-bounds error is not an internal one -- it's a normal
+evaluation failure, but unlifting errors have this connotation of being "internal".
+We could make 'readKnown' return an @m (EvaluationResult a)@, but that makes it more awkward
+to use (in particular, in functions like 'readKnownCek').
+
+Another option is be to define and use @AsEvaluationFailure@ in addition to 'AsUnliftingError'.
+That would in fact improve other things too, for example we'd be able to run 'makeKnown' in the
+same monad as 'readKnown', which is nice and convenient as we wouldn't need to explicitly turn
+an 'EvaluationFailure' into 'CekEvaluationFailure' (and the same for the CK machine) anymore.
+
+Another option is to give up the distinction between internal and external errors completely.
+
+For now we keep the distinction, but blur it by allowing an out-of-bounds error be thrown as
+an 'UnliftingError' as it's the most trivial thing to implement. But we should do something
+consistent eventually.
+-}
+
+instance uni `Includes` Integer => KnownTypeAst uni Int where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Int as Integer].
+instance KnownBuiltinType term Integer => KnownType term Int where
+    makeKnown = makeKnown . toInteger
+    readKnown term = do
+        i :: Integer <- readKnown term
+        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
+            throwingWithCause _UnliftingError "Does not fit into 'Int'" $ Just term
+        pure $ fromIntegral i
