@@ -55,15 +55,15 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
           mRangeHeader <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.topDecorationId identity)
           mRangeFooter <- query _jsEditorSlot unit (Monaco.GetDecorationRange decorIds.bottomDecorationId identity)
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
-          if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
-            ( do
-                liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
-                assign _compilationResult NotCompiled
-            )
+          if ((mContent == Nothing) || (mContent == Just prunedText)) then
+            -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
+            assign _compilationResult NotCompiled
           else
-            if (mContent == Just prunedText) then
-              -- To prevent infinite loops (should not be needed)
-              assign _compilationResult NotCompiled
+            if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
+              ( do
+                  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
+                  assign _compilationResult NotCompiled
+              )
             else
               editorSetValue (fromMaybe "" mContent)
         Nothing -> editorSetValue prunedText
