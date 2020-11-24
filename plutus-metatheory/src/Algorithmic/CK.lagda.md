@@ -208,7 +208,7 @@ step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ .[] (Sum.inj₁ (base ,, refl)) ts)
 step (s ▻ pbuiltin b Ψ' σ .[] (Sum.inj₁ (skip p ,, refl)) ts) =
   s ◅ V-pbuiltin⋆ b Ψ' σ p
 step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ .(proj₁ (proj₂ (SIG b))) (Sum.inj₂ (refl ,, base)) ts) =
-  s ▻ {!BUILTIN!}
+  s ▻ {!!}
 step (s ▻ pbuiltin b .(proj₁ (SIG b)) σ As' (Sum.inj₂ (refl ,, skip q)) ts) =
   s ◅ V-pbuiltin b σ _ As' q ts
   -- ◆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ)

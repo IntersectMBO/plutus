@@ -106,10 +106,6 @@ ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (renNf-substNf σ ρ⋆ A)
   (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
-ren ρ⋆ ρ (pbuiltin b Ψ' σ As' p ts) = conv⊢
-  refl
-  (abstractArg-ren _ _ _ _ _ As' p _ σ ρ⋆)
-  (pbuiltin b Ψ' (renNf ρ⋆ ∘ σ) As' p (renTel ρ⋆ ρ ts))
 ren ρ⋆ ρ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 
@@ -222,10 +218,6 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (substNf-comp σ' σ⋆ A)
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
-subst σ⋆ σ (pbuiltin b Ψ' σ⋆' As' p ts) = let _ ,, _ ,, A = SIG b in conv⊢
-  refl
-  (abstractArg-subst _ _ _ _ _ _ p A σ⋆' σ⋆)
-  (pbuiltin b Ψ' (substNf σ⋆ ∘ σ⋆') As' p (substTel σ⋆ σ ts))
 subst σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-subst b σ⋆) (ibuiltin b)
 subst σ⋆ σ (error A) = error (substNf σ⋆ A)
 \end{code}

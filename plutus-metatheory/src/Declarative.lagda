@@ -1,3 +1,4 @@
+
 \begin{code}
 module Declarative where
 \end{code}

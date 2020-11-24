@@ -91,22 +91,6 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
     → (cn : TermCon (con tcn))
     → Value (con cn)
 
-  V-pbuiltin : (b : Builtin)
-    → let Ψ ,, As ,, C = SIG b in
-      (σ : SubNf Ψ ∅)
-    → (A : Ψ ⊢Nf⋆ *)
-    → (As' : List (Ψ ⊢Nf⋆ *))
-    → (p : (A ∷ As') ≤L' As)
-    → (ts : Tel ∅ Ψ σ As')
-    → Value (pbuiltin b Ψ σ As' (inj₂ (refl ,, skip p)) ts)
-
-  V-pbuiltin⋆ : (b : Builtin)
-    → let Ψ ,, As ,, C = SIG b in
-      ∀ Ψ' {K} → 
-      (σ : SubNf Ψ' ∅)
-    → (p : (Ψ' ,⋆ K) ≤C⋆' Ψ)
-    → Value (pbuiltin b Ψ' σ [] (inj₁ (skip p ,, refl)) [])
-
   -- It is not necessary to index by the builtin, I could instead index
   -- by a context which is extracted from the builtin in the base case,
   -- but is it helpful to have it on the top level?
@@ -334,54 +318,6 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → ts —→T ts'
     → builtin bn σ ts —→ builtin bn σ ts'
 
-  tick-pbuiltin : {b : Builtin}
-      → let Ψ ,, As ,, C = SIG b in
-        (σ : SubNf Ψ ∅)
-      → {ts : Tel ∅ Ψ σ []}
-      → pbuiltin b Ψ σ []  (inj₁ (base ,, refl)) ts
-        —→ pbuiltin b Ψ σ [] (inj₂ (refl ,, []≤L' _)) ts
-
-  β-pbuiltin : 
-      (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : SubNf Δ ∅)
-    → (ts : Tel ∅ Δ σ As)
-    → (vts : VTel Δ σ As ts)
-      -----------------------------
-    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts —→ BUILTIN bn σ ts vts
-    
-  ξ-pbuiltin : (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : SubNf Δ ∅)
-    → {ts ts' : Tel ∅ Δ σ As}
-    → ts —→T ts'
-    → pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts —→ pbuiltin bn _ σ _ (inj₂ (refl ,, base)) ts'
-
-  sat⋆ : (b : Builtin)
-    → let Δ ,, As ,, C = SIG b in
-      ∀ Ψ K
-    → (σ : SubNf Ψ ∅)
-    → (A : ∅ ⊢Nf⋆ K)
-    → (p : (Ψ ,⋆ K) ≤C⋆' Δ)
-    → pbuiltin b Ψ σ [] (inj₁ (skip p ,, refl)) [] ·⋆ A
-      —→ conv⊢ refl
-               (substNf-cons-[]Nf
-                 (abstractTy Δ (Ψ ,⋆ _) p (abstractTm Δ As [] ([]≤L' As) C)))
-               (pbuiltin b (Ψ ,⋆ K) (substNf-cons σ A) [] (inj₁ (p ,, refl)) [])
-
-  sat : (b : Builtin)
-    → let Δ ,, As ,, C = SIG b in
-      (σ : SubNf Δ ∅)
-    → (As' : List (Δ ⊢Nf⋆ *))
-    → (ts : Tel ∅ Δ σ As')
-    → ∀ A
-    → ∀ t
-    → (p : (A ∷ As') ≤L' As)
-    → Value t
-    → pbuiltin b Δ σ As' (inj₂ (refl ,, skip p)) ts · t
-      —→ pbuiltin b Δ σ (A ∷ As') (inj₂ (refl ,, p)) (t ∷ ts)
-
-
   E-·₂ : {A B : ∅ ⊢Nf⋆ *} {L : ∅ ⊢ A ⇒ B}
     → Value L
     → L · error A —→ error B
@@ -404,13 +340,6 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (ts : Tel ∅ Δ σ As)
     → Any Error ts
     → builtin bn σ ts —→ error (substNf σ C)
-
-  E-pbuiltin : (b :  Builtin)
-    → let Ψ ,, As ,, C = SIG b in
-      (σ : SubNf Ψ ∅)
-    → (ts : Tel ∅ Ψ σ As)
-    → Any Error ts
-    → pbuiltin b Ψ σ As (inj₂ (refl ,, base)) ts —→ error (abstractArg As As (inj₂ (refl ,, base)) C σ)
 
   β-sbuiltin :
       (b : Builtin)
@@ -508,8 +437,6 @@ progress-·V :  {A B : ∅ ⊢Nf⋆ *}
 progress-·V v       (step q)        = step (ξ-·₂ v q)
 progress-·V v       (error E-error) = step (E-·₂ v)
 progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
-progress-·V (V-pbuiltin b σ A As' p ts) (done v) =
-  step (sat b σ As' ts A (deval v) p v)
 progress-·V (V-I⇒ b p q r σ base vs t) (done v) = step (β-sbuiltin b σ p q _ r t (deval v) vs v)
 -- ^ we're done, call BUILTIN
 progress-·V (V-I⇒ b p' q r σ (skip⋆ p) vs t) (done v) = done (V-IΠ b p' q r σ p (vs ,, deval v ,, v) (t · deval v))
@@ -553,7 +480,6 @@ progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆
 progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
-progress-·⋆ (done (V-pbuiltin⋆ b Ψ σ p)) A = step (sat⋆ b Ψ _ σ A p)
 progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip⋆ p) vs t)) A = done (val-lem (Πlem p A C σ) (V-IΠ b {C = C} p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (Πlem p A C σ) (t ·⋆ A))) )
 progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip p) vs t))  A = done (val-lem (⇒lem p σ C) (V-I⇒ b p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (⇒lem p σ C) (t ·⋆ A) )))
 progress-·⋆ (done (V-IΠ b p q r σ base vs t)) A = step (β-sbuiltin⋆ b σ p q _ r t vs)
@@ -576,15 +502,6 @@ progress-builtin bn σ tel (done vtel)                       =
   step (β-builtin bn σ tel vtel)
 progress-builtin bn σ tel (step p) = step (ξ-builtin bn σ p)
 progress-builtin bn σ tel (error p) = step (E-builtin bn σ tel p)
-
-progress-pbuiltin : ∀ bn
-  (σ : SubNf (proj₁ (SIG bn)) ∅)
-  (tel : Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
-  → TelProgress tel
-  → Progress (pbuiltin bn _ σ _ (inj₂ (refl ,, base)) tel)
-progress-pbuiltin bn σ tel (done vs) = step (β-pbuiltin bn σ tel vs)
-progress-pbuiltin bn σ tel (step p)  = step (ξ-pbuiltin bn σ p)
-progress-pbuiltin bn σ tel (error e) = step (E-pbuiltin bn σ tel e)
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 
@@ -629,15 +546,7 @@ progress (wrap A B M) = progress-wrap (progress M)
 progress (unwrap M)          = progress-unwrap (progress M)
 progress (con c)              = done (V-con c)
 progress (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel ts)
-progress (pbuiltin b .(proj₁ (SIG b)) σ .[] (inj₁ (base ,, refl)) ts) =
-  step (tick-pbuiltin σ)
-progress (pbuiltin b Ψ' σ As' (inj₁ (skip q ,, refl)) []) =
-  done (V-pbuiltin⋆ b Ψ' σ q)
-progress (pbuiltin b Ψ' σ _ (inj₂ (refl ,, base)) ts) =
-  progress-pbuiltin b σ ts (progressTel ts)
-progress (pbuiltin b Ψ' σ As' (inj₂ (refl ,, skip r)) ts) =
-  done (V-pbuiltin b σ _ _ r ts)
-  
+
 -- these are a bit annoying, it would be nice to be able to look at
 -- the signature instead and the decide what to do
 progress (ibuiltin addInteger) = done (V-I⇒ addInteger {Γ = proj₁ (proj₂ (ISIG addInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG addInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin addInteger))
@@ -661,37 +570,43 @@ progress (ibuiltin verifySignature) = done (V-I⇒ verifySignature {Γ = proj₁
 progress (ibuiltin equalsByteString) = done (V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString))
 progress (ibuiltin ifThenElse) = done (V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse))
 progress (error A)            = error E-error
-{-
 --
 
 open import Data.Empty
 
 -- progress is disjoint:
 
-
+{-
 -- a value cannot make progress
-val-red : ∀{∅ ∅}{σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Value t → ¬ (Σ (∅ ⊢ σ) (t —→_))
+val-red : {σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Value t → ¬ (Σ (∅ ⊢ σ) (t —→_))
 val-red (V-wrap p) (.(wrap _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
+val-red (V-wrap v) (.(error (μ _ _)) ,, E-wrap) = {!val-err v!}
 
-valT-redT : ∀ {∅ ∅ Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
-  → {ts : Tel ∅ Δ σ As} → VTel ∅ Δ σ As ts → ¬ Σ (Tel ∅ Δ σ As) (ts —→T_)
+val-red (V-I⇒ b p₁ q r σ p' x t) (t' ,, p) = {!!}
+-- this is impossible because p' : Δ , A ≤C' Γ and we can only compute
+-- if we have a full telescope...  but, t can be anything here,
+-- perhaps it's better to match on the rules instead?
+val-red (V-IΠ b p₁ q r σ p₂ x _) (t ,, p) = {!!}
+
+valT-redT : ∀ {Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+  → {ts : Tel ∅ Δ σ As} → VTel Δ σ As ts → ¬ Σ (Tel ∅ Δ σ As) (ts —→T_)
 valT-redT (v ,, vs) (.(_ ∷ _) ,, here p)    = val-red v (_ ,, p)
 valT-redT (v ,, vs) (.(_ ∷ _) ,, there w p) = valT-redT vs (_ ,, p)
 
 -- a value cannot be an error
-val-err : ∀{∅ ∅}{σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Value t → ¬ (Error t)
-val-err () E-error
+val-err : {σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Value t → ¬ (Error t)
+val-err p E-error = {!!}
 
-valT-errT : ∀ {∅ ∅ Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
-  → {ts : Tel ∅ Δ σ As} → VTel ∅ Δ σ As ts → ¬ (Any Error ts)
+valT-errT : ∀ {Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+  → {ts : Tel ∅ Δ σ As} → VTel Δ σ As ts → ¬ (Any Error ts)
 valT-errT (v ,, vs) (here p)    = val-err v p
 valT-errT (v ,, vs) (there w p) = valT-errT vs p
 
 -- an error cannot make progress
-red-err : ∀{∅ ∅}{σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Σ (∅ ⊢ σ) (t —→_) → ¬ (Error t)
+red-err : {σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ σ} → Σ (∅ ⊢ σ) (t —→_) → ¬ (Error t)
 red-err () E-error
 
-redT-errT : ∀ {∅ ∅ Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+redT-errT : ∀ {Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
   → {ts : Tel ∅ Δ σ As} → Σ (Tel ∅ Δ σ As) (ts —→T_) → ¬ (Any Error ts)
 redT-errT (.(_ ∷ _) ,, here p)    (here q)    = red-err (_ ,, p) q
 redT-errT (.(_ ∷ _) ,, there v p) (here q)    = val-err v q
@@ -699,23 +614,23 @@ redT-errT (.(_ ∷ _) ,, here p)    (there w q) = val-red w (_ ,, p)
 redT-errT (.(_ ∷ _) ,, there v p) (there w q) = redT-errT (_ ,, p) q
 
 -- values are unique for a term
-valUniq : ∀ {∅ ∅} {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) → (v v' : Value t) → v ≡ v'
+valUniq : ∀ {A : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ A) → (v v' : Value t) → v ≡ v'
 valUniq .(ƛ _)         (V-ƛ _)    (V-ƛ _)     = refl
 valUniq .(Λ _)         (V-Λ _)    (V-Λ _)     = refl
 valUniq .(wrap _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
 valUniq .(con cn)      (V-con cn) (V-con .cn) = refl
-valUniq _ (V-pbuiltin⋆ _ _ _ _) (V-pbuiltin⋆ _ _ _ _) = refl
-valUniq _ (V-pbuiltin _ _ _ _ _ _ ) (V-pbuiltin _ _ _ _ _ _ ) = refl
-
+--valUniq _ (V-pbuiltin⋆ _ _ _ _) (V-pbuiltin⋆ _ _ _ _) = refl
+--valUniq _ (V-pbuiltin _ _ _ _ _ _ ) (V-pbuiltin _ _ _ _ _ _ ) = refl
+valUniq _ _ _ = {!!}
 
 -- telescopes of values are unique for that telescope
-vTelUniq : ∀ {∅} ∅ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
+vTelUniq : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
   → (tel : Tel ∅ Δ σ As)
-  → (vtel vtel' : VTel ∅ Δ σ As tel)
+  → (vtel vtel' : VTel Δ σ As tel)
   → vtel ≡ vtel'
-vTelUniq ∅ Δ σ [] [] vtel vtel' = refl
-vTelUniq ∅ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
-  cong₂ _,,_ (valUniq t v v') (vTelUniq ∅ Δ σ As tel vtel vtel') 
+vTelUniq Δ σ [] [] vtel vtel' = refl
+vTelUniq Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
+  cong₂ _,,_ (valUniq t v v') (vTelUniq Δ σ As tel vtel vtel') 
 
 -- exclusive or
 _xor_ : Set → Set → Set
@@ -737,14 +652,14 @@ notboth' (p ,, e) = red-err p e
 
 progress-xor : {σ : ∅ ⊢Nf⋆ *}(t : ∅ ⊢ σ)
   → Value t xor (Σ (∅ ⊢ σ) (t —→_)) xor Error t
-progress-xor t with progress _ t
+progress-xor t with progress t
 progress-xor t | step p  = (inj₂ ((inj₁ (_ ,, p)) ,, λ{(p ,, e) → red-err p e})) ,, λ { (v ,, inj₁ p ,, q) → val-red v p ; (v ,, inj₂ e ,, q) → val-err v e}
 progress-xor t | done v  = (inj₁ v) ,, (λ { (v' ,, inj₁ p ,, q) → val-red v p ; (v' ,, inj₂ e ,, q) → val-err v e})
 progress-xor t | error e = (inj₂ ((inj₂ e) ,, (λ { (p ,, e) → red-err p e}))) ,, λ { (v ,, q) → val-err v e }
 -- the reduction rules are deterministic
-det : ∀{∅ ∅}{σ : ∅ ⊢Nf⋆ *}{t t' t'' : ∅ ⊢ σ}
+det : ∀{σ : ∅ ⊢Nf⋆ *}{t t' t'' : ∅ ⊢ σ}
   → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
-detT : ∀{∅}{∅}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As}{ts ts' ts'' : Tel ∅ Δ σ As}
+detT : ∀{Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}{As}{ts ts' ts'' : Tel ∅ Δ σ As}
     → (p : ts —→T ts')(q : ts —→T ts'') → ts' ≡ ts''
 
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
@@ -762,7 +677,7 @@ det (ξ-unwrap p) (β-wrap q) = ⊥-elim (val-red (V-wrap q) (_ ,, p))
 det (ξ-unwrap p) (ξ-unwrap q) = cong unwrap (det p q)
 det (ξ-wrap p) (ξ-wrap q) = cong (wrap _ _) (det p q)
 det (β-builtin bn σ ts vs) (β-builtin .bn .σ .ts ws) =
-  cong (BUILTIN bn σ ts) (vTelUniq _ _ σ _ ts vs ws)
+  cong (BUILTIN bn σ ts) (vTelUniq _ σ _ ts vs ws)
 det (β-builtin bn σ ts vs) (ξ-builtin .bn .σ p) =
   ⊥-elim (valT-redT vs (_ ,, p))
 det (ξ-builtin bn σ p) (β-builtin .bn .σ ts vs) =
@@ -773,39 +688,20 @@ det (ξ-builtin _ _ p) (E-builtin _ _ _ q) = ⊥-elim (redT-errT (_ ,, p) q)
 det (E-builtin _ _ _ _) (E-builtin _ _ _ _) = refl
 det (E-builtin bn σ ts p) (β-builtin .bn .σ .ts vs) = ⊥-elim (valT-errT vs p)
 det (E-builtin bn σ ts p) (ξ-builtin .bn .σ q) = ⊥-elim (redT-errT (_ ,, q) p)
-det E-·₁ (ξ-·₁ ())
+det E-·₁ (ξ-·₁ p) = {!!}
 det (E-·₂ v) (ξ-·₁ p) = ⊥-elim (val-red v (_ ,, p))
 det (E-·₂ v) (E-·₂ w) = refl
-det (E-·₂ ()) E-·₁
+det (E-·₂ p) E-·₁ = {!!}
 det (ξ-·₁ p) (E-·₂ v) = ⊥-elim (val-red v (_ ,, p))
-det E-·₁ (E-·₂ ())
+det E-·₁ (E-·₂ p) = {!!}
 det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
-det (ξ-·₂ x p) (sat b σ As' ts A _ p₁ v) = ⊥-elim (val-red v (_ ,, p))
-det (tick-pbuiltin σ) (tick-pbuiltin .σ) = refl
-det (β-pbuiltin bn σ ts vts) (β-pbuiltin .bn .σ .ts vts') =
-  cong (BUILTIN bn σ ts) (vTelUniq _ _ σ _ ts vts vts')
-det (β-pbuiltin bn σ ts vts) (ξ-pbuiltin .bn .σ p) =
-  ⊥-elim (valT-redT vts (_ ,, p))
-det (β-pbuiltin bn σ ts vts) (E-pbuiltin .bn .σ .ts e) =
-  ⊥-elim (valT-errT vts e)
-det (ξ-pbuiltin bn σ p) (β-pbuiltin .bn .σ _ vts) =
-  ⊥-elim (valT-redT vts (_ ,, p))
-det (ξ-pbuiltin bn σ p) (ξ-pbuiltin .bn .σ q) =
-  cong (pbuiltin bn _ σ _ _) (detT p q)
-det (ξ-pbuiltin bn σ p) (E-pbuiltin .bn .σ _ e) = ⊥-elim (redT-errT (_ ,, p) e)
-det (sat⋆ b Ψ K σ A p) (sat⋆ .b .Ψ .K .σ .A .p) = refl
-det (sat b σ As' ts A t p _) (sat .b .σ .As' .ts .A .t .p _) = refl
-det (E-pbuiltin b σ ts e) (β-pbuiltin .b .σ .ts vts) = ⊥-elim (valT-errT vts e)
-det (E-pbuiltin b σ ts e) (ξ-pbuiltin .b .σ p) =
-  ⊥-elim (redT-errT (_ ,, p) e)
-det (E-pbuiltin b σ ts e) (E-pbuiltin .b .σ .ts e') = refl
-det (sat _ _ _ _ _ _ _ v) (ξ-·₂ _ q) = ⊥-elim (val-red v (_ ,, q))
+det _ _ = {!!}
 
 detT (here p)    (there w q) = ⊥-elim (val-red w (_ ,, p))
 detT (there v p) (here q)    = ⊥-elim (val-red v (_ ,, q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
 detT (here p) (here q) = cong (_∷ _) (det p q)
--- -}
+-}

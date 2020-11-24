@@ -134,53 +134,6 @@ skip' (skip p) = skip (skip' p)
 ∅≤C' : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C' Γ
 ∅≤C' Γ = ≤Cto≤C' (∅≤C Γ)
 
-
-abstract2 : ∀ Ψ (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ ⊢Nf⋆ *))(p : As' ≤L As)(C : Ψ ⊢Nf⋆ *) → Ψ ⊢Nf⋆ *
-abstract2 Ψ As       .As base     C = C
-abstract2 Ψ (A ∷ As) As' (skip p) C = abstract2 Ψ As As' p (A ⇒ C)
-
-abstract1 : ∀ Ψ Ψ' (p : Ψ' ≤C⋆ Ψ)(C : Ψ ⊢Nf⋆ *) → Ψ' ⊢Nf⋆ *
-abstract1 Ψ        Ψ  base     C = C
-abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
-
-abstractTy : ∀ Ψ Ψ' (p : Ψ' ≤C⋆' Ψ)(C : Ψ ⊢Nf⋆ *) → Ψ' ⊢Nf⋆ *
-abstractTy Ψ Ψ  base     C = C
-abstractTy Ψ Ψ' (skip p) C = Π (abstractTy Ψ _ p C)
-
-abstractTm : ∀ Ψ (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ ⊢Nf⋆ *))(p : As' ≤L' As)(C : Ψ ⊢Nf⋆ *) → Ψ ⊢Nf⋆ *
-abstractTm Ψ As .As base     C = C
-abstractTm Ψ As As' (skip {a = A} p) C = A ⇒ abstractTm Ψ As (A ∷ As') p C
-
-abstractArg : ∀ {Φ Ψ Ψ'} → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As) → Ψ ⊢Nf⋆ * → (SubNf Ψ' Φ) → Φ ⊢Nf⋆ *
-abstractArg As .[] (inj₁ (p ,, refl)) C σ =
-  substNf σ (abstractTy _ _ p (abstractTm _ As [] ([]≤L' _) C))
-abstractArg As As' (inj₂ (refl ,, q)) C σ =
-  substNf σ (abstractTm _ As As' q C) 
-
-abstractArg-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : ⋆.Ren Φ Φ') →
-  abstractArg As As' p
-  C (λ x → renNf ρ⋆ (σ x)) 
-  ≡
-  renNf ρ⋆
-  (abstractArg As As' p
-   C σ)
-abstractArg-ren Φ Φ' Ψ Ψ' As .[] (inj₁ (p ,, refl)) C σ ρ⋆ =
-  renNf-substNf σ ρ⋆ (abstractTy Ψ Ψ' p (abstractTm Ψ As [] ([]≤L' As) C))
-abstractArg-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
-  renNf-substNf σ ρ⋆ (abstractTm Ψ As As' p C)
-
-abstractArg-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢Nf⋆ *))(As' : List (Ψ' ⊢Nf⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As)) → (C : Ψ ⊢Nf⋆ *) → (σ : SubNf Ψ' Φ) → (ρ⋆ : SubNf Φ Φ') →
-  abstractArg As As' p
-  C (λ x → substNf ρ⋆ (σ x)) 
-  ≡
-  substNf ρ⋆
-  (abstractArg As As' p
-   C σ)
-abstractArg-subst Φ Φ' Ψ Ψ' As .[] (inj₁ (p ,, refl)) C σ σ' =
-  substNf-comp σ σ' (abstractTy Ψ Ψ' p (abstractTm Ψ As [] ([]≤L' As) C))
-abstractArg-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, q)) C σ σ' =
-  substNf-comp σ σ' (abstractTm Ψ As As' q C)
-
 sig2type⇒ : ∀{Φ} → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ * → Φ ⊢Nf⋆ *
 sig2type⇒ []       C = C
 sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
@@ -258,6 +211,7 @@ data _<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set where
   step⋆ : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K K'}
     → Γ <C Γ' → (Γ ,⋆ K) <C (Γ' ,⋆ K')
 -}
+
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
   ` : ∀ {A : Φ ⊢Nf⋆ *}
@@ -313,18 +267,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → Tel Γ Ψ σ As
       -------------------------------
     → Γ ⊢ substNf σ C
-
-  pbuiltin :
-      (b :  Builtin)
-    → let Ψ ,, As ,, C = SIG b in
-      ∀ Ψ' → 
-      (σ : SubNf Ψ' Φ)
-    → (As' : List (Ψ' ⊢Nf⋆ *))
-    → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L' subst (λ Φ → List (Φ ⊢Nf⋆ *)) (sym p) As))
-    → Tel Γ Ψ' σ As'
-    → Γ ⊢ abstractArg As As' p C σ
-
---  sbuiltin : (b :  Builtin) → Γ ⊢ btype b
 
   ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 

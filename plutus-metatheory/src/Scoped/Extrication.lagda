@@ -157,6 +157,6 @@ extricate {Φ}{Γ} (builtin b σ ts) =
     (inj₂ ((lemma⋆ b) ,, (≡2≤‴ (lemma b))))
     (extricateSub σ)
     (extricateTel σ _ ts)
-extricate (pbuiltin b Ψ' σ As' p x) = error (extricateNf⋆ (abstractArg _ As' p (proj₂ (proj₂ (SIG b))) σ))
+extricate (ibuiltin b) = ibuiltin b
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

@@ -103,7 +103,6 @@ as <L' as' = Σ _ λ a → (a ∷ as) ≤L' as'
 lem⊥ : ∀{A : Set}{as : List A}{a} → (a ∷ as) ≤L' [] → ⊥
 lem⊥ (skip p) = lem⊥ p
 
-
 lem0 : {A : Set}{a a' : A}{as as' : List A}
   → (a ∷ as) ≤L' (a' ∷ as') → as ≤L' as'
 lem0 base     = base
