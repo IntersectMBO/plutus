@@ -46,7 +46,7 @@ iconClass ArrowDown = ClassName "fa fa-arrow-down"
 
 iconClass ArrowLeft = ClassName "fa fa-arrow-left"
 
-iconClass Close = ClassName "fa fa-close"
+iconClass Close = ClassName "fa fa-times"
 
 iconClass Check = ClassName "fa fa-check"
 
