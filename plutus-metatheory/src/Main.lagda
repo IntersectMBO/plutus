@@ -157,9 +157,9 @@ postulate
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
 
 data EvalMode : Set where
-  U TL L TCK CK TCEKV : EvalMode
+  U TL L TCK CK TCEK : EvalMode
 
-{-# COMPILE GHC EvalMode = data EvalMode (U | TL | L | TCK | CK | TCEKV) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (U | TL | L | TCK | CK | TCEK) #-}
 
 -- the Error's returned by `plc-agda` and the haskell interface to `metatheory`.
 

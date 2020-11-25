@@ -51,9 +51,8 @@ import Algorithmic.Main
 --import Algorithmic.Erasure
 --import Algorithmic.Erasure.RenamingSubstitution
 --import Algorithmic.Erasure.Reduction
---import Algorithmic.CK
---import Algorithmic.CEKD
---import Algorithmic.CEKV
+import Algorithmic.CK
+import Algorithmic.CEKV
 
 import Algorithmic.Examples
 
