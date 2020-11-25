@@ -204,22 +204,3 @@ button.start-simulation-btn {
 .monaco-readonly-decoration {
     background-color: #fafafa;
 }
-
-// TODO: See if we can enable this clases only for
-// development, remove otherwise
-// .debug:not(path):not(g) {
-//   color: hsla(210, 100%, 100%, 0.9) !important;
-//   background: hsla(210, 100%, 50%, 0.5) !important;
-//   outline: solid 0.25rem hsla(210, 100%, 100%, 0.5) !important;
-
-//   box-shadow: none !important;
-// }
-
-// // TODO: remove
-// .debug-all *:not(path):not(g) {
-//   color: hsla(210, 100%, 100%, 0.9) !important;
-//   background: hsla(210, 100%, 50%, 0.5) !important;
-//   outline: solid 0.25rem hsla(210, 100%, 100%, 0.5) !important;
-
-//   box-shadow: none !important;
-// }

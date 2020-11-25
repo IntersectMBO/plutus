@@ -1,17 +1,17 @@
 module NewProject.State where
 
-import Data.Lens (assign, (^.))
+import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, newProjectBlocklyIcon)
-import Halogen.HTML (button, div, div_, h2, h2_, h3, hr_, img, input, span, text)
-import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (class_, classes, src, value)
+import Halogen.HTML (div, div_, h2, h3, img, span, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import NewProject.Types (Action(..), State, _error, _projectName)
-import Prelude (Unit, Void, const, map, pure, show, unit, ($), (<<<))
+import NewProject.Types (Action(..), State, _error)
+import Prelude (Unit, Void, const, map, pure, unit, ($), (<<<))
 import Projects.Types (Lang(..))
 import Servant.PureScript.Settings (SPSettings_)
 
@@ -20,8 +20,6 @@ handleAction ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action -> HalogenM State Action ChildSlots Void m Unit
-handleAction settings (ChangeProjectName newName) = assign _projectName newName
-
 handleAction settings (CreateProject lang) = pure unit
 
 render ::
@@ -33,8 +31,6 @@ render state =
   div_
     [ div [ classes [ ClassName "modal-header" ] ]
         [ {-
-            TODO: confirm that we dont want to change the project name and remove
-            input [ value (state ^. _projectName), onValueChange (Just <<< ChangeProjectName) ]
              TODO: create an HTML helper so all dialogs have the same header/title?
           -} h2 [ classes [ ClassName "title" ] ] [ text "New Project" ]
         ]

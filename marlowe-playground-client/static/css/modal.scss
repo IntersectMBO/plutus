@@ -65,18 +65,6 @@ without doing it as an Effect in a mainframe action
   top: var(--small-margin);
   right: var(--medium-margin);
   cursor: pointer;
-  // TODO investigate why we have this transition
-  transition: all 200ms;
-
-  &:hover {
-    // TODO: This is not working any more as the close
-    // button is an image now.
-    // We need to decide if we want to change colors.
-    // Should be possible to do it with SVG
-    // https://css-tricks.com/change-color-of-svg-on-hover/
-    color: var(--primary-color);
-  }
-
 }
 
 // This sets the same line-height for the title
