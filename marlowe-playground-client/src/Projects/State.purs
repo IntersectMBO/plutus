@@ -17,15 +17,17 @@ import Effect.Aff.Class (class MonadAff)
 import Gist (Gist(..), gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (flex)
-import Halogen.HTML (HTML, a, div, div_, h2, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
+import Halogen.HTML (HTML, a, div, div_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_, getApiGists)
 import Marlowe.Gists (fileExists, filenames, playgroundGist)
+import Modal.ViewHelpers (modalHeaderTitle)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (Unit, Void, bind, bottom, compare, const, discard, flip, map, mempty, pure, unit, ($), (<<<))
+import Prim.TypeError (class Warn, Text)
 import Projects.Types (Action(..), Lang(..), State, _projects)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -53,14 +55,13 @@ sortGists = sortBy f
 
 render ::
   forall m.
+  Warn (Text "Fix 'body Loading' design") =>
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [ div [ classes [ ClassName "modal-header" ] ]
-        [ h2 [ classes [ ClassName "title" ] ] [ text "Open Project" ] -- TODO: create an HTML helper so all dialogs have the same header/title?
-        ]
+    [ modalHeaderTitle "Open Project"
     , div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
         [ body (view _projects state)
         ]
@@ -72,7 +73,6 @@ render state =
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
 
-  -- TODO: fix loading design
   body Loading = span [ class_ (ClassName "loading") ] [ text "Loading..." ]
 
   body NotAsked = text mempty

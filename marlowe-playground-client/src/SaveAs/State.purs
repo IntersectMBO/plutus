@@ -4,14 +4,15 @@ import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.HTML (button, div, div_, h2, input, text)
+import Halogen.HTML (button, div, div_, input, text)
 import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
+import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
+import Modal.ViewHelpers (modalHeaderTitle)
 import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
 import SaveAs.Types (Action(..), State, _error, _projectName)
 import Servant.PureScript.Settings (SPSettings_)
-import MainFrame.Types (ChildSlots)
 
 handleAction ::
   forall m.
@@ -29,9 +30,7 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [ div [ classes [ ClassName "modal-header" ] ]
-        [ h2 [ classes [ ClassName "title" ] ] [ text "Save as" ]
-        ]
+    [ modalHeaderTitle "Save as"
     , div [ classes [ ClassName "modal-content" ] ]
         [ input [ class_ (ClassName "project-name-input"), value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]
         , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]

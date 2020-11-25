@@ -3,38 +3,33 @@ module MainFrame.View where
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
-import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
-import GistButtons (authButton)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, closeModal, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text, img)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, href, id_, target, src)
+import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
 import Network.RemoteData (_Loading, _Success)
-import NewProject.State (render) as NewProject
-import Prelude (const, eq, identity, negate, unit, ($), (<<<), (<>))
-import Projects.State (render) as Projects
-import Rename.State (render) as Rename
-import SaveAs.State (render) as SaveAs
+import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet
+import Modal.View (modal)
 
 render ::
   forall m.
@@ -136,33 +131,6 @@ render settings state =
     ]
 
   otherActions _ = []
-
-modal ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML Action ChildSlots m
-modal state = case state ^. _showModal of
-  Nothing -> text ""
-  Just view ->
-    div [ classes [ ClassName "overlay" ] ]
-      [ div [ classes [ ClassName "modal" ] ]
-          [ div [ class_ (ClassName "modal-close") ]
-              [ img [ src closeModal, onClick $ const $ Just CloseModal ] ]
-          , modalContent view
-          ]
-      ]
-  where
-  modalContent NewProject = renderSubmodule _newProject NewProjectAction NewProject.render state
-
-  modalContent OpenProject = renderSubmodule _projects ProjectsAction Projects.render state
-
-  modalContent OpenDemo = renderSubmodule identity DemosAction Demos.render state
-
-  modalContent RenameProject = renderSubmodule _rename RenameAction Rename.render state
-
-  modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
-
-  modalContent (GithubLogin intendedAction) = authButton intendedAction state
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
