@@ -36,13 +36,13 @@ import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
 import qualified Language.PlutusTx                             as PlutusTx
 import qualified Language.PlutusTx.AssocMap                    as AssocMap
 import qualified Language.PlutusTx.Prelude                     as P
-import           Ledger                                        (CurrencySymbol, Datum (..), Slot (..), SlotRange,
-                                                                TokenName, ValidatorCtx (..), mkValidatorScript,
-                                                                pubKeyHash, validatorHash, valueSpent)
+import           Ledger                                        (CurrencySymbol, Datum (..), Slot (..), TokenName,
+                                                                ValidatorCtx (..), mkValidatorScript, pubKeyHash,
+                                                                validatorHash, valueSpent)
 import qualified Ledger                                        as Ledger
 import           Ledger.Ada                                    (adaSymbol, adaValueOf)
 import           Ledger.Constraints
-import           Ledger.Interval
+import qualified Ledger.Interval                               as Interval
 import           Ledger.Scripts                                (Validator)
 import           Ledger.Tx                                     as Tx
 import qualified Ledger.Typed.Scripts                          as Scripts
@@ -50,14 +50,15 @@ import           Ledger.Typed.Tx                               (TypedScriptTxOut
 import qualified Ledger.Value                                  as Val
 import           Wallet.Types                                  (AddressChangeRequest (..), AddressChangeResponse (..))
 
-type MarloweInput = (SlotRange, [Input])
+type MarloweSlotRange = (Slot, Slot)
+type MarloweInput = (MarloweSlotRange, [Input])
 
 type MarloweSchema =
     BlockchainActions
         .\/ Endpoint "create" (MarloweParams, Marlowe.Contract)
         .\/ Endpoint "apply-inputs" (MarloweParams, [Input])
         .\/ Endpoint "wait" MarloweParams
-        .\/ Endpoint "auto" (MarloweParams, Party)
+        .\/ Endpoint "auto" (MarloweParams, Party, Slot)
 
 data MarloweError =
     StateMachineError (SM.SMContractError MarloweData MarloweInput)
@@ -111,14 +112,13 @@ marlowePlutusContract = do
             Close -> pure ()
             _     -> apply `select` wait `select` auto
     auto = do
-        (params, party) <- endpoint @"auto" @(MarloweParams, Party) @MarloweSchema
+        (params, party, untilSlot) <- endpoint @"auto" @(MarloweParams, Party, Slot) @MarloweSchema
         let theClient@StateMachineClient{scInstance, scChooser} = mkMarloweClient params
-        slot <- currentSlot
         utxo <- utxoAt (SM.machineAddress scInstance)
         let states = SM.getStates scInstance utxo
         case states of
             [] -> do
-                wr <- waitForUpdateWithTimeout theClient (slot + 1000)
+                wr <- waitForUpdateWithTimeout theClient untilSlot
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended for party" <> show party
@@ -140,11 +140,11 @@ marlowePlutusContract = do
 
     autoExecuteContract theClient party marloweData = do
         slot <- currentSlot
-        let action = getAction slot party marloweData
+        let slotRange = (slot, slot + defaultTxValidationRange)
+        let action = getAction slotRange party marloweData
         case action of
             PayDeposit acc p token amount -> do
-                let slotRange = interval slot (slot + 10)
-                logInfo @String $ "PayDeposit " <> show amount <> " at slot " <> show slotRange
+                logInfo @String $ "PayDeposit " <> show amount <> " at whithin slots " <> show slotRange
                 let payDeposit = do
                         marloweData <- SM.runStep theClient (slotRange, [IDeposit acc p token amount])
                         continueWith marloweData
@@ -221,9 +221,9 @@ waitForUpdateWithTimeout StateMachineClient{scInstance, scChooser} timeout = do
                 Right (state, _) -> pure $ MD (tyTxOutData state)
 
 
-getAction :: Slot -> Party -> MarloweData -> PartyAction
-getAction slot party MarloweData{marloweContract,marloweState} = let
-    env = Environment (slot, slot + 10)
+getAction :: MarloweSlotRange -> Party -> MarloweData -> PartyAction
+getAction slotRange party MarloweData{marloweContract,marloweState} = let
+    env = Environment slotRange
     in case reduceContractUntilQuiescent env marloweState marloweContract of
         ContractQuiescent _warnings _payments state contract ->
             -- here the contract is either When or Close
@@ -253,7 +253,7 @@ getAction slot party MarloweData{marloweContract,marloweState} = let
                 Then we'd rather wait until slot 100 instead and would make the Deposit.
                 I propose to modify RRAmbiguousSlotIntervalError to include the expected timeout.
              -}
-            WaitForTimeout (slot + 10)
+            WaitForTimeout (snd slotRange)
 
 
 
@@ -301,8 +301,8 @@ applyInputs :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
     -> [Input]
     -> Contract MarloweSchema e MarloweData
 applyInputs params inputs = do
-    (Slot slot) <- awaitSlot 1
-    let slotRange = interval (Slot $ slot - 1)  (Slot $ slot + 10)
+    slot <- currentSlot
+    let slotRange = (slot, slot + defaultTxValidationRange)
     let theClient = mkMarloweClient params
     dat <- SM.runStep theClient (slotRange, inputs)
     return dat
@@ -336,11 +336,8 @@ mkMarloweStateMachineTransition
     -> SM.State MarloweData
     -> MarloweInput
     -> Maybe (TxConstraints Void Void, SM.State MarloweData)
-mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue} (range, inputs) = do
-    let interval = case range of
-            Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
-            _ -> P.traceError "Tx valid slot must have lower bound and upper bounds"
-
+mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, SM.stateValue=scriptInValue}
+    (interval@(minSlot, maxSlot), inputs) = do
     let positiveBalances = validateBalances marloweState ||
             P.traceError "Invalid contract state. There exists an account with non positive balance"
 
@@ -377,10 +374,12 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
             let (deducedTxOutputs, finalBalance) = case txOutContract of
                     Close -> (txPaymentOuts txOutPayments, P.zero)
                     _ -> let
+                        totalIncome = foldMap collectDeposits inputs
                         txWithPayouts = txPaymentOuts txOutPayments
                         totalPayouts = foldMap (\(Payment _ v) -> v) txOutPayments
                         finalBalance = totalIncome P.- totalPayouts
                         in (txWithPayouts, finalBalance)
+            let range = Interval.interval minSlot maxSlot
             let constraints = inputsConstraints <> deducedTxOutputs <> mustValidateIn range
             if preconditionsOk
             then Just (constraints, SM.State marloweData finalBalance)
@@ -404,9 +403,6 @@ mkMarloweStateMachineTransition params SM.State{ SM.stateData=MarloweData{..}, S
     collectDeposits :: Input -> Val.Value
     collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
     collectDeposits _                                     = P.zero
-
-    totalIncome :: Val.Value
-    totalIncome = foldMap collectDeposits inputs
 
     txPaymentOuts :: [Payment] -> TxConstraints i0 o0
     txPaymentOuts payments = foldMap paymentToTxOut paymentsByParty
@@ -461,3 +457,7 @@ mkMachineInstance params =
 
 mkMarloweClient :: MarloweParams -> SM.StateMachineClient MarloweData MarloweInput
 mkMarloweClient params = SM.mkStateMachineClient (mkMachineInstance params)
+
+
+defaultTxValidationRange :: Slot
+defaultTxValidationRange = 10

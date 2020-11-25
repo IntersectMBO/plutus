@@ -76,7 +76,7 @@ autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute 
     ) $ do
 
     -- Bob will wait for the contract to appear on chain
-    callEndpoint @"auto" bob (params, bobPk)
+    callEndpoint @"auto" bob (params, bobPk, contractLifespan)
     handleBlockchainEvents bob
 
     -- Init a contract
@@ -87,7 +87,7 @@ autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute 
     payToWallet alice carol defaultLovelaceAmount
     addBlocksNotify 1
 
-    callEndpoint @"auto" alice (params, alicePk)
+    callEndpoint @"auto" alice (params, alicePk, contractLifespan)
     handleBlockchainEvents alice -- Here Alice should not be able to pay
     addBlocksNotify 1
 
@@ -113,7 +113,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     ) $ do
 
     -- Bob will wait for the contract to appear on chain
-    callEndpoint @"auto" bob (params, bobPk)
+    callEndpoint @"auto" bob (params, bobPk, contractLifespan)
     handleBlockchainEvents bob
 
     -- Init a contract
@@ -124,7 +124,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     payToWallet alice carol defaultLovelaceAmount
     addBlocksNotify 1
 
-    callEndpoint @"auto" alice (params, alicePk)
+    callEndpoint @"auto" alice (params, alicePk, contractLifespan)
     handleBlockchainEvents alice -- Here Alice should not be able to pay
     addBlocksNotify 1
     addBlocksNotify 20
@@ -145,7 +145,7 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     ) $ do
 
     -- Bob will wait for the contract to appear on chain
-    callEndpoint @"auto" bob (params, bobPk)
+    callEndpoint @"auto" bob (params, bobPk, contractLifespan)
     handleBlockchainEvents bob
 
     -- Init a contract
@@ -155,7 +155,7 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     payToWallet bob carol defaultLovelaceAmount
     addBlocksNotify 1
 
-    callEndpoint @"auto" alice (params, alicePk)
+    callEndpoint @"auto" alice (params, alicePk, contractLifespan)
     handleBlockchainEvents alice
     addBlocksNotify 1 -- Alice pays to Bob
     addBlocksNotify 15 -- Bob can't pay back
@@ -180,6 +180,8 @@ zeroCouponBond = When [ Case
             (When
                 [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] 40 Close
             ))] 20 Close
+
+contractLifespan = contractLifespanUpperBound zeroCouponBond
 
 defaultLovelaceAmount :: Ledger.Value
 defaultLovelaceAmount = defaultDist Map.! alice

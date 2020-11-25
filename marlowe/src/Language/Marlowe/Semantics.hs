@@ -767,7 +767,7 @@ computeTransaction tx state contract = let
         IntervalError error -> Error (TEIntervalError error)
 
 -- | Calculates an upper bound for the maximum lifespan of a contract
-contractLifespanUpperBound :: Contract -> Integer
+contractLifespanUpperBound :: Contract -> Slot
 contractLifespanUpperBound contract = case contract of
     Close -> 0
     Pay _ _ _ _ cont -> contractLifespanUpperBound cont
@@ -775,7 +775,7 @@ contractLifespanUpperBound contract = case contract of
         max (contractLifespanUpperBound contract1) (contractLifespanUpperBound contract2)
     When cases timeout subContract -> let
         contractsLifespans = fmap (\(Case _ cont) -> contractLifespanUpperBound cont) cases
-        in maximum (getSlot timeout : contractLifespanUpperBound subContract : contractsLifespans)
+        in maximum (timeout : contractLifespanUpperBound subContract : contractsLifespans)
     Let _ _ cont -> contractLifespanUpperBound cont
     Assert _ cont -> contractLifespanUpperBound cont
 
