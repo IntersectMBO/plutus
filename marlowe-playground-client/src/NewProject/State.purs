@@ -4,7 +4,7 @@ import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.Classes (newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, newProjectBlocklyIcon)
+import Halogen.Classes (fontSemibold, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, textBase, textSm)
 import Halogen.HTML (div, div_, h3, img, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
@@ -31,8 +31,8 @@ render ::
 render state =
   div_
     [ modalHeaderTitle "New Project"
-    , div [ classes [ ClassName "modal-content", ClassName "new-project-container" ] ]
-        [ h3 [ classes [ ClassName "text-base", ClassName "font-semibold" ] ] [ text "Please choose your initial coding environment" ]
+    , div [ classes [ modalContent, ClassName "new-project-container" ] ]
+        [ h3 [ classes [ textBase, fontSemibold ] ] [ text "Please choose your initial coding environment" ]
         , div [ classes [ ClassName "environment-selector-group" ] ] (map link [ Haskell, Javascript, Marlowe, Blockly ])
         , renderError (state ^. _error)
         ]
@@ -48,7 +48,7 @@ render state =
       , onClick (const <<< Just $ CreateProject lang)
       ]
       [ img [ src $ langIcon lang ]
-      , span [ classes [ ClassName "font-semibold", ClassName "text-sm" ] ]
+      , span [ classes [ textSm, fontSemibold ] ]
           [ text $ langTitle lang ]
       ]
 

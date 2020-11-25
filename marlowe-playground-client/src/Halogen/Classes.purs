@@ -256,5 +256,18 @@ collapsed = ClassName "collapsed"
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"
 
+modalContent :: ClassName
+modalContent = ClassName "modal-content"
+
 vl :: forall p a. HTML p a
 vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]
+
+-- Tailwind's classes.
+textBase :: ClassName
+textBase = ClassName "text-base"
+
+textSm :: ClassName
+textSm = ClassName "text-sm"
+
+fontSemibold :: ClassName
+fontSemibold = ClassName "font-semibold"

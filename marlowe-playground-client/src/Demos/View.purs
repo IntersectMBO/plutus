@@ -6,6 +6,7 @@ import Data.Newtype (wrap)
 import Demos.Types (Action(..), Demo)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
+import Halogen.Classes (modalContent)
 import Halogen.HTML (HTML, button, div, div_, h2_, hr_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -21,7 +22,7 @@ render ::
 render state =
   div_
     [ modalHeaderTitle "Demo Files"
-    , div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
+    , div [ classes [ modalContent, ClassName "projects-container" ] ]
         [ demoFile (wrap "Escrow") "Escrow" "Escrow is a financial arrangement where a third party holds and regulates payment of the funds required for two parties involved in a given transaction."
         , demoFile (wrap "ZeroCouponBond") "Zero Coupon Bond" "A zero-coupon bond is a debt security that does not pay interest but instead trades at a deep discount, rendering a profit at maturity, when the bond is redeemed for its full face value."
         , demoFile (wrap "CouponBondGuaranteed") "Coupon Bond Guaranteed" "A guaranteed bond is a debt security that offers a secondary guarantee that interest and principal payments will be made by a third party, should the issuer default. It can be backed by a bond insurance company, a fund or group entity, a government authority, or the corporate parents of subsidiaries or joint ventures that are issuing bonds."

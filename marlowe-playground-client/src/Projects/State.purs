@@ -16,7 +16,7 @@ import Data.Ordering (invert)
 import Effect.Aff.Class (class MonadAff)
 import Gist (Gist(..), gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.Classes (flex)
+import Halogen.Classes (flex, modalContent)
 import Halogen.HTML (HTML, a, div, div_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -62,7 +62,7 @@ render ::
 render state =
   div_
     [ modalHeaderTitle "Open Project"
-    , div [ classes [ ClassName "modal-content", ClassName "projects-container" ] ]
+    , div [ classes [ modalContent, ClassName "projects-container" ] ]
         [ body (view _projects state)
         ]
     ]
