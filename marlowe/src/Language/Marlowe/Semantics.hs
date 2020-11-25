@@ -55,16 +55,12 @@ import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
-import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<$>), (<*>), (<>))
 import           Language.PlutusTx.Ratio    (denominator, numerator)
-import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
-import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (Datum (..))
-import           Ledger.Validation
+import           Ledger                     (PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
 import           Prelude                    ((<$>))
@@ -90,13 +86,9 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 {-# INLINABLE applyInput #-}
 {-# INLINABLE convertReduceWarnings #-}
 {-# INLINABLE applyAllInputs #-}
-{-# INLINABLE validateInputWitness #-}
-{-# INLINABLE validateInputs #-}
 {-# INLINABLE computeTransaction #-}
 {-# INLINABLE contractLifespanUpperBound #-}
 {-# INLINABLE totalBalance #-}
-{-# INLINABLE validatePayments #-}
-{-# INLINABLE marloweValidator #-}
 
 -- * Aliaces
 
@@ -732,23 +724,6 @@ applyAllInputs env state contract inputs = let
                 [TransactionNonPositiveDeposit party accId tok amount]
 
 
-validateInputWitness :: ValidatorCtx -> CurrencySymbol -> Input -> Bool
-validateInputWitness ctx rolesCurrency input =
-    case input of
-        IDeposit _ party _ _         -> validatePartyWitness party
-        IChoice (ChoiceId _ party) _ -> validatePartyWitness party
-        INotify                      -> True
-  where
-    spentInTx = valueSpent (valCtxTxInfo ctx)
-
-    validatePartyWitness (PK pk)     = txSignedBy (valCtxTxInfo ctx) pk
-    validatePartyWitness (Role role) = Val.valueOf spentInTx rolesCurrency role > 0
-
-validateInputs :: MarloweParams -> ValidatorCtx -> [Input] -> Bool
-validateInputs MarloweParams{..} ctx =
-    all (validateInputWitness ctx rolesCurrency)
-
-
 -- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@
 computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
 computeTransaction tx state contract = let
@@ -765,6 +740,7 @@ computeTransaction tx state contract = let
             ApplyAllNoMatchError -> Error TEApplyNoMatchError
             ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
         IntervalError error -> Error (TEIntervalError error)
+
 
 -- | Calculates an upper bound for the maximum lifespan of a contract
 contractLifespanUpperBound :: Contract -> Slot
@@ -786,133 +762,11 @@ totalBalance accounts = foldMap
     (Map.toList accounts)
 
 
-validatePayments :: MarloweParams -> ValidatorCtx -> [Payment] -> Bool
-validatePayments MarloweParams{..} ctx txOutPayments = all checkValidPayment listOfPayments
-  where
-    collect :: Map Party Money -> TxOut -> Map Party Money
-    collect outputs TxOut{txOutAddress=PubKeyAddress pubKeyHash, txOutValue} =
-        let
-            party = PK pubKeyHash
-            curValue = fromMaybe zero (Map.lookup party outputs)
-            newValue = txOutValue + curValue
-        in Map.insert party newValue outputs
-    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript datumHash}
-        | validatorHash == rolePayoutValidatorHash =
-                case findDatum datumHash (valCtxTxInfo ctx) of
-                    Just (Datum dv) ->
-                        case PlutusTx.fromData dv of
-                            Just (currency, role) | currency == rolesCurrency -> let
-                                party = Role role
-                                curValue = fromMaybe zero (Map.lookup party outputs)
-                                newValue = txOutValue + curValue
-                                in Map.insert party newValue outputs
-                            _ -> outputs
-                    Nothing -> outputs
-    collect outputs _ = outputs
-
-    collectPayments :: Map Party Money -> Payment -> Map Party Money
-    collectPayments payments (Payment party money) = let
-        newValue = money + fromMaybe zero (Map.lookup party payments)
-        in Map.insert party newValue payments
-
-    outputs :: Map Party Money
-    outputs = foldl collect mempty (txInfoOutputs (valCtxTxInfo ctx))
-
-    payments :: Map Party Money
-    payments = foldl collectPayments mempty txOutPayments
-
-    listOfPayments :: [(Party, Money)]
-    listOfPayments = Map.toList payments
-
-    checkValidPayment :: (Party, Money) -> Bool
-    checkValidPayment (party, expectedPayment) =
-        case Map.lookup party outputs of
-            Just value -> value `Val.geq` expectedPayment
-            Nothing    -> False
-
-
 {-|
     Check that all accounts have positive balance.
  -}
 validateBalances :: State -> Bool
 validateBalances State{..} = all (\(_, balance) -> balance > 0) (Map.toList accounts)
-
-
-{-| Ensure that 'ValidatorCtx' contains expected payments.   -}
-validateTxOutputs :: MarloweParams -> ValidatorCtx -> TransactionOutput -> Bool
-validateTxOutputs params ctx expectedTxOutputs = case expectedTxOutputs of
-    TransactionOutput {txOutPayments, txOutState, txOutContract} ->
-        case txOutContract of
-            -- if it's a last transaction, don't expect any continuation,
-            -- everything is payed out.
-            Close -> validatePayments params ctx txOutPayments
-            -- otherwise check the continuation
-            _     -> validateContinuation txOutPayments txOutState txOutContract
-    Error _ -> traceError "Error"
-  where
-    validateContinuation txOutPayments txOutState txOutContract =
-        case getContinuingOutputs ctx of
-            [TxOut
-                { txOutType = (PayToScript dsh)
-                , txOutValue = scriptOutputValue
-                }] | Just (Datum ds) <- findDatum dsh (valCtxTxInfo ctx) ->
-
-                case PlutusTx.fromData ds of
-                    Just expected -> let
-                        validContract = txOutState == marloweState expected
-                            && txOutContract == marloweContract expected
-                        outputBalance = totalBalance (accounts txOutState)
-                        outputBalanceOk = scriptOutputValue == outputBalance
-                        in  outputBalanceOk
-                            && validContract
-                            && validatePayments params ctx txOutPayments
-                    _ -> False
-            _ -> False
-
-{-|
-    Marlowe Interpreter Validator generator.
--}
-marloweValidator
-  :: MarloweParams -> MarloweData -> [Input] -> ValidatorCtx -> Bool
-marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
-    {-  We require Marlowe Tx to have both lower bound and upper bounds in 'SlotRange'.
-        All are inclusive.
-    -}
-    (minSlot, maxSlot) = case txInfoValidRange valCtxTxInfo of
-        Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
-        _ -> traceError "Tx valid slot must have lower bound and upper bounds"
-
-    positiveBalances = validateBalances marloweState ||
-        traceError "Invalid contract state. There exists an account with non positive balance"
-
-    {-  We do not check that a transaction contains exact input payments.
-        We only require an evidence from a party, e.g. a signature for PubKey party,
-        or a spend of a 'party role' token.
-        This gives huge flexibility by allowing parties to provide multiple
-        inputs (either other contracts or P2PKH).
-        Then, we check scriptOutput to be correct.
-     -}
-    validInputs = validateInputs marloweParams ctx inputs
-
-    TxInInfo _ _ scriptInValue = findOwnInput ctx
-
-    -- total balance of all accounts in State
-    -- accounts must be positive, and we checked it above
-    inputBalance = totalBalance (accounts marloweState)
-
-    -- ensure that a contract TxOut has what it suppose to have
-    balancesOk = inputBalance == scriptInValue
-
-    preconditionsOk = positiveBalances && validInputs && balancesOk
-
-    slotInterval = (minSlot, maxSlot)
-    txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
-    expectedTxOutputs = computeTransaction txInput marloweState marloweContract
-
-    outputOk = validateTxOutputs marloweParams ctx expectedTxOutputs
-
-    in preconditionsOk && outputOk
-
 
 
 -- Typeclass instances

@@ -58,35 +58,36 @@ foldMapContract :: Monoid m
     -> (Observation -> m)
     -> (Value Observation -> m)
     -> Contract -> m
-foldMapContract fcont fcase fobs fvalue contract = case contract of
-    Close                -> evaledContract
-    Pay _ _ _ value cont -> evaledContract <> fvalue' value <> go cont
-    If obs cont1 cont2   -> evaledContract <> fobs' obs <> go cont1 <> go cont2
-    When cases _ cont    -> evaledContract <> foldMap fcase' cases <> go cont
-    Let _ value cont     -> evaledContract <> fvalue value <> go cont
-    Assert obs cont      -> evaledContract <> fobs' obs <> go cont
+foldMapContract fcont fcase fobs fvalue contract =
+    fcont contract <> case contract of
+        Close                -> mempty
+        Pay _ _ _ value cont -> fvalue' value <> go cont
+        If obs cont1 cont2   -> fobs' obs <> go cont1 <> go cont2
+        When cases _ cont    -> foldMap fcase' cases <> go cont
+        Let _ value cont     -> fvalue value <> go cont
+        Assert obs cont      -> fobs' obs <> go cont
   where
-    evaledContract = fcont contract
     go = foldMapContract fcont fcase fobs fvalue
     fcase' cs@(Case _ cont) = fcase cs <> go cont
-    fobs' obs = case obs of
-        AndObs a b  -> fobs obs <> fobs' a <> fobs' b
-        OrObs  a b  -> fobs obs <> fobs' a <> fobs' b
-        NotObs a    -> fobs obs <> fobs' a
-        ValueGE a b -> fobs obs <> fvalue' a <> fvalue' b
-        ValueGT a b -> fobs obs <> fvalue' a <> fvalue' b
-        ValueLT a b -> fobs obs <> fvalue' a <> fvalue' b
-        ValueLE a b -> fobs obs <> fvalue' a <> fvalue' b
-        ValueEQ a b -> fobs obs <> fvalue' a <> fvalue' b
-        _           -> fobs obs
-    fvalue' v = case v of
-        NegValue val -> fvalue v <> fvalue' val
-        AddValue a b -> fvalue v <> fvalue' a <> fvalue' b
-        SubValue a b -> fvalue v <> fvalue' a <> fvalue' b
-        MulValue a b -> fvalue v <> fvalue' a <> fvalue' b
-        Scale _ val  -> fvalue v <> fvalue' val
-        Cond obs a b -> fvalue v <> fobs' obs <> fvalue' a <> fvalue' b
-        _            -> fvalue v
+    fobs' obs = fobs obs <> case obs of
+        AndObs a b  -> fobs' a <> fobs' b
+        OrObs  a b  -> fobs' a <> fobs' b
+        NotObs a    -> fobs' a
+        ValueGE a b -> fvalue' a <> fvalue' b
+        ValueGT a b -> fvalue' a <> fvalue' b
+        ValueLT a b -> fvalue' a <> fvalue' b
+        ValueLE a b -> fvalue' a <> fvalue' b
+        ValueEQ a b -> fvalue' a <> fvalue' b
+        _           -> mempty
+    fvalue' v = fvalue v <> case v of
+        NegValue val -> fvalue' val
+        AddValue a b -> fvalue' a <> fvalue' b
+        SubValue a b -> fvalue' a <> fvalue' b
+        MulValue a b -> fvalue' a <> fvalue' b
+        Scale _ val  -> fvalue' val
+        Cond obs a b -> fobs' obs <> fvalue' a <> fvalue' b
+        _            -> mempty
+
 
 foldMapContractValue :: Monoid m => (Value Observation -> m) -> Contract -> m
 foldMapContractValue = foldMapContract (const mempty) (const mempty) (const mempty)
