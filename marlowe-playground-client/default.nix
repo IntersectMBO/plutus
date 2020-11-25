@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
+{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
@@ -26,8 +26,13 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
+  nodeModules = buildNodeModules {
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+  };
+
   client = buildPursPackage {
-    inherit webCommon;
+    inherit webCommon nodeModules;
     src = ./.;
     name = "marlowe-playground-client";
     psSrc = generated-purescript;

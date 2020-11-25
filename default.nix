@@ -29,6 +29,7 @@ rec {
   inherit pkgs plutus plutusMusl;
 
   inherit (plutus) web-ghc;
+  inherit (plutus.lib) buildNodeModules;
 
   inherit (haskell.packages.plutus-scb.components.exes)
     plutus-game
@@ -43,7 +44,7 @@ rec {
     haddock = plutus.plutus-haddock-combined;
 
     inherit (pkgs.callPackage ./plutus-playground-client {
-      inherit (plutus.lib) buildPursPackage;
+      inherit (plutus.lib) buildPursPackage buildNodeModules;
       inherit set-git-rev haskell webCommon;
     }) client server-invoker generated-purescript;
   };
@@ -52,7 +53,7 @@ rec {
     tutorial = docs.marlowe-tutorial;
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
-      inherit (plutus.lib) buildPursPackage;
+      inherit (plutus.lib) buildPursPackage buildNodeModules;
       inherit set-git-rev haskell webCommon;
     }) client server-invoker generated-purescript;
   };
@@ -70,7 +71,7 @@ rec {
   };
 
   plutus-scb = pkgs.callPackage ./plutus-scb-client {
-    inherit (plutus.lib) buildPursPackage;
+    inherit (plutus.lib) buildPursPackage buildNodeModules;
     inherit set-git-rev haskell webCommon;
   };
 

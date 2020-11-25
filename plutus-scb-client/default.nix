@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
+{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
 let
   server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
 
@@ -7,9 +7,15 @@ let
     ln -s ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
     ${server-invoker}/bin/plutus-scb psgenerator $out
   '';
+
+  nodeModules = buildNodeModules {
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+  };
+
   client =
     buildPursPackage {
-      inherit webCommon;
+      inherit webCommon nodeModules;
       src = ./.;
       name = "plutus-scb-client";
       psSrc = generated-purescript;
