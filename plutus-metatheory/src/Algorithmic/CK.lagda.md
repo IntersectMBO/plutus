@@ -35,12 +35,12 @@ open import Algorithmic.RenamingSubstitution
 -- this could also be presented as a relation and then there would be
 -- more function rather like progress
 
-vtel-lem : ∀{Δ}{As As' : List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
+convVTel : ∀{Δ}{As As' : List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
   → (p : As' ≡ As)
   → (ts : Tel ∅ Δ σ As')
   → VTel Δ σ As' ts
   → VTel Δ σ As (substEq (Tel ∅ Δ σ) p ts)
-vtel-lem σ refl ts vs = vs
+convVTel σ refl ts vs = vs
 
 -- recontructing the telescope after an element has been evaluated
 
@@ -144,7 +144,7 @@ step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
 step (s ▻ builtin bn σ tel)
   with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) bn
 step (s ▻ builtin bn σ []) | [] | [[ p ]] = 
-  s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (vtel-lem σ (sym p) [] tt)
+  s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (convVTel σ (sym p) [] tt)
 step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
   (s , builtin- bn σ [] [] _ A As p ts) ▻ t
 step ( _◅_ (s , (builtin- b σ As ts vts A .[] p [])) {t = t} V) =

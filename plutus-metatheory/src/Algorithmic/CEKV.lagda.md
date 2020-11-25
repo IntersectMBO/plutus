@@ -9,7 +9,7 @@ import Data.List as L
 open import Data.List.Properties
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]];subst to substEq)
 open import Data.Unit using (⊤;tt)
-open import Data.Product using (_×_) renaming (_,_ to _,,_)
+open import Data.Product using (_×_;Σ) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
@@ -29,6 +29,12 @@ open import Utils using (decIf;just;nothing)
 
 data Env : Ctx ∅ → Set
 
+<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+<C'2type base      C = C
+<C'2type (skip⋆ p) C = Π (<C'2type p C)
+<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
+
+ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
 data Value : (A : ∅ ⊢Nf⋆ *) → Set where
   V-ƛ : ∀ {Γ}{A B : ∅ ⊢Nf⋆ *}
     → (M : Γ , A ⊢ B)
@@ -49,6 +55,36 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
   V-con : {tcn : TyCon}
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
+
+  V-I⇒ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{A : Φ' ⊢Nf⋆ *}{C : Φ ⊢Nf⋆ *}
+    → let Ψ ,, Γ' ,, C' = ISIG b in
+      (p : Ψ ≡ Φ)
+    → (q : substEq Ctx p Γ' ≡ Γ)
+    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
+    → (σ : SubNf Φ' ∅)
+    → (p : (Δ , A) ≤C' Γ)
+    → ITel b Δ σ
+    → (t : ∅ ⊢ substNf σ (<C'2type (skip p) C))
+    → Value (substNf σ (<C'2type (skip p) C))
+
+  V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
+    → let Ψ ,, Γ' ,, C' = ISIG b in
+      (p : Ψ ≡ Φ)
+    → (q : substEq Ctx p Γ' ≡ Γ)
+    → (r : substEq (_⊢Nf⋆ *) p C' ≡ C)
+    → (σ : SubNf Φ' ∅) -- could try one at a time
+      (p : (Δ ,⋆ K) ≤C' Γ)
+    → ITel b Δ σ
+    → (t : ∅ ⊢ substNf σ (<C'2type (skip⋆ p) C))
+    → Value (substNf σ (<C'2type (skip⋆ p) C))
+
+ITel b ∅       σ = ⊤
+ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
+ITel b (Γ , A) σ = ITel b Γ σ × Value (substNf σ A)
+
+-- ITel is very similar to Env...
+-- The most significant difference is that envs don't contain types
+-- if they did we could perhaps delay type substitutions too...
 
 data Env where
   [] : Env ∅
@@ -86,6 +122,8 @@ discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c
+discharge (V-I⇒ _ _ _ _ _ _ _ t) = t
+discharge (V-IΠ _ _ _ _ _ _ _ t) = t
 
 VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : L.List (Δ ⊢Nf⋆ *)) → Set
 VTel Δ σ L.[]       = ⊤
@@ -236,6 +274,8 @@ step ((s , builtin- b σ As vs A (A' L.∷ As') p (t' ∷ ts') ρ) ◅ V) =
          ts'
          ρ)
    ; ρ ▻ t'
+step ((s , (V-I⇒ b p q r σ p' vs t ·-)) ◅ v) = ◆ (itype b)
+step ((s , -·⋆ A) ◅ V-IΠ b p q r σ p' vs t) = ◆ (itype b)
 step (□ V) = □ V
 step (◆ A) = ◆ A
 

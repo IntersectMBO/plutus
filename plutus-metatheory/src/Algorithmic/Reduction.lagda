@@ -456,8 +456,8 @@ progress-· (step p)  q = step (ξ-·₁ p)
 progress-· (done v)  q = progress-·V v q
 progress-· (error E-error) q = step E-·₁
 
-val-lem : ∀{A A'}{t : ∅ ⊢ A}(p : A ≡ A') → Value (conv⊢ refl p t) → Value t
-val-lem refl v = v
+convValue : ∀{A A'}{t : ∅ ⊢ A}(p : A ≡ A') → Value (conv⊢ refl p t) → Value t
+convValue refl v = v
 
 Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
   (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
@@ -509,8 +509,8 @@ progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆
 progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
-progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip⋆ p) vs t)) A = done (val-lem (Πlem p A C σ) (V-IΠ b {C = C} p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (Πlem p A C σ) (t ·⋆ A))) )
-progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip p) vs t))  A = done (val-lem (⇒lem p σ C) (V-I⇒ b p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (⇒lem p σ C) (t ·⋆ A) )))
+progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip⋆ p) vs t)) A = done (convValue (Πlem p A C σ) (V-IΠ b {C = C} p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (Πlem p A C σ) (t ·⋆ A))) )
+progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip p) vs t))  A = done (convValue (⇒lem p σ C) (V-I⇒ b p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (⇒lem p σ C) (t ·⋆ A) )))
 progress-·⋆ (done (V-IΠ b p q r σ base vs t)) A = step (β-sbuiltin⋆ b σ p q _ r t vs)
 -- ^ it's the last one, call BUILTIN
 
