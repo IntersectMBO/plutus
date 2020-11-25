@@ -22,9 +22,9 @@ library
         Lambda
         Marlowe.Contracts
         Marlowe.Config
+    -- Include 'contracts' so haskell.nix knows to include the files that we embed with TH
     hs-source-dirs:
         src
-        -- So haskell.nix knows to include the files that we embed with TH
         contracts
     default-language: Haskell2010
     build-depends:

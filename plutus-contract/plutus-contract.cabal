@@ -133,9 +133,9 @@ library
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0
+    -- Include 'doc' so Haskell.nix finds the symlink sources
     hs-source-dirs:
         doctest
-        -- so Haskell.nix finds the symlink sources
         doc
     default-language: Haskell2010
     main-is: Main.hs

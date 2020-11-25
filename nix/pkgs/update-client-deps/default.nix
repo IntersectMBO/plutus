@@ -1,7 +1,6 @@
 { stdenv
 , lib
-, writeScriptBin
-, runtimeShell
+, writeShellScriptBin
 , git
 , fd
 , coreutils
@@ -17,8 +16,7 @@
 , clang
 }:
 
-lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "update-client-deps" ''
-  #!${runtimeShell}
+lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeShellScriptBin "update-client-deps" ''
   set -eou pipefail
 
   export PATH=${lib.makeBinPath ([

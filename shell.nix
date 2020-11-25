@@ -64,11 +64,13 @@ let
     fixStylishHaskell
     haskell-language-server
     hie-bios
+    gen-hie
     hlint
     purs
     purty
     spago
     stylish-haskell
+    updateHie
     updateClientDeps
     updateMetadataSamples
   ]);

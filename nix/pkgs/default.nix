@@ -35,6 +35,7 @@ let
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
   hie-bios = exeFromExtras "hie-bios";
+  gen-hie = haskell.extraPackages.implicit-hie.components.exes.gen-hie;
   haskellNixAgda = haskell.extraPackages.Agda;
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
@@ -68,6 +69,7 @@ let
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
   updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+  updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
     inherit (easyPS) purs psc-package spago spago2nix;
@@ -158,9 +160,9 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios;
+  inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios gen-hie;
   inherit purty purty-pre-commit purs spago;
-  inherit fixPurty fixStylishHaskell updateMaterialized updateMetadataSamples updateClientDeps;
+  inherit fixPurty fixStylishHaskell updateMaterialized updateHie updateMetadataSamples updateClientDeps;
   inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
