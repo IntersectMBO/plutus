@@ -88,16 +88,16 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "npmlock2nix": {
-        "branch": "github-experiment",
+        "branch": "master",
         "builtin": false,
         "description": null,
         "homepage": null,
         "owner": "tweag",
         "repo": "npmlock2nix",
-        "rev": "bdfed221a2393999572a362158dabfad241f7f3c",
-        "sha256": "1vz3aw5f0y3fjfa8cd5bk4gfk17n70vqqcbflryz9xhwmvx0g9ga",
+        "rev": "88f2aa7933c2fc71d7ba0f7707e8652919d0570c",
+        "sha256": "0flbyhjnpzj2nvzl51g9mcwjcg481ip3n148qlpn12kxvbjnl71g",
         "type": "tarball",
-        "url": "https://github.com/tweag/npmlock2nix/archive/bdfed221a2393999572a362158dabfad241f7f3c.tar.gz",
+        "url": "https://github.com/tweag/npmlock2nix/archive/88f2aa7933c2fc71d7ba0f7707e8652919d0570c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
