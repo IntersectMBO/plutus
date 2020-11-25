@@ -11,7 +11,8 @@ import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
+import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Effect (Effect)
@@ -26,6 +27,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
+import Web.HTML.Event.EventTypes (offline)
 
 foreign import sendContractToShiny ::
   String ->
@@ -152,7 +154,16 @@ handleAction (GetTerms flavour) = do
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      raise $ CurrentTerms flavour $ contract
+      case parseActusJsonCode contract of
+        Left e -> assign _errorMessage $ Just e
+        Right ctRaw -> do
+          let ct = (unwrap ctRaw)
+          case flavour of
+            F -> if (isJust ct.ct_RRCL) 
+                    then assign _errorMessage $ Just "Rate resets are not allowed in static contracts"
+                    else raise $ CurrentTerms flavour $ contract
+            _ -> raise $ CurrentTerms flavour $ contract
+            
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
