@@ -267,24 +267,35 @@ IBUILTIN addInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   V-con (integer (i + j))
 IBUILTIN subtractInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   V-con (integer (i - j))
-IBUILTIN multiplyInteger σ tel = wibble
-IBUILTIN divideInteger σ tel = wibble
-IBUILTIN quotientInteger σ tel = wibble
-IBUILTIN remainderInteger σ tel = wibble
-IBUILTIN modInteger σ tel = wibble
-IBUILTIN lessThanInteger σ tel = wibble
-IBUILTIN lessThanEqualsInteger σ tel = wibble
-IBUILTIN greaterThanInteger σ tel = wibble
-IBUILTIN greaterThanEqualsInteger σ tel = wibble
-IBUILTIN equalsInteger σ tel = wibble
-IBUILTIN concatenate σ tel = wibble
-IBUILTIN takeByteString σ tel = wibble
-IBUILTIN dropByteString σ tel = wibble
-IBUILTIN sha2-256 σ tel = wibble
-IBUILTIN sha3-256 σ tel = wibble
-IBUILTIN verifySignature σ tel = wibble
-IBUILTIN equalsByteString σ tel = wibble
-IBUILTIN ifThenElse σ tel = wibble
+IBUILTIN multiplyInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  V-con (integer (i ** j))
+IBUILTIN divideInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
+IBUILTIN quotientInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
+IBUILTIN remainderInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
+IBUILTIN modInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
+IBUILTIN lessThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  decIf (i <? j) (V-con (bool true)) (V-con (bool false))
+IBUILTIN lessThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  decIf (i ≤? j) (V-con (bool true)) (V-con (bool false))
+IBUILTIN greaterThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  decIf (i Builtin.Constant.Type.>? j) (V-con (bool true)) (V-con (bool false))
+IBUILTIN greaterThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  decIf (i Builtin.Constant.Type.≥? j) (V-con (bool true)) (V-con (bool false))
+IBUILTIN equalsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
+  decIf (i ≟ j) (V-con (bool true)) (V-con (bool false))
+IBUILTIN concatenate σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) =
+  V-con (bytestring (append b b'))
+IBUILTIN takeByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (take i b))
+IBUILTIN dropByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (drop i b))
+IBUILTIN sha2-256 σ (tt ,, V-con (bytestring b)) = V-con (bytestring (SHA2-256 b))
+IBUILTIN sha3-256 σ (tt ,, V-con (bytestring b)) = V-con (bytestring (SHA3-256 b))
+IBUILTIN verifySignature σ ((((tt ,, V-con (bytestring k)) ,, V-con (bytestring d))) ,, V-con (bytestring c)) with verifySig k d c
+... | just false = V-con (bool false)
+... | just true = V-con (bool true)
+... | nothing = wibble
+IBUILTIN equalsByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = V-con (bool (equals b b'))
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool true)) ,, t) ,, f) = t
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool false)) ,, t) ,, f) = f
 
 
 IBUILTIN' : (b : Builtin)

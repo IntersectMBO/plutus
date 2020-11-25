@@ -167,7 +167,7 @@ ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestrin
 ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
 ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bytestring
+ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
 ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
 
 
