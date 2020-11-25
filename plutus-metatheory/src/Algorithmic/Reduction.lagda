@@ -43,27 +43,6 @@ open import Data.String using (String)
 
 \begin{code}
 
-_<C+_ : ∀{Φ Φ'} → Ctx Φ → Ctx+ Φ' → Set
-Γ <C+ (Γ' ,, A) = Γ ≤C' Γ'
-
-_<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set
-Γ <C Γ' = (Σ (_ ⊢Nf⋆ *) λ A → (Γ , A) ≤C Γ') ⊎ (Σ Kind λ K → (Γ ,⋆ K) ≤C Γ') 
-
-<C2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-<C2type base      C = C
-<C2type (skip⋆ p) C = <C2type p (Π C)
-<C2type (skip {A = A} p)  C = <C2type p (A ⇒ C)
-
-<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-<C'2type base      C = C
-<C'2type (skip⋆ p) C = Π (<C'2type p C)
-<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
-
-Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-Ctx2type ∅        C = C
-Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
-Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
-
 VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
   → Tel ∅ Δ σ As → Set
 
@@ -159,6 +138,7 @@ IBUILTIN : (b : Builtin)
     → (tel : ITel b Γ σ)
       -----------------------------
     → ∅ ⊢ substNf σ C
+      -- ^ should be val or error to avoid throwing away work
 IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i + j))
 IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i - j))
 IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i ** j))
@@ -458,29 +438,6 @@ progress-· (error E-error) q = step E-·₁
 
 convValue : ∀{A A'}{t : ∅ ⊢ A}(p : A ≡ A') → Value (conv⊢ refl p t) → Value t
 convValue refl v = v
-
-Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
-  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
-  → (Π
-       (eval
-        (T.subst (T.exts (T.exts (λ x → embNf (σ x))))
-         (embNf (<C'2type p C)))
-        (exte (exte (idEnv ∅))))
-       [ A ]Nf)
-      ≡ substNf (substNf-cons σ A) (Π (<C'2type p C))
-Πlem p A C σ = sym (substNf-cons-[]Nf (Π (<C'2type p C)))
-
-
-⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
-       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
-  → ((eval (T.subst (T.exts (λ x → embNf (σ x))) (embNf B))
-        (exte (idEnv ∅))
-        ⇒
-        eval (T.subst (T.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
-        (exte (idEnv ∅)))
-       [ A ]Nf)
-      ≡ substNf (substNf-cons σ A) (B ⇒ <C'2type p C)
-⇒lem {B = B} p σ C = sym (substNf-cons-[]Nf (B ⇒ <C'2type p C)) 
 
 ival : ∀ b → Value (ibuiltin b)
 ival addInteger = V-I⇒ addInteger {Γ = proj₁ (proj₂ (ISIG addInteger))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG addInteger))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin addInteger)

@@ -326,4 +326,50 @@ convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
 convTel p σ []       []       = []
 convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
+
+-- not all of the stuff below is needed I don't think
+
+_<C+_ : ∀{Φ Φ'} → Ctx Φ → Ctx+ Φ' → Set
+Γ <C+ (Γ' ,, A) = Γ ≤C' Γ'
+
+_<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set
+Γ <C Γ' = (Σ (_ ⊢Nf⋆ *) λ A → (Γ , A) ≤C Γ') ⊎ (Σ Kind λ K → (Γ ,⋆ K) ≤C Γ') 
+
+<C2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+<C2type base      C = C
+<C2type (skip⋆ p) C = <C2type p (Π C)
+<C2type (skip {A = A} p)  C = <C2type p (A ⇒ C)
+
+<C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
+<C'2type base      C = C
+<C'2type (skip⋆ p) C = Π (<C'2type p C)
+<C'2type (skip {A = A} p)  C = A ⇒ <C'2type p C
+
+Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
+Ctx2type ∅        C = C
+Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
+Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
+
+Πlem : ∀{K K'}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}(p : ((Δ ,⋆ K) ,⋆ K') ≤C' Γ)
+  (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
+  → (Π
+       (eval
+        (⋆.subst (⋆.exts (⋆.exts (λ x → embNf (σ x))))
+         (embNf (<C'2type p C)))
+        (exte (exte (idEnv ∅))))
+       [ A ]Nf)
+      ≡ substNf (substNf-cons σ A) (Π (<C'2type p C))
+Πlem p A C σ = sym (substNf-cons-[]Nf (Π (<C'2type p C)))
+
+⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
+       (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
+  → ((eval (⋆.subst (⋆.exts (λ x → embNf (σ x))) (embNf B))
+        (exte (idEnv ∅))
+        ⇒
+        eval (⋆.subst (⋆.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
+        (exte (idEnv ∅)))
+       [ A ]Nf)
+      ≡ substNf (substNf-cons σ A) (B ⇒ <C'2type p C)
+⇒lem {B = B} p σ C = sym (substNf-cons-[]Nf (B ⇒ <C'2type p C)) 
+
 \end{code}
