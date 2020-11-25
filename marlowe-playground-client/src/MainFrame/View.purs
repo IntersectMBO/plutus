@@ -29,7 +29,6 @@ import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet
-import Modal.View (modal)
 
 render ::
   forall m.

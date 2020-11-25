@@ -3,6 +3,7 @@ module MainFrame.Types where
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
+import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -43,6 +44,7 @@ data ModalView
   | RenameProject
   | SaveProjectAs
   | GithubLogin Action
+  | ConfirmUnsavedNavigation View
 
 derive instance genericModalView :: Generic ModalView _
 
@@ -52,6 +54,7 @@ instance showModalView :: Show ModalView where
   show OpenDemo = "OpenDemo"
   show RenameProject = "RenameProject"
   show SaveProjectAs = "SaveProjectAs"
+  show (ConfirmUnsavedNavigation _) = "ConfirmUnsavedNavigation"
   show (GithubLogin _) = "GithubLogin"
 
 -- Before adding the intended action to GithubLogin, this instance was being
@@ -71,6 +74,7 @@ data Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
   | ChangeView View
+  | ConfirmUnsavedNavigationAction ConfirmUnsavedNavigation.Action
   -- blockly
   | HandleBlocklyMessage Blockly.Message
   | HandleActusBlocklyMessage AB.Message
@@ -108,6 +112,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (DemosAction action) = toEvent action
   toEvent (RenameAction action) = toEvent action
   toEvent (SaveAsAction action) = toEvent action
+  toEvent (ConfirmUnsavedNavigationAction action) = Just $ defaultEvent "ConfirmUnsavedNavigation"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (GistAction _) = Just $ defaultEvent "GistAction"
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }

@@ -5,6 +5,7 @@ import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
+import ConfirmUnsavedNavigation.Types (Action(..), State) as ConfirmUnsavedNavigation
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
@@ -18,6 +19,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
@@ -52,7 +54,7 @@ import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
-import NewProject.Types (Action(..), State, emptyState) as NewProject
+import NewProject.Types (Action(..), State,  emptyState) as NewProject
 import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
@@ -62,7 +64,6 @@ import Rename.Types (Action(..), State, _projectName, emptyState) as Rename
 import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
-import Routing.Duplex as RT
 import Routing.Hash as Routing
 import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _error, _projectName, emptyState) as SaveAs
@@ -180,19 +181,19 @@ handleSubRoute ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   SubRoute -> HalogenM State Action ChildSlots Void m Unit
-handleSubRoute _ Router.Home = selectView HomePage
+handleSubRoute settings Router.Home = selectView settings HomePage
 
-handleSubRoute _ Router.Simulation = selectView Simulation
+handleSubRoute settings Router.Simulation = selectView settings Simulation
 
-handleSubRoute _ Router.HaskellEditor = selectView HaskellEditor
+handleSubRoute settings Router.HaskellEditor = selectView settings HaskellEditor
 
-handleSubRoute _ Router.JSEditor = selectView JSEditor
+handleSubRoute settings Router.JSEditor = selectView settings JSEditor
 
-handleSubRoute _ Router.Blockly = selectView BlocklyEditor
+handleSubRoute settings Router.Blockly = selectView settings BlocklyEditor
 
-handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
+handleSubRoute settings Router.ActusBlocklyEditor = selectView settings ActusBlocklyEditor
 
-handleSubRoute _ Router.Wallets = selectView WalletEmulator
+handleSubRoute settings Router.Wallets = selectView settings WalletEmulator
 
 -- This route is supposed to be called by the github oauth flow after a succesful login flow
 -- It is supposed to be run inside a popup window
@@ -268,7 +269,7 @@ handleAction s (HaskellAction action) = do
       sendToSimulation s Haskell contract
     HE.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Haskell
-      selectView BlocklyEditor
+      selectView s BlocklyEditor
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -281,19 +282,19 @@ handleAction s (JavascriptAction action) = do
       sendToSimulation s Javascript contract
     JS.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Javascript
-      selectView BlocklyEditor
+      selectView s BlocklyEditor
     _ -> pure unit
 
-handleAction s (SimulationAction action) = do
-  toSimulation (Simulation.handleAction s action)
+handleAction settings (SimulationAction action) = do
+  toSimulation (Simulation.handleAction settings action)
   case action of
     ST.SetBlocklyCode -> do
       mSource <- Simulation.editorGetValue
       for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
-      selectView BlocklyEditor
-    ST.EditHaskell -> selectView HaskellEditor
-    ST.EditJavascript -> selectView JSEditor
-    ST.EditActus -> selectView ActusBlocklyEditor
+      selectView settings BlocklyEditor
+    ST.EditHaskell -> selectView settings HaskellEditor
+    ST.EditJavascript -> selectView settings JSEditor
+    ST.EditActus -> selectView settings ActusBlocklyEditor
     ST.Save -> pure unit
     _ -> pure unit
 
@@ -303,17 +304,17 @@ handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction _ (ChangeView ActusBlocklyEditor) = do
+handleAction settings (ChangeView ActusBlocklyEditor) = do
   assign (_simulationState <<< ST._source) Actus
-  selectView ActusBlocklyEditor
+  selectView settings ActusBlocklyEditor
 
-handleAction _ (ChangeView view) = selectView view
+handleAction settings (ChangeView view) = selectView settings view
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   pure unit
 
-handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
+handleAction settings (HandleBlocklyMessage (CurrentCode code)) = do
   -- TODO: We used to block moving code to the simulation however due to the new UX there is no way to navigate this
   -- I am leaving the old code here as we want to come up with a solution asap and it will involve using this same logic
   -- The same occurs with Actus too
@@ -321,24 +322,24 @@ handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
   -- if hasStarted then
   --   void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   -- else do
-  selectView Simulation
-  void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText code)
+  selectView settings Simulation
+  void $ toSimulation $ Simulation.handleAction settings (ST.SetEditorText code)
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
+handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
   let
     parsedTermsEither = AMB.parseActusJsonCode terms
   case parsedTermsEither of
     Left e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
     Right parsedTerms -> do
       result <- case flavour of
-        ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postApiActusGenerate parsedTerms)
-        ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postApiActusGeneratestatic parsedTerms)
+        ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postApiActusGenerate parsedTerms)
+        ActusBlockly.F -> runAjax $ flip runReaderT settings $ (Server.postApiActusGeneratestatic parsedTerms)
       case result of
         Success contractAST -> do
-          selectView Simulation
-          void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
+          selectView settings Simulation
+          void $ toSimulation $ Simulation.handleAction settings (ST.SetEditorText contractAST)
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
@@ -358,7 +359,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       assign _createGistResult $ Failure error
       assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
-  traverse_ selectView $ selectLanguageView lang
+  traverse_ (selectView s) $ selectLanguageView lang
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
@@ -391,7 +392,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
       toSimulation $ Simulation.editorSetValue "?new_contract"
       liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
     _ -> pure unit
-  traverse_ selectView $ selectLanguageView lang
+  traverse_ (selectView s) $ selectLanguageView lang
   assign (_simulationState <<< ST._source) lang
   assign _showModal Nothing
   toNewProject $ NewProject.handleAction s action
@@ -411,7 +412,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
   assign _showModal Nothing
-  traverse_ selectView $ selectLanguageView lang
+  traverse_ (selectView s) $ selectLanguageView lang
 
 handleAction s (RenameAction action@Rename.SaveProject) = do
   projectName <- use (_rename <<< Rename._projectName)
@@ -469,15 +470,23 @@ handleAction settings (OpenLoginPopup intendedAction) = do
     Anonymous -> pure unit
     GithubUser -> handleAction settings intendedAction
 
+handleAction settings (ConfirmUnsavedNavigationAction action) = do
+  case action of
+    ConfirmUnsavedNavigation.Cancel -> pure unit
+    ConfirmUnsavedNavigation.DontSaveProject -> liftEffect $ Console.log "DontSaveProject"
+    ConfirmUnsavedNavigation.SaveProject -> liftEffect $ Console.log "SaveProject"
+  handleAction settings CloseModal
+
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
   assign (_simulationState <<< _source) language
-  selectView Simulation
+  selectView settings Simulation
   void $ toSimulation
     $ do
         Simulation.handleAction settings (ST.SetEditorText contract)
         Simulation.handleAction settings ST.ResetContract
 
+-- TODO: Why is this a Maybe if all results are Just?
 selectLanguageView :: Lang -> Maybe View
 selectLanguageView Haskell = Just HaskellEditor
 
@@ -611,11 +620,39 @@ loadGist gist = do
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------
+-- TODO: Should we refactor the settings so that it's a ReaderT or part of the State?
 selectView ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  View -> HalogenM State Action ChildSlots Void m Unit
+selectView settings nextView = do
+  let
+    isEditorView = case _ of
+      HaskellEditor -> true
+      JSEditor -> true
+      BlocklyEditor -> true
+      ActusBlocklyEditor -> true
+      _ -> false
+  currentView <- use _view
+  liftEffect $ Console.log $ "SelectView from " <> show currentView <> " to " <> show nextView
+  -- We compare the current and next view because this function is being called twice per route change.
+  -- Once when the view is selected and then another time when the route is loaded.
+  if currentView == nextView then
+    pure unit
+  -- TODO: Add some way to check if it wasn't saved before
+  else
+    if isEditorView currentView then do
+      liftEffect $ Console.log "Dont forget to save "
+      handleAction settings $ OpenModal $ ConfirmUnsavedNavigation nextView
+    else do
+      changeView nextView
+
+changeView ::
   forall m action message.
   MonadEffect m =>
   View -> HalogenM State action ChildSlots message m Unit
-selectView view = do
+changeView view = do
   let
     subroute = case view of
       HomePage -> Router.Home
@@ -625,7 +662,8 @@ selectView view = do
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
-  liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
+  liftEffect $ Routing.setHash (RD.print Router.route { subroute, gistId: Nothing })
+  liftEffect $ Console.log $ "Hash changed to " <> show view
   assign _view view
   liftEffect do
     window <- Web.window

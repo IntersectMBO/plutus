@@ -1,0 +1,38 @@
+module ConfirmUnsavedNavigation.State where
+
+import Data.Lens (assign, (^.))
+import Data.Maybe (Maybe(..))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (ClassName(..), ComponentHTML, HalogenM)
+import Halogen.HTML
+import Halogen.HTML.Events (onClick, onValueChange)
+import Halogen.HTML.Properties (class_, classes, value)
+import Marlowe (SPParams_)
+import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
+import ConfirmUnsavedNavigation.Types (Action(..), State, _error, _projectName)
+import Servant.PureScript.Settings (SPSettings_)
+import MainFrame.Types (ChildSlots)
+
+handleAction ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Action -> HalogenM State Action ChildSlots Void m Unit
+-- handleAction settings (ChangeInput newName) = assign _projectName newName
+handleAction settings _ = pure unit
+
+
+render ::
+  forall m.
+  MonadAff m =>
+  State ->
+  ComponentHTML Action ChildSlots m
+render state =
+  div [ classes [  ClassName "modal-content" ] ]
+    [ p_ [text "Clicking on the Marlowe logo will take you out of the editor and return you to the home page."]
+    , p_ [text "Unsaved changes will be lost."]
+    , p_ [text "Do you want to save changes to 'Untitled'?"]
+    , button [ onClick $ const $ Just Cancel ] [ text "Cancel" ]
+    , button [ onClick $ const $ Just DontSaveProject ] [ text "Don't Save" ]
+    , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]
+    ]
