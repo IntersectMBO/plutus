@@ -38,7 +38,7 @@ withGenArgsRes (TypeSchemeResult _)     y k = k [] y
 withGenArgsRes (TypeSchemeArrow _ schB) f k = do
     TermOf v x <- forAllNoShow $ genTypedBuiltinDef AsKnownType
     withGenArgsRes schB (f x) (k . (v :))
-withGenArgsRes (TypeSchemeAll _ _ schK) f k = withGenArgsRes (schK Proxy) f k
+withGenArgsRes (TypeSchemeAll _ schK)   f k = withGenArgsRes (schK Proxy) f k
 
 type AppErr = EvaluationException () DefaultFun (Term Name DefaultUni DefaultFun ())
 

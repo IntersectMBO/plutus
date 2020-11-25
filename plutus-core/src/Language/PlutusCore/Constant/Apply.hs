@@ -42,7 +42,7 @@ applyTypeSchemed name = go where
             _  -> throwingWithCause _ConstAppError       -- Too many arguments.
                     (TooManyArgumentsConstAppError name args)
                     Nothing
-    go (TypeSchemeAll _ _ schK)  f exF args =
+    go (TypeSchemeAll _ schK)    f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)  f exF args = case args of
         []          ->

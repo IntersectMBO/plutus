@@ -9,6 +9,7 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -16,7 +17,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Typed
-    ( TypeScheme (..)
+    ( KnownKind (..)
+    , TypeScheme (..)
     , FoldArgs
     , FoldArgsEx
     , unliftConstant
@@ -52,6 +54,16 @@ import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
+-- | A class for converting Haskell kinds to PLC kinds.
+class KnownKind kind where
+    knownKind :: proxy kind -> Kind ()
+
+instance KnownKind GHC.Type where
+    knownKind _ = Type ()
+
+instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
+    knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
+
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
 -- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme term [Char, Bool] Integer@.
@@ -63,11 +75,10 @@ data TypeScheme term (args :: [GHC.Type]) res where
         :: KnownType term arg
         => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
     TypeSchemeAll
-        :: (KnownSymbol text, KnownNat uniq)
+        :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
            -- Here we require the user to manually provide the unique of a type variable.
            -- That's nothing but silly, but I do not see what else we can do with the current design.
-        => Proxy '(text, uniq)
-        -> Kind ()
+        => Proxy '(text, uniq, kind)
            -- We use a funny trick here: instead of binding
            --
            -- > TypedBuiltin (Opaque term (TyVarRep text uniq))
@@ -83,7 +94,7 @@ data TypeScheme term (args :: [GHC.Type]) res where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ Opaque term (TyVarRep text uniq) => Proxy ot -> TypeScheme term args res)
+        -> (forall (ot :: kind). ot ~ TyVarRep text uniq => Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
@@ -181,10 +192,10 @@ see https://github.com/input-output-hk/plutus/issues/1882
 -}
 
 -- | Representation of a type variable: its name and unique.
-data TyVarRep (text :: Symbol) (unique :: Nat)
+data family TyVarRep (text :: Symbol) (unique :: Nat) :: kind
 
 -- | Representation of a type application: a function and an argument.
-data TyAppRep (fun :: GHC.Type) (arg :: GHC.Type)
+data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 
 -- See Note [Motivation for polymorphic built-in functions]
 -- See Note [Implemetation of polymorphic built-in functions]
@@ -193,7 +204,7 @@ data TyAppRep (fun :: GHC.Type) (arg :: GHC.Type)
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
 -- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
 -- Haskell and back and instead can keep it intact.
-newtype Opaque term rep = Opaque
+newtype Opaque term (rep :: GHC.Type) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
 
@@ -249,30 +260,35 @@ unliftConstant term = case asConstant term of
     Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
 {- Note [KnownType's defaults]
-We use @default@ for providing instances for built-in types instead of @DerivingVia@,
-because the latter breaks on
+We'd like to use @default@ for providing instances for built-in types instead of @DerivingVia@,
+because the latter breaks on @m a@
 
-    1. proxy a
-    2. m a
+It's possible to circumvent this, by using @forall r. (a -> m r) -> m r@ instead,
+but then we need to recover the original handy definitions and make the API and
+the code bloated (instances are more verbose with @DerivingVia@).
 
-It's possible to circumvent this, by using
+We don't use @default@ in 'KnownTypeAst', because an attempt to write
 
-    1. Proxy a
-    2. forall r. (a -> m r) -> m r
+    default toTypeAst :: (k ~ GHC.Type, uni `Includes` a) => proxy a -> Type TyName uni ()
+    toTypeAst = toBuiltinTypeAst
 
-instead, but then we need to recover the original handy definitions and
-make the API and the code bloated (instances are more verbose with @DerivingVia@).
+results in
+
+    Expected kind '* -> *', but 'uni' has kind 'k -> *'
 -}
 
-class KnownTypeAst uni a where
+class KnownTypeAst uni (a :: k) where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
-    default toTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
-    toTypeAst _ = mkTyBuiltin @a ()
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinType term a =
     (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a)
+
+-- See Note [KnownType's defaults].
+-- | A default implementation of 'toTypeAst' for built-in types.
+toBuiltinTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
@@ -327,12 +343,18 @@ instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque
     makeKnown = EvaluationSuccess . unOpaque
     readKnown = pure . Opaque
 
-instance uni `Includes` Integer       => KnownTypeAst uni Integer
-instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Includes` String        => KnownTypeAst uni String
-instance uni `Includes` Char          => KnownTypeAst uni Char
-instance uni `Includes` ()            => KnownTypeAst uni ()
-instance uni `Includes` Bool          => KnownTypeAst uni Bool
+instance uni `Includes` Integer       => KnownTypeAst uni Integer       where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` String        => KnownTypeAst uni String        where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` Char          => KnownTypeAst uni Char          where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` ()            => KnownTypeAst uni ()            where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` Bool          => KnownTypeAst uni Bool          where
+    toTypeAst = toBuiltinTypeAst
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString

@@ -40,6 +40,7 @@ import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 import           GHC.Ix
+import           GHC.TypeLits
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
@@ -127,17 +128,18 @@ defBuiltinsRuntimeExt
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
 defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostModel, ())
 
-data ListRep a
+data ListRep (a :: *)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 type instance ToBinds (ListRep a) = TypeToBinds a
 
-data TyForallStarRep text unique a
-instance (KnownTypeAst uni (TyVarRep text unique), KnownTypeAst uni a) =>
-            KnownTypeAst uni (TyForallStarRep text unique a) where
-    toTypeAst _ = case toTypeAst @uni $ Proxy @(TyVarRep text unique) of
-        TyVar () name -> TyForall () name (Type ()) . toTypeAst $ Proxy @a
+data TyForallRep text uniq kind (a :: *)
+instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
+            KnownTypeAst uni (TyForallRep text uniq kind a) where
+    toTypeAst _ = case toTypeAst @_ @uni $ Proxy @(TyVarRep text uniq) of
+        TyVar () name -> TyForall () name (knownKind $ Proxy @kind) . toTypeAst $ Proxy @a
         _             -> error "Impossible"
+type instance ToBinds (TyForallRep text uniq kind a) = Delete '(text, uniq, kind) (ToBinds a)
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
     type DynamicPart uni ExtensionFun = ()
@@ -154,24 +156,18 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
             (Prelude.id :: a ~ Opaque term (TyVarRep "a" 0) => a -> a)
             mempty
     toBuiltinMeaning IdFInteger =
-        -- Automatic inference doesn't work with higher-kinded variables, hence doing everything
-        -- manually.
-        BuiltinMeaning
-            (TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
-                let ty = Proxy @(Opaque _ (TyAppRep f Integer))
-                in ty `TypeSchemeArrow` TypeSchemeResult ty)
-            (\_ -> Prelude.id)
+        toStaticBuiltinMeaning
+            (Prelude.id :: a ~ Opaque term (TyAppRep (TyVarRep "f" 0) (Transparent Integer)) => a -> a)
             mempty
     toBuiltinMeaning IdList =
         toStaticBuiltinMeaning
             (Prelude.id :: a ~ Opaque term (ListRep (Opaque term (TyVarRep "a" 0))) => a -> a)
             mempty
     toBuiltinMeaning IdRank2 =
-        BuiltinMeaning
-            (TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
-                let ty = Proxy @(Opaque _ (TyForallStarRep "a" 1 (TyAppRep f (Opaque _ (TyVarRep "a" 1)))))
-                in ty `TypeSchemeArrow` TypeSchemeResult ty)
-            (\_ -> Prelude.id)
+        toStaticBuiltinMeaning
+            (Prelude.id
+                :: a ~ Opaque term (TyForallRep "a" 1 * (TyAppRep (TyVarRep "f" 0) (TyVarRep "a" 1 :: *)))
+                => a -> a)
             mempty
 
 -- | Check that 'Factorial' from the above computes to the same thing as
@@ -194,7 +190,7 @@ test_Const =
         b <- forAll Gen.bool
         let tC = mkConstant () c
             tB = mkConstant () b
-            char = toTypeAst @DefaultUni @Char Proxy
+            char = toTypeAst @_ @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             lhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ Builtin () (Right Const)
             rhs = typecheckReadKnownCek defBuiltinsRuntimeExt $ runConst $ mapFun Left Plc.const
