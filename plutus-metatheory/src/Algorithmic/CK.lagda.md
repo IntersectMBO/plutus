@@ -164,10 +164,14 @@ step (_◅_ (s , builtin- b σ As ts vts A (A' ∷ As') p (t' ∷ ts')) {t = t} 
         (trans p (sym (++-assoc As L.[ A ] (A' ∷ As')))) ts')
   ▻ t'
 
-step (s ▻ ibuiltin b) = ◆ (itype b)
-step ((s , (V-I⇒ b p q r σ p₁ x₁ _ ·-)) ◅ x₂) = ◆ (itype b)
-step ((s , -·⋆ A) ◅ V-IΠ b p q r σ p₁ x₁ _) = ◆ (itype b)
-
+step (s ▻ ibuiltin b) = s ◅ ival b
+step ((s , (V-I⇒ b p q r σ base vs f ·-)) ◅ v) =
+  s ▻ IBUILTIN' b p q σ (vs ,, deval v ,, v) _ r
+step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs f ·-)) ◅ v) =
+  s ◅ (V-IΠ b p q r σ p' (vs ,, deval v ,, v) (f · deval v))
+step ((s , (V-I⇒ b p q r σ (skip p') vs f ·-)) ◅ v) =
+  s ◅ V-I⇒ b p q r σ p' (vs ,, deval v ,, v) (f · deval v)
+step ((s , -·⋆ A) ◅ V-IΠ b p q r σ p' vs f)  = ◆ (itype b)
 
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
