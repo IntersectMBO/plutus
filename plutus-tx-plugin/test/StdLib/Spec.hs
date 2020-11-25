@@ -7,31 +7,26 @@
 module StdLib.Spec where
 
 import           Common
-import           Data.Ratio                   ((%))
-import           GHC.Real                     (reduce)
-import           Hedgehog                     (Gen, MonadGen, Property)
+import           Data.Ratio                ((%))
+import           GHC.Real                  (reduce)
+import           Hedgehog                  (MonadGen, Property)
 import qualified Hedgehog
-import qualified Hedgehog.Gen                 as Gen
-import qualified Hedgehog.Range               as Range
+import qualified Hedgehog.Gen              as Gen
+import qualified Hedgehog.Range            as Range
 import           Lib
 import           PlcTestUtils
-import           Plugin.Lib
-import           Test.Tasty                   (TestName)
-import           Test.Tasty.Hedgehog          (testProperty)
+import           Test.Tasty                (TestName)
+import           Test.Tasty.Hedgehog       (testProperty)
 
-import           Language.PlutusTx.Data       (Data (..))
-import qualified Language.PlutusTx.Data       as Data
-import qualified Language.PlutusTx.Eq         as PlutusTx
-import qualified Language.PlutusTx.Ord        as PlutusTx
-import qualified Language.PlutusTx.Prelude    as PlutusTx
-import qualified Language.PlutusTx.Ratio      as Ratio
+import           Language.PlutusTx.Data    (Data (..))
+import qualified Language.PlutusTx.Eq      as PlutusTx
+import qualified Language.PlutusTx.Ord     as PlutusTx
+import qualified Language.PlutusTx.Prelude as PlutusTx
+import qualified Language.PlutusTx.Ratio   as Ratio
 
 import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Lift       as Lift
+import qualified Language.PlutusTx.Lift    as Lift
 import           Language.PlutusTx.Plugin
-
-import qualified Language.PlutusCore.Builtins as PLC
-import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
 
@@ -65,7 +60,8 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.prop
 testDivMod :: Property
 testDivMod = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let genNonzero = Gen.filter (\i -> i /= 0) gen
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
     let ghcResult = divMod n1 n2
         plutusResult = Ratio.divMod n1 n2
     Hedgehog.annotateShow ghcResult
@@ -75,7 +71,8 @@ testDivMod = Hedgehog.property $ do
 testQuotRem :: Property
 testQuotRem = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let genNonzero = Gen.filter (\i -> i /= 0) gen
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
     let ghcResult = quotRem n1 n2
         plutusResult = Ratio.quotRem n1 n2
     Hedgehog.annotateShow ghcResult
@@ -85,7 +82,8 @@ testQuotRem = Hedgehog.property $ do
 testReduce :: Property
 testReduce = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    let genNonzero = Gen.filter (\i -> i /= 0) gen
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
     let ghcResult = reduce n1 n2
         plutusResult = Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
@@ -95,7 +93,7 @@ testReduce = Hedgehog.property $ do
 testOrd :: Property
 testOrd = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    let genNonzero = Gen.filter (\i -> not (i == 0)) gen
+    let genNonzero = Gen.filter (\i -> i /= 0) gen
     n1 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
     n2 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
     let ghcResult = n1 <= n2
