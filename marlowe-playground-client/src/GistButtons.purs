@@ -14,22 +14,24 @@ import Halogen.SVG as SVG
 import Icons (Icon(..), icon)
 import MainFrame.Types (Action(..), State, _authStatus)
 import Network.RemoteData (RemoteData(..))
+import Prim.TypeError (class Warn, Text)
 
-authButton :: forall p. Action -> State -> HTML p Action
+authButton ::
+  forall p.
+  Warn (Text "Dont forget to design the Failure case and maybe add a CTA to retry") =>
+  Action ->
+  State -> HTML p Action
 authButton intendedAction state =
   let
     authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
   in
     case authStatus of
-      -- TODO: Check how it looks visually and rethink if it should have a CTA to retry
       Failure _ ->
         button
           [ idPublishGist
           ]
           [ text "Failed to login" ]
       Success Anonymous ->
-        -- TODO: Validate this dialog with the designer, see if we should add a title
-        --       based on the intendedAction
         div [ classes [ modalContent, ClassName "auth-button-container" ] ]
           [ p_ [ text "We use gists to save your projects, in order to save and load your projects you will need to login to Github." ]
           , p_ [ text "If you don't wish to login you can still use the Marlowe Playground however you won't be able to save your work." ]
