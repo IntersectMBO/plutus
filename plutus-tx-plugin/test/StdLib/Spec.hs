@@ -7,6 +7,9 @@
 module StdLib.Spec where
 
 import           Common
+import           Control.DeepSeq
+import           Control.Exception
+import           Control.Monad.IO.Class
 import           Data.Ratio                ((%))
 import           GHC.Real                  (reduce)
 import           Hedgehog                  (MonadGen, Property)
@@ -48,6 +51,14 @@ tests =
     , goldenPir "errorTrace" errorTrace
     ]
 
+eitherToMaybe :: Either e a -> Maybe a
+eitherToMaybe (Left _)  = Nothing
+eitherToMaybe (Right x) = Just x
+
+-- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just representing it as 'Nothing'.
+tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
+tryHard a = eitherToMaybe <$> (liftIO $ try @SomeException $ evaluate $ force a)
+
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
 testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.property $ do
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
@@ -60,10 +71,9 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.prop
 testDivMod :: Property
 testDivMod = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    let genNonzero = Gen.filter (\i -> i /= 0) gen
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
-    let ghcResult = divMod n1 n2
-        plutusResult = Ratio.divMod n1 n2
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    ghcResult <- tryHard $ divMod n1 n2
+    plutusResult <- tryHard $ Ratio.divMod n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -71,10 +81,9 @@ testDivMod = Hedgehog.property $ do
 testQuotRem :: Property
 testQuotRem = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    let genNonzero = Gen.filter (\i -> i /= 0) gen
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
-    let ghcResult = quotRem n1 n2
-        plutusResult = Ratio.quotRem n1 n2
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    ghcResult <- tryHard $ quotRem n1 n2
+    plutusResult <- tryHard $ Ratio.quotRem n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -82,10 +91,9 @@ testQuotRem = Hedgehog.property $ do
 testReduce :: Property
 testReduce = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    let genNonzero = Gen.filter (\i -> i /= 0) gen
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> genNonzero
-    let ghcResult = reduce n1 n2
-        plutusResult = Ratio.toGHC $ Ratio.reduce n1 n2
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+    ghcResult <- tryHard $ reduce n1 n2
+    plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -93,11 +101,10 @@ testReduce = Hedgehog.property $ do
 testOrd :: Property
 testOrd = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    let genNonzero = Gen.filter (\i -> i /= 0) gen
-    n1 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
-    n2 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
-    let ghcResult = n1 <= n2
-        plutusResult = (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
+    n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+    n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+    ghcResult <- tryHard $ n1 <= n2
+    plutusResult <- tryHard $ (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)

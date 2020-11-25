@@ -96,6 +96,7 @@ test-suite plutus-tx-tests
     build-depends:
         base >=4.9 && <5,
         flat -any,
+        deepseq -any,
         integer-gmp -any,
         plutus-core -any,
         plutus-tx -any,
