@@ -63,6 +63,9 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
+lemma charToString = refl
+lemma append = refl
+lemma trace = refl
 
 lemma≤ : (b : Builtin) → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
 lemma≤ b rewrite lemma b = ≤‴-refl
@@ -132,7 +135,7 @@ erase (conv p t)        = erase t
 erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel ts)
-erase {Γ = Γ} (pbuiltin b Ψ' σ As' p ts) = error
+erase (ibuiltin b)      = error
 erase (error A)         = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *

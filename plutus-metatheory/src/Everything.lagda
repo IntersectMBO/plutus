@@ -31,7 +31,7 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
---import Declarative.Erasure
+import Declarative.Erasure
 
 import Declarative.Examples
 import Declarative.Examples.StdLib.Function
@@ -48,7 +48,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Completeness
 import Algorithmic.Soundness
---import Algorithmic.Erasure
+import Algorithmic.Erasure
 --import Algorithmic.Erasure.RenamingSubstitution
 --import Algorithmic.Erasure.Reduction
 import Algorithmic.CK

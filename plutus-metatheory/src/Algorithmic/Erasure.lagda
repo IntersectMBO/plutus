@@ -63,6 +63,9 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
+lemma charToString = refl
+lemma append = refl
+lemma trace = refl
 
 lemma≤ : (b : Builtin)
   → len⋆ (proj₁ (AS.SIG b)) + length (proj₁ (proj₂ (AS.SIG b))) ≤‴ arity b
@@ -102,6 +105,7 @@ erase (unwrap t)           = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
 erase {Γ = Γ} (builtin bn σ ts) =
   builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (AS.SIG bn)) ++ eraseTel ts)
+erase (ibuiltin b)         = error
 erase (error A)            = error
 
 eraseTel {As = []}     _          = []
@@ -368,8 +372,8 @@ same {Γ = Γ} (D.builtin b σ ts) = trans
      (lemTel (lenLemma Γ) b (eraseTel⋆ (nfCtx Γ) (proj₁ (AS.SIG b)) ++ eraseTel (nfTypeTel' σ (proj₁ (proj₂ (DS.SIG b))) (sym (nfTypeSIG≡₁ b))
           (proj₁ (proj₂ (AS.SIG b))) (lemList b) ts)) (lemma≤ b))
      (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemσ σ (proj₂ (proj₂ (DS.SIG b))) (proj₂ (proj₂ (AS.SIG b))) (sym (nfTypeSIG≡₁ b)) (nfTypeSIG≡₂ b)) (builtin b (λ {J} x → nf (σ (subst (_∋⋆ J) (sym (nfTypeSIG≡₁ b)) x))) (nfTypeTel' σ (proj₁ (proj₂ (DS.SIG b))) (sym (nfTypeSIG≡₁ b)) (proj₁ (proj₂ (AS.SIG b))) (lemList b) ts))))))
+same {Γ = Γ} (D.ibuiltin b) = trans (lemerror (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ)) (lem-erase refl (itype-lem b) (ibuiltin b))) 
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
-
 
 open import Algorithmic.Soundness
 
@@ -481,6 +485,7 @@ same' {Γ = Γ} (builtin b σ ts) = trans
   (lem-builtin b (eraseTel⋆ Γ (proj₁ (AS.SIG b)) ++ eraseTel ts) (lemma≤ b) (D.lemma≤ b) (sym (cong₂ _+_ (nfTypeSIG≡₁' b) (nfTypeSIG≡₃ b))))
   (trans
     (cong (Untyped.builtin b (D.lemma≤ b)) (same'Tel' σ (proj₁ (proj₂ (AS.SIG b))) ts (nfTypeSIG≡₁ b) (proj₁ (proj₂ (DS.SIG b))) (sym (cong₂ _+_ (nfTypeSIG≡₁' b) (nfTypeSIG≡₃ b))) (lemList' b)))
-    (lemTel (same'Len Γ) b (D.eraseTel⋆ (embCtx Γ) (proj₁ (DS.SIG b)) ++ D.eraseTel (embTel (nfTypeSIG≡₁ b) (proj₁ (proj₂ (AS.SIG b))) (proj₁ (proj₂ (DS.SIG b))) (lemList' b) σ ts)) (D.lemma≤ b))) 
+    (lemTel (same'Len Γ) b (D.eraseTel⋆ (embCtx Γ) (proj₁ (DS.SIG b)) ++ D.eraseTel (embTel (nfTypeSIG≡₁ b) (proj₁ (proj₂ (AS.SIG b))) (proj₁ (proj₂ (DS.SIG b))) (lemList' b) σ ts)) (D.lemma≤ b)))
+same' {Γ = Γ} (ibuiltin b) = lemerror (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}
