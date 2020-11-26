@@ -33,6 +33,7 @@ in {
 
     adminNames = [
       "craige.mcwhirter"
+      "michael.fellinger"
     ];
     developerGithubNames = [ ];
     developerGithubTeamNames = [ "plutus" ];
