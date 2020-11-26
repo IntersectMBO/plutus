@@ -161,6 +161,7 @@ let
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
     wyohack = mkEnv "wyohack" "us-west-2";
+    testing = mkEnv "testing" "eu-west-3";
   };
 in
 envs // { inherit getCreds static; }
