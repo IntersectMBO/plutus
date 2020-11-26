@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
 let
   server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
 
@@ -16,7 +16,7 @@ let
   client =
     buildPursPackage {
       inherit webCommon nodeModules;
-      src = ./.;
+      src = nix-gitignore.gitignoreSource [ "/*.nix" ] ./.;
       name = "plutus-scb-client";
       psSrc = generated-purescript;
       packages = pkgs.callPackage ./packages.nix { };

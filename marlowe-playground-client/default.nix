@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
@@ -27,8 +27,13 @@ let
   '';
 
   nodeModules = buildNodeModules {
+    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" ] ./.;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
+    githubSourceHashMap = {
+      shmish111.nearley-webpack-loader."939360f9d1bafa9019b6ff8739495c6c9101c4a1" = "1brx669dgsryakf7my00m25xdv7a02snbwzhzgc9ylmys4p8c10x";
+      znerol.libxmljs."0517e063347ea2532c9fdf38dc47878c628bf0ae" = "0g3kgwnqfr6v2xp1i7dfbm4z45inz1019ln06lfxl9mwxlc31wfg";
+    };
   };
 
   client = buildPursPackage {
