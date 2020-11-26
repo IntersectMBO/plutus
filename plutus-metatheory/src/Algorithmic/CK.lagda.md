@@ -175,7 +175,6 @@ step ((s , (V-I⇒ b p q r σ (skip p') vs f ·-)) ◅ v) =
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs f) with IBUILTIN' b p q (substNf-cons σ A) (vs ,, A) _ r
 ... | _ ,, Sum.inj₁ v' = s ◅ convVal (substNf-cons-[]Nf C) v'
 ... | _ ,, Sum.inj₂ e  = ◆ (substNf (substNf-cons σ A) C)
---  s ▻ conv⊢ refl (substNf-cons-[]Nf C) (IBUILTIN' b p q (substNf-cons σ A) (vs ,, A) _ r) 
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip⋆ p') vs f) = s ◅ convValue (Πlem p' A C σ) (V-IΠ b {C = C} p q r (substNf-cons σ A) p' (vs ,, A) (conv⊢ refl (Πlem p' A C σ) (f ·⋆ A)))
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip p') vs f) = s ◅ convValue (⇒lem p' σ C) (V-I⇒ b p q r (substNf-cons σ A) p' (vs ,, A) (conv⊢ refl (⇒lem p' σ C) (f ·⋆ A)))
 

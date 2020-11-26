@@ -101,14 +101,13 @@ tests = do --return [ Test succeeds ] -- , Test fails ]
   return $ map Test $
     map (mkTest M.alphaTm "evaluate") testNames
      ++
+    map (mkTestMode "L" "TL" M.alphaTm) testNames
+     ++
     map (mkTestMode "L" "CK" M.alphaTm) testNames
      ++
-    map (mkTestMode "CK" "TCK" M.alphaTm) (tail testNames)
-    -- ^ skip "succInteger" to avoid sat/unsat eta expansion differences
+    map (mkTestMode "CK" "TCK" M.alphaTm) testNames
      ++
-    map (mkTestMode "TCK" "TCEKV" M.alphaTm) testNames
-     ++
-    map (mkTestMode "TCEKV" "TCEKC" M.alphaTm) testNames
+    map (mkTestMode "TCK" "TCEK" M.alphaTm) testNames
      ++
     map (mkTest M.alphaTy "typecheck") testNames
   where
