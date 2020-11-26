@@ -171,6 +171,8 @@ lemsub A A' σ p = trans≡β
       ((≡2β (sym (cong embNf (subst-eval A' idCR (embNf ∘ σ))))))))
   (sym≡β (soundness (subst (embNf ∘ σ) A')))
 
+postulate itype-lem≡β : ∀{Φ} b → Dec.itype {Φ} b ≡β embNf (Alg.itype b)
+
 embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
   → (As  : List (Δ ⊢Nf⋆ *))
   → (As' : List (Δ' ⊢⋆ *))
@@ -209,7 +211,7 @@ emb (Alg.builtin bn σ tel) = let
          bn
          (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
          (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
-emb (Alg.ibuiltin b) = ?
+emb (Alg.ibuiltin b) = Dec.conv (itype-lem≡β b) (Dec.ibuiltin b)
 emb (Alg.error A) = Dec.error (embNf A)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A

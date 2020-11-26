@@ -184,36 +184,6 @@ itype b = let Φ ,, Γ ,, C = ISIG b in substNf (λ()) (isig2type Φ Γ C)
 postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
 postulate itype-subst : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ substNf ρ (itype b)
 
--- a context with at least one type after any kind entries
-Ctx+ : Ctx⋆ → Set
-Ctx+ Φ = Ctx Φ × Φ ⊢Nf⋆ *
-
-ISIG+ : Builtin → Σ Ctx⋆ λ Φ → Ctx+ Φ × Φ ⊢Nf⋆ *
-ISIG+ ifThenElse =
-  ∅ ,⋆ *
-  ,,
-  (∅ ,⋆ * , con bool , ne (` Z) ,, ne (` Z))
-  ,,
-  ne (` Z)
-ISIG+ _ = ∅ ,, (∅ ,, con bool) ,, con bool
-
-itype+ : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-itype+ b = let Ψ ,, (Γ ,, A) ,, C = ISIG+ b in
-  substNf (λ ()) (isig2type Ψ Γ (A ⇒ C))
-
-postulate itype-ren+ : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype+ b ≡ renNf ρ (itype+ b)
-postulate itype-subst+ : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype+ b ≡ substNf ρ (itype+ b)
-
-{-
-data _<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set where
-  base : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → ∅ <C (Γ , A)
-  base⋆ : ∀{Φ}{Γ : Ctx Φ}{K} → ∅ <C (Γ ,⋆ K)
-  step : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *}{A' : Φ' ⊢Nf⋆ *}
-    → Γ <C Γ' → (Γ , A) <C (Γ' , A')
-  step⋆ : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K K'}
-    → Γ <C Γ' → (Γ ,⋆ K) <C (Γ' ,⋆ K')
--}
-
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
   ` : ∀ {A : Φ ⊢Nf⋆ *}
@@ -330,9 +300,6 @@ convTel p σ []       []       = []
 convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 
 -- not all of the stuff below is needed I don't think
-
-_<C+_ : ∀{Φ Φ'} → Ctx Φ → Ctx+ Φ' → Set
-Γ <C+ (Γ' ,, A) = Γ ≤C' Γ'
 
 _<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set
 Γ <C Γ' = (Σ (_ ⊢Nf⋆ *) λ A → (Γ , A) ≤C Γ') ⊎ (Σ Kind λ K → (Γ ,⋆ K) ≤C Γ') 

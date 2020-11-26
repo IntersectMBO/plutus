@@ -232,6 +232,8 @@ lemList charToString = refl
 lemList append = refl
 lemList trace = refl
 
+postulate itype-lem : ∀ {Φ} b → Norm.itype {Φ} b ≡ nf (Syn.itype b)
+
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
@@ -302,6 +304,7 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
       bn
       ((nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn))))
       (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
+nfType (Syn.ibuiltin b) = Norm.conv⊢ refl (itype-lem b) (Norm.ibuiltin b)
 nfType (Syn.error A) = Norm.error (nf A)
 
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A

@@ -111,73 +111,41 @@ data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ' ⊢⋆ *} → Γ ≤C Γ' → Γ ≤C (Γ' , A)
 
-sig2type : ∀ {Φ} → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
-sig2type ∅        C = C
-sig2type (Γ ,⋆ J) C = sig2type Γ (Π C) 
-sig2type (Γ , A)  C = sig2type Γ (A ⇒ C)
+ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
+ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
+ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG greaterThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+ISIG concatenate = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
+ISIG takeByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG dropByteString = ∅ ,, ∅ , con integer , con bytestring ,, con bytestring
+ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
+ISIG charToString = ∅ ,, ∅ , con char ,, con string
+ISIG append = ∅ ,, ∅ , con string , con string ,, con string
+ISIG trace = ∅ ,, ∅ , con string ,, con unit
 
-abstract2 : ∀ Ψ (As : List (Ψ ⊢⋆ *))(As' : List (Ψ ⊢⋆ *))(p : As' ≤L As)(C : Ψ ⊢⋆ *) → Ψ ⊢⋆ *
-abstract2 Ψ As       .As base     C = C
-abstract2 Ψ (A ∷ As) As' (skip p) C = abstract2 Ψ As As' p (A ⇒ C)
+isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
+isig2type .∅ ∅ C = C
+isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
+isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
 
-abstract1 : ∀ Ψ Ψ' (p : Ψ' ≤C⋆ Ψ)(C : Ψ ⊢⋆ *) → Ψ' ⊢⋆ *
-abstract1 Ψ        Ψ  base     C = C
-abstract1 (Ψ ,⋆ _) Ψ' (skip p) C = abstract1 Ψ Ψ' p (Π C)
+itype : ∀{Φ} → Builtin → Φ ⊢⋆ *
+itype b = let Φ ,, Γ ,, C = ISIG b in subst (λ()) (isig2type Φ Γ C) 
 
-abstract3 : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
-abstract3 Φ Ψ Ψ As As' (inj₂ (refl ,, p)) C σ = subst σ (abstract2 Ψ As As' p C)
-abstract3 Φ Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ =
-  subst σ (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C)) 
-
-abstract3' : ∀ Φ Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As) → Ψ ⊢⋆ * → (Sub Ψ' Φ) → Φ ⊢⋆ *
-abstract3' Φ Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3 Φ Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
-abstract3' Φ Ψ Ψ' As As' (inj₂ p) = abstract3 Φ Ψ Ψ' As As' (inj₂ p)
-
-abstract3-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Ren Φ Φ') →
-  abstract3 Φ' Ψ Ψ' As As' p
-  C (λ x → ren ρ⋆ (σ x)) 
-  ≡
-  ren ρ⋆
-  (abstract3 Φ Ψ Ψ' As As' p
-   C σ)
-abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
-  ren-subst (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
-abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
-  ren-subst (abstract2 Ψ As As' p C)
-
-abstract3'-ren : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Ren Φ Φ') →
-  abstract3' Φ' Ψ Ψ' As As' p
-  C (λ x → ren ρ⋆ (σ x)) 
-  ≡
-  ren ρ⋆
-  (abstract3' Φ Ψ Ψ' As As' p
-   C σ)
-abstract3'-ren Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, q)) =
-  abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
-abstract3'-ren Φ Φ' Ψ Ψ' As As' (inj₂ p)        =
-  abstract3-ren Φ Φ' Ψ Ψ' As As' (inj₂ p)
-
-abstract3-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆ Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Sub Φ Φ') →
-  abstract3 Φ' Ψ Ψ' As As' p
-  C (λ x → subst ρ⋆ (σ x)) 
-  ≡
-  subst ρ⋆
-  (abstract3 Φ Ψ Ψ' As As' p
-   C σ)
-abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, refl)) C σ ρ⋆ =
-  subst-comp (abstract1 Ψ Ψ' p (abstract2 Ψ As [] ([]≤L As) C))
-abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ (refl ,, p)) C σ ρ⋆ =
-  subst-comp (abstract2 Ψ As As' p C)
-
-abstract3'-subst : ∀ Φ Φ' Ψ Ψ' → (As : List (Ψ ⊢⋆ *))(As' : List (Ψ' ⊢⋆ *)) → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As)) → (C : Ψ ⊢⋆ *) → (σ : Sub Ψ' Φ) → (ρ⋆ : Sub Φ Φ') →
-  abstract3' Φ' Ψ Ψ' As As' p
-  C (λ x → subst ρ⋆ (σ x)) 
-  ≡
-  subst ρ⋆
-  (abstract3' Φ Ψ Ψ' As As' p
-   C σ)
-abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₁ (p ,, q)) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₁ (≤C⋆'to≤C⋆ p ,, q))
-abstract3'-subst Φ Φ' Ψ Ψ' As As' (inj₂ p) = abstract3-subst Φ Φ' Ψ Ψ' As As' (inj₂ p)
+postulate itype-ren : ∀{Φ Ψ} b (ρ : Ren Φ Ψ) → itype b ≡ ren ρ (itype b)
+postulate itype-subst : ∀{Φ Ψ} b (ρ : Sub Φ Ψ) → itype b ≡ subst ρ (itype b)
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
@@ -238,6 +206,8 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     → Tel Γ Δ σ As  -- a telescope of terms M_i typed in subst σ
     -----------------------------
     → Γ ⊢ subst σ C
+
+  ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 

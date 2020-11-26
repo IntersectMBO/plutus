@@ -112,7 +112,8 @@ ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
   refl
   (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
   (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
-ren _ ρ (error A) = error (⋆.ren _ A)
+ren ρ⋆ _ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
+ren _ _ (error A) = error (⋆.ren _ A)
 \end{code}
 
 \begin{code}
@@ -221,6 +222,7 @@ subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢
   refl
   (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
   (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
+subst σ⋆ _ (ibuiltin b) = conv⊢ refl (itype-subst b σ⋆) (ibuiltin b)
 subst _ σ (error A) = error (⋆.subst _ A)
 \end{code}
 
