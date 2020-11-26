@@ -157,13 +157,15 @@ handleAction (GetTerms flavour) = do
       case parseActusJsonCode contract of
         Left e -> assign _errorMessage $ Just e
         Right ctRaw -> do
-          let ct = (unwrap ctRaw)
+          let
+            ct = (unwrap ctRaw)
           case flavour of
-            F -> if (isJust ct.ct_RRCL) 
-                    then assign _errorMessage $ Just "Rate resets are not allowed in static contracts"
-                    else raise $ CurrentTerms flavour $ contract
+            F ->
+              if (isJust ct.ct_RRCL) then
+                assign _errorMessage $ Just "Rate resets are not allowed in static contracts"
+              else
+                raise $ CurrentTerms flavour $ contract
             _ -> raise $ CurrentTerms flavour $ contract
-            
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
