@@ -20,6 +20,7 @@ module Language.Plutus.Contract.StateMachine(
     , SM.StateMachineInstance(..)
     , SM.State(..)
     , OnChainState
+    , WaitingResult(..)
     -- * Constructing the machine instance
     , SM.mkValidator
     , SM.mkStateMachine
@@ -33,6 +34,7 @@ module Language.Plutus.Contract.StateMachine(
     , runInitialise
     , getOnChainState
     , waitForUpdate
+    , waitForUpdateUntil
     -- * Lower-level API
     , StateMachineTransition(..)
     , mkStep
@@ -52,11 +54,12 @@ import           Data.Void                                     (Void, absurd)
 import           GHC.Generics                                  (Generic)
 
 import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Effects.WatchAddress (addressChangeRequest)
 import           Language.Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..),
                                                                 StateMachineInstance (..))
 import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
 import qualified Language.PlutusTx                             as PlutusTx
-import           Ledger                                        (Value)
+import           Ledger                                        (Slot, Value)
 import qualified Ledger
 import           Ledger.AddressMap                             (UtxoMap)
 import           Ledger.Constraints                            (ScriptLookups, TxConstraints (..), mustPayToTheScript)
@@ -68,6 +71,7 @@ import           Ledger.Tx                                     as Tx
 import qualified Ledger.Typed.Scripts                          as Scripts
 import           Ledger.Typed.Tx                               (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                               as Typed
+import           Wallet.Types                                  (AddressChangeRequest (..), AddressChangeResponse (..))
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -158,6 +162,52 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
+
+
+data WaitingResult a
+    = Timeout Slot
+    | ContractEnded
+    | WaitingResult a
+  deriving (Show)
+
+
+-- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
+--   and return the new state, or return 'ContractEnded' if the instance has been
+--   terminated. If 'waitForUpdate' is called before the instance has even
+--   started then it returns the first state of the instance as soon as it
+--   has started.
+waitForUpdateUntil ::
+    ( AsSMContractError e state i
+    , AsContractError e
+    , PlutusTx.IsData state
+    , HasAwaitSlot schema
+    , HasWatchAddress schema)
+    => StateMachineClient state i
+    -> Slot
+    -> Contract schema e (WaitingResult state)
+waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
+    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+        outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
+        outputsMap t =
+                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
+                $ Map.filter ((==) addr . Tx.txOutAddress)
+                $ Tx.unspentOutputsTx t
+    let go sl = do
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            if null txns && sl < timeoutSlot
+                then go (succ sl)
+                else pure txns
+
+    slot <- currentSlot
+    txns <- go slot
+    let states = txns >>= getStates scInstance . outputsMap
+    case states of
+        [] | slot < timeoutSlot -> pure ContractEnded
+        [] | slot >= timeoutSlot -> pure $ Timeout timeoutSlot
+        xs -> case scChooser xs of
+                Left err         -> throwing _SMContractError err
+                Right (state, _) -> pure $ WaitingResult (tyTxOutData state)
+
 
 -- | Wait until the on-chain state of the state machine instance has changed,
 --   and return the new state, or return 'Nothing' if the instance has been

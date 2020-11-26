@@ -23,14 +23,12 @@
 module Language.Marlowe.Client where
 import           Control.Lens
 import           Control.Monad                                 (void)
-import           Control.Monad.Error.Lens                      (catching, throwing)
-import qualified Data.Map                                      as Map
+import           Control.Monad.Error.Lens                      (catching)
 import           Language.Marlowe.Semantics                    hiding (Contract)
 import qualified Language.Marlowe.Semantics                    as Marlowe
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.Effects.WatchAddress (addressChangeRequest)
 import           Language.Plutus.Contract.StateMachine         (AsSMContractError (..), StateMachine (..),
-                                                                StateMachineClient (..), Void, validatorInstance)
+                                                                StateMachineClient (..), Void, WaitingResult (..))
 import qualified Language.Plutus.Contract.StateMachine         as SM
 import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
 import qualified Language.PlutusTx                             as PlutusTx
@@ -39,16 +37,13 @@ import qualified Language.PlutusTx.Prelude                     as P
 import           Ledger                                        (CurrencySymbol, Datum (..), Slot (..), TokenName,
                                                                 ValidatorCtx (..), mkValidatorScript, pubKeyHash,
                                                                 validatorHash, valueSpent)
-import qualified Ledger                                        as Ledger
 import           Ledger.Ada                                    (adaSymbol, adaValueOf)
 import           Ledger.Constraints
 import qualified Ledger.Interval                               as Interval
 import           Ledger.Scripts                                (Validator)
-import           Ledger.Tx                                     as Tx
 import qualified Ledger.Typed.Scripts                          as Scripts
 import           Ledger.Typed.Tx                               (TypedScriptTxOut (..), tyTxOutData)
 import qualified Ledger.Value                                  as Val
-import           Wallet.Types                                  (AddressChangeRequest (..), AddressChangeResponse (..))
 
 type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])
@@ -118,7 +113,7 @@ marlowePlutusContract = do
         let states = SM.getStates scInstance utxo
         case states of
             [] -> do
-                wr <- waitForUpdateWithTimeout theClient untilSlot
+                wr <- SM.waitForUpdateUntil theClient untilSlot
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended for party" <> show party
@@ -126,7 +121,7 @@ marlowePlutusContract = do
                     Timeout _ -> do
                         logInfo @String $ "Contract Timeout for party" <> show party
                         marlowePlutusContract
-                    MD md@MarloweData{marloweContract}
+                    WaitingResult md@MarloweData{marloweContract}
                         | canAutoExecuteContractForParty party marloweContract -> autoExecuteContract theClient party md
                     _ -> apply `select` wait `select` auto
             states -> case scChooser states of
@@ -160,7 +155,7 @@ marlowePlutusContract = do
                 continueWith marloweData
             WaitOtherActionUntil timeout -> do
                 logInfo @String $ "WaitOtherActionUntil " <> show timeout
-                wr <- waitForUpdateWithTimeout theClient timeout
+                wr <- SM.waitForUpdateUntil theClient timeout
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended"
@@ -168,7 +163,7 @@ marlowePlutusContract = do
                     Timeout _ -> do
                         logInfo @String $ "Contract Timeout"
                         continueWith marloweData
-                    MD marloweData -> continueWith marloweData
+                    WaitingResult marloweData -> continueWith marloweData
 
             CloseContract -> do
                 logInfo @String $ "CloseContract"
@@ -180,45 +175,6 @@ marlowePlutusContract = do
 
           where
             continueWith = autoExecuteContract theClient party
-
-
-data WaitingResult
-    = Timeout Slot
-    | ContractEnded
-    | MD MarloweData
-  deriving (Show)
-
-
-waitForUpdateWithTimeout ::
-    ( AsSMContractError e MarloweData MarloweInput
-    , AsContractError e
-    , HasAwaitSlot MarloweSchema
-    , HasWatchAddress MarloweSchema)
-    => StateMachineClient MarloweData MarloweInput
-    -> Timeout
-    -> Contract MarloweSchema e WaitingResult
-waitForUpdateWithTimeout StateMachineClient{scInstance, scChooser} timeout = do
-    let addr = Scripts.scriptAddress $ validatorInstance scInstance
-        outputsMap :: Ledger.Tx -> Map.Map TxOutRef TxOutTx
-        outputsMap t =
-                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
-                $ Map.filter ((==) addr . Tx.txOutAddress)
-                $ Tx.unspentOutputsTx t
-    let go sl = do
-            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
-            if null txns && sl < timeout
-                then go (succ sl)
-                else pure txns
-
-    slot <- currentSlot
-    txns <- go slot
-    let states = txns >>= SM.getStates scInstance . outputsMap
-    case states of
-        [] | slot < timeout -> pure ContractEnded
-        [] | slot >= timeout -> pure $ Timeout timeout
-        xs -> case scChooser xs of
-                Left err         -> throwing _SMContractError err
-                Right (state, _) -> pure $ MD (tyTxOutData state)
 
 
 getAction :: MarloweSlotRange -> Party -> MarloweData -> PartyAction
