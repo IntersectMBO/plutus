@@ -27,7 +27,7 @@ let
   '';
 
   nodeModules = buildNodeModules {
-    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" ] ./.;
+    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = {
