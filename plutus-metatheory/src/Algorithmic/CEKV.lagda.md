@@ -3,6 +3,7 @@
 ```
 module Algorithmic.CEKV where
 
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Function hiding (_∋_)
 open import Data.Product using (proj₁;proj₂)
 import Data.List as L
@@ -13,6 +14,7 @@ open import Data.Product using (_×_;Σ) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
+import Debug.Trace as Debug
 open import Utils
 
 open import Type
@@ -172,7 +174,7 @@ BUILTIN
 BUILTIN equalsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
   decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN concatenate σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  inj₁ (V-con (bytestring (append b b')))
+  inj₁ (V-con (bytestring (concat b b')))
 BUILTIN takeByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   inj₁ (V-con (bytestring (take i b)))
 BUILTIN dropByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -195,8 +197,12 @@ BUILTIN
 ... | nothing = inj₂ (con bool)
 
 BUILTIN equalsByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (equals b b')))
+
 BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool false) ,, tt) = inj₁ VF
 BUILTIN ifThenElse σ (VF ,, VT ,, V-con (bool true) ,, tt) = inj₁ VT
+BUILTIN charToString σ (V-con (char c) ,, tt) = inj₁ (V-con (string (primStringFromList L.[ c ])))
+BUILTIN append σ (V-con (string s) ,, V-con (string t) ,, tt) = inj₁ (V-con (string (primStringAppend s t)))
+BUILTIN trace σ (V-con (string s) ,, tt) = inj₁ (V-con (Debug.trace s unit))
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
@@ -211,7 +217,7 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
             (μ A B)
-            
+
   builtin- : ∀{Γ}(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
     → (As : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
@@ -254,6 +260,9 @@ ival sha3-256 = V-I⇒ sha3-256 {Γ = proj₁ (proj₂ (ISIG sha3-256))}{Δ = �
 ival verifySignature = V-I⇒ verifySignature {Γ = proj₁ (proj₂ (ISIG verifySignature))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG verifySignature))} refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
 ival equalsByteString = V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString)
 ival ifThenElse = V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse)
+ival charToString = V-I⇒ charToString {Γ = proj₁ (proj₂ (ISIG charToString))}{C = proj₂ (proj₂ (ISIG charToString))} refl refl refl (λ()) base tt (ibuiltin charToString)
+ival append = V-I⇒ append {Γ = proj₁ (proj₂ (ISIG append))}{C = proj₂ (proj₂ (ISIG append))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin append)
+ival trace = V-I⇒ trace {Γ = proj₁ (proj₂ (ISIG trace))}{C = proj₂ (proj₂ (ISIG trace))} refl refl refl (λ()) base tt (ibuiltin trace)
 
 postulate wibble : {A : Set} → A
 
@@ -284,7 +293,7 @@ IBUILTIN greaterThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (intege
 IBUILTIN equalsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   decIf (i ≟ j) (V-con (bool true)) (V-con (bool false))
 IBUILTIN concatenate σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) =
-  V-con (bytestring (append b b'))
+  V-con (bytestring (concat b b'))
 IBUILTIN takeByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (take i b))
 IBUILTIN dropByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (drop i b))
 IBUILTIN sha2-256 σ (tt ,, V-con (bytestring b)) = V-con (bytestring (SHA2-256 b))
@@ -296,7 +305,10 @@ IBUILTIN verifySignature σ ((((tt ,, V-con (bytestring k)) ,, V-con (bytestring
 IBUILTIN equalsByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = V-con (bool (equals b b'))
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool true)) ,, t) ,, f) = t
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool false)) ,, t) ,, f) = f
-
+IBUILTIN charToString σ (tt ,, V-con (char c)) =
+  V-con (string (primStringFromList L.[ c ]))
+IBUILTIN append σ ((tt ,, V-con (string s)) ,, V-con (string s')) = V-con (string (primStringAppend s s'))
+IBUILTIN trace σ _ = V-con unit
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -317,7 +329,7 @@ step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
 step (s ; ρ ▻ ƛ L)             = s ◅ V-ƛ L ρ
 step (s ; ρ ▻ (L · M))         = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ L)             = s ◅ V-Λ L ρ
-step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L 
+step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L
 step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
 step (s ; ρ ▻ unwrap L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c

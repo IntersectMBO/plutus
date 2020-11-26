@@ -158,7 +158,7 @@ parsePreimage =
         "preImage"
         (\preImage -> do
              hash <- preImage .: "hashFn"
-             hex <- preImage .: "hex"
+             hex <- preImage .: "value"
              pure $ Preimage hash hex)
 
 parseOwner :: JSON.Object -> Parser (Property 'ExternalEncoding)
@@ -179,9 +179,9 @@ data HashFunction
 instance FromJSON HashFunction where
     parseJSON =
         withText "HashFunction" $ \case
-            "SHA256" -> pure SHA256
+            "SHA256"      -> pure SHA256
             "blake2b-256" -> pure Blake2B256
-            other -> fail $ "Unknown HashFunction '" <> Text.unpack other <> "'"
+            other         -> fail $ "Unknown HashFunction '" <> Text.unpack other <> "'"
 
 instance ToJSON HashFunction where
     toJSON SHA256     = JSON.String "SHA256"
@@ -244,7 +244,7 @@ deriving anyclass instance
 instance ToJSON (Property 'ExternalEncoding) where
     toJSON (Preimage hash bytes) =
         JSON.object
-            ["preImage" .= JSON.object ["hashFn" .= hash, "hex" .= bytes]]
+            ["preImage" .= JSON.object ["hashFn" .= hash, "value" .= bytes]]
     toJSON (Name value signatures) =
         JSON.object
             [ "name" .=

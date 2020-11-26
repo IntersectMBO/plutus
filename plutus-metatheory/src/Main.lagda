@@ -139,10 +139,10 @@ postulate
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
-{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
+{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 
@@ -279,7 +279,7 @@ typeCheckByteString b = do
           "extricated: " ++ rawTyPrinter extricatedtype ++ "\n" ++
           "unshifted: " ++ rawTyPrinter unshiftedtype ++ "\n" ++
           "unconved: " ++ prettyPrintTy unshiftedtype ++ "\n")
--}        
+-}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 
 junk : ∀{n} → Vec String n
@@ -444,7 +444,7 @@ normalizeTypeTerm t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   return (unconvTm (unshifter Z (extricateScope (extricate tC))))
-  
+
 {-# COMPILE GHC normalizeTypeTerm as normalizeTypeTermAgda #-}
 
 
@@ -485,7 +485,7 @@ runTCK t = do
           (_ ◅ _) → inj₁ (runtimeError gasError)
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CK.discharge V)))))
-  
+
 {-# COMPILE GHC runTCK as runTCKAgda #-}
 
 -- Haskell interface to (typechecked) CEKV
@@ -500,5 +500,4 @@ runTCEKV t = do
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
 {-# COMPILE GHC runTCEKV as runTCEKVAgda #-}
-
 \end{code}

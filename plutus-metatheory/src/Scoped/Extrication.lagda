@@ -17,7 +17,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic as A
 open import Scoped
 open import Builtin
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con 
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B
 open import Type.BetaNormal
 open import Type.RenamingSubstitution as T
@@ -82,7 +82,7 @@ extricateSub {Δ = ∅}     σ = []
 extricateSub {Γ}{Δ ,⋆ K} σ =
   Eq.subst (Scoped.Tel⋆ (len⋆ Γ))
            (+-comm (len⋆ Δ) 1)
-           (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ]) 
+           (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ])
 
 open import Data.List
 
@@ -107,6 +107,9 @@ lemma⋆ sha3-256 = refl
 lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
+lemma⋆ charToString = refl
+lemma⋆ append = refl
+lemma⋆ trace = refl
 
 lemma : ∀ b → Data.List.length (proj₁ (proj₂ (SIG b))) ≡ arity b
 lemma addInteger = refl
@@ -129,6 +132,9 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
+lemma charToString = refl
+lemma append = refl
+lemma trace = refl
 
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
 ≡2≤‴ refl = ≤‴-refl

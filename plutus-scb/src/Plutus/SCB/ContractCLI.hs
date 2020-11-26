@@ -36,7 +36,7 @@ import qualified Data.ByteString                 as BS
 import qualified Data.ByteString.Char8           as BS8
 import qualified Data.ByteString.Lazy            as BSL
 import           Data.Proxy                      (Proxy (..))
-import           Data.Row                        (type (.\\), AllUniqueLabels, Forall)
+import           Data.Row                        (AllUniqueLabels, Forall, type (.\\))
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
 import           Git                             (gitRev)

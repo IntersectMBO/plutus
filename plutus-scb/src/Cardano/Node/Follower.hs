@@ -40,10 +40,10 @@ data NodeFollowerLogMsg =
 instance Pretty NodeFollowerLogMsg where
     pretty  = \case
         NewFollowerId newID -> "New follower ID:" <+> pretty newID
-        GetBlocksFor i -> "Get blocks for" <+> pretty i
-        LastBlock i -> "Last block:" <+> pretty i
-        NewLastBlock i -> "New last block:" <+> pretty i
-        GetCurrentSlot s -> "Get current slot:" <+> pretty s
+        GetBlocksFor i      -> "Get blocks for" <+> pretty i
+        LastBlock i         -> "Last block:" <+> pretty i
+        NewLastBlock i      -> "New last block:" <+> pretty i
+        GetCurrentSlot s    -> "Get current slot:" <+> pretty s
 
 handleNodeFollower ::
     ( Member (State ChainState) effs

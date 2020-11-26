@@ -19,7 +19,7 @@ import PlutusPrelude
 
 import Language.PlutusCore.Parser.Internal
 
-import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Builtins
 import Language.PlutusCore.Constant.Typed
 import Language.PlutusCore.Core
 import Language.PlutusCore.Core.Type
@@ -110,7 +110,7 @@ Term : Var                                                 { $1 }
      -- % = monadic action
      | openParen   con builtintypeid literal closeParen    { % fmap (uncurry Constant) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4)) }
      | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
-     | openParen   builtin builtinfnid       closeParen    { (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
+     | openParen   builtin builtinfnid       closeParen    { % fmap (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
      | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
      | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
@@ -126,11 +126,10 @@ Type : TyVar { $1 }
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
-
 -- Haskell helper code
 {
 
-tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
+tyInst :: a -> Term tyname name uni fun a -> NonEmpty (Type tyname uni a) -> Term tyname name uni fun a
 tyInst loc t (ty :| [])  = TyInst loc t ty
 tyInst loc t (ty :| tys) = TyInst loc (tyInst loc t (ty:|init tys)) (last tys)
 
@@ -138,7 +137,7 @@ tyApps :: a -> Type tyname uni a -> NonEmpty (Type tyname uni a) -> Type tyname 
 tyApps loc ty (ty' :| [])  = TyApp loc ty ty'
 tyApps loc ty (ty' :| tys) = TyApp loc (tyApps loc ty (ty':|init tys)) (last tys)
 
-app :: a -> Term tyname name uni a -> NonEmpty (Term tyname name uni a) -> Term tyname name uni a
+app :: a -> Term tyname name uni fun a -> NonEmpty (Term tyname name uni fun a) -> Term tyname name uni fun a
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
@@ -156,14 +155,17 @@ mapParseRun run = do
     liftQuote $ markNonFreshBelow u
     pure p
 
+-- Generalizing this and functions below to work over any @uni@ and @fun@ makes @happy@ unhappy and
+-- it starts throwing ambiguous type errors that I've no idea how to fix.
+-- See https://github.com/input-output-hk/plutus/pull/2458#issuecomment-725706274
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni DefaultFun AlexPosn)
 parseProgram str = mapParseRun $ parseST parsePlutusCoreProgram str
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term TyName Name DefaultUni DefaultFun AlexPosn)
 parseTerm str = mapParseRun $ parseST parsePlutusCoreTerm str
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable

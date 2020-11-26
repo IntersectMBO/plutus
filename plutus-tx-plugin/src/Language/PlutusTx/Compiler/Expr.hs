@@ -2,8 +2,9 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
@@ -41,11 +42,11 @@ import qualified Language.PlutusCore.MkPlc              as PLC
 
 import           Control.Monad.Reader
 
+import qualified Data.ByteString                        as BS
 import           Data.List                              (elemIndex)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as Map
 import qualified Data.Set                               as Set
-import qualified Data.ByteString                        as BS
 import qualified Data.Text                              as T
 import qualified Data.Text.Encoding                     as TE
 import           Data.Traversable
@@ -94,8 +95,8 @@ So we use another horrible hack and pretend that `Addr#` is `String`, since we t
 -}
 
 compileLiteral
-    :: Compiling uni m
-    => GHC.Literal -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant () i
@@ -141,11 +142,11 @@ stringExprContent = \case
 strip :: GHC.CoreExpr -> GHC.CoreExpr
 strip = \case
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
-    GHC.Tick _ expr -> strip expr
-    expr -> expr
+    GHC.Tick _ expr                                                                     -> strip expr
+    expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)
+compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -173,11 +174,11 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 
 -- | Make the alternative for a given 'CoreAlt'.
 compileAlt
-    :: Compiling uni m
+    :: CompilingDefault uni fun m
     => Bool -- ^ Whether we must delay the alternative.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m (PIRTerm uni)
+    -> m (PIRTerm uni fun)
 compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     GHC.DEFAULT   -> do
@@ -353,14 +354,13 @@ just get turned into a function in PLC).
 -}
 
 hoistExpr
-    :: Compiling uni m
-    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
 hoistExpr var t =
     let
         name = GHC.getName var
         lexName = LexName name
     in withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-        CompileContext {ccBuiltinMeanings=means} <- ask
         maybeDef <- PIR.lookupTerm () lexName
         case maybeDef of
             Just term -> pure term
@@ -379,7 +379,7 @@ hoistExpr var t =
                 t' <- compileExpr t
 
                 -- See Note [Non-strict let-bindings]
-                let strict = PIR.isPure means (const PIR.NonStrict) t'
+                let strict = PIR.isPure (const PIR.NonStrict) t'
                 -- We could incur a dependency on unit for a number of reasons: we delayed,
                 -- or we used it for a lazy case expression. Rather than tear our hair out
                 -- trying to work out whether we do depend on it, just assume that we do.
@@ -396,16 +396,16 @@ hoistExpr var t =
 -- Expressions
 
 compileExpr
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo,ccBuiltinMeanings=means} <- ask
+    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.String nameInfo, Map.lookup 'String.stringToBuiltinString nameInfo) of
         (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
-        _ -> throwPlain $ CompilationError "No info for String builtin"
+        _                  -> throwPlain $ CompilationError "No info for String builtin"
 
     let top = NE.head stack
     case e of
@@ -496,7 +496,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             -- the binding is in scope for the body, but not for the arg
             arg' <- compileExpr arg
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure means (const PIR.NonStrict) arg'
+            let strict = PIR.isPure (const PIR.NonStrict) arg'
             withVarScoped b $ \v -> do
                 let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
                 body' <- compileExpr body
@@ -508,7 +508,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 binds <- for (zip vars bs) $ \(v, (_, arg)) -> do
                     arg' <- compileExpr arg
                     -- See Note [Non-strict let-bindings]
-                    let strict = PIR.isPure means (const PIR.NonStrict) arg'
+                    let strict = PIR.isPure (const PIR.NonStrict) arg'
                     pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
@@ -537,7 +537,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 -- See Note [Case expressions and laziness]
                 isPureAlt <- forM dcs $ \dc ->
                     let (_, vars, body) = findAlt dc alts t
-                    in if null vars then PIR.isPure means (const PIR.NonStrict) <$> compileExpr body else pure True
+                    in if null vars then PIR.isPure (const PIR.NonStrict) <$> compileExpr body else pure True
                 let lazyCase = not $ and isPureAlt
 
                 match <- getMatchInstantiated scrutineeType
@@ -575,8 +575,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 compileExprWithDefs
-    :: Compiling uni m
-    => GHC.CoreExpr -> m (PIRTerm uni)
+    :: CompilingDefault uni fun m
+    => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
     defineBuiltinTypes
     defineBuiltinTerms

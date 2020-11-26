@@ -1,5 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
+import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -14,13 +15,13 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
-import Gists (GistAction(..))
-import Gists as Gists
+import Gists.Types (GistAction(..))
+import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
@@ -40,6 +41,7 @@ import JavascriptEditor.Types (Action(..), State, _ContractString, initialState)
 import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
+import LoginPopup (openLoginPopup, informParentAndClose)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -71,10 +73,11 @@ import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalStorageKey, marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
-import Wallet as Wallet
+import WalletSimulation.Types as Wallet
 import Web.HTML (window) as Web
 import Web.HTML.HTMLDocument (toEventTarget)
 import Web.HTML.Window (document) as Web
+import Web.HTML.Window as Window
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
@@ -113,13 +116,13 @@ mkMainFrame settings =
     { initialState: const initialState
     , render: render settings
     , eval:
-      H.mkEval
-        { handleQuery: handleQuery settings
-        , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
-        , receive: const Nothing
-        , initialize: Just Init
-        , finalize: Nothing
-        }
+        H.mkEval
+          { handleQuery: handleQuery settings
+          , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
+          , receive: const Nothing
+          , initialize: Just Init
+          , finalize: Nothing
+          }
     }
 
 toSimulation ::
@@ -190,9 +193,21 @@ handleSubRoute _ Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleSubRoute _ Router.Wallets = selectView WalletEmulator
 
+-- This route is supposed to be called by the github oauth flow after a succesful login flow
+-- It is supposed to be run inside a popup window
+handleSubRoute settings Router.GithubAuthCallback = do
+  authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
+  case authResult of
+    (Success authStatus) -> liftEffect $ informParentAndClose $ view authStatusAuthRole authStatus
+    -- TODO: is it worth showing a particular view for Failure, NotAsked and Loading?
+    -- Modifying this will mean to also modify the render function in the mainframe to be able to draw without
+    -- the headers/footers as this is supposed to be a dialog/popup
+    (Failure _) -> pure unit
+    NotAsked -> pure unit
+    Loading -> pure unit
+
 handleRoute ::
   forall m.
-  MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
@@ -355,7 +370,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   -- reset all the editors
   toHaskellEditor $ HaskellEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
-  JavascriptEditor.editorSetValue mempty
+  toJavascriptEditor $ JavascriptEditor.editorSetValue mempty
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
   toSimulation $ Simulation.editorSetValue mempty
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
@@ -368,7 +383,7 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
         liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        JavascriptEditor.editorSetValue contents
+        toJavascriptEditor $ JavascriptEditor.editorSetValue JE.example
         liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
     Marlowe -> do
       toSimulation $ Simulation.editorSetValue "?new_contract"
@@ -384,7 +399,10 @@ handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleActio
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
-    Javascript -> for_ (Map.lookup key StaticData.demoFilesJS) \contents -> JavascriptEditor.editorSetValue contents
+    Javascript ->
+      for_ (Map.lookup key StaticData.demoFilesJS) \contents -> do
+        toJavascriptEditor $ JavascriptEditor.editorSetValue contents
+        liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         Simulation.editorSetValue contents
@@ -442,6 +460,14 @@ handleAction _ (OpenModal modalView) = assign _showModal $ Just modalView
 handleAction _ CloseModal = assign _showModal Nothing
 
 handleAction _ (ChangeProjectName name) = assign _projectName name
+
+handleAction settings (OpenLoginPopup intendedAction) = do
+  authRole <- liftAff openLoginPopup
+  handleAction settings CloseModal
+  assign (_authStatus <<< _Success <<< authStatusAuthRole) authRole
+  case authRole of
+    Anonymous -> pure unit
+    GithubUser -> handleAction settings intendedAction
 
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
@@ -505,7 +531,7 @@ handleGistAction settings PublishGist = do
   marlowe <- pruneEmpty <$> toSimulation Simulation.editorGetValue
   haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
   blockly <- pruneEmpty <$> query _blocklySlot unit (H.request Blockly.GetWorkspace)
-  javascript <- pruneEmpty <$> query _jsEditorSlot unit (H.request Monaco.GetText)
+  javascript <- pruneEmpty <$> (toJavascriptEditor JavascriptEditor.editorGetValue)
   actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
   let
     files = { playground, marlowe, haskell, blockly, javascript, actus }
@@ -581,7 +607,7 @@ loadGist gist = do
   toSimulation $ Simulation.editorSetValue $ fromMaybe mempty marlowe
   HaskellEditor.editorSetValue (fromMaybe mempty haskell)
   for_ blockly \xml -> query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
-  JavascriptEditor.editorSetValue (fromMaybe mempty javascript)
+  toJavascriptEditor $ JavascriptEditor.editorSetValue $ fromMaybe mempty javascript
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------
@@ -601,6 +627,9 @@ selectView view = do
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
   liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
+  liftEffect do
+    window <- Web.window
+    Window.scroll 0 0 window
   case view of
     HomePage -> pure unit
     Simulation -> do

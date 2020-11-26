@@ -14,7 +14,7 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Demos.Types as Demos
 import Gist (Gist, GistId)
-import Gists (GistAction)
+import Gists.Types (GistAction)
 import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
@@ -33,7 +33,7 @@ import Router (Route)
 import SaveAs.Types as SaveAs
 import Simulation.Types as Simulation
 import Types (WebData)
-import Wallet as Wallet
+import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
 
 data ModalView
@@ -42,13 +42,23 @@ data ModalView
   | OpenDemo
   | RenameProject
   | SaveProjectAs
-  | GithubLogin
+  | GithubLogin Action
 
 derive instance genericModalView :: Generic ModalView _
 
 instance showModalView :: Show ModalView where
-  show = genericShow
+  show NewProject = "NewProject"
+  show OpenProject = "OpenProject"
+  show OpenDemo = "OpenDemo"
+  show RenameProject = "RenameProject"
+  show SaveProjectAs = "SaveProjectAs"
+  show (GithubLogin _) = "GithubLogin"
 
+-- Before adding the intended action to GithubLogin, this instance was being
+-- handled by the genericShow. Action does not have a show instance so genericShow
+-- does not work. For the moment I've made a manual instance, but not sure why
+-- ModalView requires show, or if we should make Action an instance of Show
+-- show = genericShow
 data Query a
   = ChangeRoute Route a
 
@@ -77,6 +87,7 @@ data Action
   | OpenModal ModalView
   | CloseModal
   | ChangeProjectName String
+  | OpenLoginPopup Action
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -102,6 +113,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
   toEvent CloseModal = Just $ defaultEvent "CloseModal"
   toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
+  toEvent (OpenLoginPopup _) = Just $ defaultEvent "OpenLoginPopup"
 
 data View
   = HomePage

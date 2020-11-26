@@ -23,6 +23,7 @@ import qualified Prelude
 import           System.Environment
 
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import qualified Language.PlutusCore.Pretty   as PLC
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
@@ -91,7 +92,7 @@ runQueens :: Integer -> Algorithm -> [State]
 runQueens n alg = nqueens n (lookupAlgorithm alg)
 
 -- % Compile a Plutus Core term which runs nqueens on given arguments
-mkQueensTerm :: Integer -> Algorithm -> Term Name DefaultUni ()
+mkQueensTerm :: Integer -> Algorithm -> Term Name DefaultUni DefaultFun ()
 mkQueensTerm sz alg =
   let (Program _ _ code) =
         Tx.getPlc $
@@ -189,7 +190,7 @@ instance TxPrelude.Eq Ordering where
     LT == LT = True
     EQ == EQ = True
     GT == GT = True
-    _ == _ = False
+    _ == _   = False
 
 {-# INLINABLE sortBy #-}
 -- % Stolen from Data.List
@@ -363,7 +364,7 @@ data ConflictSet = Known [Var] | Unknown
 instance TxPrelude.Eq ConflictSet where
     Known v == Known w = v == w
     Unknown == Unknown = True
-    _ == _ = False
+    _ == _             = False
 
 {-# INLINABLE knownConflict #-}
 knownConflict :: ConflictSet -> Bool

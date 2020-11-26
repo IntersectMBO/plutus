@@ -1,19 +1,8 @@
-{ lib, latex, texlive }:
+{ buildLatexDoc }:
 
-latex.buildLatex {
+buildLatexDoc {
   name = "lazy-machine";
-  texInputs = {
-    inherit (texlive)
-      scheme-small
-      collection-latexextra
-      collection-mathscience;
-  };
+  src = ./.;
   texFiles = [ "lazy-plutus-core.tex" ];
-  src = latex.filterLatex ./.;
-
-  meta = with lib; {
-    description = "Lazy machine discussion";
-    license = licenses.asl20;
-    platforms = platforms.linux;
-  };
+  description = "lazy machine discussion";
 }

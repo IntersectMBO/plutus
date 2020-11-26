@@ -4,7 +4,7 @@ module Main where
 
 import           Data.Bifunctor                                                   (first)
 import           Data.Proxy                                                       (Proxy (..))
-import           Language.Plutus.Contract                                         (type (.\/), BlockchainActions)
+import           Language.Plutus.Contract                                         (BlockchainActions, type (.\/))
 import           Language.Plutus.Contract.Effects.RPC                             (RPCClient)
 import           Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager (CredentialManager)
 import           Language.PlutusTx.Coordination.Contracts.Prism.Unlock            as Prism

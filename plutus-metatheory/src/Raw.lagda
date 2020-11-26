@@ -55,7 +55,7 @@ data RawTm : Set where
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
   unwrap        : RawTm → RawTm
-  
+
 -- α equivalence
 
 -- we don't have a decicable equality instance for bytestring, so I
@@ -85,6 +85,7 @@ decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
 decTermCon unit unit = true
+-- TODO: char?
 decTermCon _ _ = false
 
 decBuiltin : (b b' : Builtin) → Bool
@@ -107,6 +108,9 @@ decBuiltin sha2-256 sha2-256 = true
 decBuiltin sha3-256 sha3-256 = true
 decBuiltin verifySignature verifySignature = true
 decBuiltin equalsByteString equalsByteString = true
+decBuiltin chatToString charToString = true
+decBuiltin append append = true
+decBuiltin trace trace = true
 decBuiltin _ _ = false
 
 decRKi : (K K' : RawKind) → Bool

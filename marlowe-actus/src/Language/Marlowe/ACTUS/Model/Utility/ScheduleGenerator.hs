@@ -77,8 +77,6 @@ generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig
       (fmap $ applyBDC bdc calendar) >>>
       stubCorrection (stub cycle) endDate)
 
-
-
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)
 

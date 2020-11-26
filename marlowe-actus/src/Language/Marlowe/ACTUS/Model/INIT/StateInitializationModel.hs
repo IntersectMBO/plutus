@@ -2,11 +2,14 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel where
 
-import           Data.Maybe                                            (fromJust, fromMaybe, isJust, isNothing)
-import           Language.Marlowe.ACTUS.Definitions.ContractState      (ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (FEB (FEB_N), SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM))
-import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
-import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
+import           Data.Maybe                                             (fromJust, fromMaybe, isJust, isNothing)
+import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (FEB (FEB_N), IPCB (IPCB_NT),
+                                                                         SCEF (SE_0N0, SE_0NM, SE_I00, SE_I0M, SE_IN0, SE_INM),
+                                                                         n)
+import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign  (contractRoleSign)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (plusCycle)
+import           Language.Marlowe.ACTUS.Model.Utility.YearFraction      (yearFraction)
 
 
 r = contractRoleSign
@@ -22,6 +25,8 @@ scef_Ixx SE_INM = True
 scef_Ixx SE_I00 = True
 scef_Ixx SE_I0M = True
 scef_Ixx _      = False
+
+
 
 _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF =
     let
@@ -56,3 +61,32 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER
         sd                                      = t0
     in ContractStatePoly { prnxt = 0.0, ipcb = 0.0, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
 
+_INIT_LAM t0 tminus tpr_minus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF _PRCL _PRANX _PRNXT _IPCB _IPCBA =
+    let
+        -- TMD
+        maybeTMinus
+                    | isJust _PRANX && ((fromJust _PRANX) >= t0) = _PRANX
+                    | (_IED `plusCycle` fromJust _PRCL) >= t0 = Just $ _IED `plusCycle` fromJust _PRCL
+                    | otherwise                           = Just tpr_minus
+        tmd
+                | isJust _MD = fromJust _MD
+                | otherwise = fromJust maybeTMinus `plusCycle` (fromJust _PRCL) { n = ((ceiling (_NT / (fromJust _PRNXT))) * (n (fromJust _PRCL))) }
+
+        pam_init = _INIT_PAM t0 tminus tfp_minus tfp_plus tmd _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF
+
+        -- PRNXT
+        s
+                | isJust _PRANX && ((fromJust _PRANX) > t0) = fromJust _PRANX
+                | isNothing _PRANX && ((_IED `plusCycle` (fromJust _PRCL)) > t0) = _IED `plusCycle` (fromJust _PRCL)
+                | otherwise = tpr_minus
+        prnxt
+                | isJust _PRNXT                 = fromJust _PRNXT
+                | otherwise                     = _NT * (1.0 / (fromIntegral $ ((ceiling (y _DCC s tmd tmd / y _DCC s (s `plusCycle` (fromJust _PRCL)) tmd)) :: Integer)))
+
+        -- IPCB
+        ipcb
+                | t0 < _IED                    = 0.0
+                | (fromJust _IPCB) == IPCB_NT              = r _CNTRL * _NT
+                | otherwise                     = r _CNTRL * (fromJust _IPCBA)
+    -- All is same as PAM except PRNXT, IPCB, and MD
+    in pam_init { prnxt = prnxt, ipcb = ipcb, tmd = tmd }

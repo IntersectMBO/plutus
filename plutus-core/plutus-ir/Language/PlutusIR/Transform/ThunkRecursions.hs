@@ -72,14 +72,14 @@ any recursive, non-function bindings to become non-strict bindings.
 isFunctionType :: Type tyname uni a -> Bool
 isFunctionType = \case
     TyFun {} -> True
-    _ -> False
+    _        -> False
 
-thunkBinding :: Binding tyname name uni a -> Binding tyname name uni a
+thunkBinding :: Binding tyname name uni fun a -> Binding tyname name uni fun a
 thunkBinding = \case
     TermBind x Strict d@(VarDecl _ _ ty) rhs | not $ isFunctionType ty -> TermBind x NonStrict d rhs
-    b -> b
+    b                                                                  -> b
 
-thunkRecursions :: Term tyname name uni a -> Term tyname name uni a
+thunkRecursions :: Term tyname name uni fun a -> Term tyname name uni fun a
 thunkRecursions = \case
     -- See Note [Thunking recursions]
     t@(Let _ Rec _ _) -> t

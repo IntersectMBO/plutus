@@ -1,1 +1,0 @@
-../../doc/parameters/crowd.adoc

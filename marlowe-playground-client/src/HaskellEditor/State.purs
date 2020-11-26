@@ -22,8 +22,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.State (_result)
-import Simulation.Types (WebData)
+import Simulation.Types (WebData, _result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)

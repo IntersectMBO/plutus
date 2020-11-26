@@ -10,6 +10,8 @@ open import Builtin.Constant.Type
 
 open import Utils
 
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
+import Data.List as List
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
 open import Data.Vec using ([];_∷_;_++_)
 open import Data.Product
@@ -19,6 +21,7 @@ open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
 open import Data.Bool using (Bool;true;false)
+import Debug.Trace as Debug
 \end{code}
 
 \begin{code}
@@ -60,7 +63,7 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
 data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel w m → Set
   where
   here  : ∀{m t}{ts : Tel w m} → P t → Any P (t ∷ ts)
-  there : ∀{m t}{ts : Tel w m} → Value t → Any P ts → Any P (t ∷ ts)  
+  there : ∀{m t}{ts : Tel w m} → Value t → Any P ts → Any P (t ∷ ts)
 
 VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
 VERIFYSIG (just false) = con (bool false)
@@ -109,7 +112,7 @@ BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i')
   decIf (i I.≟ i') (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ _ = error (con bool)
 -- BS -> BS -> BS
-BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
+BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (concat b b'))
 BUILTIN concatenate _ _ _ = error (con bytestring)
 -- Int -> BS -> BS
 BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (take i b))
@@ -130,6 +133,13 @@ BUILTIN equalsByteString _ _ _ = error (con bool)
 BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , tt) = t
 BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , tt) = u
 BUILTIN ifThenElse (A ∷ []) _ _ = error A
+BUILTIN charToString _ (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList List.[ c ]))
+BUILTIN charToString _ _ _ = error (con string)
+BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
+  con (string (primStringAppend s t))
+BUILTIN append _ _ _ = error (con string)
+BUILTIN trace _ (_ ∷ []) (V-con (string s) , tt) = con (Debug.trace s unit)
+BUILTIN trace _ _ _ = error (con unit)
 
 data _—→T_ {n}{w : Weirdℕ n} : ∀{m} → Tel w m → Tel w m → Set
 
@@ -174,12 +184,12 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
-  
+
   E-·₁ : {A : ScopedTy n}{M : ScopedTm w} → error A · M —→ error missing
   E-·₂ : {A : ScopedTy n}{L : ScopedTm w} → Value L → L · error A —→ error missing
 
   -- error inside somewhere
-   
+
   E-·⋆ : {A B : ScopedTy n} → error A ·⋆ B —→ error missing
 --  E-Λ : ∀{K}{A : ScopedTy (N.suc n)} → Λ K (error A) —→ error missing
 
@@ -334,7 +344,7 @@ progressTel : ∀{m}(tel : Tel Z m) → TelProgress tel
 progressTel []       = done tt
 progressTel (t ∷ ts) = progressTelCons (progress t) (progressTel ts)
 
-progress (Λ K t)           = done (V-Λ t) 
+progress (Λ K t)           = done (V-Λ t)
 progress (t ·⋆ A)          = progress·⋆ (progress t) A
 progress (ƛ A t)           = done (V-ƛ A t)
 progress (t · u)           = progress· (progress t) (progress u)

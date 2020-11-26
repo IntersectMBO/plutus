@@ -45,6 +45,9 @@ lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
+lemma charToString = refl
+lemma append = refl
+lemma trace = refl
 \end{code}
 
 \begin{code}
@@ -58,10 +61,10 @@ eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b
-eraseTC (char c)       = char c 
+eraseTC (char c)       = char c
 eraseTC unit           = unit
 
-eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢ 
+eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢
 
 eraseTel⋆ : ∀{m n}(i : Weirdℕ n) → Vec (ScopedTy n) m → Vec (len i ⊢) m
 eraseTel⋆ i []       = []

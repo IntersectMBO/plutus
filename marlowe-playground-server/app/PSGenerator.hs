@@ -53,9 +53,9 @@ import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import qualified Option
 import qualified PSGenerator.Common
 import           Servant                                          ((:<|>), (:>))
-import           Servant.PureScript                               (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                                   defaultSettings, languageBridge,
-                                                                   writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           Servant.PureScript                               (HasBridge, Settings, _generateSubscriberAPI,
+                                                                   apiModuleName, defaultBridge, defaultSettings,
+                                                                   languageBridge, writeAPIModuleWithSettings)
 import qualified Swap
 import           System.Directory                                 (createDirectoryIfMissing)
 import           System.FilePath                                  ((</>))
@@ -161,6 +161,7 @@ myTypes =
     , mkSumType (Proxy @CT.EOMC)
     , mkSumType (Proxy @CT.ContractStatus)
     , mkSumType (Proxy @CT.FEB)
+    , mkSumType (Proxy @CT.IPCB)
     , mkSumType (Proxy @CT.ContractRole)
     , mkSumType (Proxy @CT.ContractType)
     , mkSumType (Proxy @CT.Assertion)

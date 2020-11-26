@@ -67,9 +67,9 @@ import           Data.List.NonEmpty                              (NonEmpty ((:|)
 import           Data.Text                                       (Text)
 import           GHC.Generics                                    (Generic)
 import           IOTS                                            (IotsType (iotsDefinition))
-import           Language.Plutus.Contract                        (type (.\/), AsContractError, BlockchainActions,
-                                                                  Contract, Endpoint, awaitSlot, nextTransactionsAt,
-                                                                  submitTx, utxoAt, watchAddressUntil)
+import           Language.Plutus.Contract                        (AsContractError, BlockchainActions, Contract,
+                                                                  Endpoint, awaitSlot, nextTransactionsAt, submitTx,
+                                                                  type (.\/), utxoAt, watchAddressUntil)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (endpoint)
 import           Language.Plutus.Contract.Effects.OwnPubKey      (ownPubKey)
 import           Language.Plutus.Contract.Trace                  (TraceError (..), runTraceWithDistribution)

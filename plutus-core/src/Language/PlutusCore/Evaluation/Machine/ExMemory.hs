@@ -49,10 +49,10 @@ abstractly specifiable. It's an implementation detail.
 
 -}
 
-type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
+type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()
 -- | Caches Memory usage for builtin costing
 -- | NOT the amount of memory it cost to calculate this value.
-type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
+type WithMemory f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
@@ -103,17 +103,19 @@ instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUs
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
+deriving via (GenericExMemoryUsage (Either a b)) instance
+    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (Either a b)
+deriving via (GenericExMemoryUsage (a, b)) instance
+    (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b)
+
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
 deriving via (GenericExMemoryUsage (Type tyname uni ann)) instance
     (ExMemoryUsage tyname, ExMemoryUsage ann) => ExMemoryUsage (Type tyname uni ann)
-deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
-deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
-deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
-deriving via (GenericExMemoryUsage (Term tyname name uni ann)) instance
+deriving via (GenericExMemoryUsage (Term tyname name uni fun ann)) instance
     ( ExMemoryUsage tyname, ExMemoryUsage name, ExMemoryUsage ann
-    , Closed uni, uni `Everywhere` ExMemoryUsage
-    ) => ExMemoryUsage (Term tyname name uni ann)
+    , Closed uni, uni `Everywhere` ExMemoryUsage, ExMemoryUsage fun
+    ) => ExMemoryUsage (Term tyname name uni fun ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique

@@ -1,5 +1,4 @@
 { runCommand, purty, src, lib, diffutils, glibcLocales }:
-
 let
   # just purescript sources
   src' = lib.cleanSourceWith {

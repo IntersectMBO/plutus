@@ -6,7 +6,7 @@ data "template_file" "ssh_config_section_nixops" {
     short_hostname   = "nixops.${var.project}"
     ip               = aws_instance.nixops.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "nixops"
+    user_name        = "root"
   }
 }
 

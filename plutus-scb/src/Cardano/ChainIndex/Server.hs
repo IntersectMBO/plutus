@@ -34,8 +34,8 @@ import           Data.Time.Units                 (Second, toMicroseconds)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp
-import           Servant                         ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer,
-                                                  serve)
+import           Servant                         (Application, NoContent (NoContent), hoistServer, serve,
+                                                  (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv, runClientM)
 
 import           Ledger.Address                  (Address)

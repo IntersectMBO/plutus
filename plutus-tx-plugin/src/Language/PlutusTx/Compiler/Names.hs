@@ -5,26 +5,26 @@
 module Language.PlutusTx.Compiler.Names where
 
 
-import           Language.PlutusTx.Compiler.Kind
-import {-# SOURCE #-} Language.PlutusTx.Compiler.Type
-import           Language.PlutusTx.Compiler.Types
-import           Language.PlutusTx.PLCTypes
+import                          Language.PlutusTx.Compiler.Kind
+import {-# SOURCE #-}           Language.PlutusTx.Compiler.Type
+import                          Language.PlutusTx.Compiler.Types
+import                          Language.PlutusTx.PLCTypes
 
-import qualified GhcPlugins                       as GHC
+import                qualified GhcPlugins                       as GHC
 
-import qualified Language.PlutusCore              as PLC
-import qualified Language.PlutusCore.MkPlc        as PLC
-import           Language.PlutusCore.Quote
+import                qualified Language.PlutusCore              as PLC
+import                qualified Language.PlutusCore.MkPlc        as PLC
+import                          Language.PlutusCore.Quote
 
-import           Language.PlutusIR.Compiler.Names
+import                          Language.PlutusIR.Compiler.Names
 
-import           Data.Char
-import           Data.List
-import qualified Data.List.NonEmpty               as NE
-import qualified Data.Map                         as Map
-import qualified Data.Text                        as T
+import                          Data.Char
+import                          Data.List
+import                qualified Data.List.NonEmpty               as NE
+import                qualified Data.Map                         as Map
+import                qualified Data.Text                        as T
 
-lookupName :: Scope uni -> GHC.Name -> Maybe (PLCVar uni)
+lookupName :: Scope uni fun -> GHC.Name -> Maybe (PLCVar uni fun)
 lookupName (Scope ns _) n = Map.lookup n ns
 
 {- |
@@ -50,38 +50,38 @@ getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: Compiling uni m => GHC.Var -> m (PLCVar uni)
+compileVarFresh :: Compiling uni fun m => GHC.Var -> m (PLCVar uni fun)
 compileVarFresh v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v
     pure $ PLC.VarDecl () n' t'
 
-lookupTyName :: Scope uni -> GHC.Name -> Maybe PLCTyVar
+lookupTyName :: Scope uni fun -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
 compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
 compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
-compileTyVarFresh :: Compiling uni m => GHC.TyVar -> m PLCTyVar
+compileTyVarFresh :: Compiling uni fun m => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
     pure $ PLC.TyVarDecl () t' k'
 
-compileTcTyVarFresh :: Compiling uni m => GHC.TyCon -> m PLCTyVar
+compileTcTyVarFresh :: Compiling uni fun m => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
     pure $ PLC.TyVarDecl () t' k'
 
-pushName :: GHC.Name -> PLCVar uni-> ScopeStack uni -> ScopeStack uni
+pushName :: GHC.Name -> PLCVar uni fun-> ScopeStack uni fun -> ScopeStack uni fun
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack
 
-pushNames :: [(GHC.Name, PLCVar uni)] -> ScopeStack uni -> ScopeStack uni
+pushNames :: [(GHC.Name, PLCVar uni fun)] -> ScopeStack uni fun -> ScopeStack uni fun
 pushNames mappings stack = foldl' (\acc (n, v) -> pushName n v acc) stack mappings
 
-pushTyName :: GHC.Name -> PLCTyVar -> ScopeStack uni -> ScopeStack uni
+pushTyName :: GHC.Name -> PLCTyVar -> ScopeStack uni fun -> ScopeStack uni fun
 pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.insert ghcName n tyns) NE.<| stack
 
-pushTyNames :: [(GHC.Name, PLCTyVar)] -> ScopeStack uni -> ScopeStack uni
+pushTyNames :: [(GHC.Name, PLCTyVar)] -> ScopeStack uni fun -> ScopeStack uni fun
 pushTyNames mappings stack = foldl' (\acc (n, v) -> pushTyName n v acc) stack mappings

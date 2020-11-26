@@ -18,7 +18,7 @@ import PlutusPrelude
 
 import Language.PlutusCore.Parser.Internal
 
-import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Builtins
 import Language.PlutusCore.Constant.Typed
 import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
@@ -95,7 +95,7 @@ Term : Var                                                 { $1 }
      | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
      -- % = monadic action
      | openParen   con builtintypeid literal closeParen    { % fmap (uncurry Constant) (mkBuiltinConstant (tkLoc $3) (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteralConst $4))}
-     | openParen   builtin builtinfnid       closeParen    { (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
+     | openParen   builtin builtinfnid       closeParen    { % fmap (uncurry Builtin) (mkBuiltinFunction $2 (tkBuiltinFnId $3)) }
      | openParen   errorTerm                 closeParen    { Error $2 }
      | openParen   force Term                closeParen    { Force $2 $3 }
      | openParen   delay Term                closeParen    { Delay $2 $3 }
@@ -103,7 +103,7 @@ Term : Var                                                 { $1 }
 -- Haskell helper code
 {
 
-app :: a -> Term name uni a -> NonEmpty (Term name uni a) -> Term name uni a
+app :: a -> Term name uni fun a -> NonEmpty (Term name uni fun a) -> Term name uni fun a
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
@@ -121,13 +121,16 @@ mapParseRun run = do
     liftQuote $ markNonFreshBelow u
     pure p
 
+-- Generalizing this and functions below to work over any @uni@ and @fun@ makes @happy@ unhappy and
+-- it starts throwing ambiguous type errors that I've no idea how to fix.
+-- See https://github.com/input-output-hk/plutus/pull/2458#issuecomment-725706274
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program Name DefaultUni AlexPosn)
+parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program Name DefaultUni DefaultFun AlexPosn)
 parseProgram str = mapParseRun $ parseST parsePlutusCoreProgram str
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term Name DefaultUni AlexPosn)
+parseTerm :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Term Name DefaultUni DefaultFun AlexPosn)
 parseTerm str = mapParseRun $ parseST parsePlutusCoreTerm str
 }

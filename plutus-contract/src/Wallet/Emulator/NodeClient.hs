@@ -70,6 +70,6 @@ handleNodeClient
     :: (Members NodeClientEffs effs)
     => Eff (NodeClientEffect ': effs) ~> Eff effs
 handleNodeClient = interpret $ \case
-    PublishTx tx -> queueTx tx >> tell [TxSubmit (txId tx)]
+    PublishTx tx  -> queueTx tx >> tell [TxSubmit (txId tx)]
     GetClientSlot -> gets _clientSlot
 

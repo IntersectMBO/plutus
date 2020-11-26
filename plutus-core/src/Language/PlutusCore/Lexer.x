@@ -14,6 +14,7 @@ module Language.PlutusCore.Lexer ( alexMonadScan
                                  -- * Types
                                  , AlexPosn (..)
                                  , Alex (..)
+                                 , topAlexPosn
                                  ) where
 
 import PlutusPrelude
@@ -184,6 +185,9 @@ deriving instance Generic AlexPosn
 deriving instance NFData AlexPosn
 deriving instance Lift AlexPosn
 deriving instance Ord AlexPosn
+
+topAlexPosn :: AlexPosn
+topAlexPosn = AlexPn 0 0 0
 
 instance Pretty (AlexPosn) where
     pretty (AlexPn _ line col) = "line " <> pretty line <> ", column " <> pretty col

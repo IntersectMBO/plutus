@@ -104,68 +104,6 @@ instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
     size (Some (ValueOf uni x)) acc = size (Some $ TypeIn uni) acc
                                         + bring (Proxy @Flat) uni (size x 0)
 
--- | Using 5 bits to encode builtin tags.
-builtinTagWidth :: NumBits
-builtinTagWidth = 5
-
-encodeBuiltin :: Word8 -> Encoding
-encodeBuiltin = eBits builtinTagWidth
-
-decodeBuiltin :: Get Word8
-decodeBuiltin = dBEBits8 builtinTagWidth
-
-instance Flat StaticBuiltinName where
-    encode = encodeBuiltin . \case
-              AddInteger           -> 0
-              SubtractInteger      -> 1
-              MultiplyInteger      -> 2
-              DivideInteger        -> 3
-              RemainderInteger     -> 4
-              LessThanInteger      -> 5
-              LessThanEqInteger    -> 6
-              GreaterThanInteger   -> 7
-              GreaterThanEqInteger -> 8
-              EqInteger            -> 9
-              Concatenate          -> 10
-              TakeByteString       -> 11
-              DropByteString       -> 12
-              SHA2                 -> 13
-              SHA3                 -> 14
-              VerifySignature      -> 15
-              EqByteString         -> 16
-              QuotientInteger      -> 17
-              ModInteger           -> 18
-              LtByteString         -> 19
-              GtByteString         -> 20
-              IfThenElse           -> 21
-
-    decode = go =<< decodeBuiltin
-        where go 0  = pure AddInteger
-              go 1  = pure SubtractInteger
-              go 2  = pure MultiplyInteger
-              go 3  = pure DivideInteger
-              go 4  = pure RemainderInteger
-              go 5  = pure LessThanInteger
-              go 6  = pure LessThanEqInteger
-              go 7  = pure GreaterThanInteger
-              go 8  = pure GreaterThanEqInteger
-              go 9  = pure EqInteger
-              go 10 = pure Concatenate
-              go 11 = pure TakeByteString
-              go 12 = pure DropByteString
-              go 13 = pure SHA2
-              go 14 = pure SHA3
-              go 15 = pure VerifySignature
-              go 16 = pure EqByteString
-              go 17 = pure QuotientInteger
-              go 18 = pure ModInteger
-              go 19 = pure LtByteString
-              go 20 = pure GtByteString
-              go 21 = pure IfThenElse
-              go _  = fail "Failed to decode BuiltinName"
-
-    size _ n = n + builtinTagWidth
-
 instance Flat Unique where
     encode (Unique i) = eInt i
     decode = Unique <$> dInt
@@ -248,33 +186,6 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
         TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
 
-instance Flat DynamicBuiltinName where
-    encode (DynamicBuiltinName name) = encode name
-    decode = DynamicBuiltinName <$> decode
-
--- | Using 1 bit to encode builtin name tag
-builtinNameTagWidth :: NumBits
-builtinNameTagWidth = 1
-
-encodeBuiltinName :: Word8 -> Encoding
-encodeBuiltinName = eBits builtinNameTagWidth
-
-decodeBuiltinName :: Get Word8
-decodeBuiltinName = dBEBits8 builtinNameTagWidth
-
-instance Flat BuiltinName where
-    encode (StaticBuiltinName bn) = encodeBuiltinName 0 <> encode bn
-    encode (DynBuiltinName   dbn) = encodeBuiltinName 1 <> encode dbn
-
-    decode = go =<< decodeBuiltinName
-        where go 0 = StaticBuiltinName <$> decode
-              go 1 = DynBuiltinName    <$> decode
-              go _ = fail "Failed to decode Builtin ()"
-
-    size tm sz = builtinNameTagWidth + sz + case tm of
-        StaticBuiltinName bn -> getSize bn
-        DynBuiltinName dbn   -> getSize dbn
-
 termTagWidth :: NumBits
 termTagWidth = 4
 
@@ -286,10 +197,11 @@ decodeTerm = dBEBits8 termTagWidth
 
 instance ( Closed uni
          , uni `Everywhere` Flat
+         , Flat fun
          , Flat ann
          , Flat tyname
          , Flat name
-         ) => Flat (Term tyname name uni ann) where
+         ) => Flat (Term tyname name uni fun ann) where
     encode = \case
         Var      ann n         -> encodeTerm 0 <> encode ann <> encode n
         TyAbs    ann tn k t    -> encodeTerm 1 <> encode ann <> encode tn  <> encode k   <> encode t
@@ -328,10 +240,11 @@ instance ( Closed uni
         Builtin  ann bn        -> getSize ann + getSize bn
 
 instance ( Closed uni
+         , Flat fun
          , Flat ann
          , Flat tyname
          , Flat name
-         ) => Flat (VarDecl tyname name uni ann) where
+         ) => Flat (VarDecl tyname name uni fun ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 
@@ -341,10 +254,11 @@ instance (Flat ann, Flat tyname)  => Flat (TyVarDecl tyname ann) where
 
 instance ( Closed uni
          , uni `Everywhere` Flat
+         , Flat fun
          , Flat ann
          , Flat tyname
          , Flat name
-         ) => Flat (Program tyname name uni ann) where
+         ) => Flat (Program tyname name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
 

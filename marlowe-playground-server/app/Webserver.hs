@@ -8,7 +8,7 @@ module Webserver where
 import           Data.Proxy               (Proxy (Proxy))
 import qualified Marlowe.Symbolic.Server  as MS
 import           Network.Wai.Handler.Warp as Warp
-import           Servant                  ((:<|>) ((:<|>)), serve)
+import           Servant                  (serve, (:<|>) ((:<|>)))
 import           Server                   (initializeContext)
 import qualified Server
 import qualified Webghc.Server            as Webghc

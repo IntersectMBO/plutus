@@ -5,8 +5,11 @@ module Builtin.Constant.Type where
 ## Imports
 
 \begin{code}
+open import Agda.Builtin.Char
 open import Agda.Builtin.Int
+open import Agda.Builtin.String
 open import Data.Integer using (ℤ;-_;+≤+;-≤+;-≤-;_<_;_>_;_≤?_;_<?_;_≥_;_≤_)
+open import Data.Unit using (⊤)
 open import Data.Bool using (Bool)
 open import Data.Product
 open import Relation.Binary
@@ -30,16 +33,13 @@ postulate
   rem            : Int → Int → Int
   mod            : Int → Int → Int
 
-  append    : ByteString → ByteString → ByteString
+  concat    : ByteString → ByteString → ByteString
   take      : Int → ByteString → ByteString
   drop      : Int → ByteString → ByteString
   SHA2-256  : ByteString → ByteString
   SHA3-256  : ByteString → ByteString
   verifySig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
-
-  txhash : ByteString
-  bnum   : Int
 
   empty : ByteString
 \end{code}
@@ -50,6 +50,7 @@ postulate
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
+{-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Crypto.Hash (SHA256, SHA3_256, hash) #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
@@ -68,10 +69,8 @@ postulate
 -- no binding needed for greaterthan
 -- no binding needed for greaterthaneq
 -- no binding needed for equals
--- no binding needed for resize
--- no binding needed for sizeOf
 
-{-# COMPILE GHC append = BS.append #-}
+{-# COMPILE GHC concat = BS.append #-}
 {-# COMPILE GHC take = BS.take . fromIntegral #-}
 {-# COMPILE GHC drop = BS.drop . fromIntegral #-}
 {-# COMPILE GHC SHA2-256 = B.convert . hash @BS.ByteString @SHA256 #-}
@@ -81,9 +80,13 @@ postulate
 {-# FOREIGN GHC import Crypto #-}
 {-# COMPILE GHC verifySig = verifySignature #-}
 
--- TODO: resizeByteString
 -- no binding needed for equalsByteString
 {-# COMPILE GHC empty = BS.empty #-}
+
+-- no binding needed for charToStr
+-- no binding needed for appendStr
+-- no binding needed for traceStr
+
 \end{code}
 
 # Some integer operations missing from the standard library

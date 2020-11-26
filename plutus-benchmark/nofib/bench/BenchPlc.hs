@@ -3,28 +3,22 @@
 module Main where
 
 import           Criterion.Main
-import qualified Data.Map                                                   as Map
 
 import           Common
 
-import           Language.PlutusCore                                        (Name (..))
-import           Language.PlutusCore.Constant                               (DynamicBuiltinNameMeanings (..))
-import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore                               (Name (..))
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Universe
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import qualified Plutus.Benchmark.Clausify                                  as Clausify
-import qualified Plutus.Benchmark.Knights                                   as Knights
-import qualified Plutus.Benchmark.Prime                                     as Prime
-import qualified Plutus.Benchmark.Queens                                    as Queens
-
-emptyBuiltins :: DynamicBuiltinNameMeanings (CekValue DefaultUni)
-emptyBuiltins =  DynamicBuiltinNameMeanings Map.empty
+import qualified Plutus.Benchmark.Clausify                         as Clausify
+import qualified Plutus.Benchmark.Knights                          as Knights
+import qualified Plutus.Benchmark.Prime                            as Prime
+import qualified Plutus.Benchmark.Queens                           as Queens
 
 
-benchCek :: Term Name DefaultUni () -> Benchmarkable
-benchCek program = nf (unsafeEvaluateCek getStringBuiltinMeanings defaultCostModel) program
+benchCek :: Term Name DefaultUni DefaultFun () -> Benchmarkable
+benchCek program = nf (unsafeEvaluateCek defBuiltinsRuntime) program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

@@ -37,7 +37,7 @@ import           Cardano.Node.Types                    (NodeFollowerState)
 import qualified Cardano.Node.Types                    as NodeServer
 import           Control.Lens                          hiding (use)
 import           Control.Monad                         (void)
-import           Control.Monad.Freer                   (Eff, Member, type (~>), interpret, runM)
+import           Control.Monad.Freer                   (Eff, Member, interpret, runM, type (~>))
 import           Control.Monad.Freer.Error             (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extra.Log         (LogMsg)
 import           Control.Monad.Freer.Extra.State       (use)
@@ -75,7 +75,7 @@ import           Wallet.Emulator.Chain                 (ChainControlEffect, Chai
                                                         handleChain, handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex            (ChainIndexEvent)
-import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, emulatorTimeEvent, _singleton)
+import           Wallet.Emulator.MultiAgent            (EmulatorEvent, _singleton, chainEvent, emulatorTimeEvent)
 import           Wallet.Emulator.Wallet                (Wallet (..))
 
 data TestState =
@@ -95,11 +95,11 @@ data MockAppLog =
 
 instance Pretty MockAppLog where
     pretty = \case
-        MockAppEmulatorLog e -> pretty e
+        MockAppEmulatorLog e  -> pretty e
         MockAppContractTest e -> pretty e
         MockAppNodeFollower e -> pretty e
-        MockAppMultiAgent e -> pretty e
-        MockAppMetadata e -> pretty e
+        MockAppMultiAgent e   -> pretty e
+        MockAppMetadata e     -> pretty e
 
 makeLenses 'TestState
 makeClassyPrisms ''MockAppLog

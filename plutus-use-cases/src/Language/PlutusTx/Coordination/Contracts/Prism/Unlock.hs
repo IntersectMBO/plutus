@@ -35,9 +35,9 @@ import           Language.PlutusTx.Coordination.Contracts.Prism.Credential      
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.Credential        as Credential
 import           Language.PlutusTx.Coordination.Contracts.Prism.CredentialManager (CredentialManager,
                                                                                    CredentialManagerClientError)
-import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine      (UserCredential (..))
 import           Language.PlutusTx.Coordination.Contracts.Prism.STO               (STOData (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.STO               as STO
+import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine      (UserCredential (..))
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount            (TokenAccountError)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount            as TokenAccount
 import           Ledger                                                           (pubKeyHash, txId)

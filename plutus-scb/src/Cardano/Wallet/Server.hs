@@ -35,8 +35,8 @@ import           Network.HTTP.Client             (defaultManagerSettings, newMan
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.SCB.Arbitrary            ()
 import           Plutus.SCB.Utils                (tshow)
-import           Servant                         ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (..),
-                                                  ServerError (..), err400, err500, hoistServer, serve)
+import           Servant                         (Application, Handler (Handler), NoContent (..), ServerError (..),
+                                                  err400, err500, hoistServer, serve, (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 
 import           Wallet.Effects                  (ChainIndexEffect, NodeClientEffect, WalletEffect, ownOutputs,

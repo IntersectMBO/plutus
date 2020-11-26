@@ -39,7 +39,7 @@ makePrisms ''ChainEvent
 
 instance Pretty t => Pretty (ChainEvent t) where
     pretty = \case
-        UserEvent t -> "UserEvent:" <+> pretty t
-        NodeEvent t -> "NodeEvent:" <+> pretty t
-        WalletEvent t -> "WalletEvent:" <+> pretty t
+        UserEvent t     -> "UserEvent:" <+> pretty t
+        NodeEvent t     -> "NodeEvent:" <+> pretty t
+        WalletEvent t   -> "WalletEvent:" <+> pretty t
         ContractEvent t -> "ContractEvent:" <+> pretty t

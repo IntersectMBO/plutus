@@ -93,7 +93,11 @@
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             ];
           buildable = true;
-          modules = [ "Spec/Marlowe/Common" "Spec/Marlowe/Marlowe" ];
+          modules = [
+            "Spec/Marlowe/Common"
+            "Spec/Marlowe/Marlowe"
+            "Spec/Marlowe/AutoExecute"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

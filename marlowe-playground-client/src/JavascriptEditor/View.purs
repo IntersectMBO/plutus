@@ -3,27 +3,22 @@ module JavascriptEditor.View where
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
-import Examples.JS.Contracts as JSE
-import Halogen (ClassName(..), ComponentHTML, liftEffect)
+import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
 import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (monacoComponent)
+import JavascriptEditor.State (mkEditor)
 import JavascriptEditor.Types (Action(..), State, _compilationResult, _keybindings, _showBottomPanel)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
-import Language.Javascript.Monaco as JSM
-import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Monaco as Monaco
-import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
-import StaticData as StaticData
+import Prelude (bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Text.Pretty (pretty)
 
 render ::
@@ -75,17 +70,7 @@ jsEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-jsEditor state = slot _jsEditorSlot unit component unit (Just <<< HandleEditorMessage)
-  where
-  setup editor =
-    liftEffect do
-      mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
-      let
-        contents = fromMaybe JSE.escrow mContents
-      model <- Monaco.getModel editor
-      Monaco.setValue model contents
-
-  component = monacoComponent $ JSM.settings setup
+jsEditor state = slot _jsEditorSlot unit mkEditor unit (Just <<< HandleEditorMessage)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =

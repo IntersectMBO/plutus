@@ -7,7 +7,7 @@ module Text.PrettyBy.Internal.Utils
 import           Control.Monad.Reader
 import           Data.Functor.Const
 import           Lens.Micro
-import           Lens.Micro.Internal  (( #. ))
+import           Lens.Micro.Internal  ((#.))
 
 -- | An inlined https://hackage.haskell.org/package/microlens-mtl-0.2.0.1/docs/Lens-Micro-Mtl.html#v:view
 -- (just not to depend on this package).

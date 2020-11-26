@@ -1,123 +1,53 @@
 .homepage-container {
-  height: calc(100% - 40px);
-  margin: 0rem 1rem;
-}
+  margin: 0rem auto;
+  width: 1024px;
 
-.right-arrow {
-  background: rgb(0, 0, 0);
-  height: 2px;
-  width: 50px;
-  margin: 0 auto;
-  position: relative;
-}
-
-.right-arrow:before,
-.right-arrow:after {
-  content: "";
-  background: rgb(0, 0, 0);
-  position: absolute;
-  height: 2px;
-  width: 10px;
-}
-
-.right-arrow:before {
-  right: -2px;
-  bottom: -3px;
-  transform: rotate(-45deg);
-}
-
-.right-arrow:after {
-  right: -2px;
-  top: -3px;
-  transform: rotate(45deg);
-}
-
-.flip {
-  transform: rotate(180deg);
-}
-
-.start-with-haskell,
-.start-with-marlowe {
-  display: flex;
-  align-items: center;
-}
-
-.start-with-haskell {
-  max-width: 500px;
-  justify-content: space-between;
-  margin: auto;
-}
-
-.start-with-haskell .haskell-icon {
-  max-width: 100px;
-}
-
-.start-with-haskell .sim-icon {
-  max-width: 100px;
-}
-
-.marlowe-blockly-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 1px grey solid;
-  padding: 0.5rem;
-}
-
-.marlowe-blockly-box .arrows {
-  display: flex;
-  height: 25px;
-  flex-direction: column;
-  place-content: space-between;
-  margin: 0.5rem;
-  transform: rotate(90deg);
-}
-
-.marlowe-blockly-box .arrows .right-arrow {
-  width: 40px;
+  hr {
+    margin: 0;
+  }
 }
 
 .start-with-container {
-  gap: 2rem;
+  display: flex;
+  place-content: space-between;
+  margin-top: 2rem;
 
-  .even-item {
-    flex: 1;
+  .rectangle {
+    width: 312px;
+    height: 460px;
+    border-radius: 8px;
+    box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
   }
-  .even-item:first-child {
-    margin: 1rem;
-  }
-}
-
-.compilers-group {
-  flex: 1;
-}
-
-.compiler-group {
-  align-items: center;
-  margin: 1rem;
-
-  .icon-group {
-    width: 50px;
-    p {
-      text-align: center;
-    }
-  }
-}
-
-.simulation-group {
-  flex: 1;
-  align-items: center;
 }
 
 .ready-to-go-buttons {
   display: flex;
-  margin-bottom: 1rem;
-}
+  flex-direction: column;
+  width: 55%;
+  align-items: center;
+  margin: auto;
 
-.ready-to-go-buttons a {
-  margin-right: 1rem;
-  align-self: center;
-  text-decoration: underline;
+  .links {
+    display: flex;
+    text-align: center;
+    width: 75%;
+    margin-top: 1rem;
+
+    :hover {
+      color: var(--text-color);
+    }
+
+    a {
+      flex: 1;
+      margin: 0rem 1rem;
+      white-space: nowrap;
+      align-self: center;
+      text-decoration: underline;
+      color: var(--text-color-light);
+
+    }
+  }
 }
 
 .no-show-home {
@@ -131,14 +61,16 @@
 
 .marlowe-intro-container {
   display: flex;
-  /* add gap and remove wrap if we want 3 columns */
-  /* gap: 1rem; */
   flex-wrap: wrap;
   flex-flow: row;
 
   div {
-    margin: 1rem;
-    ;
+    margin: 1rem 1rem 1rem 0rem;
+  }
+
+  h2 {
+    white-space: nowrap;
+    font-size: 1.2rem;
   }
 }
 
@@ -150,12 +82,4 @@
   .start-with-container {
     flex-wrap: wrap;
   }
-}
-
-.home-buttons {
-  display: flex;
-  justify-content: space-between;
-
-  /* remove this to put dont show button on right */
-  flex-flow: column;
 }

@@ -78,14 +78,14 @@ data SCBLogMsg =
 
 instance Pretty SCBLogMsg where
     pretty = \case
-        SContractExeLogMsg m -> pretty m
+        SContractExeLogMsg m   -> pretty m
         SContractInstanceMsg m -> pretty m
-        SCoreMsg m -> pretty m
-        SUnstringifyJSON m -> pretty m
-        SWalletEvent w -> pretty w
-        SLoggerBridge m -> pretty m
-        SWebsocketMsg m -> pretty m
-        SContractRuntimeMsg m -> pretty m
+        SCoreMsg m             -> pretty m
+        SUnstringifyJSON m     -> pretty m
+        SWalletEvent w         -> pretty w
+        SLoggerBridge m        -> pretty m
+        SWebsocketMsg m        -> pretty m
+        SContractRuntimeMsg m  -> pretty m
 
 data ContractExeLogMsg =
     InvokeContractMsg
@@ -175,14 +175,14 @@ instance ToObject AppMsg where
 
 instance ToObject SCBLogMsg where
     toObject v = \case
-        SContractExeLogMsg m -> toObject v m
+        SContractExeLogMsg m   -> toObject v m
         SContractInstanceMsg m -> toObject v m
-        SCoreMsg m -> toObject v m
-        SUnstringifyJSON m -> toObject v m
-        SWalletEvent e -> toObject v e
-        SLoggerBridge e -> toObject v e
-        SWebsocketMsg e -> toObject v e
-        SContractRuntimeMsg e -> toObject v e
+        SCoreMsg m             -> toObject v m
+        SUnstringifyJSON m     -> toObject v m
+        SWalletEvent e         -> toObject v e
+        SLoggerBridge e        -> toObject v e
+        SWebsocketMsg e        -> toObject v e
+        SContractRuntimeMsg e  -> toObject v e
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case

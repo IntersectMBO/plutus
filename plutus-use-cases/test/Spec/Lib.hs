@@ -6,7 +6,7 @@ module Spec.Lib
     , timesFeeAdjustV
     ) where
 
-import           Control.Monad.IO.Class       (MonadIO (liftIO))
+import           Control.Monad.IO.Class    (MonadIO (liftIO))
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
@@ -15,13 +15,12 @@ import           Data.Maybe
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 
-import qualified Language.PlutusCore.Universe as PLC
 import           Language.PlutusTx
-import qualified Language.PlutusTx.Prelude    as P
-import           Ledger                       (Validator)
+import qualified Language.PlutusTx.Prelude as P
+import           Ledger                    (Validator)
 import qualified Ledger
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Value                 (Value)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Value              (Value)
 
 -- | Assert that the size of a 'Validator' is below
 --   the maximum.
@@ -33,7 +32,7 @@ reasonable (Ledger.unValidatorScript -> s) maxSize = do
     liftIO $ putStrLn ("Script size: " ++ show sz)
     assertBool msg (sz <= maxSize)
 
-goldenPir :: FilePath -> CompiledCode PLC.DefaultUni a -> TestTree
+goldenPir :: FilePath -> CompiledCode a -> TestTree
 goldenPir path code = goldenVsString "PIR" path (pure $ fromString $ show $ pretty $ fromJust $ getPir code)
 
 staticFee :: Integer

@@ -20,7 +20,7 @@ import           Cardano.Metadata.API            (API)
 import           Cardano.Metadata.Types
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Monad.Except            (ExceptT (ExceptT))
-import           Control.Monad.Freer             (Eff, Member, type (~>), interpret, runM)
+import           Control.Monad.Freer             (Eff, Member, interpret, runM, type (~>))
 import           Control.Monad.Freer.Error       (Error, runError, throwError)
 import           Control.Monad.Freer.Extra.Log   (LogMsg, logInfo)
 import           Control.Monad.Freer.Log         (handleLogTrace)

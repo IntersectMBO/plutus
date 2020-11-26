@@ -38,7 +38,7 @@ import           Data.GADT.Compare
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show
 import           Data.Hashable
-import qualified Data.Kind                  as GHC (Type)
+import qualified Data.Kind                as GHC (Type)
 import           Data.Proxy
 import           GHC.Exts
 import           Language.Haskell.TH.Lift

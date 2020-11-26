@@ -6,6 +6,7 @@ module Algorithmic.Reduction where
 
 \begin{code}
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
+open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Data.Empty
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -14,10 +15,11 @@ open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List hiding ([_]; take; drop)
+open import Data.List as List using (List; _∷_; []; _++_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
+import Debug.Trace as Debug
 
 
 open import Type
@@ -151,7 +153,7 @@ IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con 
 IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
 IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
 IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i ≟ j) (con (bool true)) (con (bool false))
-IBUILTIN concatenate σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = con (bytestring (append b b'))
+IBUILTIN concatenate σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = con (bytestring (concat b b'))
 IBUILTIN takeByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = con (bytestring (take i b))
 IBUILTIN dropByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = con (bytestring (drop i b))
 IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = con (bytestring (SHA2-256 b))
@@ -162,6 +164,10 @@ IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
   proj₁ f
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
   proj₁ t
+IBUILTIN charToString σ (tt ,, _ ,, V-con (char c)) =
+  con (string (primStringFromList List.[ c ]))
+IBUILTIN append σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = con (string (primStringAppend s s'))
+IBUILTIN trace σ _ = con unit
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -210,7 +216,7 @@ BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con 
 BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i ≟ j) (con (bool true)) (con (bool false))
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  con (bytestring (append b b'))
+  con (bytestring (concat b b'))
 BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   con (bytestring (take i b))
 BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -223,6 +229,10 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con 
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
 BUILTIN ifThenElse _ (f ∷ (_ ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool false) ,, _) = f
 BUILTIN ifThenElse _ (_ ∷ (t ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool true) ,, _) = t
+BUILTIN charToString _ (_ ∷ []) (V-con (char c) ,, tt) = con (string (primStringFromList List.[ c ]))
+BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) ,, V-con (string t) ,, tt) =
+  con (string (primStringAppend s t))
+BUILTIN trace _ (_ ∷ []) (V-con (string s) ,, tt) = con (Debug.trace s unit)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -293,7 +303,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (vtel : VTel Δ σ As tel)
       -----------------------------
     → builtin bn σ tel —→ BUILTIN bn σ tel vtel
-    
+
   ξ-builtin : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
@@ -408,7 +418,7 @@ data TelProgress
   step : {ts' : Tel ∅ Δ σ As}
     → ts —→T ts'
     → TelProgress ts
-    
+
   error : Any Error ts → TelProgress ts
 \end{code}
 
@@ -460,6 +470,9 @@ ival sha3-256 = V-I⇒ sha3-256 {Γ = proj₁ (proj₂ (ISIG sha3-256))}{Δ = �
 ival verifySignature = V-I⇒ verifySignature {Γ = proj₁ (proj₂ (ISIG verifySignature))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG verifySignature))} refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
 ival equalsByteString = V-I⇒ equalsByteString {Γ = proj₁ (proj₂ (ISIG equalsByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG equalsByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin equalsByteString)
 ival ifThenElse = V-IΠ ifThenElse {Γ = proj₁ (proj₂ (ISIG ifThenElse))}{C = proj₂ (proj₂ (ISIG ifThenElse))} refl refl refl (λ()) (≤Cto≤C' (skip (skip (skip base)))) tt (ibuiltin ifThenElse)
+ival charToString = V-I⇒ charToString {Γ = proj₁ (proj₂ (ISIG charToString))}{C = proj₂ (proj₂ (ISIG charToString))} refl refl refl (λ()) base tt (ibuiltin charToString)
+ival append = V-I⇒ append {Γ = proj₁ (proj₂ (ISIG append))}{C = proj₂ (proj₂ (ISIG append))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin append)
+ival trace = V-I⇒ trace {Γ = proj₁ (proj₂ (ISIG trace))}{C = proj₂ (proj₂ (ISIG trace))} refl refl refl (λ()) base tt (ibuiltin trace)
 
 progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
@@ -602,9 +615,15 @@ vTelUniq : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : Lis
   → (tel : Tel ∅ Δ σ As)
   → (vtel vtel' : VTel Δ σ As tel)
   → vtel ≡ vtel'
+<<<<<<< HEAD
 vTelUniq Δ σ [] [] vtel vtel' = refl
 vTelUniq Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
   cong₂ _,,_ (valUniq t v v') (vTelUniq Δ σ As tel vtel vtel') 
+=======
+vTelUniq Γ Δ σ [] [] vtel vtel' = refl
+vTelUniq Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
+  cong₂ _,,_ (valUniq t v v') (vTelUniq Γ Δ σ As tel vtel vtel')
+>>>>>>> 3d0fa53911081de50fa6a795563663300ddc8952
 
 -- exclusive or
 _xor_ : Set → Set → Set
@@ -679,3 +698,4 @@ detT (there v p) (here q)    = ⊥-elim (val-red v (_ ,, q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
 detT (here p) (here q) = cong (_∷ _) (det p q)
 -}
+

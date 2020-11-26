@@ -51,7 +51,7 @@ get a PLC Type consisting of the compiled PIR type, because the compilation of t
 definitions is done by making a *term*.
 
 So we use the abstract support for handling definitions in PIR, MonadDefs. Typeable
-then has `typeRep :: Proxy a -> RTCompile uni (Type TyName uni ())`,
+then has `typeRep :: Proxy a -> RTCompile uni fun (Type TyName uni ())`,
 which says that you can get the type in some compilation monad (which
 you will later have to discharge yourself).
 
@@ -67,13 +67,13 @@ We thus have two pieces of compilation going on here:
 The interplay between the parts happening at TH time and the parts happening at runtime is somewhat
 awkward, but I couldn't think of a better way of doing it.
 
-A particularly awkward feature is that the typeclass constriants required by the code in each
+A particularly awkward feature is that the typeclass constraints required by the code in each
 instance are going to be different, and so we can't use reusable functions, instead we need to
 inline all the definitions so that the overall expression can have the right constraints inferred.
 -}
 
-type RTCompile uni = DefT TH.Name uni () Quote
-type RTCompileScope uni = ReaderT (LocalVars uni) (RTCompile uni)
+type RTCompile uni fun = DefT TH.Name uni fun () Quote
+type RTCompileScope uni fun = ReaderT (LocalVars uni) (RTCompile uni fun)
 type THCompile = StateT Deps (ReaderT THLocalVars TH.Q)
 
 {- Note [Type variables]
@@ -163,7 +163,7 @@ liftPir uni ty = TH.classPred ''Lift [uni, ty]
 toConstraint :: TH.Type -> Dep -> TH.Pred
 toConstraint uni = \case
     TypeableDep n -> typeablePir uni n
-    LiftDep ty -> liftPir uni ty
+    LiftDep ty    -> liftPir uni ty
 
 {- Note [Closed constraints]
 There is no point adding constraints that are "closed", i.e. don't mention any of the
@@ -201,11 +201,11 @@ tvNameAndKind = \case
 -- Note: we can actually do this entirely at TH-time, which is nice
 compileKind :: TH.Kind -> THCompile (Kind ())
 compileKind = \case
-    TH.StarT -> pure $ Type ()
+    TH.StarT                          -> pure $ Type ()
     TH.AppT (TH.AppT TH.ArrowT k1) k2 -> KindArrow () <$> compileKind k1 <*> compileKind k2
-    k -> dieTH $ "Unsupported kind: " ++ show k
+    k                                 -> dieTH $ "Unsupported kind: " ++ show k
 
-compileType :: TH.Type -> THCompile (TH.TExpQ (RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())))
+compileType :: TH.Type -> THCompile (TH.TExpQ (RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())))
 compileType = \case
     TH.AppT t1 t2 -> do
         t1' <- compileType t1
@@ -228,17 +228,17 @@ compileType = \case
     t -> dieTH $ "Unsupported type: " ++ show t
 
 -- | Compile a type with the given name using 'typeRep' and incurring a corresponding 'Typeable' dependency.
-compileTypeableType :: TH.Type -> TH.Name -> THCompile (TH.TExpQ (RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())))
+compileTypeableType :: TH.Type -> TH.Name -> THCompile (TH.TExpQ (RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())))
 compileTypeableType ty name = do
     addTypeableDep ty
     -- We need the `unsafeTExpCoerce` since this will necessarily involve
     -- types we don't know now: the type which this instance is for (which
     -- appears in the proxy argument). However, since we know the type of
     -- `typeRep` we can get back into typed land quickly.
-    let trep :: TH.TExpQ (RTCompile PLC.DefaultUni (Type TyName PLC.DefaultUni ()))
-        trep = TH.unsafeTExpCoerce [| typeRep (undefined :: Proxy $(pure ty)) |]
+    let trep :: TH.TExpQ (RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ()))
+        trep = TH.unsafeTExpCoerce [| typeRep (Proxy :: Proxy $(pure ty)) |]
     pure [||
-          let trep' :: RTCompile PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+          let trep' :: RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
               trep' = $$trep
           in do
               maybeType <- lookupType () name
@@ -257,19 +257,19 @@ compileTypeableType ty name = do
 -- your own instance!
 class Typeable uni (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
-    typeRep :: Proxy a -> RTCompile uni (Type TyName uni ())
+    typeRep :: Proxy a -> RTCompile uni fun (Type TyName uni ())
 
 -- Just here so we can pin down the type variables without using TypeApplications in the generated code
-recordAlias' :: TH.Name -> RTCompileScope PLC.DefaultUni ()
-recordAlias' = recordAlias @TH.Name @PLC.DefaultUni @()
+recordAlias' :: TH.Name -> RTCompileScope PLC.DefaultUni fun ()
+recordAlias' = recordAlias
 
 -- Just here so we can pin down the type variables without using TypeApplications in the generated code
-defineDatatype' :: TH.Name -> DatatypeDef TyName Name PLC.DefaultUni () -> Set.Set TH.Name -> RTCompileScope PLC.DefaultUni ()
+defineDatatype' :: TH.Name -> DatatypeDef TyName Name PLC.DefaultUni fun () -> Set.Set TH.Name -> RTCompileScope PLC.DefaultUni fun ()
 defineDatatype' = defineDatatype
 
 -- TODO: there is an unpleasant amount of duplication between this and the main compiler, but
 -- I'm not sure how to unify them better
-compileTypeRep :: TH.DatatypeInfo -> THCompile (TH.TExpQ (RTCompile PLC.DefaultUni (Type TyName PLC.DefaultUni ())))
+compileTypeRep :: forall fun. TH.DatatypeInfo -> THCompile (TH.TExpQ (RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())))
 compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} = do
     tvNamesAndKinds <- traverse tvNameAndKind tvs
     -- annoyingly th-abstraction doesn't give us a kind we can compile here
@@ -280,14 +280,14 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
     then do
         -- Extract the unique field of the unique constructor
         argTy <- case cons of
-            [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> (compileType <=< normalizeAndResolve) argTy
+            [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> (compileType @fun <=< normalizeAndResolve) argTy
             _ -> dieTH "Newtypes must have a single constructor with a single argument"
         deps <- gets getTyConDeps
         pure [||
             let
-                argTy' :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+                argTy' :: RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
                 argTy' = $$argTy
-                act :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+                act :: RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
                 act = do
                     maybeDefined <- lookupType () tyName
                     case maybeDefined of
@@ -303,13 +303,13 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
             in flip runReaderT mempty act
          ||]
     else do
-        constrExprs <- traverse compileConstructorDecl cons
+        constrExprs <- traverse (compileConstructorDecl @fun) cons
         deps <- gets getTyConDeps
         pure [||
           let
-              constrExprs' :: [Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni (VarDecl TyName Name PLC.DefaultUni ())]
+              constrExprs' :: [Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni fun ())]
               constrExprs' = $$(tyListE constrExprs)
-              act :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+              act :: RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
               act = do
                 maybeDefined <- lookupType () tyName
                 case maybeDefined of
@@ -329,7 +329,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                         withTyVars tvds $ do
                             -- The TH expressions are in fact all functions that take the result type, so
                             -- we need to apply them
-                            let constrActs :: RTCompileScope PLC.DefaultUni [VarDecl TyName Name PLC.DefaultUni ()]
+                            let constrActs :: RTCompileScope PLC.DefaultUni fun [VarDecl TyName Name PLC.DefaultUni fun ()]
                                 constrActs = sequence $ constrExprs' <*> [resultType]
                             constrs <- constrActs
 
@@ -341,13 +341,14 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
           ||]
 
 compileConstructorDecl
-    :: TH.ConstructorInfo
-    -> THCompile (TH.TExpQ (Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni (VarDecl TyName Name PLC.DefaultUni ())))
+    :: forall fun.
+       TH.ConstructorInfo
+    -> THCompile (TH.TExpQ (Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni fun ())))
 compileConstructorDecl TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
-    tyExprs <- traverse (compileType <=< normalizeAndResolve) argTys
+    tyExprs <- traverse (compileType @fun <=< normalizeAndResolve) argTys
     pure [||
          let
-             tyExprs' :: [RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())]
+             tyExprs' :: [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
              tyExprs' = $$(tyListE tyExprs)
           -- we won't know the result type until runtime, so take it as an argument
           in \resultType -> do
@@ -378,7 +379,7 @@ makeTypeable uni name = do
 -- own instance!
 class Lift uni a where
     -- | Get a Plutus IR term corresponding to the given value.
-    lift :: a -> RTCompile uni (Term TyName Name uni ())
+    lift :: a -> RTCompile uni fun (Term TyName Name uni fun ())
 
 compileLift :: TH.DatatypeInfo -> THCompile [TH.Q TH.Clause]
 compileLift dt = traverse (uncurry (compileConstructorClause dt)) (zip [0..] (sortedCons dt))
@@ -403,7 +404,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
         -- `lift arg` for each arg we bind in the pattern. We need the `unsafeTExpCoerce` since this will
         -- necessarily involve types we don't know now: the types of each argument. However, since we
         -- know the type of `lift arg` we can get back into typed land quickly.
-        let liftExprs :: [TH.TExpQ (RTCompile PLC.DefaultUni (Term TyName Name PLC.DefaultUni ()))]
+        let liftExprs :: [TH.TExpQ (RTCompile PLC.DefaultUni fun (Term TyName Name PLC.DefaultUni fun ()))]
             liftExprs = fmap (\pn -> TH.unsafeTExpCoerce $ TH.varE 'lift `TH.appE` TH.varE pn) patNames
         rhsExpr <- if isNewtype dt
             then case liftExprs of
@@ -414,16 +415,14 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                     -- We bind all the splices with explicit signatures to ensure we
                     -- get type errors as soon as possible, and to aid debugging.
                     let
-                        typeExprs' :: [RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())]
-                        typeExprs' = $$(tyListE typeExprs)
-                        liftExprs' :: [RTCompile PLC.DefaultUni (Term TyName Name PLC.DefaultUni ())]
+                        liftExprs' :: [RTCompile PLC.DefaultUni fun (Term TyName Name PLC.DefaultUni fun ())]
                         liftExprs' = $$(tyListE liftExprs)
                         -- We need the `unsafeTExpCoerce` since this will necessarily involve
                         -- types we don't know now: the type which this instance is for (which
                         -- appears in the proxy argument). However, since we know the type of
                         -- `typeRep` we can get back into typed land quickly.
-                        trep :: RTCompile PLC.DefaultUni (Type TyName PLC.DefaultUni ())
-                        trep = $$(TH.unsafeTExpCoerce [| typeRep (undefined :: Proxy $(TH.conT tyName)) |])
+                        trep :: RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
+                        trep = $$(TH.unsafeTExpCoerce [| typeRep (Proxy :: Proxy $(TH.conT tyName)) |])
                     in do
                         -- force creation of datatype
                         _ <- trep
@@ -436,9 +435,15 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                             Just cs -> pure cs
                         let constr = constrs !! index
 
+                        lifts :: [Term TyName Name PLC.DefaultUni fun ()] <- sequence liftExprs'
+                        -- The 'fun' that is referenced here is the 'fun' that we bind the line above.
+                        -- If it was forall-bound instead, 'typeExprs\'' wouldn't type check,
+                        -- because 'Type' does not determine 'fun' (unlike 'Term' in 'liftExprs\''
+                        -- above).
+                        let typeExprs' :: [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
+                            typeExprs' = $$(tyListE typeExprs)
                         -- The types are compiled in an (empty) local scope.
                         types <- flip runReaderT mempty $ sequence typeExprs'
-                        lifts <- sequence liftExprs'
 
                         pure $ mkIterApp () (mkIterInst () constr types) lifts
                   ||]

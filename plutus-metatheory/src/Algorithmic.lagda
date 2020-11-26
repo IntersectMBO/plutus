@@ -169,7 +169,9 @@ ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
 ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
-
+ISIG charToString = ∅ ,, ∅ , con char ,, con string
+ISIG append = ∅ ,, ∅ , con string , con string ,, con string
+ISIG trace = ∅ ,, ∅ , con string ,, con unit
 
 isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
 isig2type .∅ ∅ C = C

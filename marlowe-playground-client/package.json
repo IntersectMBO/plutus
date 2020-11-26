@@ -4,7 +4,7 @@
   "scripts": {
     "webpack": "NODE_OPTIONS=\"--max-old-space-size=8192\" DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
     "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
-    "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development --display verbose",
+    "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development --host 0.0.0.0 --display verbose",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "spago build",
     "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/**/*.purs'",

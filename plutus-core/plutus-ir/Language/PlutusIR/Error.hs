@@ -16,7 +16,6 @@ module Language.PlutusIR.Error
     , AsError (..)
     , TypeErrorExt (..)
     , PLC.Normalized (..)
-    , PLC.UnknownDynamicBuiltinNameError (..)
     ) where
 
 import qualified Language.PlutusCore        as PLC
@@ -40,18 +39,18 @@ data TypeErrorExt uni ann =
 makeClassyPrisms ''TypeErrorExt
 
 
-data Error uni a = CompilationError a T.Text -- ^ A generic compilation error.
-                 | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.
-                 | PLCError (PLC.Error uni a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
-                 | PLCTypeError (PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni ()) uni a)
-                 | PIRTypeError (TypeErrorExt uni a)
+data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation error.
+                     | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.
+                     | PLCError (PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
+                     | PLCTypeError (PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
+                     | PIRTypeError (TypeErrorExt uni a)
                deriving (Typeable)
 makeClassyPrisms ''Error
 
-instance PLC.AsTypeError (Error uni a) (PIR.Term PIR.TyName PIR.Name uni ()) uni a where
+instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a where
     _TypeError = _PLCTypeError
 
-instance AsTypeErrorExt (Error uni a) uni a where
+instance AsTypeErrorExt (Error uni fun a) uni a where
     _TypeErrorExt = _PIRTypeError
 
 
@@ -67,23 +66,24 @@ instance (PrettyUni uni ann) => PrettyBy PLC.PrettyConfigPlc (TypeErrorExt uni a
              , "The expected result-type is:" <+> prettyBy config expType]
 
 -- show via pretty, for printing as SomeExceptions
-instance (PrettyUni uni ann) => Show (Error uni ann) where
+instance (PrettyUni uni ann, Pretty fun) => Show (Error uni fun ann) where
     show = show . PP.pretty
 
-instance (PrettyUni uni ann, Typeable uni, Typeable ann) => Exception (Error uni ann)
+instance (PrettyUni uni ann, Typeable uni, Typeable fun, Typeable ann, Pretty fun) =>
+            Exception (Error uni fun ann)
 
 instance
-        (Pretty ann,
+        (Pretty ann, Pretty fun,
         PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
-        ) => Pretty (Error uni ann) where
+        ) => Pretty (Error uni fun ann) where
     pretty = PLC.prettyPlcClassicDef
 
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty ann) =>
-            PrettyBy PLC.PrettyConfigPlc (Error uni ann) where
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
+            PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
      prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
-        PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
-        PLCTypeError e -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
-        PIRTypeError e -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+        PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
+        PLCTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+        PIRTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]

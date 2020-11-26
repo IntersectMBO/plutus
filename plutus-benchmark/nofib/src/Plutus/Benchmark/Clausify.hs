@@ -7,6 +7,7 @@
 module Plutus.Benchmark.Clausify where
 
 import           Language.PlutusCore          (Name (..))
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Universe
 import qualified Language.PlutusTx            as Tx
 import           Language.PlutusTx.Prelude    as TxPrelude hiding (replicate)
@@ -182,7 +183,7 @@ runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
 {-# INLINABLE mkClausifyTerm #-}
-mkClausifyTerm :: StaticFormula -> Term Name DefaultUni ()
+mkClausifyTerm :: StaticFormula -> Term Name DefaultUni DefaultFun ()
 mkClausifyTerm formula =
  let (Program _ _ code) = Tx.getPlc $
                              $$(Tx.compile [|| runClausify ||])
