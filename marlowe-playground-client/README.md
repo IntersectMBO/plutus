@@ -37,6 +37,26 @@ You can do so using the `update-client-deps` script:
 
 The `update-client-deps` script will generate/update `.nix` files which have to be committed and are required for a successful CI run.
 
+### NodeJS GitHub dependencies
+
+All npm dependencies are handled by npmlock2nix automatically and transparently. The only exception to this rule are GitHub dependencies.
+In order for these to work in restricted evaluation mode (which is what hydra uses) you have to specify the sha256 of the dependency you
+want to use in your `buildNodeModules`. For example:
+
+```
+buildNodeModules {
+    projectDir = ./.;
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+    githubSourceHashMap = {
+      shmish111.nearley-webpack-loader."939360f9d1bafa9019b6ff8739495c6c9101c4a1" = "1brx669dgsryakf7my00m25xdv7a02snbwzhzgc9ylmys4p8c10x";
+    };
+}
+```
+
+You can add new dependencies with the sha256 set to `"0000000000000000000000000000000000000000000000000000"`. This will yield an error
+message during the build with the actual hash value.
+
 ## Code formatting
 
 The code is formatted using [purty](https://gitlab.com/joneshf/purty), and there is a CI task that will fail if the code is not properly formatted. You can apply purty to the project by calling:
