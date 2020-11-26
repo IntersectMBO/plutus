@@ -74,6 +74,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
