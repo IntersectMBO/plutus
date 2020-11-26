@@ -239,16 +239,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     -----------------------------
     → Γ ⊢ subst σ C
 
-  pbuiltin :
-      (b :  Builtin)
-    → let Ψ ,, As ,, C = SIG b in
-      ∀ Ψ' → 
-      (σ : Sub Ψ' Φ)
-    → (As' : List (Ψ' ⊢⋆ *))
-    → (p : (Ψ' ≤C⋆' Ψ × As' ≡ []) ⊎ (Σ (Ψ' ≡ Ψ) λ p →  As' ≤L substEq (λ Φ → List (Φ ⊢⋆ *)) (sym p) As))
-    → Tel Γ Ψ' σ As'
-    → Γ ⊢ abstract3' Φ Ψ Ψ' As As' p C σ
-
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
 

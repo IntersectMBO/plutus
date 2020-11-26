@@ -139,35 +139,49 @@ IBUILTIN : (b : Builtin)
       (σ : SubNf Φ ∅)
     → (tel : ITel b Γ σ)
       -----------------------------
-    → ∅ ⊢ substNf σ C
+    → Σ (∅ ⊢ substNf σ C) λ t → Value t ⊎ Error t 
       -- ^ should be val or error to avoid throwing away work
-IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i + j))
-IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i - j))
-IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = con (integer (i ** j))
-IBUILTIN divideInteger σ tel = error _
-IBUILTIN quotientInteger σ tel = error _
-IBUILTIN remainderInteger σ tel = error _
-IBUILTIN modInteger σ tel = error _
-IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i <? j) (con (bool true)) (con (bool false))
-IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i ≤? j) (con (bool true)) (con (bool false))
-IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
-IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
-IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = decIf (i ≟ j) (con (bool true)) (con (bool false))
-IBUILTIN concatenate σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = con (bytestring (concat b b'))
-IBUILTIN takeByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = con (bytestring (take i b))
-IBUILTIN dropByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = con (bytestring (drop i b))
-IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = con (bytestring (SHA2-256 b))
-IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = con (bytestring (SHA3-256 b))
-IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) = VERIFYSIG (verifySig k d c)
-IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = con (bool (equals b b'))
+IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i + j)))
+IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i - j)))
+IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i ** j)))
+IBUILTIN divideInteger σ tel = _ ,, inj₂ E-error
+IBUILTIN quotientInteger σ tel = _ ,, inj₂ E-error
+IBUILTIN remainderInteger σ tel = _ ,, inj₂ E-error
+IBUILTIN modInteger σ tel = _ ,, inj₂ E-error
+IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i <? j
+... | no ¬p = _ ,, inj₁ (V-con (bool false))
+... | yes p = _ ,, inj₁ (V-con (bool true))
+
+IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i ≤? j
+... | no ¬p = _ ,, inj₁ (V-con (bool false))
+... | yes p = _ ,, inj₁ (V-con (bool true))
+IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i Builtin.Constant.Type.>? j
+... | no ¬p = _ ,, inj₁ (V-con (bool false))
+... | yes p = _ ,, inj₁ (V-con (bool true))
+IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i Builtin.Constant.Type.≥? j
+... | no ¬p = _ ,, inj₁ (V-con (bool false))
+... | yes p = _ ,, inj₁ (V-con (bool true))
+IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j))  with i ≟ j
+... | no ¬p = _ ,, inj₁ (V-con (bool false))
+... | yes p = _ ,, inj₁ (V-con (bool true))
+IBUILTIN concatenate σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bytestring (concat b b')))
+IBUILTIN takeByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (take i b)))
+IBUILTIN dropByteString σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (drop i b)))
+IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA2-256 b)))
+IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
+IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
+... | just b = _ ,, inj₁ (V-con (bool b))
+... | nothing = _ ,, inj₂ E-error
+IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (equals b b')))
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
-  proj₁ f
+  _ ,, inj₁ (proj₂ f)
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool true)) ,, t) ,, f) =
-  proj₁ t
+  _ ,, inj₁ (proj₂ t)
 IBUILTIN charToString σ (tt ,, _ ,, V-con (char c)) =
-  con (string (primStringFromList List.[ c ]))
-IBUILTIN append σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) = con (string (primStringAppend s s'))
-IBUILTIN trace σ _ = con unit
+  _ ,, inj₁ (V-con (string (primStringFromList List.[ c ])))
+IBUILTIN append σ ((tt ,, _ ,, V-con (string s)) ,, _ ,, V-con (string s')) =
+  _ ,, inj₁ (V-con (string (primStringAppend s s')))
+IBUILTIN trace σ _ = _ ,, inj₁ (V-con unit)
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -179,7 +193,7 @@ IBUILTIN' : (b : Builtin)
     → (C' : Φ' ⊢Nf⋆ *)
     → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
       -----------------------------
-    → ∅ ⊢ substNf σ C'
+    → Σ (∅ ⊢ substNf σ C') λ t → Value t ⊎ Error t
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
 
@@ -348,7 +362,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (tel : ITel b Γ' σ)
     → (v : Value u)
       -----------------------------
-    → t · u —→ IBUILTIN' b p q σ (tel ,, u ,, v) C' r
+    → t · u —→ proj₁ (IBUILTIN' b p q σ (tel ,, u ,, v) C' r)
 
   β-sbuiltin⋆ :
       (b : Builtin)
@@ -362,7 +376,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (t : ∅ ⊢ substNf σ (Π C'))
     → (tel : ITel b Γ' σ)
       -----------------------------
-    → t ·⋆ A —→ conv⊢ refl (substNf-cons-[]Nf C') (IBUILTIN' b p q (substNf-cons σ A) (tel ,, A) C' r) 
+    → t ·⋆ A —→ conv⊢ refl (substNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (substNf-cons σ A) (tel ,, A) C' r))
 
 
 data _—→T_ {Δ}{σ} where
@@ -490,7 +504,6 @@ progress-unwrap (step q) = step (ξ-unwrap q)
 progress-unwrap (done (V-wrap v)) = step (β-wrap v)
 progress-unwrap {A = A} (error E-error) =
   step (E-unwrap {A = A})
--- this shouldn't be possible the only type V-I can take is either μ or ⇒
 
 progress-builtin : ∀ bn
   (σ : SubNf (proj₁ (SIG bn)) ∅)
@@ -546,8 +559,6 @@ progress (unwrap M)          = progress-unwrap (progress M)
 progress (con c)              = done (V-con c)
 progress (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel ts)
 progress (ibuiltin b) = done (ival b)
--- these are a bit annoying, it would be nice to be able to look at
--- the signature instead and the decide what to do
 progress (error A)            = error E-error
 
 open import Data.Nat
