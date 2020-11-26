@@ -171,7 +171,7 @@ data WaitingResult a
   deriving (Show)
 
 
--- | Wait the on-chain state of the state machine instance has changed until timeoutSlot,
+-- | Wait for the on-chain state of the state machine instance to change until timeoutSlot,
 --   and return the new state, or return 'ContractEnded' if the instance has been
 --   terminated. If 'waitForUpdate' is called before the instance has even
 --   started then it returns the first state of the instance as soon as it
