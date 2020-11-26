@@ -57,11 +57,9 @@ test_applyBuiltinFunction fun =
         BuiltinMeaning sch toF toExF -> do
             let f = toF defDefaultFunDyn
                 exF = toExF defaultCostModel
-            withGenArgsRes sch f $ \args res -> do
-                let rhs = makeKnown res
-                case unAppM $ applyTypeSchemed fun sch f exF args of
-                    Left _    -> fail $ "Failure while checking an application of " ++ show fun
-                    Right lhs -> lhs === rhs
+            withGenArgsRes sch f $ \args res ->
+                -- The calls to 'unAppM' are just to drive type inference.
+                unAppM (applyTypeSchemed fun sch f exF args) === unAppM (makeKnown res)
 
 test_applyStaticBuiltin :: TestTree
 test_applyStaticBuiltin =

@@ -279,20 +279,30 @@ type KnownBuiltinType term a =
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> EvaluationResult term
-    default makeKnown :: KnownBuiltinType term a => a -> EvaluationResult term
+    makeKnown
+        :: ( MonadError err m, AsEvaluationFailure err
+           )
+        => a -> m term
+    default makeKnown
+        :: ( MonadError err m
+           , KnownBuiltinType term a
+           )
+        => a -> m term
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
-    makeKnown x = EvaluationSuccess . fromConstant . someValue $! x
+    makeKnown x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
+        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+           )
         => term -> m a
     default readKnown
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
+        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err
+           , KnownBuiltinType term a
+           )
         => term -> m a
     readKnown = unliftConstant
 
@@ -301,7 +311,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
             KnownType term (EvaluationResult a) where
-    makeKnown mx = mx >>= makeKnown
+    makeKnown EvaluationFailure     = throwing_ _EvaluationFailure
+    makeKnown (EvaluationSuccess x) = makeKnown x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -324,7 +335,7 @@ instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
-    makeKnown = EvaluationSuccess . unOpaque
+    makeKnown = pure . unOpaque
     readKnown = pure . Opaque
 
 instance uni `Includes` Integer       => KnownTypeAst uni Integer
@@ -343,23 +354,10 @@ instance KnownBuiltinType term Bool          => KnownType term Bool
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
-unlifting constants (and fail if it doesn't).
-
-There's a catch, though: an out-of-bounds error is not an internal one -- it's a normal
-evaluation failure, but unlifting errors have this connotation of being "internal".
-We could make 'readKnown' return an @m (EvaluationResult a)@, but that makes it more awkward
-to use (in particular, in functions like 'readKnownCek').
-
-Another option is be to define and use @AsEvaluationFailure@ in addition to 'AsUnliftingError'.
-That would in fact improve other things too, for example we'd be able to run 'makeKnown' in the
-same monad as 'readKnown', which is nice and convenient as we wouldn't need to explicitly turn
-an 'EvaluationFailure' into 'CekEvaluationFailure' (and the same for the CK machine) anymore.
-
-Another option is to give up the distinction between internal and external errors completely.
-
-For now we keep the distinction, but blur it by allowing an out-of-bounds error be thrown as
-an 'UnliftingError' as it's the most trivial thing to implement. But we should do something
-consistent eventually.
+unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
+if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
+internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
+being "internal".
 -}
 
 instance uni `Includes` Integer => KnownTypeAst uni Int where
@@ -371,5 +369,5 @@ instance KnownBuiltinType term Integer => KnownType term Int where
     readKnown term = do
         i :: Integer <- readKnown term
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _UnliftingError "Does not fit into 'Int'" $ Just term
+            throwingWithCause _EvaluationFailure () $ Just term
         pure $ fromIntegral i
