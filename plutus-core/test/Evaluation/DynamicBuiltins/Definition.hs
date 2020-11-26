@@ -36,11 +36,11 @@ import qualified Language.PlutusCore.StdLib.Data.List                       as P
 import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Either
+import qualified Data.Kind                                                  as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics
 import           GHC.Ix
-import           GHC.TypeLits
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
@@ -128,18 +128,10 @@ defBuiltinsRuntimeExt
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
 defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostModel, ())
 
-data ListRep (a :: *)
+data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 type instance ToBinds (ListRep a) = TypeToBinds a
-
-data TyForallRep text uniq kind (a :: *)
-instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
-            KnownTypeAst uni (TyForallRep text uniq kind a) where
-    toTypeAst _ = case toTypeAst @_ @uni $ Proxy @(TyVarRep text uniq) of
-        TyVar () name -> TyForall () name (knownKind $ Proxy @kind) . toTypeAst $ Proxy @a
-        _             -> error "Impossible"
-type instance ToBinds (TyForallRep text uniq kind a) = Delete '(text, uniq, kind) (ToBinds a)
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
     type DynamicPart uni ExtensionFun = ()
@@ -148,26 +140,35 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
     toBuiltinMeaning Const =
         toStaticBuiltinMeaning
             (const
-                :: (a ~ Opaque term (TyVarRep "a" 0), b ~ Opaque term (TyVarRep "b" 1))
+                :: ( a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+                   , b ~ Opaque term (TyVarRep ('TyNameRep "b" 1))
+                   )
                 => a -> b -> a)
             mempty
     toBuiltinMeaning Id =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (TyVarRep "a" 0) => a -> a)
+            (Prelude.id :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0)) => a -> a)
             mempty
     toBuiltinMeaning IdFInteger =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (TyAppRep (TyVarRep "f" 0) (Transparent Integer)) => a -> a)
+            (Prelude.id
+                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) (Transparent Integer))
+                => a -> a)
             mempty
     toBuiltinMeaning IdList =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (ListRep (Opaque term (TyVarRep "a" 0))) => a -> a)
+            (Prelude.id
+                :: a ~ Opaque term (ListRep (Opaque term (TyVarRep ('TyNameRep "a" 0))))
+                => a -> a)
             mempty
     toBuiltinMeaning IdRank2 =
         toStaticBuiltinMeaning
             (Prelude.id
-                :: a ~ Opaque term (TyForallRep "a" 1 * (TyAppRep (TyVarRep "f" 0) (TyVarRep "a" 1 :: *)))
-                => a -> a)
+                :: ( f ~ 'TyNameRep "f" 0
+                   , a ~ 'TyNameRep @GHC.Type "a" 1
+                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                   )
+                => afa -> afa)
             mempty
 
 -- | Check that 'Factorial' from the above computes to the same thing as

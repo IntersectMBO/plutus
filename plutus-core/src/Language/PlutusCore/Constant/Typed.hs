@@ -22,8 +22,10 @@ module Language.PlutusCore.Constant.Typed
     , FoldArgs
     , FoldArgsEx
     , unliftConstant
+    , TyNameRep (..)
     , TyVarRep
     , TyAppRep
+    , TyForallRep
     , Opaque (..)
     , AsConstant (..)
     , FromConstant (..)
@@ -81,20 +83,14 @@ data TypeScheme term (args :: [GHC.Type]) res where
         => Proxy '(text, uniq, kind)
            -- We use a funny trick here: instead of binding
            --
-           -- > TypedBuiltin (Opaque term (TyVarRep text uniq))
+           -- > TyVarRep ('TyNameRep @kind text uniq)
            --
            -- directly we introduce an additional and "redundant" type variable. The reason why we
            -- do that is because this way we can also bind such a variable later when constructing
-           -- the 'TypeScheme' of a polymorphic builtin, so that for the user this looks exactly
-           -- like a single bound type variable instead of this weird @Opaque@ thing.
-           --
-           -- And note that in most cases we do not need to bind anything at the type level and can
-           -- use the variable bound at the term level directly, because it's of the type that
-           -- 'TypeSchemeResult' expects. Type-level binding is only needed when you want to apply
-           -- a type constructor to the variable, like in
-           --
-           -- > reverse : all a. list a -> list a
-        -> (forall (ot :: kind). ot ~ TyVarRep text uniq => Proxy ot -> TypeScheme term args res)
+           -- the 'TypeScheme' of a polymorphic builtin manually, so that for the user this looks
+           -- exactly like a single bound type variable instead of this weird @TyVarRep@ thing.
+        -> (forall ot. ot ~ TyVarRep ('TyNameRep @kind text uniq) =>
+               Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
@@ -132,7 +128,7 @@ We need to support polymorphism for built-in functions for these reasons:
 -}
 
 {- Note [Implemetation of polymorphic built-in functions]
-Encoding polymorphism in an AST in an intrinsically typed manner is not a pleasant thing to do in Haskell.
+Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
 It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 But we'd rather avoid such heavy techniques.
 
@@ -166,6 +162,15 @@ proceeds as follows:
 Note how we use the 'Opaque' wrapper in order to unlift a PLC term as an opaque Haskell value
 using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
 
+An opaque PLC @term@ whose type is a PLC type variable `a_0` has the following type on the Haskell
+side:
+
+    Opaque term (TyVarRep ('TyNameRep "a" 0))
+
+where that last argument is a direct counterpart of the term-level
+
+    TyVar () (TyName (Name "a" 0))
+
 @Opaque term rep@ can be used for passing any @term@ through the builtin application machinery,
 not just one whose type is a bound variable. For example, you can define a new data type
 
@@ -179,23 +184,61 @@ with the following signature:
 
     idFInteger : all (f :: * -> *). f integer -> f integer
 
-where the type application is handled with 'TyAppRep'
+where the type application is handled with 'TyAppRep'. Note that the latter is defined as a
+@data family@:
 
-It would be much better if we didn't need to define that @*Rep@ stuff at the type level just to
-demote it to the term level via a type class, but this hasn't been investigated yet. A plausible
-way would be to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually.
-But that doesn't seem to give rise to a terribly nice API.
+    data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 
-The implementation is rather straightforward, but there is one catch, namely that it takes some care
-to adapt the CEK machine to handle polymorphic built-in functions,
-see https://github.com/input-output-hk/plutus/issues/1882
+We do that because a @data family@ can return a poly-kinded argument, which allows us to get an
+intrinsically-kinded representation of PLC types. For example, an opaque @term@ whose type is an
+application of a type variable @f@ to a type variable @a@ is represented like this:
+
+    Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) (TyVarRep ('TyNameRep "a" 1 :: TyNameRep *)))
+
+Note the @TyNameRep *@ kind annotation. It tells us three things:
+
+1. a type-level name has a kind associated with it. The reason for that is that we use names in
+binders (for example, in the universal quantifier) and as variables and kinds are important in
+both these cases due to us having an intrinsically-kinded representation of types, so it's
+convenient to annotate type-level names with kinds. Another reason is that we do not attempt to do
+any kind of static analysis on reflected type variables and associating kinds with them allows us
+to catch errors like "two variables with equal names and uniques, but different kinds" earlier
+2. the kind is not stored as an argument to the @TyNameRep@ constructor. Instead it's stored as
+an index of the data type. The point of this is that if we stored the kind as an argument, we'd
+have to provide it manually, but since the representation is intrinsically-kinded there's no point
+in doing so as GHC can infer all the kinds itself
+3. ... apart from cases where they're inherently ambiguous, like in the case above. If we don't
+specify the kind of the @a_1@ type variable, then there's no way GHC could infer it as the variable
+is passed as an argument to another variable with an unspecified kind (@f_0@)
+4. finally, an opaque term can only be of a type of kind @*@. You can't construct a term whose type
+is of some other kind. That's why we don't need to annotate the @f_0@ type variable: the domain is
+inferred from the kind of the argument (where it's explicitly specified via @TyNameRep *@) and the
+codomain is inferred from the fact that the whole type is passed to 'Opaque' and so it has to be
+of kind @*@
+
+It would be nice if we didn't need to define that @*Rep@ stuff at the type level just to demote it
+to the term level via a type class, but this hasn't been investigated yet. A plausible way would be
+to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually. But that doesn't seem
+to give rise to a terribly nice API. And we'd lose all the static guarantees, which is not a big
+deal, but losing the automatic inference of type schemes would suck, given that it's already quite
+handy and is going to be improved.
+
+Representing contructors as poly-kinded data families and handling those with open type families
+and/or type classes is a way of solving the expression problem for indexed data types at the type
+level, if you are into these things.
 -}
 
--- | Representation of a type variable: its name and unique.
-data family TyVarRep (text :: Symbol) (unique :: Nat) :: kind
+-- | Representation of a type variable: its name and unique and an implicit kind.
+data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
 
--- | Representation of a type application: a function and an argument.
+-- | Representation of an intrinsically-kinded type variable: a name.
+data family TyVarRep (var :: TyNameRep kind) :: kind
+
+-- | Representation of an intrinsically-kinded type application: a function and an argument.
 data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
+
+-- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
+data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- See Note [Motivation for polymorphic built-in functions]
 -- See Note [Implemetation of polymorphic built-in functions]
@@ -275,6 +318,8 @@ We don't use @default@ in 'KnownTypeAst', because an attempt to write
 results in
 
     Expected kind '* -> *', but 'uni' has kind 'k -> *'
+
+see https://gitlab.haskell.org/ghc/ghc/-/issues/15710
 -}
 
 class KnownTypeAst uni (a :: k) where
@@ -327,14 +372,28 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
     readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
 
-instance (KnownSymbol text, KnownNat uniq) => KnownTypeAst uni (TyVarRep text uniq) where
-    toTypeAst _ =
-        TyVar () . TyName $
-            Name (Text.pack $ symbolVal @text Proxy)
-                 (Unique . fromIntegral $ natVal @uniq Proxy)
+toTyNameAst
+    :: forall text uniq. (KnownSymbol text, KnownNat uniq)
+    => Proxy ('TyNameRep text uniq) -> TyName
+toTyNameAst _ =
+    TyName $ Name
+        (Text.pack $ symbolVal @text Proxy)
+        (Unique . fromIntegral $ natVal @uniq Proxy)
+
+instance (KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst uni (TyVarRep ('TyNameRep text uniq)) where
+    toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
+
+instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
+            KnownTypeAst uni (TyForallRep ('TyNameRep @kind text uniq) a) where
+    toTypeAst _ =
+        TyForall ()
+            (toTyNameAst $ Proxy @('TyNameRep text uniq))
+            (knownKind $ Proxy @kind)
+            (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
