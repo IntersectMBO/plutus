@@ -1,5 +1,7 @@
 module Simulation
   ( simulationsPane
+  , simulationsNav
+  , simulatorTitle
   , actionsErrorPane
   ) where
 
@@ -19,7 +21,8 @@ import Data.Lens (preview, review, view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, br_, button, code_, div, div_, h2_, h3_, input, label, p_, pre_, small_, span, strong_, text, ul, li)
+import Effect.Aff.Class (class MonadAff)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, br_, button, code_, div, div_, h1_, h2_, h3_, input, label, p_, pre_, small_, span, text, ul, li)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
@@ -41,6 +44,22 @@ import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
+
+-- renders the simulator view title
+simulatorTitle ::
+  forall m.
+  MonadAff m =>
+  ComponentHTML HAction ChildSlots m
+simulatorTitle =
+  div
+    [ class_ $ ClassName "main-header" ]
+    [ h1_ [ text "Simulator" ]
+    , a
+        [ class_ btn
+        , onClick $ const $ Just $ ChangeView Editor
+        ]
+        [ text "< Return to Editor" ]
+    ]
 
 -- renders the simulations pane
 simulationsPane ::
@@ -67,15 +86,16 @@ simulationsPane initialValue actionDrag endpointSignatures simulations evaluatio
       div
         [ class_ $ ClassName "simulations" ]
         [ simulationsNav simulations
-        , walletsPane endpointSignatures initialValue simulationWallets
-        , br_
-        , actionsPane isValidWallet actionDrag simulationActions evaluationResult
+        , div
+            [ class_ $ ClassName "simulation" ]
+            [ walletsPane endpointSignatures initialValue simulationWallets
+            , actionsPane isValidWallet actionDrag simulationActions evaluationResult
+            ]
         ]
   Nothing ->
     div_
-      [ text "Click the "
-      , strong_ [ text "Editor" ]
-      , text " tab above and compile a contract to get started."
+      [ p_
+          [ text "Return to the Editor and compile a contract to get started." ]
       ]
 
 simulationsNav :: forall p. Cursor Simulation -> HTML p HAction
@@ -101,7 +121,7 @@ simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
           [ classes navLinkClasses
           , onClick $ const $ Just $ SetSimulationSlot index
           ]
-          [ text simulationName
+          [ span [ class_ $ ClassName "simulation-nav-item-text" ] [ text simulationName ]
           , if canClose then
               span
                 [ onClick $ const $ Just $ RemoveSimulationSlot index
@@ -134,7 +154,8 @@ addSimulationControl =
 
 actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
-  div_
+  div
+    [ class_ $ ClassName "actions" ]
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div

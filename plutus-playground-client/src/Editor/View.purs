@@ -1,8 +1,8 @@
-module Editor.View (editorPreferencesSelect, compileButton, editorView, editorFeedback) where
+module Editor.View (editorPreferencesSelect, compileButton, simulateButton, editorView, editorFeedback) where
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnPrimary, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -41,7 +41,7 @@ editorPreferencesSelect active =
       ]
       [ text $ editorName keyBindings ]
 
-  editorName DefaultBindings = "Default Key Bindings"
+  editorName DefaultBindings = "Default"
 
   editorName Emacs = "Emacs"
 
@@ -51,15 +51,34 @@ editorPreferencesSelect active =
 compileButton :: forall p action a. action -> CompilationState a -> HTML p action
 compileButton action state =
   button
-    [ classes [ btn, btnPrimary ]
+    [ classes [ btn, btnClass ]
     , onClick $ const $ Just action
     , disabled (isLoading state)
     ]
     [ btnText ]
   where
+  btnClass = case state of
+    Success (Left _) -> btnDanger
+    Failure _ -> btnDanger
+    _ -> btnSuccess
+
   btnText = case state of
     Loading -> icon Spinner
     _ -> text "Compile"
+
+-- renders the simulator button
+simulateButton :: forall p action a. action -> CompilationState a -> HTML p action
+simulateButton action state =
+  button
+    [ classes [ btn, btnPrimary ]
+    , onClick $ const $ Just action
+    , disabled isDisabled
+    ]
+    [ text "Simulate" ]
+  where
+  isDisabled = case state of
+    Success (Right _) -> false
+    _ -> true
 
 -- renders the main editor
 editorView ::

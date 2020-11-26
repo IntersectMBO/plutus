@@ -1,36 +1,68 @@
 .simulations {
-    .simulation-nav-item-control {
-        .fa-close,
-        .fa-plus {
-            display: inline-block;
-            padding: .25em;
-            font-size: inherit;
-
+    .nav-tabs {
+        background: $gray-background-color;
+        border-color: $blue;
+        border-width: 2px;
+    
+        .nav-item {
+            margin-bottom: -2px;
+        }
+    
+        .nav-link {
+            cursor: default;
+            border-width: 2px;
+            border-radius: 0;
+            color: inherit;
+    
             &:hover {
-                text-decoration: none;
+                border-color: transparent;
+            }
+    
+            &.active {
+                border-color: $blue;
+                border-bottom-color: transparent;
+                background: $gray-100;
             }
         }
+    }
 
-        .fa-close {
+    //.simulation-nav-item-text {}
+
+    .simulation-nav-item-control {
+        display: inline-block;
+        padding: 0 .5em;
+
+        &:not(:first-child) {
             margin-left: .5em;
         }
+
+        &:hover {
+            background: $gray-accent-color;
+        }
+    }
+
+    .simulation {
+        background: $gray-100;
+        padding: 1rem;
     }
 }
 
-.wallet {
-    margin-bottom: 30px;
-
-    .action-button {
-        margin-top: 5px;
-        margin-right: 5px;
+.wallets {
+    .wallet {
+        margin-bottom: 30px;
+    
+        .action-button {
+            margin-top: 5px;
+            margin-right: 5px;
+        }
     }
-}
-
-.wallet-id {
-}
-
-.add-wallet, .add-wait-action {
-    text-align: center;
+    
+    .wallet-id {
+    }
+    
+    .add-wallet {
+        text-align: center;
+    }    
 }
 
 .actions {
@@ -54,6 +86,10 @@
             border-top-style: dashed;
             border-top-color: $gray-700;
         }
+    }
+
+    .add-wait-action {
+        text-align: center;
     }
 
     .action-invalid-wallet {

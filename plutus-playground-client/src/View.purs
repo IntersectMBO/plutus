@@ -2,10 +2,9 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnLink, col_, container, empty, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp, row_)
+import Bootstrap (btn, containerFluid, empty, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -14,21 +13,20 @@ import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
 import Editor.Types (_keyBindings)
-import Editor.View (compileButton, editorFeedback, editorPreferencesSelect, editorView)
+import Editor.View (compileButton, editorFeedback, editorPreferencesSelect, editorView, simulateButton)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, footer, img, nav, span, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, footer, h1_, img, label_, main, nav, span, strong_, text, ul, li)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
-import Halogen.HTML.Properties (class_, classes, height, href, id_, src, target, width)
+import Halogen.HTML.Properties (class_, classes, height, href, src, target, width)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
-import NavTabs (mainTabBar, viewContainer)
 import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
-import Prelude (const, ($), (<$>), (<<<))
+import Prelude (class Eq, const, ($), (<$>), (<<<), (==))
 import Schema.Types (mkInitialValue)
-import Simulation (actionsErrorPane, simulationsPane)
+import Simulation (actionsErrorPane, simulatorTitle, simulationsPane, simulationsNav)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
@@ -44,7 +42,9 @@ render state =
     [ class_ $ ClassName "frame" ]
     [ mainHeader
     , subHeader state
-    , mainContent state
+    , editorMain state
+    , simulationsMain state
+    , transactionsMain state
     , mainFooter
     ]
 
@@ -69,10 +69,8 @@ mainHeader =
 -- renders the documentation links
 documentationLinksPane :: forall p i. HTML p i
 documentationLinksPane =
-  div
-    [ id_ "docs"
-    , classes [ navbarNav ]
-    ]
+  ul
+    [ class_ navbarNav ]
     (makeNavItem <$> links)
   where
   links =
@@ -89,8 +87,7 @@ subHeader ::
   State -> ComponentHTML HAction ChildSlots m
 subHeader state@(State { contractDemos }) =
   nav
-    [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ]
-    ]
+    [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
     [ contractDemosPane contractDemos
     , GistAction <$> gistControls (unwrap state)
     ]
@@ -99,142 +96,175 @@ subHeader state@(State { contractDemos }) =
 contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
 contractDemosPane contractDemos =
   div
-    [ id_ "demos"
-    , classes [ navbarNav ]
+    [ classes [ navbarNav ] ]
+    [ span
+        [ class_ navbarText ]
+        [ text "Demo files" ]
+    , ul
+        [ class_ navbarNav ]
+        (demoScriptNavItem <$> contractDemos)
     ]
-    ( Array.cons
-        ( div [ class_ navbarText ]
-            [ text "Demos:" ]
-        )
-        (demoScriptButton <$> contractDemos)
-    )
 
--- renders a demo button
-demoScriptButton :: forall p. ContractDemo -> HTML p HAction
-demoScriptButton (ContractDemo { contractDemoName }) =
-  button
-    [ classes [ btn, btnLink ]
-    , onClick $ const $ Just $ LoadScript contractDemoName
-    ]
-    [ text contractDemoName ]
-
--- renders the page content (editor, simulations, and transactions)
-mainContent ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-mainContent state@(State { currentView }) =
-  div
-    [ id_ "main-content"
-    , class_ container
-    ]
-    [ row_
-        [ col_ [ mainTabBar ChangeView tabs currentView ] ]
-    , row_
-        [ editorTabPane state
-        , simulationsTabPane state
-        , transactionsTabPane state
+-- renders a demo script nav item
+demoScriptNavItem :: forall p. ContractDemo -> HTML p HAction
+demoScriptNavItem (ContractDemo { contractDemoName }) =
+  li
+    [ class_ navItem ]
+    [ a
+        [ class_ navLink
+        , onClick $ const $ Just $ LoadScript contractDemoName
         ]
-    ]
-  where
-  tabs ::
-    Array
-      { link :: View
-      , title :: String
-      }
-  tabs =
-    [ { link: Editor
-      , title: "Editor"
-      }
-    , { link: Simulations
-      , title: "Simulations"
-      }
-    , { link: Transactions
-      , title: "Transactions"
-      }
+        [ text contractDemoName ]
     ]
 
--- renders the editor tab pane
-editorTabPane ::
+-- renders the main section for the editor
+editorMain ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-editorTabPane state@(State { currentView, contractDemos, editorState }) =
-  viewContainer currentView Editor
-    let
-      compilationResult = view _compilationResult state
-    in
-      [ div [ class_ $ ClassName "editor" ]
-          [ div [ class_ $ ClassName "editor-controls" ]
-              [ mapComponent EditorAction $ editorPreferencesSelect (view _keyBindings editorState)
-              , compileButton CompileProgram compilationResult
+editorMain state@(State { currentView, editorState }) =
+  let
+    compilationResult = view _compilationResult state
+  in
+    main
+      [ classes $ mainComponentClasses currentView Editor ]
+      [ div
+          [ class_ $ ClassName "main-header" ]
+          [ h1_ [ text "Editor" ]
+          , button [ classes [ btn, ClassName "hidden" ] ] [ nbsp ]
+          ] -- invisible button so the height matches the simulator header
+      , editorWrapper state
+      ]
+
+-- renders the main section for the simulations
+simulationsMain ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+simulationsMain state@(State { currentView, editorState }) =
+  main
+    [ classes $ mainComponentClasses currentView Simulations ]
+    [ simulatorTitle
+    , simulationsWrapper state
+    ]
+
+-- renders the main section for the transactions
+transactionsMain ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+transactionsMain state@(State { currentView, editorState }) =
+  main
+    [ classes $ mainComponentClasses currentView Transactions ]
+    [ simulatorTitle
+    , transactionsWrapper state
+    ]
+
+-- classes for the main components (editor, simulations, and transactions)
+mainComponentClasses :: forall view. Eq view => view -> view -> Array (ClassName)
+mainComponentClasses currentView targetView =
+  if currentView == targetView then
+    [ containerFluid, ClassName "main" ]
+  else
+    [ containerFluid, hidden, ClassName "main" ]
+
+-- renders the editor pane
+editorWrapper ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+editorWrapper state@(State { currentView, contractDemos, editorState }) =
+  let
+    compilationResult = view _compilationResult state
+  in
+    div
+      [ classes [ ClassName "main-body", ClassName "editor" ] ]
+      [ div
+          [ class_ $ ClassName "editor-controls" ]
+          [ div
+              [ class_ $ ClassName "key-bindings" ]
+              [ label_ [ text "Key Bindings" ]
+              , mapComponent EditorAction $ editorPreferencesSelect (view _keyBindings editorState)
               ]
-          , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
-          , mapComponent EditorAction $ editorFeedback compilationResult
+          , div
+              [ class_ $ ClassName "editor-buttons" ]
+              [ compileButton CompileProgram compilationResult
+              , simulateButton (ChangeView Simulations) compilationResult
+              ]
           ]
+      , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
+      , mapComponent EditorAction $ editorFeedback compilationResult
       ]
   where
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
--- renders the simulations tab pane
-simulationsTabPane ::
+-- renders the simulations pane
+simulationsWrapper ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-simulationsTabPane state@(State { currentView }) =
-  viewContainer currentView Simulations
-    $ let
-        knownCurrencies = evalState getKnownCurrencies state
+simulationsWrapper state@(State { currentView }) =
+  let
+    knownCurrencies = evalState getKnownCurrencies state
 
-        initialValue = mkInitialValue knownCurrencies zero
-      in
-        [ simulationsPane
-            initialValue
-            (view _actionDrag state)
-            ( view
-                ( _compilationResult
-                    <<< _Success
-                    <<< _Right
-                    <<< _Newtype
-                    <<< _result
-                    <<< _functionSchema
-                )
-                state
-            )
-            (view _simulations state)
-            (view _evaluationResult state)
-        , case (view _evaluationResult state) of
-            Failure error -> ajaxErrorPane error
-            Success (Left error) -> actionsErrorPane error
-            _ -> empty
+    initialValue = mkInitialValue knownCurrencies zero
+  in
+    div
+      [ classes [ ClassName "main-body", ClassName "simulator" ] ]
+      [ simulationsPane
+          initialValue
+          (view _actionDrag state)
+          ( view
+              ( _compilationResult
+                  <<< _Success
+                  <<< _Right
+                  <<< _Newtype
+                  <<< _result
+                  <<< _functionSchema
+              )
+              state
+          )
+          (view _simulations state)
+          (view _evaluationResult state)
+      , case (view _evaluationResult state) of
+          Failure error -> ajaxErrorPane error
+          Success (Left error) -> actionsErrorPane error
+          _ -> empty
+      ]
+
+-- renders the transactions pane
+transactionsWrapper ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+transactionsWrapper state@(State { currentView, blockchainVisualisationState }) =
+  div
+    [ classes [ ClassName "main-body", ClassName "simulator" ] ]
+    [ div
+        [ class_ $ ClassName "simulations" ]
+        [ simulationsNav (view _simulations state)
+        , div
+            [ class_ $ ClassName "simulation" ] case view _evaluationResult state of
+            Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
+            Success (Left error) ->
+              [ text "Your simulation has errors. Click the "
+              , strong_ [ text "Simulations" ]
+              , text " tab above to fix them and recompile."
+              ]
+            Failure error ->
+              [ text "Your simulation has errors. Click the "
+              , strong_ [ text "Simulations" ]
+              , text " tab above to fix them and recompile."
+              ]
+            Loading -> [ icon Spinner ]
+            NotAsked ->
+              [ text "Click the "
+              , strong_ [ text "Simulations" ]
+              , text " tab above and evaluate a simulation to see some results."
+              ]
         ]
-
--- renders the transactions tab pane
-transactionsTabPane ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-transactionsTabPane state@(State { currentView, blockchainVisualisationState }) =
-  viewContainer currentView Transactions
-    $ case view _evaluationResult state of
-        Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
-        Success (Left error) ->
-          [ text "Your simulation has errors. Click the "
-          , strong_ [ text "Simulations" ]
-          , text " tab above to fix them and recompile."
-          ]
-        Failure error ->
-          [ text "Your simulation has errors. Click the "
-          , strong_ [ text "Simulations" ]
-          , text " tab above to fix them and recompile."
-          ]
-        Loading -> [ icon Spinner ]
-        NotAsked ->
-          [ text "Click the "
-          , strong_ [ text "Simulations" ]
-          , text " tab above and evaluate a simulation to see some results."
-          ]
+    ]
 
 -- renders the page footer
 mainFooter :: forall p i. HTML p i

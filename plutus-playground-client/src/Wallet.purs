@@ -1,7 +1,7 @@
 module Wallet where
 
 import Types
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, pullRight, responsiveThird, row)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, floatRight, responsiveThird, row)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
@@ -29,7 +29,8 @@ walletsPane ::
   Array SimulatorWallet ->
   HTML p HAction
 walletsPane signatures initialValue simulatorWallets =
-  div_
+  div
+    [ class_ $ ClassName "wallets" ]
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
     , Keyed.div
@@ -55,7 +56,7 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
             [ card_
                 [ cardBody_
                     [ button
-                        [ classes [ btn, pullRight ]
+                        [ classes [ btn, floatRight ]
                         , onClick $ const $ Just $ ModifyWallets $ RemoveWallet walletIndex
                         ]
                         [ icon Close ]
@@ -106,7 +107,7 @@ actionButton initialValue simulatorWallet functionSchema =
     ]
     [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) functionSchema
     , span
-        [ class_ pullRight ]
+        [ class_ floatRight ]
         [ icon Plus ]
     ]
 
@@ -127,7 +128,7 @@ addPayToWalletButton initialValue simulatorWallet =
     ]
     [ text "Pay to Wallet"
     , span
-        [ class_ pullRight ]
+        [ class_ floatRight ]
         [ icon Plus ]
     ]
 
