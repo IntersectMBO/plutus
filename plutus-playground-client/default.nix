@@ -1,4 +1,4 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -27,15 +27,19 @@ let
     ${server-invoker}/bin/plutus-playground psgenerator $out
   '';
 
+  nodeModules = buildNodeModules {
+    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+  };
+
   client = buildPursPackage {
-    inherit webCommon;
+    inherit webCommon nodeModules;
     src = ./.;
     name = "plutus-playground-client";
     psSrc = generated-purescript;
-    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
-    checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
   };
 in
 {

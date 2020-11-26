@@ -87,13 +87,18 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/d105075a1fd870b1d1617a6008cb38b443e65433.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "nodejs-headers": {
+    "npmlock2nix": {
+        "branch": "restricted-mode-support",
         "builtin": false,
-        "rev": "v12.19.0",
-        "sha256": "1fb0dkzsprilybg30nhgdy0fcaqx9kc89iyrw6871frkaqmcdwwn",
-        "type": "file",
-        "url": "https://nodejs.org/download/release/v12.19.0/node-v12.19.0-headers.tar.gz",
-        "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
+        "description": null,
+        "homepage": null,
+        "owner": "tweag",
+        "repo": "npmlock2nix",
+        "rev": "32d6c291422cb1569debafe203aaed32ab72b158",
+        "sha256": "0gg2dyizz4qgpznybd3izm31bjdqb6g5zyqkchja7bqr386gdlrg",
+        "type": "tarball",
+        "url": "https://github.com/tweag/npmlock2nix/archive/32d6c291422cb1569debafe203aaed32ab72b158.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "pre-commit-hooks.nix": {
         "branch": "master",

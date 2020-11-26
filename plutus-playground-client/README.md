@@ -12,23 +12,49 @@ $(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground psgenerat
 # Now we will build and run the client on localhost
 cd plutus-playground-client
 # Download javascript dependencies
-yarn
+npm install
 # Install purescript depdendencies
-yarn purs:compile
+npm run purs:compile
 ```
 
-Then run `yarn run webpack:server` for an auto-reloading dev build on https://localhost:8009
+Then run `npm run webpack:server` for an auto-reloading dev build on https://localhost:8009
 
-You may also want to run `yarn run purs:ide` to start `psc-ide`
+You may also want to run `npm run purs:ide` to start `psc-ide`
 support running with the correct paths.
 
 ## Adding dependencies
 
-* Javascript dependencies are managed with yarn, so add them to [package.json](./package.json)
+* Javascript dependencies are managed with npm, so add them to [package.json](./package.json)
 * purescript dependencies are managed with psc-package so add them to [psc-package.json](./psc-package.json)
 * purescript uses package sets managed by spago so if the package set doesn't contain a dependency you can add it to [packages.dhall](./packages.dhall)
 
-Whenever you change any of these files you should rerun `$(nix-build -A dev.scripts.updateClientDeps ../default.nix)` to make sure they are available to things that build purescript (such as webpack). Additionally running this script will make changes to various files that will need to be committed for CI to work.
+Whenever you change `psc-package.json` or `packages.dhall` you need to make sure that all dependencies can still properly be resolved and built.
+You can do so using the `update-client-deps` script:
+
+- Inside the nix-shell environment: `update-client-deps`
+- Outside of the nix-shell environment (from the client directory): `$(nix-build -A plutus.updateClientDeps ../)/bin/update-client-deps`
+
+The `update-client-deps` script will generate/update `.nix` files which have to be committed and are required for a successful CI run.
+
+### NodeJS GitHub dependencies
+
+All npm dependencies are handled by npmlock2nix automatically and transparently. The only exception to this rule are GitHub dependencies.
+In order for these to work in restricted evaluation mode (which is what hydra uses) you have to specify the sha256 of the dependency you
+want to use in your `buildNodeModules`. For example:
+
+```
+buildNodeModules {
+    projectDir = ./.;
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+    githubSourceHashMap = {
+      shmish111.nearley-webpack-loader."939360f9d1bafa9019b6ff8739495c6c9101c4a1" = "1brx669dgsryakf7my00m25xdv7a02snbwzhzgc9ylmys4p8c10x";
+    };
+}
+```
+
+You can add new dependencies with the sha256 set to `"0000000000000000000000000000000000000000000000000000"`. This will yield an error
+message during the build with the actual hash value.
 
 ## nix
 
