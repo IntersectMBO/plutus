@@ -13,6 +13,12 @@
   }
   .environment-selector {
     background-color: var(--bg-dark);
+    &:hover {
+      background-color: var(--bg-darker);
+    }
+    &:active {
+      background-color: var(--bg-darkest);
+    }
     // Vertically and horizontally align the contents of the "button"
     display: flex;
     justify-content: center;
@@ -22,7 +28,6 @@
 
     width: 160px;
     height: 160px;
-
     border-radius: var(--bigger-border-radius);
     cursor: pointer;
     margin: 0 var(--small-margin);
