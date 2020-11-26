@@ -20,13 +20,17 @@
         "utils": "utils_3"
       },
       "locked": {
-        "narHash": "sha256-nH+6snvy1ciX+Yf/Ih6lb+Y4Nv/O9ssVrWwxKkDy+Rs=",
-        "path": "/home/craige/source/IOHK/bitte",
-        "type": "path"
+        "lastModified": 1606395945,
+        "narHash": "sha256-Ai8ITZ5vOfCX9bNnWwfLSeAEHK5ZHwItJox3/UKlpnA=",
+        "owner": "input-output-hk",
+        "repo": "bitte",
+        "rev": "969a097c2f4a69ea53dfae0cb76cf7c90931912b",
+        "type": "github"
       },
       "original": {
-        "path": "/home/craige/source/IOHK/bitte",
-        "type": "path"
+        "owner": "input-output-hk",
+        "repo": "bitte",
+        "type": "github"
       }
     },
     "bitte-cli": {
@@ -37,11 +41,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1604321916,
-        "narHash": "sha256-TYzZF1+PkfR8f9TFBf13/7ZnfIye8/ca9wLGGipnemQ=",
+        "lastModified": 1606386177,
+        "narHash": "sha256-r0l2phaLS+7iZ9VpDjzAhlb9AjcL+hAGDJBvdfh86Vc=",
         "owner": "input-output-hk",
         "repo": "bitte-cli",
-        "rev": "94ab94198605bac4a6ca28caa265e9201390ea60",
+        "rev": "9355abbdcee3ea01f5267d786c0cca8f614fb36e",
         "type": "github"
       },
       "original": {
