@@ -9,6 +9,7 @@ let
   '';
 
   nodeModules = buildNodeModules {
+    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
   };
@@ -16,7 +17,7 @@ let
   client =
     buildPursPackage {
       inherit webCommon nodeModules;
-      src = nix-gitignore.gitignoreSource [ "/*.nix" ] ./.;
+      src = ./.;
       name = "plutus-scb-client";
       psSrc = generated-purescript;
       packages = pkgs.callPackage ./packages.nix { };
