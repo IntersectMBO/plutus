@@ -22,7 +22,7 @@ import Data.Newtype (unwrap)
 import Debug.Trace (traceM)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (class MonadEffect)
 import Effect.Console as Console
 import Examples.Haskell.Contracts (example) as HE
 import Examples.JS.Contracts (example) as JE
@@ -90,7 +90,7 @@ import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 initialState :: State
 initialState =
   State
-    { view: Simulation
+    { view: Simulation {- TODO: I think we should change the type to Maybe and the initial state should be Nothing-}
     , jsCompilationResult: NotCompiled
     , blocklyState: Nothing
     , actusBlocklyState: Nothing
@@ -287,8 +287,9 @@ handleAction s (HaskellAction action) = do
     HE.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Haskell
       selectView BlocklyEditor
-    (HE.HandleEditorMessage what) -> do
-      traceM what
+    (HE.HandleEditorMessage ev) -> do
+      -- FIXME: remove
+      traceM ev
       assign _hasUnsavedChanges true
     _ -> pure unit
 
@@ -303,6 +304,11 @@ handleAction s (JavascriptAction action) = do
     JS.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Javascript
       selectView BlocklyEditor
+    (JS.HandleEditorMessage ev) -> do
+      -- FIXME: right now creating a JS project is always set as Unsaved because we have multiple events
+      -- after the actual creation
+      traceM ev
+      assign _hasUnsavedChanges true
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -315,7 +321,11 @@ handleAction settings (SimulationAction action) = do
     ST.EditHaskell -> selectView HaskellEditor
     ST.EditJavascript -> selectView JSEditor
     ST.EditActus -> selectView ActusBlocklyEditor
-    ST.Save -> pure unit
+    (ST.HandleEditorMessage ev) -> do
+      -- FIXME: right now creating a Marlowe project is always set as Unsaved because we have multiple events
+      -- after the actual creation
+      traceM ev
+      assign _hasUnsavedChanges true
     _ -> pure unit
 
 handleAction _ SendBlocklyToSimulator = void $ query _blocklySlot unit (Blockly.GetCodeQuery unit)
@@ -348,6 +358,11 @@ handleAction settings (HandleBlocklyMessage (CurrentCode code)) = do
   -- else do
   selectView Simulation
   void $ toSimulation $ Simulation.handleAction settings (ST.SetEditorText code)
+
+handleAction settings (HandleBlocklyMessage CodeChange) = do
+  -- FIXME: remove
+  liftEffect $ Console.log "unsaved changes because Blockly event"
+  assign _hasUnsavedChanges true
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
@@ -394,8 +409,8 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
-handleAction s a@(NewProjectAction action@(NewProject.CreateProject lang)) =
-  preventAccidentalNavigation s a do
+handleAction s action@(NewProjectAction (NewProject.CreateProject lang)) =
+  preventAccidentalNavigation s action do
     description <- use (_newProject <<< NewProject._projectName)
     modify_
       ( set _projectName description
@@ -431,7 +446,8 @@ handleAction s a@(NewProjectAction action@(NewProject.CreateProject lang)) =
           <<< set _showModal Nothing
           <<< set _hasUnsavedChanges false
       )
-    toNewProject $ NewProject.handleAction s action
+    -- FIXME: remove
+    liftEffect $ Console.log $ "New project _hasUnsavedChanges false " <> show lang
 
 handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
 
@@ -708,6 +724,9 @@ preventAccidentalNavigation settings intendedAction guardedEffect = do
       JSEditor -> true
       BlocklyEditor -> true
       ActusBlocklyEditor -> true
+      -- TODO: currently simulation refers to the Marlowe editor.
+      -- Once we separate the simulation from the editor, we need to revisit this
+      Simulation -> true
       _ -> false
   currentView <- use _view
   wantsToSaveProject <- use (_confirmUnsavedNavigation <<< _wantsToSaveProject)

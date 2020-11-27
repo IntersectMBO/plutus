@@ -1,32 +1,41 @@
 module Halogen.Blockly where
 
-import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
+import Blockly (BlockDefinition, ElementId(..), XML, addChangeListener, getBlockById, removeChangeListener)
 import Blockly as Blockly
+import Blockly.ChangeEvent as ChangeEvent
+import Blockly.CreateEvent as CreateEvent
 import Blockly.Generator (Generator, newBlock, blockToCode)
+import Blockly.MoveEvent as MoveEvent
+import Blockly.Types (Workspace)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
+import Debug.Trace (spy)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
 import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
+import Halogen.Query.EventSource (EventSource)
+import Halogen.Query.EventSource as EventSource
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, zero, ($), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>), (||))
 import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
+import Web.Event.EventTarget (eventListener)
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
@@ -57,15 +66,17 @@ data Query a
 data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
+  | BlocklyEvent
   | GetCode
 
 data Message
   = CurrentCode String
+  | CodeChange
 
 type DSL slots m a
   = HalogenM State Action slots Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
+blockly :: forall m. MonadAff m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
     { initialState: const emptyState
@@ -147,11 +158,14 @@ handleQuery (GetCodeQuery next) = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
-handleAction :: forall m slots. MonadEffect m => Action -> DSL slots m Unit
+handleAction :: forall m slots. MonadAff m => Action -> DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
+      -- QUESTION: why are these functions running on ST? Isn't it enough to have functions return Effect X to indicate
+      -- to the FFI that it is not pure?
+      -- I'm not sure if I'm able to add a Halogen subscription from ST.
       ST.run
         ( do
             blocklyRef <- STRef.new blocklyState.blockly
@@ -161,8 +175,14 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  assign _blocklyState (Just blocklyState)
-  assign _generator (Just generator)
+  -- QUESTION: Being a component that it's always rendered. Should I worry about unsuscribing from
+  -- this event?
+  -- If it is removed, Halogen unsuscribes automatically?
+  void $ H.subscribe $ blocklyChanges blocklyState.workspace
+  modify_
+    ( set _blocklyState (Just blocklyState)
+        <<< set _generator (Just generator)
+    )
 
 handleAction (SetData _) = pure unit
 
@@ -185,6 +205,31 @@ handleAction GetCode = do
       raise <<< CurrentCode <<< show <<< pretty $ contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+
+handleAction BlocklyEvent = raise CodeChange
+
+blocklyChanges :: forall m. MonadAff m => Workspace -> EventSource m Action
+blocklyChanges workspace =
+  EventSource.effectEventSource \emitter -> do
+    listener <-
+      eventListener \event ->
+        let
+          isCreateEvent = isJust $ CreateEvent.fromEvent $ spy "BlocklyEvent" event
+
+          isMoveEvent = isJust $ MoveEvent.fromEvent event
+
+          isChangeEvent = isJust $ ChangeEvent.fromEvent event
+        -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
+        -- but we only care for the ones that may change the contract.
+        -- TODO: the move event by its own shouldn't necesarly cause a change in the contract
+        -- we should check if the string property "newParentId" is defined
+        in
+          if isCreateEvent || isMoveEvent || isChangeEvent then
+            EventSource.emit emitter BlocklyEvent
+          else
+            pure unit
+    addChangeListener workspace listener
+    pure $ EventSource.Finalizer $ removeChangeListener workspace listener
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

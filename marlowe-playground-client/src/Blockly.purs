@@ -9,7 +9,7 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (class Foldable, traverse_)
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, EffectFn3, runEffectFn1, runEffectFn3)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, runEffectFn1, runEffectFn2, runEffectFn3)
 import Foreign (Foreign)
 import Global (infinity)
 import Halogen.HTML (AttrName(..), ElemName(..), Node)
@@ -18,6 +18,7 @@ import Halogen.HTML.Properties (IProp, attr)
 import Record as Record
 import Simple.JSON (class WriteForeign)
 import Simple.JSON as JSON
+import Web.Event.EventTarget (EventListener)
 import Web.HTML (HTMLElement)
 
 type GridConfig
@@ -84,6 +85,10 @@ foreign import resizeBlockly_ :: forall r. Fn2 Blockly (STRef r Workspace) (ST r
 foreign import addBlockType_ :: forall r. Fn3 (STRef r Blockly) String Foreign (ST r Unit)
 
 foreign import initializeWorkspace_ :: forall r. Fn2 Blockly (STRef r Workspace) (ST r Unit)
+
+foreign import addChangeListener_ :: EffectFn2 Workspace EventListener Unit
+
+foreign import removeChangeListener_ :: EffectFn2 Workspace EventListener Unit
 
 foreign import render_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
 
@@ -157,6 +162,12 @@ addBlockTypes blocklyState = traverse_ (addBlockType blocklyState)
 
 initializeWorkspace :: forall r. Blockly -> STRef r Workspace -> ST r Unit
 initializeWorkspace = runFn2 initializeWorkspace_
+
+addChangeListener :: Workspace -> EventListener -> Effect Unit
+addChangeListener = runEffectFn2 addChangeListener_
+
+removeChangeListener :: Workspace -> EventListener -> Effect Unit
+removeChangeListener = runEffectFn2 removeChangeListener_
 
 render :: forall r. (STRef r Workspace) -> ST r Unit
 render = runFn1 render_
