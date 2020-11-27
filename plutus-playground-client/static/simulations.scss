@@ -44,6 +44,35 @@
     .simulation {
         background: $gray-100;
         padding: 1rem;
+
+        .simulation-header {
+            display: flex;
+            justify-content: space-between;
+
+            h1 {
+                font-size: 1.25rem;
+                margin-bottom: 0;
+            }
+
+        }
+
+        .simulation-controls {
+            .simulation-controls-buttons {
+                display: flex;
+
+                button {
+                    flex: 1;
+
+                    &:not(:first-child) {
+                        margin-left: .5rem;
+                    }
+                }
+            }
+
+            .simulation-controls-info {
+                margin-top: .25em;
+            }
+        }
     }
 }
 
