@@ -60,9 +60,42 @@ body {
         }
 
         .gist-controls {
-            .form-control,
+            position: relative;
+
             .btn {
                 margin-left: .5rem;
+            }
+
+            .gist-link {
+                position: absolute;
+                width: 21em;
+                font-size: small;
+                text-align: center;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+
+            .ajax-error {
+                position: absolute;
+                z-index: 20;
+                width: 100%;
+                top: 34px;
+
+                .alert {
+                    font-size: small;
+                    padding: .5em;
+                    margin: 0;
+                }
+            }
+
+            input {
+                width: 21em;
+            }
+
+            button {
+                width: 8em;
             }
         }
     }

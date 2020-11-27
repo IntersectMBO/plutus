@@ -196,9 +196,9 @@ viewTransactionsButton evaluationResult =
     ]
     [ text "Transactions" ]
   where
-    isDisabled = case evaluationResult of
-      Success _ -> false
-      _ -> true
+  isDisabled = case evaluationResult of
+    Success _ -> false
+    _ -> true
 
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
 actionsErrorPane error =

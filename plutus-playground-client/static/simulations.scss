@@ -77,71 +77,90 @@
 }
 
 .wallets {
-    .wallet {
-        margin-bottom: 30px;
-    
-        .action-button {
-            margin-top: 5px;
-            margin-right: 5px;
-        }
-    }
-    
-    .wallet-id {
-    }
-    
-    .add-wallet {
-        text-align: center;
-    }    
+    margin-bottom: 1rem;
 }
 
-.actions {
+.actions-being-dragged {
     .action {
-        text-align: left;
-        margin-bottom: 30px;
-        transition-property: opacity, border-color;
-        transition-duration: 250ms;
-        border: dashed 2px transparent;
-        opacity: 1;
+        opacity: 0.75;
+    }
+}
 
-        label {
-            margin-bottom: 0;
-        }
 
-        .nested {
-            margin-left: 0.5rem;
-        }
+.wallet-list,
+.action-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 300px);
+    grid-gap: 1rem;
+}
 
-        hr {
-            border-top-style: dashed;
-            border-top-color: $gray-700;
-        }
+.wallet,
+.action {
+    h3 {
+        font-size: 1.2rem;
     }
 
-    .add-wait-action {
-        text-align: center;
+    h4 {
+        font-size: 1.1rem;
+        margin-bottom: .75rem;
     }
 
-    .action-invalid-wallet {
-        border: solid 1px $red;
+    .close-button {
+        margin: -0.5rem -0.5rem 0 0;
+
+        &:hover {
+            background: $gray-accent-color;
+        }
     }
+}
 
-    &.actions-being-dragged {
-        .action {
-            opacity: 0.5;
-            border: dashed 2px $white;
+.wallet {
+    .available-actions > div {
+        display: flex;
 
-            &.drag-source {
-                opacity: 0;
+        &:not(:last-child) {
+            margin-bottom: .5rem;
+        }
+
+        .action-button {
+            flex: 1;
+
+            &:not(:last-child) {
+                margin-right: .5rem;
             }
         }
     }
+}
 
-    .extent-field {
-        button {
-            width: 2rem;
-        }
-        input {
-            text-align: center;
-        }
+.action {
+    position: relative;
+
+    .action-label {
+        position: absolute;
+        top: -0.75rem;
+        left: 128px;
+        width: 40px;
+        text-align: center;
+        background: $white;
+        border-radius: 4px;
+        border: 1px solid $gray-400;
     }
+
+    .wait-type-options {
+        border: 1px solid $gray-border-color;
+        border-radius: $border-radius;
+        padding: .4em;
+        margin-bottom: .5rem;
+    }
+}
+
+.add-wallet,
+.add-wait-action {
+    cursor: pointer;
+    align-self: flex-start;
+    text-align: center;
+}    
+
+.action-invalid-wallet {
+    border: solid 1px $red;
 }

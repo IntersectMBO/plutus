@@ -1,36 +1,40 @@
 module Action (actionsPane) where
 
 import Types
-import Bootstrap (active, alertDanger_, badge, badgePrimary, btn, btnDanger, btnDefault, btnGroup_, btnInfo, btnPrimary, btnSecondary, btnSmall, btnSuccess, btnWarning, card, cardBody_, col, colFormLabel, col_, formControl, formGroup_, formRow_, nav, navItem, navLink, pullRight, responsiveThird, row, row_)
+import Bootstrap (btn, card, cardBody_, col, colFormLabel, col_, formCheck, formCheckInline, formCheckInput, formCheckLabel, formControl, formGroup_, formRow_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Lens (preview, review, view)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Functor.Foldable (Fix)
-import Data.String as String
 import Data.Tuple (Tuple(..))
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, br_, button, code_, div, div_, h1_, h2_, h3_, input, label, p_, pre_, small_, span, text, ul, li)
+import Halogen.HTML (ClassName(ClassName), HTML, IProp, button, div, div_, h2_, h3_, input, label, p_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
-import Halogen.HTML.Events (onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
-import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, draggable, for, id_, placeholder, required, type_, value)
+import Halogen.HTML.Events (onChange, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
+import Halogen.HTML.Properties (InputType(..), checked, class_, classes, draggable, for, id_, name, placeholder, required, type_, value)
 import Icons (Icon(..), icon)
 import Ledger.Slot (Slot)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Schema (actionArgumentForm)
-import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError(..), Simulation(..), _CallEndpoint, _FunctionSchema)
-import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
+import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError, _CallEndpoint, _FunctionSchema)
+import Prelude (const, map, show, ($), (+), (<$>), (<<<), (<>), (==))
 import Schema (FormArgumentF)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), Signatures)
-import Validation (_argument, validate)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
+import Validation (_argument)
 import ValueEditor (valueForm)
-import Wallet (walletIdPane, walletsPane)
+import Wallet (walletIdPane)
 import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
+-- reused class names
+actionClass :: ClassName
+actionClass = ClassName "action"
+
+-- renders the actions pane
 actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div
@@ -38,7 +42,7 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
     [ h2_ [ text "Actions" ]
     , p_ [ text "This is your action sequence. Click 'Evaluate' to run these actions against a simulated blockchain." ]
     , Keyed.div
-        [ classes $ [ row, ClassName "actions" ]
+        [ classes $ [ ClassName "action-list" ]
             <> if actionDrag == Nothing then
                 []
               else
@@ -50,49 +54,48 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
         )
     ]
 
+-- renders an action pane
 actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
 actionPane isValidWallet actionDrag index action =
   Tuple (show index)
-    $ responsiveThird
-        [ div
-            ( [ classes
-                  ( [ ClassName "action"
-                    , ClassName ("action-" <> show index)
-                    , ClassName
-                        ( "action-"
-                            <> ( case isValidWallet <$> (preview (_CallEndpoint <<< _caller) action) of
-                                  Nothing -> "valid-wallet"
-                                  Just true -> "valid-wallet"
-                                  Just false -> "invalid-wallet"
-                              )
-                        )
-                    ]
-                      <> if actionDrag == Just index then
-                          [ ClassName "drag-source" ]
-                        else
-                          []
-                  )
-              ]
-                <> dragSourceProperties index
-                <> dragTargetProperties index
-            )
-            [ div [ class_ card ]
-                [ ChangeSimulation
-                    <$> cardBody_
-                        [ div
-                            [ classes [ badge, badgePrimary, ClassName "badge-action" ] ]
-                            [ text $ show (index + 1) ]
-                        , button
-                            [ classes [ btn, pullRight ]
-                            , onClick $ const $ Just $ ModifyActions $ RemoveAction index
-                            ]
-                            [ icon Close ]
-                        , actionPaneBody index action
-                        ]
+    $ div
+        ( [ classes
+              ( [ card
+                , actionClass
+                , ClassName ("action-" <> show index)
+                , ClassName
+                    ( "action-"
+                        <> ( case isValidWallet <$> (preview (_CallEndpoint <<< _caller) action) of
+                              Nothing -> "valid-wallet"
+                              Just true -> "valid-wallet"
+                              Just false -> "invalid-wallet"
+                          )
+                    )
                 ]
-            ]
+                  <> if actionDrag == Just index then
+                      [ ClassName "drag-source" ]
+                    else
+                      []
+              )
+          ]
+            <> dragSourceProperties index
+            <> dragTargetProperties index
+        )
+        [ ChangeSimulation
+            <$> cardBody_
+                [ div
+                    [ class_ $ ClassName "action-label" ]
+                    [ text $ show (index + 1) ]
+                , button
+                    [ classes [ btn, floatRight, ClassName "close-button" ]
+                    , onClick $ const $ Just $ ModifyActions $ RemoveAction index
+                    ]
+                    [ icon Close ]
+                , actionPaneBody index action
+                ]
         ]
 
+-- renders an action pane body
 actionPaneBody :: forall p. Int -> ContractCall (Fix FormArgumentF) -> HTML p SimulationAction
 actionPaneBody index (CallEndpoint { caller, argumentValues }) =
   div_
@@ -166,27 +169,46 @@ actionPaneBody index (AddBlocksUntil { slot }) =
         ]
     ]
 
+-- renders the wait type buttons
 waitTypeButtons :: forall p. Int -> Either Slot BigInteger -> HTML p SimulationAction
 waitTypeButtons index wait =
-  btnGroup_
-    [ button
-        ( case wait of
-            Left slot -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitTime index $ view _InSlot slot ]
-            Right _ -> [ classes activeClasses ]
-        )
-        [ text "Wait For…" ]
-    , button
-        ( case wait of
-            Right blocks -> [ classes inactiveClasses, onClick $ const $ Just $ ModifyActions $ SetWaitUntilTime index $ review _InSlot blocks ]
-            Left _ -> [ classes activeClasses ]
-        )
-        [ text "Wait Until…" ]
+  div
+    [ class_ $ ClassName "wait-type-options" ]
+    [ div
+        [ classes [ formCheck, formCheckInline ] ]
+        [ input
+            ( case wait of
+                Left slot -> baseInputProps <> [ id_ waitForId, onChange $ const $ Just $ ModifyActions $ SetWaitTime index $ view _InSlot slot ]
+                Right _ -> baseInputProps <> [ id_ waitForId, checked true ]
+            )
+        , label
+            [ class_ formCheckLabel
+            , for waitForId
+            ]
+            [ text "Wait For…" ]
+        ]
+    , div
+        [ classes [ formCheck, formCheckInline ] ]
+        [ input
+            ( case wait of
+                Right blocks -> baseInputProps <> [ id_ waitUntilId, onChange $ const $ Just $ ModifyActions $ SetWaitUntilTime index $ review _InSlot blocks ]
+                Left _ -> baseInputProps <> [ id_ waitForId, checked true ]
+            )
+        , label
+            [ class_ formCheckLabel
+            , for waitUntilId
+            ]
+            [ text "Wait Until…" ]
+        ]
     ]
   where
-  activeClasses = [ btn, btnSmall, btnInfo ]
+  baseInputProps = [ type_ InputRadio, class_ formCheckInput, name $ "wait-" <> show index ]
 
-  inactiveClasses = [ btn, btnSmall, btnDefault ]
+  waitForId = "wait-for-" <> show index
 
+  waitUntilId = "wait-until-" <> show index
+
+-- creates validation classes (adding "error" where necessary)
 validationClasses ::
   forall a.
   FormArgument ->
@@ -196,26 +218,26 @@ validationClasses arg Nothing = [ ClassName "error" ]
 
 validationClasses arg (Just _) = []
 
+-- renders the add wait action pane
 addWaitActionPane :: forall p. Int -> Tuple String (HTML p HAction)
 addWaitActionPane index =
   Tuple "add-wait"
-    $ responsiveThird
+    $ div
+        [ classes [ actionClass, ClassName "add-wait-action" ] ]
         [ div
-            [ class_ $ ClassName "add-wait-action" ]
-            [ div
-                ( [ class_ card
-                  , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction $ BigInteger.fromInt 10
-                  ]
-                    <> dragTargetProperties index
-                )
-                [ cardBody_
-                    [ icon Plus
-                    , div_ [ text "Add Wait Action" ]
-                    ]
+            ( [ class_ card
+              , onClick $ const $ Just $ ChangeSimulation $ ModifyActions $ AddWaitAction $ BigInteger.fromInt 10
+              ]
+                <> dragTargetProperties index
+            )
+            [ cardBody_
+                [ icon Plus
+                , div_ [ text "Add Wait Action" ]
                 ]
             ]
         ]
 
+-- properties for draggable action pane source
 dragSourceProperties ::
   forall i.
   Int ->
@@ -234,6 +256,7 @@ dragSourceProperties index =
   , onDragEnd $ dragAndDropAction index DragEnd
   ]
 
+-- properties for draggable action pane target
 dragTargetProperties ::
   forall i.
   Int ->
@@ -254,8 +277,10 @@ dragTargetProperties index =
   , onDrop $ dragAndDropAction index Drop
   ]
 
+-- drag and drop event handler
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe HAction
 dragAndDropAction index eventType = Just <<< ActionDragAndDrop index eventType
 
+-- big integer input event handler
 onBigIntegerInput :: forall i r. (BigInteger -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onBigIntegerInput f = onValueInput $ map f <<< BigInteger.fromString

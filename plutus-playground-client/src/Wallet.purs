@@ -1,7 +1,10 @@
-module Wallet where
+module Wallet
+  ( walletsPane
+  , walletIdPane
+  ) where
 
 import Types
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, floatRight, responsiveThird, row)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
@@ -16,12 +19,20 @@ import Icons (Icon(..), icon)
 import Ledger.Value (Value)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
-import Prelude (const, show, ($), (<$>), (<<<), (<>))
+import Prelude (const, show, ($), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Wallet (Wallet)
 
+-- reused class names
+walletClass :: ClassName
+walletClass = ClassName "wallet"
+
+actionButtonClass :: ClassName
+actionButtonClass = ClassName "action-button"
+
+-- renders the wallets pane
 walletsPane ::
   forall p.
   Signatures ->
@@ -34,10 +45,11 @@ walletsPane signatures initialValue simulatorWallets =
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
     , Keyed.div
-        [ class_ row ]
+        [ class_ $ ClassName "wallet-list" ]
         (Array.snoc (mapWithIndex (walletPane signatures initialValue) simulatorWallets) addWalletPane)
     ]
 
+-- renders a wallet pane
 walletPane ::
   forall p.
   Signatures ->
@@ -51,45 +63,50 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
   }
 ) =
   Tuple (show walletIndex)
-    $ responsiveThird
-        [ div [ classes [ ClassName "wallet", ClassName ("wallet-" <> show walletIndex) ] ]
-            [ card_
-                [ cardBody_
-                    [ button
-                        [ classes [ btn, floatRight ]
-                        , onClick $ const $ Just $ ModifyWallets $ RemoveWallet walletIndex
-                        ]
-                        [ icon Close ]
-                    , cardTitle_ [ h3_ [ walletIdPane wallet ] ]
-                    , h4_ [ text "Opening Balances" ]
-                    , valueForm (ModifyWallets <<< ModifyBalance walletIndex) balance
-                    , br_
-                    , h4_ [ text "Available functions" ]
-                    , ChangeSimulation <$> div_ (actionButton initialValue simulatorWallet <$> signatures)
-                    , ChangeSimulation <$> div_ [ addPayToWalletButton initialValue simulatorWallet ]
-                    ]
+    $ div
+        [ classes [ card, walletClass ] ]
+        [ cardBody_
+            [ button
+                [ classes [ btn, floatRight, ClassName "close-button" ]
+                , onClick $ const $ Just $ ModifyWallets $ RemoveWallet walletIndex
+                ]
+                [ icon Close ]
+            , cardTitle_ [ h3_ [ walletIdPane wallet ] ]
+            , h4_ [ text "Opening Balances" ]
+            , valueForm (ModifyWallets <<< ModifyBalance walletIndex) balance
+            , br_
+            , h4_ [ text "Available functions" ]
+            , div
+                [ class_ $ ClassName "available-actions" ]
+                [ ChangeSimulation <$> div_ (actionButton initialValue simulatorWallet <$> signatures)
+                , ChangeSimulation <$> div_ [ addPayToWalletButton initialValue simulatorWallet ]
                 ]
             ]
         ]
 
+-- renders a wallet id (N.B. exported so that actions panes can show their associated wallet)
+walletIdPane :: forall p i. Wallet -> HTML p i
+walletIdPane wallet =
+  span [ class_ $ ClassName "wallet-id" ]
+    [ text "Wallet #"
+    , text $ show $ _.getWallet $ unwrap wallet
+    ]
+
+-- renders the add wallet pane
 addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =
   Tuple "add-wallet"
-    $ responsiveThird
-        [ div
-            [ class_ $ ClassName "add-wallet" ]
-            [ div
-                [ class_ card
-                , onClick $ const $ Just $ ModifyWallets AddWallet
-                ]
-                [ cardBody_
-                    [ icon Plus
-                    , div_ [ text "Add Wallet" ]
-                    ]
-                ]
+    $ div
+        [ classes [ card, walletClass, ClassName "add-wallet" ]
+        , onClick $ const $ Just $ ModifyWallets AddWallet
+        ]
+        [ cardBody_
+            [ icon Plus
+            , div_ [ text "Add Wallet" ]
             ]
         ]
 
+-- renders a custom action button
 actionButton ::
   forall p.
   Value ->
@@ -111,6 +128,7 @@ actionButton initialValue simulatorWallet functionSchema =
         [ icon Plus ]
     ]
 
+-- renders the (ever present) pay to wallet action button
 addPayToWalletButton ::
   forall p.
   Value ->
@@ -118,7 +136,7 @@ addPayToWalletButton ::
   HTML p SimulationAction
 addPayToWalletButton initialValue simulatorWallet =
   button
-    [ classes [ btn, btnSecondary, btnSmall, actionButtonClass, ClassName "add-pay-to-wallet-button" ]
+    [ classes [ btn, btnSecondary, btnSmall, actionButtonClass ]
     , onClick $ const $ Just $ ModifyActions $ AddAction
         $ PayToWallet
             { sender: view _simulatorWalletWallet simulatorWallet
@@ -131,13 +149,3 @@ addPayToWalletButton initialValue simulatorWallet =
         [ class_ floatRight ]
         [ icon Plus ]
     ]
-
-walletIdPane :: forall p i. Wallet -> HTML p i
-walletIdPane wallet =
-  span [ class_ $ ClassName "wallet-id" ]
-    [ text "Wallet #"
-    , text $ show $ _.getWallet $ unwrap wallet
-    ]
-
-actionButtonClass :: ClassName
-actionButtonClass = ClassName "action-button"
