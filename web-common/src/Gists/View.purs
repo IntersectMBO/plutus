@@ -7,7 +7,7 @@ module Gists.View
 import Gists.Types (GistAction(..), parseGistUrl)
 import AjaxUtils (ajaxErrorPane)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
-import Bootstrap (btn, btnBlock, btnDanger, btnInfo, btnPrimary, btnSmall, col12_, col6_, empty, formControl, isInvalid, isValid, nbsp, pullRight, row_)
+import Bootstrap (btn, btnDanger, btnSecondary, btnSmall, empty, formControl, isInvalid, isValid, nbsp)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Either (Either(..), isRight, note)
 import Data.Lens (view)
@@ -36,36 +36,34 @@ gistControls ::
   } ->
   HTML p GistAction
 gistControls { authStatus, createGistResult, gistUrl } =
-  div
-    [ class_ $ ClassName "gist-controls" ]
-    [ authButton
-        $ div_
-            [ div
-                [ class_ $ ClassName "form-inline" ]
-                [ input
-                    [ type_ InputText
-                    , value $ fromMaybe "" $ gistUrl
-                    , id_ "gist-id"
-                    , classes
-                        ( [ formControl, ClassName "form-control-sm" ]
-                            <> case parsedGistId of
-                                Just (Left err) -> [ isInvalid ]
-                                Just (Right err) -> [ isValid ]
-                                Nothing -> []
-                        )
-                    , placeholder "Load Gist ID"
-                    , onValueInput $ Just <<< SetGistUrl
-                    ]
-                , publishButton
-                , loadButton
+  authButton
+    $ div
+        [ class_ $ ClassName "gist-controls" ]
+        [ div
+            [ class_ $ ClassName "form-inline" ]
+            [ input
+                [ type_ InputText
+                , value $ fromMaybe "" $ gistUrl
+                , id_ "gist-id"
+                , classes
+                    ( [ formControl, ClassName "form-control-sm" ]
+                        <> case parsedGistId of
+                            Just (Left err) -> [ isInvalid ]
+                            Just (Right err) -> [ isValid ]
+                            Nothing -> []
+                    )
+                , placeholder "Load Gist ID"
+                , onValueInput $ Just <<< SetGistUrl
                 ]
-            , case createGistResult of
-                Success gist -> gistPane gist
-                Failure err -> ajaxErrorPane err
-                Loading -> empty
-                NotAsked -> empty
+            , publishButton
+            , loadButton
             ]
-    ]
+        , case createGistResult of
+            Success gist -> gistPane gist
+            Failure err -> ajaxErrorPane err
+            Loading -> empty
+            NotAsked -> empty
+        ]
   where
   canTryLoad = isRight $ parseGistUrl =<< note "No gist Url set" gistUrl
 
@@ -76,13 +74,13 @@ gistControls { authStatus, createGistResult, gistUrl } =
     Failure _ ->
       button
         [ idPublishGist
-        , classes [ btn, btnDanger, pullRight ]
+        , classes [ btn, btnSmall, btnDanger ]
         ]
         [ text "Failure" ]
     Success Anonymous ->
       a
         [ idPublishGist
-        , classes [ btn, btnInfo, pullRight ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , href "/api/oauth/github"
         ]
         [ icon Github
@@ -93,14 +91,14 @@ gistControls { authStatus, createGistResult, gistUrl } =
     Loading ->
       button
         [ idPublishGist
-        , classes [ btn, btnInfo, pullRight ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , disabled true
         ]
         [ icon Spinner ]
     NotAsked ->
       button
         [ idPublishGist
-        , classes [ btn, btnInfo, pullRight ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , disabled true
         ]
         [ icon Spinner ]
@@ -115,21 +113,21 @@ gistControls { authStatus, createGistResult, gistUrl } =
     Success _ ->
       button
         [ idPublishGist
-        , classes [ btn, btnSmall, btnPrimary ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
         [ icon Github, nbsp, text "Republish" ]
     Loading ->
       button
         [ idPublishGist
-        , classes [ btn, btnSmall, btnInfo ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , disabled true
         ]
         [ icon Spinner ]
     NotAsked ->
       button
         [ idPublishGist
-        , classes [ btn, btnSmall, btnPrimary ]
+        , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
         [ icon Github, nbsp, text "Publish" ]
@@ -146,8 +144,8 @@ gistControls { authStatus, createGistResult, gistUrl } =
             , btnSmall
             , case parsedGistId of
                 Just (Left url) -> btnDanger
-                Just (Right url) -> btnPrimary
-                Nothing -> btnInfo
+                Just (Right url) -> btnSecondary
+                Nothing -> btnSecondary
             ]
         , onClick $ const $ Just LoadGist
         , disabled
