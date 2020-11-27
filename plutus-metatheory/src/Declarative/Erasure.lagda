@@ -115,10 +115,6 @@ lem1' : ∀ Ψ Ψ' As As' →
 lem1' Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤″⇒≤‴ (≤⇒≤″ (+-mono-≤ (≤C⋆2≤ p) z≤n))
 lem1' Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q)))
 
-eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
-  → Declarative.Tel Γ Δ σ As
-  → Untyped.Tel (length As) (len Γ) 
-
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : T.Sub Φ Ψ)
@@ -133,8 +129,6 @@ erase (wrap A B t)      = erase t
 erase (unwrap t)        = erase t
 erase (conv p t)        = erase t
 erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
-erase {Γ = Γ} (builtin bn σ ts) =
-  builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel ts)
 erase (ibuiltin b)      = error
 erase (error A)         = error
 
@@ -149,6 +143,4 @@ backVar (Γ , A) zero    = Z
 backVar (Γ , A) (suc i) = S (backVar Γ i)
 
 erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
-eraseTel {As = []}     ts         = []
-eraseTel {As = x ∷ As} (t ∷ tel) = erase t ∷ eraseTel tel
 \end{code}

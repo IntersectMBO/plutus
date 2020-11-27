@@ -72,19 +72,6 @@ ren : ∀ {Φ Ψ Γ Δ}
   → Ren Γ Δ ρ⋆
     ------------------------
   → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.ren ρ⋆ A)
-
-renTel : ∀ {Φ Φ' Γ Γ' Δ}
- → (ρ⋆ : ⋆.Ren Φ Φ')
- → Ren Γ Γ' ρ⋆
- → {σ : ⋆.Sub Δ Φ}
- → {As : List (Δ ⊢⋆ *)}
- → Tel Γ Δ σ As
- → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
-
-renTel _ ρ {As = []}     []       = []
-renTel _ ρ {As = A ∷ As} (M ∷ Ms) =
-  conv⊢ refl (sym (⋆.ren-subst A)) (ren _ ρ M) ∷ renTel _ ρ Ms
-
 ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ N)    = ƛ (ren _ (ext _ ρ) N)
 ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
@@ -108,10 +95,6 @@ ren _ ρ (unwrap t) = conv⊢
   (unwrap (ren _ ρ t))
 ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
 ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
-ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
-  refl
-  (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
 ren ρ⋆ _ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
 ren _ _ (error A) = error (⋆.ren _ A)
 \end{code}
@@ -190,18 +173,6 @@ subst : ∀ {Φ Ψ Γ Δ}
   → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.subst σ⋆ A)
     ---------------------------------------------------
   → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.subst σ⋆ A)
-
-substTel : ∀ {Φ Ψ Γ Γ' Δ}
- → (σ⋆ : ⋆.Sub Φ Ψ)
- → Sub Γ Γ' σ⋆
- → {σ' : ⋆.Sub Δ Φ}
- → {As : List (Δ ⊢⋆ *)}
- → Tel Γ Δ σ' As
- → Tel Γ' Δ (⋆.subst σ⋆ ∘ σ') As
-
-substTel _ σ {As = []}     []       = []
-substTel _ σ {As = A ∷ As} (M ∷ Ms) = 
-  conv⊢ refl (sym (⋆.subst-comp A)) (subst _ σ M) ∷ substTel _ σ Ms
 subst _ σ (` k)                       = σ k
 subst _ σ (ƛ N)                       = ƛ (subst _ (exts _ σ) N)
 subst _ σ (L · M)                     = subst _ σ L · subst _ σ M
@@ -218,10 +189,6 @@ subst σ⋆ σ (unwrap {A = A}{B} t)                  =
  conv⊢ refl (sym (⋆.subst-μ σ⋆ A B)) (unwrap (subst σ⋆ σ t))
 subst _ σ (conv p t)                  = conv (subst≡β _ p) (subst _ σ t)
 subst σ⋆ σ (con cn)                   = con (substTermCon σ⋆ cn)
-subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢
-  refl
-  (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
-  (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
 subst σ⋆ _ (ibuiltin b) = conv⊢ refl (itype-subst b σ⋆) (ibuiltin b)
 subst _ σ (error A) = error (⋆.subst _ A)
 \end{code}

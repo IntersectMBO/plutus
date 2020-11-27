@@ -32,42 +32,6 @@ open import Algorithmic.RenamingSubstitution
 ```
 
 ```
--- this could also be presented as a relation and then there would be
--- more function rather like progress
-
-convVTel : ∀{Δ}{As As' : List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-  → (p : As' ≡ As)
-  → (ts : Tel ∅ Δ σ As')
-  → VTel Δ σ As' ts
-  → VTel Δ σ As (substEq (Tel ∅ Δ σ) p ts)
-convVTel σ refl ts vs = vs
-
--- recontructing the telescope after an element has been evaluated
-
-reconstTel : ∀{Φ Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : Tel Γ Δ σ Bs)
-    → ∀{C}(t' : Γ ⊢ substNf σ C)
-    → (p : Bs L.++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
-    → Tel Γ Δ σ As
-reconstTel [] Ds σ telB t' refl telD = t' ∷ telD
-reconstTel (B ∷ Bs) Ds σ (X ∷ telB) t' refl tel' =
-  X ∷ reconstTel Bs Ds σ telB t' refl tel'
-
-extendVTel : ∀{Δ As} Bs
-    → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (ts : Tel ∅ Δ σ Bs)
-    → VTel Δ σ Bs ts 
-    → ∀{C}(t' : ∅ ⊢ substNf σ C)
-    → Value t'
-    → (p : Bs L.++ (C ∷ []) ≡ As)
-    → VTel Δ σ As (reconstTel Bs [] σ ts t' p [])
-
-extendVTel [] σ [] _ t' vt' refl = vt' ,, _
-extendVTel (B ∷ Bs) σ (t ∷ ts) (v ,, vs) t' v' refl =
-  v ,, extendVTel Bs σ ts vs t' v' refl
-
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → Frame B A
@@ -77,17 +41,6 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
-
-  builtin- : ∀(b : Builtin)
-    → (σ : SubNf (proj₁ (SIG b)) ∅)
-    → (As : List (proj₁ (SIG b) ⊢Nf⋆ *))
-    → (ts : Tel ∅ (proj₁ (SIG b)) σ As)
-    → VTel (proj₁ (SIG b)) σ As ts
-    → (A : (proj₁ (SIG b) ⊢Nf⋆ *))
-    → (As' : List (proj₁ (SIG b) ⊢Nf⋆ *))
-    → proj₁ (proj₂ (SIG b)) ≡ As L.++ A ∷ As'
-    → Tel ∅ (proj₁ (SIG b)) σ As'
-    → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
 
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
@@ -107,8 +60,6 @@ closeFrame (_·- {t = t} v) u = t · u
 closeFrame (-·⋆ A)         t = _·⋆_ t A
 closeFrame wrap-           t = wrap _ _ t
 closeFrame unwrap-         t = unwrap t
-closeFrame (builtin- b σ As ts vts A As' p ts') t =
-  builtin b σ (reconstTel As As' σ ts t (sym p) ts' )
 -- Plugging a term into a stack yields a term again
 
 closeStack : ∀{T H} → Stack T H → ∅ ⊢ H → ∅ ⊢ T
@@ -141,29 +92,6 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
-step (s ▻ builtin bn σ tel)
-  with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) bn
-step (s ▻ builtin bn σ []) | [] | [[ p ]] = 
-  s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (convVTel σ (sym p) [] tt)
-step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
-  (s , builtin- bn σ [] [] _ A As p ts) ▻ t
-step ( _◅_ (s , (builtin- b σ As ts vts A .[] p [])) {t = t} V) =
-  s ▻ BUILTIN b
-              σ
-              (reconstTel As [] σ ts t (sym p) [])
-              (extendVTel As σ ts vts t V (sym p))
-step (_◅_ (s , builtin- b σ As ts vts A (A' ∷ As') p (t' ∷ ts')) {t = t} V) =
-  (s , builtin-
-        b
-        σ
-        (As L.++ L.[ A ])
-        (reconstTel As [] σ ts t refl [])
-        (extendVTel As σ ts vts t V refl)
-        A'
-        As'
-        (trans p (sym (++-assoc As L.[ A ] (A' ∷ As')))) ts')
-  ▻ t'
-
 step (s ▻ ibuiltin b) = s ◅ ival b
 step ((s , (V-I⇒ b {C = C} p q r σ base vs f ·-)) ◅ v) with IBUILTIN' b p q σ (vs ,, deval v ,, v) _ r
 ... | _ ,, Sum.inj₁ v' = s ◅ v'

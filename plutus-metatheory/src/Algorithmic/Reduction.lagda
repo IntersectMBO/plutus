@@ -45,9 +45,6 @@ open import Data.String using (String)
 
 \begin{code}
 
-VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
-  → Tel ∅ Δ σ As → Set
-
 ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 
@@ -120,9 +117,6 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 \end{code}
 
 \begin{code}
-VTel Δ σ []       []        = ⊤
-VTel Δ σ (A ∷ As) (t ∷ tel) = Value t × VTel Δ σ As tel
-
 convVal :  ∀ {A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
   → ∀{t : ∅ ⊢ A} → Value t → Value (conv⊢ refl q t)
 convVal refl v = v
@@ -196,69 +190,11 @@ IBUILTIN' : (b : Builtin)
     → Σ (∅ ⊢ substNf σ C') λ t → Value t ⊎ Error t
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
-
-BUILTIN :
-    (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (tel : Tel ∅ Δ σ As)
-    → (vtel : VTel Δ σ As tel)
-      -----------------------------
-    → ∅ ⊢ substNf σ C
-BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  con (integer (i + j))
-BUILTIN subtractInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  con (integer (i - j))
-BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  con (integer (i ** j))
-BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (div i j)))
-BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (quot i j)))
-BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (rem i j)))
-BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
-BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i <? j) (con (bool true)) (con (bool false))
-BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt)
-  = decIf (i ≤? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
-BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i ≟ j) (con (bool true)) (con (bool false))
-BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
-  con (bytestring (concat b b'))
-BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  con (bytestring (take i b))
-BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
-  con (bytestring (drop i b))
-BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) ,, tt) =
-  con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) ,, tt) =
-  con (bytestring (SHA3-256 b))
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
-BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
-BUILTIN ifThenElse _ (f ∷ (_ ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool false) ,, _) = f
-BUILTIN ifThenElse _ (_ ∷ (t ∷ (_ ∷ _))) (_ ,, _ ,, V-con (bool true) ,, _) = t
-BUILTIN charToString _ (_ ∷ []) (V-con (char c) ,, tt) = con (string (primStringFromList List.[ c ]))
-BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) ,, V-con (string t) ,, tt) =
-  con (string (primStringAppend s t))
-BUILTIN trace _ (_ ∷ []) (V-con (string s) ,, tt) = con (Debug.trace s unit)
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
-data Any {Δ}{σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}(P : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set) : ∀{As} → (ts : Tel ∅ Δ σ As) → Set where
-  here : ∀ {A}{As}{t}{ts} → P t → Any P {As = A ∷ As} (t ∷ ts)
-  there : ∀ {A}{As}{t}{ts} → Value t → Any P ts → Any P {As = A ∷ As} (t ∷ ts)
-
-data _—→T_ {Δ}{σ : ∀ {J} → Δ ∋⋆ J → ∅ ⊢Nf⋆ J} : {As : List (Δ ⊢Nf⋆ *)}
-  → Tel ∅ Δ σ As → Tel ∅ Δ σ As → Set
-  
 infix 2 _—→_
 
 data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
@@ -309,22 +245,6 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → M —→ M'
     → wrap A B M —→ wrap A B M'
 
-  β-builtin :
-      (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (tel : Tel ∅ Δ σ As)
-    → (vtel : VTel Δ σ As tel)
-      -----------------------------
-    → builtin bn σ tel —→ BUILTIN bn σ tel vtel
-
-  ξ-builtin : (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → {ts ts' : Tel ∅ Δ σ As}
-    → ts —→T ts'
-    → builtin bn σ ts —→ builtin bn σ ts'
-
   E-·₂ : {A B : ∅ ⊢Nf⋆ *} {L : ∅ ⊢ A ⇒ B}
     → Value L
     → L · error A —→ error B
@@ -341,12 +261,6 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : ∅ ⊢Nf⋆ K}
     → wrap A B (error _) —→ error (μ A B) 
-  E-builtin : (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (ts : Tel ∅ Δ σ As)
-    → Any Error ts
-    → builtin bn σ ts —→ error (substNf σ C)
 
   β-sbuiltin :
       (b : Builtin)
@@ -377,14 +291,6 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (tel : ITel b Γ' σ)
       -----------------------------
     → t ·⋆ A —→ conv⊢ refl (substNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (substNf-cons σ A) (tel ,, A) C' r))
-
-
-data _—→T_ {Δ}{σ} where
-  here  : ∀{A}{As}{t t'}{ts : Tel ∅ Δ σ As}
-    → t —→ t' → (_∷_ {A = A} t ts) —→T (t' ∷ ts)
-  there : ∀{A As}{t}{ts ts' : Tel ∅ Δ σ As}
-    → Value t → ts —→T ts' → (_∷_ {A = A} t ts) —→T (t ∷ ts')
-
 \end{code}
 
 \begin{code}
@@ -419,21 +325,6 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
       Error M
       -------
     → Progress M
-\end{code}
-
-\begin{code}
-data TelProgress
-  {Δ}
-  {σ : SubNf Δ ∅}
-  {As : List (Δ ⊢Nf⋆ *)}
-  (ts : Tel ∅ Δ σ As)
-  : Set where
-  done : VTel Δ σ As ts → TelProgress ts
-  step : {ts' : Tel ∅ Δ σ As}
-    → ts —→T ts'
-    → TelProgress ts
-
-  error : Any Error ts → TelProgress ts
 \end{code}
 
 \begin{code}
@@ -505,43 +396,7 @@ progress-unwrap (done (V-wrap v)) = step (β-wrap v)
 progress-unwrap {A = A} (error E-error) =
   step (E-unwrap {A = A})
 
-progress-builtin : ∀ bn
-  (σ : SubNf (proj₁ (SIG bn)) ∅)
-  (tel : Tel ∅ (proj₁ (SIG bn)) σ (proj₁ (proj₂ (SIG bn))))
-  → TelProgress tel
-  → Progress (builtin bn σ tel)
-progress-builtin bn σ tel (done vtel)                       =
-  step (β-builtin bn σ tel vtel)
-progress-builtin bn σ tel (step p) = step (ξ-builtin bn σ p)
-progress-builtin bn σ tel (error p) = step (E-builtin bn σ tel p)
-
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
-
-progressTelCons : ∀{Δ}
-  → {σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K}
-  → {A : Δ ⊢Nf⋆ *}
-  → {t : ∅ ⊢ substNf σ A}
-  → Progress t
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {tel : Tel  ∅ Δ σ As}
-  → TelProgress tel
-  → TelProgress {As = A ∷ As} (t ∷ tel)
-progressTelCons (step p)  q           = step (here p)
-progressTelCons (error p) q           = error (here p)
-progressTelCons (done v)  (done vtel) = done (v ,, vtel)
-progressTelCons (done v)  (step p)    = step (there v p)
-progressTelCons (done v)  (error p)   = error (there v p)
-
-
-progressTel : ∀{Δ}
-  → {σ : SubNf Δ ∅}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → (tel : Tel ∅ Δ σ As)
-  → TelProgress tel
-progressTel {As = []}     []        = done tt
-progressTel {As = A ∷ As} (t ∷ tel) =
-  progressTelCons (progress t) (progressTel tel)
-
 progress-wrap : ∀{K}
    → {A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
    → {B : ∅ ⊢Nf⋆ K}
@@ -557,7 +412,6 @@ progress (M ·⋆ A)             = progress-·⋆ (progress M) A
 progress (wrap A B M) = progress-wrap (progress M)
 progress (unwrap M)          = progress-unwrap (progress M)
 progress (con c)              = done (V-con c)
-progress (builtin bn σ ts)     = progress-builtin bn σ ts (progressTel ts)
 progress (ibuiltin b) = done (ival b)
 progress (error A)            = error E-error
 

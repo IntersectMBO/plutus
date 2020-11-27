@@ -76,15 +76,6 @@ ren : ∀ {Φ Ψ Γ Δ}
   → (ρ : Ren ρ⋆ Γ Δ)
     -----------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ renNf ρ⋆ A )
-
-renTel : ∀ {Φ Φ' Γ Γ' Δ}
- → (ρ⋆ : ⋆.Ren Φ Φ')
- → (ρ : Ren ρ⋆ Γ Γ')
- → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
- → {As : List (Δ ⊢Nf⋆ *)}
- → Tel Γ Δ σ As
- → Tel Γ' Δ (renNf ρ⋆ ∘ σ) As
-
 ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)    = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
@@ -102,16 +93,8 @@ ren ρ⋆ ρ (unwrap {A = A}{B} M) = conv⊢
   (sym (ren-nf-μ ρ⋆ A B))
   (unwrap (ren ρ⋆ ρ M)) 
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
-ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
-  refl
-  (renNf-substNf σ ρ⋆ A)
-  (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
 ren ρ⋆ ρ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
-
-renTel ρ⋆ ρ     {As = []}     []       = []
-renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ∷ Ms) =
-  conv⊢ refl (sym (renNf-substNf σ ρ⋆ A)) (ren ρ⋆ ρ M) ∷ renTel ρ⋆ ρ Ms
 \end{code}
 
 \begin{code}
@@ -176,26 +159,11 @@ substTermCon σ⋆ unit           = unit
 \end{code}
 
 \begin{code}
-substTel : ∀ {Φ Φ' Γ Γ' Δ}
- → (σ⋆ : SubNf Φ Φ')
- → (σ : Sub σ⋆ Γ Γ')
- → {σ' : SubNf Δ Φ}
- → {As : List (Δ ⊢Nf⋆ *)}
- → Tel Γ Δ σ' As
- → Tel Γ' Δ (substNf σ⋆ ∘ σ') As
-
 subst : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
     -------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
-
-
-substTel σ⋆ σ      {As = []}     []       = []
-substTel σ⋆ σ {σ'} {As = A ∷ As} (M ∷ Ms) =
-  conv⊢ refl (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
-  ∷
-  substTel σ⋆ σ Ms
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
 subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
@@ -214,10 +182,6 @@ subst σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
   (sym (subst-nf-μ σ⋆ A B))
   (unwrap (subst σ⋆ σ M))
 subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
-subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
-  refl
-  (substNf-comp σ' σ⋆ A)
-  (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
 subst σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-subst b σ⋆) (ibuiltin b)
 subst σ⋆ σ (error A) = error (substNf σ⋆ A)
 \end{code}

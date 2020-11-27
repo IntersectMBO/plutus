@@ -173,22 +173,7 @@ lemsub A A' σ p = trans≡β
 
 postulate itype-lem≡β : ∀{Φ} b → Dec.itype {Φ} b ≡β embNf (Alg.itype b)
 
-embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
-  → (As  : List (Δ ⊢Nf⋆ *))
-  → (As' : List (Δ' ⊢⋆ *))
-  → embList As ≡βL substEq (λ Δ → List (Δ ⊢⋆ *)) q As'
-  → (σ : {J : Kind} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → Alg.Tel Γ Δ σ As
-  → Dec.Tel (embCtx Γ) Δ' (λ {J} α → (embNf (σ (substEq (_∋⋆ J) q α)))) As'
-
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
-
-embTel refl [] [] p σ x = Dec.[]
-embTel refl [] (A' ∷ As') () σ x
-embTel refl (A ∷ As) [] () σ x
-embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t Alg.∷ tel) =
-  Dec.conv (lemsub A A' σ p) (emb t) Dec.∷ embTel refl As As' p' σ tel
-
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
@@ -202,15 +187,6 @@ emb (Alg.wrap A B t) = Dec.wrap
 emb (Alg.unwrap {A = A}{B} t) =
   Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
 emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
-emb (Alg.builtin bn σ tel) = let
-  Δ  ,, As  ,, C  = SSig.SIG bn
-  Δ' ,, As' ,, C' = NSig.SIG bn
-  in Dec.conv
-       (lemσ' bn refl C C' (nfTypeSIG≡₁ bn) σ (nfTypeSIG≡₂ bn))
-       (Dec.builtin
-         bn
-         (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
-         (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
 emb (Alg.ibuiltin b) = Dec.conv (itype-lem≡β b) (Dec.ibuiltin b)
 emb (Alg.error A) = Dec.error (embNf A)
 

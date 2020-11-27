@@ -238,43 +238,6 @@ nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A
-  
-nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
-  → Syn.Tel Γ Δ σ As
-  → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
-
-nfTypeTel σ []           _            = Norm.[]
-nfTypeTel {Γ} σ (A ∷ As) (M Syn.∷ Ms) =
-  Norm.conv⊢
-    refl
-    (sym
-      (trans
-        (trans
-          (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ))
-          (fund
-            (λ α → fund idCR (sym≡β (soundness (σ α))))
-            (sym≡β (soundness A))))
-        (sym (subst-eval A idCR σ)))) (nfType M)
-
-  -- this should be a lemma in NBE/RenSubst
-  -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
-  -- also it might go away if we simplify the builtins post size removal
-  Norm.∷
-  nfTypeTel σ As Ms
-
-
-nfTypeTel' : ∀{Φ Γ Δ Δ'}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
-  → (q : Δ' ≡ Δ)
-  → (As' : List (Δ' ⊢Nf⋆ *))
-  → (substEq (λ Δ → List (Δ ⊢Nf⋆ *)) q As' ≡ nfList As)
-  → Syn.Tel Γ Δ σ As
-  → Norm.Tel
-      (nfCtx Γ)
-      Δ'
-      (nf ∘ σ ∘ substEq (_∋⋆ _) q)
-      As'
-nfTypeTel' σ As refl .(nfList As) refl tel = nfTypeTel σ As tel
-
 nfType (Syn.` α) = Norm.` (nfTyVar α)
 nfType (Syn.ƛ t) = Norm.ƛ (nfType t)
 nfType (t Syn.· u) = nfType t Norm.· nfType u
@@ -294,16 +257,6 @@ nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   (Norm.unwrap (nfType t))
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
 nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
-nfType {Γ} (Syn.builtin bn σ tel) = let
-  Δ ,, As ,, C = SSig.SIG bn
-  Δ' ,, As' ,, C' = NSig.SIG bn
-  in Norm.conv⊢
-    refl
-    (lemσ σ C C' (sym (nfTypeSIG≡₁ bn)) (nfTypeSIG≡₂ bn))
-    (Norm.builtin
-      bn
-      ((nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn))))
-      (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
 nfType (Syn.ibuiltin b) = Norm.conv⊢ refl (itype-lem b) (Norm.ibuiltin b)
 nfType (Syn.error A) = Norm.error (nf A)
 

@@ -139,15 +139,7 @@ lemma trace = refl
 ≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
 ≡2≤‴ refl = ≤‴-refl
 
-extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(As : List (Δ ⊢Nf⋆ *))
-  → A.Tel Γ Δ σ As
-  → Vec (ScopedTm (len Γ)) (Data.List.length As)
-
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
-
-extricateTel σ [] x = []
-extricateTel σ (A ∷ As) (t ∷ ts) = extricate t ∷ extricateTel σ As ts
-
 extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
@@ -157,12 +149,6 @@ extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ 
   (extricate t)
 extricate (unwrap t) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate {Φ}{Γ} (builtin b σ ts) =
-  builtin
-    b
-    (inj₂ ((lemma⋆ b) ,, (≡2≤‴ (lemma b))))
-    (extricateSub σ)
-    (extricateTel σ _ ts)
 extricate (ibuiltin b) = ibuiltin b
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

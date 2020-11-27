@@ -37,10 +37,7 @@ module Builtins where
   con2 = con (integer (pos 2))
 
   builtin2plus2 : ∅ ⊢ con integer
-  builtin2plus2 = builtin
-    addInteger
-    `
-    (con2 ∷ (con2 ∷ []))
+  builtin2plus2 = ibuiltin addInteger · con2 · con2
 
   builtininc2 : ∅ ⊢ con integer
   builtininc2 = inc · con2

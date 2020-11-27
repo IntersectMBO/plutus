@@ -104,8 +104,6 @@ an abstraction, an application, a type abstraction, or a type
 application.
 
 \begin{code}
-data Tel {Φ} Γ Δ (σ : Sub Δ Φ) : List (Δ ⊢⋆ *) → Set
-
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
@@ -199,22 +197,9 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
       -------------------
     → Γ ⊢ con tcn
 
-  builtin : 
-      (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : Sub Δ Φ) -- substitutes for new vars introduced by the Sig
-    → Tel Γ Δ σ As  -- a telescope of terms M_i typed in subst σ
-    -----------------------------
-    → Γ ⊢ subst σ C
-
   ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
-
-
-data Tel {Φ} Γ Δ σ where
-  []  : Tel Γ Δ σ []
-  _∷_ : ∀{A As} → Γ ⊢ subst σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
 \end{code}
 
 \begin{code}
@@ -225,19 +210,10 @@ conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢⋆ *}
  → Γ' ∋ A'
 conv∋ refl refl t = t
 
-convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
-  → Γ ≡ Γ'
-  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢⋆ J)
-  → (As : List (Ψ ⊢⋆ *))
-  → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
-
 conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢⋆ *}
  → Γ ≡ Γ'
  → A ≡ A'
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
-convTel p σ []       []         = []
-convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 \end{code}

@@ -95,10 +95,6 @@ application.
 \begin{code}
 open import Data.String
 
-
-
-data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
-
 data _≤C_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  base : Γ ≤C Γ
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → Γ ≤C Γ' → Γ ≤C (Γ' ,⋆ K)
@@ -232,45 +228,15 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ⊢ con tcn
 
-  builtin :
-      (bn : Builtin)
-    → let Ψ ,, As ,, C = SIG bn in
-      (σ : SubNf Ψ Φ)
-    → Tel Γ Ψ σ As
-      -------------------------------
-    → Γ ⊢ substNf σ C
-
   ibuiltin : (b :  Builtin) → Γ ⊢ itype b
 
   error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
-data Tel {Φ} Γ Δ σ where
-  []  : Tel Γ Δ σ []
-  _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
 \end{code}
 
 Utility functions
 
 \begin{code}
-_++T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {As' : List (Δ ⊢Nf⋆ *)}
-  → (ts  : Tel Γ Δ σ As)
-  → (ts' : Tel Γ Δ σ As')
-  → Tel Γ Δ σ (As Data.List.++ As')
-[]       ++T ts' = ts'
-(t ∷ ts) ++T ts' = t ∷ (ts ++T ts')
-
-
-_:<T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
-  → {As : List (Δ ⊢Nf⋆ *)}
-  → {A  : Δ ⊢Nf⋆ *}
-  → (ts : Tel Γ Δ σ As)
-  → (t : Γ ⊢ substNf σ A)
-  → Tel Γ Δ σ (As :<L A)
-[]        :<T t = t ∷ []
-(t' ∷ ts) :<T t = t' ∷ (ts :<T t)
-
 open import Type.BetaNormal.Equality
 
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
@@ -290,14 +256,6 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
-convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
-  → Γ ≡ Γ'
-  → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → (As : List (Ψ ⊢Nf⋆ *))
-  → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
-convTel p σ []       []       = []
-convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 
 -- not all of the stuff below is needed I don't think
 
@@ -340,5 +298,4 @@ Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
        [ A ]Nf)
       ≡ substNf (substNf-cons σ A) (B ⇒ <C'2type p C)
 ⇒lem {B = B} p σ C = sym (substNf-cons-[]Nf (B ⇒ <C'2type p C)) 
-
 \end{code}

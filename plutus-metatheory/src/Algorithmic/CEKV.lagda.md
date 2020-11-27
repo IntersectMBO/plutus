@@ -218,17 +218,6 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
             (μ A B)
 
-  builtin- : ∀{Γ}(b : Builtin)
-    → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
-    → (As : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
-    → (vs : VTel (proj₁ (SIG b)) σ As)
-    → (A : (proj₁ (SIG b) ⊢Nf⋆ *))
-    → (As' : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
-    → proj₁ (proj₂ (SIG b)) ≡ As L.++ A L.∷ As'
-    → Tel Γ (proj₁ (SIG b)) σ As'
-    → Env Γ
-    → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
-
 data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
   ε   : Stack T T
   _,_ : ∀{H1 H2} → Stack T H1 → Frame H1 H2 → Stack T H2
@@ -333,13 +322,6 @@ step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L
 step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
 step (s ; ρ ▻ unwrap L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c
-step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ proj₂ ∘ SIG) bn
-step (s ; ρ ▻ builtin bn σ [])       | L.[]     | [[ p ]]
-  with BUILTIN bn σ (substEq (VTel (proj₁ (SIG bn)) σ ) (sym p) _)
-... | inj₁ V = s ◅ V
-... | inj₂ A = ◆ A
-step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
-  (s , builtin- bn σ L.[] _ A As p ts ρ) ; ρ ▻ t
 step (s ; ρ ▻ ibuiltin b) = s ◅ ival b
   -- ^ this is constant here, so we drop the env
 step (s ; ρ ▻ error A) = ◆ A
@@ -349,22 +331,6 @@ step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-step ((s , builtin- b σ As vs A L.[] p ts' ρ) ◅ V)
-  with BUILTIN b σ (extendVTel As σ vs V (sym p))
-... | inj₁ V' = s ◅ V'
-... | inj₂ A' = ◆ A'
-step ((s , builtin- b σ As vs A (A' L.∷ As') p (t' ∷ ts') ρ) ◅ V) =
-  (s , builtin-
-         b
-         σ
-         (As L.++ L.[ A ])
-         (extendVTel As σ vs V refl)
-         A'
-         As'
-         (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As'))))
-         ts'
-         ρ)
-   ; ρ ▻ t'
 step ((s , (V-I⇒ b p q r σ base vs t ·-)) ◅ v) =
   s ◅ IBUILTIN' b p q σ (vs ,, v) _ r
 step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs t ·-)) ◅ v) =
