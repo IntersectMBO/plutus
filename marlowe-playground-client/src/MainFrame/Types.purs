@@ -44,7 +44,7 @@ data ModalView
   | RenameProject
   | SaveProjectAs
   | GithubLogin Action
-  | ConfirmUnsavedNavigation View
+  | ConfirmUnsavedNavigation Action
 
 derive instance genericModalView :: Generic ModalView _
 
@@ -74,7 +74,7 @@ data Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
   | ChangeView View
-  | ConfirmUnsavedNavigationAction ConfirmUnsavedNavigation.Action
+  | ConfirmUnsavedNavigationAction Action ConfirmUnsavedNavigation.Action
   -- blockly
   | HandleBlocklyMessage Blockly.Message
   | HandleActusBlocklyMessage AB.Message
@@ -112,7 +112,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (DemosAction action) = toEvent action
   toEvent (RenameAction action) = toEvent action
   toEvent (SaveAsAction action) = toEvent action
-  toEvent (ConfirmUnsavedNavigationAction action) = Just $ defaultEvent "ConfirmUnsavedNavigation"
+  toEvent (ConfirmUnsavedNavigationAction _ _) = Just $ defaultEvent "ConfirmUnsavedNavigation"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (GistAction _) = Just $ defaultEvent "GistAction"
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
@@ -170,7 +170,7 @@ _walletSlot = SProxy
 -----------------------------------------------------------
 newtype State
   = State
-  { view :: View
+  { {- I think that view should be a Maybe or a data (Initial | Page View | NotFound ) -} view :: View
   , jsCompilationResult :: CompilationState
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
@@ -184,12 +184,14 @@ newtype State
   , newProject :: NewProject.State
   , rename :: Rename.State
   , saveAs :: SaveAs.State
+  , confirmUnsavedNavigation :: ConfirmUnsavedNavigation.State
   , authStatus :: WebData AuthStatus
   , gistId :: Maybe GistId
   , createGistResult :: WebData Gist
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
+  , hasUnsavedChanges :: Boolean
   }
 
 derive instance newtypeState :: Newtype State _
@@ -236,6 +238,9 @@ _rename = _Newtype <<< prop (SProxy :: SProxy "rename")
 _saveAs :: Lens' State SaveAs.State
 _saveAs = _Newtype <<< prop (SProxy :: SProxy "saveAs")
 
+_confirmUnsavedNavigation :: Lens' State ConfirmUnsavedNavigation.State
+_confirmUnsavedNavigation = _Newtype <<< prop (SProxy :: SProxy "confirmUnsavedNavigation")
+
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
 
@@ -253,6 +258,9 @@ _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 
 _showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
+
+_hasUnsavedChanges :: Lens' State Boolean
+_hasUnsavedChanges = _Newtype <<< prop (SProxy :: SProxy "hasUnsavedChanges")
 
 -- editable
 _timestamp ::

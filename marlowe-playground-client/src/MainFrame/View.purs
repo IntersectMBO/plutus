@@ -1,6 +1,7 @@
 module MainFrame.View where
 
 import Auth (_GithubUser, authStatusAuthRole)
+import ConfirmUnsavedNavigation.State (render) as ConfirmUnsavedNavigation
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -20,12 +21,16 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _confirmUnsavedNavigation, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
 import Network.RemoteData (_Loading, _Success)
-import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
+import NewProject.State (render) as NewProject
+import Prelude (const, eq, identity, negate, unit, ($), (<<<), (<>))
+import Projects.State (render) as Projects
+import Rename.State (render) as Rename
+import SaveAs.State (render) as SaveAs
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet
@@ -100,11 +105,13 @@ render settings state =
       let
         title = state ^. _projectName
 
+        hasUnsavedChanges = if state ^. _hasUnsavedChanges then " (unsaved)" else ""
+
         isLoading = has (_createGistResult <<< _Loading) state
 
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
-        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
+        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text (title <> hasUnsavedChanges) ], spinner ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 

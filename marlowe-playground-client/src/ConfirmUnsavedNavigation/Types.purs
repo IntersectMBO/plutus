@@ -7,25 +7,20 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 
 data Action
-  =
-   SaveProject
+  = SaveProject
   | DontSaveProject
   | Cancel
 
 instance isEventAction :: IsEvent Action where
   toEvent _ = Nothing
 
--- TODO: change state
 type State
-  = { projectName :: String
-    , error :: Maybe String
+  = { wantsToSaveProject :: Boolean
     }
 
 emptyState :: State
-emptyState = { projectName: "New Project", error: Nothing }
+emptyState = { wantsToSaveProject: true }
 
-_projectName :: Lens' State String
-_projectName = prop (SProxy :: SProxy "projectName")
-
-_error :: Lens' State (Maybe String)
-_error = prop (SProxy :: SProxy "error")
+-- FIXME, dont quite like the name :/
+_wantsToSaveProject :: Lens' State Boolean
+_wantsToSaveProject = prop (SProxy :: SProxy "wantsToSaveProject")
