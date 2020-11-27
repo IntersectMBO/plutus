@@ -134,7 +134,7 @@ data HAction
   -- Editor.
   | EditorAction Editor.Action
   | CompileProgram
-  -- Simulations
+  -- Simulations.
   | LoadScript String
   | AddSimulationSlot
   | SetSimulationSlot Int
