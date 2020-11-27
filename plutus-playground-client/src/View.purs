@@ -13,7 +13,7 @@ import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
 import Editor.Types (_keyBindings)
-import Editor.View (compileButton, editorFeedback, editorPreferencesSelect, editorView, simulateButton)
+import Editor.View (compileButton, editorPreferencesSelect, simulateButton, editorPane, editorFeedback)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, footer, h1_, img, label_, main, nav, span, strong_, text, ul, li)
@@ -188,11 +188,11 @@ editorWrapper state@(State { currentView, contractDemos, editorState }) =
               ]
           , div
               [ class_ $ ClassName "editor-buttons" ]
-              [ compileButton CompileProgram compilationResult
-              , simulateButton (ChangeView Simulations) compilationResult
+              [ compileButton compilationResult
+              , simulateButton compilationResult
               ]
           ]
-      , mapComponent EditorAction $ editorView defaultContents StaticData.bufferLocalStorageKey editorState
+      , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState
       , mapComponent EditorAction $ editorFeedback compilationResult
       ]
   where

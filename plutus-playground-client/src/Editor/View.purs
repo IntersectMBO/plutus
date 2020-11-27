@@ -1,4 +1,10 @@
-module Editor.View (editorPreferencesSelect, compileButton, simulateButton, editorView, editorFeedback) where
+module Editor.View
+  ( editorPreferencesSelect
+  , compileButton
+  , simulateButton
+  , editorPane
+  , editorFeedback
+  ) where
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
@@ -20,7 +26,7 @@ import Language.Haskell.Monaco as HM
 import LocalStorage (Key)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (const, map, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (ChildSlots, _editorSlot)
+import Types (ChildSlots, _editorSlot, HAction(..), View(..))
 
 -- renders the editor preferences select dropdown
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
@@ -48,11 +54,11 @@ editorPreferencesSelect active =
   editorName Vim = "Vim"
 
 -- renders the compile button
-compileButton :: forall p action a. action -> CompilationState a -> HTML p action
-compileButton action state =
+compileButton :: forall p a. CompilationState a -> HTML p HAction
+compileButton state =
   button
     [ classes [ btn, btnClass ]
-    , onClick $ const $ Just action
+    , onClick $ const $ Just CompileProgram
     , disabled (isLoading state)
     ]
     [ btnText ]
@@ -67,11 +73,11 @@ compileButton action state =
     _ -> text "Compile"
 
 -- renders the simulator button
-simulateButton :: forall p action a. action -> CompilationState a -> HTML p action
-simulateButton action state =
+simulateButton :: forall p a. CompilationState a -> HTML p HAction
+simulateButton state =
   button
     [ classes [ btn, btnPrimary ]
-    , onClick $ const $ Just action
+    , onClick $ const $ Just (ChangeView Simulations)
     , disabled isDisabled
     ]
     [ text "Simulate" ]
@@ -80,15 +86,15 @@ simulateButton action state =
     Success (Right _) -> false
     _ -> true
 
--- renders the main editor
-editorView ::
+-- renders the editor pane
+editorPane ::
   forall m.
   MonadAff m =>
   Maybe String ->
   Key ->
   State ->
   ComponentHTML Action ChildSlots m
-editorView initialContents bufferLocalStorageKey state@(State { keyBindings }) =
+editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
   div
     [ class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
