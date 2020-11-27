@@ -12,14 +12,14 @@ import ConfirmUnsavedNavigation.Types (Action(..), State) as ConfirmUnsavedNavig
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Foldable (fold, for_, traverse_)
-import Data.Lens (assign, preview, use, view, (^.))
+import Data.Foldable (fold, for_)
+import Data.Lens (assign, preview, use, view, set, (^.), has)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Debug.Trace (traceM)
+import Debug.Trace (spy)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -58,7 +58,7 @@ import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
-import NewProject.Types (Action(..), State,  emptyState) as NewProject
+import NewProject.Types (Action(..), State, emptyState) as NewProject
 import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
@@ -244,10 +244,20 @@ handleQuery ::
   Query a ->
   HalogenM State Action ChildSlots Void m (Maybe a)
 handleQuery settings (ChangeRoute route next) = do
-  -- FIXME: dont call this if the next route is the same as the current one
-  handleRoute settings route
+  -- Without the following each route is handled twice, once when we call selectView ourselves
+  -- and another which is triggered in Main, when the route changes.
+  currentView <- use _view
+  when (routeToView route /= Just currentView) $ handleRoute settings route
   pure $ Just next
 
+-- FIXME: Delete before merging
+-- showHandleAction ::
+--   forall m.
+--   MonadAff m =>
+--   SPSettings_ SPParams_ ->
+--   Action ->
+--   HalogenM State Action ChildSlots Void m Unit
+-- showHandleAction settings action = handleAction settings $ spy "MainFrame.handleAction" action
 -- TODO: Should we refactor the settings so that it's a ReaderT or part of the State?
 handleAction ::
   forall m.
@@ -289,7 +299,7 @@ handleAction s (HaskellAction action) = do
       selectView BlocklyEditor
     (HE.HandleEditorMessage ev) -> do
       -- FIXME: remove
-      traceM ev
+      void $ pure $ spy "MainFrame.handleAction: Haskell editor message" ev
       assign _hasUnsavedChanges true
     _ -> pure unit
 
@@ -307,7 +317,7 @@ handleAction s (JavascriptAction action) = do
     (JS.HandleEditorMessage ev) -> do
       -- FIXME: right now creating a JS project is always set as Unsaved because we have multiple events
       -- after the actual creation
-      traceM ev
+      void $ pure $ spy "MainFrame.handleAction: Javascript editor message" ev
       assign _hasUnsavedChanges true
     _ -> pure unit
 
@@ -324,7 +334,7 @@ handleAction settings (SimulationAction action) = do
     (ST.HandleEditorMessage ev) -> do
       -- FIXME: right now creating a Marlowe project is always set as Unsaved because we have multiple events
       -- after the actual creation
-      traceM ev
+      void $ pure $ spy "MainFrame.handleAction: Marlowe editor message" ev
       assign _hasUnsavedChanges true
     _ -> pure unit
 
@@ -405,7 +415,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       assign _createGistResult $ Failure error
       assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
-  traverse_ selectView $ selectLanguageView lang
+  selectView $ selectLanguageView lang
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
@@ -440,7 +450,7 @@ handleAction s action@(NewProjectAction (NewProject.CreateProject lang)) =
         toSimulation $ Simulation.editorSetValue "?new_contract"
         liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
       _ -> pure unit
-    traverse_ selectView $ selectLanguageView lang
+    selectView $ selectLanguageView lang
     modify_
       ( set (_simulationState <<< ST._source) lang
           <<< set _showModal Nothing
@@ -467,7 +477,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
   assign _showModal Nothing
-  traverse_ selectView $ selectLanguageView lang
+  selectView $ selectLanguageView lang
 
 handleAction s (RenameAction action@Rename.SaveProject) = do
   projectName <- use (_rename <<< Rename._projectName)
@@ -567,17 +577,34 @@ sendToSimulation settings language contract = do
         Simulation.handleAction settings (ST.SetEditorText contract)
         Simulation.handleAction settings ST.ResetContract
 
--- FIXME: The maybe is for historical reasons, remove and just have Lang -> View
-selectLanguageView :: Lang -> Maybe View
-selectLanguageView Haskell = Just HaskellEditor
+selectLanguageView :: Lang -> View
+selectLanguageView = case _ of
+  Haskell -> HaskellEditor
+  Marlowe -> Simulation
+  Blockly -> BlocklyEditor
+  Javascript -> JSEditor
+  Actus -> ActusBlocklyEditor
 
-selectLanguageView Marlowe = Just Simulation
+routeToView :: Route -> Maybe View
+routeToView { subroute } = case subroute of
+  Router.Home -> Just HomePage
+  Router.Simulation -> Just Simulation
+  Router.HaskellEditor -> Just HaskellEditor
+  Router.JSEditor -> Just JSEditor
+  Router.ActusBlocklyEditor -> Just ActusBlocklyEditor
+  Router.Blockly -> Just BlocklyEditor
+  Router.Wallets -> Just WalletEmulator
+  Router.GithubAuthCallback -> Nothing
 
-selectLanguageView Blockly = Just BlocklyEditor
-
-selectLanguageView Javascript = Just JSEditor
-
-selectLanguageView Actus = Just ActusBlocklyEditor
+viewToRoute :: View -> Router.SubRoute
+viewToRoute = case _ of
+  HomePage -> Router.Home
+  Simulation -> Router.Simulation
+  HaskellEditor -> Router.HaskellEditor
+  JSEditor -> Router.JSEditor
+  BlocklyEditor -> Router.Blockly
+  WalletEmulator -> Router.Wallets
+  ActusBlocklyEditor -> Router.ActusBlocklyEditor
 
 ------------------------------------------------------------
 showErrorDescription :: ErrorDescription -> String
@@ -745,26 +772,15 @@ preventAccidentalNavigation settings intendedAction guardedEffect = do
     guardedEffect
 
 ------------------------------------------------------------
--- This method is being called twice per route change. The first time by different handleAction to force a change view
--- the second time, from the Query on top, driven by the router changes in Main.
--- FIXME: refactor action types to have one Action to make a view change, and another action to react on changes.
---        most of the code here would go in the second one.
 selectView ::
   forall m action message.
   MonadEffect m =>
   View -> HalogenM State action ChildSlots message m Unit
 selectView view = do
-  let
-    subroute = case view of
-      HomePage -> Router.Home
-      Simulation -> Router.Simulation
-      HaskellEditor -> Router.HaskellEditor
-      JSEditor -> Router.JSEditor
-      BlocklyEditor -> Router.Blockly
-      WalletEmulator -> Router.Wallets
-      ActusBlocklyEditor -> Router.ActusBlocklyEditor
-  liftEffect $ Routing.setHash (RD.print Router.route { subroute, gistId: Nothing })
-  liftEffect $ Console.log $ "Hash changed to " <> show view
+  -- FIXME: remove console.log
+  currentView <- use _view
+  liftEffect $ Console.log $ "selectView from " <> show currentView <> " to " <> show view
+  liftEffect $ Routing.setHash (RD.print Router.route { subroute: viewToRoute view, gistId: Nothing })
   assign _view view
   liftEffect do
     window <- Web.window
