@@ -22,7 +22,7 @@ import           Wallet.Emulator.Wallet                            (signWallets)
 tests :: TestTree
 tests = testGroup "multisig"
     [ checkPredicate "2 out of 5"
-        (assertFailedTransaction (\_ err -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
+        (assertFailedTransaction (\_ err _ -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
         $ do
             hdl <- Trace.activateContractWallet w1 theContract
             Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)

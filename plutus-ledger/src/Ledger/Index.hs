@@ -25,7 +25,10 @@ module Ledger.Index(
     InOutMatch(..),
     minFee,
     -- * Actual validation
-    validateTransaction
+    validateTransaction,
+    -- * Script validation events
+    ScriptType(..),
+    ScriptValidationEvent(..)
     ) where
 
 import           Prelude                          hiding (lookup)
@@ -35,8 +38,9 @@ import           Codec.Serialise                  (Serialise)
 import           Control.DeepSeq                  (NFData)
 import           Control.Lens                     (itraverse, view, (^.))
 import           Control.Monad
-import           Control.Monad.Except             (MonadError (..), runExcept)
+import           Control.Monad.Except             (ExceptT, MonadError (..), runExcept, runExceptT)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
+import           Control.Monad.Writer             (MonadWriter, Writer, runWriter, tell)
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
@@ -62,7 +66,7 @@ import qualified Ledger.Value                     as V
 
 -- | Context for validating transactions. We need access to the unspent
 --   transaction outputs of the blockchain, and we can throw 'ValidationError's.
-type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
+type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m, MonadWriter [ScriptValidationEvent] m)
 
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
@@ -125,12 +129,12 @@ instance ToJSON ValidationError
 deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
-newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
-    deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
+newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (ExceptT ValidationError (Writer [ScriptValidationEvent]))) a }
+    deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError, MonadWriter [ScriptValidationEvent])
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
-runValidation :: Validation a -> UtxoIndex -> Either ValidationError a
-runValidation l = runReaderT (_runValidation l)
+runValidation :: Validation a -> UtxoIndex -> (Either ValidationError a, [ScriptValidationEvent])
+runValidation l idx = runWriter $ runExceptT $ runReaderT (_runValidation l) idx
 
 -- | Determine the unspent value that a ''TxOutRef' refers to.
 lkpValue :: ValidationMonad m => TxOutRef -> m V.Value
@@ -221,8 +225,10 @@ checkForgingScripts tx = do
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
         let vd = Context $ toData ptx'
         in case runExcept $ runMonetaryPolicyScript vd vl of
-            Left e  -> throwError $ ScriptFailure e
-            Right _ -> pure ()
+            Left e  -> do
+                tell [mpsValidationEvent vd vl (Just e)]
+                throwError $ ScriptFailure e
+            Right _ -> tell [mpsValidationEvent vd vl Nothing]
 
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
@@ -276,8 +282,10 @@ checkMatch txinfo = \case
             ptx' = ValidatorCtx { valCtxTxInfo = txinfo, valCtxInput = ix }
             vd = Context (toData ptx')
         case runExcept $ runScript vd vl d r of
-            Left e  -> throwError $ ScriptFailure e
-            Right _ -> pure ()
+            Left e  -> do
+                tell [validatorScriptValidationEvent vd vl d r (Just e)]
+                throwError $ ScriptFailure e
+            Right _ -> tell [validatorScriptValidationEvent vd vl d r Nothing]
     PubKeyMatch msg pk sig -> unless (signedBy sig pk msg) $ throwError $ InvalidSignature pk sig
 
 -- | Check if the value produced by a transaction equals the value consumed by it.
@@ -341,3 +349,33 @@ mkIn TxIn{txInRef, txInType} = do
             let witness = (Scripts.validatorHash v, Scripts.redeemerHash r, Scripts.datumHash d)
             in Validation.TxInInfo txInRef (Just witness) vl
         ConsumePublicKeyAddress -> Validation.TxInInfo txInRef Nothing vl
+
+data ScriptType = ValidatorScript | MonetaryPolicyScript
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+-- | A script (MPS or validator) that was run during transaction validation
+data ScriptValidationEvent =
+    ScriptValidationEvent
+        { sveScript :: Script -- ^ The script applied to all arguments
+        , sveError  :: Maybe ScriptError -- ^ Result of running the script
+        , sveType   :: ScriptType -- ^ What type of script it was
+        }
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+validatorScriptValidationEvent :: Context -> Validator -> Datum -> Redeemer -> Maybe ScriptError -> ScriptValidationEvent
+validatorScriptValidationEvent ctx validator datum redeemer err =
+    ScriptValidationEvent
+        { sveScript = applyValidator ctx validator datum redeemer
+        , sveError = err
+        , sveType = ValidatorScript
+        }
+
+mpsValidationEvent :: Context -> MonetaryPolicy -> Maybe ScriptError -> ScriptValidationEvent
+mpsValidationEvent ctx mps err =
+    ScriptValidationEvent
+        { sveScript = applyMonetaryPolicyScript ctx mps
+        , sveError = err
+        , sveType = MonetaryPolicyScript
+        }

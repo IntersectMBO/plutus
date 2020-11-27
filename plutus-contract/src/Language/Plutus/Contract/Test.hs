@@ -101,7 +101,7 @@ import           Ledger.Tx                                       (Tx)
 import           Ledger.Address                                  (Address)
 import           Ledger.Generators                               (GeneratorModel, Mockchain (..))
 import qualified Ledger.Generators                               as Gen
-import           Ledger.Index                                    (ValidationError)
+import           Ledger.Index                                    (ScriptValidationEvent, ValidationError)
 import           Ledger.Slot                                     (Slot)
 import           Ledger.Value                                    (Value)
 import           Wallet.Emulator                                 (EmulatorEvent, EmulatorTimeEvent)
@@ -509,13 +509,13 @@ assertChainEvents predicate =
 
 -- | Assert that at least one transaction failed to validate, and that all
 --   transactions that failed meet the predicate.
-assertFailedTransaction :: (Tx -> ValidationError -> Bool) -> TracePredicate
+assertFailedTransaction :: (Tx -> ValidationError -> [ScriptValidationEvent] -> Bool) -> TracePredicate
 assertFailedTransaction predicate =
     flip postMapM (L.generalize Folds.failedTransactions) $ \case
         [] -> do
             tell @(Doc Void) $ "No transactions failed to validate."
             pure False
-        xs -> pure (all (\(_, t, e) -> predicate t e) xs)
+        xs -> pure (all (\(_, t, e, evts) -> predicate t e evts) xs)
 
 -- | Assert that no transaction failed to validate.
 assertNoFailedTransactions :: TracePredicate
@@ -523,7 +523,8 @@ assertNoFailedTransactions =
     flip postMapM (L.generalize Folds.failedTransactions) $ \case
         [] -> pure True
         xs -> do
-            tell @(Doc Void) $ vsep ("Transactions failed to validate:" : fmap pretty xs)
+            let prettyTxFail (i, _, err, _) = pretty i <> colon <+> pretty err
+            tell @(Doc Void) $ vsep ("Transactions failed to validate:" : fmap prettyTxFail xs)
             pure False
 
 assertInstanceLog ::
