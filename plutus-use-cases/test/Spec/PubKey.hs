@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
-module Spec.PubKey(tests) where
+module Spec.PubKey(tests, pubKeyTrace) where
 
 import           Control.Monad                                   (void)
 import qualified Data.Map                                        as Map
@@ -38,7 +38,10 @@ tests :: TestTree
 tests = testGroup "pubkey"
   [ checkPredicate "works like a public key output"
       (walletFundsChange w1 mempty .&&. assertDone theContract (Trace.walletInstanceTag w1) (const True) "pubkey contract not done")
-      $ do
-        _ <- Trace.activateContractWallet w1 theContract
-        void $ Trace.waitNSlots 2
+      pubKeyTrace
   ]
+
+pubKeyTrace :: Trace.EmulatorTrace ()
+pubKeyTrace = do
+    _ <- Trace.activateContractWallet w1 theContract
+    void $ Trace.waitNSlots 2

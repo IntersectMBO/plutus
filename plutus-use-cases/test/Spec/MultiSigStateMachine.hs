@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
-module Spec.MultiSigStateMachine(tests) where
+module Spec.MultiSigStateMachine(tests, lockProposeSignPay) where
 
 import           Data.Foldable                                                 (traverse_)
 import           Test.Tasty                                                    (TestTree, testGroup)

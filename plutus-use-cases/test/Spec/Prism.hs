@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module Spec.Prism(tests) where
+module Spec.Prism(tests, prismTrace) where
 
 import           Control.Monad                                             (void)
 import           Language.Plutus.Contract.Test
@@ -64,24 +64,26 @@ tests = testGroup "PRISM"
         .&&. walletFundsChange issuer (Ada.lovelaceValueOf numTokens)
         .&&. walletFundsChange user (Ada.lovelaceValueOf (negate numTokens) <> STO.coins stoData numTokens)
         )
-        $ do
-            uhandle <- Trace.activateContractWallet user contract
-            mhandle <- Trace.activateContractWallet mirror contract
-            chandle <- Trace.activateContractWallet credentialManager contract
-
-            Trace.callEndpoint @"role" uhandle UnlockSTO
-            Trace.callEndpoint @"role" mhandle Mirror
-            Trace.callEndpoint @"role" chandle CredMan
-            _ <- Trace.waitNSlots 2
-
-            -- issue a KYC credential to a user
-            Trace.callEndpoint @"issue" mhandle CredentialOwnerReference{coTokenName=kyc, coOwner=user}
-            _ <- Trace.waitNSlots 2
-
-            -- participate in STO presenting the token
-            Trace.callEndpoint @"sto" uhandle stoSubscriber
-            _ <- Trace.waitNSlots 2 -- needed?
-            Trace.callEndpoint @"credential manager" uhandle (Trace.chInstanceId chandle)
-            void $ Trace.waitNSlots 2
-
+        prismTrace
     ]
+
+prismTrace :: Trace.EmulatorTrace ()
+prismTrace = do
+    uhandle <- Trace.activateContractWallet user contract
+    mhandle <- Trace.activateContractWallet mirror contract
+    chandle <- Trace.activateContractWallet credentialManager contract
+
+    Trace.callEndpoint @"role" uhandle UnlockSTO
+    Trace.callEndpoint @"role" mhandle Mirror
+    Trace.callEndpoint @"role" chandle CredMan
+    _ <- Trace.waitNSlots 2
+
+    -- issue a KYC credential to a user
+    Trace.callEndpoint @"issue" mhandle CredentialOwnerReference{coTokenName=kyc, coOwner=user}
+    _ <- Trace.waitNSlots 2
+
+    -- participate in STO presenting the token
+    Trace.callEndpoint @"sto" uhandle stoSubscriber
+    _ <- Trace.waitNSlots 2 -- needed?
+    Trace.callEndpoint @"credential manager" uhandle (Trace.chInstanceId chandle)
+    void $ Trace.waitNSlots 2

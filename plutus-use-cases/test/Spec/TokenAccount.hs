@@ -2,7 +2,7 @@
 {-# LANGUAGE ExplicitForAll    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module Spec.TokenAccount(tests, assertAccountBalance) where
+module Spec.TokenAccount(tests, assertAccountBalance, tokenAccountTrace) where
 
 import           Test.Tasty
 
@@ -51,17 +51,7 @@ tests = testGroup "token account"
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         .&&. walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10)
         )
-        $ do
-            hdl <- Trace.activateContractWallet w1 contract
-            hdl2 <- Trace.activateContractWallet w2 contract
-            Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
-            _ <- Trace.waitNSlots 3
-            Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
-            _ <- Trace.waitNSlots 2
-            _ <- Trace.payToWallet w1 w2 theToken
-            _ <- Trace.waitNSlots 1
-            Trace.callEndpoint @"redeem" hdl2 (account, Ledger.pubKeyHash $ walletPubKey w2)
-            void $ Trace.waitNSlots 1
+        tokenAccountTrace
 
     ]
 
@@ -96,3 +86,16 @@ theToken = Accounts.accountToken account
 -- | Check that the balance of the given account satisfies a predicate.
 assertAccountBalance :: Account -> (Value -> Bool) -> TracePredicate
 assertAccountBalance acc = valueAtAddress (Accounts.address acc)
+
+tokenAccountTrace :: Trace.EmulatorTrace ()
+tokenAccountTrace = do
+    hdl <- Trace.activateContractWallet w1 contract
+    hdl2 <- Trace.activateContractWallet w2 contract
+    Trace.callEndpoint @"new-account" hdl (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
+    _ <- Trace.waitNSlots 3
+    Trace.callEndpoint @"pay" hdl (account, Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 2
+    _ <- Trace.payToWallet w1 w2 theToken
+    _ <- Trace.waitNSlots 1
+    Trace.callEndpoint @"redeem" hdl2 (account, Ledger.pubKeyHash $ walletPubKey w2)
+    void $ Trace.waitNSlots 1

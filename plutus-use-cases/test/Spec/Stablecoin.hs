@@ -6,6 +6,8 @@
 
 module Spec.Stablecoin(
     tests
+    , stablecoinTrace
+    , maxReservesExceededTrace
     ) where
 
 
@@ -27,8 +29,10 @@ import           Prelude                                             hiding (neg
 import           Test.Tasty
 
 import           Language.PlutusTx.Coordination.Contracts.Stablecoin (BC (..), ConversionRate, Input (..), RC (..),
-                                                                      SC (..), SCAction (..), Stablecoin (..))
+                                                                      SC (..), SCAction (..), Stablecoin (..),
+                                                                      StablecoinError, StablecoinSchema)
 import qualified Language.PlutusTx.Coordination.Contracts.Stablecoin as Stablecoin
+import           Plutus.Trace.Emulator                               (ContractHandle, EmulatorTrace)
 import qualified Plutus.Trace.Emulator                               as Trace
 import           Plutus.Trace.Emulator.Types                         (_ContractLog, cilMessage)
 import           Wallet.Emulator.MultiAgent                          (eteEvent)
@@ -91,12 +95,7 @@ tests = testGroup "Stablecoin"
         .&&. assertNoFailedTransactions
         .&&. walletFundsChange user (Stablecoin.stableCoins coin 40 <> Stablecoin.reserveCoins coin 100 <> negate (initialDeposit <> initialFee <> Ada.lovelaceValueOf 30))
         )
-        $ do
-            hdl <- initialise
-            mintReserveCoins (RC 100) one hdl
-            mintStableCoins (SC 50) one hdl
-            -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
-            redeemStableCoins (SC 10) (Ratio.fromInteger 2) hdl
+        stablecoinTrace
 
     , let expectedLogMsg = "New state is invalid: MaxReserves {allowed = BC {unBC = (200 % 1)}, actual = BC {unBC = (201 % 1)}}. The transition is not allowed." in
       checkPredicate "Cannot exceed the maximum reserve ratio"
@@ -104,49 +103,67 @@ tests = testGroup "Stablecoin"
         .&&. assertNoFailedTransactions
         .&&. assertInstanceLog (Trace.walletInstanceTag $ Wallet 1) ((==) (Just expectedLogMsg) . listToMaybe . reverse . mapMaybe (preview (eteEvent . cilMessage . _ContractLog)))
         )
-        $ do
-            hdl <- initialise
-            mintReserveCoins (RC 100) one hdl
-            mintStableCoins (SC 50) one hdl
+        maxReservesExceededTrace
 
-            -- At this point we have:
-            -- Stablecoins: 50 (equiv. to 50 Lovelace on the 1:1 conversion
-            -- rate)
-            -- Max. reserve ratio: 4:1
-            -- Reserves: 151 Lovelace (100 from minting reserve coins, 50 from
-            -- minting stablecoins, 1 from fees)
-            -- Maximum reserves: 200 Lovelace (50 stablecoins * 4 (Lovelace /
-            -- stablecoin))
+    ]
+        
+initialise :: Trace.EmulatorTrace (ContractHandle StablecoinSchema StablecoinError)
+initialise = do
+    hdl <- Trace.activateContractWallet user Stablecoin.contract
+    Trace.callEndpoint @"initialise" hdl coin
+    _ <- Trace.waitNSlots 2
+    pure hdl
 
-            -- The next transition is not allowed as it would bring the reserve
-            -- ratio above the maximum.
-            mintReserveCoins (RC 49) one hdl
+mintReserveCoins :: RC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+mintReserveCoins rc rate hdl = do
+    Trace.callEndpoint @"run step" hdl
+        Input
+            { inpConversionRate = signConversionRate rate
+            , inpSCAction = MintReserveCoin rc
+            }
+    void $ Trace.waitNSlots 2
 
+mintStableCoins :: SC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+mintStableCoins sc rate hdl = do
+    Trace.callEndpoint @"run step" hdl
+        Input
+            { inpConversionRate = signConversionRate rate
+            , inpSCAction = MintStablecoin sc
+            }
+    void $ Trace.waitNSlots 2
 
-    ] where
-        initialise = do
-            hdl <- Trace.activateContractWallet user Stablecoin.contract
-            Trace.callEndpoint @"initialise" hdl coin
-            _ <- Trace.waitNSlots 2
-            pure hdl
-        mintReserveCoins rc rate hdl = do
-            Trace.callEndpoint @"run step" hdl
-                Input
-                    { inpConversionRate = signConversionRate rate
-                    , inpSCAction = MintReserveCoin rc
-                    }
-            void $ Trace.waitNSlots 2
-        mintStableCoins sc rate hdl = do
-            Trace.callEndpoint @"run step" hdl
-                Input
-                    { inpConversionRate = signConversionRate rate
-                    , inpSCAction = MintStablecoin sc
-                    }
-            void $ Trace.waitNSlots 2
-        redeemStableCoins sc rate hdl = do
-            Trace.callEndpoint @"run step" hdl
-                Input
-                    { inpConversionRate = signConversionRate rate
-                    , inpSCAction = MintStablecoin (negate sc)
-                    }
-            void $ Trace.waitNSlots 2
+redeemStableCoins :: SC Integer -> ConversionRate -> ContractHandle StablecoinSchema StablecoinError -> Trace.EmulatorTrace ()
+redeemStableCoins sc rate hdl = do
+    Trace.callEndpoint @"run step" hdl
+        Input
+            { inpConversionRate = signConversionRate rate
+            , inpSCAction = MintStablecoin (negate sc)
+            }
+    void $ Trace.waitNSlots 2
+
+stablecoinTrace :: EmulatorTrace ()
+stablecoinTrace = do
+    hdl <- initialise
+    mintReserveCoins (RC 100) one hdl
+    mintStableCoins (SC 50) one hdl
+    -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
+    redeemStableCoins (SC 10) (Ratio.fromInteger 2) hdl
+
+maxReservesExceededTrace :: EmulatorTrace ()
+maxReservesExceededTrace = do
+    hdl <- initialise
+    mintReserveCoins (RC 100) one hdl
+    mintStableCoins (SC 50) one hdl
+
+    -- At this point we have:
+    -- Stablecoins: 50 (equiv. to 50 Lovelace on the 1:1 conversion
+    -- rate)
+    -- Max. reserve ratio: 4:1
+    -- Reserves: 151 Lovelace (100 from minting reserve coins, 50 from
+    -- minting stablecoins, 1 from fees)
+    -- Maximum reserves: 200 Lovelace (50 stablecoins * 4 (Lovelace /
+    -- stablecoin))
+
+    -- The next transition is not allowed as it would bring the reserve
+    -- ratio above the maximum.
+    mintReserveCoins (RC 49) one hdl

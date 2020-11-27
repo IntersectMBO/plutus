@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-module Spec.MultiSig(tests) where
+module Spec.MultiSig(tests, failingTrace, succeedingTrace) where
 
 import           Control.Monad                                     (void)
 import           Language.Plutus.Contract                          (Contract, ContractError)
@@ -13,6 +13,7 @@ import qualified Ledger
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Index                                      (ValidationError (ScriptFailure))
 import           Ledger.Scripts                                    (ScriptError (EvaluationError))
+import           Plutus.Trace.Emulator                             (EmulatorTrace)
 import qualified Plutus.Trace.Emulator                             as Trace
 import           Prelude                                           hiding (not)
 import qualified Spec.Lib                                          as Lib
@@ -23,26 +24,32 @@ tests :: TestTree
 tests = testGroup "multisig"
     [ checkPredicate "2 out of 5"
         (assertFailedTransaction (\_ err _ -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
-        $ do
-            hdl <- Trace.activateContractWallet w1 theContract
-            Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
-            _ <- Trace.waitNSlots 1
-            Trace.setSigningProcess w1 (signWallets [w1, w2])
-            Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
-            void $ Trace.waitNSlots 1
+        failingTrace
 
     , checkPredicate "3 out of 5"
         assertNoFailedTransactions
-        $ do
-            hdl <- Trace.activateContractWallet w1 theContract
-            Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
-            _ <- Trace.waitNSlots 1
-            Trace.setSigningProcess w1 (signWallets [w1, w2, w3])
-            Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
-            void $ Trace.waitNSlots 1
+        succeedingTrace
 
     , Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
     ]
+
+failingTrace :: EmulatorTrace ()
+failingTrace = do
+    hdl <- Trace.activateContractWallet w1 theContract
+    Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 1
+    Trace.setSigningProcess w1 (signWallets [w1, w2])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
+    void $ Trace.waitNSlots 1
+
+succeedingTrace :: EmulatorTrace ()
+succeedingTrace = do
+    hdl <- Trace.activateContractWallet w1 theContract
+    Trace.callEndpoint @"lock" hdl (multiSig, Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 1
+    Trace.setSigningProcess w1 (signWallets [w1, w2, w3])
+    Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
+    void $ Trace.waitNSlots 1
 
 w1, w2, w3 :: Wallet
 w1 = Wallet 1
