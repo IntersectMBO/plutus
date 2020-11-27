@@ -1,7 +1,6 @@
-{ writeScriptBin, purty }:
+{ writeShellScriptBin, purty }:
 
-writeScriptBin "purty" ''
-  #!/usr/bin/env bash
+writeShellScriptBin "purty" ''
   for f in "$@"; do
     ${purty}/bin/purty validate $f
   done

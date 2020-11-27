@@ -1,7 +1,6 @@
-{ writeScriptBin, runtimeShell, git, fd, purty }:
+{ writeShellScriptBin, runtimeShell, git, fd, purty }:
 
-writeScriptBin "fix-purty" ''
-  #!${runtimeShell}
+writeShellScriptBin "fix-purty" ''
   set -eou pipefail
 
   ${git}/bin/git diff > pre-purty.diff

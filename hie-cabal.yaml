@@ -1,138 +1,628 @@
 cradle:
-  multi:
-  - path: ./plutus-core/generators
-    config: { cradle: { cabal: { component: "lib:plutus-core" } } }
-  - path: ./plutus-core/prelude
-    config: { cradle: { cabal: { component: "lib:plutus-core" } } }
-  - path: ./plutus-core/src
-    config: { cradle: { cabal: { component: "lib:plutus-core" } } }
-  - path: ./plutus-core/exe
-    config: { cradle: { cabal: { component: "plutus-core:plc" } } }
-  - path: ./plutus-core/untyped-plutus-core
-    config: { cradle: { cabal: { component: "lib:untyped-plutus-core" } } }
-  - path: ./plutus-core/plutus-ir
-    config: { cradle: { cabal: { component: "lib:plutus-core" } } }
-  - path: ./plutus-core/common
-    config: { cradle: { cabal: { component: "lib:plutus-core" } } }
-  - path: ./plutus-core/test
-    config: { cradle: { cabal: { component: "plutus-core:plutus-core-test" } } }
-  - path: ./plutus-core/untyped-plutus-core-test
-    config: { cradle: { cabal: { component: "lib:untyped-plutus-core-test" } } }
-  - path: ./plutus-core/plutus-ir-test
-    config: { cradle: { cabal: { component: "plutus-core:plutus-ir-test" } } }
-  - path: ./plutus-core/bench
-    config: { cradle: { cabal: { component: "plutus-core:plutus-core-bench" } } }
-  - path: ./plutus-core/weigh
-    config: { cradle: { cabal: { component: "plutus-core:plutus-core-weigh" } } }
-  - path: ./plutus-core/budgeting-bench
-    config: { cradle: { cabal: { component: "plutus-core:plutus-core-budgeting-bench" } } }
-  - path: ./plutus-core/cost-model-creation
-    config: { cradle: { none: } } # inline-r makes hls segfault
-  - path: ./plutus-core/create-cost-model
-    config: { cradle: { none: } }
-  - path: ./plutus-core/test-cost-model
-    config: { cradle: { none: } }
+  cabal:
+    - path: "deployment-server/src"
+      component: "lib:deployment-server"
 
-  - path: ./prettyprinter-configurable/src
-    config: { cradle: { cabal: { component: "lib:prettyprinter-configurable" } } }
-  - path: ./prettyprinter-configurable/test
-    config: { cradle: { cabal: { component: "prettyprinter-configurable:prettyprinter-configurable-test" } } }
-  - path: ./prettyprinter-configurable/doctest
-    config: { cradle: { cabal: { component: "prettyprinter-configurable:prettyprinter-configurable-doctest" } } }
+    - path: "deployment-server/app/Main.hs"
+      component: "deployment-server:exe:deployment-server-exe"
 
-  - path: ./plutus-tx/src
-    config: { cradle: { cabal: { component: "lib:plutus-tx" } } }
-  - path: ./plutus-tx-plugin/src
-    config: { cradle: { cabal: { component: "lib:plutus-tx-plugin" } } }
-  - path: ./plutus-tx-plugin/test
-    config: { cradle: { cabal: { component: "plutus-tx-plugin:plutus-tx-tests" } } }
+    - path: "deployment-server/app/Paths_deployment_server.hs"
+      component: "deployment-server:exe:deployment-server-exe"
 
-  - path: ./doc
-    config: { cradle: { cabal: { component: "plutus-doc:doc-doctests" } } }
+    - path: "deployment-server/test"
+      component: "deployment-server:test:deployment-server-test"
 
-  - path: ./playground-common/src
-    config: { cradle: { cabal: { component: "lib:playground-common" } } }
-  - path: ./playground-common/test
-    config: { cradle: { cabal: { component: "playground-common:playground-common-test" } } }
+    - path: "doc/tutorials/Main.hs"
+      component: "plutus-doc:exe:doc-doctests"
 
-  - path: ./marlowe-playground-server/src
-    config: { cradle: { cabal: { component: "lib:marlowe-playground-server" } } }
-  - path: ./marlowe-playground-server/test
-    config: { cradle: { cabal: { component: "marlowe-playground-server:marlowe-playground-server-test" } } }
+    - path: "doc/tutorials/PlutusTx.hs"
+      component: "plutus-doc:exe:doc-doctests"
 
-  - path: ./plutus-playground-server/src
-    config: { cradle: { cabal: { component: "lib:plutus-playground-server" } } }
-  - path: ./plutus-playground-server/test
-    config: { cradle: { cabal: { component: "plutus-playground-server:plutus-playground-server-test" } } }
+    - path: "doc/tutorials/BasicValidators.hs"
+      component: "plutus-doc:exe:doc-doctests"
 
-  - path: ./marlowe/src
-    config: { cradle: { cabal: { component: "lib:marlowe" } } }
-  - path: ./marlowe/test
-    config: { cradle: { cabal: { component: "marlowe:marlowe-test" } } }
+    - path: "doc/tutorials/BasicPolicies.hs"
+      component: "plutus-doc:exe:doc-doctests"
 
-  - path: ./marlowe-actus/src
-    config: { cradle: { cabal: { component: "lib:marlowe-actus" } } }
-  - path: ./marlowe-actus/test
-    config: { cradle: { cabal: { component: "marlowe-actus:marlowe-actus-test" } } }
+    - path: "iots-export/src"
+      component: "lib:iots-export"
 
-  - path: ./marlowe-symbolic/src
-    config: { cradle: { cabal: { component: "lib:marlowe-symbolic" } } }
+    - path: "iots-export/test"
+      component: "iots-export:test:iots-export-test"
 
-  - path: ./plutus-ledger/src
-    config: { cradle: { cabal: { component: "lib:plutus-ledger" } } }
-  - path: ./plutus-ledger/test
-    config: { cradle: { cabal: { component: "plutus-ledger:plutus-ledger-test" } } }
+    - path: "marlowe/src"
+      component: "lib:marlowe"
 
-  - path: ./plutus-contract/src
-    config: { cradle: { cabal: { component: "lib:plutus-contract" } } }
-  - path: ./plutus-contract/test
-    config: { cradle: { cabal: { component: "plutus-contract:plutus-contract-test" } } }
+    - path: "marlowe/test"
+      component: "marlowe:test:marlowe-test"
 
-  - path: ./plutus-scb/src
-    config: { cradle: { cabal: { component: "lib:plutus-scb" } } }
-  - path: ./plutus-scb/app
-    config: { cradle: { cabal: { component: "plutus-scb:plutus-scb" } } }
-  - path: ./plutus-scb/test
-    config: { cradle: { cabal: { component: "plutus-scb:plutus-scb-test" } } }
+    - path: "marlowe-actus/src"
+      component: "lib:marlowe-actus"
 
-  - path: ./plutus-use-cases/src
-    config: { cradle: { cabal: { component: "lib:plutus-use-cases" } } }
-  - path: ./plutus-use-cases/test
-    config: { cradle: { cabal: { component: "plutus-use-cases:plutus-use-cases-test" } } }
+    - path: "marlowe-actus/app/Main.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-  - path: ./deployment-server/src
-    config: { cradle: { cabal: { component: "lib:deployment-server" } } }
-  - path: ./deployment-server/test
-    config: { cradle: { cabal: { component: "deployment-server:deployment-server-test" } } }
+    - path: "marlowe-actus/src/Main.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-  - path: ./iots-export/src
-    config: { cradle: { cabal: { component: "lib:iots-export" } } }
-  - path: ./iots-export/test
-    config: { cradle: { cabal: { component: "iots-export:iots-export-test" } } }
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/MarloweCompat.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-  - path: ./plutus-metatheory/src
-    config: { cradle: { cabal: { component: "lib:plutus-metatheory" } } }
-  - path: ./plutus-metatheory/test
-    config: { cradle: { cabal: { component: "plutus-metatheory:test1" } } }
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Generator.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-  - path: ./web-ghc/src
-    config: { cradle: { cabal: { component: "lib:web-ghc" } } }
-  - path: ./web-ghc/app
-    config: { cradle: { cabal: { component: "exe:web-ghc-server" } } }
-  - path: ./web-ghc/test
-    config: { cradle: { cabal: { component: "web-ghc:web-ghc-test" } } }
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Analysis.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-  - path: ./plutus-benchmark/nofib.exe
-    config: { cradle: {cabal: {component: "exe:nofib-exe" } } }
-  - path: ./plutus-benchmark/lib
-    config: { cradle: {cabal: {component: "lib:plutus-benchmark" } } }
-  - path: ./plutus-benchmark/nofib
-    config: { cradle: {cabal: {component: "plutus-benchmark:nofib" } } }
-  - path: ./plutus-benchmark/nofib
-    config: { cradle: {cabal: {component: "plutus-benchmark:nofib-hs" } } }
-  - path: ./plutus-benchmark/validation
-    config: { cradle: {cabal: {component: "plutus-benchmark:validation" } } }
-  - path: ./plutus-benchmark/nofib/test
-    config: { cradle: {cabal: {component: "plutus-benchmark:plutus-benchmark-nofib-tests" } } }
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Definitions/BusinessEvents.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
 
-# Add more as needed, I'm too lazy
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Definitions/ContractTerms.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Definitions/ContractState.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Definitions/Schedule.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/POF/PayoffModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/POF/Payoff.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/POF/PayoffFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/STF/StateTransitionModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/STF/StateTransition.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/STF/StateTransitionFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/INIT/StateInitialization.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/Utility/DateShift.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/Utility/YearFraction.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/app/Language/Marlowe/ACTUS/Ops.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/MarloweCompat.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Generator.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Analysis.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/BusinessEvents.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/ContractTerms.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/ContractState.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/Schedule.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/PayoffModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/Payoff.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/PayoffFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransitionModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransition.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransitionFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitialization.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/DateShift.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/YearFraction.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Ops.hs"
+      component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/test"
+      component: "marlowe-actus:test:marlowe-actus-test"
+
+    - path: "marlowe-playground-server/src"
+      component: "lib:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts"
+      component: "lib:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Main.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Main.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Webserver.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/PSGenerator.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Types.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Escrow.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Example.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/CouponBondGuaranteed.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/ZeroCouponBond.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Swap.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/Option.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/app/ContractForDifference.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Webserver.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/PSGenerator.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Types.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Escrow.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Example.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/CouponBondGuaranteed.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/ZeroCouponBond.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Swap.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/Option.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/contracts/ContractForDifference.hs"
+      component: "marlowe-playground-server:exe:marlowe-playground-server"
+
+    - path: "marlowe-playground-server/test"
+      component: "marlowe-playground-server:test:marlowe-playground-server-test"
+
+    - path: "marlowe-symbolic/src"
+      component: "lib:marlowe-symbolic"
+
+    - path: "playground-common/src"
+      component: "lib:playground-common"
+
+    - path: "playground-common/test"
+      component: "playground-common:test:playground-common-test"
+
+    - path: "plutus-benchmark/nofib/src"
+      component: "lib:plutus-benchmark"
+
+    - path: "plutus-benchmark/nofib/exe/Main.hs"
+      component: "plutus-benchmark:exe:nofib-exe"
+
+    - path: "plutus-benchmark/nofib/bench/BenchPlc.hs"
+      component: "plutus-benchmark:bench:nofib"
+
+    - path: "plutus-benchmark/nofib/bench/Common.hs"
+      component: "plutus-benchmark:bench:nofib"
+
+    - path: "plutus-benchmark/nofib/bench/Paths_plutus_benchmark.hs"
+      component: "plutus-benchmark:bench:nofib"
+
+    - path: "plutus-benchmark/nofib/bench/BenchHaskell.hs"
+      component: "plutus-benchmark:bench:nofib-hs"
+
+    - path: "plutus-benchmark/nofib/bench/Common.hs"
+      component: "plutus-benchmark:bench:nofib-hs"
+
+    - path: "plutus-benchmark/nofib/bench/Paths_plutus_benchmark.hs"
+      component: "plutus-benchmark:bench:nofib-hs"
+
+    - path: "plutus-benchmark/validation/Main.hs"
+      component: "plutus-benchmark:bench:validation"
+
+    - path: "plutus-benchmark/validation/Paths_plutus_benchmark.hs"
+      component: "plutus-benchmark:bench:validation"
+
+    - path: "plutus-benchmark/nofib/test"
+      component: "plutus-benchmark:test:plutus-benchmark-nofib-tests"
+
+    - path: "plutus-benchmark/flat/Main.hs"
+      component: "plutus-benchmark:bench:flat"
+
+    - path: "plutus-benchmark/flat/Dataset.hs"
+      component: "plutus-benchmark:bench:flat"
+
+    - path: "plutus-benchmark/flat/Codec.hs"
+      component: "plutus-benchmark:bench:flat"
+
+    - path: "plutus-benchmark/flat/Report.hs"
+      component: "plutus-benchmark:bench:flat"
+
+    - path: "plutus-benchmark/flat/Paths_plutus_benchmark.hs"
+      component: "plutus-benchmark:bench:flat"
+
+    - path: "plutus-contract/src"
+      component: "lib:plutus-contract"
+
+    - path: "plutus-contract/doctest"
+      component: "plutus-contract:test:contract-doctests"
+
+    - path: "plutus-contract/doc"
+      component: "plutus-contract:test:contract-doctests"
+
+    - path: "plutus-contract/test"
+      component: "plutus-contract:test:plutus-contract-test"
+
+    - path: "plutus-core/src"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/prelude"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/stdlib"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/examples"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/generators"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/common"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/plutus-ir"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/untyped-plutus-core"
+      component: "lib:plutus-core"
+
+    - path: "plutus-core/generate-evaluation-test/Main.hs"
+      component: "plutus-core:exe:plutus-core-generate-evaluation-test"
+
+    - path: "plutus-core/test"
+      component: "plutus-core:test:plutus-core-test"
+
+    - path: "plutus-core/plutus-ir-test"
+      component: "plutus-core:test:plutus-ir-test"
+
+    - path: "plutus-core/untyped-plutus-core-test"
+      component: "plutus-core:test:untyped-plutus-core-test"
+
+    - path: "plutus-core/bench/Bench.hs"
+      component: "plutus-core:bench:plutus-core-bench"
+
+    - path: "plutus-core/weigh/Bench.hs"
+      component: "plutus-core:bench:plutus-core-weigh"
+
+    - path: "plutus-core/exe/Main.hs"
+      component: "plutus-core:exe:plc"
+
+    - path: "plutus-core/budgeting-bench/Bench.hs"
+      component: "plutus-core:bench:plutus-core-budgeting-bench"
+
+    - path: "plutus-core/create-cost-model/CreateCostModel.hs"
+      component: "plutus-core:bench:plutus-core-create-cost-model"
+
+    - path: "plutus-core/cost-model-creation/CreateCostModel.hs"
+      component: "plutus-core:bench:plutus-core-create-cost-model"
+
+    - path: "plutus-core/create-cost-model/CostModelCreation.hs"
+      component: "plutus-core:bench:plutus-core-create-cost-model"
+
+    - path: "plutus-core/cost-model-creation/CostModelCreation.hs"
+      component: "plutus-core:bench:plutus-core-create-cost-model"
+
+    - path: "plutus-core/test-cost-model"
+      component: "plutus-core:test:plutus-core-test-cost-model"
+
+    - path: "plutus-core/cost-model-creation"
+      component: "plutus-core:test:plutus-core-test-cost-model"
+
+    - path: "plutus-ledger/src"
+      component: "lib:plutus-ledger"
+
+    - path: "plutus-ledger/test"
+      component: "plutus-ledger:test:plutus-ledger-test"
+
+    - path: "plutus-metatheory/src"
+      component: "lib:plutus-metatheory"
+
+    - path: "plutus-metatheory/exe/Main.hs"
+      component: "plutus-metatheory:exe:plc-agda"
+
+    - path: "plutus-metatheory/test"
+      component: "plutus-metatheory:test:test1"
+
+    - path: "plutus-metatheory/test"
+      component: "plutus-metatheory:test:test2"
+
+    - path: "plutus-metatheory/test"
+      component: "plutus-metatheory:test:test3"
+
+    - path: "plutus-playground-server/src"
+      component: "lib:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases"
+      component: "lib:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases"
+      component: "plutus-playground-server:lib:plutus-playground-usecases"
+
+    - path: "plutus-playground-server/app/Main.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Main.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Webserver.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Types.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/PSGenerator.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Crowdfunding.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/CrowdfundingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/ErrorHandling.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/ErrorHandlingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Game.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/GameSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/SimulationUtils.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Starter.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/StarterSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/Vesting.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/VestingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Webserver.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Types.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/PSGenerator.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Crowdfunding.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/CrowdfundingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/ErrorHandling.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/ErrorHandlingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Game.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/GameSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/SimulationUtils.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Starter.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/StarterSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/Vesting.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/VestingSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/test"
+      component: "plutus-playground-server:test:plutus-playground-server-test"
+
+    - path: "plutus-scb/src"
+      component: "lib:plutus-scb"
+
+    - path: "plutus-scb/app/Main.hs"
+      component: "plutus-scb:exe:plutus-scb"
+
+    - path: "plutus-scb/app/PSGenerator.hs"
+      component: "plutus-scb:exe:plutus-scb"
+
+    - path: "plutus-scb/game-contract/Main.hs"
+      component: "plutus-scb:exe:plutus-game"
+
+    - path: "plutus-scb/game-contract/default-language:.hs"
+      component: "plutus-scb:exe:plutus-game"
+
+    - path: "plutus-scb/game-contract/Haskell2010.hs"
+      component: "plutus-scb:exe:plutus-game"
+
+    - path: "plutus-scb/currency-contract/Main.hs"
+      component: "plutus-scb:exe:plutus-currency"
+
+    - path: "plutus-scb/atomic-swap-contract/Main.hs"
+      component: "plutus-scb:exe:plutus-atomic-swap"
+
+    - path: "plutus-scb/pay-to-wallet-contract/Main.hs"
+      component: "plutus-scb:exe:plutus-pay-to-wallet"
+
+    - path: "plutus-scb/test"
+      component: "plutus-scb:test:plutus-scb-test"
+
+    - path: "plutus-scb/prism/credential-manager/Main.hs"
+      component: "plutus-scb:exe:prism-credential-manager"
+
+    - path: "plutus-scb/prism/mirror/Main.hs"
+      component: "plutus-scb:exe:prism-mirror"
+
+    - path: "plutus-scb/prism/unlock-sto/Main.hs"
+      component: "plutus-scb:exe:prism-unlock-sto"
+
+    - path: "plutus-scb/prism/unlock-exchange/Main.hs"
+      component: "plutus-scb:exe:prism-unlock-exchange"
+
+    - path: "plutus-tx/src"
+      component: "lib:plutus-tx"
+
+    - path: "plutus-tx/test"
+      component: "plutus-tx:test:plutus-tx-test"
+
+    - path: "plutus-tx-plugin/src"
+      component: "lib:plutus-tx-plugin"
+
+    - path: "plutus-tx-plugin/test"
+      component: "plutus-tx-plugin:test:plutus-tx-tests"
+
+    - path: "plutus-use-cases/src"
+      component: "lib:plutus-use-cases"
+
+    - path: "plutus-use-cases/test"
+      component: "plutus-use-cases:test:plutus-use-cases-test"
+
+    - path: "plutus-use-cases/bench/Bench.hs"
+      component: "plutus-use-cases:bench:plutus-use-cases-bench"
+
+    - path: "plutus-use-cases/bench/Scott.hs"
+      component: "plutus-use-cases:bench:plutus-use-cases-bench"
+
+    - path: "plutus-use-cases/bench/Recursion.hs"
+      component: "plutus-use-cases:bench:plutus-use-cases-bench"
+
+    - path: "plutus-use-cases/bench/IFix.hs"
+      component: "plutus-use-cases:bench:plutus-use-cases-bench"
+
+    - path: "plutus-use-cases/bench/Opt.hs"
+      component: "plutus-use-cases:bench:plutus-use-cases-bench"
+
+    - path: "prettyprinter-configurable/src"
+      component: "lib:prettyprinter-configurable"
+
+    - path: "prettyprinter-configurable/test"
+      component: "prettyprinter-configurable:test:prettyprinter-configurable-test"
+
+    - path: "prettyprinter-configurable/doctest"
+      component: "prettyprinter-configurable:test:prettyprinter-configurable-doctest"
+
+    - path: "web-ghc/src"
+      component: "lib:web-ghc"
+
+    - path: "web-ghc/app/Main.hs"
+      component: "web-ghc:exe:web-ghc-server"
+
+    - path: "web-ghc/app/Webserver.hs"
+      component: "web-ghc:exe:web-ghc-server"
+
+    - path: "web-ghc/test"
+      component: "web-ghc:test:web-ghc-test"

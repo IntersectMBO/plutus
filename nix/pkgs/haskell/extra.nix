@@ -73,7 +73,10 @@ in
     plan-sha256 = "0pxqq5lnh7kd8pyhfyh81pq2v00g9lzkb1db8065cdxya6nirpjs";
     modules = [{ reinstallableLibGhc = false; }];
   };
-  inherit (
+}
+  //
+  # We need to lift this let-binding out far enough, otherwise it can get evaluated several times!
+(
   let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
       name = "haskell-language-server";
@@ -95,6 +98,5 @@ in
     # Invalidate and update if you change the version
     plan-sha256 = "0rjpf8xnamn063hbzi4wij8h2aiv71ailbpgd4ykfkv7mlc9mzny";
   };
-  in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
-    hie-bios haskell-language-server;
-}
+  in { inherit (hspkgs) haskell-language-server hie-bios implicit-hie; }
+)
