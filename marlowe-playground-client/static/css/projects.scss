@@ -1,13 +1,4 @@
 .projects-container {
-  width: 90%;
-}
-
-.projects-container h1 {
-  margin: 1.5rem 0rem;
-}
-
-.projects-container hr {
-  margin-bottom: 2rem;
 }
 
 .gists tr:nth-child(even) {
@@ -35,6 +26,8 @@ table.gists {
   text-align: center;
   a {
     flex: 1;
+    // TODO: temporary fix to separate project types, need to redesign the whole modal
+    margin-right: var(--small-margin);
   }
   .empty {
     flex: 1;

@@ -5,10 +5,11 @@ import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
+import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Foldable (fold, for_, traverse_)
-import Data.Lens (assign, preview, use, view, (^.))
+import Data.Lens (assign, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -51,7 +52,7 @@ import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
-import NewProject.Types (Action(..), State, _projectName, emptyState) as NewProject
+import NewProject.Types (Action(..), State, emptyState) as NewProject
 import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
@@ -362,10 +363,11 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
 handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
-  description <- use (_newProject <<< NewProject._projectName)
-  assign _projectName description
-  assign _gistId Nothing
-  assign _createGistResult NotAsked
+  modify_
+    ( set _projectName "New Project"
+        <<< set _gistId Nothing
+        <<< set _createGistResult NotAsked
+    )
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
   -- reset all the editors
   toHaskellEditor $ HaskellEditor.editorSetValue mempty
@@ -393,8 +395,6 @@ handleAction s (NewProjectAction action@(NewProject.CreateProject lang)) = do
   assign (_simulationState <<< ST._source) lang
   assign _showModal Nothing
   toNewProject $ NewProject.handleAction s action
-
-handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
 
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of

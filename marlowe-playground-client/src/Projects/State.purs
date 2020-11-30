@@ -16,16 +16,18 @@ import Data.Ordering (invert)
 import Effect.Aff.Class (class MonadAff)
 import Gist (Gist(..), gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML, HalogenM)
-import Halogen.Classes (flex)
-import Halogen.HTML (HTML, a, div, h1_, hr_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
+import Halogen.Classes (flex, modalContent)
+import Halogen.HTML (HTML, a, div, div_, span, table, tbody, td, td_, text, th_, thead, tr, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_, getApiGists)
 import Marlowe.Gists (fileExists, filenames, playgroundGist)
+import Modal.ViewHelpers (modalHeaderTitle)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (Unit, Void, bind, bottom, compare, const, discard, flip, map, mempty, pure, unit, ($), (<<<))
+import Prim.TypeError (class Warn, Text)
 import Projects.Types (Action(..), Lang(..), State, _projects)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -53,14 +55,16 @@ sortGists = sortBy f
 
 render ::
   forall m.
+  Warn (Text "Fix 'body Loading' design") =>
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ ClassName "projects-container" ] ]
-    [ h1_ [ text "Open Project" ]
-    , hr_
-    , body (view _projects state)
+  div_
+    [ modalHeaderTitle "Open Project"
+    , div [ classes [ modalContent, ClassName "projects-container" ] ]
+        [ body (view _projects state)
+        ]
     ]
   where
   body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]

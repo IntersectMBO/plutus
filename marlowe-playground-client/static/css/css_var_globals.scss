@@ -4,8 +4,17 @@
   --box-shadow-inverted: -3px 0 12px 0 rgba(0, 0, 0, 0.1);
   --box-shadow-left: -6px 6px 6px 0px rgba(0, 0, 0, 0.1);
   --border-radius: 4px;
+  // TODO: rethink the name or maybe add border-radius module of tailwind?
+  // https://tailwindcss.com/docs/border-radius
+  --bigger-border-radius: 8px;
+  --small-margin: 0.687rem; // Half of medium margin
+  --medium-margin: 1.375rem; // With current rem, 22px
+
+  --breakpoint-mid: 1024px;
+
 }
 
 $breakpoint-tablet: 768px;
 $breakpoint-mid: 1024px;
 $breakpoint-wide: 1360px;
+
