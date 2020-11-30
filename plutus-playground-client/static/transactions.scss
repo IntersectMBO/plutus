@@ -5,28 +5,112 @@ $chart-title: $gray-900;
 $chart-label: $gray-900;
 $chart-grid-stroke: $gray-500;
 @import '../../web-common/static/chartist.scss';
-
 @import '../../web-common/static/chain.scss';
-@include chain (
-    $balances-table-background-color: $gray-800,
-    $balances-table-border-color: $gray-700,
 
-    $entry-border-width: 2px,
-    $entry-border-color: $gray-800,
-    $entry-active-border-color: $gray-100,
-    $entry-inner-border-color: $gray-700,
-    $entry-separator-color: rgba(255, 255, 255, 0.65),
-    $entry-footer-background-color: $gray-800,
-    $entry-arrow-width: 15px,
-    $entry-arrow-color: $gray-100,
+.transactions {
+    border: 1px solid $gray-border-color;
+    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, .5);
+    padding: 1rem;
 
-    $entry-color: $dark,
-    $entry-detail-color-fee: $pink,
-    $entry-detail-color-not-found: $red,
-    $entry-detail-color-forge: $cyan,
-    $entry-detail-color-wallet: $green,
-    $entry-detail-color-script: $yellow,
-);
+    h2 {
+        font-size: 1.5em;
+        margin-bottom: .5rem;
+    }
+
+    .chain,
+    .final-balances,
+    .logs {
+        margin-bottom: 1rem;
+    }
+
+    @include chain (
+        $balances-table-background-color: $gray-background-color,
+        $balances-table-border-color: $gray-border-color,
+    
+        $entry-border-width: 2px,
+        $entry-border-color: $gray-border-color,
+        $entry-active-border-color: $blue,
+        $entry-inner-border-color: transparent,
+        $entry-separator-color: $gray-border-color,
+        $entry-footer-background-color: $gray-background-color,
+        $entry-arrow-width: 15px,
+        $entry-arrow-color: $blue,
+    
+        $entry-color: $dark,
+        $entry-detail-color-fee: $pink,
+        $entry-detail-color-not-found: $red,
+        $entry-detail-color-forge: $cyan,
+        $entry-detail-color-wallet: $green,
+        $entry-detail-color-script: $yellow,
+    );
+    
+    .chain {
+        .card {
+            margin-bottom: .5rem;
+
+            &.clickable {
+                cursor: pointer;
+
+                &:hover {
+                    border-color: $blue;
+                }
+            }
+        }
+
+        .balances-table {
+            thead {
+                background-color: $gray-200;
+                border-bottom: none;
+            }
+        }
+    }
+
+    //.final-balances {}
+
+    .logs,
+    .trace {
+        code pre {
+            // bootstrap's code and pre styles both shrink font size: don't shrink it twice
+            font-size: inherit;
+        }
+
+        pre {
+            border: solid 1px $gray-border-color;
+            border-radius: 4px;
+            background-color: white;
+            padding: 1rem;
+            white-space: pre-wrap;
+            // Extra indentation for all but the first line of a paragraph.
+            padding-left: 2.25rem;
+            text-indent: -1rem;
+
+            .info {
+                font-weight: bold;
+
+                &:before {
+                    content: "==== ";
+                }
+                &:after {
+                    content: " ====";
+                }
+            }
+
+            .error {
+                color: $red;
+            }
+        }
+    }
+
+    .trace {
+        pre {
+            margin-bottom: 0;
+        }
+    }
+}
+
+
+/*
+// this doesn't seem to be doing anything
 
 table.balance-map {
     overflow: hidden;
@@ -87,49 +171,4 @@ table.balance-map {
         }
     }
 }
-
-.logs,
-.trace {
-    border: solid 1px $gray-300;
-    border-radius: 4px;
-    background-color: white;
-    margin-bottom: 15px;
-    padding: 1.25rem;
-}
-
-.logs {
-    // Extra indentation for all but the first line of a paragraph.
-    padding-left: 2.25rem;
-    text-indent: -1rem;
-
-    word-wrap: break-word;
-
-    .info {
-        font-weight: bold;
-
-        &:before {
-            content: "==== ";
-        }
-        &:after {
-            content: " ====";
-        }
-    }
-
-    .error {
-        color: $red;
-    }
-}
-
-.logs,
-.trace code pre {
-    font: 12px/normal monospace;
-}
-
-.chain {
-    .balances-table {
-        thead {
-            background-color: $gray-200;
-            border-bottom: none;
-        }
-    }
-}
+*/

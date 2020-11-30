@@ -1,10 +1,6 @@
-module Chain
-  ( balancesChartOptions
-  , evaluationPane
-  , extractAmount
-  ) where
+module Chain (evaluationPane) where
 
-import Bootstrap (empty, nbsp)
+import Bootstrap (btn, btnPrimary, floatRight, nbsp)
 import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
@@ -26,8 +22,10 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML (ClassName(ClassName), HTML, button, br_, code_, div, div_, h2_, p_, pre_, slot, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes)
+import Icons (Icon(..), icon)
 import Language.PlutusTx.AssocMap as AssocMap
 import Plutus.Trace.Emulator.Types (ContractInstanceLog(..))
 import Ledger.Slot (Slot(..))
@@ -35,8 +33,8 @@ import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Lenses (_tokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
+import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
+import Types (ChildSlots, HAction(..), View(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
@@ -51,10 +49,16 @@ evaluationPane ::
   EvaluationResult ->
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
-  div_
-    [ ChainAction <$> chainView namingFn state (wrap resultRollup)
-    , br_
-    , div_
+  div
+    [ class_ $ ClassName "transactions" ]
+    [ button
+        [ classes [ btn, btnPrimary, floatRight ]
+        , onClick $ const $ Just $ ChangeView Simulations
+        ]
+        [ icon Close ]
+    , ChainAction <$> chainView namingFn state (wrap resultRollup)
+    , div
+        [ class_ $ ClassName "final-balances" ]
         [ h2_ [ text "Final Balances" ]
         , slot
             _balancesChartSlot
@@ -63,19 +67,17 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             (balancesToChartistData fundsDistribution)
             (Just <<< HandleBalancesChartMessage)
         ]
-    , br_
-    , div_
+    , div
+        [ class_ $ ClassName "logs" ]
         [ h2_ [ text "Logs" ]
         , case emulatorLog of
-            [] -> empty
-            logs ->
-              div
-                [ class_ $ ClassName "logs" ]
-                ((emulatorEventPane <<< eveEvent) <$> logs)
-        , h2_ [ text "Trace" ]
-        , div
-            [ class_ $ ClassName "trace" ]
-            [ code_ [ pre_ [ text emulatorTrace ] ] ]
+            [] -> p_ [ text "No logs to display." ]
+            logs -> pre_ ((emulatorEventPane <<< eveEvent) <$> logs)
+        ]
+    , div
+        [ class_ $ ClassName "trace" ]
+        [ h2_ [ text "Trace" ]
+        , code_ [ pre_ [ text emulatorTrace ] ]
         ]
     ]
   where
