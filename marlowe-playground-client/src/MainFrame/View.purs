@@ -1,10 +1,8 @@
 module MainFrame.View where
 
 import Auth (_GithubUser, authStatusAuthRole)
-import ConfirmUnsavedNavigation.State (render) as ConfirmUnsavedNavigation
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..), maybe)
-import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
@@ -22,16 +20,13 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _confirmUnsavedNavigation, _createGistResult, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
+import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import NewProject.State (render) as NewProject
-import Prelude (const, eq, identity, negate, unit, ($), (<<<), (<>), bind, (<#>))
-import Projects.State (render) as Projects
-import Rename.State (render) as Rename
-import SaveAs.State (render) as SaveAs
+import Prelude (bind, const, eq, negate, unit, ($), (<#>), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet

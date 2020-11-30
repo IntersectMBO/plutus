@@ -13,12 +13,13 @@ import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), div, img, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _confirmUnsavedNavigation, _newProject, _projects, _rename, _saveAs, _showModal)
 import NewProject.State (render) as NewProject
 import Prelude (const, identity, ($))
 import Projects.State (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs
+import ConfirmUnsavedNavigation.State (render) as ConfirmUnsavedNavigation
 
 modal ::
   forall m.
@@ -44,5 +45,7 @@ modal state = case state ^. _showModal of
   modalContent RenameProject = renderSubmodule _rename RenameAction Rename.render state
 
   modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
+
+  modalContent (ConfirmUnsavedNavigation intendedAction) = renderSubmodule _confirmUnsavedNavigation (ConfirmUnsavedNavigationAction intendedAction) ConfirmUnsavedNavigation.render state
 
   modalContent (GithubLogin intendedAction) = authButton intendedAction state
