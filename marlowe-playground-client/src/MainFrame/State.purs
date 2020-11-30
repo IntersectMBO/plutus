@@ -438,7 +438,7 @@ handleAction s action@(NewProjectAction (NewProject.CreateProject lang)) =
           <<< set _showModal Nothing
           {- FIXME: I don't like setting an inner state here, but I think this depends on the refactor
                    that I described on the QUESTION above -}
-
+          
           <<< set (langHasUnsavedChanges lang) false
       )
     -- FIXME: remove log
@@ -462,7 +462,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         {- FIXME: see if we can make this part of the subcomponents -}
-
+        
         <<< set (langHasUnsavedChanges lang) false
     )
   selectView $ selectLanguageView lang
@@ -657,7 +657,7 @@ handleGistAction settings PublishGist = do
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
               -- FIXME: see if we can make this part of the subcomponents
-
+              
               <<< set (langHasUnsavedChanges lang) false
           )
 
