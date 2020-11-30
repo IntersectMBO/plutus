@@ -110,8 +110,6 @@ data _≤C'_ {Φ}(Γ : Ctx Φ) : ∀{Φ'} → Ctx Φ' → Set where
  skip⋆ : ∀{Φ'}{Γ' : Ctx Φ'}{K} → (Γ ,⋆ K) ≤C' Γ' → Γ ≤C' Γ'
  skip : ∀{Φ'}{Γ' : Ctx Φ'}{A : Φ ⊢Nf⋆ *} → (Γ , A) ≤C' Γ' → Γ ≤C' Γ'
 
-postulate ≤C'to≤C : ∀{Φ Φ'}(Γ : Ctx Φ)(Γ' : Ctx Φ') → Γ ≤C' Γ' → Γ ≤C Γ'
-
 skip⋆' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'}{K} → Γ ≤C' Γ' → Γ ≤C' (Γ' ,⋆ K)
 skip⋆' base = skip⋆ base
 skip⋆' (skip⋆ p) = skip⋆ (skip⋆' p)
@@ -137,12 +135,6 @@ sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
 sig2type' : ∀{Φ Φ'} → Φ ≤C⋆' Φ' → List (Φ' ⊢Nf⋆ *) → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
 sig2type' base     As C = sig2type⇒ As C
 sig2type' (skip p) As C = Π (sig2type' p As C)
-
-btype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-btype b = let Φ ,, As ,, C = SIG b in substNf (λ ()) (sig2type' (∅≤C⋆' Φ) As C)
-
-postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-postulate btype-subst : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ substNf ρ (btype b)
 
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
 ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
