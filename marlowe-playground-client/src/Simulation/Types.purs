@@ -349,6 +349,7 @@ type State
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     , source :: Lang
+    , hasUnsavedChanges :: Boolean
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -407,6 +408,7 @@ mkState =
   , selectedHole: Nothing
   , oldContract: Nothing
   , source: Marlowe
+  , hasUnsavedChanges: false
   }
 
 isContractValid :: State -> Boolean

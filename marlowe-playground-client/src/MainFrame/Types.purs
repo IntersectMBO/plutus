@@ -7,7 +7,7 @@ import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', (^.))
+import Data.Lens (Lens', lens, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -28,6 +28,7 @@ import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
 import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename
 import Router (Route)
@@ -191,7 +192,6 @@ newtype State
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
-  , hasUnsavedChanges :: Boolean
   }
 
 derive instance newtypeState :: Newtype State _
@@ -259,8 +259,36 @@ _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 _showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
 
-_hasUnsavedChanges :: Lens' State Boolean
-_hasUnsavedChanges = _Newtype <<< prop (SProxy :: SProxy "hasUnsavedChanges")
+_hasUnsavedChanges :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
+_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
+
+_maybeHasUnsavedChanges :: forall r. Lens' (Maybe { hasUnsavedChanges :: Boolean | r }) Boolean
+_maybeHasUnsavedChanges = lens get' set'
+  where
+  get' (Just { hasUnsavedChanges }) = hasUnsavedChanges
+
+  get' _ = false
+
+  set' (Just state) hasUnsavedChanges = Just (state { hasUnsavedChanges = hasUnsavedChanges })
+
+  set' Nothing _ = Nothing
+
+langHasUnsavedChanges :: Lang -> Lens' State Boolean
+langHasUnsavedChanges = case _ of
+  Marlowe -> _simulationState <<< _hasUnsavedChanges
+  Haskell -> _haskellState <<< _hasUnsavedChanges
+  Javascript -> _javascriptState <<< _hasUnsavedChanges
+  Blockly -> _blocklyState <<< _maybeHasUnsavedChanges
+  Actus -> _actusBlocklyState <<< _maybeHasUnsavedChanges
+
+currentLang :: State -> Maybe Lang
+currentLang state = case state ^. _view of
+  HaskellEditor -> Just Haskell
+  JSEditor -> Just Javascript
+  Simulation -> Just Marlowe
+  BlocklyEditor -> Just Blockly
+  ActusBlocklyEditor -> Just Blockly
+  _ -> Nothing
 
 -- editable
 _timestamp ::

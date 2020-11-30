@@ -17,9 +17,8 @@ import Data.Lens (assign, preview, use, view, set, (^.), has)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
-import Debug.Trace (spy)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -49,7 +48,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _confirmUnsavedNavigation, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _confirmUnsavedNavigation, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -58,8 +57,8 @@ import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.State (handleAction) as NewProject
-import NewProject.Types (Action(..), State, emptyState) as NewProject
-import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, ($), (<$>), (<<<), (<>), (=<<), (==))
+import NewProject.Types (Action(..), State, _projectName, emptyState) as NewProject
+import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, when, ($), (&&), (/=), (<#>), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
 import Projects.Types (Lang(..))
@@ -92,6 +91,8 @@ initialState =
   State
     { view: Simulation {- TODO: I think we should change the type to Maybe and the initial state should be Nothing-}
     , jsCompilationResult: NotCompiled
+    {- QUESTION: Are these being used? from what I gathered blockly and actusBlockly are actual halogen components
+    so they handle their own state -}
     , blocklyState: Nothing
     , actusBlocklyState: Nothing
     , showBottomPanel: true
@@ -111,7 +112,6 @@ initialState =
     , loadGistResult: Right NotAsked
     , projectName: "Untitled Project"
     , showModal: Nothing
-    , hasUnsavedChanges: false
     }
 
 ------------------------------------------------------------
@@ -297,10 +297,6 @@ handleAction s (HaskellAction action) = do
     HE.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Haskell
       selectView BlocklyEditor
-    (HE.HandleEditorMessage ev) -> do
-      -- FIXME: remove
-      void $ pure $ spy "MainFrame.handleAction: Haskell editor message" ev
-      assign _hasUnsavedChanges true
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -314,11 +310,6 @@ handleAction s (JavascriptAction action) = do
     JS.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Javascript
       selectView BlocklyEditor
-    (JS.HandleEditorMessage ev) -> do
-      -- FIXME: right now creating a JS project is always set as Unsaved because we have multiple events
-      -- after the actual creation
-      void $ pure $ spy "MainFrame.handleAction: Javascript editor message" ev
-      assign _hasUnsavedChanges true
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -331,11 +322,6 @@ handleAction settings (SimulationAction action) = do
     ST.EditHaskell -> selectView HaskellEditor
     ST.EditJavascript -> selectView JSEditor
     ST.EditActus -> selectView ActusBlocklyEditor
-    (ST.HandleEditorMessage ev) -> do
-      -- FIXME: right now creating a Marlowe project is always set as Unsaved because we have multiple events
-      -- after the actual creation
-      void $ pure $ spy "MainFrame.handleAction: Marlowe editor message" ev
-      assign _hasUnsavedChanges true
     _ -> pure unit
 
 handleAction _ SendBlocklyToSimulator = void $ query _blocklySlot unit (Blockly.GetCodeQuery unit)
@@ -369,10 +355,7 @@ handleAction settings (HandleBlocklyMessage (CurrentCode code)) = do
   selectView Simulation
   void $ toSimulation $ Simulation.handleAction settings (ST.SetEditorText code)
 
-handleAction settings (HandleBlocklyMessage CodeChange) = do
-  -- FIXME: remove
-  liftEffect $ Console.log "unsaved changes because Blockly event"
-  assign _hasUnsavedChanges true
+handleAction settings (HandleBlocklyMessage _) = pure unit
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
@@ -409,7 +392,6 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       modify_
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
-            <<< set _hasUnsavedChanges false
         )
     Left error -> do
       assign _createGistResult $ Failure error
@@ -429,6 +411,9 @@ handleAction s action@(NewProjectAction (NewProject.CreateProject lang)) =
       )
     liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
     -- reset all the editors
+    -- QUESTION: Why is the reset global for all editors and the set initial state
+    -- per language? Shouldn't all this logic live inside each language handler under a
+    -- Init/NewProject action?
     toHaskellEditor $ HaskellEditor.editorSetValue mempty
     liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
     toJavascriptEditor $ JavascriptEditor.editorSetValue mempty
@@ -454,9 +439,12 @@ handleAction s action@(NewProjectAction (NewProject.CreateProject lang)) =
     modify_
       ( set (_simulationState <<< ST._source) lang
           <<< set _showModal Nothing
-          <<< set _hasUnsavedChanges false
+          {- FIXME: I don't like setting an inner state here, but I think this depends on the refactor
+                   that I described on the QUESTION above -}
+
+          <<< set (langHasUnsavedChanges lang) false
       )
-    -- FIXME: remove
+    -- FIXME: remove log
     liftEffect $ Console.log $ "New project _hasUnsavedChanges false " <> show lang
 
 handleAction s (NewProjectAction action) = toNewProject $ NewProject.handleAction s action
@@ -476,7 +464,12 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
-  assign _showModal Nothing
+  modify_
+    ( set _showModal Nothing
+        {- FIXME: see if we can make this part of the subcomponents -}
+
+        <<< set (langHasUnsavedChanges lang) false
+    )
   selectView $ selectLanguageView lang
 
 handleAction s (RenameAction action@Rename.SaveProject) = do
@@ -502,10 +495,7 @@ handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
   case res of
     Just gist -> do
       liftEffect $ LocalStorage.setItem gistIdLocalStorageKey (gist ^. (gistId <<< _GistId))
-      modify_
-        ( set _showModal Nothing
-            <<< set _hasUnsavedChanges false
-        )
+      assign _showModal Nothing
     Nothing ->
       modify_
         ( set (_saveAs <<< SaveAs._error) (Just "Could not save project")
@@ -629,6 +619,7 @@ checkAuthStatus settings = do
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
 
+------------------------------------------------------------
 handleGistAction ::
   forall m.
   MonadAff m =>
@@ -665,10 +656,14 @@ handleGistAction settings PublishGist = do
                 Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
+        state <- H.get
+        lang <- hoistMaybe $ currentLang state
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
-              <<< set _hasUnsavedChanges false
+              -- FIXME: see if we can make this part of the subcomponents
+
+              <<< set (langHasUnsavedChanges lang) false
           )
 
 handleGistAction _ (SetGistUrl url) = do
@@ -692,10 +687,14 @@ handleGistAction settings LoadGist = do
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
           lift $ loadGist gist
           pure aGist
-  modify_
-    ( set _loadGistResult res
-        <<< set _hasUnsavedChanges false
-    )
+  assign _loadGistResult res
+  -- FIXME: See if we can put this logic in the submodules
+  void
+    $ runMaybeT do
+        state <- H.get
+        lang <- hoistMaybe $ currentLang state
+        assign (langHasUnsavedChanges lang) false
+  -- FIXME: remove log
   liftEffect $ Console.log "Gist loaded, unsaved changes should be false"
   where
   toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
@@ -745,24 +744,17 @@ preventAccidentalNavigation ::
   HalogenM State Action ChildSlots Void m Unit ->
   HalogenM State Action ChildSlots Void m Unit
 preventAccidentalNavigation settings intendedAction guardedEffect = do
+  state <- H.get
   let
-    isEditorView = case _ of
-      HaskellEditor -> true
-      JSEditor -> true
-      BlocklyEditor -> true
-      ActusBlocklyEditor -> true
-      -- TODO: currently simulation refers to the Marlowe editor.
-      -- Once we separate the simulation from the editor, we need to revisit this
-      Simulation -> true
-      _ -> false
-  currentView <- use _view
+    hasUnsavedChanges =
+      maybe false identity do
+        lens <- currentLang state <#> langHasUnsavedChanges
+        pure $ state ^. lens
   wantsToSaveProject <- use (_confirmUnsavedNavigation <<< _wantsToSaveProject)
-  hasUnsavedChanges <- use _hasUnsavedChanges
   -- FIXME remove console.log
-  liftEffect $ Console.log $ "preventAccidentalNavigation: currentView " <> show currentView
   liftEffect $ Console.log $ "preventAccidentalNavigation: wantsToSaveProject " <> show wantsToSaveProject
   liftEffect $ Console.log $ "preventAccidentalNavigation: hasUnsavedChanges " <> show hasUnsavedChanges
-  if isEditorView currentView && wantsToSaveProject && hasUnsavedChanges then do
+  if wantsToSaveProject && hasUnsavedChanges then do
     liftEffect $ Console.log "Dont forget to save "
     handleAction settings $ OpenModal $ ConfirmUnsavedNavigation intendedAction
   else do

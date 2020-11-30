@@ -5,17 +5,18 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
-import Data.Lens (assign, use, view)
+import Data.Lens (assign, set, use, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, liftEffect, query)
+import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
 import LocalStorage as LocalStorage
+import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
@@ -25,7 +26,6 @@ import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (WebData, _result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Webghc.Server (CompileRequest(..))
 
 handleAction ::
@@ -36,7 +36,10 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
-  assign _compilationResult NotAsked
+  modify_
+    ( set _compilationResult NotAsked
+        <<< set _hasUnsavedChanges true
+    )
 
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings

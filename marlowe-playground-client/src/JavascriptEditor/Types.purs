@@ -71,6 +71,7 @@ type State
     , compilationResult :: CompilationState
     , showBottomPanel :: Boolean
     , decorationIds :: Maybe DecorationIds
+    , hasUnsavedChanges :: Boolean
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -91,4 +92,5 @@ initialState =
   , compilationResult: NotCompiled
   , showBottomPanel: true
   , decorationIds: Nothing
+  , hasUnsavedChanges: false
   }

@@ -5,7 +5,7 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, to, use, view)
+import Data.Lens (assign, set, to, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Map as Map
@@ -14,7 +14,7 @@ import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Examples.JS.Contracts as JSE
-import Halogen (Component, HalogenM, gets, liftEffect, query)
+import Halogen (Component, HalogenM, gets, liftEffect, modify_, query)
 import Halogen.Blockly as Blockly
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
@@ -24,7 +24,7 @@ import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges, _jsEditorSlot)
 import Marlowe (SPParams_)
 import Monaco (IRange, getModel, isError, setValue)
 import Servant.PureScript.Settings (SPSettings_)
@@ -57,12 +57,18 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
           if ((mContent == Nothing) || (mContent == Just prunedText)) then
             -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
-            assign _compilationResult NotCompiled
+            modify_
+              ( set _compilationResult NotCompiled
+                  <<< set _hasUnsavedChanges true
+              )
           else
             if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
               ( do
                   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
-                  assign _compilationResult NotCompiled
+                  modify_
+                    ( set _compilationResult NotCompiled
+                        <<< set _hasUnsavedChanges true
+                    )
               )
             else
               editorSetValue (fromMaybe "" mContent)

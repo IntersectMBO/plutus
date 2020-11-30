@@ -41,6 +41,7 @@ type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
+    , hasUnsavedChanges :: Boolean
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -71,4 +72,5 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , showBottomPanel: true
+  , hasUnsavedChanges: false
   }
