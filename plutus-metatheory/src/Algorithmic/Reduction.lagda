@@ -123,11 +123,6 @@ convVal refl v = v
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool → Γ ⊢ con bool
-VERIFYSIG (just false) = con (bool false)
-VERIFYSIG (just true)  = con (bool true)
-VERIFYSIG nothing      = error (con bool)
-
 IBUILTIN : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
       (σ : SubNf Φ ∅)
@@ -138,10 +133,18 @@ IBUILTIN : (b : Builtin)
 IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i + j)))
 IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i - j)))
 IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i ** j)))
-IBUILTIN divideInteger σ tel = _ ,, inj₂ E-error
-IBUILTIN quotientInteger σ tel = _ ,, inj₂ E-error
-IBUILTIN remainderInteger σ tel = _ ,, inj₂ E-error
-IBUILTIN modInteger σ tel = _ ,, inj₂ E-error
+IBUILTIN divideInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = _ ,, inj₂ E-error -- divide by zero
+... | yes p = _ ,, inj₁ (V-con (integer (div i j)))
+IBUILTIN quotientInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = _ ,, inj₂ E-error -- divide by zero
+... | yes p = _ ,, inj₁ (V-con (integer (quot i j)))
+IBUILTIN remainderInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = _ ,, inj₂ E-error -- divide by zero
+... | yes p = _ ,, inj₁ (V-con (integer (rem i j)))
+IBUILTIN modInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = _ ,, inj₂ E-error -- divide by zero
+... | yes p = _ ,, inj₁ (V-con (integer (mod i j)))
 IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i <? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
@@ -165,7 +168,7 @@ IBUILTIN sha2-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (byt
 IBUILTIN sha3-256 σ (tt ,, _ ,, V-con (bytestring b)) = _ ,, inj₁ (V-con (bytestring (SHA3-256 b)))
 IBUILTIN verifySignature σ (((tt ,, _ ,, V-con (bytestring k)) ,, _ ,, V-con (bytestring d)) ,, _ ,, V-con (bytestring c)) with verifySig k d c
 ... | just b = _ ,, inj₁ (V-con (bool b))
-... | nothing = _ ,, inj₂ E-error
+... | nothing = _ ,, inj₂ E-error -- not sure what this is for
 IBUILTIN equalsByteString σ ((tt ,, _ ,, V-con (bytestring b)) ,, _ ,, V-con (bytestring b')) = _ ,, inj₁ (V-con (bool (equals b b')))
 IBUILTIN ifThenElse σ ((((tt ,, A) ,, _ ,, V-con (bool false)) ,, t) ,, f) =
   _ ,, inj₁ (proj₂ f)

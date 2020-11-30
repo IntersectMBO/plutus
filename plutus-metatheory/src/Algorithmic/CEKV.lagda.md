@@ -14,6 +14,8 @@ open import Data.Product using (_×_;Σ) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
+open import Relation.Nullary
+open import Relation.Nullary.Decidable
 import Debug.Trace as Debug
 open import Utils
 
@@ -94,6 +96,9 @@ lookup (S x) (ρ ∷ v) = lookup x ρ
 convValue : ∀{A A'}(p : A ≡ A') → Value A → Value A'
 convValue refl v = v
 
+data Error : ∅ ⊢Nf⋆ * → Set where
+  -- an actual error term
+  E-error : (A : ∅ ⊢Nf⋆ *) → Error A
 
 discharge : ∀{A} → Value A → ∅ ⊢ A
 
@@ -253,51 +258,58 @@ ival charToString = V-I⇒ charToString {Γ = proj₁ (proj₂ (ISIG charToStrin
 ival append = V-I⇒ append {Γ = proj₁ (proj₂ (ISIG append))}{C = proj₂ (proj₂ (ISIG append))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin append)
 ival trace = V-I⇒ trace {Γ = proj₁ (proj₂ (ISIG trace))}{C = proj₂ (proj₂ (ISIG trace))} refl refl refl (λ()) base tt (ibuiltin trace)
 
-postulate wibble : {A : Set} → A
 
 IBUILTIN : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
       (σ : SubNf Φ ∅)
     → (tel : ITel b Γ σ)
       -----------------------------
-    → Value (substNf σ C)
+    → Value (substNf σ C) ⊎ Error (substNf σ C)
 IBUILTIN addInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  V-con (integer (i + j))
+  inj₁ (V-con (integer (i + j)))
 IBUILTIN subtractInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  V-con (integer (i - j))
+  inj₁ (V-con (integer (i - j)))
 IBUILTIN multiplyInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  V-con (integer (i ** j))
-IBUILTIN divideInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
-IBUILTIN quotientInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
-IBUILTIN remainderInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
-IBUILTIN modInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) = wibble
+  inj₁ (V-con (integer (i ** j)))
+IBUILTIN divideInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = inj₂ (E-error (con integer))-- divide by zero
+... | yes p = inj₁ (V-con (integer (div i j)))
+IBUILTIN quotientInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
+... | yes p = inj₁ (V-con (integer (quot i j)))
+IBUILTIN remainderInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
+... | yes p = inj₁ (V-con (integer (rem i j)))
+IBUILTIN modInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
+... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
+... | yes p = inj₁ (V-con (integer (mod i j)))
 IBUILTIN lessThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  decIf (i <? j) (V-con (bool true)) (V-con (bool false))
+  inj₁ (decIf (i <? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN lessThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  decIf (i ≤? j) (V-con (bool true)) (V-con (bool false))
+  inj₁ (decIf (i ≤? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN greaterThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  decIf (i Builtin.Constant.Type.>? j) (V-con (bool true)) (V-con (bool false))
+  inj₁ (decIf (i Builtin.Constant.Type.>? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN greaterThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  decIf (i Builtin.Constant.Type.≥? j) (V-con (bool true)) (V-con (bool false))
+  inj₁ (decIf (i Builtin.Constant.Type.≥? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN equalsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  decIf (i ≟ j) (V-con (bool true)) (V-con (bool false))
+  inj₁ (decIf (i ≟ j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN concatenate σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) =
-  V-con (bytestring (concat b b'))
-IBUILTIN takeByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (take i b))
-IBUILTIN dropByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = V-con (bytestring (drop i b))
-IBUILTIN sha2-256 σ (tt ,, V-con (bytestring b)) = V-con (bytestring (SHA2-256 b))
-IBUILTIN sha3-256 σ (tt ,, V-con (bytestring b)) = V-con (bytestring (SHA3-256 b))
+  inj₁ (V-con (bytestring (concat b b')))
+IBUILTIN takeByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (take i b)))
+IBUILTIN dropByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (drop i b)))
+IBUILTIN sha2-256 σ (tt ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (SHA2-256 b)))
+IBUILTIN sha3-256 σ (tt ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (SHA3-256 b)))
 IBUILTIN verifySignature σ ((((tt ,, V-con (bytestring k)) ,, V-con (bytestring d))) ,, V-con (bytestring c)) with verifySig k d c
-... | just false = V-con (bool false)
-... | just true = V-con (bool true)
-... | nothing = wibble
-IBUILTIN equalsByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = V-con (bool (equals b b'))
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool true)) ,, t) ,, f) = t
-IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool false)) ,, t) ,, f) = f
+... | just false = inj₁ (V-con (bool false))
+... | just true = inj₁ (V-con (bool true))
+... | nothing = inj₂ (E-error (con bool)) -- not sure what this is for
+IBUILTIN equalsByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = inj₁ (V-con (bool (equals b b')))
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool true)) ,, t) ,, f) = inj₁ t
+IBUILTIN ifThenElse σ ((((tt ,, A) ,, V-con (bool false)) ,, t) ,, f) = inj₁ f
 IBUILTIN charToString σ (tt ,, V-con (char c)) =
-  V-con (string (primStringFromList L.[ c ]))
-IBUILTIN append σ ((tt ,, V-con (string s)) ,, V-con (string s')) = V-con (string (primStringAppend s s'))
-IBUILTIN trace σ _ = V-con unit
+  inj₁ (V-con (string (primStringFromList L.[ c ])))
+IBUILTIN append σ ((tt ,, V-con (string s)) ,, V-con (string s')) = inj₁ (V-con (string (primStringAppend s s')))
+IBUILTIN trace σ _ = inj₁ (V-con unit)
 
 IBUILTIN' : (b : Builtin)
     → let Φ ,, Γ ,, C = ISIG b in
@@ -309,7 +321,7 @@ IBUILTIN' : (b : Builtin)
     → (C' : Φ' ⊢Nf⋆ *)
     → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
       -----------------------------
-    → Value (substNf σ C')
+    → Value (substNf σ C') ⊎ Error (substNf σ C')
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
 
@@ -331,14 +343,17 @@ step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-step ((s , (V-I⇒ b p q r σ base vs t ·-)) ◅ v) =
-  s ◅ IBUILTIN' b p q σ (vs ,, v) _ r
+step ((s , (V-I⇒ b p q r σ base vs t ·-)) ◅ v) with IBUILTIN' b p q σ (vs ,, v) _ r
+... | inj₁ v' = s ◅ v'
+... | inj₂ (E-error B) = ◆ B
+  
 step ((s , (V-I⇒ b p q r σ (skip⋆ p') vs t ·-)) ◅ v) =
   s ◅ V-IΠ b p q r σ p' (vs ,, v) (t · discharge v)
 step ((s , (V-I⇒ b p q r σ (skip p') vs t ·-)) ◅ v) =
   s ◅ V-I⇒ b p q r σ p' (vs ,, v) (t · discharge v)
-step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs t) =
-  s ◅ convValue (substNf-cons-[]Nf C) (IBUILTIN' b p q (substNf-cons σ A) (vs ,, A) _ r) 
+step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ base vs t) with IBUILTIN' b p q (substNf-cons σ A) (vs ,, A) _ r
+... | inj₁ v' = s ◅ convValue (substNf-cons-[]Nf C) v'
+... | inj₂ (E-error B) = ◆ B
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip⋆ p') vs t) = s ◅ convValue (sym (Πlem p' A C σ)) (V-IΠ b {C = C} p q r (substNf-cons σ A) p' (vs ,, A) (conv⊢ refl (Πlem p' A C σ) (t ·⋆ A)))
 step ((s , -·⋆ A) ◅ V-IΠ b {C = C} p q r σ (skip p') vs t) = s ◅ convValue (sym (⇒lem p' σ C)) (V-I⇒ b p q r (substNf-cons σ A) p' (vs ,, A) (conv⊢ refl (⇒lem p' σ C) (t ·⋆ A) ))
 step (□ V) = □ V
