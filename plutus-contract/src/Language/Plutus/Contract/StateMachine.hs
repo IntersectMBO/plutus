@@ -109,6 +109,7 @@ data SMContractError s i =
     | NonZeroValueAllocatedInFinalState
     | ChooserError Text
     | SMCContractError ContractError
+    | NoOnChainState
     deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -161,7 +162,9 @@ getOnChainState ::
 getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
-    either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
+    case states of
+        [] -> throwError NoOnChainState
+        _  -> either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
 
 data WaitingResult a
@@ -198,8 +201,9 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
                 then go (succ sl)
                 else pure txns
 
+    initial <- currentSlot
+    txns <- go initial
     slot <- currentSlot
-    txns <- go slot
     let states = txns >>= getStates scInstance . outputsMap
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
