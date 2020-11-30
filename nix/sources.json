@@ -144,10 +144,10 @@
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",
         "repo": "thorp",
-        "rev": "42634f9c09664ff9d5981fbd1212fe3b9b419afc",
-        "sha256": "0bxh4b3kkpm5ls3v3329gd3zljzfph5315z8plvi2ac8y2y10bs6",
+        "rev": "61ef2a6ce5b8f585a8d9bc198616dadc749dc2a4",
+        "sha256": "13j7vsnp95pnaqgk64zdjyl17hp33zq94a73kiy2ln3hig2ma794",
         "type": "tarball",
-        "url": "https://github.com/kemitix/thorp/archive/42634f9c09664ff9d5981fbd1212fe3b9b419afc.tar.gz",
+        "url": "https://github.com/kemitix/thorp/archive/61ef2a6ce5b8f585a8d9bc198616dadc749dc2a4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
