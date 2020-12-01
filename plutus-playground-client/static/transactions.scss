@@ -12,9 +12,17 @@ $chart-grid-stroke: $gray-500;
     box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, .5);
     padding: 1rem;
 
-    h2 {
-        font-size: 1.5em;
-        margin-bottom: .5rem;
+    .transactions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: .5rem;
+        border-bottom: 1px solid #d0cfcf;
+        margin-bottom: 1rem;
+
+        h2 {
+            margin-bottom: 0;
+        }
     }
 
     .chain,
@@ -36,7 +44,7 @@ $chart-grid-stroke: $gray-500;
         $entry-arrow-width: 15px,
         $entry-arrow-color: $blue,
     
-        $entry-color: $dark,
+        $entry-color: $white,
         $entry-detail-color-fee: $pink,
         $entry-detail-color-not-found: $red,
         $entry-detail-color-forge: $cyan,
@@ -45,8 +53,19 @@ $chart-grid-stroke: $gray-500;
     );
     
     .chain {
+        h2 {
+            // temporary: make h2 look like h3
+            // (rather than change the view in web-common)
+            @extend .h3;
+        }
+
         .card {
             margin-bottom: .5rem;
+            border-radius: 0;
+
+            .card-header:first-child {
+                border-radius: 0;
+            }
 
             &.clickable {
                 cursor: pointer;

@@ -81,9 +81,22 @@ body {
                 position: absolute;
                 z-index: 20;
                 width: 100%;
-                top: 34px;
+                top: 38px;
+
+                &::after { // pointer on the top of the error box
+                    content: " ";
+                    position: absolute;
+                    bottom: 100%;
+                    left: 25%;
+                    margin-left: -10px;
+                    border-width: 10px;
+                    border-style: solid;
+                    border-color: transparent transparent lighten($red, 40%) transparent;
+                }
 
                 .alert {
+                    border: 0;
+                    background: lighten($red, 40%);
                     font-size: small;
                     padding: .5em;
                     margin: 0;

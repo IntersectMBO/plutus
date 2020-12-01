@@ -7,7 +7,7 @@ module Simulation
 
 import Types
 import Action (actionsPane)
-import Bootstrap (active, alertDanger_, btn, btnDanger, btnPrimary, btnSuccess, btnWarning, nav, navItem, navLink)
+import Bootstrap (active, alertDanger_, btn, btnDanger, btnPrimary, btnSuccess, btnWarning, floatRight, nav, navItem, navLink)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -78,19 +78,15 @@ simulationsPane initialValue actionDrag endpointSignatures simulations evaluatio
         , div
             [ class_ $ ClassName "simulation" ]
             [ div
-                [ class_ $ ClassName "simulation-header" ]
-                [ h1_ [ text simulationName ]
-                , div
-                    [ class_ $ ClassName "simulation-controls" ]
-                    [ div
-                        [ class_ $ ClassName "simulation-controls-buttons" ]
-                        [ evaluateActionsButton evaluationResult simulationActions
-                        , viewTransactionsButton evaluationResult
-                        ]
-                    , div
-                        [ class_ $ ClassName "simulation-controls-info" ]
-                        [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
+                [ classes [ ClassName "simulation-controls", floatRight ] ]
+                [ div
+                    [ class_ $ ClassName "simulation-controls-buttons" ]
+                    [ evaluateActionsButton evaluationResult simulationActions
+                    , viewTransactionsButton evaluationResult
                     ]
+                , div
+                    [ class_ $ ClassName "simulation-controls-info" ]
+                    [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
                 ]
             , walletsPane endpointSignatures initialValue simulationWallets
             , actionsPane isValidWallet actionDrag simulationActions evaluationResult

@@ -22,7 +22,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, button, br_, code_, div, div_, h2_, p_, pre_, slot, text)
+import Halogen.HTML (ClassName(ClassName), HTML, button, br_, code_, div, div_, h2_, h3_, p_, pre_, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
@@ -51,15 +51,19 @@ evaluationPane ::
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div
     [ class_ $ ClassName "transactions" ]
-    [ button
-        [ classes [ btn, btnPrimary, floatRight ]
-        , onClick $ const $ Just $ ChangeView Simulations
+    [ div
+        [ class_ $ ClassName "transactions-header" ]
+        [ h2_ [ text "Transactions" ]
+        , button
+            [ classes [ btn, btnPrimary ]
+            , onClick $ const $ Just $ ChangeView Simulations
+            ]
+            [ icon Close ]
         ]
-        [ icon Close ]
     , ChainAction <$> chainView namingFn state (wrap resultRollup)
     , div
         [ class_ $ ClassName "final-balances" ]
-        [ h2_ [ text "Final Balances" ]
+        [ h3_ [ text "Final Balances" ]
         , slot
             _balancesChartSlot
             unit
@@ -69,14 +73,14 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
         ]
     , div
         [ class_ $ ClassName "logs" ]
-        [ h2_ [ text "Logs" ]
+        [ h3_ [ text "Logs" ]
         , case emulatorLog of
             [] -> p_ [ text "No logs to display." ]
             logs -> pre_ ((emulatorEventPane <<< eveEvent) <$> logs)
         ]
     , div
         [ class_ $ ClassName "trace" ]
-        [ h2_ [ text "Trace" ]
+        [ h3_ [ text "Trace" ]
         , code_ [ pre_ [ text emulatorTrace ] ]
         ]
     ]
