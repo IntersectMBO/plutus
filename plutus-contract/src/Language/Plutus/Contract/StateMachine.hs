@@ -150,21 +150,24 @@ mkStateMachineClient inst =
         , scChooser  = defaultChooser
         }
 
--- | Get the current on-chain state of the state machine instance. Throws an
---   @SMContractError@ if the number of outputs at the machine address
---   is zero, or greater than one.
+{-| Get the current on-chain state of the state machine instance.
+    Return Nothing if there is no state on chain.
+    Throws an @SMContractError@ if the number of outputs at the machine address is greater than one.
+-}
 getOnChainState ::
     ( AsSMContractError e state i
     , PlutusTx.IsData state
     , HasUtxoAt schema)
     => StateMachineClient state i
-    -> Contract schema e (OnChainState state i, UtxoMap)
+    -> Contract schema e (Maybe (OnChainState state i, UtxoMap))
 getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
     case states of
-        [] -> throwError NoOnChainState
-        _  -> either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
+        [] -> pure Nothing
+        _  -> case scChooser states of
+                Left err    -> throwing _SMContractError err
+                Right state -> pure $ Just (state, utxo)
 
 
 data WaitingResult a
@@ -203,7 +206,7 @@ waitForUpdateUntil StateMachineClient{scInstance, scChooser} timeoutSlot = do
 
     initial <- currentSlot
     txns <- go initial
-    slot <- currentSlot
+    slot <- currentSlot -- current slot, can be after timeout
     let states = txns >>= getStates scInstance . outputsMap
     case states of
         [] | slot < timeoutSlot -> pure ContractEnded
@@ -333,7 +336,8 @@ mkStep ::
     -> Contract schema e (StateMachineTransition state input)
 mkStep client@StateMachineClient{scInstance} input = do
     let StateMachineInstance{stateMachine=StateMachine{smTransition}, validatorInstance} = scInstance
-    (onChainState, utxo) <- getOnChainState client
+    maybeState <- getOnChainState client
+    (onChainState, utxo) <- maybe (throwing_ _NoOnChainState) pure maybeState
     let (TypedScriptTxOut{tyTxOutData=currentState, tyTxOutTxOut}, txOutRef) = onChainState
         oldState = State{stateData = currentState, stateValue = Ledger.txOutValue tyTxOutTxOut}
         inputConstraints = [InputConstraint{icRedeemer=input, icTxOutRef = Typed.tyTxOutRefRef txOutRef }]

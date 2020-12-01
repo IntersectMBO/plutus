@@ -108,18 +108,15 @@ marlowePlutusContract = do
     auto = do
         (params, party, untilSlot) <- endpoint @"auto" @(MarloweParams, Party, Slot) @MarloweSchema
         let theClient = mkMarloweClient params
-        let getOnChainMarloweData :: Contract MarloweSchema e MarloweData
-            getOnChainMarloweData = do
-                ((st, _), _) <- SM.getOnChainState theClient
-                pure $ tyTxOutData st
         let continueWith :: MarloweData -> Contract MarloweSchema e ()
             continueWith md@MarloweData{marloweContract} = do
                 if canAutoExecuteContractForParty party marloweContract
                 then do autoExecuteContract theClient party md
                 else do apply `select` wait `select` auto
 
-        catching _SMContractError (continueWith =<< getOnChainMarloweData) $ \case
-            SM.NoOnChainState -> do
+        maybeState <- SM.getOnChainState theClient
+        case maybeState of
+            Nothing -> do
                 wr <- SM.waitForUpdateUntil theClient untilSlot
                 case wr of
                     ContractEnded -> do
@@ -129,9 +126,9 @@ marlowePlutusContract = do
                         logInfo @String $ "Contract Timeout for party" <> show party
                         pure ()
                     WaitingResult marloweData -> continueWith marloweData
-            error -> do
-                logError @String $ show error
-                apply `select` wait `select` auto
+            Just ((st, _), _) -> do
+                let marloweData = tyTxOutData st
+                continueWith marloweData
 
 
     autoExecuteContract :: StateMachineClient MarloweData MarloweInput
