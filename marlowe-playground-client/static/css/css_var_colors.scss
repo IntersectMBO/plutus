@@ -15,6 +15,16 @@
   --text-color-light: rgba(51, 51, 51, 0.6);
   --text-color-inactive: rgba(51, 51, 51, 0.4);
   --layout-accent-color: rgba(51, 51, 51, 0.2);
-  --gradient-bg: linear-gradient(to right, #832dc4, #1746a0);
-  --btn-hover-gradient-bg: linear-gradient(to left, #832dc4, #1746a0);
+  --gradient-bg: linear-gradient(to right, #832dc4, #1746a0); // FIXME: this should not be used
+  --btn-hover-gradient-bg: linear-gradient(to left, #832dc4, #1746a0); // FIXME: this should not be used
+  // These colors are taken from this design
+  // https://app.zeplin.io/project/5e459242407814b27aa5fc98/screen/5fc65512c0a7dd9cb591c9df
+  --btn-primary-color: #1746a0;
+  --btn-primary-color-hover: #3760ad;
+  --btn-primary-color-active: #123880;
+  --btn-secondary-color: white;
+  --btn-secondary-color-hover: rgba(23, 70, 160, 0.1);
+  --btn-secondary-color-active: rgba(23, 70, 160, 0.2);
+
+
 }

@@ -1,17 +1,19 @@
 module ConfirmUnsavedNavigation.State where
 
 import Halogen.HTML
+import Bootstrap (btnSecondary, btn)
 import ConfirmUnsavedNavigation.Types (Action(..), State, _wantsToSaveProject)
 import Data.Lens (assign)
 import Data.Maybe (Maybe(..))
+import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class.Console (log)
-import Halogen (HalogenM, liftEffect)
+import Halogen (HalogenM)
+import Halogen.Classes (modalContent, spaceRight)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (classes)
+import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import Prelude (Unit, Void, const, ($), discard)
+import Prelude (Unit, Void, const, ($))
 import Servant.PureScript.Settings (SPSettings_)
 
 handleAction ::
@@ -20,12 +22,12 @@ handleAction ::
   SPSettings_ SPParams_ ->
   Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings DontSaveProject = do
-  liftEffect $ log $ "setting wants to save to false"
-  assign _wantsToSaveProject false
+  -- FIXME: remove log, and if possible the state
+  assign _wantsToSaveProject $ spy "ConfirmUnsavedNavigation.handleAction DontSaveProject" false
 
 handleAction settings _ = do
-  liftEffect $ log $ "setting wants to save to true"
-  assign _wantsToSaveProject true
+  -- FIXME: remove log, and if possible the state
+  assign _wantsToSaveProject $ spy "ConfirmUnsavedNavigation.handleAction _" true
 
 render ::
   forall m.
@@ -33,11 +35,18 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div [ classes [ ClassName "modal-content" ] ]
+  div [ classes [ modalContent, ClassName "confirm-unsaved-navigation" ] ]
     [ p_ [ text "Clicking on the Marlowe logo will take you out of the editor and return you to the home page." ]
     , p_ [ text "Unsaved changes will be lost." ]
+    {- FIXME: add the project name instead of untitled-}
     , p_ [ text "Do you want to save changes to 'Untitled'?" ]
-    , button [ onClick $ const $ Just Cancel ] [ text "Cancel" ]
-    , button [ onClick $ const $ Just DontSaveProject ] [ text "Don't Save" ]
-    , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]
+    , div [ classes [ ClassName "actions" ] ]
+        [ div_
+            [ button [ classes [ btn, btnSecondary ], onClick $ const $ Just Cancel ] [ text "CANCEL" ]
+            ]
+        , div_
+            [ button [ classes [ btn, btnSecondary, spaceRight ], onClick $ const $ Just DontSaveProject ] [ text "DON'T SAVE" ]
+            , button [ class_ (btn), onClick $ const $ Just SaveProject ] [ text "SAVE" ]
+            ]
+        ]
     ]

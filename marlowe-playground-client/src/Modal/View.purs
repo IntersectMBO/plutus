@@ -15,7 +15,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _confirmUnsavedNavigation, _newProject, _projects, _rename, _saveAs, _showModal)
 import NewProject.State (render) as NewProject
-import Prelude (const, identity, ($))
+import Prelude (const, identity, ($), (<>))
 import Projects.State (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs
@@ -30,22 +30,28 @@ modal state = case state ^. _showModal of
   Just view ->
     div [ classes [ ClassName "overlay" ] ]
       [ div [ classes [ ClassName "modal" ] ]
-          [ div [ class_ (ClassName "modal-close") ]
-              [ img [ src closeModal, onClick $ const $ Just CloseModal ] ]
-          , modalContent view
-          ]
+          ( closeButton view [ modalContent view ]
+          )
       ]
   where
-  modalContent NewProject = renderSubmodule _newProject NewProjectAction NewProject.render state
+  modalContent = case _ of
+    NewProject -> renderSubmodule _newProject NewProjectAction NewProject.render state
+    OpenProject -> renderSubmodule _projects ProjectsAction Projects.render state
+    OpenDemo -> renderSubmodule identity DemosAction Demos.render state
+    RenameProject -> renderSubmodule _rename RenameAction Rename.render state
+    SaveProjectAs -> renderSubmodule _saveAs SaveAsAction SaveAs.render state
+    (ConfirmUnsavedNavigation intendedAction) -> renderSubmodule _confirmUnsavedNavigation (ConfirmUnsavedNavigationAction intendedAction) ConfirmUnsavedNavigation.render state
+    (GithubLogin intendedAction) -> authButton intendedAction state
 
-  modalContent OpenProject = renderSubmodule _projects ProjectsAction Projects.render state
+  showCloseButton = case _ of
+    (ConfirmUnsavedNavigation _) -> false
+    _ -> true
 
-  modalContent OpenDemo = renderSubmodule identity DemosAction Demos.render state
-
-  modalContent RenameProject = renderSubmodule _rename RenameAction Rename.render state
-
-  modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
-
-  modalContent (ConfirmUnsavedNavigation intendedAction) = renderSubmodule _confirmUnsavedNavigation (ConfirmUnsavedNavigationAction intendedAction) ConfirmUnsavedNavigation.render state
-
-  modalContent (GithubLogin intendedAction) = authButton intendedAction state
+  closeButton view childs =
+    if showCloseButton view then
+      [ div [ class_ (ClassName "modal-close") ]
+          [ img [ src closeModal, onClick $ const $ Just CloseModal ] ]
+      ]
+        <> childs
+    else
+      childs
