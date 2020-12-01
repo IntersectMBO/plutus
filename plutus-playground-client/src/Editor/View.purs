@@ -8,7 +8,7 @@ module Editor.View
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
+import Bootstrap (btn, btnDanger, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, hidden, listGroupItem_, listGroup_, nbsp, floatRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, button, code_, div, div_, option, pre, pre_, select, slot, small, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, button, code_, div, div_, h4_, option, pre, pre_, select, slot, small, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
@@ -115,16 +115,43 @@ editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
 editorFeedback ::
   forall m a.
   MonadAff m =>
+  State ->
   CompilationState a ->
   ComponentHTML Action ChildSlots m
-editorFeedback state =
+editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
   div
-    [ class_ $ ClassName "editor-feedback" ]
-    [ errorList
-    , warningList
+    ( case compilationState of
+        Success (Left error) -> [ classes feedbackPaneClasses ]
+        Failure error -> [ classes feedbackPaneClasses ]
+        _ -> [ classes $ feedbackPaneClasses <> [ hidden ] ]
+    )
+    [ div
+        [ class_ $ ClassName "editor-feedback-header" ]
+        [ h4_ [ text "Compilation Result" ]
+        , button
+            [ onClick $ const $ Just ToggleFeedbackPane ]
+            [ feedbackButtonIcon ]
+        ]
+    , div
+        [ class_ $ ClassName "editor-feedback-body" ]
+        [ errorList
+        , warningList
+        ]
     ]
   where
-  errorList = case state of
+  feedbackPaneClasses =
+    if feedbackPaneMinimised then
+      [ ClassName "editor-feedback", ClassName "minimised" ]
+    else
+      [ ClassName "editor-feedback" ]
+
+  feedbackButtonIcon =
+    if feedbackPaneMinimised then
+      icon ArrowUp
+    else
+      icon ArrowDown
+
+  errorList = case compilationState of
     Success (Left error) -> listGroup_ (interpreterErrorPane error)
     Failure error -> ajaxErrorPane error
     _ -> empty
@@ -138,7 +165,7 @@ editorFeedback state =
               <<< _warnings
               <<< to compilationWarningsPane
           )
-          state
+          compilationState
 
 -- renders all interpreter errors
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Action)

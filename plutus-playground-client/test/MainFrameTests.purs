@@ -153,6 +153,7 @@ execMockApp world queries = do
     mkInitialState
       ( Editor.State
           { keyBindings: Editor.DefaultBindings
+          , feedbackPaneMinimised: false
           }
       )
   RWSResult state result writer <-

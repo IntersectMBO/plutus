@@ -1,4 +1,4 @@
-module Chain (evaluationPane) where
+module Chain (evaluationPane, extractAmount) where
 
 import Bootstrap (btn, btnPrimary, floatRight, nbsp)
 import Chain.Types (State, _value)

@@ -54,15 +54,43 @@
     }
 
     .editor-feedback {
+        $header-height: 43px;
+        $body-height: 200px;
         position: absolute;
         bottom: 0;
-        max-height: 260px;
+        max-height: $header-height + $body-height;
         width: 100%;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
+        border: 1px solid $gray-border-color;
+        font-size: small;
+
+        &.minimised {
+            height: $header-height;
+        }
+
+        .editor-feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: $gray-background-color;
+            padding: .5rem;
+
+            h4 {
+                font-size: inherit;
+                font-weight: 400;
+                margin-bottom: 0;
+            }
+        }
+
+        .editor-feedback-body {
+            max-height: $body-height;
+            overflow-y: auto;
+        }
 
         .card {
-            border-radius: 0;
+            border: 0;
         }
 
         .card-header:first-child {
@@ -74,9 +102,11 @@
             .card-header {
                 background: $red;
                 color: $white;
-                display: flex;
-                justify-content: space-between;
                 padding: .25rem;
+            }
+
+            .card-body {
+                background: lighten($red, 50%);
             }
         }
 

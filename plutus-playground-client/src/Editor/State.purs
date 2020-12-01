@@ -2,6 +2,7 @@ module Editor.State where
 
 import Editor.Types
 import Control.Alternative ((<|>))
+import Data.Lens (assign, modifying)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -12,22 +13,22 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage (Key)
 import LocalStorage as LocalStorage
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
-import Prelude (Unit, bind, discard, pure, show, unit, void, ($), (<$>))
+import Prelude (Unit, bind, discard, not, pure, show, unit, void, ($), (<$>))
 import Types (ChildSlots, _editorSlot)
 
 initialState :: forall m. MonadEffect m => m State
 initialState =
   liftEffect do
     keyBindings <- loadKeyBindings
-    pure $ State { keyBindings }
+    pure $ State { keyBindings, feedbackPaneMinimised: false }
 
 handleAction ::
-  forall state action output m.
+  forall action output m.
   MonadEffect m =>
   MonadAff m =>
   Key ->
   Action ->
-  HalogenM state action ChildSlots output m Unit
+  HalogenM State action ChildSlots output m Unit
 handleAction bufferLocalStorageKey Init = do
   binding <- loadKeyBindings
   handleAction bufferLocalStorageKey (SetKeyBindings binding)
@@ -38,6 +39,9 @@ handleAction _ (SetKeyBindings binding) = do
   void $ query _editorSlot unit $ tell $ Monaco.SetKeyBindings binding
   void $ query _editorSlot unit $ tell $ Monaco.Focus
   liftEffect $ LocalStorage.setItem keybindingsLocalStorageKey (show binding)
+
+handleAction _ ToggleFeedbackPane = do
+  modifying _feedbackPaneMinimised not
 
 handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
 

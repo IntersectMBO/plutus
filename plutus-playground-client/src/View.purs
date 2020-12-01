@@ -193,7 +193,7 @@ editorWrapper state@(State { currentView, contractDemos, editorState }) =
               ]
           ]
       , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState
-      , mapComponent EditorAction $ editorFeedback compilationResult
+      , mapComponent EditorAction $ editorFeedback editorState compilationResult
       ]
   where
   defaultContents :: Maybe String

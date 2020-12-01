@@ -24,6 +24,7 @@ data Action
   | HandleDropEvent DragEvent
   | ScrollTo IPosition
   | SetKeyBindings KeyBindings
+  | ToggleFeedbackPane
 
 ------------------------------------------------------------
 allKeyBindings :: Array KeyBindings
@@ -38,7 +39,10 @@ readKeyBindings _ = DefaultBindings
 
 ------------------------------------------------------------
 newtype State
-  = State { keyBindings :: KeyBindings }
+  = State
+  { keyBindings :: KeyBindings
+  , feedbackPaneMinimised :: Boolean
+  }
 
 derive instance newtypeState :: Newtype State _
 
@@ -54,3 +58,6 @@ _warnings = prop (SProxy :: SProxy "warnings")
 
 _keyBindings :: Lens' State KeyBindings
 _keyBindings = _Newtype <<< prop (SProxy :: SProxy "keyBindings")
+
+_feedbackPaneMinimised :: Lens' State Boolean
+_feedbackPaneMinimised = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneMinimised")
