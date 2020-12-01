@@ -43,6 +43,7 @@ import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as
 import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
+import Language.Haskell.Monaco (settings)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
@@ -86,7 +87,7 @@ import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 initialState :: State
 initialState =
   State
-    { view: Simulation {- TODO: I think we should change the type to Maybe and the initial state should be Nothing-}
+    { view: HomePage
     , jsCompilationResult: NotCompiled
     {- FIXME: These are currently not being used, the interactions happens directly with the slots, for we remove them to avoid confusion, later on
               we can take the decision to make them submodules.
@@ -443,7 +444,7 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _showModal Nothing
         {- FIXME: I don't like setting an inner state here, but I think this depends on the refactor
                    that I described on the QUESTION above -}
-
+        
         <<< set (langHasUnsavedChanges lang) false
     )
   -- FIXME: remove log
@@ -466,7 +467,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         {- FIXME: see if we can make this part of the subcomponents -}
-
+        
         <<< set (langHasUnsavedChanges lang) false
     )
   selectView $ selectLanguageView lang
@@ -533,29 +534,11 @@ handleAction settings (OpenLoginPopup intendedAction) = do
     Anonymous -> pure unit
     GithubUser -> fullHandleAction settings intendedAction
 
-handleAction settings (ConfirmUnsavedNavigationAction intendedAction modalAction) = do
-  -- FIXME move closer to withAccidentalNavigationGuard
-  fullHandleAction settings CloseModal
-  case modalAction of
-    ConfirmUnsavedNavigation.Cancel -> pure unit
-    ConfirmUnsavedNavigation.DontSaveProject -> do
-      liftEffect $ Console.log "DontSaveProject"
-      -- FIXME: this currently is never ending loop, need to comunicate
-      -- with the preventNavigation that I want to do the action anyway
-      -- The only way I can think of at the time is to put a boolean in the
-      -- state
-      actionWithAnalytics settings intendedAction
-    ConfirmUnsavedNavigation.SaveProject -> do
-      liftEffect $ Console.log "SaveProject"
-      state <- H.get
-      -- FIXME: This was taken from the view, from the gistModal helper. I think we should
-      -- refactor into a Save Action that does this check and receives a Maybe Action as
-      -- a continuation
-      if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then do
-        fullHandleAction settings $ GistAction PublishGist
-        fullHandleAction settings intendedAction
-      else
-        fullHandleAction settings $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
+handleAction settings (ConfirmUnsavedNavigationAction intendedAction modalAction) =
+  handleConfirmUnsavedNavigationAction
+    settings
+    intendedAction
+    modalAction
 
 sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
 sendToSimulation settings language contract = do
@@ -661,7 +644,7 @@ handleGistAction settings PublishGist = do
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
               -- FIXME: see if we can make this part of the subcomponents
-
+              
               <<< set (langHasUnsavedChanges lang) false
           )
 
@@ -735,6 +718,30 @@ loadGist gist = do
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------
+-- Handles the actions fired by the Confirm Unsaved Navigation modal
+handleConfirmUnsavedNavigationAction ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Action ->
+  ConfirmUnsavedNavigation.Action ->
+  HalogenM State Action ChildSlots Void m Unit
+handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
+  fullHandleAction settings CloseModal
+  case modalAction of
+    ConfirmUnsavedNavigation.Cancel -> pure unit
+    ConfirmUnsavedNavigation.DontSaveProject -> actionWithAnalytics settings intendedAction
+    ConfirmUnsavedNavigation.SaveProject -> do
+      state <- H.get
+      -- TODO: This was taken from the view, from the gistModal helper. I think we should
+      -- refactor into a `Save (Maybe Action)` action. The handler for that should do
+      -- this check and call the next action as a continuation
+      if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then do
+        fullHandleAction settings $ GistAction PublishGist
+        fullHandleAction settings intendedAction
+      else
+        fullHandleAction settings $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
+
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>

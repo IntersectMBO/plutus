@@ -163,9 +163,8 @@ handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
-      -- QUESTION: why are these functions running on ST? Isn't it enough to have functions return Effect X to indicate
-      -- to the FFI that it is not pure?
-      -- I'm not sure if I'm able to add a Halogen subscription from ST.
+      -- TODO: Refactor blockly to use Effect instead of ST
+      -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533371159
       ST.run
         ( do
             blocklyRef <- STRef.new blocklyState.blockly
@@ -175,9 +174,6 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  -- QUESTION: Being a component that it's always rendered. Should I worry about unsuscribing from
-  -- this event?
-  -- If it is removed, Halogen unsuscribes automatically?
   void $ H.subscribe $ blocklyChanges blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)
