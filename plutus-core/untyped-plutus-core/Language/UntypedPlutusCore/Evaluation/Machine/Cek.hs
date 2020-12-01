@@ -164,6 +164,9 @@ instance Show fun => PrettyBy config (ExBudgetCategory fun) where
 type CekExBudgetState fun = ExBudgetState (ExBudgetCategory fun)
 type CekExTally fun       = ExTally       (ExBudgetCategory fun)
 
+instance AsEvaluationFailure CekUserError where
+    _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
+
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
         group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
@@ -473,16 +476,7 @@ applyBuiltin ctx bn args = do
   let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
   BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
-  case result of
-    EvaluationSuccess t -> returnCek ctx t
-    EvaluationFailure ->
-        throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
-        {- NB: we're not reporting any context here.  When UserEvaluationError is
-           invloved, Exception.extractEvaluationResult just throws the cause
-           away (see Note [Ignoring context in UserEvaluationError]), so it
-           doesn't matter if we don't have any context. We could provide
-           applyBuiltin with sufficient information to reconstruct the
-           application, but that would add a cost without adding any benefit. -}
+  returnCek ctx result
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

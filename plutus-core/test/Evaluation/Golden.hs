@@ -24,6 +24,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
+import qualified Data.ByteString                            as BS
 import qualified Data.ByteString.Lazy                       as BSL
 import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
@@ -298,6 +299,11 @@ mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
 
+takeTooMuch :: Term TyName Name DefaultUni DefaultFun ()
+takeTooMuch = mkIterApp () (Builtin () TakeByteString)
+    [ mkConstant () $ (2 :: Integer) ^ (150 :: Integer)
+    , mkConstant () ("whatever" :: BS.ByteString)
+    ]
 
 -- Running the tests
 
@@ -356,6 +362,7 @@ namesAndTests =
    , ("mulInstError1", mulInstError1)
    , ("mulInstError2", mulInstError2)
    , ("mulInstError3", mulInstError3)
+   , ("takeTooMuch", takeTooMuch)
    ]
 
 test_golden :: TestTree

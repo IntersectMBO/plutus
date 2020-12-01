@@ -27,6 +27,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , MachineException
     , EvaluationException
     , mapErrorWithCauseF
+    , throwing_
     , throwingWithCause
     , extractEvaluationResult
     ) where
@@ -38,6 +39,7 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
+import           Control.Monad.Error.Lens                        (throwing_)
 import           Control.Monad.Except
 import           Data.String                                     (IsString)
 import           Data.Text                                       (Text)
@@ -52,7 +54,7 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError fun term
-    =  TooFewArgumentsConstAppError fun
+    = TooFewArgumentsConstAppError fun
     | TooManyArgumentsConstAppError fun [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
@@ -112,14 +114,20 @@ instance AsUnliftingError (EvaluationError user fun term) where
     _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
 instance AsUnliftingError (MachineError fun term) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
+instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user fun term) where
+    _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
 -- | An error and (optionally) what caused it.
-data ErrorWithCause err term
-    = ErrorWithCause err (Maybe term)
-    deriving (Eq, Functor)
+data ErrorWithCause err term = ErrorWithCause
+    { _ewcError :: err
+    , _ewcCause :: Maybe term
+    } deriving (Eq, Functor)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
+
+instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
+    _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
 
 type MachineException fun term =
     ErrorWithCause (MachineError fun term) term
