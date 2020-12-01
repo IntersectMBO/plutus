@@ -8,10 +8,10 @@ import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, group, hide, noMargins, spaceLeft, spaceRight, textBase, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h1, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -41,12 +41,12 @@ render settings state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]
-              [ div [ classes [ ClassName "group", aHorizontal, ClassName "marlowe-title-group" ] ]
+              [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
                   , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
-              , div [ classes [ ClassName "group", ClassName "marlowe-links-group" ] ]
+              , div [ classes [ group, ClassName "marlowe-links-group" ] ]
                   [ a [ href "./tutorial/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorial" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
@@ -105,7 +105,7 @@ render settings state =
                   in mainframe state.
         -}
         hasUnsavedChanges =
-          maybe "" (\_ -> " (unsaved)") do
+          maybe "" (\_ -> "*") do
             lens <- currentLang state <#> langHasUnsavedChanges
             case state ^. lens of
               true -> Just true
@@ -115,7 +115,14 @@ render settings state =
 
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
-        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text (title <> hasUnsavedChanges) ], spinner ]
+        div [ classes [ ClassName "project-title" ] ]
+          [ h1_
+              {- FIXME: Fix style when name is super long -}
+              [ text title
+              , span [ class_ (ClassName "unsave-change-indicator") ] [ text hasUnsavedChanges ]
+              ]
+          , spinner
+          ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 
@@ -132,7 +139,7 @@ render settings state =
   otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
 
   otherActions BlocklyEditor =
-    [ div [ classes [ ClassName "group" ] ]
+    [ div [ classes [ group ] ]
         [ button
             [ onClick $ const $ Just SendBlocklyToSimulator
             ]

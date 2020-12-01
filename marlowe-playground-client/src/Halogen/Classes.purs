@@ -265,6 +265,9 @@ modalContent = ClassName "modal-content"
 vl :: forall p a. HTML p a
 vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]
 
+group :: ClassName
+group = ClassName "group"
+
 -- Tailwind's classes.
 textBase :: ClassName
 textBase = ClassName "text-base"
