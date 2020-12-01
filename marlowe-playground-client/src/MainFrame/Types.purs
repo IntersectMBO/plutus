@@ -173,6 +173,7 @@ newtype State
   = State
   { {- I think that view should be a Maybe or a data (Initial | Page View | NotFound ) -} view :: View
   , jsCompilationResult :: CompilationState
+  {- FIXME: remove blockly and actusBlockly from the state -}
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings

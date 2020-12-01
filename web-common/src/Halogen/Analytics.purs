@@ -5,6 +5,7 @@ import Analytics (class IsEvent, analyticsTracking)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM)
 
+-- TODO: Rename withAnalytics
 handleActionWithAnalyticsTracking ::
   forall state action slots message m a.
   MonadEffect m =>
