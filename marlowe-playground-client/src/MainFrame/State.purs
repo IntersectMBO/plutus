@@ -1,9 +1,7 @@
 module MainFrame.State (mkMainFrame) where
 
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
-import ConfirmUnsavedNavigation.State (handleAction) as ConfirmUnsavedNavigation
-import ConfirmUnsavedNavigation.Types (Action(..), State, emptyState) as ConfirmUnsavedNavigation
-import ConfirmUnsavedNavigation.Types (_wantsToSaveProject)
+import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -48,7 +46,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _confirmUnsavedNavigation, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -105,7 +103,6 @@ initialState =
     , newProject: NewProject.emptyState
     , rename: Rename.emptyState
     , saveAs: SaveAs.emptyState
-    , confirmUnsavedNavigation: ConfirmUnsavedNavigation.emptyState
     , authStatus: NotAsked
     , gistId: Nothing
     , createGistResult: NotAsked
@@ -180,13 +177,6 @@ toSaveAs ::
   Functor m =>
   HalogenM SaveAs.State SaveAs.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toSaveAs = mapSubmodule _saveAs SaveAsAction
-
-toConfirmUnsavedNavigation ::
-  forall m a.
-  Functor m =>
-  Action ->
-  HalogenM ConfirmUnsavedNavigation.State ConfirmUnsavedNavigation.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
-toConfirmUnsavedNavigation intendedAction = mapSubmodule _confirmUnsavedNavigation (ConfirmUnsavedNavigationAction intendedAction)
 
 ------------------------------------------------------------
 handleSubRoute ::
@@ -545,8 +535,6 @@ handleAction settings (OpenLoginPopup intendedAction) = do
 
 handleAction settings (ConfirmUnsavedNavigationAction intendedAction modalAction) = do
   -- FIXME move closer to withAccidentalNavigationGuard
-  -- FIXME delete toConfirmUnsavedNavigation
-  toConfirmUnsavedNavigation intendedAction $ ConfirmUnsavedNavigation.handleAction settings modalAction
   fullHandleAction settings CloseModal
   case modalAction of
     ConfirmUnsavedNavigation.Cancel -> pure unit

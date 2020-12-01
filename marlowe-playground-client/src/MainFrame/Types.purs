@@ -186,7 +186,6 @@ newtype State
   , newProject :: NewProject.State
   , rename :: Rename.State
   , saveAs :: SaveAs.State
-  , confirmUnsavedNavigation :: ConfirmUnsavedNavigation.State
   , authStatus :: WebData AuthStatus
   , gistId :: Maybe GistId
   , createGistResult :: WebData Gist
@@ -238,9 +237,6 @@ _rename = _Newtype <<< prop (SProxy :: SProxy "rename")
 
 _saveAs :: Lens' State SaveAs.State
 _saveAs = _Newtype <<< prop (SProxy :: SProxy "saveAs")
-
-_confirmUnsavedNavigation :: Lens' State ConfirmUnsavedNavigation.State
-_confirmUnsavedNavigation = _Newtype <<< prop (SProxy :: SProxy "confirmUnsavedNavigation")
 
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
