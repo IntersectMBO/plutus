@@ -145,7 +145,7 @@ let
   lib = rec {
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
-    npmlock2nix = (import sources.npmlock2nix { });
+    npmlock2nix = (pkgs.callPackage sources.npmlock2nix { });
     buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
       inherit npmlock2nix;
