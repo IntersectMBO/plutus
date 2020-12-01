@@ -23,8 +23,8 @@ import Gist (Gist, GistId, NewGist)
 import Halogen (HalogenM, query, tell)
 import Halogen as H
 import Halogen.Chartist as Chartist
-import Halogen.Monaco as Monaco
 import Halogen.Extra (imapState)
+import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
 import Monaco (IMarkerData)
 import Network.RemoteData as RemoteData
