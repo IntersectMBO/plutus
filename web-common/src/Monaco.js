@@ -39,7 +39,7 @@ exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
     language: languageId,
     minimap: {
-      enabled: true
+      enabled: false
     }
   });
 
