@@ -4,7 +4,7 @@ module Wallet
   ) where
 
 import Types
-import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, card_, floatRight)
+import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)

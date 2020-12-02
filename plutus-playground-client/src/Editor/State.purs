@@ -2,7 +2,7 @@ module Editor.State where
 
 import Editor.Types
 import Control.Alternative ((<|>))
-import Data.Lens (assign, modifying)
+import Data.Lens (modifying)
 import Data.Maybe (Maybe, fromMaybe, maybe)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
