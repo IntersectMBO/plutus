@@ -112,13 +112,14 @@ run ::
     -> Contract PingPongSchema PingPongError ()
     -> Contract PingPongSchema PingPongError ()
 run expectedState action = do
-    (st, _) <- SM.getOnChainState client
     let extractState = tyTxOutData . fst
         go Nothing = throwError StoppedUnexpectedly
         go (Just currentState)
             | extractState currentState == expectedState = action
             | otherwise = SM.waitForUpdate client >>= go
-    go (Just st)
+    maybeState <- SM.getOnChainState client
+    let datum = fmap fst maybeState
+    go datum
 
 runPing :: Contract PingPongSchema PingPongError ()
 runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))

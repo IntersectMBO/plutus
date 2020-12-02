@@ -53,7 +53,8 @@ import           Test.Tasty.QuickCheck
 
 tests :: TestTree
 tests = testGroup "Marlowe Auto Execution"
-    [ autoexecZCBTest
+    [ awaitUntilTimeoutTest
+    , autoexecZCBTest
     , autoexecZCBTestAliceWalksAway
     , autoexecZCBTestBobWalksAway
     ]
@@ -161,6 +162,25 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     addBlocksNotify 15 -- Bob can't pay back
     addBlocksNotify 15 -- Bob can't pay back
     addBlocksNotify 15 -- Bob can't pay back, walks away
+
+
+awaitUntilTimeoutTest :: TestTree
+awaitUntilTimeoutTest = checkPredicate @MarloweSchema @MarloweError
+    "Party waits for contract to appear on chain until timeout"
+    marlowePlutusContract
+    (assertNoFailedTransactions
+    -- /\ emulatorLog (const False) ""
+    /\ assertDone bob (const True) "contract should close"
+    ) $ do
+
+    -- Bob will wait for the contract to appear on chain
+    callEndpoint @"auto" bob (params, bobPk, contractLifespan)
+    handleBlockchainEvents bob
+
+    addBlocksNotify 15
+    addBlocksNotify 15
+    -- here Bob gets Timeout and closes the contract
+    addBlocksNotify 15
 
 
 alicePk = PK $ (pubKeyHash $ walletPubKey alice)

@@ -6,6 +6,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -22,28 +23,27 @@
 
 module Language.Marlowe.Client where
 import           Control.Lens
-import           Control.Monad                                 (void)
-import           Control.Monad.Error.Lens                      (catching)
-import           Language.Marlowe.Semantics                    hiding (Contract)
-import qualified Language.Marlowe.Semantics                    as Marlowe
+import           Control.Monad                         (void)
+import           Control.Monad.Error.Lens              (catching)
+import           Language.Marlowe.Semantics            hiding (Contract)
+import qualified Language.Marlowe.Semantics            as Marlowe
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine         (AsSMContractError (..), StateMachine (..),
-                                                                StateMachineClient (..), Void, WaitingResult (..))
-import qualified Language.Plutus.Contract.StateMachine         as SM
-import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
-import qualified Language.PlutusTx                             as PlutusTx
-import qualified Language.PlutusTx.AssocMap                    as AssocMap
-import qualified Language.PlutusTx.Prelude                     as P
-import           Ledger                                        (CurrencySymbol, Datum (..), Slot (..), TokenName,
-                                                                ValidatorCtx (..), mkValidatorScript, pubKeyHash,
-                                                                validatorHash, valueSpent)
-import           Ledger.Ada                                    (adaSymbol, adaValueOf)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), StateMachine (..),
+                                                        StateMachineClient (..), Void, WaitingResult (..))
+import qualified Language.Plutus.Contract.StateMachine as SM
+import qualified Language.PlutusTx                     as PlutusTx
+import qualified Language.PlutusTx.AssocMap            as AssocMap
+import qualified Language.PlutusTx.Prelude             as P
+import           Ledger                                (CurrencySymbol, Datum (..), Slot (..), TokenName,
+                                                        ValidatorCtx (..), mkValidatorScript, pubKeyHash, validatorHash,
+                                                        valueSpent)
+import           Ledger.Ada                            (adaSymbol, adaValueOf)
 import           Ledger.Constraints
-import qualified Ledger.Interval                               as Interval
-import           Ledger.Scripts                                (Validator)
-import qualified Ledger.Typed.Scripts                          as Scripts
-import           Ledger.Typed.Tx                               (TypedScriptTxOut (..), tyTxOutData)
-import qualified Ledger.Value                                  as Val
+import qualified Ledger.Interval                       as Interval
+import           Ledger.Scripts                        (Validator)
+import qualified Ledger.Typed.Scripts                  as Scripts
+import           Ledger.Typed.Tx                       (TypedScriptTxOut (..), tyTxOutData)
+import qualified Ledger.Value                          as Val
 
 type MarloweSlotRange = (Slot, Slot)
 type MarloweInput = (MarloweSlotRange, [Input])
@@ -82,7 +82,6 @@ data PartyAction
 
 marlowePlutusContract :: forall e. (AsContractError e
     , AsMarloweError e
-    , AsCheckpointError e
     , AsSMContractError e MarloweData MarloweInput
     )
     => Contract MarloweSchema e ()
@@ -108,31 +107,34 @@ marlowePlutusContract = do
             _     -> apply `select` wait `select` auto
     auto = do
         (params, party, untilSlot) <- endpoint @"auto" @(MarloweParams, Party, Slot) @MarloweSchema
-        let theClient@StateMachineClient{scInstance, scChooser} = mkMarloweClient params
-        utxo <- utxoAt (SM.machineAddress scInstance)
-        let states = SM.getStates scInstance utxo
-        case states of
-            [] -> do
+        let theClient = mkMarloweClient params
+        let continueWith :: MarloweData -> Contract MarloweSchema e ()
+            continueWith md@MarloweData{marloweContract} = do
+                if canAutoExecuteContractForParty party marloweContract
+                then do autoExecuteContract theClient party md
+                else do apply `select` wait `select` auto
+
+        maybeState <- SM.getOnChainState theClient
+        case maybeState of
+            Nothing -> do
                 wr <- SM.waitForUpdateUntil theClient untilSlot
                 case wr of
                     ContractEnded -> do
                         logInfo @String $ "Contract Ended for party" <> show party
-                        marlowePlutusContract
+                        pure ()
                     Timeout _ -> do
                         logInfo @String $ "Contract Timeout for party" <> show party
-                        marlowePlutusContract
-                    WaitingResult md@MarloweData{marloweContract}
-                        | canAutoExecuteContractForParty party marloweContract -> autoExecuteContract theClient party md
-                    _ -> apply `select` wait `select` auto
-            states -> case scChooser states of
-                Left err -> do
-                    logError @String $ "Chooser err " <> show err
-                    apply `select` wait `select` auto
-                Right (st, _) -> do
-                    let md = tyTxOutData st
-                    autoExecuteContract theClient party md
+                        pure ()
+                    WaitingResult marloweData -> continueWith marloweData
+            Just ((st, _), _) -> do
+                let marloweData = tyTxOutData st
+                continueWith marloweData
 
 
+    autoExecuteContract :: StateMachineClient MarloweData MarloweInput
+                      -> Party
+                      -> MarloweData
+                      -> Contract MarloweSchema e ()
     autoExecuteContract theClient party marloweData = do
         slot <- currentSlot
         let slotRange = (slot, slot + defaultTxValidationRange)
