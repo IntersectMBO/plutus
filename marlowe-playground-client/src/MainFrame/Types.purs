@@ -2,12 +2,11 @@ module MainFrame.Types where
 
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
-import Blockly.Types (BlocklyState)
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', lens, (^.))
+import Data.Lens (Lens', (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))

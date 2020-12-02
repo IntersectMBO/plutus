@@ -174,6 +174,7 @@ menuBar state =
     HaskellEditor -> buttons
     JSEditor -> buttons
     BlocklyEditor -> buttons
+    ActusBlocklyEditor -> buttons
     Simulation -> buttons
     _ -> []
 
