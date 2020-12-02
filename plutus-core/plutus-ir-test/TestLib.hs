@@ -64,8 +64,11 @@ compileAndMaybeTypecheck
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = do
     tcConfig <- PLC.getDefTypeCheckConfig noProvenance
-    flip runReaderT (toDefaultCompilationCtx tcConfig) $ runQuoteT $ do
-        compiled <- compileTerm doTypecheck pir
+    let pirCtx = toDefaultCompilationCtx tcConfig & if doTypecheck
+                                                    then id
+                                                    else set ccTypeCheckConfig Nothing
+    flip runReaderT pirCtx $ runQuoteT $ do
+        compiled <- compileTerm pir
         when doTypecheck $ do
             -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
             -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError

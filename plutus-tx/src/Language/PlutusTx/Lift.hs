@@ -63,7 +63,7 @@ safeLift
 safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
-    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm True lifted
+    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm lifted
     pure $ void $ UPLC.erase compiled
 
 -- | Get a Plutus Core program corresponding to the given value.
@@ -157,7 +157,7 @@ typeCheckAgainst p plcTerm = do
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
     tcConfig <- PLC.getDefTypeCheckConfig (Original ())
-    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm True applied
+    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm applied
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
     plcConcrete <- runExceptT $ void $ PLC.inferType tcConfig compiled
