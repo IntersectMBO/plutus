@@ -61,13 +61,13 @@ type PingPongSchema =
 
 data PingPongError =
     PingPongContractError ContractError
-    | PingPongSMError (SM.SMContractError PingPongState Input)
+    | PingPongSMError SM.SMContractError
     | StoppedUnexpectedly
     deriving stock (Show)
 
 makeClassyPrisms ''PingPongError
 
-instance AsSMContractError PingPongError PingPongState Input where
+instance AsSMContractError PingPongError where
     _SMContractError = _PingPongSMError
 
 instance AsContractError PingPongError where

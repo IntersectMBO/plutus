@@ -163,7 +163,7 @@ data FutureAction =
 data FutureError =
     TokenSetupFailed Currency.CurrencyError
     -- ^ Something went wrong during the setup of the two tokens
-    | StateMachineError (SM.SMContractError FutureState FutureAction)
+    | StateMachineError SM.SMContractError
     | OtherFutureError ContractError
     | EscrowFailed EscrowError
     -- ^ The escrow that initialises the future contract failed
@@ -174,7 +174,7 @@ data FutureError =
 
 makeClassyPrisms ''FutureError
 
-instance AsSMContractError FutureError FutureState FutureAction where
+instance AsSMContractError FutureError where
     _SMContractError = _StateMachineError
 
 instance AsContractError FutureError where
@@ -518,7 +518,7 @@ settleFuture client = mapError (review _FutureError) $ do
 settleEarly
     :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -535,7 +535,7 @@ increaseMargin
        , HasWriteTx s
        , HasOwnPubKey s
        , HasTxConfirmation s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
