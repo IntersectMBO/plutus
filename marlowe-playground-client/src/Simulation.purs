@@ -47,7 +47,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _hasUnsavedChanges, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
@@ -96,7 +96,7 @@ handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
 handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
   modify_
     ( set _selectedHole Nothing
-        <<< set _hasUnsavedChanges true
+        <<< set _hasUnsavedChanges' true
     )
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text

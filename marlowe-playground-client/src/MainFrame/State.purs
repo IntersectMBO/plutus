@@ -4,7 +4,7 @@ import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
@@ -21,8 +21,6 @@ import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Effect.Console as Console
-import Examples.Haskell.Contracts (example) as HE
-import Examples.JS.Contracts (example) as JE
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
@@ -43,11 +41,10 @@ import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as
 import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
 import JavascriptEditor.Types (CompilationState(..))
-import Language.Haskell.Monaco (settings)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -56,7 +53,7 @@ import Marlowe.Gists (mkNewGist, playgroundFiles)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.Types (Action(..), State, emptyState) as NewProject
-import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, otherwise, pure, show, unit, void, when, ($), (&&), (/=), (<#>), (<$>), (<<<), (<>), (=<<), (==))
+import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, not, otherwise, pure, show, unit, void, when, ($), (/=), (<$>), (<<<), (<>), (=<<), (==))
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
 import Projects.Types (Lang(..))
@@ -89,11 +86,6 @@ initialState =
   State
     { view: HomePage
     , jsCompilationResult: NotCompiled
-    {- FIXME: These are currently not being used, the interactions happens directly with the slots, for we remove them to avoid confusion, later on
-              we can take the decision to make them submodules.
-     -}
-    , blocklyState: Nothing
-    , actusBlocklyState: Nothing
     , showBottomPanel: true
     , haskellState: HE.initialState
     , javascriptState: JS.initialState
@@ -110,6 +102,7 @@ initialState =
     , loadGistResult: Right NotAsked
     , projectName: "Untitled Project"
     , showModal: Nothing
+    , hasUnsavedChanges: false
     }
 
 ------------------------------------------------------------
@@ -248,7 +241,8 @@ fullHandleAction ::
   Action ->
   HalogenM State Action ChildSlots Void m Unit
 fullHandleAction settings =
-  withAccidentalNavigationGuard settings
+  withLog "fullHandleAction"
+    $ withAccidentalNavigationGuard settings
     $ handleActionWithAnalyticsTracking
         ( handleAction settings
         )
@@ -263,6 +257,19 @@ actionWithAnalytics settings =
   handleActionWithAnalyticsTracking
     ( handleAction settings
     )
+
+-- FIXME: Comment before merging
+withLog ::
+  forall m.
+  MonadAff m =>
+  String ->
+  (Action -> HalogenM State Action ChildSlots Void m Unit) ->
+  Action ->
+  HalogenM State Action ChildSlots Void m Unit
+withLog handlerName handleAction' action = do
+  traceM $ "MainFrame.State: " <> handlerName
+  traceM action
+  handleAction' action
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
@@ -306,6 +313,10 @@ handleAction s (HaskellAction action) = do
     HE.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Haskell
       selectView BlocklyEditor
+    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> do
+      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+      assign _hasUnsavedChanges hasUnsavedChanges
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -319,6 +330,10 @@ handleAction s (JavascriptAction action) = do
     JS.SendResultToBlockly -> do
       assign (_simulationState <<< _source) Javascript
       selectView BlocklyEditor
+    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> do
+      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+      assign _hasUnsavedChanges hasUnsavedChanges
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -362,7 +377,10 @@ handleAction settings (HandleBlocklyMessage (CurrentCode code)) = do
   selectView Simulation
   void $ toSimulation $ Simulation.handleAction settings (ST.SetEditorText code)
 
-handleAction settings (HandleBlocklyMessage _) = pure unit
+handleAction settings (HandleBlocklyMessage _) = do
+  -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+  hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+  assign _hasUnsavedChanges hasUnsavedChanges
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
@@ -416,24 +434,22 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
   -- FIXME Handle action reset
-  toHaskellEditor $ HaskellEditor.editorSetValue mempty
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
-  toJavascriptEditor $ JavascriptEditor.editorSetValue mempty
-  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
+  toHaskellEditor $ HaskellEditor.handleAction s $ HE.ResetEditor
+  toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.ResetEditor
+  -- TODO: once the simulation and marlowe editor are separated, refactor
+  --       this to have the Reset and Init actions
   toSimulation $ Simulation.editorSetValue mempty
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
   void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
+  -- FIXME: Shouldn't we do the same for actus?
   -- set the appropriate editor
-  -- FIXME Handle action Init/Load
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
-        toHaskellEditor $ HaskellEditor.editorSetValue HE.example
-        liftEffect $ LocalStorage.setItem bufferLocalStorageKey HE.example
+        toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject contents
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.editorSetValue JE.example
-        liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey JE.example
+        toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject contents
     Marlowe -> do
       toSimulation $ Simulation.editorSetValue "?new_contract"
       liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
@@ -442,13 +458,9 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set (_simulationState <<< ST._source) lang
         <<< set _showModal Nothing
-        {- FIXME: I don't like setting an inner state here, but I think this depends on the refactor
-                   that I described on the QUESTION above -}
-        
-        <<< set (langHasUnsavedChanges lang) false
     )
   -- FIXME: remove log
-  traceM $ "New project _hasUnsavedChanges false " <> show lang
+  traceM $ "Finish NewProject.CreateProject lang=" <> show lang
 
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
@@ -466,9 +478,8 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     Actus -> pure unit
   modify_
     ( set _showModal Nothing
-        {- FIXME: see if we can make this part of the subcomponents -}
-        
-        <<< set (langHasUnsavedChanges lang) false
+    {- FIXME: see if we can make this part of the subcomponents -}
+    -- FIXME <<< set (langHasUnsavedChanges lang) false
     )
   selectView $ selectLanguageView lang
 
@@ -643,9 +654,8 @@ handleGistAction settings PublishGist = do
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
-              -- FIXME: see if we can make this part of the subcomponents
-              
-              <<< set (langHasUnsavedChanges lang) false
+          -- FIXME: see if we can make this part of the subcomponents
+          -- FIXME <<< set (langHasUnsavedChanges lang) false
           )
 
 handleGistAction _ (SetGistUrl url) = do
@@ -671,11 +681,11 @@ handleGistAction settings LoadGist = do
           pure aGist
   assign _loadGistResult res
   -- FIXME: See if we can put this logic in the submodules
-  void
-    $ runMaybeT do
-        state <- H.get
-        lang <- hoistMaybe $ currentLang state
-        assign (langHasUnsavedChanges lang) false
+  -- void
+  --   $ runMaybeT do
+  --       state <- H.get
+  --       lang <- hoistMaybe $ currentLang state
+  --       assign (langHasUnsavedChanges lang) false
   -- FIXME: remove log
   liftEffect $ Console.log "Gist loaded, unsaved changes should be false"
   where
@@ -718,6 +728,26 @@ loadGist gist = do
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
 
 ------------------------------------------------------------
+queryCurrentEditorForUnsavedChanges ::
+  forall m.
+  MonadAff m =>
+  HalogenM State Action ChildSlots Void m Boolean
+queryCurrentEditorForUnsavedChanges =
+  maybe false identity
+    <$> runMaybeT do
+        state <- H.get
+        lang <- hoistMaybe $ currentLang state
+        -- FIXME remvoe traceM
+        traceM $ "queryCurrentEditorForUnsavedChanges " <> show lang
+        MaybeT
+          $ case lang of
+              Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
+              Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
+              Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
+              Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
+              Actus -> pure $ Just true -- _actusBlocklyState <<< _maybeHasUnsavedChanges
+
+------------------------------------------------------------
 -- Handles the actions fired by the Confirm Unsaved Navigation modal
 handleConfirmUnsavedNavigationAction ::
   forall m.
@@ -750,10 +780,16 @@ withAccidentalNavigationGuard ::
   Action ->
   HalogenM State Action ChildSlots Void m Unit
 withAccidentalNavigationGuard settings handleAction' action =
-  if actionIsGuarded then
-    guard
-  else
+  if not actionIsGuarded then
     handleAction' action
+  else do
+    hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+    -- FIXME remove traceM
+    traceM $ "withAccidentalNavigationGuard: hasUnsavedChanges " <> show hasUnsavedChanges
+    if hasUnsavedChanges then do
+      fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
+    else do
+      handleAction' action
   where
   actionIsGuarded = case action of
     (ChangeView _) -> true
@@ -761,20 +797,6 @@ withAccidentalNavigationGuard settings handleAction' action =
     (ProjectsAction (Projects.LoadProject _ _)) -> true
     (DemosAction (Demos.LoadDemo _ _)) -> true
     _ -> false
-
-  guard = do
-    state <- H.get
-    let
-      hasUnsavedChanges =
-        maybe false identity do
-          lens <- currentLang state <#> langHasUnsavedChanges
-          pure $ state ^. lens
-    -- FIXME remove console.log
-    traceM $ "withAccidentalNavigationGuard: hasUnsavedChanges " <> show hasUnsavedChanges
-    if hasUnsavedChanges then do
-      fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
-    else do
-      handleAction' action
 
 ------------------------------------------------------------
 selectView ::

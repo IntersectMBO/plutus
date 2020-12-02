@@ -108,7 +108,7 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
   blockly <- createBlocklyInstance_
   toolbox <- runEffectFn1 getElementById_ (unwrap toolboxElementId)
   workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) (config toolbox)
-  pure { blockly, workspace, rootBlockName, hasUnsavedChanges: false }
+  pure { blockly, workspace, rootBlockName }
   where
   config toolbox =
     { toolbox: toolbox

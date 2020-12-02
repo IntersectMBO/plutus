@@ -24,6 +24,8 @@ data Action
   | ShowBottomPanel Boolean
   | SendResultToSimulator
   | SendResultToBlockly
+  | InitHaskellProject String
+  | ResetEditor
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -36,6 +38,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
+  toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
+  toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
 
 type State
   = { keybindings :: KeyBindings

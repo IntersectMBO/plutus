@@ -173,9 +173,6 @@ newtype State
   = State
   { {- I think that view should be a Maybe or a data (Initial | Page View | NotFound ) -} view :: View
   , jsCompilationResult :: CompilationState
-  {- FIXME: remove blockly and actusBlockly from the state -}
-  , blocklyState :: Maybe BlocklyState
-  , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings
   , activeJSDemo :: String
   , showBottomPanel :: Boolean
@@ -192,6 +189,13 @@ newtype State
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
+  -- The source of truth for the unsaved change lives inside each editor
+  -- The only reason we store a copy of the state here is because of the render function
+  -- in the Mainframe view, which uses this derived state to show an unsaved indicator.
+  -- Inside the Mainframe view we can inspect the state of the submodules (Haskell/JS/Marlowe)
+  -- as their state is part of the MainFrame state, but we cannot inspect the state of the
+  -- child components Blockly and ActusBlockly as we need a Query.
+  , hasUnsavedChanges :: Boolean
   }
 
 derive instance newtypeState :: Newtype State _
@@ -201,12 +205,6 @@ _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
 _jsCompilationResult :: Lens' State CompilationState
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
-
-_blocklyState :: Lens' State (Maybe BlocklyState)
-_blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
-
-_actusBlocklyState :: Lens' State (Maybe BlocklyState)
-_actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
 
 _jsEditorKeybindings :: Lens' State KeyBindings
 _jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
@@ -256,27 +254,11 @@ _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 _showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
 
-_hasUnsavedChanges :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
-_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
+_hasUnsavedChanges' :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
+_hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
 
-_maybeHasUnsavedChanges :: forall r. Lens' (Maybe { hasUnsavedChanges :: Boolean | r }) Boolean
-_maybeHasUnsavedChanges = lens get' set'
-  where
-  get' (Just { hasUnsavedChanges }) = hasUnsavedChanges
-
-  get' _ = false
-
-  set' (Just state) hasUnsavedChanges = Just (state { hasUnsavedChanges = hasUnsavedChanges })
-
-  set' Nothing _ = Nothing
-
-langHasUnsavedChanges :: Lang -> Lens' State Boolean
-langHasUnsavedChanges = case _ of
-  Marlowe -> _simulationState <<< _hasUnsavedChanges
-  Haskell -> _haskellState <<< _hasUnsavedChanges
-  Javascript -> _javascriptState <<< _hasUnsavedChanges
-  Blockly -> _blocklyState <<< _maybeHasUnsavedChanges
-  Actus -> _actusBlocklyState <<< _maybeHasUnsavedChanges
+_hasUnsavedChanges :: Lens' State Boolean
+_hasUnsavedChanges = _Newtype <<< _hasUnsavedChanges'
 
 currentLang :: State -> Maybe Lang
 currentLang state = case state ^. _view of

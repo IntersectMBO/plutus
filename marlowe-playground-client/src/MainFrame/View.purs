@@ -2,6 +2,7 @@ module MainFrame.View where
 
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..), maybe)
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
@@ -20,7 +21,7 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot, currentLang, langHasUnsavedChanges)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot, currentLang)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
@@ -101,15 +102,7 @@ render settings state =
       let
         title = state ^. _projectName
 
-        {- FIXME: This is not working for Blockly and ActusBlockly as I think their state is not the one
-                  in mainframe state.
-        -}
-        hasUnsavedChanges =
-          maybe "" (\_ -> "*") do
-            lens <- currentLang state <#> langHasUnsavedChanges
-            case state ^. lens of
-              true -> Just true
-              false -> Nothing
+        unsavedChangesIndicator = if state ^. _hasUnsavedChanges then "*" else ""
 
         isLoading = has (_createGistResult <<< _Loading) state
 
@@ -119,7 +112,7 @@ render settings state =
           [ h1_
               {- FIXME: Fix style when name is super long -}
               [ text title
-              , span [ class_ (ClassName "unsave-change-indicator") ] [ text hasUnsavedChanges ]
+              , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
               ]
           , spinner
           ]

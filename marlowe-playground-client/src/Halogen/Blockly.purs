@@ -4,21 +4,25 @@ import Blockly (BlockDefinition, ElementId(..), XML, addChangeListener, getBlock
 import Blockly as Blockly
 import Blockly.ChangeEvent as ChangeEvent
 import Blockly.CreateEvent as CreateEvent
+import Blockly.FinishLoadingEvent as FinishLoadingEvent
 import Blockly.Generator (Generator, newBlock, blockToCode)
+import Blockly.MoveEvent (newParentId)
 import Blockly.MoveEvent as MoveEvent
 import Blockly.Types (Workspace)
 import Blockly.Types as BT
+import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
+import Data.Foldable (oneOf)
 import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
-import Debug.Trace (spy)
+import Debug.Trace (spy, traceM)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
@@ -31,7 +35,7 @@ import Halogen.Query.EventSource as EventSource
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>), (||))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>), (||), (<$>))
 import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
@@ -41,6 +45,7 @@ type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
+    , hasUnsavedChanges :: Boolean
     }
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -52,8 +57,11 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
+_hasUnsavedChanges :: Lens' State Boolean
+_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
+
 emptyState :: State
-emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, hasUnsavedChanges: false }
 
 data Query a
   = Resize a
@@ -62,15 +70,17 @@ data Query a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
   | GetCodeQuery a
+  | HasUnsavedChanges (Boolean -> a)
 
 data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
-  | BlocklyEvent
+  | BlocklyEvent BT.BlocklyEvent
   | GetCode
 
 data Message
   = CurrentCode String
+  | FinishLoading
   | CodeChange
 
 type DSL slots m a
@@ -158,6 +168,10 @@ handleQuery (GetCodeQuery next) = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
+handleQuery (HasUnsavedChanges next) = do
+  val <- use _hasUnsavedChanges
+  pure $ Just $ next val
+
 handleAction :: forall m slots. MonadAff m => Action -> DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
@@ -174,7 +188,7 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  void $ H.subscribe $ blocklyChanges blocklyState.workspace
+  void $ H.subscribe $ blocklyEvents blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)
         <<< set _generator (Just generator)
@@ -202,28 +216,41 @@ handleAction GetCode = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
-handleAction BlocklyEvent = raise CodeChange
+handleAction (BlocklyEvent event) = do
+  traceM $ "Halogen.Blocky: handleAction BlocklyEvent"
+  let
+    setUnsavedChangesToTrue = do
+      traceM $ "Halogen.Blocky: setting unsaved changes to true"
+      assign _hasUnsavedChanges true
+      raise CodeChange
+  case event of
+    (BT.Change _) -> setUnsavedChangesToTrue
+    (BT.Create _) -> setUnsavedChangesToTrue
+    -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
+    -- one block into another)
+    (BT.Move ev) -> for_ (newParentId ev) \_ -> setUnsavedChangesToTrue
+    (BT.FinishLoading _) -> do
+      traceM $ "Halogen.Blocky: setting unsaved changes to false"
+      assign _hasUnsavedChanges false
+      raise FinishLoading
 
-blocklyChanges :: forall m. MonadAff m => Workspace -> EventSource m Action
-blocklyChanges workspace =
+blocklyEvents :: forall m. MonadAff m => Workspace -> EventSource m Action
+blocklyEvents workspace =
   EventSource.effectEventSource \emitter -> do
     listener <-
-      eventListener \event ->
+      eventListener \event -> do
         let
-          isCreateEvent = isJust $ CreateEvent.fromEvent $ spy "BlocklyEvent" event
-
-          isMoveEvent = isJust $ MoveEvent.fromEvent event
-
-          isChangeEvent = isJust $ ChangeEvent.fromEvent event
-        -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
-        -- but we only care for the ones that may change the contract.
-        -- TODO: the move event by its own shouldn't necesarly cause a change in the contract
-        -- we should check if the string property "newParentId" is defined
-        in
-          if isCreateEvent || isMoveEvent || isChangeEvent then
-            EventSource.emit emitter BlocklyEvent
-          else
-            pure unit
+          mEvent =
+            -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
+            -- but at the moment we only care for the ones that may affect the unsaved changes.
+            -- FIXME remove spy
+            oneOf
+              [ BT.Create <$> (CreateEvent.fromEvent $ spy "BlocklyEvent" event)
+              , BT.Move <$> MoveEvent.fromEvent event
+              , BT.Change <$> ChangeEvent.fromEvent event
+              , BT.FinishLoading <$> FinishLoadingEvent.fromEvent event
+              ]
+        for_ mEvent \ev -> EventSource.emit emitter (BlocklyEvent ev)
     addChangeListener workspace listener
     pure $ EventSource.Finalizer $ removeChangeListener workspace listener
 

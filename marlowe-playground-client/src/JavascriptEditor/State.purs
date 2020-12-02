@@ -24,7 +24,7 @@ import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges, _jsEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges', _jsEditorSlot)
 import Marlowe (SPParams_)
 import Monaco (IRange, getModel, isError, setValue)
 import Servant.PureScript.Settings (SPSettings_)
@@ -59,7 +59,7 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
             -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
             modify_
               ( set _compilationResult NotCompiled
-                  <<< set _hasUnsavedChanges true
+                  <<< set _hasUnsavedChanges' true
               )
           else
             if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
@@ -67,7 +67,7 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
                   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
                   modify_
                     ( set _compilationResult NotCompiled
-                        <<< set _hasUnsavedChanges true
+                        <<< set _hasUnsavedChanges' true
                     )
               )
             else
@@ -124,6 +124,18 @@ handleAction _ SendResultToBlockly = do
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
+handleAction _ (InitJavascriptProject contents) = do
+  -- FIXME: This was taken from MainFrame.State.handleAction(NewProjectAction (NewProject.CreateProject lang))
+  --        but it doesn't seem to be taking into account the decoration header.
+  editorSetValue contents
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey contents
+  assign _hasUnsavedChanges' false
+
+handleAction _ ResetEditor = do
+  editorSetValue mempty
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
+  assign _hasUnsavedChanges' false
+
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 
@@ -155,6 +167,7 @@ lengthOfHeader = length decorationHeader
 lengthOfFooter :: Int
 lengthOfFooter = length decorationFooter
 
+-- FIXME: make sure this is not being called from the outside
 editorSetValue ::
   forall m.
   MonadAff m =>

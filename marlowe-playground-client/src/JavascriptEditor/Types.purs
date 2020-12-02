@@ -42,9 +42,11 @@ data Action
   | ShowBottomPanel Boolean
   | SendResultToSimulator
   | SendResultToBlockly
+  | InitJavascriptProject String
+  | ResetEditor
 
 defaultEvent :: String -> Event
-defaultEvent s = A.defaultEvent $ "Haskell." <> s
+defaultEvent s = A.defaultEvent $ "Javascript." <> s
 
 instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
@@ -54,6 +56,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
+  toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
+  toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
 
 type DecorationIds
   = { topDecorationId :: String

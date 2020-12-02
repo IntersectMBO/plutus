@@ -5,6 +5,7 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
+import Data.Foldable (for_)
 import Data.Lens (assign, set, use, view)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -16,7 +17,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges, _haskellEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges', _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
@@ -27,6 +28,7 @@ import Simulation.Types (WebData, _result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Webghc.Server (CompileRequest(..))
+import Examples.Haskell.Contracts (example) as HE
 
 handleAction ::
   forall m.
@@ -38,7 +40,7 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   modify_
     ( set _compilationResult NotAsked
-        <<< set _hasUnsavedChanges true
+        <<< set _hasUnsavedChanges' true
     )
 
 handleAction _ (ChangeKeyBindings bindings) = do
@@ -81,6 +83,16 @@ handleAction _ SendResultToBlockly = do
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
+handleAction _ (InitHaskellProject contents) = do
+  editorSetValue contents
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
+  assign _hasUnsavedChanges' false
+
+handleAction _ ResetEditor = do
+  editorSetValue mempty
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
+  assign _hasUnsavedChanges' false
+
 runAjax ::
   forall m a.
   ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
@@ -90,6 +102,7 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)
 
+-- FIXME: make sure this is not being called from the outside
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
 

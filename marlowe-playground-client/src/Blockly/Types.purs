@@ -5,6 +5,11 @@
 --   function types
 module Blockly.Types where
 
+import Blockly.ChangeEvent (ChangeEvent)
+import Blockly.CreateEvent (CreateEvent)
+import Blockly.FinishLoadingEvent (FinishLoadingEvent)
+import Blockly.MoveEvent (MoveEvent)
+
 foreign import data Blockly :: Type
 
 foreign import data Workspace :: Type
@@ -15,6 +20,10 @@ type BlocklyState
   = { blockly :: Blockly
     , workspace :: Workspace
     , rootBlockName :: String
-    {- FIXME: Probably this should live inside the components state. -}
-    , hasUnsavedChanges :: Boolean
     }
+
+data BlocklyEvent
+  = Change ChangeEvent
+  | Create CreateEvent
+  | Move MoveEvent
+  | FinishLoading FinishLoadingEvent
