@@ -6,10 +6,11 @@ import Blockly.ChangeEvent as ChangeEvent
 import Blockly.CreateEvent as CreateEvent
 import Blockly.FinishLoadingEvent as FinishLoadingEvent
 import Blockly.Generator (Generator, newBlock, blockToCode)
-import Blockly.MoveEvent (newParentId)
+import Blockly.MoveEvent (newParentId, oldParentId)
 import Blockly.MoveEvent as MoveEvent
 import Blockly.Types (Workspace)
 import Blockly.Types as BT
+import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
@@ -222,13 +223,15 @@ handleAction (BlocklyEvent event) = do
       raise CodeChange
   case event of
     (BT.Change _) -> setUnsavedChangesToTrue
-    (BT.Create _) -> setUnsavedChangesToTrue
     -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
     -- one block into another)
-    (BT.Move ev) -> for_ (newParentId ev) \_ -> setUnsavedChangesToTrue
+    (BT.Move ev) -> for_ (newParentId ev <|> oldParentId ev) \_ -> setUnsavedChangesToTrue
     (BT.FinishLoading _) -> do
       assign _hasUnsavedChanges false
       raise FinishLoading
+    -- The create event by itself does not modify the contract. It is modified once it's attached or detached
+    -- from a parent, and that is covered by the Move event
+    (BT.Create _) -> pure unit
 
 -- This subscription is copied both in Halogen.ActusBlocky and Halogen.Blockly
 -- TODO: Maybe refactor to a function that receives (BlocklyEvent -> action) and works for both components

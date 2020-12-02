@@ -167,7 +167,6 @@ lengthOfHeader = length decorationHeader
 lengthOfFooter :: Int
 lengthOfFooter = length decorationFooter
 
--- FIXME: make sure this is not being called from the outside
 editorSetValue ::
   forall m.
   MonadAff m =>

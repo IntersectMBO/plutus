@@ -102,7 +102,6 @@ runAjax action = RemoteData.fromEither <$> runExceptT action
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)
 
--- FIXME: make sure this is not being called from the outside
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
 editorSetValue contents = void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
 
