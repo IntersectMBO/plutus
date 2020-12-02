@@ -85,25 +85,36 @@ subHeader ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-subHeader state@(State { contractDemos }) =
+subHeader state =
   nav
     [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
-    [ contractDemosPane contractDemos
+    [ contractDemosPane state
     , GistAction <$> gistControls (unwrap state)
     ]
 
 -- renders the contract demos pane
-contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
-contractDemosPane contractDemos =
+contractDemosPane ::
+  forall m.
+  MonadAff m =>
+  State -> ComponentHTML HAction ChildSlots m
+contractDemosPane state@(State { demoFilesMenuOpen, contractDemos }) =
   div
     [ classes [ navbarNav ] ]
     [ span
-        [ class_ navbarText ]
+        [ class_ navbarText
+        , onClick $ const $ Just $ ToggleDemoFilesMenu
+        ]
         [ text "Demo files" ]
     , ul
-        [ class_ navbarNav ]
+        [ classes demoFilesMenuClasses ]
         (demoScriptNavItem <$> contractDemos)
     ]
+  where
+  demoFilesMenuClasses =
+    if demoFilesMenuOpen then
+      [ navbarNav, ClassName "open" ]
+    else
+      [ navbarNav ]
 
 -- renders a demo script nav item
 demoScriptNavItem :: forall p. ContractDemo -> HTML p HAction

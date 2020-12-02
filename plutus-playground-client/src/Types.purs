@@ -129,6 +129,8 @@ data HAction
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
+  -- Demo files menu.
+  | ToggleDemoFilesMenu
   -- Tabs.
   | ChangeView View
   -- Editor.
@@ -192,7 +194,8 @@ type WebData
 
 newtype State
   = State
-  { currentView :: View
+  { demoFilesMenuOpen :: Boolean
+  , currentView :: View
   , contractDemos :: Array ContractDemo
   , editorState :: Editor.State
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
@@ -208,6 +211,9 @@ newtype State
   }
 
 derive instance newtypeState :: Newtype State _
+
+_demoFilesMenuOpen :: Lens' State Boolean
+_demoFilesMenuOpen = _Newtype <<< prop (SProxy :: SProxy "demoFilesMenuOpen")
 
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
