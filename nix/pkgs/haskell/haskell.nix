@@ -7,7 +7,7 @@
 , haskell-nix
 , agdaWithStdlib
 , buildPackages
-, nix-gitignore
+, gitignore-nix
 , z3
 , R
 , checkMaterialization
@@ -21,7 +21,7 @@ let
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
-        filter = nix-gitignore.gitignoreFilter (nix-gitignore.gitignoreCompileIgnore [ ../../../.gitignore ] root) root;
+        filter = gitignore-nix.gitignoreFilter root;
         src = root;
         # Otherwise this depends on the name in the parent directory, which reduces caching, and is
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40

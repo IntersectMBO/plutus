@@ -1,7 +1,6 @@
 { stdenv
 , nodejs
 , easyPS
-, nix-gitignore
 }:
 
 { pkgs
@@ -21,16 +20,12 @@
 , checkPhase
 }:
 let
-  # Cleans the source based on the patterns in ./.gitignore and the additionalIgnores
-  cleanSrcs = nix-gitignore.gitignoreSource [ "/*.adoc" "/*.nix" ] src;
-
   addExtraSrc = k: v: "ln -sf ${v} ${k}";
   addExtraSrcs = builtins.concatStringsSep "\n" (builtins.attrValues (pkgs.lib.mapAttrs addExtraSrc extraSrcs));
   extraPSPaths = builtins.concatStringsSep " " (map (d: "${d}/**/*.purs") (builtins.attrNames extraSrcs));
 in
 stdenv.mkDerivation {
-  inherit name checkPhase;
-  src = cleanSrcs;
+  inherit name src checkPhase;
   buildInputs = [
     nodejs
     nodeModules
