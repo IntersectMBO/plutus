@@ -337,7 +337,7 @@ type StablecoinSchema =
 
 data StablecoinError =
     InitialiseEPError ContractError
-    | StateMachineError (SMContractError BankState Input)
+    | StateMachineError SMContractError
     | RunStepError ContractError
     deriving stock (Haskell.Show)
 

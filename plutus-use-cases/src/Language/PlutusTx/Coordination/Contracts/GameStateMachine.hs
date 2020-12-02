@@ -95,7 +95,7 @@ type GameStateMachineSchema =
 
 data GameError =
     GameContractError ContractError
-    | GameSMError (SM.SMContractError GameState GameInput)
+    | GameSMError SM.SMContractError
     deriving stock (Show)
 
 -- | Top-level contract, exposing both endpoints.

@@ -24,12 +24,13 @@
 module Language.Marlowe.Client where
 import           Control.Lens
 import           Control.Monad                         (void)
-import           Control.Monad.Error.Lens              (catching)
+import           Control.Monad.Error.Lens              (catching, throwing)
 import           Language.Marlowe.Semantics            hiding (Contract)
 import qualified Language.Marlowe.Semantics            as Marlowe
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), StateMachine (..),
-                                                        StateMachineClient (..), Void, WaitingResult (..))
+import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), InvalidTransition, StateMachine (..),
+                                                        StateMachineClient (..), TransitionResult (..), Void,
+                                                        WaitingResult (..))
 import qualified Language.Plutus.Contract.StateMachine as SM
 import qualified Language.PlutusTx                     as PlutusTx
 import qualified Language.PlutusTx.AssocMap            as AssocMap
@@ -56,14 +57,15 @@ type MarloweSchema =
         .\/ Endpoint "auto" (MarloweParams, Party, Slot)
 
 data MarloweError =
-    StateMachineError (SM.SMContractError MarloweData MarloweInput)
+    StateMachineError SM.SMContractError
+    | TransitionError (InvalidTransition MarloweData MarloweInput)
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
   deriving (Show)
 
 makeClassyPrisms ''MarloweError
 
-instance AsSMContractError MarloweError MarloweData MarloweInput where
+instance AsSMContractError MarloweError where
     _SMContractError = _StateMachineError
 
 instance AsContractError MarloweError where
@@ -82,7 +84,7 @@ data PartyAction
 
 marlowePlutusContract :: forall e. (AsContractError e
     , AsMarloweError e
-    , AsSMContractError e MarloweData MarloweInput
+    , AsSMContractError e
     )
     => Contract MarloweSchema e ()
 marlowePlutusContract = do
@@ -144,7 +146,9 @@ marlowePlutusContract = do
                 logInfo @String $ "PayDeposit " <> show amount <> " at whithin slots " <> show slotRange
                 let payDeposit = do
                         marloweData <- SM.runStep theClient (slotRange, [IDeposit acc p token amount])
-                        continueWith marloweData
+                        case marloweData of
+                            TransitionFailure e -> throwing _TransitionError e
+                            TransitionSuccess d -> continueWith d
 
                 catching (_StateMachineError) payDeposit $ \err -> do
                     logWarn @String $ "Error " <> show err
@@ -237,7 +241,7 @@ canAutoExecuteContractForParty party = check
 {-| Create a Marlowe contract.
     Uses wallet public key to generate a unique script address.
  -}
-createContract :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
+createContract :: (AsContractError e, AsSMContractError e)
     => MarloweParams
     -> Marlowe.Contract
     -> Contract MarloweSchema e ()
@@ -254,7 +258,7 @@ createContract params contract = do
     void $ SM.runInitialise theClient marloweData payValue
 
 
-applyInputs :: (AsContractError e, AsSMContractError e MarloweData MarloweInput)
+applyInputs :: (AsContractError e, AsSMContractError e, AsMarloweError e)
     => MarloweParams
     -> [Input]
     -> Contract MarloweSchema e MarloweData
@@ -263,8 +267,9 @@ applyInputs params inputs = do
     let slotRange = (slot, slot + defaultTxValidationRange)
     let theClient = mkMarloweClient params
     dat <- SM.runStep theClient (slotRange, inputs)
-    return dat
-
+    case dat of
+        TransitionFailure e -> throwing _TransitionError e
+        TransitionSuccess d -> return d
 
 rolePayoutScript :: Validator
 rolePayoutScript = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]))
