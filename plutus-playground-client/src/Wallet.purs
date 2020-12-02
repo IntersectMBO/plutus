@@ -32,6 +32,12 @@ walletClass = ClassName "wallet"
 actionButtonClass :: ClassName
 actionButtonClass = ClassName "action-button"
 
+actionButtonTextClass :: ClassName
+actionButtonTextClass = ClassName "action-button-text"
+
+actionButtonIconClass :: ClassName
+actionButtonIconClass = ClassName "action-button-icon"
+
 -- renders the wallets pane
 walletsPane ::
   forall p.
@@ -122,9 +128,11 @@ actionButton initialValue simulatorWallet functionSchema =
             , caller: view _simulatorWalletWallet simulatorWallet
             }
     ]
-    [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) functionSchema
+    [ span
+        [ class_ actionButtonTextClass ]
+        [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) functionSchema ]
     , span
-        [ class_ floatRight ]
+        [ class_ actionButtonIconClass ]
         [ icon Plus ]
     ]
 
@@ -144,8 +152,10 @@ addPayToWalletButton initialValue simulatorWallet =
             , amount: initialValue
             }
     ]
-    [ text "Pay to Wallet"
+    [ span
+        [ class_ actionButtonTextClass ]
+        [ text "Pay to Wallet" ]
     , span
-        [ class_ floatRight ]
+        [ class_ actionButtonIconClass ]
         [ icon Plus ]
     ]

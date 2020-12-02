@@ -74,9 +74,16 @@
             }
         }
     }
+
+    .ajax-error {
+        .alert {
+            margin: 0;
+        }
+    }
 }
 
-.wallets {
+.wallets,
+.actions {
     margin-bottom: 1rem;
 }
 
@@ -90,19 +97,19 @@
 .wallet-list,
 .action-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 300px);
+    grid-template-columns: repeat(auto-fill, 309px); // 309px means 3 fit exactly on 1024px screen
     grid-gap: 1rem;
 }
 
 .wallet,
 .action {
     h3 {
-        font-size: 1.2rem;
+        font-size: 1.2em;
     }
 
     h4 {
-        font-size: 1.1rem;
-        margin-bottom: .75rem;
+        font-size: 1.1em;
+        margin-bottom: .75em;
     }
 
     .close-button {
@@ -117,17 +124,25 @@
 .wallet {
     .available-actions > div {
         display: flex;
+        flex-wrap: wrap;
+        margin: -0.125rem;
 
-        &:not(:last-child) {
-            margin-bottom: .5rem;
+        &:not(:first-child) {
+            margin-top: .125rem;
         }
 
         .action-button {
             flex: 1;
+            margin: .125rem;
+            display: flex;
+        }
 
-            &:not(:last-child) {
-                margin-right: .5rem;
-            }
+        .action-button-text {
+            flex: 1;
+        }
+
+        .action-button-icon {
+            margin-left: .5rem;
         }
     }
 }

@@ -2,12 +2,12 @@ module Simulation
   ( simulationsPane
   , simulationsNav
   , simulatorTitle
-  , actionsErrorPane
   ) where
 
 import Types
 import Action (actionsPane)
-import Bootstrap (active, alertDanger_, btn, btnDanger, btnPrimary, btnSuccess, btnWarning, floatRight, nav, navItem, navLink)
+import AjaxUtils (ajaxErrorPane)
+import Bootstrap (active, alertDanger_, btn, btnDanger, btnPrimary, btnSuccess, btnWarning, empty, floatRight, nav, navItem, navLink)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -90,6 +90,10 @@ simulationsPane initialValue actionDrag endpointSignatures simulations evaluatio
                 ]
             , walletsPane endpointSignatures initialValue simulationWallets
             , actionsPane isValidWallet actionDrag simulationActions evaluationResult
+            , case evaluationResult of
+                Failure error -> ajaxErrorPane error
+                Success (Left error) -> actionsErrorPane error
+                _ -> empty
             ]
         ]
   Nothing ->

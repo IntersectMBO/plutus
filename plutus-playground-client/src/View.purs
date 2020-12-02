@@ -1,8 +1,7 @@
 module View (render) where
 
 import Types
-import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, containerFluid, empty, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
+import Bootstrap (btn, containerFluid, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Either (Either(..))
@@ -26,7 +25,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
 import Prelude (class Eq, const, ($), (<$>), (<<<), (==))
 import Schema.Types (mkInitialValue)
-import Simulation (actionsErrorPane, simulatorTitle, simulationsPane, simulationsNav)
+import Simulation (simulatorTitle, simulationsPane, simulationsNav)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
@@ -238,10 +237,6 @@ simulationsWrapper state@(State { currentView }) =
           )
           (view _simulations state)
           (view _evaluationResult state)
-      , case (view _evaluationResult state) of
-          Failure error -> ajaxErrorPane error
-          Success (Left error) -> actionsErrorPane error
-          _ -> empty
       ]
 
 -- renders the transactions pane
