@@ -21,7 +21,6 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
-import Debug.Trace (spy, traceM)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
@@ -217,10 +216,8 @@ handleAction GetCode = do
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
 handleAction (BlocklyEvent event) = do
-  traceM $ "Halogen.Blocky: handleAction BlocklyEvent"
   let
     setUnsavedChangesToTrue = do
-      traceM $ "Halogen.Blocky: setting unsaved changes to true"
       assign _hasUnsavedChanges true
       raise CodeChange
   case event of
@@ -230,7 +227,6 @@ handleAction (BlocklyEvent event) = do
     -- one block into another)
     (BT.Move ev) -> for_ (newParentId ev) \_ -> setUnsavedChangesToTrue
     (BT.FinishLoading _) -> do
-      traceM $ "Halogen.Blocky: setting unsaved changes to false"
       assign _hasUnsavedChanges false
       raise FinishLoading
 
@@ -245,9 +241,8 @@ blocklyEvents workspace =
           mEvent =
             -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
             -- but at the moment we only care for the ones that may affect the unsaved changes.
-            -- FIXME remove spy
             oneOf
-              [ BT.Create <$> (CreateEvent.fromEvent $ spy "BlocklyEvent" event)
+              [ BT.Create <$> CreateEvent.fromEvent event
               , BT.Move <$> MoveEvent.fromEvent event
               , BT.Change <$> ChangeEvent.fromEvent event
               , BT.FinishLoading <$> FinishLoadingEvent.fromEvent event

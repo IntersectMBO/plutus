@@ -2,17 +2,16 @@ module MainFrame.View where
 
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, group, hide, noMargins, spaceLeft, spaceRight, textBase, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, group, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h1, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -21,13 +20,13 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot, currentLang)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import Prelude (bind, const, eq, negate, unit, ($), (<#>), (<<<), (<>))
+import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet

@@ -426,6 +426,8 @@ data Action
   | SelectEditorKeyBindings KeyBindings
   | LoadScript String
   | SetEditorText String
+  | InitMarloweProject String
+  | ResetEditor
   -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
@@ -489,6 +491,8 @@ instance isEventAction :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent Save = Just $ defaultEvent "Save"
+  toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
+  toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

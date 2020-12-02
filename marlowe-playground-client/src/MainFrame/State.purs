@@ -347,6 +347,10 @@ handleAction settings (SimulationAction action) = do
     ST.EditHaskell -> selectView HaskellEditor
     ST.EditJavascript -> selectView JSEditor
     ST.EditActus -> selectView ActusBlocklyEditor
+    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+    (ST.HandleEditorMessage (Monaco.TextChanged _)) -> do
+      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+      assign _hasUnsavedChanges hasUnsavedChanges
     _ -> pure unit
 
 handleAction _ SendBlocklyToSimulator = void $ query _blocklySlot unit (Blockly.GetCodeQuery unit)
@@ -439,13 +443,9 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     )
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
-  -- FIXME Handle action reset
   toHaskellEditor $ HaskellEditor.handleAction s $ HE.ResetEditor
   toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.ResetEditor
-  -- TODO: once the simulation and marlowe editor are separated, refactor
-  --       this to have the Reset and Init actions
-  toSimulation $ Simulation.editorSetValue mempty
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
+  toSimulation $ Simulation.handleAction s $ ST.ResetEditor
   void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
   -- FIXME: Shouldn't we do the same for actus?
   -- set the appropriate editor
@@ -456,9 +456,9 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
         toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject contents
-    Marlowe -> do
-      toSimulation $ Simulation.editorSetValue "?new_contract"
-      liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey "?new_contract"
+    Marlowe ->
+      for_ (Map.lookup "Example" StaticData.marloweContracts) \contents -> do
+        toSimulation $ Simulation.handleAction s $ ST.InitMarloweProject contents
     _ -> pure unit
   selectView $ selectLanguageView lang
   modify_
@@ -655,8 +655,6 @@ handleGistAction settings PublishGist = do
                 Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
-        state <- H.get
-        lang <- hoistMaybe $ currentLang state
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
