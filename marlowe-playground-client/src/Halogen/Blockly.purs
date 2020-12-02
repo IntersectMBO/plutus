@@ -10,7 +10,6 @@ import Blockly.MoveEvent (newParentId)
 import Blockly.MoveEvent as MoveEvent
 import Blockly.Types (Workspace)
 import Blockly.Types as BT
-import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
@@ -19,7 +18,7 @@ import Data.Either (Either(..), note)
 import Data.Foldable (oneOf)
 import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Debug.Trace (spy, traceM)
@@ -35,7 +34,7 @@ import Halogen.Query.EventSource as EventSource
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>), (||), (<$>))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<$>), (<<<), (<>))
 import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
@@ -57,6 +56,7 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
+-- We redefine this lens as importing the one from MainFrame causes a cyclic dependency
 _hasUnsavedChanges :: Lens' State Boolean
 _hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
 
@@ -234,6 +234,8 @@ handleAction (BlocklyEvent event) = do
       assign _hasUnsavedChanges false
       raise FinishLoading
 
+-- This subscription is copied both in Halogen.ActusBlocky and Halogen.Blockly
+-- TODO: Maybe refactor to a function that receives (BlocklyEvent -> action) and works for both components
 blocklyEvents :: forall m. MonadAff m => Workspace -> EventSource m Action
 blocklyEvents workspace =
   EventSource.effectEventSource \emitter -> do

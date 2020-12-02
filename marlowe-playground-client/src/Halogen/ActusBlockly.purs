@@ -1,32 +1,43 @@
 module Halogen.ActusBlockly where
 
-import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
+import Blockly (BlockDefinition, ElementId(..), XML, addChangeListener, getBlockById, removeChangeListener)
 import Blockly as Blockly
+import Blockly.ChangeEvent as ChangeEvent
+import Blockly.CreateEvent as CreateEvent
+import Blockly.FinishLoadingEvent as FinishLoadingEvent
 import Blockly.Generator (Generator, blockToCode)
+import Blockly.MoveEvent (newParentId)
+import Blockly.MoveEvent as MoveEvent
+import Blockly.Types (Workspace)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Foldable (oneOf)
+import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Foreign.Generic (encodeJSON)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
 import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
+import Halogen.Query.EventSource (EventSource(..))
+import Halogen.Query.EventSource as EventSource
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>), void, (<$>))
+import Web.Event.EventTarget (eventListener)
 import Web.HTML.Event.EventTypes (offline)
 
 foreign import sendContractToShiny ::
@@ -38,6 +49,7 @@ type State
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , showShiny :: Boolean
+    , hasUnsavedChanges :: Boolean
     }
 
 _actusBlocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -49,6 +61,10 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
+-- We redefine this lens as importing the one from MainFrame causes a cyclic dependency
+_hasUnsavedChanges :: Lens' State Boolean
+_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
+
 _showShiny :: Lens' State Boolean
 _showShiny = prop (SProxy :: SProxy "showShiny")
 
@@ -57,6 +73,7 @@ data Query a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
+  | HasUnsavedChanges (Boolean -> a)
 
 data ContractFlavour
   = FS
@@ -65,19 +82,22 @@ data ContractFlavour
 data Action
   = Inject String (Array BlockDefinition)
   | GetTerms ContractFlavour
+  | BlocklyEvent BT.BlocklyEvent
   | RunAnalysis
 
 data Message
   = Initialized
   | CurrentTerms ContractFlavour String
+  | CodeChange
+  | FinishLoading
 
 type DSL m a
   = HalogenM State Action () Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
+blockly :: forall m. MonadAff m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
+    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false, hasUnsavedChanges: false }
     , render
     , eval:
         H.mkEval
@@ -122,7 +142,11 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleAction :: forall m. MonadEffect m => Action -> DSL m Unit
+handleQuery (HasUnsavedChanges next) = do
+  val <- use _hasUnsavedChanges
+  pure $ Just $ next val
+
+handleAction :: forall m. MonadAff m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusBlocklyToolbox")
   let
@@ -136,8 +160,11 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  assign _actusBlocklyState (Just blocklyState)
-  assign _generator (Just generator)
+  void $ H.subscribe $ blocklyEvents blocklyState.workspace
+  modify_
+    ( set _actusBlocklyState (Just blocklyState)
+        <<< set _generator (Just generator)
+    )
 
 handleAction (GetTerms flavour) = do
   res <-
@@ -191,6 +218,42 @@ handleAction RunAnalysis = do
           liftEffect $ sendContractToShiny $ encodeJSON c
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+
+handleAction (BlocklyEvent event) = do
+  let
+    setUnsavedChangesToTrue = do
+      assign _hasUnsavedChanges true
+      raise CodeChange
+  case event of
+    (BT.Change _) -> setUnsavedChangesToTrue
+    (BT.Create _) -> setUnsavedChangesToTrue
+    -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
+    -- one block into another)
+    (BT.Move ev) -> for_ (newParentId ev) \_ -> setUnsavedChangesToTrue
+    (BT.FinishLoading _) -> do
+      assign _hasUnsavedChanges false
+      raise FinishLoading
+
+-- This subscription is copied both in Halogen.ActusBlocky and Halogen.Blockly
+-- TODO: Maybe refactor to a function that receives (BlocklyEvent -> action) and works for both components
+blocklyEvents :: forall m. MonadAff m => Workspace -> EventSource m Action
+blocklyEvents workspace =
+  EventSource.effectEventSource \emitter -> do
+    listener <-
+      eventListener \event -> do
+        let
+          mEvent =
+            -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
+            -- but at the moment we only care for the ones that may affect the unsaved changes.
+            oneOf
+              [ BT.Create <$> CreateEvent.fromEvent event
+              , BT.Move <$> MoveEvent.fromEvent event
+              , BT.Change <$> ChangeEvent.fromEvent event
+              , BT.FinishLoading <$> FinishLoadingEvent.fromEvent event
+              ]
+        for_ mEvent \ev -> EventSource.emit emitter (BlocklyEvent ev)
+    addChangeListener workspace listener
+    pure $ EventSource.Finalizer $ removeChangeListener workspace listener
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

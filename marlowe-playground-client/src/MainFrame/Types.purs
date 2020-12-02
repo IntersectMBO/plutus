@@ -266,7 +266,7 @@ currentLang state = case state ^. _view of
   JSEditor -> Just Javascript
   Simulation -> Just Marlowe
   BlocklyEditor -> Just Blockly
-  ActusBlocklyEditor -> Just Blockly
+  ActusBlocklyEditor -> Just Actus
   _ -> Nothing
 
 -- editable

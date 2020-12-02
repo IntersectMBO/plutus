@@ -26,6 +26,7 @@ import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
+import Halogen.ActusBlockly (Message(..))
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (Message(..))
@@ -400,6 +401,11 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
+-- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+handleAction _ (HandleActusBlocklyMessage _) = do
+  hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+  assign _hasUnsavedChanges hasUnsavedChanges
+
 -- QUESTION: How does this relates to the handleGistAction?
 -- the save the project we use the PublishGist action and I thought that when we loaded
 -- we used the LoadGist action, but it's actually this one.
@@ -737,15 +743,17 @@ queryCurrentEditorForUnsavedChanges =
     <$> runMaybeT do
         state <- H.get
         lang <- hoistMaybe $ currentLang state
+        ans <-
+          MaybeT
+            $ case lang of
+                Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
+                Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
+                Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
+                Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
+                Actus -> query _actusBlocklySlot unit $ H.request ActusBlockly.HasUnsavedChanges
         -- FIXME remvoe traceM
-        traceM $ "queryCurrentEditorForUnsavedChanges " <> show lang
-        MaybeT
-          $ case lang of
-              Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
-              Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
-              Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
-              Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
-              Actus -> pure $ Just true -- _actusBlocklyState <<< _maybeHasUnsavedChanges
+        traceM $ "queryCurrentEditorForUnsavedChanges " <> show lang <> " " <> show ans
+        pure ans
 
 ------------------------------------------------------------
 -- Handles the actions fired by the Confirm Unsaved Navigation modal
