@@ -89,4 +89,5 @@ eraseTm {i = i} (builtin bn (inj₂ (refl , q)) As ts) = builtin
   (eraseTel⋆ i As ++ eraseTel ts)
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
+eraseTm (ibuiltin b) = error
 \end{code}

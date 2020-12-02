@@ -139,3 +139,41 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 \end{code}
 
 Let `A`, `B`, `C` range over types.
+
+\begin{code}
+data _≤C⋆_ : Ctx⋆ → Ctx⋆ → Set where
+ base : ∀{Φ} → Φ ≤C⋆ Φ
+ skip : ∀{Φ Φ' K} → Φ ≤C⋆ Φ' → Φ ≤C⋆ (Φ' ,⋆ K)
+
+∅≤C⋆ : ∀ Φ → ∅ ≤C⋆ Φ
+∅≤C⋆ ∅       = base
+∅≤C⋆ (Φ ,⋆ K) = skip (∅≤C⋆ Φ)
+
+data _≤C⋆'_ : Ctx⋆ → Ctx⋆ → Set where
+ base : ∀{Φ} → Φ ≤C⋆' Φ
+ skip : ∀{Φ Φ' K} → (Φ ,⋆ K) ≤C⋆' Φ' → Φ ≤C⋆' Φ'
+
+open import Data.Empty
+lem1 : ∀{Φ K} → (Φ ,⋆ K) ≤C⋆' ∅ → ⊥
+lem1 {Φ} (skip p) = lem1 p
+
+lem3 : ∀{Φ Φ' K} → (Φ ,⋆ K) ≤C⋆ Φ' → Φ ≤C⋆ Φ'
+lem3 base = skip base
+lem3 (skip p) = skip (lem3 p)
+
+≤C⋆'to≤C⋆ : ∀ {Φ Φ'} → Φ ≤C⋆' Φ' → Φ ≤C⋆ Φ'
+≤C⋆'to≤C⋆ base = base
+≤C⋆'to≤C⋆ {Φ} {∅} (skip p) = ⊥-elim (lem1 p)
+≤C⋆'to≤C⋆ {Φ} {Φ' ,⋆ x} (skip p) = lem3 (≤C⋆'to≤C⋆ p)
+
+lem3' : ∀{Φ Φ' K} → Φ ≤C⋆' Φ' → Φ ≤C⋆' (Φ' ,⋆ K)
+lem3' base = skip base
+lem3' (skip p) = skip (lem3' p) 
+
+≤C⋆to≤C⋆' : ∀ {Φ Φ'} → Φ ≤C⋆ Φ' → Φ ≤C⋆' Φ'
+≤C⋆to≤C⋆' base     = base
+≤C⋆to≤C⋆' (skip p) = lem3' (≤C⋆to≤C⋆' p)
+
+∅≤C⋆' : ∀ Φ → ∅ ≤C⋆' Φ
+∅≤C⋆' Φ = ≤C⋆to≤C⋆' (∅≤C⋆ Φ)
+\end{code}

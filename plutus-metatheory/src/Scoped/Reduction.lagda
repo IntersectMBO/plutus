@@ -249,6 +249,10 @@ E-builtin⋆ : (b : Builtin)
             → Any Error ts
             → builtin b (inr (refl , ≤‴-refl)) As ts —→ error missing
 
+  E-ibuiltin : (b : Builtin) -- TODO!
+            → ibuiltin b —→ error missing
+
+
 data _—→T_ {n}{w} where
   here  : ∀{m t t'}{ts : Tel w m} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
   there : ∀{m t}{ts ts' : Tel w m}
@@ -355,7 +359,7 @@ progress (builtin b (inr (refl , ≤‴-refl)) As ts) =
   progress-builtin b As ts (progressTel ts)
 -- term telescope is not full yet
 progress (builtin b (inr (refl , ≤‴-step snd)) As ts) = done (V-builtin b As snd ts)
-
+progress (ibuiltin b) = step (E-ibuiltin b)
 progress (wrap A B t) with progress t
 progress (wrap A B t)          | step  q           = step (ξ-wrap q)
 progress (wrap A B t)          | done  q           = done (V-wrap A B q)

@@ -227,6 +227,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
     → Tel⋆ n m
     → Tel w o
     → ScopedTm w
+  ibuiltin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
@@ -372,6 +373,7 @@ extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con (unDeBruijnifyC c)
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (builtin bn _ _ _) = builtin bn -- TODO
+extricateScope (ibuiltin bn) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
@@ -409,6 +411,7 @@ ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
 ugly (builtin b X As ts) = "builtin" -- FIX ME
+ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
   " " ++
