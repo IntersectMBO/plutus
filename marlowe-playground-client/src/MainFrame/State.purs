@@ -14,19 +14,17 @@ import Data.Lens (assign, preview, use, view, set, (^.), has)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
 import Debug.Trace (traceM)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
-import Effect.Console as Console
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
-import Halogen.ActusBlockly (Message(..))
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (Message(..))
@@ -37,7 +35,7 @@ import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (eventListenerEventSource)
-import HaskellEditor.State (editorGetValue, editorResize, editorSetValue, handleAction) as HaskellEditor
+import HaskellEditor.State (editorGetValue, editorResize, handleAction) as HaskellEditor
 import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as HE
 import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
@@ -71,7 +69,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.Types (_source)
 import Simulation.Types as ST
-import StaticData (bufferLocalStorageKey, gistIdLocalStorageKey, jsBufferLocalStorageKey, marloweBufferLocalStorageKey)
+import StaticData (gistIdLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
 import WalletSimulation.Types as Wallet
@@ -275,7 +273,7 @@ withLog handlerName handleAction' action = do
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above
--- TODO: Refactor the settings to come from a ReaderT environment
+-- TODO: Refactor the settings to come from a MonadAsk environment
 handleAction ::
   forall m.
   MonadAff m =>
@@ -414,12 +412,13 @@ handleAction _ (HandleActusBlocklyMessage _) = do
 -- the save the project we use the PublishGist action and I thought that when we loaded
 -- we used the LoadGist action, but it's actually this one.
 handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
+  traceM $ "MainFrame.State: handleAction (ProjectsAction LoadProject) started"
   assign _createGistResult Loading
   res <-
     runExceptT
       $ do
           gist <- flip runReaderT s $ getApiGistsByGistId gistId
-          lift $ loadGist gist
+          lift $ loadGist s gist
           pure gist
   case res of
     Right gist -> do
@@ -432,10 +431,12 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
   selectView $ selectLanguageView lang
+  traceM $ "MainFrame.State: handleAction (ProjectsAction LoadProject) finished"
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
 handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
+  -- QUESTION: Can we move this to the final modify_?
   modify_
     ( set _projectName "New Project"
         <<< set _gistId Nothing
@@ -447,8 +448,9 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.ResetEditor
   toSimulation $ Simulation.handleAction s $ ST.ResetEditor
   void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
-  -- FIXME: Shouldn't we do the same for actus?
-  -- set the appropriate editor
+  -- FIXME: should we have something similar for ActusBlockly? it doesn't have a SetCode query
+  -- FIXME: If we are treating all the editors as one workspace instace, shouldn't
+  --        we set the contents of all editors to the contents or reset? like inside loadGist
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
@@ -470,23 +472,20 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
 
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
-    Haskell -> for_ (Map.lookup key StaticData.demoFiles) \contents -> HaskellEditor.editorSetValue contents
+    Haskell ->
+      for_ (Map.lookup key StaticData.demoFiles) \contents ->
+        toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject contents
     Javascript ->
       for_ (Map.lookup key StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.editorSetValue contents
-        liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey contents
+        toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
-        Simulation.editorSetValue contents
+        toSimulation $ Simulation.handleAction s $ ST.InitMarloweProject contents
     Blockly -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
-  modify_
-    ( set _showModal Nothing
-    {- FIXME: see if we can make this part of the subcomponents -}
-    -- FIXME <<< set (langHasUnsavedChanges lang) false
-    )
+  assign _showModal Nothing
   selectView $ selectLanguageView lang
 
 handleAction s (RenameAction action@Rename.SaveProject) = do
@@ -672,7 +671,13 @@ handleGistAction _ (SetGistUrl url) = do
         )
     Left _ -> pure unit
 
+-- TODO: I think this action is not being called.
+-- > The issue is that for historical reasons, the gist actions rely on gist id stored in the state,
+-- > so we need to set the appropriate state before handling the gist action. This should probably be
+-- > changed to have gist action type taking gist id as a parameter.
+-- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533478042
 handleGistAction settings LoadGist = do
+  traceM $ "MainFrame.State: handleGistAction (LoadGist) started"
   res <-
     runExceptT
       $ do
@@ -681,17 +686,10 @@ handleGistAction settings LoadGist = do
           aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getApiGistsByGistId eGistId
           assign _loadGistResult $ Right aGist
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
-          lift $ loadGist gist
+          lift $ loadGist settings gist
           pure aGist
   assign _loadGistResult res
-  -- FIXME: See if we can put this logic in the submodules
-  -- void
-  --   $ runMaybeT do
-  --       state <- H.get
-  --       lang <- hoistMaybe $ currentLang state
-  --       assign (langHasUnsavedChanges lang) false
-  -- FIXME: remove log
-  liftEffect $ Console.log "Gist loaded, unsaved changes should be false"
+  traceM $ "MainFrame.State: handleGistAction (LoadGist) finished"
   where
   toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
   toEither _ (Success a) = Right a
@@ -705,10 +703,10 @@ handleGistAction settings LoadGist = do
 loadGist ::
   forall m.
   MonadAff m =>
-  MonadEffect m =>
+  SPSettings_ SPParams_ ->
   Gist ->
   HalogenM State Action ChildSlots Void m Unit
-loadGist gist = do
+loadGist settings gist = do
   let
     { marlowe
     , haskell
@@ -720,16 +718,25 @@ loadGist gist = do
     description = view gistDescription gist
 
     gistId' = preview gistId gist
-  for_ haskell \s -> liftEffect $ LocalStorage.setItem bufferLocalStorageKey s
-  for_ javascript \s -> liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey s
-  for_ marlowe \s -> liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey s
-  assign _gistId gistId'
-  assign _projectName description
-  toSimulation $ Simulation.editorSetValue $ fromMaybe mempty marlowe
-  HaskellEditor.editorSetValue (fromMaybe mempty haskell)
-  for_ blockly \xml -> query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
-  toJavascriptEditor $ JavascriptEditor.editorSetValue $ fromMaybe mempty javascript
+  -- Restore or reset all editors
+  case haskell of
+    Nothing -> toHaskellEditor $ HaskellEditor.handleAction settings $ HE.ResetEditor
+    Just contents -> toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject contents
+  case javascript of
+    Nothing -> toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.ResetEditor
+    Just contents -> toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject contents
+  case marlowe of
+    Nothing -> toSimulation $ Simulation.handleAction settings $ ST.ResetEditor
+    Just contents -> toSimulation $ Simulation.handleAction settings $ ST.InitMarloweProject contents
+  case blockly of
+    Nothing -> void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
+    Just xml -> void $ query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
+  -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
+  modify_
+    ( set _gistId gistId'
+        <<< set _projectName description
+    )
 
 ------------------------------------------------------------
 queryCurrentEditorForUnsavedChanges ::
