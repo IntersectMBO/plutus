@@ -454,14 +454,14 @@ normalizeTypeTerm t = do
 
 import Algorithmic.Evaluation as L
 
-runL : Term → Either ERROR Term
-runL t = do
+runTL : Term → Either ERROR Term
+runTL t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   t ← withE runtimeError $ L.stepper tC maxsteps
   return (unconvTm (unshifter Z (extricateScope (extricate t))))
 
-{-# COMPILE GHC runL as runLAgda #-}
+{-# COMPILE GHC runTL as runTLAgda #-}
 
 -- Haskell interface to (untypechecked CK)
 runCK : Term → Either ERROR Term
@@ -489,8 +489,8 @@ runTCK t = do
 {-# COMPILE GHC runTCK as runTCKAgda #-}
 
 -- Haskell interface to (typechecked) CEKV
-runTCEKV : Term → Either ERROR Term
-runTCEKV t = do
+runTCEK : Term → Either ERROR Term
+runTCEK t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ tC)
@@ -499,5 +499,5 @@ runTCEKV t = do
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
-{-# COMPILE GHC runTCEKV as runTCEKVAgda #-}
+{-# COMPILE GHC runTCEK as runTCEKAgda #-}
 \end{code}

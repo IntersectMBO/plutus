@@ -16,7 +16,7 @@ import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
                                                             normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
-                                                            runLAgda, runTCEKVAgda, runTCKAgda)
+                                                            runTCEKAgda, runTCKAgda, runTLAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -107,7 +107,7 @@ prop_Term tyG tmG = do
   -- 3. run all the metatheory evaluators against each other. Taking
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
-  let evs = [runLAgda,runCKAgda >=> normalizeTypeTermAgda,runTCKAgda,runTCEKVAgda]
+  let evs = [runTLAgda,runCKAgda,runTCKAgda,runTCEKAgda]
   let tmEvsM = map ($ tmDB) evs
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM
