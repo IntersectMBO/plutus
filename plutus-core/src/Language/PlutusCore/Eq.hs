@@ -10,6 +10,7 @@
 module Language.PlutusCore.Eq
     ( LR (..)
     , RL (..)
+    , EqRenameT
     , EqRename
     , ScopedEqRename
     , runEqRename
@@ -74,7 +75,8 @@ of terms and programs). This amounts to the following generic monad:
 
     RenameT (Bilateral ren) m
 
-i.e. regardless of what the underlying renaming is, it has to be bilateral.
+(abbreviated as @EqRenameT ren@) i.e. regardless of what the underlying renaming is, it has to be
+bilateral.
 
 We zoom into the sides of a bilateral renaming using the 'LR' and 'RL' newtype wrappers using the
 same 'HasRenaming' machinery that we use for zooming into the scopes of a scoped renaming:
@@ -142,10 +144,12 @@ instance HasRenaming ren unique => HasRenaming (Bilateral ren) (LR unique) where
 instance HasRenaming ren unique => HasRenaming (Bilateral ren) (RL unique) where
     renaming = bilateralR . renaming . coerced @(Renaming unique)
 
+type EqRenameT ren = RenameT (Bilateral ren)
+
 -- | The type of a runnable equality check. @Maybe ()@ is isomorphic to 'Bool' and we use it
 -- instead of 'Bool', because this unlocks the convenient and readable do-notation and allows for
 -- automatic short-circuiting, which would be tedious with @Rename (Bilateral ren) Bool@.
-type EqRename ren = RenameT (Bilateral ren) Maybe ()
+type EqRename ren = EqRenameT ren Maybe ()
 type ScopedEqRename = EqRename ScopedRenaming
 
 -- | Run an 'EqRename' computation.
@@ -156,7 +160,7 @@ runEqRename = isJust . runRenameT
 -- | Record that two names map to each other.
 withTwinBindings
     :: (HasRenaming ren unique, HasUnique name unique, Monad m)
-    => name -> name -> RenameT (Bilateral ren) m c -> RenameT (Bilateral ren) m c
+    => name -> name -> EqRenameT ren m c -> EqRenameT ren m c
 withTwinBindings name1 name2 k =
     withRenamedName (LR name1) (LR name2) $
     withRenamedName (RL name2) (RL name1) k

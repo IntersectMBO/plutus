@@ -120,7 +120,7 @@ We need to support polymorphism for built-in functions for these reasons:
    defined over them are polymorphic as well
 -}
 
-{- Note [Implemetation of polymorphic built-in functions]
+{- Note [Implementation of polymorphic built-in functions]
 Encoding polymorphism in an AST in an intrinsically typed manner is not a pleasant thing to do in Haskell.
 It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 But we'd rather avoid such heavy techniques.

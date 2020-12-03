@@ -20,6 +20,7 @@ module Language.PlutusCore.Generators.AST
 import           PlutusPrelude
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Subst
 
 import           Control.Monad.Morph       (hoist)

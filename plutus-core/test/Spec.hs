@@ -198,102 +198,11 @@ testsRewrite
     = testGroup "golden rewrite tests"
     . fmap (asGolden (format $ debugPrettyConfigPlcClassic defPrettyConfigPlcOptions))
 
-testEqTerm :: Bool
-testEqTerm =
-    let
-        xName = Name "x" (Unique 0)
-        yName = Name "y" (Unique 1)
-
-        varX = Var () xName
-        varY = Var () yName
-
-        varType = TyVar () (TyName (Name "a" (Unique 2)))
-
-        lamX = LamAbs () xName varType varX
-        lamY = LamAbs () yName varType varY
-
-        term0, term1 :: Term TyName Name DefaultUni DefaultFun ()
-
-        -- [(lam x a x) x]
-        term0 = Apply () lamX varX
-        -- [(lam y a y) x]
-        term1 = Apply () lamY varX
-
-    in
-        term0 == term1
-
-testRebindShadowedVariable :: Bool
-testRebindShadowedVariable =
-    let
-        xName = TyName (Name "x" (Unique 0))
-        yName = TyName (Name "y" (Unique 1))
-        zName = TyName (Name "z" (Unique 2))
-
-        varX = TyVar () xName
-        varY = TyVar () yName
-        varZ = TyVar () zName
-
-        typeKind = Type ()
-
-        l1, r1, l2, r2 :: Type TyName DefaultUni ()
-
-        -- (all x (type) (fun (all y (type) y) x))
-        l1 = TyForall () xName typeKind (TyFun () (TyForall () yName typeKind varY) varX)
-        -- (all x (type) (fun (all x (type) x) x))
-        r1 = TyForall () xName typeKind (TyFun () (TyForall () xName typeKind varX) varX)
-
-        -- (all x (type) (all x (type) (fun x x)))
-        l2 = TyForall () xName typeKind (TyForall () xName typeKind (TyFun () varX varX))
-        -- (all y (type) (all z (type) (fun y z)))
-        r2 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
-
-    in
-        l1 == r1 && l2 /= r2
-
-testRebindCapturedVariable :: Bool
-testRebindCapturedVariable =
-    let
-        wName = TyName (Name "w" (Unique 0))
-        xName = TyName (Name "x" (Unique 1))
-        yName = TyName (Name "y" (Unique 2))
-        zName = TyName (Name "z" (Unique 3))
-
-        varW = TyVar () wName
-        varX = TyVar () xName
-        varY = TyVar () yName
-        varZ = TyVar () zName
-
-        typeKind = Type ()
-
-        typeL1, typeR1, typeL2, typeR2 :: Type TyName DefaultUni ()
-
-        -- (all y (type) (all z (type) (fun y z)))
-        typeL1 = TyForall () yName typeKind (TyForall () zName typeKind (TyFun () varY varZ))
-        -- (all x (type) (all y (type) (fun x y)))
-        typeR1 = TyForall () xName typeKind (TyForall () yName typeKind (TyFun () varX varY))
-
-        -- (all z (type) (fun (all w (all x (type) (fun w x))))) z)
-        typeL2
-            = TyForall () zName typeKind
-            $ TyFun ()
-                (TyForall () wName typeKind $ TyForall () xName typeKind (TyFun () varW varX))
-                varZ
-        -- (all x (type) (fun (all x (all y (type) (fun x y))))) x)
-        typeR2
-            = TyForall () xName typeKind
-            $ TyFun ()
-                (TyForall () xName typeKind $ TyForall () yName typeKind (TyFun () varX varY))
-                varX
-    in [typeL1, typeL2] == [typeR1, typeR2]
-
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
-    , testRebindShadowedVariable @?= True
-    , testRebindCapturedVariable @?= True
-    , testEqTerm @?= True
     ]
     where
         fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text

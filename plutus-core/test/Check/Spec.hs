@@ -5,6 +5,8 @@ module Check.Spec (tests) where
 
 import           PlutusPrelude
 
+import           Check.Equality
+
 import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.Normal   as Normal
 import qualified Language.PlutusCore.Check.Uniques  as Uniques
@@ -29,6 +31,7 @@ tests = testGroup "checks"
     , values
     , normalTypes
     , normalTypesCheck
+    , test_equality
     ]
 
 data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)

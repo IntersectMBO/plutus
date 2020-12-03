@@ -6,7 +6,7 @@
 -- | In this module we define Church-encoded type-level natural numbers,
 -- Church-encoded vectors and Scott-encoded vectors.
 --
--- See @/docs/fomega/gadts/ScottVec.agda@ for how Scott-encoded vectors work.
+-- See @/notes/fomega/gadts/ScottVec.agda@ for how Scott-encoded vectors work.
 
 module Language.PlutusCore.Examples.Data.Vec where
 
@@ -25,23 +25,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 -- > natK = (* -> *) -> * -> *
 natK :: Kind ()
 natK = KindArrow () (KindArrow () (Type ()) $ Type ()) . KindArrow () (Type ()) $ Type ()
-
--- We don't have eta-equality for types, so we need to eta-expand some things manually.
--- Should we have eta-equality?
--- |
---
--- > getEta n = \(f :: * -> *) (z :: *) -> n f z
-getEta :: Type TyName uni () -> Quote (Type TyName uni ())
-getEta n = do
-    f <- freshTyName "f"
-    z <- freshTyName "z"
-    return
-        . TyLam () f (KindArrow () (Type ()) $ Type ())
-        . TyLam () z (Type ())
-        $ mkIterTyApp () n
-            [ TyVar () f
-            , TyVar () z
-            ]
 
 -- |
 --
@@ -202,14 +185,13 @@ churchConcat = runQuote $ do
     z <- freshName "z"
     p <- freshTyName "p"
     stepFun <- getStepFun a (TyVar () r) r
-    mEta <- getEta $ TyVar () m
     let plusTPM = mkIterTyApp () plusT [TyVar () p, TyVar () m]
     return
         . TyAbs () a (Type ())
         . TyAbs () n natK
         . TyAbs () m natK
         . LamAbs () xs (mkIterTyApp () churchVec [TyVar () a, TyVar () n])
-        . LamAbs () ys (mkIterTyApp () churchVec [TyVar () a, mEta])
+        . LamAbs () ys (mkIterTyApp () churchVec [TyVar () a, TyVar () m])
         . TyAbs () r (KindArrow () natK $ Type ())
         . LamAbs () f stepFun
         . LamAbs () z (TyApp () (TyVar () r) zeroT)

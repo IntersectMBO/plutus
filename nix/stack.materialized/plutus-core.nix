@@ -105,6 +105,7 @@
           "Language/PlutusCore/Pretty/ConfigName"
           "Language/PlutusCore/Core/Type"
           "Language/PlutusCore/Core/Plated"
+          "Language/PlutusCore/Core/Variables"
           "Language/PlutusCore/Core/Instance/Eq"
           "Language/PlutusCore/Core/Instance/Pretty/Classic"
           "Language/PlutusCore/Core/Instance/Pretty/Common"
@@ -342,6 +343,7 @@
             "Normalization/Check"
             "Normalization/Type"
             "Pretty/Readable"
+            "Check/Equality"
             "Check/Spec"
             "TypeSynthesis/Spec"
             ];

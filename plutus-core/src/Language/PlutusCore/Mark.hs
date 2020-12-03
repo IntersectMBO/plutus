@@ -7,7 +7,6 @@ module Language.PlutusCore.Mark
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Subst
 
 -- | Marks all the 'Unique's in a type as used, so they will not be generated in future. Useful if you
 -- have a type which was not generated in 'Quote'.
