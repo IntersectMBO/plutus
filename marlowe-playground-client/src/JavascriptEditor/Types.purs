@@ -37,13 +37,11 @@ _ContractString = _compilationResult <<< _CompiledSuccessfully <<< _result <<< _
 data Action
   = Compile
   | ChangeKeyBindings KeyBindings
-  | LoadScript String
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
   | SendResultToBlockly
   | InitJavascriptProject String
-  | ResetEditor
   | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
@@ -52,13 +50,11 @@ defaultEvent s = A.defaultEvent $ "Javascript." <> s
 instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
-  toEvent (LoadScript _) = Just $ defaultEvent "LoadScript"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
-  toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
   toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type DecorationIds

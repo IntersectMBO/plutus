@@ -427,7 +427,6 @@ data Action
   | LoadScript String
   | SetEditorText String
   | InitMarloweProject String
-  | ResetEditor
   | MarkProjectAsSaved
   -- marlowe actions
   | SetInitialSlot Slot
@@ -493,7 +492,6 @@ instance isEventAction :: IsEvent Action where
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent Save = Just $ defaultEvent "Save"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
-  toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
   toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 data Query a

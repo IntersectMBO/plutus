@@ -1,4 +1,9 @@
-module HaskellEditor.State where
+module HaskellEditor.State
+  ( handleAction
+  , editorGetValue
+  -- TODO: This should probably be exposed by an action
+  , editorResize
+  ) where
 
 import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
@@ -28,7 +33,6 @@ import Simulation.Types (WebData, _result)
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Webghc.Server (CompileRequest(..))
-import Examples.Haskell.Contracts (example) as HE
 
 handleAction ::
   forall m.
@@ -62,9 +66,6 @@ handleAction settings Compile = do
           _ -> []
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
-handleAction _ (LoadScript key) = do
-  for_ (Map.lookup key StaticData.demoFiles) \contents -> editorSetValue contents
-
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
@@ -80,16 +81,9 @@ handleAction _ SendResultToBlockly = do
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
--- FIXME: See if it makes sense to unify InitHaskellProject and LoadScript
---        and put the LocalStorage and hasUnsavedChanges logic in editorSetValue
 handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
-  assign _hasUnsavedChanges' false
-
-handleAction _ ResetEditor = do
-  editorSetValue mempty
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
   assign _hasUnsavedChanges' false
 
 handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false

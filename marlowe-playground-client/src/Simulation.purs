@@ -296,11 +296,6 @@ handleAction settings AnalyseReachabilityContract = do
 
 handleAction _ Save = pure unit
 
-handleAction _ ResetEditor = do
-  editorSetValue mempty
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey mempty
-  assign _hasUnsavedChanges' false
-
 handleAction _ (InitMarloweProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents

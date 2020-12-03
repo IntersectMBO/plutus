@@ -272,7 +272,7 @@ withLog handlerName handleAction' action = do
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
--- defined above
+-- defined above (actionWithAnalytics or fullHandleAction)
 -- TODO: Refactor the settings to come from a MonadAsk environment
 handleAction ::
   forall m.
@@ -444,9 +444,9 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     )
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
-  toHaskellEditor $ HaskellEditor.handleAction s $ HE.ResetEditor
-  toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.ResetEditor
-  toSimulation $ Simulation.handleAction s $ ST.ResetEditor
+  toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject mempty
+  toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject mempty
+  toSimulation $ Simulation.handleAction s $ ST.InitMarloweProject mempty
   void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
   -- FIXME: should we have something similar for ActusBlockly? it doesn't have a SetCode query
   -- FIXME: If we are treating all the editors as one workspace instace, shouldn't
@@ -666,7 +666,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-
+              
               <<< set _hasUnsavedChanges false
           )
 
@@ -728,19 +728,14 @@ loadGist settings gist = do
 
     gistId' = preview gistId gist
   -- Restore or reset all editors
-  case haskell of
-    Nothing -> toHaskellEditor $ HaskellEditor.handleAction settings $ HE.ResetEditor
-    Just contents -> toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject contents
-  case javascript of
-    Nothing -> toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.ResetEditor
-    Just contents -> toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject contents
-  case marlowe of
-    Nothing -> toSimulation $ Simulation.handleAction settings $ ST.ResetEditor
-    Just contents -> toSimulation $ Simulation.handleAction settings $ ST.InitMarloweProject contents
+  toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject $ maybe mempty identity haskell
+  toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject $ maybe mempty identity javascript
+  toSimulation $ Simulation.handleAction settings $ ST.InitMarloweProject $ maybe mempty identity marlowe
   case blockly of
     Nothing -> void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
     Just xml -> void $ query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
+  -- FIXME add SetCode to Actus
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
   modify_
     ( set _gistId gistId'
