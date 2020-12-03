@@ -26,6 +26,7 @@ data Action
   | SendResultToBlockly
   | InitHaskellProject String
   | ResetEditor
+  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -40,6 +41,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
   toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type State
   = { keybindings :: KeyBindings

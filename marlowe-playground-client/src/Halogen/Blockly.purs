@@ -71,6 +71,7 @@ data Query a
   | LoadWorkspace XML a
   | GetCodeQuery a
   | HasUnsavedChanges (Boolean -> a)
+  | MarkProjectAsSaved a
 
 data Action
   = Inject String (Array BlockDefinition)
@@ -171,6 +172,10 @@ handleQuery (GetCodeQuery next) = do
 handleQuery (HasUnsavedChanges next) = do
   val <- use _hasUnsavedChanges
   pure $ Just $ next val
+
+handleQuery (MarkProjectAsSaved next) = do
+  assign _hasUnsavedChanges false
+  pure $ Just $ next
 
 handleAction :: forall m slots. MonadAff m => Action -> DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do

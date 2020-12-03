@@ -44,6 +44,7 @@ data Action
   | SendResultToBlockly
   | InitJavascriptProject String
   | ResetEditor
+  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Javascript." <> s
@@ -58,6 +59,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
   toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type DecorationIds
   = { topDecorationId :: String

@@ -63,10 +63,7 @@ handleAction settings Compile = do
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
 handleAction _ (LoadScript key) = do
-  case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
-    Just contents -> do
-      editorSetValue contents
+  for_ (Map.lookup key StaticData.demoFiles) \contents -> editorSetValue contents
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -83,6 +80,8 @@ handleAction _ SendResultToBlockly = do
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
 
+-- FIXME: See if it makes sense to unify InitHaskellProject and LoadScript
+--        and put the LocalStorage and hasUnsavedChanges logic in editorSetValue
 handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
@@ -92,6 +91,8 @@ handleAction _ ResetEditor = do
   editorSetValue mempty
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey mempty
   assign _hasUnsavedChanges' false
+
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
 runAjax ::
   forall m a.

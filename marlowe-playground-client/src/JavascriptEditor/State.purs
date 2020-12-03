@@ -136,6 +136,8 @@ handleAction _ ResetEditor = do
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey mempty
   assign _hasUnsavedChanges' false
 
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
+
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
 

@@ -428,6 +428,7 @@ data Action
   | SetEditorText String
   | InitMarloweProject String
   | ResetEditor
+  | MarkProjectAsSaved
   -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
@@ -493,6 +494,7 @@ instance isEventAction :: IsEvent Action where
   toEvent Save = Just $ defaultEvent "Save"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
   toEvent ResetEditor = Just $ defaultEvent "ResetEditor"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

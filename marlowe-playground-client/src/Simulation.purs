@@ -306,6 +306,8 @@ handleAction _ (InitMarloweProject contents) = do
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
   assign _hasUnsavedChanges' false
 
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
+
 setOraclePrice ::
   forall m.
   MonadAff m =>

@@ -75,6 +75,7 @@ data Query a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
   | HasUnsavedChanges (Boolean -> a)
+  | MarkProjectAsSaved a
 
 data ContractFlavour
   = FS
@@ -146,6 +147,10 @@ handleQuery (LoadWorkspace xml next) = do
 handleQuery (HasUnsavedChanges next) = do
   val <- use _hasUnsavedChanges
   pure $ Just $ next val
+
+handleQuery (MarkProjectAsSaved next) = do
+  assign _hasUnsavedChanges false
+  pure $ Just $ next
 
 handleAction :: forall m. MonadAff m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do

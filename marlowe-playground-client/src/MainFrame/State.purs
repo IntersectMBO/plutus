@@ -654,11 +654,20 @@ handleGistAction settings PublishGist = do
                 Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
+        -- Mark all editors as saved
+        lift do
+          toHaskellEditor $ HaskellEditor.handleAction settings $ HE.MarkProjectAsSaved
+          toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.MarkProjectAsSaved
+          toSimulation $ Simulation.handleAction settings $ ST.MarkProjectAsSaved
+          void $ query _blocklySlot unit (Blockly.MarkProjectAsSaved unit)
+          void $ query _actusBlocklySlot unit (ActusBlockly.MarkProjectAsSaved unit)
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
-          -- FIXME: see if we can make this part of the subcomponents
-          -- FIXME <<< set (langHasUnsavedChanges lang) false
+              {- This marks the project as saved globally, it would normally be a replication
+               of the inner unsaved state set below, but we n two places. Here to update the view -}
+
+              <<< set _hasUnsavedChanges false
           )
 
 handleGistAction _ (SetGistUrl url) = do
