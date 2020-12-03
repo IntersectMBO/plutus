@@ -94,7 +94,7 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
 walletIdPane :: forall p i. Wallet -> HTML p i
 walletIdPane wallet =
   span [ class_ $ ClassName "wallet-id" ]
-    [ text "Wallet #"
+    [ text "Wallet "
     , text $ show $ _.getWallet $ unwrap wallet
     ]
 

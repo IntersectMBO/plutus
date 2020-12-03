@@ -85,7 +85,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
         ]
     ]
   where
-  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet #" <> show n)) (AssocMap.Map walletKeys)
+  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet " <> show n)) (AssocMap.Map walletKeys)
 
 eveEvent :: forall a. MultiAgent.EmulatorTimeEvent a -> a
 eveEvent (MultiAgent.EmulatorTimeEvent { _eteEvent }) = _eteEvent
@@ -125,15 +125,15 @@ emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) _ error)) =
 
 emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
-    [ text $ "Add slot #" <> show slot.getSlot ]
+    [ text $ "Add slot " <> show slot.getSlot ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
+    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> logMessageText ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> show logMessage ]
+    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> show logMessage ]
 
 emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
   div_
@@ -147,7 +147,7 @@ emulatorEventPane _ = div [] []
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String
-formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
+formatWalletId wallet = "Wallet " <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
 extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe BigInteger
 extractAmount (Tuple currencySymbol tokenName) =

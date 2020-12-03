@@ -326,7 +326,7 @@ handleAction AddSimulationSlot = do
             let
               count = Cursor.length simulations
 
-              simulationName = "Simulation #" <> show (count + 1)
+              simulationName = "Simulation " <> show (count + 1)
             in
               Cursor.snoc simulations
                 (mkSimulation knownCurrencies simulationName)
@@ -399,7 +399,7 @@ handleAction CompileProgram = do
         )
         ( assign _simulations
             $ case newCurrencies of
-                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation #1"
+                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation 1"
                 Nothing -> Cursor.empty
         )
       pure unit
