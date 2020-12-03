@@ -13,6 +13,10 @@ body {
         cursor: pointer;
     }
 
+    button[disabled] {
+        cursor: not-allowed;
+    }
+
     .header,
     .footer {
         background: $gray-background-color;
@@ -62,53 +66,87 @@ body {
         .gist-controls {
             position: relative;
 
-            .btn {
-                margin-left: .5rem;
+            $label-width: 56px;
+            $gist-id-input-width: 230px;
+            $button-width: 5rem;
+            $button-margin: .5rem;
+            $arrow-width: 12px;
+
+            label {
+                width: $label-width;
+                font-size: small;
             }
 
-            .gist-link {
-                position: absolute;
-                width: 21em;
-                font-size: small;
-                text-align: center;
+            .form-control {
+                width: $gist-id-input-width;
+            }
 
-                &:hover {
-                    text-decoration: underline;
+            .btn {
+                width: $button-width;
+                margin-left: $button-margin;
+
+                &.double-width {
+                    width: ($button-width * 2) + $button-margin;
+                }
+            }
+
+            .gist-link,
+            .ajax-error {
+                position: absolute;
+                z-index: 10;
+                top: 44px;
+                left: $label-width;
+                width: $gist-id-input-width;
+                font-size: small;
+                border: 1px solid $green;
+                border-radius: 4px;
+                background: lighten($green, 50%);
+                padding: .25em .5em;
+                color: $green;
+
+                &::before,
+                &::after {
+                  content: "";
+                  position: absolute;
+                  border-left: $arrow-width solid transparent;
+                  border-right: $arrow-width solid transparent;
+                  left: 50%;
+                  margin-left: -$arrow-width;
+                }
+                
+                &::before {
+                  border-bottom: $arrow-width solid $green;
+                  top: -$arrow-width;
+                }
+                
+                &::after {
+                  border-bottom: $arrow-width solid lighten($green, 50%);
+                  top: -($arrow-width - 1px);
+                  z-index: 11;
                 }
             }
 
             .ajax-error {
-                position: absolute;
                 z-index: 20;
-                width: 100%;
-                top: 38px;
+                border-color: $red;
+                background: lighten($red, 50%);
+                color: $red;
 
-                &::after { // pointer on the top of the error box
-                    content: " ";
-                    position: absolute;
-                    bottom: 100%;
-                    left: 25%;
-                    margin-left: -10px;
-                    border-width: 10px;
-                    border-style: solid;
-                    border-color: transparent transparent lighten($red, 40%) transparent;
+                &::before {
+                    border-bottom-color: $red;
+                }
+
+                &::after {
+                    border-bottom-color: lighten($red, 50%);
+                    z-index: 21;
                 }
 
                 .alert {
+                    background: transparent;
                     border: 0;
-                    background: lighten($red, 40%);
-                    font-size: small;
-                    padding: .5em;
+                    padding: 0;
                     margin: 0;
                 }
-            }
-
-            input {
-                width: 21em;
-            }
-
-            button {
-                width: 8em;
             }
         }
     }

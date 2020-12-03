@@ -7,15 +7,15 @@ module Gists.View
 import Gists.Types (GistAction(..), parseGistUrl)
 import AjaxUtils (ajaxErrorPane)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
-import Bootstrap (btn, btnDanger, btnSecondary, btnSmall, empty, formControl, isInvalid, isValid, nbsp)
+import Bootstrap (btn, btnDanger, btnSecondary, btnSmall, empty, formControl, formGroup, isInvalid, isValid, nbsp)
 import DOM.HTML.Indexed.InputType (InputType(..))
 import Data.Either (Either(..), isRight, note)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Gist (Gist, GistId, gistHtmlUrl)
-import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, div_, input, text)
+import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, div, input, label, text)
 import Halogen.HTML.Events (onClick, onValueInput)
-import Halogen.HTML.Properties (class_, classes, disabled, href, id_, placeholder, target, type_, value)
+import Halogen.HTML.Properties (class_, classes, disabled, for, href, id_, target, type_, value)
 import Icons (Icon(..), icon)
 import Network.RemoteData (RemoteData(NotAsked, Loading, Failure, Success))
 import Prelude (const, ($), (<$>), (<<<), (<>), (=<<))
@@ -41,22 +41,27 @@ gistControls { authStatus, createGistResult, gistUrl } =
         [ class_ $ ClassName "gist-controls" ]
         [ div
             [ class_ $ ClassName "form-inline" ]
-            [ input
-                [ type_ InputText
-                , value $ fromMaybe "" $ gistUrl
-                , id_ "gist-id"
-                , classes
-                    ( [ formControl, ClassName "form-control-sm" ]
-                        <> case parsedGistId of
-                            Just (Left err) -> [ isInvalid ]
-                            Just (Right err) -> [ isValid ]
-                            Nothing -> []
-                    )
-                , placeholder "Load Gist ID"
-                , onValueInput $ Just <<< SetGistUrl
+            [ div
+                [ class_ formGroup ]
+                [ label
+                    [ for gistIdInputId ]
+                    [ text "Gist ID" ]
+                , input
+                    [ type_ InputText
+                    , value $ fromMaybe "" $ gistUrl
+                    , id_ gistIdInputId
+                    , classes
+                        ( [ formControl, ClassName "form-control-sm" ]
+                            <> case parsedGistId of
+                                Just (Left err) -> [ isInvalid ]
+                                Just (Right err) -> [ isValid ]
+                                Nothing -> []
+                        )
+                    , onValueInput $ Just <<< SetGistUrl
+                    ]
                 ]
-            , publishButton
             , loadButton
+            , publishButton
             ]
         , case createGistResult of
             Success gist -> gistPane gist
@@ -65,6 +70,8 @@ gistControls { authStatus, createGistResult, gistUrl } =
             NotAsked -> empty
         ]
   where
+  gistIdInputId = "gist-id"
+
   canTryLoad = isRight $ parseGistUrl =<< note "No gist Url set" gistUrl
 
   parsedGistId :: Maybe (Either String GistId)
@@ -104,38 +111,33 @@ gistControls { authStatus, createGistResult, gistUrl } =
         [ icon Spinner ]
 
   publishButton = case createGistResult of
-    Failure _ ->
-      button
-        [ idPublishGist
-        , classes [ btn, btnSmall, btnDanger ]
-        ]
-        [ text "Failure" ]
     Success _ ->
       button
         [ idPublishGist
         , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
-        [ icon Github, nbsp, text "Republish" ]
+        [ text "Republish" ]
     Loading ->
+      -- make the button extra wide in this case, because there's no load button
       button
         [ idPublishGist
-        , classes [ btn, btnSmall, btnSecondary ]
+        , classes [ btn, btnSmall, btnSecondary, ClassName "double-width" ]
         , disabled true
         ]
         [ icon Spinner ]
-    NotAsked ->
+    _ ->
       button
         [ idPublishGist
         , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
-        [ icon Github, nbsp, text "Publish" ]
-
-  loadMessage = [ icon Github, nbsp, text "Load" ]
+        [ text "Publish" ]
 
   loadButton = case createGistResult of
-    Loading -> empty
+    Loading ->
+      -- no load button in this case; publish button should be twice the size
+      empty
     _ ->
       button
         [ idLoadGist
@@ -154,7 +156,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
                 Just (Right url) -> false
                 Nothing -> true
         ]
-        loadMessage
+        [ text "Load" ]
 
 gistPane :: forall p i. Gist -> HTML p i
 gistPane gist =
