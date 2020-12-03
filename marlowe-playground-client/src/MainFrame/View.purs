@@ -109,7 +109,7 @@ render settings state =
       in
         div [ classes [ ClassName "project-title" ] ]
           [ h1_
-              {- FIXME: Fix style when name is super long -}
+              {- TODO: Fix style when name is super long -}
               [ text title
               , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
               ]

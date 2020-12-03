@@ -39,37 +39,10 @@ button:hover, .btn:hover {
 button:active, .btn:active {
   background: var(--btn-primary-color-active);
 }
-// This was from the old button, for now is disabled but we should remove this if
-// we decide we don't want an animation
-// button::before {
-//   position: absolute;
-//   content: "";
-//   top: 0;
-//   right: 0;
-//   bottom: 0;
-//   left: 0;
-//   border-radius: var(--border-radius);
-//   background-image: var(--btn-hover-gradient-bg);
-//   z-index: -1;
-//   transition: opacity 0.3s ease-in-out;
-//   opacity: 0;
-// }
-
-// button:hover::before {
-//   opacity: 1;
-// }
-
-// button:active {
-//   transform: var(--animate-btn);
-// }
 
 button.disabled {
-  background: lightgray;
+  background: var(--btn-primary-color-disabled);
 }
-
-// button.disabled::before {
-//   background: lightgray;
-// }
 
 button.small-btn {
   padding: 0rem;

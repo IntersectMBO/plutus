@@ -240,8 +240,7 @@ fullHandleAction ::
   Action ->
   HalogenM State Action ChildSlots Void m Unit
 fullHandleAction settings =
-  withLog "fullHandleAction"
-    $ withAccidentalNavigationGuard settings
+  withAccidentalNavigationGuard settings
     $ handleActionWithAnalyticsTracking
         ( handleAction settings
         )
@@ -257,19 +256,22 @@ actionWithAnalytics settings =
     ( handleAction settings
     )
 
--- FIXME: Comment before merging
-withLog ::
-  forall m.
-  MonadAff m =>
-  String ->
-  (Action -> HalogenM State Action ChildSlots Void m Unit) ->
-  Action ->
-  HalogenM State Action ChildSlots Void m Unit
-withLog handlerName handleAction' action = do
-  traceM $ "MainFrame.State: " <> handlerName
-  traceM action
-  handleAction' action
-
+-- This is a helper HOF to log all the actions handled by the MainFrame. It is always commented
+-- so that it doesn't trigger a compilation warning (because of traceM). To use it, put it as the
+-- first action handler in fullHandleAction and actionWithAnalytics
+-- withLog ::
+--   forall m.
+--   MonadAff m =>
+--   String ->
+--   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
+--   Action ->
+--   HalogenM State Action ChildSlots Void m Unit
+-- withLog handlerName handleAction' action = do
+--   traceM $ "MainFrame.State: " <> handlerName
+--   traceM action
+--   handleAction' action
+--
+--
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (actionWithAnalytics or fullHandleAction)
@@ -357,12 +359,6 @@ handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction settings (ChangeView ActusBlocklyEditor) = do
-  -- FIXME check if this really really needs to be called as a pre-action, if not, unify it
-  -- with the selectView `case view`
-  assign (_simulationState <<< ST._source) Actus
-  selectView ActusBlocklyEditor
-
 handleAction settings (ChangeView view) = selectView view
 
 handleAction _ (ShowBottomPanel val) = do
@@ -448,9 +444,7 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject mempty
   toSimulation $ Simulation.handleAction s $ ST.InitMarloweProject mempty
   void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
-  -- FIXME: should we have something similar for ActusBlockly? it doesn't have a SetCode query
-  -- FIXME: If we are treating all the editors as one workspace instace, shouldn't
-  --        we set the contents of all editors to the contents or reset? like inside loadGist
+  -- TODO: implement ActusBlockly.SetCode
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
@@ -467,8 +461,6 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     ( set (_simulationState <<< ST._source) lang
         <<< set _showModal Nothing
     )
-  -- FIXME: remove log
-  traceM $ "Finish NewProject.CreateProject lang=" <> show lang
 
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
@@ -735,7 +727,7 @@ loadGist settings gist = do
     Nothing -> void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
     Just xml -> void $ query _blocklySlot unit (Blockly.LoadWorkspace xml unit)
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
-  -- FIXME add SetCode to Actus
+  -- TODO add SetCode to Actus
   for_ actus \xml -> query _actusBlocklySlot unit (ActusBlockly.LoadWorkspace xml unit)
   modify_
     ( set _gistId gistId'
@@ -752,17 +744,13 @@ queryCurrentEditorForUnsavedChanges =
     <$> runMaybeT do
         state <- H.get
         lang <- hoistMaybe $ currentLang state
-        ans <-
-          MaybeT
-            $ case lang of
-                Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
-                Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
-                Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
-                Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
-                Actus -> query _actusBlocklySlot unit $ H.request ActusBlockly.HasUnsavedChanges
-        -- FIXME remvoe traceM
-        traceM $ "queryCurrentEditorForUnsavedChanges " <> show lang <> " " <> show ans
-        pure ans
+        MaybeT
+          $ case lang of
+              Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
+              Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
+              Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
+              Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
+              Actus -> query _actusBlocklySlot unit $ H.request ActusBlockly.HasUnsavedChanges
 
 ------------------------------------------------------------
 -- Handles the actions fired by the Confirm Unsaved Navigation modal
@@ -801,8 +789,6 @@ withAccidentalNavigationGuard settings handleAction' action =
     handleAction' action
   else do
     hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-    -- FIXME remove traceM
-    traceM $ "withAccidentalNavigationGuard: hasUnsavedChanges " <> show hasUnsavedChanges
     if hasUnsavedChanges then do
       fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
     else do
@@ -821,9 +807,6 @@ selectView ::
   MonadEffect m =>
   View -> HalogenM State action ChildSlots message m Unit
 selectView view = do
-  -- FIXME: remove console.log
-  currentView <- use _view
-  traceM $ "selectView from " <> show currentView <> " to " <> show view
   liftEffect $ Routing.setHash (RD.print Router.route { subroute: viewToRoute view, gistId: Nothing })
   assign _view view
   liftEffect do
@@ -842,4 +825,6 @@ selectView view = do
       void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
-    ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+    ActusBlocklyEditor -> do
+      assign (_simulationState <<< ST._source) Actus
+      void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
