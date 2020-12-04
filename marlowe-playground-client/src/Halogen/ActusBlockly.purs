@@ -4,7 +4,6 @@ import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, blockToCode)
 import Blockly.Types as BT
-import Control.Applicative (when)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
@@ -22,7 +21,7 @@ import Effect.Class (class MonadEffect)
 import Foreign.Generic (encodeJSON)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
-import Halogen.BlocklyCommons (attachesOrDetachesABlock, blocklyEvents)
+import Halogen.BlocklyCommons (blocklyEvents, updateUnsavedChangesActionHandler)
 import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
@@ -215,18 +214,7 @@ handleAction RunAnalysis = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
-handleAction (BlocklyEvent event) = do
-  let
-    setUnsavedChangesToTrue = do
-      assign _hasUnsavedChanges true
-      raise CodeChange
-  case event of
-    (BT.Change _) -> setUnsavedChangesToTrue
-    (BT.Move ev) -> when (attachesOrDetachesABlock ev) setUnsavedChangesToTrue
-    (BT.FinishLoading _) -> do
-      assign _hasUnsavedChanges false
-      raise FinishLoading
-    _ -> pure unit
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange FinishLoading event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

@@ -3,17 +3,20 @@
 module Halogen.BlocklyCommons where
 
 import Blockly (addChangeListener, removeChangeListener)
-import Blockly.Events (MoveEvent, fromEvent, newParentId, oldParentId)
+import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Types (BlocklyEvent, Workspace)
 import Blockly.Types as BT
 import Control.Alt ((<|>))
 import Data.Foldable (oneOf)
-import Data.Maybe (maybe)
+import Data.Lens (Lens', assign)
+import Data.Lens.Record (prop)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (for_)
 import Effect.Aff.Class (class MonadAff)
+import Halogen (HalogenM, raise)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
-import Prelude (bind, const, discard, pure, ($), (<$>))
+import Prelude (Unit, bind, discard, pure, unit, ($), (<$>))
 import Web.Event.EventTarget (eventListener)
 
 blocklyEvents ::
@@ -40,6 +43,29 @@ blocklyEvents toAction workspace =
     addChangeListener workspace listener
     pure $ EventSource.Finalizer $ removeChangeListener workspace listener
 
--- Indicates if a Move Event meant that a block has been attached or detached from another block.
-attachesOrDetachesABlock :: MoveEvent -> Boolean
-attachesOrDetachesABlock ev = maybe false (const true) $ newParentId ev <|> oldParentId ev
+_hasUnsavedChanges' :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
+_hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
+
+updateUnsavedChangesActionHandler ::
+  forall m state action slots message.
+  MonadAff m =>
+  message ->
+  message ->
+  BlocklyEvent ->
+  HalogenM { hasUnsavedChanges :: Boolean | state } action slots message m Unit
+updateUnsavedChangesActionHandler codeChange finishLoading event = do
+  let
+    setUnsavedChangesToTrue = do
+      assign _hasUnsavedChanges' true
+      raise codeChange
+  case event of
+    (BT.Change _) -> setUnsavedChangesToTrue
+    -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
+    -- one block into another)
+    (BT.Move ev) -> for_ (newParentId ev <|> oldParentId ev) \_ -> setUnsavedChangesToTrue
+    (BT.FinishLoading _) -> do
+      assign _hasUnsavedChanges' false
+      raise finishLoading
+    -- The create event by itself does not modify the contract. It is modified once it's attached or detached
+    -- from a parent, and that is covered by the Move event
+    (BT.Create _) -> pure unit

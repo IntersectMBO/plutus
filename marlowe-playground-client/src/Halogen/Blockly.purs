@@ -18,14 +18,14 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
-import Halogen.BlocklyCommons (attachesOrDetachesABlock, blocklyEvents)
+import Halogen.BlocklyCommons (updateUnsavedChangesActionHandler, blocklyEvents)
 import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, when, zero, ($), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>))
 import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
@@ -211,18 +211,7 @@ handleAction GetCode = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
-handleAction (BlocklyEvent event) = do
-  let
-    setUnsavedChangesToTrue = do
-      assign _hasUnsavedChanges true
-      raise CodeChange
-  case event of
-    (BT.Change _) -> setUnsavedChangesToTrue
-    (BT.Move ev) -> when (attachesOrDetachesABlock ev) setUnsavedChangesToTrue
-    (BT.FinishLoading _) -> do
-      assign _hasUnsavedChanges false
-      raise FinishLoading
-    _ -> pure unit
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange FinishLoading event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
