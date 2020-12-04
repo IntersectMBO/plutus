@@ -57,20 +57,14 @@
         }
 
         .simulation-controls {
-            .simulation-controls-buttons {
-                display: flex;
+            display: flex;
 
-                button {
-                    flex: 1;
+            button {
+                flex: 1;
 
-                    &:not(:first-child) {
-                        margin-left: .5rem;
-                    }
+                &:not(:first-child) {
+                    margin-left: .5rem;
                 }
-            }
-
-            .simulation-controls-info {
-                margin-top: .25em;
             }
         }
     }

@@ -79,14 +79,8 @@ simulationsPane initialValue actionDrag endpointSignatures simulations evaluatio
             [ class_ $ ClassName "simulation" ]
             [ div
                 [ classes [ ClassName "simulation-controls", floatRight ] ]
-                [ div
-                    [ class_ $ ClassName "simulation-controls-buttons" ]
-                    [ evaluateActionsButton evaluationResult simulationActions
-                    , viewTransactionsButton evaluationResult
-                    ]
-                , div
-                    [ class_ $ ClassName "simulation-controls-info" ]
-                    [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
+                [ evaluateActionsButton evaluationResult simulationActions
+                , viewTransactionsButton evaluationResult
                 ]
             , walletsPane endpointSignatures initialValue simulationWallets
             , actionsPane isValidWallet actionDrag simulationActions evaluationResult
