@@ -8,7 +8,7 @@ module Editor.View
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnDanger, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, hidden, listGroupItem_, listGroup_, nbsp, floatRight)
+import Bootstrap (btn, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, button, code_, div, div_, h4_, option, pre, pre_, select, slot, small, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, small, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
@@ -57,17 +57,12 @@ editorPreferencesSelect active =
 compileButton :: forall p a. CompilationState a -> HTML p HAction
 compileButton state =
   button
-    [ classes [ btn, btnClass ]
+    [ classes [ btn, btnSuccess ]
     , onClick $ const $ Just CompileProgram
     , disabled (isLoading state)
     ]
     [ btnText ]
   where
-  btnClass = case state of
-    Success (Left _) -> btnDanger
-    Failure _ -> btnDanger
-    _ -> btnSuccess
-
   btnText = case state of
     Loading -> icon Spinner
     _ -> text "Compile"
@@ -120,22 +115,22 @@ editorFeedback ::
   ComponentHTML Action ChildSlots m
 editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
   div
-    ( case compilationState of
-        Success (Left error) -> [ classes feedbackPaneClasses ]
-        Failure error -> [ classes feedbackPaneClasses ]
-        _ -> [ classes $ feedbackPaneClasses <> [ hidden ] ]
-    )
+    [ class_ $ ClassName "editor-feedback-container" ]
     [ div
-        [ class_ $ ClassName "editor-feedback-header" ]
-        [ h4_ [ text "Compilation Result" ]
-        , button
-            [ onClick $ const $ Just ToggleFeedbackPane ]
-            [ feedbackButtonIcon ]
-        ]
-    , div
-        [ class_ $ ClassName "editor-feedback-body" ]
-        [ errorList
-        , warningList
+        [ classes feedbackPaneClasses ]
+        [ div
+            [ class_ $ ClassName "editor-feedback-header" ]
+            [ p_ [ summaryText ]
+            , case compilationState of
+                Success (Left error) -> minMaxButton
+                Failure error -> minMaxButton
+                _ -> empty
+            ]
+        , div
+            [ class_ $ ClassName "editor-feedback-body" ]
+            [ errorList
+            , warningList
+            ]
         ]
     ]
   where
@@ -145,11 +140,22 @@ editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
     else
       [ ClassName "editor-feedback" ]
 
-  feedbackButtonIcon =
-    if feedbackPaneMinimised then
-      icon ArrowUp
-    else
-      icon ArrowDown
+  summaryText = case compilationState of
+    NotAsked -> text "Not compiled"
+    Loading -> text "Compiling ..."
+    Success (Left error) -> text "Compilation failed"
+    Failure error -> text "Compilation failed"
+    _ -> text "Compiled"
+
+  minMaxButton =
+    a
+      [ class_ btn
+      , onClick $ const $ Just ToggleFeedbackPane
+      ]
+      if feedbackPaneMinimised then
+        [ icon ArrowUp ]
+      else
+        [ icon ArrowDown ]
 
   errorList = case compilationState of
     Success (Left error) -> listGroup_ (interpreterErrorPane error)
@@ -184,13 +190,14 @@ compilationErrorPane (RawError error) =
 
 compilationErrorPane (CompilationError error) =
   div
-    [ classes [ card, ClassName "compilation-error" ]
-    , onClick $ const $ Just $ ScrollTo { lineNumber: error.row, column: error.column }
-    ]
+    [ classes [ card, ClassName "compilation-error" ] ]
     [ div
         [ class_ cardHeader ]
-        [ text $ "Compilation Error, Line " <> show error.row <> ", Column " <> show error.column <> ":"
-        , small [ class_ floatRight ] [ text "jump" ]
+        [ text $ "Compilation Error, Line " <> show error.row <> ", Column " <> show error.column
+        , nbsp
+        , a
+            [ onClick $ const $ Just $ ScrollTo { lineNumber: error.row, column: error.column } ]
+            [ text "(jump)" ]
         ]
     , cardBody_
         [ code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ] ]

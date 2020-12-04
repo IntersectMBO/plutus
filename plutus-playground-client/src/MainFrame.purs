@@ -41,6 +41,7 @@ import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
 import Editor.State (initialState) as Editor
+import Editor.Types (_feedbackPaneMinimised)
 import Editor.Types (Action(..), State) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -68,7 +69,7 @@ import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastCompiledCode, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastCompiledCode, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -365,6 +366,7 @@ handleAction CompileProgram = do
     Just contents -> do
       oldCompilationResult <- use _compilationResult
       assign _compilationResult Loading
+      assign (_editorState <<< _feedbackPaneMinimised) false
       newCompilationResult <- postContract contents
       assign _compilationResult newCompilationResult
       -- If we got a successful result, update last compiled code and switch tab.
