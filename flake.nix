@@ -19,7 +19,8 @@
             fetch = sourceInfo:
               builtins.fetchTarball { inherit (sourceInfo) url sha256; };
           in
-          builtins.mapAttrs (_: fetch) sourcesInfo;
+          builtins.mapAttrs (_: fetch) sourcesInfo
+          // __trace "${toString nixpkgs}" { inherit nixpkgs; };
         plutusPackages = import ./nix {
           inherit system sources;
           rev = "TODO-fix-flake-rev";
