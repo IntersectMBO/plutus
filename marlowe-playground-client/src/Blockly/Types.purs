@@ -5,10 +5,7 @@
 --   function types
 module Blockly.Types where
 
-import Blockly.ChangeEvent (ChangeEvent)
-import Blockly.CreateEvent (CreateEvent)
-import Blockly.FinishLoadingEvent (FinishLoadingEvent)
-import Blockly.MoveEvent (MoveEvent)
+import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent)
 
 foreign import data Blockly :: Type
 

@@ -10,9 +10,7 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
-import Data.Foldable (for_)
 import Data.Lens (assign, set, use, view)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
@@ -31,7 +29,6 @@ import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (WebData, _result)
 import StaticData (bufferLocalStorageKey)
-import StaticData as StaticData
 import Webghc.Server (CompileRequest(..))
 
 handleAction ::

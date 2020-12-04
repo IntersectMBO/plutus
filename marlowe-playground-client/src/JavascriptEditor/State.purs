@@ -12,7 +12,6 @@ import Data.Either (Either(..))
 import Data.Lens (assign, set, to, use, view)
 import Data.List ((:))
 import Data.List as List
-import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)

@@ -1,4 +1,4 @@
-exports._unsafeReadBlocklyEventType = function (nothing, just, name, value) {
+exports._readBlocklyEventType = function (nothing, just, name, value) {
     var proto = Object.getPrototypeOf(value);
     if ('type' in proto && proto.type === name) {
       return just(value);
@@ -7,7 +7,7 @@ exports._unsafeReadBlocklyEventType = function (nothing, just, name, value) {
     }
 }
 
-exports._unsafePropertyMaybeUndefined = function (nothing, just, property, event) {
+exports._readProperty = function (nothing, just, property, event) {
     if (typeof event !== 'object') {
       return nothing;
     } else {
