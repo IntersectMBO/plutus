@@ -6,9 +6,9 @@ import ConfirmUnsavedNavigation.Types as CN
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Halogen.Classes (modalContent, spaceRight)
+import Halogen.Classes (modalContent, spaceRight, uppercase)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes)
+import Halogen.HTML.Properties (classes)
 import MainFrame.Types (Action(..), ChildSlots, State, _projectName)
 import Prelude (const, ($), (<>))
 
@@ -25,17 +25,13 @@ render intendedAction state =
     , p_ [ text $ "Do you want to save changes to '" <> (state ^. _projectName) <> "'?" ]
     , div [ classes [ ClassName "actions" ] ]
         [ div_
-            [ button [ classes [ btn, btnSecondary ], onClick $ const $ Just cancel ] [ text "CANCEL" ]
+            [ button [ classes [ btn, btnSecondary, uppercase ], onConfirm CN.Cancel ] [ text "Cancel" ]
             ]
         , div_
-            [ button [ classes [ btn, btnSecondary, spaceRight ], onClick $ const $ Just dontSave ] [ text "DON'T SAVE" ]
-            , button [ class_ (btn), onClick $ const $ Just save ] [ text "SAVE" ]
+            [ button [ classes [ btn, btnSecondary, uppercase, spaceRight ], onConfirm CN.DontSaveProject ] [ text "Don't Save" ]
+            , button [ classes [ btn, uppercase ], onConfirm CN.SaveProject ] [ text "Save" ]
             ]
         ]
     ]
   where
-  cancel = ConfirmUnsavedNavigationAction intendedAction CN.Cancel
-
-  dontSave = ConfirmUnsavedNavigationAction intendedAction CN.DontSaveProject
-
-  save = ConfirmUnsavedNavigationAction intendedAction CN.SaveProject
+  onConfirm msg = onClick $ const $ Just $ ConfirmUnsavedNavigationAction intendedAction msg

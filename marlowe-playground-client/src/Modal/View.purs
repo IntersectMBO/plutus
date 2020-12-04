@@ -48,11 +48,11 @@ modal state = case state ^. _showModal of
     (ConfirmUnsavedNavigation _) -> false
     _ -> true
 
-  closeButton view childs =
+  closeButton view children =
     if showCloseButton view then
       [ div [ class_ (ClassName "modal-close") ]
           [ img [ src closeModal, onClick $ const $ Just CloseModal ] ]
       ]
-        <> childs
+        <> children
     else
-      childs
+      children

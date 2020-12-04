@@ -172,7 +172,7 @@ handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
-      -- TODO: Refactor blockly to use Effect instead of ST
+      -- NOTE: This could be refactored to use Effect instead of ST
       -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533371159
       ST.run
         ( do
