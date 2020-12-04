@@ -5,7 +5,8 @@
 , sourcesOverride ? { }
 , rev ? null
 , checkMaterialization ? false
-}:
+, pkgs ? null
+}@args:
 let
   sources = import ./sources.nix { inherit pkgs; }
     // sourcesOverride;
@@ -17,11 +18,9 @@ let
     };
   };
 
-  extraOverlays =
-    # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
-    haskellNix.overlays
+  ownOverlays =
     # haskell-nix.haskellLib.extra: some useful extra utility functions for haskell.nix
-    ++ iohkNix.overlays.haskell-nix-extra
+    iohkNix.overlays.haskell-nix-extra
     # iohkNix: nix utilities and niv:
     ++ iohkNix.overlays.iohkNix
     # our own overlays:
@@ -35,7 +34,11 @@ let
       (import ./overlays/r.nix)
     ];
 
-  pkgs = import sources.nixpkgs {
+  extraOverlays =
+    # Haskell.nix (https://github.com/input-output-hk/haskell.nix)
+    haskellNix.overlays ++ ownOverlays;
+
+  pkgs = (if args.pkgs == null then import sources.nixpkgs else args.pkgs) {
     inherit system crossSystem;
     overlays = extraOverlays ++ overlays;
     config = haskellNix.config // config;
@@ -52,5 +55,5 @@ let
 
 in
 {
-  inherit pkgs plutusMusl plutus;
+  inherit pkgs plutusMusl plutus ownOverlays;
 }
