@@ -170,7 +170,7 @@ _walletSlot = SProxy
 -----------------------------------------------------------
 newtype State
   = State
-  { {- I think that view should be a Maybe or a data (Initial | Page View | NotFound ) -} view :: View
+  { view :: View
   , jsCompilationResult :: CompilationState
   , jsEditorKeybindings :: KeyBindings
   , activeJSDemo :: String

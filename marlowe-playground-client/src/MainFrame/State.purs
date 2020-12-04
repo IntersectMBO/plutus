@@ -16,7 +16,6 @@ import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (unwrap)
-import Debug.Trace (traceM)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -404,11 +403,9 @@ handleAction _ (HandleActusBlocklyMessage _) = do
   hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
   assign _hasUnsavedChanges hasUnsavedChanges
 
--- QUESTION: How does this relates to the handleGistAction?
--- the save the project we use the PublishGist action and I thought that when we loaded
--- we used the LoadGist action, but it's actually this one.
+-- TODO: modify gist action type to take a gistid as a parameter
+-- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
 handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
-  traceM $ "MainFrame.State: handleAction (ProjectsAction LoadProject) started"
   assign _createGistResult Loading
   res <-
     runExceptT
@@ -427,12 +424,10 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
   toProjects $ Projects.handleAction s action
   selectView $ selectLanguageView lang
-  traceM $ "MainFrame.State: handleAction (ProjectsAction LoadProject) finished"
 
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
 handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
-  -- QUESTION: Can we move this to the final modify_?
   modify_
     ( set _projectName "New Project"
         <<< set _gistId Nothing
@@ -678,7 +673,6 @@ handleGistAction _ (SetGistUrl url) = do
 -- > changed to have gist action type taking gist id as a parameter.
 -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533478042
 handleGistAction settings LoadGist = do
-  traceM $ "MainFrame.State: handleGistAction (LoadGist) started"
   res <-
     runExceptT
       $ do
@@ -690,7 +684,6 @@ handleGistAction settings LoadGist = do
           lift $ loadGist settings gist
           pure aGist
   assign _loadGistResult res
-  traceM $ "MainFrame.State: handleGistAction (LoadGist) finished"
   where
   toEither :: forall e a. Either e a -> RemoteData e a -> Either e a
   toEither _ (Success a) = Right a
