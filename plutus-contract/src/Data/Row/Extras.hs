@@ -1,7 +1,12 @@
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | Instances for 'Data.Row.Records.Rec' and 'Data.Row.Variants.Var' types
 module Data.Row.Extras(
@@ -9,6 +14,7 @@ module Data.Row.Extras(
     , JsonVar(..)
     , MonoidRec(..)
     , namedBranchFromJSON
+    , type (.\/)
     ) where
 
 import           Data.Aeson            (FromJSON, ToJSON, (.:), (.=))
@@ -17,12 +23,14 @@ import qualified Data.Aeson.Types      as Aeson
 import           Data.Functor.Identity
 import           Data.Functor.Product
 import           Data.Proxy            (Proxy (..))
-import           Data.Row
-import           Data.Row.Internal
+import           Data.Row              hiding (type (.\/))
+import           Data.Row.Internal     hiding (type (.\/))
 import qualified Data.Row.Records      as Records
 import qualified Data.Row.Variants     as Variants
 import           Data.Text             (Text)
 import qualified Data.Text             as Text
+import           GHC.TypeLits          hiding (Text)
+import qualified GHC.TypeLits          as TL
 
 newtype JsonVar s = JsonVar { unJsonVar :: Var s }
 
@@ -70,3 +78,29 @@ merge (MonoidRec rec1) (MonoidRec rec2) = MonoidRec $ metamorph @_ @s @Semigroup
     doUncons l (Pair r1 r2) = (Identity $ r1 .! l <> r2 .! l, Pair (Records.unsafeRemove l r1) (Records.unsafeRemove l r2))
     doCons l (Identity v) = Records.unsafeInjectFront l v
 
+-- | Fast union. The implementation in row-types is exponential in time and memory in the number of
+--   overlapping rows, due to limitations in ghc's handling of type families. This version is much
+--   faster.
+type family (l :: Row k) .\/ (r :: Row k) where
+  'R l .\/ 'R r = 'R (MinJoinR l r)
+
+type family MinJoinR (l :: [LT k]) (r :: [LT k]) where
+  MinJoinR '[] r = r
+  MinJoinR l '[] = l
+  MinJoinR (h ':-> a ': tl)   (h ':-> a ': tr) =
+      (h ':-> a ': MinJoinR tl tr)
+  MinJoinR (h ':-> a ': tl)   (h ':-> b ': tr) =
+    TypeError ('TL.Text "The label " ':<>: 'ShowType h ':<>: 'TL.Text " has conflicting assignments."
+         ':$$: 'TL.Text "Its type is both " ':<>: 'ShowType a ':<>: 'TL.Text " and " ':<>: 'ShowType b ':<>: 'TL.Text ".")
+  MinJoinR (hl ':-> al ': tl) (hr ':-> ar ': tr) =
+    -- Here the row-types implementation uses a type-level if-then-else, which for some reason GHC
+    -- really doesn't like. Specializing it to the particular branches we want makes it not blow up.
+    MinJoinRCont (CmpSymbol hl hr) hl al tl hr ar tr
+
+type family MinJoinRCont (o :: Ordering)
+                         (hl :: Symbol) (al :: k) (tl :: [LT k])
+                         (hr :: Symbol) (ar :: k) (tr :: [LT k]) where
+    MinJoinRCont 'LT hl al tl hr ar tr =
+      (hl ':-> al ': MinJoinR tl (hr ':-> ar ': tr))
+    MinJoinRCont _ hl al tl hr ar tr =
+      (hr ':-> ar ': MinJoinR (hl ':-> al ': tl) tr)
