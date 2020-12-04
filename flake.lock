@@ -17,13 +17,17 @@
     },
     "haskell-nix": {
       "locked": {
-        "narHash": "sha256-f37hiTS1xOKenIQyyvHIOenpvcv6drFrwf1I53iIwpg=",
-        "path": "/home/manveru/github/input-output-hk/haskell.nix",
-        "type": "path"
+        "lastModified": 1607066036,
+        "narHash": "sha256-0Q9YhTUq4f5g8Ax/FwQWRci7kW/TRVFuZD/YyssEuXg=",
+        "owner": "input-output-hk",
+        "repo": "haskell.nix",
+        "rev": "180779b7f530dcd2a45c7d00541f0f3e3d8471b5",
+        "type": "github"
       },
       "original": {
-        "path": "/home/manveru/github/input-output-hk/haskell.nix",
-        "type": "path"
+        "owner": "input-output-hk",
+        "repo": "haskell.nix",
+        "type": "github"
       }
     },
     "nixpkgs": {

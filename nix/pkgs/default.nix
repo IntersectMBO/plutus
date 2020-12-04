@@ -84,7 +84,7 @@ let
   # `set-git-rev` is a function that can be called on a haskellPackages
   # package to inject the git revision post-compile
   set-git-rev = pkgs.callPackage ./set-git-rev {
-    inherit (haskell.packages) ghcWithPackages;
+    inherit (haskell.project) ghcWithPackages;
     inherit git-rev;
   };
 
