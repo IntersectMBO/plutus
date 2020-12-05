@@ -66,6 +66,9 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     termLet  :: ann -> TermDef term tyname name uni fun ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
 
+    termLet = mkImmediateLamAbs
+    typeLet = mkImmediateTyAbs
+
 -- | Embed a type from a universe into a PLC type.
 mkTyBuiltin
     :: forall a uni tyname ann. uni `Includes` a
@@ -89,8 +92,6 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
-    termLet  = mkImmediateLamAbs
-    typeLet  = mkImmediateTyAbs
 
 embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
 embed = \case

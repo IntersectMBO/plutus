@@ -102,7 +102,7 @@ data CkUserError =
 
 -- | The CK machine-specific 'EvaluationException' parameterized over @term@.
 type CkEvaluationExceptionCarrying term fun =
-    EvaluationException CkUserError fun term
+    EvaluationException CkUserError (MachineError fun term) term
 
 -- See Note [Being generic over @term@ in 'CekM']
 type CkCarryingM term uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationExceptionCarrying term fun))
@@ -337,7 +337,7 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    let ckValueToTermInError = hoist $ first $ mapErrorWithCauseF ckValueToTerm
+    let ckValueToTermInError = hoist $ first $ mapCauseInMachineException ckValueToTerm
     BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
     result <- ckValueToTermInError $ applyTypeSchemed bn sch f exF args
     stack <| result
