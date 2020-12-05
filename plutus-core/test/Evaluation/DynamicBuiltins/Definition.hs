@@ -131,7 +131,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defDefaultFunDyn, ()) (defaultCostMod
 data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (ListRep a) = TypeToBinds a
+type instance ToBinds (ListRep a) = ToBinds a
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
     type DynamicPart uni ExtensionFun = ()
@@ -139,34 +139,29 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
     toBuiltinMeaning Factorial = toStaticBuiltinMeaning (\(n :: Integer) -> product [1..n]) mempty
     toBuiltinMeaning Const =
         toStaticBuiltinMeaning
-            (const
-                :: ( a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-                   , b ~ Opaque term (TyVarRep ('TyNameRep "b" 1))
-                   )
-                => a -> b -> a)
+            const
             mempty
     toBuiltinMeaning Id =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0)) => a -> a)
+            Prelude.id
             mempty
     toBuiltinMeaning IdFInteger =
         toStaticBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) (Transparent Integer))
-                => a -> a)
+            -- (Prelude.id
+            --     :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
+            --     => a -> a)
+            (Prelude.id :: a ~ f Integer => a -> a)
             mempty
     toBuiltinMeaning IdList =
         toStaticBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (ListRep (Opaque term (TyVarRep ('TyNameRep "a" 0))))
-                => a -> a)
+            (Prelude.id :: la ~ Opaque term (ListRep a) => la -> la)
             mempty
     toBuiltinMeaning IdRank2 =
         toStaticBuiltinMeaning
             (Prelude.id
                 :: ( f ~ 'TyNameRep "f" 0
                    , a ~ 'TyNameRep @GHC.Type "a" 1
-                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                   , afa ~ Opaque term (TyForallRep @GHC.Type a (TyAppRep (TyVarRep f) (TyVarRep a)))
                    )
                 => afa -> afa)
             mempty

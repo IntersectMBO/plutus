@@ -7,6 +7,7 @@
 {-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
@@ -20,14 +21,19 @@ import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Lens                                     (ix, (^?))
 import           Control.Monad.Except
 import           Data.Array
+import qualified Data.ByteString                                  as BS
+import           Data.Functor.Compose
 import qualified Data.Kind                                        as GHC
 import           Data.Proxy
+import           Data.Type.Bool
+-- import           Data.Type.Equality
 import           GHC.TypeLits
 
 -- | The meaning of a dynamic built-in function consists of its type represented as a 'TypeScheme',
@@ -196,45 +202,30 @@ type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
     Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
 
--- | 'Transparent' is used to cancel 'Opaque'. We need this in cases like
---
---     TyAppRep (TyVarRep ('TyNameRep "f" 0)) (Transparent Integer)
---
--- because 'ToBinds' only handles PLC types and so if it's applied to just 'Integer', then it's
--- stuck. The additional 'Transparent' wrapper allows us to move from handling PLC types back to
--- handling Haskell ones.
---
--- Don't use 'Transparent' when there's no surrounding 'Opaque'. It's of no use in that case and
--- you can get weird behavior.
-newtype Transparent a = Transparent
-    { unTransparent :: a
-    }
-
-instance KnownTypeAst uni a => KnownTypeAst uni (Transparent a) where
-    toTypeAst _ = toTypeAst $ Proxy @a
-
-instance KnownType term a => KnownType term (Transparent a) where
-    makeKnown = makeKnown . unTransparent
-    readKnown = fmap Transparent . readKnown
-
 -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
 -- in an @x@.
 type family ToBinds (x :: a) :: [Some TyNameRep]
 
+type instance ToBinds Integer       = '[]
+type instance ToBinds BS.ByteString = '[]
+type instance ToBinds String        = '[]
+type instance ToBinds Char          = '[]
+type instance ToBinds ()            = '[]
+type instance ToBinds Bool          = '[]
+type instance ToBinds Int           = '[]
+
+type instance ToBinds (EvaluationResult a) = ToBinds a
+type instance ToBinds (Opaque _ rep)       = ToBinds rep
+
 type instance ToBinds (TyVarRep var) = '[ 'Some var ]
 type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
 type instance ToBinds (TyForallRep var a) = Delete ('Some var) (ToBinds a)
-type instance ToBinds (Transparent a) = TypeToBinds a
 
--- | A standalone Haskell type either stands for a PLC type (when it's an 'Opaque') or
--- it's an actual Haskell type, in which case it doesn't contain any PLC type variables.
-type family TypeToBinds (a :: GHC.Type) :: [Some TyNameRep] where
-    TypeToBinds (Opaque _ rep) = ToBinds rep
-    TypeToBinds _              = '[]
+type instance ToBinds (Compose g f a) = ToBinds (g (f a))
 
-type instance ToBinds (TypeScheme term '[]           res) = TypeToBinds res
+type instance ToBinds (TypeScheme term '[]           res) = ToBinds res
 type instance ToBinds (TypeScheme term (arg ': args) res) =
-    Merge (TypeToBinds arg) (ToBinds (TypeScheme term args res))
+    Merge (ToBinds arg) (ToBinds (TypeScheme term args res))
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
@@ -261,9 +252,9 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds t
 --    of dynamic builtins
 -- 2. an uninstantiated costing function
 toDynamicBuiltinMeaning
-    :: forall a term dyn cost binds args res.
+    :: forall a term dyn cost binds args res j0 jN.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 0 j0 jN term a
        )
     => (dyn -> a) -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
@@ -275,9 +266,111 @@ toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeSc
 -- 1. the denotation of the builtin
 -- 2. an uninstantiated costing function
 toStaticBuiltinMeaning
-    :: forall a term dyn cost binds args res.
+    :: forall a term dyn cost binds args res j0 jN.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 0 j0 jN term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toStaticBuiltinMeaning = toDynamicBuiltinMeaning . const
+
+
+-- Does not type check without the SAKS (even with kind-annotated @x@ and @y@).
+-- What happened to your HM type inference, GHC?
+type (===) :: forall a b. a -> b -> Bool
+type family x === y where
+    x === x = 'True
+    x === y = 'False
+
+class (x === y) ~ can => CanUnify can (x :: a) (y :: b)
+instance {-# INCOHERENT #-} (x ~ y, can ~ 'True) => CanUnify can (x :: a) (y :: a)
+instance (x === y) ~ 'False => CanUnify 'False (x :: a) (y :: b)
+
+-- type (~?~) :: forall a b. a -> b -> GHC.Constraint
+-- type x ~?~ y = CanUnify (x === y) x y
+
+type Lookup :: forall a. Nat -> [a] -> a
+type family Lookup n xs where
+    Lookup 0 (x ': xs) = x
+    Lookup n (_ ': xs) = Lookup (n - 1) xs
+
+type IsHigherKind :: GHC.Type -> Bool
+type family IsHigherKind k where
+    IsHigherKind GHC.Type = 'False
+    IsHigherKind (_ -> _) = 'True
+
+type GetName :: Bool -> Nat -> Nat -> Symbol
+type family GetName hk i0 iN where
+    GetName 'False i0  _ = Lookup i0 '["a", "b", "c", "d", "e"]
+    GetName 'True  _  iN = Lookup iN '["f", "g", "h"]
+
+-- type TypeOfArgOf :: forall b. b -> GHC.Type
+-- type family TypeOfArgOf b where
+--     TypeOfArgOf (_ (x :: a)) = a
+
+-- type ArgOf :: forall b. b -> TypeOfArgOf b
+-- type family ArgOf b where
+--     ArgOf (_ x) = x
+
+type MonoArgOf :: forall b. b -> b
+type family MonoArgOf y where
+    MonoArgOf (_ x) = x
+
+type ArgOf :: forall b a. b -> a
+type family ArgOf b where
+    ArgOf (_ x) = x
+
+data family Else :: k
+
+type EnumerateFromToRep :: forall b. Nat -> Nat -> Nat -> Nat -> GHC.Type -> b -> GHC.Constraint
+class EnumerateFromToRep i0 iN j0 jN term rep | i0 iN term rep -> j0 jN
+
+instance {-# INCOHERENT #-}
+    ( hk ~ IsHigherKind k
+    , var ~ TyVarRep ('TyNameRep @k (GetName hk i0 iN) (i0 + iN))
+    , (var === rep) ~ can  -- This is needed. How come it doesn't follow from the next one?
+    , CanUnify can var rep
+    , j0 ~ If (can && Not hk) (i0 + 1) i0
+    , jN ~ If (can && hk)     (iN + 1) iN
+    ) => EnumerateFromToRep i0 iN j0 jN term (rep :: k)
+
+instance
+    ( f' ~ MonoArgOf f
+    , appF' ~ TyAppRep f'
+    , (f === appF') ~ can
+    , CanUnify can f appF'
+    , EnumerateFromToRep i0 iN j0 jN term (If can f' Else)  -- Could also have mutual recursion here.
+    , EnumerateFromToArg j0 jN k0 kN term x                 -- Note the mutual recursion.
+    ) => EnumerateFromToRep i0 iN k0 kN term (f x :: k)
+
+type EnumerateFromToArg :: forall b. Nat -> Nat -> Nat -> Nat -> GHC.Type -> b -> GHC.Constraint
+class EnumerateFromToArg i0 iN j0 jN term y | i0 iN term y -> j0 jN
+
+instance {-# INCOHERENT #-}
+    ( rep ~ ArgOf y
+    , opaque ~ Opaque term rep
+    , (y === opaque) ~ can
+    , CanUnify can y opaque
+    , EnumerateFromToRep i0 iN j0 jN term (If can rep Else)
+    ) => EnumerateFromToArg i0 iN j0 jN term (y :: b)
+
+instance
+    ( f' ~ MonoArgOf (MonoArgOf f)
+    , opaqueF' ~ Compose (Opaque term) (TyAppRep f')
+    , (f === opaqueF') ~ can
+    , CanUnify can f opaqueF'
+    , EnumerateFromToRep i0 iN j0 jN term (If can f' Else)
+    , EnumerateFromToArg j0 jN k0 kN term (If can Else f)
+    , EnumerateFromToArg k0 kN l0 lN term x
+    ) => EnumerateFromToArg i0 iN l0 lN term (f x)
+
+type EnumerateFromTo :: Nat -> Nat -> Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromTo i0 iN j0 jN term a | i0 iN term a -> j0 jN
+
+instance {-# OVERLAPPABLE #-}
+    EnumerateFromToArg i0 iN j0 jN term a =>
+        EnumerateFromTo i0 iN j0 jN term a
+
+instance {-# OVERLAPPING #-}
+    ( EnumerateFromToArg i0 iN j0 jN term a
+    , EnumerateFromTo j0 jN k0 kN term b
+    ) => EnumerateFromTo i0 iN k0 kN term (a -> b)
