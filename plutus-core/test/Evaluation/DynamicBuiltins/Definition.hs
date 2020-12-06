@@ -147,9 +147,6 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
             mempty
     toBuiltinMeaning IdFInteger =
         toStaticBuiltinMeaning
-            -- (Prelude.id
-            --     :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
-            --     => a -> a)
             (Prelude.id :: a ~ f Integer => a -> a)
             mempty
     toBuiltinMeaning IdList =
@@ -161,7 +158,7 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
             (Prelude.id
                 :: ( f ~ 'TyNameRep "f" 0
                    , a ~ 'TyNameRep @GHC.Type "a" 1
-                   , afa ~ Opaque term (TyForallRep @GHC.Type a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
                    )
                 => afa -> afa)
             mempty

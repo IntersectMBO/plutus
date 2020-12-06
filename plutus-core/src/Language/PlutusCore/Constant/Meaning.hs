@@ -274,6 +274,7 @@ toStaticBuiltinMeaning
 toStaticBuiltinMeaning = toDynamicBuiltinMeaning . const
 
 
+
 -- Does not type check without the SAKS (even with kind-annotated @x@ and @y@).
 -- What happened to your HM type inference, GHC?
 type (===) :: forall a b. a -> b -> Bool
@@ -285,12 +286,10 @@ type family x === y where
 -- instance {-# INCOHERENT #-} (x ~~ y, can ~ 'True) => CanUnify can (x :: a) (y :: b)
 -- instance (x === y) ~ 'False => CanUnify 'False (x :: a) (y :: b)
 
+-- This definition is a bit more permissive than the above one while seemingly no less convenient.
 class CanUnify can (x :: a) (y :: b)
-instance {-# INCOHERENT #-} (x ~~ y, can ~ 'True) => CanUnify can (x :: a) (y :: b)
+instance {-# INCOHERENT #-} x ~~ y => CanUnify can (x :: a) (y :: b)
 instance CanUnify 'False (x :: a) (y :: b)
-
--- type (~?~) :: forall a b. a -> b -> GHC.Constraint
--- type x ~?~ y = CanUnify (x === y) x y
 
 type Lookup :: forall a. Nat -> [a] -> a
 type family Lookup n xs where
@@ -307,14 +306,6 @@ type family GetName hk i0 iN where
     GetName 'False i0  _ = Lookup i0 '["a", "b", "c", "d", "e"]
     GetName 'True  _  iN = Lookup iN '["f", "g", "h"]
 
--- type TypeOfArgOf :: forall b. b -> GHC.Type
--- type family TypeOfArgOf b where
---     TypeOfArgOf (_ (x :: a)) = a
-
--- type ArgOf :: forall b. b -> TypeOfArgOf b
--- type family ArgOf b where
---     ArgOf (_ x) = x
-
 type MonoArgOf :: forall b. b -> b
 type family MonoArgOf y where
     MonoArgOf (_ x) = x
@@ -325,85 +316,53 @@ type family ArgOf b where
 
 data family Else :: k
 
-type EnumerateFromToRep :: forall b. Nat -> Nat -> Nat -> Nat -> GHC.Type -> b -> GHC.Constraint
-class EnumerateFromToRep i0 iN j0 jN term rep | i0 iN term rep -> j0 jN
+type EnumerateFromToRep :: forall b. Nat -> Nat -> Nat -> Nat -> b -> GHC.Constraint
+class EnumerateFromToRep i0 iN j0 jN rep | i0 iN rep -> j0 jN
 
 instance {-# INCOHERENT #-}
     ( hk ~ IsHigherKind k
     , var ~ TyVarRep ('TyNameRep @k (GetName hk i0 iN) (i0 + iN))
-    , (var === rep) ~ can  -- This is needed. How come it doesn't follow from the next one?
+    , (var === rep) ~ can
     , CanUnify can var rep
     , j0 ~ If (can && Not hk) (i0 + 1) i0
     , jN ~ If (can && hk)     (iN + 1) iN
-    ) => EnumerateFromToRep i0 iN j0 jN term (rep :: k)
+    ) => EnumerateFromToRep i0 iN j0 jN (rep :: k)
 
 instance
     ( f' ~ MonoArgOf f
     , appF' ~ TyAppRep f'
     , (f === appF') ~ can
     , CanUnify can f appF'
-    , EnumerateFromToRep i0 iN j0 jN term (If can f' Else)
-    , EnumerateFromToRep j0 jN k0 kN term x
-    ) => EnumerateFromToRep i0 iN k0 kN term (f (x :: a) :: b)
-
--- class (x === y) ~ can => Can'tUnify can (x :: a) (y :: b)
--- instance {-# INCOHERENT #-} ((x === y) ~ can, can ~ 'False) => Can'tUnify can (x :: a) (y :: b)
--- instance x ~~ y => Can'tUnify 'True (x :: a) (y :: b)
+    , EnumerateFromToRep i0 iN j0 jN (If can f' Else)
+    , EnumerateFromToRep j0 jN k0 kN x
+    ) => EnumerateFromToRep i0 iN k0 kN (f (x :: a) :: b)
 
 type EnumerateFromToArg :: forall b. Nat -> Nat -> Nat -> Nat -> GHC.Type -> b -> GHC.Constraint
 class EnumerateFromToArg i0 iN j0 jN term y | i0 iN term y -> j0 jN
-
--- -- Isn't it funny how to be lazy at the type level you need to do the opposite thing compared
--- -- to what you'd do at the term level?
--- type LazyAnd :: Bool -> Bool -> Bool
--- type family LazyAnd b c where
---     LazyAnd 'True 'True = 'True
---     LazyAnd _     _     = 'False
-
--- class Can'tUnify (can :: Bool) (res :: Bool) (x :: a) (y :: b) | can -> res
--- instance {-# INCOHERENT #-} res ~ 'True => Can'tUnify can res (x :: a) (y :: b)
--- instance res ~ 'False => Can'tUnify 'True res (x :: a) (y :: b)
-
--- -- This at least makes @Builtins.hs@ type check. But still fails on
--- -- @id :: la ~ Opaque term (ListRep a) => la -> la@ for some inexplicable reason.
--- instance {-# INCOHERENT #-}
---     ( rep ~ ArgOf y
---     , opaque ~ Opaque term rep
---     , (y === opaque) ~ can1
---     , can ~ (can1 `LazyAnd` res)
---     , Can'tUnify (y === term) res y opaque
---     , CanUnify can y opaque
---     , EnumerateFromToRep i0 iN j0 jN term (If can rep Else)
---     ) => EnumerateFromToArg i0 iN j0 jN term (y :: b)
-
--- instance {-# OVERLAPPING #-} (i0 ~ j0, iN ~ jN) => EnumerateFromToArg i0 iN j0 jN term term
-
--- TODO: unify the two type classes by matching on @can@?
 
 instance {-# INCOHERENT #-}
     ( rep ~ ArgOf y
     , opaque ~ Opaque term rep
     , (y === opaque) ~ can
     , CanUnify can y opaque
-    , EnumerateFromToRep i0 iN j0 jN term (If can rep Else)
+    , EnumerateFromToRep i0 iN j0 jN (If can rep Else)
     ) => EnumerateFromToArg i0 iN j0 jN term (y :: b)
 
+-- GHC is too stupid to realize that @term === Opaque term rep@ can't be 'True'. How so?
+-- Isn't @term@ supposed to be rigid? And even if it's somehow not, 'Opaque' certainly is,
+-- so that should have been a straightforward failing occurs check. This is really annoying.
+-- Hence we do not attempt to traverse the whole type if the outermost application can't be
+-- specialized. This also means that we can only correctly handle @f a@ and not @f a b@,
+-- @f a b c@ etc.
 instance
     ( f' ~ MonoArgOf (ArgOf f)
     , opaqueF' ~ Compose (Opaque term) (TyAppRep @a f')
     , (f === opaqueF') ~ can
     , CanUnify can f opaqueF'
-    , EnumerateFromToRep i0 iN j0 jN term (If can f' Else)
-    , EnumerateFromToRep j0 jN k0 kN term (If can x Else)
-    -- GHC is too stupid to realize that @term === Opaque term rep@ can't be 'True'. How so?
-    -- Isn't @term@ supposed to be rigid? And even if it's somehow not, 'Opaque' certainly is,
-    -- so that should have been a straightforward failing occurs check. This is really annoying.
-    -- What this means is that @ListRep@ works without a fully elaborated type signature while
-    -- something like @EitherRep@ wouldn't.
-    -- , EnumerateFromToArg k0 kN l0 lN term (If can Else f)
-    , k0 ~ l0, kN ~ lN
-    , EnumerateFromToArg l0 lN m0 mN term (If can Else x)
-    ) => EnumerateFromToArg i0 iN m0 mN term (f (x :: a) :: b)
+    , EnumerateFromToRep i0 iN j0 jN (If can f' Else)
+    , EnumerateFromToRep j0 jN k0 kN (If can x Else)
+    , EnumerateFromToArg k0 kN l0 lN term (If can Else x)
+    ) => EnumerateFromToArg i0 iN l0 lN term (f (x :: a) :: b)
 
 type EnumerateFromTo :: Nat -> Nat -> Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i0 iN j0 jN term a | i0 iN term a -> j0 jN
