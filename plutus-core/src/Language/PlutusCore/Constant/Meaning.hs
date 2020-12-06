@@ -29,7 +29,6 @@ import           Control.Lens                                     (ix, (^?))
 import           Control.Monad.Except
 import           Data.Array
 import qualified Data.ByteString                                  as BS
-import           Data.Functor.Compose
 import qualified Data.Kind                                        as GHC
 import           Data.Proxy
 import           Data.Type.Bool
@@ -221,8 +220,6 @@ type instance ToBinds (TyVarRep var) = '[ 'Some var ]
 type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
 type instance ToBinds (TyForallRep var a) = Delete ('Some var) (ToBinds a)
 
-type instance ToBinds (Compose g f a) = ToBinds (g (f a))
-
 type instance ToBinds (TypeScheme term '[]           res) = ToBinds res
 type instance ToBinds (TypeScheme term (arg ': args) res) =
     Merge (ToBinds arg) (ToBinds (TypeScheme term args res))
@@ -244,6 +241,40 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds t
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
     knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
 
+-- Does not type check without the SAKS (even with kind-annotated @x@ and @y@).
+type (===) :: forall a b. a -> b -> Bool
+type family x === y where
+    x === x = 'True
+    x === y = 'False
+
+class (x === y) ~ can => CanUnify can (x :: a) (y :: b)
+instance {-# INCOHERENT #-} (x ~~ y, can ~ 'True) => CanUnify can (x :: a) (y :: b)
+instance (x === y) ~ 'False => CanUnify 'False (x :: a) (y :: b)
+
+type Lookup :: forall a. Nat -> [a] -> a
+type family Lookup n xs where
+    Lookup 0 (x ': xs) = x
+    Lookup n (_ ': xs) = Lookup (n - 1) xs
+
+type GetName i = Lookup i '["a", "b", "c", "d", "e"]
+
+type EnumerateFromToArg :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromToArg i j term a | i term a -> j
+instance
+    ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
+    , (a === var) ~ can
+    , CanUnify can a var
+    , j ~ If can (i + 1) i
+    ) => EnumerateFromToArg i j term a
+
+type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class EnumerateFromTo i j term a | i term a -> j
+instance {-# OVERLAPPABLE #-} EnumerateFromToArg i j term a => EnumerateFromTo i j term a
+instance {-# OVERLAPPING #-}
+    ( EnumerateFromToArg i j term a
+    , EnumerateFromTo j k term b
+    ) => EnumerateFromTo i k term (a -> b)
+
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a dynamic built-in function by automatically deriving its
 -- 'TypeScheme', given
@@ -252,9 +283,9 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds t
 --    of dynamic builtins
 -- 2. an uninstantiated costing function
 toDynamicBuiltinMeaning
-    :: forall a term dyn cost binds args res j0 jN.
+    :: forall a term dyn cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a, EnumerateFromTo 0 0 j0 jN term a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
     => (dyn -> a) -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme term args res)
@@ -266,112 +297,9 @@ toDynamicBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeSc
 -- 1. the denotation of the builtin
 -- 2. an uninstantiated costing function
 toStaticBuiltinMeaning
-    :: forall a term dyn cost binds args res j0 jN.
+    :: forall a term dyn cost binds args res j.
        ( args ~ GetArgs a, a ~ FoldArgs args res, binds ~ ToBinds (TypeScheme term args res)
-       , KnownPolytype binds term args res a, EnumerateFromTo 0 0 j0 jN term a
+       , KnownPolytype binds term args res a, EnumerateFromTo 0 j term a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning term dyn cost
 toStaticBuiltinMeaning = toDynamicBuiltinMeaning . const
-
-
-
--- Does not type check without the SAKS (even with kind-annotated @x@ and @y@).
--- What happened to your HM type inference, GHC?
-type (===) :: forall a b. a -> b -> Bool
-type family x === y where
-    x === x = 'True
-    x === y = 'False
-
--- class (x === y) ~ can => CanUnify can (x :: a) (y :: b)
--- instance {-# INCOHERENT #-} (x ~~ y, can ~ 'True) => CanUnify can (x :: a) (y :: b)
--- instance (x === y) ~ 'False => CanUnify 'False (x :: a) (y :: b)
-
--- This definition is a bit more permissive than the above one while seemingly no less convenient.
-class CanUnify can (x :: a) (y :: b)
-instance {-# INCOHERENT #-} x ~~ y => CanUnify can (x :: a) (y :: b)
-instance CanUnify 'False (x :: a) (y :: b)
-
-type Lookup :: forall a. Nat -> [a] -> a
-type family Lookup n xs where
-    Lookup 0 (x ': xs) = x
-    Lookup n (_ ': xs) = Lookup (n - 1) xs
-
-type IsHigherKind :: GHC.Type -> Bool
-type family IsHigherKind k where
-    IsHigherKind GHC.Type = 'False
-    IsHigherKind (_ -> _) = 'True
-
-type GetName :: Bool -> Nat -> Nat -> Symbol
-type family GetName hk i0 iN where
-    GetName 'False i0  _ = Lookup i0 '["a", "b", "c", "d", "e"]
-    GetName 'True  _  iN = Lookup iN '["f", "g", "h"]
-
-type MonoArgOf :: forall b. b -> b
-type family MonoArgOf y where
-    MonoArgOf (_ x) = x
-
-type ArgOf :: forall a b. b -> a
-type family ArgOf b where
-    ArgOf (_ x) = x
-
-data family Else :: k
-
-type EnumerateFromToRep :: forall b. Nat -> Nat -> Nat -> Nat -> b -> GHC.Constraint
-class EnumerateFromToRep i0 iN j0 jN rep | i0 iN rep -> j0 jN
-
-instance {-# INCOHERENT #-}
-    ( hk ~ IsHigherKind k
-    , var ~ TyVarRep ('TyNameRep @k (GetName hk i0 iN) (i0 + iN))
-    , (var === rep) ~ can
-    , CanUnify can var rep
-    , j0 ~ If (can && Not hk) (i0 + 1) i0
-    , jN ~ If (can && hk)     (iN + 1) iN
-    ) => EnumerateFromToRep i0 iN j0 jN (rep :: k)
-
-instance
-    ( f' ~ MonoArgOf f
-    , appF' ~ TyAppRep f'
-    , (f === appF') ~ can
-    , CanUnify can f appF'
-    , EnumerateFromToRep i0 iN j0 jN (If can f' Else)
-    , EnumerateFromToRep j0 jN k0 kN x
-    ) => EnumerateFromToRep i0 iN k0 kN (f (x :: a) :: b)
-
-type EnumerateFromToArg :: forall b. Nat -> Nat -> Nat -> Nat -> GHC.Type -> b -> GHC.Constraint
-class EnumerateFromToArg i0 iN j0 jN term y | i0 iN term y -> j0 jN
-
-instance {-# INCOHERENT #-}
-    ( rep ~ ArgOf y
-    , opaque ~ Opaque term rep
-    , (y === opaque) ~ can
-    , CanUnify can y opaque
-    , EnumerateFromToRep i0 iN j0 jN (If can rep Else)
-    ) => EnumerateFromToArg i0 iN j0 jN term (y :: b)
-
--- GHC is too stupid to realize that @term === Opaque term rep@ can't be 'True'. How so?
--- Isn't @term@ supposed to be rigid? And even if it's somehow not, 'Opaque' certainly is,
--- so that should have been a straightforward failing occurs check. This is really annoying.
--- Hence we do not attempt to traverse the whole type if the outermost application can't be
--- specialized. This also means that we can only correctly handle @f a@ and not @f a b@,
--- @f a b c@ etc.
-instance
-    ( f' ~ MonoArgOf (ArgOf f)
-    , opaqueF' ~ Compose (Opaque term) (TyAppRep @a f')
-    , (f === opaqueF') ~ can
-    , CanUnify can f opaqueF'
-    , EnumerateFromToRep i0 iN j0 jN (If can f' Else)
-    , EnumerateFromToRep j0 jN k0 kN (If can x Else)
-    , EnumerateFromToArg k0 kN l0 lN term (If can Else x)
-    ) => EnumerateFromToArg i0 iN l0 lN term (f (x :: a) :: b)
-
-type EnumerateFromTo :: Nat -> Nat -> Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromTo i0 iN j0 jN term a | i0 iN term a -> j0 jN
-
-instance {-# OVERLAPPABLE #-}
-    EnumerateFromToArg i0 iN j0 jN term a =>
-        EnumerateFromTo i0 iN j0 jN term a
-
-instance {-# OVERLAPPING #-}
-    ( EnumerateFromToArg i0 iN j0 jN term a
-    , EnumerateFromTo j0 jN k0 kN term b
-    ) => EnumerateFromTo i0 iN k0 kN term (a -> b)

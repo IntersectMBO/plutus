@@ -147,11 +147,15 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
             mempty
     toBuiltinMeaning IdFInteger =
         toStaticBuiltinMeaning
-            (Prelude.id :: a ~ f Integer => a -> a)
+            (Prelude.id
+                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
+                => a -> a)
             mempty
     toBuiltinMeaning IdList =
         toStaticBuiltinMeaning
-            (Prelude.id :: la ~ Opaque term (ListRep a) => la -> la)
+            (Prelude.id
+                :: a ~ Opaque term (ListRep (TyVarRep ('TyNameRep "a" 0)))
+                => a -> a)
             mempty
     toBuiltinMeaning IdRank2 =
         toStaticBuiltinMeaning

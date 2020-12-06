@@ -48,7 +48,6 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import qualified Data.ByteString                                    as BS
-import           Data.Functor.Compose
 import qualified Data.Kind                                          as GHC (Type)
 import           Data.Proxy
 import           Data.String
@@ -453,10 +452,3 @@ instance KnownBuiltinType term Integer => KnownType term Int where
         unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
             throwingWithCause _EvaluationFailure () $ Just term
         pure $ fromIntegral i
-
-instance KnownTypeAst term (g (f a)) => KnownTypeAst term (Compose g f a) where
-    toTypeAst _ = toTypeAst $ Proxy @(g (f a))
-
-instance KnownType term (g (f a)) => KnownType term (Compose g f a) where
-    makeKnown = makeKnown . getCompose
-    readKnown = fmap Compose . readKnown
