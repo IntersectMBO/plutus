@@ -135,8 +135,8 @@ gistControls { authStatus, createGistResult, gistUrl } =
         [ text "Publish" ]
 
   loadButton = case createGistResult of
-    Loading -> -- no load button in this case; publish button should be twice the size
-      empty
+    -- no load button in this case; publish button should be twice the size
+    Loading -> empty
     _ ->
       button
         [ idLoadGist

@@ -84,36 +84,51 @@ subHeader ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-subHeader state =
+subHeader state@(State { demoFilesMenuOpen, contractDemos }) =
   nav
     [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
-    [ contractDemosPane state
+    [ a
+        [ classes buttonClasses
+        , onClick $ const $ Just $ ToggleDemoFilesMenu
+        ]
+        [ buttonIcon ]
+    , contractDemosPane demoFilesMenuOpen contractDemos
     , GistAction <$> gistControls (unwrap state)
     ]
+  where
+  buttonClasses =
+    if demoFilesMenuOpen then
+      [ btn, ClassName "menu-button", ClassName "open" ]
+    else
+      [ btn, ClassName "menu-button" ]
+
+  buttonIcon =
+    if demoFilesMenuOpen then
+      icon Close
+    else
+      icon Bars
 
 -- renders the contract demos pane
 contractDemosPane ::
   forall m.
   MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-contractDemosPane state@(State { demoFilesMenuOpen, contractDemos }) =
+  Boolean -> Array ContractDemo -> ComponentHTML HAction ChildSlots m
+contractDemosPane demoFilesMenuOpen contractDemos =
   div
-    [ classes [ navbarNav ] ]
+    [ classes demoPaneClasses ]
     [ span
-        [ class_ navbarText
-        , onClick $ const $ Just $ ToggleDemoFilesMenu
-        ]
+        [ class_ navbarText ]
         [ text "Demo files" ]
     , ul
-        [ classes demoFilesMenuClasses ]
+        [ class_ navbarNav ]
         (demoScriptNavItem <$> contractDemos)
     ]
   where
-  demoFilesMenuClasses =
+  demoPaneClasses =
     if demoFilesMenuOpen then
-      [ navbarNav, ClassName "open" ]
+      [ navbarNav, ClassName "menu", ClassName "open" ]
     else
-      [ navbarNav ]
+      [ navbarNav, ClassName "menu" ]
 
 -- renders a demo script nav item
 demoScriptNavItem :: forall p. ContractDemo -> HTML p HAction

@@ -312,6 +312,7 @@ handleAction (LoadScript key) = do
     Just (ContractDemo { contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
       editorSetContents contractDemoEditorContents (Just 1)
       saveBuffer (unwrap contractDemoEditorContents)
+      assign _demoFilesMenuOpen false
       assign _currentView Editor
       assign _simulations $ Cursor.fromArray contractDemoSimulations
       assign _compilationResult (Success <<< Right $ contractDemoContext)

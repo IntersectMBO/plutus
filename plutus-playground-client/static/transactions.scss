@@ -9,7 +9,7 @@ $chart-grid-stroke: $gray-500;
 
 .transactions {
     border: 1px solid $gray-border-color;
-    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, .5);
+    box-shadow: $box-shadow;
     padding: 1rem;
 
     .transactions-header {

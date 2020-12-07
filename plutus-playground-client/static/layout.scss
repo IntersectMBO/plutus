@@ -1,5 +1,5 @@
 body {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -44,13 +44,82 @@ body {
     }
 
     .sub-header {
+        $menu-breakpoint: 1024px;
+        $menu-left-offset: -0.8rem;
+        position: relative;
         border-bottom: 1px solid $gray-border-color;
         border-top: 1px solid $gray-border-color;
         padding: .25rem 1rem;
 
-        .navbar-text {
-            font-weight: bold;
-            margin-right: .5rem;
+        .menu-button {
+            background: transparent;
+            font-size: 1.25rem;
+            width: 3rem;
+            margin-left: $menu-left-offset;
+            border-radius: 0;
+            transition: initial;
+
+            &.open {
+                box-shadow: $box-shadow
+            }
+
+            @media (min-width: $menu-breakpoint) {
+                display: none;
+            }
+        }
+
+        .menu {
+            .navbar-text {
+                font-weight: bold;
+            }
+
+            @media (max-width: $menu-breakpoint - 1px) {
+                display: none;
+                position: absolute;
+                z-index: 20;
+                top: 3rem;
+                left: 1rem + $menu-left-offset;
+                width: 14rem;
+                padding: .5rem 1rem;
+                box-shadow: $box-shadow;
+                background: #fff;
+    
+                // hide the overlapping box shadow between the button and the menu
+                &::before {
+                    position: absolute;
+                    width: 3rem;
+                    background: #fff;
+                    height: 4px;
+                    content: " ";
+                    top: -2px;
+                    left: 0;
+                }
+    
+                .navbar-nav {
+                    flex-direction: column;
+                    border-top: 1px solid $gray-border-color;
+                    margin-top: .5rem;
+                    padding-left: .5rem;
+                }
+    
+                .nav-item {
+                    padding: .25rem 0;
+    
+                    &:not(:last-child) {
+                        border-bottom: 1px solid $gray-border-color;
+                    }
+                }
+    
+                &.open {
+                    display: block;
+                }
+            }
+
+            @media (min-width: $menu-breakpoint) {
+                .navbar-text {
+                    margin-right: 1rem;
+                }
+            }
         }
 
         .nav-link {

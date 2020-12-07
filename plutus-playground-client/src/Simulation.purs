@@ -18,7 +18,7 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, small_, span, text, ul, li)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, span, text, ul, li)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, id_)
 import Icons (Icon(..), icon)
