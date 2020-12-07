@@ -8,7 +8,7 @@ module Editor.View
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp, floatRight)
+import Bootstrap (btn, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, small, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
@@ -145,7 +145,7 @@ editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
     Loading -> text "Compiling ..."
     Success (Left error) -> text "Compilation failed"
     Failure error -> text "Compilation failed"
-    _ -> text "Compiled"
+    _ -> text "Compilation successful"
 
   minMaxButton =
     a
