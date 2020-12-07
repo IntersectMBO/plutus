@@ -12,11 +12,11 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-{-# OPTIONS_GHC -XStrictData        #-}
+{-# LANGUAGE StrictData             #-}
 
 {- Note [Strict Data for budgeting]
 
-Without the -XStrictData flag here, we get a memory leak during evaluation
+Without the StrictData pragma here, we get a memory leak during evaluation
 because large unevaluated arthimetic expressions build up.  Strictness is only
 really required for ExBudget and ExBudgetState, but it's simpler if we jut make
 everything strict, and it doesn't seem to do any harm.
