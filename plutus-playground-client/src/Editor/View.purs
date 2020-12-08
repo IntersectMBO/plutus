@@ -8,7 +8,7 @@ module Editor.View
 
 import Editor.Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (btn, btnPrimary, btnSuccess, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp)
+import Bootstrap (btn, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
@@ -57,7 +57,7 @@ editorPreferencesSelect active =
 compileButton :: forall p a. CompilationState a -> HTML p HAction
 compileButton state =
   button
-    [ classes [ btn, btnSuccess ]
+    [ classes [ btn, ClassName "btn-green" ]
     , onClick $ const $ Just CompileProgram
     , disabled (isLoading state)
     ]
@@ -71,7 +71,7 @@ compileButton state =
 simulateButton :: forall p a. CompilationState a -> HTML p HAction
 simulateButton state =
   button
-    [ classes [ btn, btnPrimary ]
+    [ classes [ btn, ClassName "btn-turquoise" ]
     , onClick $ const $ Just (ChangeView Simulations)
     , disabled isDisabled
     ]

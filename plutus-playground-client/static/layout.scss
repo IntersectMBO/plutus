@@ -8,6 +8,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    color: $black;
 
     a {
         cursor: pointer;
@@ -15,6 +16,14 @@ body {
 
     button[disabled] {
         cursor: not-allowed;
+    }
+
+    .btn-green {
+        @include button-variant($green, $green);
+    }
+      
+    .btn-turquoise {
+        @include button-variant($turquoise, $turquoise);
     }
 
     .header,
@@ -35,231 +44,33 @@ body {
         .navbar-brand {
             display: flex;
             align-items: center;
-            text-transform: uppercase;
+            font-size: 1.4375rem;
+            padding: 0;
 
             img {
                 margin-right: 1rem;
             }
         }
+
+        .navbar-nav {
+            font-size: .875rem;
+        }
     }
 
     .sub-header {
-        $menu-breakpoint: 1024px;
-        $menu-left-offset: -0.8rem;
+        // further styles in subheader.scss and gist.scss
         position: relative;
         border-bottom: 1px solid $gray-border-color;
         border-top: 1px solid $gray-border-color;
         padding: .25rem 1rem;
-
-        .menu-button {
-            background: transparent;
-            font-size: 1.25rem;
-            width: 3rem;
-            margin-left: $menu-left-offset;
-            border-radius: 0;
-            transition: initial;
-
-            &.open {
-                box-shadow: $box-shadow
-            }
-
-            @media (min-width: $menu-breakpoint) {
-                display: none;
-            }
-        }
-
-        .menu {
-            .navbar-text {
-                font-weight: bold;
-            }
-
-            @media (max-width: $menu-breakpoint - 1px) {
-                display: none;
-                position: absolute;
-                z-index: 20;
-                top: 3rem;
-                left: 1rem + $menu-left-offset;
-                width: 14rem;
-                padding: .5rem 1rem;
-                box-shadow: $box-shadow;
-                background: #fff;
-    
-                // hide the overlapping box shadow between the button and the menu
-                &::before {
-                    position: absolute;
-                    width: 3rem;
-                    background: #fff;
-                    height: 4px;
-                    content: " ";
-                    top: -2px;
-                    left: 0;
-                }
-    
-                .navbar-nav {
-                    flex-direction: column;
-                    border-top: 1px solid $gray-border-color;
-                    margin-top: .5rem;
-                    padding-left: .5rem;
-                }
-    
-                .nav-item {
-                    padding: .25rem 0;
-    
-                    &:not(:last-child) {
-                        border-bottom: 1px solid $gray-border-color;
-                    }
-                }
-    
-                &.open {
-                    display: block;
-                }
-            }
-
-            @media (min-width: $menu-breakpoint) {
-                .navbar-text {
-                    margin-right: 1rem;
-                }
-            }
-        }
-
-        .nav-link {
-            color: $gray-text-color;
-            text-decoration: underline;
-
-            &:hover {
-                color: $blue;
-                text-decoration: underline;
-            }
-        }
-
-        .gist-controls {
-            position: relative;
-
-            $label-width: 56px;
-            $gist-id-input-width: 230px;
-            $button-width: 5rem;
-            $button-margin: .5rem;
-            $arrow-width: 12px;
-
-            label {
-                width: $label-width;
-                font-size: small;
-            }
-
-            .form-control {
-                width: $gist-id-input-width;
-            }
-
-            .btn {
-                width: $button-width;
-                margin-left: $button-margin;
-
-                &.double-width {
-                    width: ($button-width * 2) + $button-margin;
-                }
-            }
-
-            .gist-link,
-            .ajax-error {
-                position: absolute;
-                z-index: 10;
-                top: 44px;
-                left: $label-width;
-                width: $gist-id-input-width;
-                font-size: small;
-                border: 1px solid $green;
-                border-radius: 4px;
-                background: lighten($green, 50%);
-                padding: .25em .5em;
-                color: $green;
-
-                &::before,
-                &::after {
-                  content: "";
-                  position: absolute;
-                  border-left: $arrow-width solid transparent;
-                  border-right: $arrow-width solid transparent;
-                  left: 50%;
-                  margin-left: -$arrow-width;
-                }
-                
-                &::before {
-                  border-bottom: $arrow-width solid $green;
-                  top: -$arrow-width;
-                }
-                
-                &::after {
-                  border-bottom: $arrow-width solid lighten($green, 50%);
-                  top: -($arrow-width - 1px);
-                  z-index: 11;
-                }
-            }
-
-            .ajax-error {
-                z-index: 20;
-                border-color: $red;
-                background: lighten($red, 50%);
-                color: $red;
-
-                &::before {
-                    border-bottom-color: $red;
-                }
-
-                &::after {
-                    border-bottom-color: lighten($red, 50%);
-                    z-index: 21;
-                }
-
-                .alert {
-                    background: transparent;
-                    border: 0;
-                    padding: 0;
-                    margin: 0;
-                }
-            }
-        }
     }
 
     .main {
+        // further general styles in body.scss
+        // further specific styles in editor.scss, simulations.scss, and transactions.scss
         flex: 1;
         display: flex;
         flex-direction: column;
-    
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: .5rem 0;
-
-            h1 {
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: $blue;
-                margin-bottom: 0;
-            }
-
-            a {
-                color: $blue;
-                text-decoration: underline;
-            }
-
-            .hidden {
-                visibility: hidden;
-            }
-        }
-
-        .main-body {
-            flex: 1;
-            margin-bottom: 1rem;
-
-            &.editor {
-                border-top: 1px solid $gray-border-color;
-            }
-
-            &.simulator {
-                border: 1px solid $gray-border-color;
-            }
-        }
     }
 
     .footer {

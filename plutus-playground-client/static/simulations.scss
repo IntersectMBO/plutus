@@ -58,39 +58,41 @@
         }
     }
 
-    .simulation {
-        background: $gray-100;
-        padding: 1rem;
-
-        .simulation-header {
-            display: flex;
-            justify-content: space-between;
-
-            h1 {
-                font-size: 1.25rem;
-                margin-bottom: 0;
-            }
-
-        }
-
-        .simulation-controls {
-            display: flex;
-
-            button {
-                width: 8rem;
-
-                &:not(:first-child) {
-                    margin-left: 1rem;
-                }
-            }
-        }
-    }
-
     .ajax-error {
         .alert {
             margin: 0;
         }
     }
+}
+
+.simulation {
+    background: $gray-100;
+    padding: 1rem;
+
+    .simulation-controls {
+        display: flex;
+
+        button {
+            width: 8rem;
+
+            &:not(:first-child) {
+                margin-left: 1rem;
+            }
+        }
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    h4 {
+        font-size: 1rem;
+        margin-bottom: .75em;
+    }    
 }
 
 .wallets,
@@ -114,15 +116,6 @@
 
 .wallet,
 .action {
-    h3 {
-        font-size: 1.2em;
-    }
-
-    h4 {
-        font-size: 1.1em;
-        margin-bottom: .75em;
-    }
-
     .close-button {
         margin: -0.5rem -0.5rem 0 0;
 

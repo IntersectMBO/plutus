@@ -55,12 +55,12 @@ mainHeader =
     ]
     [ span [ class_ navbarBrand ]
         [ img
-            [ height 22
-            , width 22
+            [ height 36
+            , width 36
             , src plutusLogo
             ]
         , text
-            "Plutus Playground"
+            "Plutus playground"
         ]
     , documentationLinksPane
     ]

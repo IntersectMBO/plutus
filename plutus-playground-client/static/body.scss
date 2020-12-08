@@ -1,0 +1,38 @@
+.main {
+    .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: .5rem 0;
+
+        h1 {
+            font-size: 1.3125rem;
+            font-weight: bold;
+            color: $blue;
+            margin-bottom: 0;
+        }
+
+        .btn,
+        .btn:hover {
+            color: $blue;
+            text-decoration: underline;
+        }
+
+        .hidden {
+            visibility: hidden;
+        }
+    }
+
+    .main-body {
+        flex: 1;
+        margin-bottom: 1rem;
+
+        &.editor {
+            border-top: 1px solid $gray-border-color;
+        }
+
+        &.simulator {
+            border: 1px solid $gray-border-color;
+        }
+    }
+}

@@ -42,7 +42,7 @@
         }
 
         #statusline {
-            background-color: $gray-background-color;
+            background-color: $gray-lighter-background-color;
             border-top: 1px solid $gray-border-color;
             padding: 0 .5em;
             margin-bottom: 0;
@@ -71,11 +71,14 @@
         flex-direction: column;
         border: 1px solid $gray-border-color;
         font-family: $font-family-monospace;
-        font-size: $font-size-sm;
 
         &.minimised {
             height: $feedback-header-height + 1px; // +1 for the border
             overflow: hidden;
+        }
+
+        a, a:hover {
+            text-decoration: underline;
         }
 
         .editor-feedback-header {
@@ -90,9 +93,6 @@
                 padding: 0 $feedback-padding;
             }
 
-            .btn {
-                font-size: smaller;
-            }
         }
 
         .editor-feedback-body {

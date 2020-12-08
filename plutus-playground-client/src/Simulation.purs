@@ -7,7 +7,7 @@ module Simulation
 import Types
 import Action (actionsPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alertDanger_, btn, btnDanger, btnPrimary, btnSuccess, btnWarning, empty, floatRight, nav, navItem, navLink)
+import Bootstrap (active, alertDanger_, btn, btnDanger, btnWarning, empty, floatRight, nav, navItem, navLink)
 import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
@@ -25,7 +25,7 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
 import Ledger.Value (Value)
-import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
+import Network.RemoteData (RemoteData(Loading, Failure, Success))
 import Playground.Types (ContractCall, EvaluationResult, PlaygroundError(..), Simulation(..))
 import Prelude (const, map, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema.Types (FormArgument, Signatures)
@@ -165,17 +165,13 @@ evaluateActionsButton evaluationResult actions =
     ]
     [ btnText evaluationResult hasErrors ]
   where
-  btnClass Loading _ = btnSuccess
-
   btnClass _ true = btnWarning
 
   btnClass (Success (Left _)) _ = btnDanger
 
-  btnClass (Success _) _ = btnSuccess
-
   btnClass (Failure _) _ = btnDanger
 
-  btnClass NotAsked _ = btnSuccess
+  btnClass _ _ = ClassName "btn-green"
 
   btnText Loading _ = icon Spinner
 
@@ -190,7 +186,7 @@ evaluateActionsButton evaluationResult actions =
 viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
   button
-    [ classes [ btn, btnPrimary ]
+    [ classes [ btn, ClassName "btn-turquoise" ]
     , disabled isDisabled
     , onClick $ const $ Just $ ChangeView Transactions
     ]
