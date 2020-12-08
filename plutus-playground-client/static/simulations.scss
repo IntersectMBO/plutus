@@ -5,14 +5,31 @@
         border-width: 2px;
     
         .nav-item {
+            position: relative;
             margin-bottom: -2px;
+
+            // it's surprisingly fiddly getting the borders right
+            // this works, but there might be a more elegant solution...
+            &::after {
+                position: absolute;
+                content: " ";
+                height: calc(100% - 2px);
+                width: 1px;
+                background: $gray-border-color;
+                top: 0;
+                left: -1px;
+                z-index: 0;
+            }
         }
     
         .nav-link {
+            position: relative;
+            z-index: 1;
             cursor: default;
             border-width: 2px;
             border-radius: 0;
             color: inherit;
+            margin-left: -1px;
 
             &:hover {
                 border-color: transparent;
