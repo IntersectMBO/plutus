@@ -13,7 +13,7 @@
             border-width: 2px;
             border-radius: 0;
             color: inherit;
-    
+
             &:hover {
                 border-color: transparent;
             }
@@ -60,10 +60,10 @@
             display: flex;
 
             button {
-                flex: 1;
+                width: 8rem;
 
                 &:not(:first-child) {
-                    margin-left: .5rem;
+                    margin-left: 1rem;
                 }
             }
         }
@@ -112,6 +112,11 @@
         &:hover {
             background: $gray-accent-color;
         }
+    }
+
+    .form-control {
+        // otherwise flex-wrap is not necessarily triggered, and some inputs become unreadably small
+        min-width: 6rem;
     }
 }
 

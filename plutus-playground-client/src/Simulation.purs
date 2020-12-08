@@ -57,10 +57,11 @@ simulationsPane ::
   Maybe Int ->
   Signatures ->
   Cursor Simulation ->
+  Maybe Simulation ->
   WebData (Either PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m
-simulationsPane initialValue actionDrag endpointSignatures simulations evaluationResult = case current simulations of
-  Just (Simulation simulation@{ simulationName, simulationWallets, simulationActions }) ->
+simulationsPane initialValue actionDrag endpointSignatures simulations lastEvaluatedSimulation evaluationResult = case current simulations of
+  Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
     let
       isValidWallet :: Wallet -> Boolean
       isValidWallet target =
@@ -80,10 +81,15 @@ simulationsPane initialValue actionDrag endpointSignatures simulations evaluatio
             [ div
                 [ classes [ ClassName "simulation-controls", floatRight ] ]
                 [ evaluateActionsButton evaluationResult simulationActions
-                , viewTransactionsButton evaluationResult
+                , viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult
                 ]
             , walletsPane endpointSignatures initialValue simulationWallets
             , actionsPane isValidWallet actionDrag simulationActions evaluationResult
+            , div
+                [ classes [ ClassName "simulation-controls" ] ]
+                [ evaluateActionsButton evaluationResult simulationActions
+                , viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult
+                ]
             , case evaluationResult of
                 Failure error -> ajaxErrorPane error
                 Success (Left error) -> actionsErrorPane error
@@ -181,8 +187,8 @@ evaluateActionsButton evaluationResult actions =
 
   hasErrors = validationErrors /= []
 
-viewTransactionsButton :: forall p. WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
-viewTransactionsButton evaluationResult =
+viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
+viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
   button
     [ classes [ btn, btnPrimary ]
     , disabled isDisabled
@@ -191,7 +197,7 @@ viewTransactionsButton evaluationResult =
     [ text "Transactions" ]
   where
   isDisabled = case evaluationResult of
-    Success _ -> false
+    Success _ -> (current simulations) /= lastEvaluatedSimulation
     _ -> true
 
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i

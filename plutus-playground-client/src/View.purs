@@ -251,6 +251,7 @@ simulationsWrapper state@(State { currentView }) =
               state
           )
           (view _simulations state)
+          (view _lastEvaluatedSimulation state)
           (view _evaluationResult state)
       ]
 
