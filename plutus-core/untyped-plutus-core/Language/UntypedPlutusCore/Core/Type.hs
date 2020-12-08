@@ -11,7 +11,6 @@ module Language.UntypedPlutusCore.Core.Type
     , Term (..)
     , Program (..)
     , toTerm
-    , termAnn
     , erase
     , eraseProgram
     ) where
@@ -20,6 +19,7 @@ import           PlutusPrelude
 
 import qualified Language.PlutusCore.Constant                       as TPLC
 import qualified Language.PlutusCore.Core                           as TPLC
+import           Language.PlutusCore.Core.Type                      (ToAnnotation)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import qualified Language.PlutusCore.Name                           as TPLC
@@ -72,6 +72,10 @@ instance ToExMemory (Term name uni fun ()) where
 
 instance ToExMemory (Term name uni fun ExMemory) where
     toExMemory = termAnn
+
+instance ToAnnotation (Term name uni fun ann) where
+    type Annotation (Term name uni fun ann) = ann
+    toAnnotation = termAnn
 
 deriving via GenericExMemoryUsage (Term name uni fun ann) instance
     ( ExMemoryUsage name, ExMemoryUsage fun, ExMemoryUsage ann

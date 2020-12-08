@@ -130,6 +130,9 @@ to look up a free variable in an environment: there's no CkValue for
 Var, so we can't report which variable caused the error.
 -}
 
+instance ToExMemory (CkValue uni fun) where
+    toExMemory _ = 0 -- no accounting for Ck
+
 instance ToExMemory term => SpendBudget (CkCarryingM term uni fun) fun () term where
     spendBudget _key _budget = pure ()
 
@@ -141,10 +144,6 @@ instance FromConstant (CkValue uni fun) where
 instance AsConstant (CkValue uni fun) where
     asConstant (VCon val) = Just val
     asConstant _          = Nothing
-
-instance ToExMemory (CkValue uni fun) where
-    toExMemory _ = 0
-
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@

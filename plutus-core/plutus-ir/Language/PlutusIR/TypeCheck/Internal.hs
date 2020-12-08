@@ -24,7 +24,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Foldable
 import           Data.Ix
-import           Language.PlutusCore                    (typeAnn)
+import           Language.PlutusCore                    (toAnnotation)
 import           Language.PlutusCore.Error              as PLC
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename             as PLC
@@ -275,7 +275,7 @@ checkKindFromBinding = \case
         checkKindM ann rhs $ void k
     -- For a term binding, correct means that the declared type has kind *.
     TermBind _ _ (VarDecl _ _ ty) _ ->
-        checkKindM (typeAnn ty) ty $ Type ()
+        checkKindM (toAnnotation ty) ty $ Type ()
     -- For a datatype binding, correct means that the type constructor has kind * when fully-applied to its type arguments.
     DatatypeBind _ dt@(Datatype ann tycon tyargs _ vdecls) ->
         -- tycon+tyargs must be in scope during kindchecking

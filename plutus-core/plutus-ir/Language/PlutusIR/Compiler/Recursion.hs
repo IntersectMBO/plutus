@@ -85,7 +85,7 @@ mkFixpoint bs = do
     funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
         case PIR.mkFunctionDef p name ty term of
             Just fun -> pure fun
-            Nothing  -> lift $ throwing _Error $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
+            Nothing  -> lift $ throwing _Error $ CompilationError (PLC.toAnnotation ty) "Recursive values must be of function type"
 
     -- See Note [Extra definitions while compiling let-bindings]
     let

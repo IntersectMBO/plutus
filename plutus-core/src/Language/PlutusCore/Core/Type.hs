@@ -1,11 +1,13 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DeriveDataTypeable     #-}
+{-# LANGUAGE DerivingVia            #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Core.Type
     ( Kind(..)
@@ -15,12 +17,11 @@ module Language.PlutusCore.Core.Type
     , Program(..)
     , UniOf
     , Normalized(..)
+    , ToAnnotation(..)
     , HasUniques
     , defaultVersion
     -- * Helper functions
     , toTerm
-    , termAnn
-    , typeAnn
     , mapFun
     )
 where
@@ -105,6 +106,23 @@ defaultVersion ann = Version ann 1 0 0
 
 toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
 toTerm (Program _ _ term) = term
+
+class ToAnnotation term where
+    type Annotation term :: *
+    toAnnotation :: term -> Annotation term
+
+instance ToAnnotation (Term tyname name uni fun ann) where
+    type Annotation (Term tyname name uni fun ann) = ann
+    toAnnotation = termAnn
+
+instance ToAnnotation (Type tyname uni ann) where
+    type Annotation (Type tyname uni ann) = ann
+    toAnnotation = typeAnn
+
+instance ToAnnotation (Kind ann) where
+    type Annotation (Kind ann) = ann
+    toAnnotation (Type ann)          = ann
+    toAnnotation (KindArrow ann _ _) = ann
 
 typeAnn :: Type tyname uni ann -> ann
 typeAnn (TyVar ann _       ) = ann

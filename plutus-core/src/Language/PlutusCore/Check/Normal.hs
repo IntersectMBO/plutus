@@ -56,4 +56,4 @@ normalType ty                  = neutralType ty
 neutralType :: Type tyname uni ann -> Either (NormCheckError tyname name uni fun ann) ()
 neutralType TyVar{}           = pure ()
 neutralType (TyApp _ ty1 ty2) = neutralType ty1 >> normalType ty2
-neutralType ty                = Left (BadType (typeAnn ty) ty "neutral type")
+neutralType ty                = Left (BadType (toAnnotation ty) ty "neutral type")

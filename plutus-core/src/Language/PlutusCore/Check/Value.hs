@@ -16,4 +16,4 @@ termValue (IWrap _ _ _ term) = termValue term
 termValue LamAbs {}          = pure ()
 termValue TyAbs {}           = pure ()
 termValue Constant {}        = pure ()
-termValue t                  = Left $ BadTerm (termAnn t) t "term value"
+termValue t                  = Left $ BadTerm (toAnnotation t) t "term value"
