@@ -7,6 +7,12 @@ module Language.Marlowe.ACTUS.QCGenerator where
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Test.QuickCheck
 import           Data.Time
+import           Data.Time.Calendar(toGregorian)
+import           Data.Time.Clock(utctDay,UTCTime)
+import           Data.Time.Clock.POSIX(posixSecondsToUTCTime)
+
+epochToDay :: Integer -> Day
+epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
 
 amount :: Gen Double
 amount = choose (-100.0, 100.0)
@@ -15,7 +21,7 @@ percentage :: Gen Double
 percentage = choose (-100.0, 100.0)
 
 date :: Gen Day
-date = undefined -- choose (fromGregorian 2020 10 20, fromGregorian 2030 10 20)
+date = epochToDay <$> choose (0, 1000)
 
 contractTermsGen :: ContractTerms
 contractTermsGen = ContractTerms {}
