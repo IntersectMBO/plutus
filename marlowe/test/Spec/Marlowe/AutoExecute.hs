@@ -36,6 +36,7 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
 import           Language.Plutus.Contract.Test
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import           Language.PlutusTx.Lattice
 
 import qualified Language.PlutusTx.Prelude             as P
@@ -81,7 +82,7 @@ autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute 
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
@@ -118,7 +119,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
@@ -150,7 +151,7 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     payToWallet bob carol defaultLovelaceAmount
