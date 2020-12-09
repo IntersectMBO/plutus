@@ -44,7 +44,7 @@ You can also use a normal Haskell development environment on your computer to wr
 References
 ----------
 
-1. We develop our software in Haskell_. If you need to gain a better understanding of this powerful programming language, a good place to start is the http://haskell.org site.
+1. Haskell_ is the programming language for Plutus contracts. 
 2. We also generate the developer documentation from our source code using Haddock_. You can also find this documentation in the Playground, with the name `API`.
 3. If you want to talk to us directly, you can use the Cardano Forum_.
 
