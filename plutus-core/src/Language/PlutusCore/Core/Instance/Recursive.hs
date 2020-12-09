@@ -14,11 +14,6 @@ module Language.PlutusCore.Core.Instance.Recursive
 import           Language.PlutusCore.Core.Type
 import           PlutusPrelude
 
-import           Control.Lens
 import           Data.Functor.Foldable.TH
-import           Language.PlutusCore.Name
 
 $(join <$> traverse makeBaseFunctor [''Kind, ''Type, ''Term])
-
-instance Plated (Term TyName Name uni fun a) where
-  plate = gplate

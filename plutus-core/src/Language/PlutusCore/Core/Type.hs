@@ -113,37 +113,31 @@ class ToAnnotation term where
 
 instance ToAnnotation (Term tyname name uni fun ann) where
     type Annotation (Term tyname name uni fun ann) = ann
-    toAnnotation = termAnn
+    toAnnotation (Var ann _       ) = ann
+    toAnnotation (TyAbs ann _ _ _ ) = ann
+    toAnnotation (Apply ann _ _   ) = ann
+    toAnnotation (Constant ann _  ) = ann
+    toAnnotation (Builtin  ann _  ) = ann
+    toAnnotation (TyInst ann _ _  ) = ann
+    toAnnotation (Unwrap ann _    ) = ann
+    toAnnotation (IWrap ann _ _ _ ) = ann
+    toAnnotation (Error ann _     ) = ann
+    toAnnotation (LamAbs ann _ _ _) = ann
 
 instance ToAnnotation (Type tyname uni ann) where
     type Annotation (Type tyname uni ann) = ann
-    toAnnotation = typeAnn
+    toAnnotation (TyVar ann _       ) = ann
+    toAnnotation (TyFun ann _ _     ) = ann
+    toAnnotation (TyIFix ann _ _    ) = ann
+    toAnnotation (TyForall ann _ _ _) = ann
+    toAnnotation (TyBuiltin ann _   ) = ann
+    toAnnotation (TyLam ann _ _ _   ) = ann
+    toAnnotation (TyApp ann _ _     ) = ann
 
 instance ToAnnotation (Kind ann) where
     type Annotation (Kind ann) = ann
     toAnnotation (Type ann)          = ann
     toAnnotation (KindArrow ann _ _) = ann
-
-typeAnn :: Type tyname uni ann -> ann
-typeAnn (TyVar ann _       ) = ann
-typeAnn (TyFun ann _ _     ) = ann
-typeAnn (TyIFix ann _ _    ) = ann
-typeAnn (TyForall ann _ _ _) = ann
-typeAnn (TyBuiltin ann _   ) = ann
-typeAnn (TyLam ann _ _ _   ) = ann
-typeAnn (TyApp ann _ _     ) = ann
-
-termAnn :: Term tyname name uni fun ann -> ann
-termAnn (Var ann _       ) = ann
-termAnn (TyAbs ann _ _ _ ) = ann
-termAnn (Apply ann _ _   ) = ann
-termAnn (Constant ann _  ) = ann
-termAnn (Builtin  ann _  ) = ann
-termAnn (TyInst ann _ _  ) = ann
-termAnn (Unwrap ann _    ) = ann
-termAnn (IWrap ann _ _ _ ) = ann
-termAnn (Error ann _     ) = ann
-termAnn (LamAbs ann _ _ _) = ann
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann

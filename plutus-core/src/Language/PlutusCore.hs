@@ -49,7 +49,7 @@ module Language.PlutusCore
     , defaultVersion
     , allKeywords
     , toTerm
-    , toAnnotation
+    , ToAnnotation (..)
     , mapFun
     -- * Lexer
     , AlexPosn (..)

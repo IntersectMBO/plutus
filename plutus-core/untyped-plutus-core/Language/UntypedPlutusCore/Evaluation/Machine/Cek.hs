@@ -68,6 +68,7 @@ import           Data.HashMap.Monoidal
 import           Data.Text.Prettyprint.Doc
 
 import           Data.Functor.Foldable                              (Recursive (cata))
+import qualified Data.Vector                                        as Vector
 import           Language.PlutusCore.Core.Type                      (ToAnnotation (toAnnotation))
 
 {- Note [Scoping]
@@ -269,7 +270,7 @@ instance (Eq fun, Hashable fun, ToExMemory term) =>
             SpendBudget (CekCarryingM term uni fun) fun (ExBudgetCategory fun) term where
     spendBudget key budget = do
         modifying exBudgetStateTally
-                (<> ExTally (singleton key [budget]))
+                (<> ExTally (singleton key (Vector.singleton budget)))
         newBudget <- exBudgetStateBudget <%= (<> budget)
         mode <- asks cekEnvBudgetMode
         case mode of
