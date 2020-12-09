@@ -68,10 +68,10 @@
         "homepage": "",
         "owner": "siers",
         "repo": "nix-gitignore",
-        "rev": "a9609739209cef90e2e8eaa0b5b656721d3da63e",
-        "sha256": "1h7dgiy0kiyzsv0s2w5p6z5103k4s8wc6i793cwq1srk2kwdsrxm",
+        "rev": "0b788a5875163ec210cd6597cb3757fd59e73902",
+        "sha256": "01cl7hamp9n2rk0xaqrbfzg7s3g9hl40y1q184zlmqvgqx4fysmr",
         "type": "tarball",
-        "url": "https://github.com/siers/nix-gitignore/archive/a9609739209cef90e2e8eaa0b5b656721d3da63e.tar.gz",
+        "url": "https://github.com/siers/nix-gitignore/archive/0b788a5875163ec210cd6597cb3757fd59e73902.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
