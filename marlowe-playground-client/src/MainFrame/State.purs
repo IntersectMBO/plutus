@@ -14,7 +14,7 @@ import Data.Lens (assign, preview, use, view, set, (^.), has)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -256,22 +256,6 @@ actionWithAnalytics settings =
     ( handleAction settings
     )
 
--- This is a helper HOF to log all the actions handled by the MainFrame. It is always commented
--- so that it doesn't trigger a compilation warning (because of traceM). To use it, put it as the
--- first action handler in fullHandleAction and actionWithAnalytics
--- withLog ::
---   forall m.
---   MonadAff m =>
---   String ->
---   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
---   Action ->
---   HalogenM State Action ChildSlots Void m Unit
--- withLog handlerName handleAction' action = do
---   traceM $ "MainFrame.State: " <> handlerName
---   traceM action
---   handleAction' action
---
---
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (actionWithAnalytics or fullHandleAction)
@@ -415,7 +399,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
           lift $ loadGist s gist
           pure gist
   case res of
-    Right gist -> do
+    Right gist ->
       modify_
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
@@ -655,7 +639,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-
+              
               <<< set _hasUnsavedChanges false
           )
 
@@ -715,9 +699,9 @@ loadGist settings gist = do
 
     gistId' = preview gistId gist
   -- Restore or reset all editors
-  toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject $ maybe mempty identity haskell
-  toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject $ maybe mempty identity javascript
-  toSimulation $ Simulation.handleAction settings $ ST.InitMarloweProject $ maybe mempty identity marlowe
+  toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject $ fromMaybe mempty haskell
+  toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject $ fromMaybe mempty javascript
+  toSimulation $ Simulation.handleAction settings $ ST.InitMarloweProject $ fromMaybe mempty marlowe
   case blockly of
     Nothing -> void $ query _blocklySlot unit (Blockly.SetCode mempty unit)
     Just xml -> void $ query _blocklySlot unit (Blockly.LoadWorkspace xml unit)

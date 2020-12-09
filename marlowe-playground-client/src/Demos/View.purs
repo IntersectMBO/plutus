@@ -34,7 +34,7 @@ demoFile :: forall p. Demo -> String -> String -> HTML p Action
 demoFile key name description =
   div []
     [ h2_ [ text name ]
-    , div [ class_ (group) ]
+    , div [ class_ group ]
         [ span [ class_ (ClassName "description") ] [ text description ]
         , div [ classes [ group, ClassName "open-buttons" ] ]
             [ button [ onClick $ const $ Just $ LoadDemo Haskell key ] [ text "Haskell" ]

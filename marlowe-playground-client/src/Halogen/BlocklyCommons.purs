@@ -28,7 +28,7 @@ blocklyEvents ::
 blocklyEvents toAction workspace =
   EventSource.effectEventSource \emitter -> do
     listener <-
-      eventListener \event -> do
+      eventListener \event ->
         let
           mEvent =
             -- Blockly can fire all of the following events https://developers.google.com/blockly/guides/configure/web/events
@@ -39,7 +39,8 @@ blocklyEvents toAction workspace =
               , BT.Change <$> fromEvent event
               , BT.FinishLoading <$> fromEvent event
               ]
-        for_ mEvent \ev -> EventSource.emit emitter (toAction ev)
+        in
+          for_ mEvent \ev -> EventSource.emit emitter (toAction ev)
     addChangeListener workspace listener
     pure $ EventSource.Finalizer $ removeChangeListener workspace listener
 

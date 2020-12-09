@@ -1,7 +1,6 @@
 module Halogen.Analytics where
 
 import Prelude
-
 import Analytics (class IsEvent, analyticsTracking)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM)
