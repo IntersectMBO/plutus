@@ -23,8 +23,8 @@ This directory contains two sets of benchmarks:
 
      The difference is that `cabal run` runs the benchmarks with the working directory
      set to the shell's current working directory, but `cabal bench` sets the working directory
-     to the `plutus-benchmark` directory.  Stack also uses the benchmark directory for its
-     wokring directory; there doesn't seem to be any way to get it to use any other directory.
+     to the `plutus-benchmark` directory.  Stack uses the benchmark directory for its
+     working directory; there doesn't seem to be any way to get it to use any other directory.
 
    * By default, the benchmarks are run for a minimum of **60 seconds each** in order to get a
      statistically reasonable number of executions.  You can change this with Criterion's `-L` option.
