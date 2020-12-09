@@ -132,6 +132,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
       pure compilationResult
   resizeEditor = pure unit
   resizeBalancesChart = pure unit
+  scrollIntoView _ = pure unit
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
   tailRecM step a = do
