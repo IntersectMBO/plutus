@@ -1,7 +1,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
@@ -35,7 +34,6 @@ module Language.PlutusCore.Universe.Core
 
 import           Control.DeepSeq
 import           Control.Monad
-import           Data.Data                (Data)
 import           Data.GADT.Compare
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show
@@ -83,7 +81,6 @@ data Some f = forall a. Some (f a)
 
 -- | A particular type from a universe.
 newtype TypeIn uni a = TypeIn (uni a)
-    deriving (Data)
 
 -- | A value of a particular type from a universe.
 data ValueOf uni a = ValueOf (uni a) a

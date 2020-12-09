@@ -55,7 +55,7 @@ type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni
 type WithMemory f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
-newtype ExMemory = ExMemory { getExMemory :: Integer }
+newtype ExMemory = ExMemory { unExMemory :: Integer }
   deriving (Eq, Ord, Show, Generic)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
@@ -64,7 +64,7 @@ newtype ExMemory = ExMemory { getExMemory :: Integer }
 deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
 
 -- | Counts CPU units - 1µs on $referencemachine
-newtype ExCPU = ExCPU { getExCPU :: Integer }
+newtype ExCPU = ExCPU { unExCPU :: Integer }
   deriving (Eq, Ord, Show, Generic)
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)

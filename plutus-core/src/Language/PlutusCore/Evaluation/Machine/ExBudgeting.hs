@@ -121,7 +121,7 @@ import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
-import           Debug.Trace
+import           Data.Vector
 import           Deriving.Aeson
 import           Language.Haskell.TH.Syntax                      hiding (Name)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
@@ -191,7 +191,7 @@ instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
         , "}"
         ]
 
-newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat [ExBudget])
+newtype ExTally exBudgetCat = ExTally (MonoidalHashMap exBudgetCat (Vector ExBudget))
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (ExTally exBudgetCat))
     deriving anyclass NFData
@@ -200,7 +200,7 @@ instance ( PrettyDefaultBy config Integer, PrettyBy config exBudgetCat
          ) => PrettyBy config (ExTally exBudgetCat) where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
-          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> (fold (["[  "] <> (intersperse (line <> "|   ") (prettyBy config <$> v)) <> ["]"])))]) m) <> ["}"])
+          ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> (fold (["[  "] <> (intersperse (line <> "|   ") (prettyBy config <$> (Data.Vector.toList v))) <> ["]"])))]) m) <> ["}"])
 
 type CostModel = CostModelBase CostingFun
 
