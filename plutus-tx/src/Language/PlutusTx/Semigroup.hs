@@ -24,6 +24,10 @@ instance Semigroup [a] where
     {-# INLINABLE (<>) #-}
     (<>) = (++)
 
+instance (Semigroup a, Semigroup b) => Semigroup (a, b) where
+    {-# INLINABLE (<>) #-}
+    (a1, b1) <> (a2, b2) = (a1 <> a2, b1 <> b2)
+
 instance Semigroup a => Semigroup (Maybe a) where
     Just a1 <> Just a2 = Just (a1 <> a2)
     Just a1 <> Nothing = Just a1

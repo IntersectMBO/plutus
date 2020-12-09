@@ -87,7 +87,7 @@ module Language.Plutus.Contract(
     ) where
 
 import           Data.Aeson                                        (ToJSON (toJSON))
-import           Data.Row
+import           Data.Row                                          hiding (type (.\/))
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
@@ -99,6 +99,7 @@ import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
 
+import           Data.Row.Extras                                   (type (.\/))
 import           Language.Plutus.Contract.Request                  (ContractRow)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
 import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
