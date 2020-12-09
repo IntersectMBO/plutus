@@ -44,6 +44,7 @@ library
     plutus-contract -any,
     plutus-core,
     plutus-ledger,
+    plutus-use-cases,
     text,
     vector,
     sbv >= 8.4,
