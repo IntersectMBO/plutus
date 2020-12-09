@@ -78,7 +78,7 @@ data Payment = Payment
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Payment where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (Payment vl pk sl) == (Payment vl' pk' sl') = vl == vl' && pk == pk' && sl == sl'
 
 
@@ -101,7 +101,7 @@ data MSState =
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq MSState where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Holding == Holding = True
     (CollectingSignatures pmt pks) == (CollectingSignatures pmt' pks') =
         pmt == pmt' && pks == pks'
@@ -145,29 +145,29 @@ type MultiSigSchema =
         .\/ Endpoint "pay" ()
         .\/ Endpoint "lock" Value
 
-{-# INLINABLE isSignatory #-}
+{-# NOINLINE isSignatory #-}
 -- | Check if a public key is one of the signatories of the multisig contract.
 isSignatory :: PubKeyHash -> Params -> Bool
 isSignatory pkh (Params sigs _) = any (\pkh' -> pkh == pkh') sigs
 
-{-# INLINABLE containsPk #-}
+{-# NOINLINE containsPk #-}
 -- | Check whether a list of public keys contains a given key.
 containsPk :: PubKeyHash -> [PubKeyHash] -> Bool
 containsPk pk = any (\pk' -> pk' == pk)
 
-{-# INLINABLE isValidProposal #-}
+{-# NOINLINE isValidProposal #-}
 -- | Check whether a proposed 'Payment' is valid given the total
 --   amount of funds currently locked in the contract.
 isValidProposal :: Value -> Payment -> Bool
 isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
-{-# INLINABLE proposalExpired #-}
+{-# NOINLINE proposalExpired #-}
 -- | Check whether a proposed 'Payment' has expired.
 proposalExpired :: TxInfo -> Payment -> Bool
 proposalExpired TxInfo{txInfoValidRange} Payment{paymentDeadline} =
     paymentDeadline `Interval.before` txInfoValidRange
 
-{-# INLINABLE proposalAccepted #-}
+{-# NOINLINE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
 --   have signed a proposed payment.
 proposalAccepted :: Params -> [PubKeyHash] -> Bool
@@ -175,20 +175,20 @@ proposalAccepted (Params signatories numReq) pks =
     let numSigned = length (filter (\pk -> containsPk pk pks) signatories)
     in numSigned >= numReq
 
-{-# INLINABLE valuePreserved #-}
+{-# NOINLINE valuePreserved #-}
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to this script's address. It does not assert the number of such outputs:
 --   this is handled in the generic state machine validator.
 valuePreserved :: Value -> ValidatorCtx -> Bool
 valuePreserved vl ctx = vl == Validation.valueLockedBy (valCtxTxInfo ctx) (Validation.ownHash ctx)
 
-{-# INLINABLE valuePaid #-}
+{-# NOINLINE valuePaid #-}
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
 valuePaid :: Payment -> TxInfo -> Bool
 valuePaid (Payment vl pk _) txinfo = vl == (Validation.valuePaidTo txinfo pk)
 
-{-# INLINABLE transition #-}
+{-# NOINLINE transition #-}
 transition :: Params -> State MSState -> Input -> Maybe (TxConstraints Void Void, State MSState)
 transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) of
     (Holding, ProposePayment pmt)
@@ -230,7 +230,7 @@ transition params State{ stateData =s, stateValue=currentValue} i = case (s, i) 
                     )
     _ -> Nothing
 
-{-# INLINABLE mkValidator #-}
+{-# NOINLINE mkValidator #-}
 mkValidator :: Params -> Scripts.ValidatorType MultiSigSym
 mkValidator p = SM.mkValidator $ SM.mkStateMachine (transition p) (const False)
 

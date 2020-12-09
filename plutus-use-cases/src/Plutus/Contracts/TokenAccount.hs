@@ -124,11 +124,11 @@ tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pa
         void $ newAccount tokenName initialOwner
         tokenAccountContract
 
-{-# INLINEABLE accountToken #-}
+{-# NOINLINE accountToken #-}
 accountToken :: Account -> Value
 accountToken (Account (symbol, name)) = Value.singleton symbol name 1
 
-{-# INLINEABLE validate #-}
+{-# NOINLINE validate #-}
 validate :: Account -> () -> () -> V.ValidatorCtx -> Bool
 validate account _ _ ptx = V.valueSpent (V.valCtxTxInfo ptx) `Value.geq` accountToken account
 

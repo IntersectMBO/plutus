@@ -127,14 +127,14 @@ Here we have to serialize when we do `Eq` or `Ord` operations, but this happens 
 infrequently (I believe).
 -}
 instance Eq Script where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Haskell.Eq Script where
     a == b = BSL.toStrict (serialise a) == BSL.toStrict (serialise b)
 
 instance Ord Script where
-    {-# INLINABLE compare #-}
+    {-# NOINLINE compare #-}
     a `compare` b = BSL.toStrict (serialise a) `compare` BSL.toStrict (serialise b)
 
 instance Haskell.Ord Script where

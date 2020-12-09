@@ -97,17 +97,17 @@ instance FromJSON CurrencySymbol where
 
 makeLift ''CurrencySymbol
 
-{-# INLINABLE mpsSymbol #-}
+{-# NOINLINE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
 mpsSymbol :: MonetaryPolicyHash -> CurrencySymbol
 mpsSymbol (MonetaryPolicyHash h) = CurrencySymbol h
 
-{-# INLINABLE currencyMPSHash #-}
+{-# NOINLINE currencyMPSHash #-}
 -- | The monetary policy hash of a currency symbol
 currencyMPSHash :: CurrencySymbol -> MonetaryPolicyHash
 currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
 
-{-# INLINABLE currencySymbol #-}
+{-# NOINLINE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol
 
@@ -168,7 +168,7 @@ instance FromJSON TokenName where
 
 makeLift ''TokenName
 
-{-# INLINABLE tokenName #-}
+{-# NOINLINE tokenName #-}
 tokenName :: ByteString -> TokenName
 tokenName = TokenName
 
@@ -209,7 +209,7 @@ instance Haskell.Eq Value where
     (==) = eq
 
 instance Eq Value where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (==) = eq
 
 -- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
@@ -219,18 +219,18 @@ instance Haskell.Semigroup Value where
     (<>) = unionWith (+)
 
 instance Semigroup Value where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     (<>) = unionWith (+)
 
 instance Haskell.Monoid Value where
     mempty = Value Map.empty
 
 instance Monoid Value where
-    {-# INLINABLE mempty #-}
+    {-# NOINLINE mempty #-}
     mempty = Value Map.empty
 
 instance Group Value where
-    {-# INLINABLE inv #-}
+    {-# NOINLINE inv #-}
     inv = scale @Integer @Value (-1)
 
 deriving via (Additive Value) instance AdditiveSemigroup Value
@@ -238,7 +238,7 @@ deriving via (Additive Value) instance AdditiveMonoid Value
 deriving via (Additive Value) instance AdditiveGroup Value
 
 instance Module Integer Value where
-    {-# INLINABLE scale #-}
+    {-# NOINLINE scale #-}
     scale i (Value xs) = Value (fmap (fmap (\i' -> i * i')) xs)
 
 instance JoinSemiLattice Value where
@@ -267,7 +267,7 @@ similar to 'Ledger.Ada' for their own currencies.
 
 -}
 
-{-# INLINABLE valueOf #-}
+{-# NOINLINE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 valueOf (Value mp) cur tn =
@@ -277,17 +277,17 @@ valueOf (Value mp) cur tn =
             Nothing -> 0
             Just v  -> v
 
-{-# INLINABLE symbols #-}
+{-# NOINLINE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
 symbols :: Value -> [CurrencySymbol]
 symbols (Value mp) = Map.keys mp
 
-{-# INLINABLE singleton #-}
+{-# NOINLINE singleton #-}
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
-{-# INLINABLE unionVal #-}
+{-# NOINLINE unionVal #-}
 -- | Combine two 'Value' maps
 unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
@@ -299,7 +299,7 @@ unionVal (Value l) (Value r) =
             These a b -> Map.union a b
     in unThese <$> combined
 
-{-# INLINABLE unionWith #-}
+{-# NOINLINE unionWith #-}
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
 unionWith f ls rs =
     let
@@ -321,12 +321,12 @@ flattenValue v = do
 
 -- Num operations
 
-{-# INLINABLE isZero #-}
+{-# NOINLINE isZero #-}
 -- | Check whether a 'Value' is zero.
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
-{-# INLINABLE checkPred #-}
+{-# NOINLINE checkPred #-}
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
@@ -335,7 +335,7 @@ checkPred f l r =
     in
       Map.all inner (unionVal l r)
 
-{-# INLINABLE checkBinRel #-}
+{-# NOINLINE checkBinRel #-}
 -- | Check whether a binary relation holds for value pairs of two 'Value' maps,
 --   supplying 0 where a key is only present in one of them.
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
@@ -347,31 +347,31 @@ checkBinRel f l r =
             These a b -> f a b
     in checkPred unThese l r
 
-{-# INLINABLE geq #-}
+{-# NOINLINE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel (>=)
 
-{-# INLINABLE gt #-}
+{-# NOINLINE gt #-}
 -- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
 gt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
 gt l r = not (isZero l && isZero r) && checkBinRel (>) l r
 
-{-# INLINABLE leq #-}
+{-# NOINLINE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel (<=)
 
-{-# INLINABLE lt #-}
+{-# NOINLINE lt #-}
 -- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
 lt :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true. So we have a special case.
 lt l r = not (isZero l && isZero r) && checkBinRel (<) l r
 
-{-# INLINABLE eq #-}
+{-# NOINLINE eq #-}
 -- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 eq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.

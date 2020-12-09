@@ -57,11 +57,11 @@ newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 recursiveNewtype :: CompiledCode (RecursiveNewtype)
 recursiveNewtype = plc (Proxy @"recursiveNewtype") (RecursiveNewtype [])
 
-{-# INLINABLE evenDirectLocal #-}
+{-# NOINLINE evenDirectLocal #-}
 evenDirectLocal :: Integer -> Bool
 evenDirectLocal n = if Builtins.equalsInteger n 0 then True else oddDirectLocal (Builtins.subtractInteger n 1)
 
-{-# INLINABLE oddDirectLocal #-}
+{-# NOINLINE oddDirectLocal #-}
 oddDirectLocal :: Integer -> Bool
 oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal (Builtins.subtractInteger n 1)
 

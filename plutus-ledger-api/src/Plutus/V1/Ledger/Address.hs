@@ -43,7 +43,7 @@ instance PlutusTx.Eq Address where
     ScriptAddress vh  == ScriptAddress vh'  = vh  PlutusTx.== vh'
     _ == _                                  = False
 
-{-# INLINABLE pubKeyAddress #-}
+{-# NOINLINE pubKeyAddress #-}
 -- | The address that should be targeted by a transaction output locked by the given public key.
 pubKeyAddress :: PubKey -> Address
 pubKeyAddress pk = PubKeyAddress $ pubKeyHash pk

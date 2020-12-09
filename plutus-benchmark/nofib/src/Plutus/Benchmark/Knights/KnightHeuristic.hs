@@ -14,7 +14,7 @@ import           PlutusTx.Prelude                      as Tx
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD
 
-{-# INLINABLE move #-}
+{-# NOINLINE move #-}
 move :: Direction -> Tile -> Tile
 move UL (x,y) = (x-1,y-2)
 move UR (x,y) = (x+1,y-2)
@@ -25,23 +25,23 @@ move LD (x,y) = (x-2,y+1)
 move RU (x,y) = (x+2,y-1)
 move RD (x,y) = (x+2,y+1)
 
-{-# INLINABLE startTour #-}
+{-# NOINLINE startTour #-}
 startTour :: Tile -> Integer -> ChessSet
 startTour st size
    | (size `Tx.remainder` 2) == 0 = createBoard size st
    | otherwise           = {-Tx.trace "startTour" $ -} Tx.error ()
 
-{-# INLINABLE moveKnight #-}
+{-# NOINLINE moveKnight #-}
 moveKnight :: ChessSet -> Direction -> ChessSet
 moveKnight board dir
    = addPiece (move dir (lastPiece board)) board
 
-{-# INLINABLE canMove #-}
+{-# NOINLINE canMove #-}
 canMove :: ChessSet -> Direction -> Bool
 canMove board dir
    = canMoveTo (move dir (lastPiece board)) board
 
-{-# INLINABLE canMoveTo #-}
+{-# NOINLINE canMoveTo #-}
 canMoveTo :: Tile -> ChessSet -> Bool
 canMoveTo t@(x,y) board
    = (x Tx.>= 1) && (x Tx.<= sze) &&
@@ -50,7 +50,7 @@ canMoveTo t@(x,y) board
      where
         sze = sizeBoard board
 
-{-# INLINABLE descendents #-}
+{-# NOINLINE descendents #-}
 descendents :: ChessSet -> [ChessSet]
 descendents board =
   if (canJumpFirst board) && (deadEnd (addPiece (firstPiece board) board))
@@ -64,35 +64,35 @@ descendents board =
                  singles = singleDescend board
 
 
-{-# INLINABLE singleDescend #-}
+{-# NOINLINE singleDescend #-}
 singleDescend :: ChessSet -> [ChessSet]
 singleDescend board =[x | (y,x) <- descAndNo board, y==1]
 
-{-# INLINABLE descAndNo #-}
+{-# NOINLINE descAndNo #-}
 descAndNo :: ChessSet -> [(Integer,ChessSet)]
 descAndNo board
    = [(Tx.length (possibleMoves (deleteFirst x)),x) | x <- allDescend board]
 
-{-# INLINABLE allDescend #-}
+{-# NOINLINE allDescend #-}
 allDescend :: ChessSet -> [ChessSet]
 allDescend board
    =  map (moveKnight board) (possibleMoves board)
 
-{-# INLINABLE possibleMoves #-}
+{-# NOINLINE possibleMoves #-}
 possibleMoves :: ChessSet -> [Direction]
 possibleMoves board
    =[x | x <- [UL,UR,DL,DR,LU,LD,RU,RD], (canMove board x)]
 
-{-# INLINABLE deadEnd #-}
+{-# NOINLINE deadEnd #-}
 deadEnd :: ChessSet -> Bool
 deadEnd board = (Tx.length (possibleMoves board)) == 0
 
-{-# INLINABLE canJumpFirst #-}
+{-# NOINLINE canJumpFirst #-}
 canJumpFirst :: ChessSet -> Bool
 canJumpFirst board
   = canMoveTo (firstPiece board) (deleteFirst board)
 
-{-# INLINABLE tourFinished #-}
+{-# NOINLINE tourFinished #-}
 tourFinished :: ChessSet -> Bool
 tourFinished board
    = (noPieces board == (sze*sze)) && (canJumpFirst board)

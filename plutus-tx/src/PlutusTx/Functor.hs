@@ -17,50 +17,50 @@ class Functor f where
 
 infixl 4 <$>
 -- | Plutus Tx version of '(Data.Functor.<$>)'.
-{-# INLINABLE (<$>) #-}
+{-# NOINLINE (<$>) #-}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) f fa = fmap f fa
 
 infixl 4 <$
-{-# INLINABLE (<$) #-}
+{-# NOINLINE (<$) #-}
 -- | Plutus Tx version of '(Data.Functor.<$)'.
 (<$) :: Functor f => a -> f b -> f a
 (<$) a fb = fmap (const a) fb
 
 instance Functor [] where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f l = case l of
             []   -> []
             x:xs -> f x : fmap f xs
 
 instance Functor Maybe where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f (Just a) = Just (f a)
     fmap _ Nothing  = Nothing
 
 instance Functor (Either c) where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f (Right a) = Right (f a)
     fmap _ (Left c)  = Left c
 
 instance Functor ((,) c) where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f (c, a) = (c, f a)
 
 instance Functor Identity where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f (Identity a) = Identity (f a)
 
 instance Functor (Const m) where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap _ (Const c) = Const c
 
-{-# INLINABLE const #-}
+{-# NOINLINE const #-}
 -- | Plutus Tx version of 'Prelude.const'.
 const :: a -> b -> a
 const x _ =  x
 
-{-# INLINABLE id #-}
+{-# NOINLINE id #-}
 -- | Plutus Tx version of 'Prelude.id'.
 id :: a -> a
 id x = x

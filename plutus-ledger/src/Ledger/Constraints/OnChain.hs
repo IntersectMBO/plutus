@@ -24,7 +24,7 @@ import           Plutus.V1.Ledger.Tx              (TxOut (..))
 import           Plutus.V1.Ledger.Value           (leq)
 import qualified Plutus.V1.Ledger.Value           as Value
 
-{-# INLINABLE checkOwnInputConstraint #-}
+{-# NOINLINE checkOwnInputConstraint #-}
 checkOwnInputConstraint :: ValidatorCtx -> InputConstraint a -> Bool
 checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
     let checkInput TxInInfo{txInInfoOutRef} =
@@ -32,7 +32,7 @@ checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
     in traceIfFalse "Input constraint"
     $ any checkInput (txInfoInputs valCtxTxInfo)
 
-{-# INLINABLE checkOwnOutputConstraint #-}
+{-# NOINLINE checkOwnOutputConstraint #-}
 checkOwnOutputConstraint
     :: IsData o
     => ValidatorCtx
@@ -46,7 +46,7 @@ checkOwnOutputConstraint ctx@ValidatorCtx{valCtxTxInfo} OutputConstraint{ocDatum
     in traceIfFalse "Output constraint"
     $ any checkOutput (V.getContinuingOutputs ctx)
 
-{-# INLINABLE checkTxConstraint #-}
+{-# NOINLINE checkTxConstraint #-}
 checkTxConstraint :: ValidatorCtx -> TxConstraint -> Bool
 checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
     MustIncludeDatum dv ->
@@ -93,7 +93,7 @@ checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
         traceIfFalse "MustHashDatum"
         $ V.findDatum dvh valCtxTxInfo == Just dv
 
-{-# INLINABLE checkValidatorCtx #-}
+{-# NOINLINE checkValidatorCtx #-}
 -- | Does the 'ValidatorCtx' satisfy the constraints?
 checkValidatorCtx :: forall i o. IsData o => TxConstraints i o -> ValidatorCtx -> Bool
 checkValidatorCtx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =

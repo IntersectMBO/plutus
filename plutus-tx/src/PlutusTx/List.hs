@@ -7,7 +7,7 @@ import           Prelude           hiding (Eq (..), all, any, elem, filter, fold
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
-{-# INLINABLE map #-}
+{-# NOINLINE map #-}
 -- | Plutus Tx version of 'Data.List.map'.
 --
 --   >>> map (\i -> i + 1) [1, 2, 3]
@@ -18,7 +18,7 @@ map f l = case l of
     []   -> []
     x:xs -> f x : map f xs
 
-{-# INLINABLE foldr #-}
+{-# NOINLINE foldr #-}
 -- | Plutus Tx version of 'Data.List.foldr'.
 --
 --   >>> foldr (\i s -> s + i) 0 [1, 2, 3, 4]
@@ -29,7 +29,7 @@ foldr f acc l = case l of
     []   -> acc
     x:xs -> f x (foldr f acc xs)
 
-{-# INLINABLE (++) #-}
+{-# NOINLINE (++) #-}
 -- | Plutus Tx version of '(Data.List.++)'.
 --
 --   >>> [0, 1, 2] ++ [1, 2, 3, 4]
@@ -39,7 +39,7 @@ infixr 5 ++
 (++) :: [a] -> [a] -> [a]
 (++) l r = foldr (:) r l
 
-{-# INLINABLE filter #-}
+{-# NOINLINE filter #-}
 -- | Plutus Tx version of 'Data.List.filter'.
 --
 --   >>> filter (> 1) [1, 2, 3, 4]
@@ -48,19 +48,19 @@ infixr 5 ++
 filter :: (a -> Bool) -> [a] -> [a]
 filter p = foldr (\e xs -> if p e then e:xs else xs) []
 
-{-# INLINABLE listToMaybe #-}
+{-# NOINLINE listToMaybe #-}
 -- | Plutus Tx version of 'Data.List.listToMaybe'.
 listToMaybe :: [a] -> Maybe a
 listToMaybe []    = Nothing
 listToMaybe (x:_) = Just x
 
-{-# INLINABLE uniqueElement #-}
+{-# NOINLINE uniqueElement #-}
 -- | Return the element in the list, if there is precisely one.
 uniqueElement :: [a] -> Maybe a
 uniqueElement [x] = Just x
 uniqueElement _   = Nothing
 
-{-# INLINABLE findIndices #-}
+{-# NOINLINE findIndices #-}
 -- | Plutus Tx version of 'Data.List.findIndices'.
 findIndices :: (a -> Bool) -> [a] -> [Integer]
 findIndices p = go 0
@@ -69,12 +69,12 @@ findIndices p = go 0
             []     -> []
             (x:xs) -> let indices = go (Builtins.addInteger i 1) xs in if p x then i:indices else indices
 
-{-# INLINABLE findIndex #-}
+{-# NOINLINE findIndex #-}
 -- | Plutus Tx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
 findIndex p l = listToMaybe (findIndices p l)
 
-{-# INLINABLE (!!) #-}
+{-# NOINLINE (!!) #-}
 -- | Plutus Tx version of '(GHC.List.!!)'.
 --
 --   >>> [10, 11, 12] !! 2
@@ -88,7 +88,7 @@ infixl 9 !!
     else xs !! Builtins.subtractInteger i 1
 
 
-{-# INLINABLE reverse #-}
+{-# NOINLINE reverse #-}
 -- | Plutus Tx version of 'Data.List.reverse'.
 reverse :: [a] -> [a]
 reverse l = rev l []
@@ -97,7 +97,7 @@ reverse l = rev l []
     rev (x:xs) a  = rev xs (x:a)
 
 
-{-# INLINABLE zip #-}
+{-# NOINLINE zip #-}
 -- | Plutus Tx version of 'Data.List.zip'.
 zip :: [a] -> [b] -> [(a,b)]
 zip []     _bs    = []

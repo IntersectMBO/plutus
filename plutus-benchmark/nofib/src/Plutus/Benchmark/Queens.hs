@@ -73,7 +73,7 @@ data Algorithm = Bt
                | Fc
                deriving (Show, Read)
 
-{-# INLINABLE lookupAlgorithm #-}
+{-# NOINLINE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
 lookupAlgorithm Bt    = bt
 lookupAlgorithm Bm    = bm
@@ -81,12 +81,12 @@ lookupAlgorithm Bjbt1 = bjbt
 lookupAlgorithm Bjbt2 = bjbt'  -- bjbt' problematic on command line
 lookupAlgorithm Fc    = fc
 
-{-# INLINABLE nqueens #-}
+{-# NOINLINE nqueens #-}
 nqueens :: Integer -> Labeler -> [State]
 nqueens n algorithm = (search algorithm (queens n))
 
 -- % Haskell entry point for testing
-{-# INLINABLE runQueens #-}
+{-# NOINLINE runQueens #-}
 runQueens :: Integer -> Algorithm -> [State]
 runQueens n alg = nqueens n (lookupAlgorithm alg)
 
@@ -122,47 +122,47 @@ unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 -----------------------------------------------------------
 
 -- % Replacement for `iterate`, which generates an infinite list
-{-# INLINABLE iterateN #-}
+{-# NOINLINE iterateN #-}
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
     if k == 0 then []
     else x : iterateN (k-1) f (f x)
 
-{-# INLINABLE head #-}
+{-# NOINLINE head #-}
 head :: [a] -> a
 head (x:_) =  x
 head []    =  TxPrelude.error ()
 
-{-# INLINABLE tail #-}
+{-# NOINLINE tail #-}
 tail :: [a] -> [a]
 tail (_:as) =  as
 tail []     =  TxPrelude.error ()
 
 infix 4 `notElem`
 
-{-# INLINABLE notElem #-}
+{-# NOINLINE notElem #-}
 notElem :: (Eq a) => a -> [a] -> Bool
 notElem a as = not (a `elem` as)
 
 -- % Replacement for [a..b]
-{-# INLINABLE interval #-}
+{-# NOINLINE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
     if a > b then []
     else a : (interval (a+1) b)
 
-{-# INLINABLE abs #-}
+{-# NOINLINE abs #-}
 abs :: Integer -> Integer
 abs n = if n<0 then 0-n else n
 
 -- % Things needed for `union`
 
-{-# INLINABLE elem_by #-}
+{-# NOINLINE elem_by #-}
 elem_by :: (a -> a -> Bool) -> a -> [a] -> Bool
 elem_by _  _ []     =  False
 elem_by eq y (x:xs) =  x `eq` y || elem_by eq y xs
 
-{-# INLINABLE nubBy #-}
+{-# NOINLINE nubBy #-}
 nubBy :: (a -> a -> Bool) -> [a] -> [a]
 nubBy eq l              = nubBy' l []
   where
@@ -171,16 +171,16 @@ nubBy eq l              = nubBy' l []
        | elem_by eq y xs = nubBy' ys xs
        | otherwise       = y : nubBy' ys (y:xs)
 
-{-# INLINABLE deleteBy #-}
+{-# NOINLINE deleteBy #-}
 deleteBy :: (a -> a -> Bool) -> a -> [a] -> [a]
 deleteBy _  _ []     = []
 deleteBy eq x (y:ys) = if x `eq` y then ys else y : deleteBy eq x ys
 
-{-# INLINABLE unionBy #-}
+{-# NOINLINE unionBy #-}
 unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (nubBy eq ys) xs
 
-{-# INLINABLE union #-}
+{-# NOINLINE union #-}
 union :: (Eq a) => [a] -> [a] -> [a]
 union                   = unionBy (==)
 
@@ -191,7 +191,7 @@ instance TxPrelude.Eq Ordering where
     GT == GT = True
     _ == _   = False
 
-{-# INLINABLE sortBy #-}
+{-# NOINLINE sortBy #-}
 -- % Stolen from Data.List
 sortBy :: (a -> a -> Ordering) -> [a] -> [a]
 sortBy cmp = mergeAll . sequences
@@ -244,47 +244,47 @@ data CSP = CSP { vars, vals :: Integer, rel :: Relation }
 
 type State = [Assign]
 
-{-# INLINABLE level #-}
+{-# NOINLINE level #-}
 level :: Assign -> Var
 level (var := val) = var
 
-{-# INLINABLE value #-}
+{-# NOINLINE value #-}
 value :: Assign -> Value
 value (var := val) = val
 
-{-# INLINABLE maxLevel #-}
+{-# NOINLINE maxLevel #-}
 maxLevel :: State -> Var
 maxLevel []               = 0
 maxLevel ((var := val):_) = var
 
-{-# INLINABLE complete #-}
+{-# NOINLINE complete #-}
 complete :: CSP -> State -> Bool
 complete CSP{vars=vars} s = maxLevel s == vars
 
-{-# INLINABLE generate #-}
+{-# NOINLINE generate #-}
 generate :: CSP -> [State]
 generate CSP{vals=vals,vars=vars} = g vars
   where g 0   = [[]]
         g var = [ (var := val):st | val <- interval 1 vals, st <- g (var-1) ]
 
-{-# INLINABLE inconsistencies #-}
+{-# NOINLINE inconsistencies #-}
 inconsistencies :: CSP -> State -> [(Var,Var)]
 inconsistencies CSP{rel=rel} as =  [ (level a, level b) | a <- as, b <- reverse as, a > b, not (rel a b) ]
 
-{-# INLINABLE consistent #-}
+{-# NOINLINE consistent #-}
 consistent :: CSP -> State -> Bool
 consistent csp = null . (inconsistencies csp)
 
-{-# INLINABLE test #-}
+{-# NOINLINE test #-}
 test :: CSP -> [State] -> [State]
 test csp = filter (consistent csp)
 
-{-# INLINABLE solver #-}
+{-# NOINLINE solver #-}
 solver :: CSP -> [State]
 solver csp  = test csp candidates
   where candidates = generate csp
 
-{-# INLINABLE queens #-}
+{-# NOINLINE queens #-}
 queens :: Integer -> CSP
 queens n = CSP {vars = n, vals = n, rel = safe}
   where safe (i := m) (j := n) = (m /= n) && abs (i - j) /= abs (m - n)
@@ -300,29 +300,29 @@ label (Node lab _) = lab
 
 type Transform a b = Tree a -> Tree b
 
-{-# INLINABLE mapTree  #-}
+{-# NOINLINE mapTree  #-}
 mapTree  :: (a -> b) -> Transform a b
 mapTree f (Node a cs) = Node (f a) (map (mapTree f) cs)
 
-{-# INLINABLE foldTree #-}
+{-# NOINLINE foldTree #-}
 foldTree :: (a -> [b] -> b) -> Tree a -> b
 foldTree f (Node a cs) = f a (map (foldTree f) cs)
 
-{-# INLINABLE filterTree #-}
+{-# NOINLINE filterTree #-}
 filterTree :: (a -> Bool) -> Transform a a
 filterTree p = foldTree f
   where f a cs = Node a (filter (p . label) cs)
 
-{-# INLINABLE prune #-}
+{-# NOINLINE prune #-}
 prune :: (a -> Bool) -> Transform a a
 prune p = filterTree (not . p)
 
-{-# INLINABLE leaves #-}
+{-# NOINLINE leaves #-}
 leaves :: Tree a -> [a]
 leaves (Node leaf []) = [leaf]
 leaves (Node _ cs)    = concat (map leaves cs)
 
-{-# INLINABLE initTree #-}
+{-# NOINLINE initTree #-}
 initTree :: (a -> [a]) -> a -> Tree a
 initTree f a = Node a (map (initTree f) (f a))
 
@@ -330,13 +330,13 @@ initTree f a = Node a (map (initTree f) (f a))
 -- Figure 3.  Simple backtracking solver for CSPs.
 --------------------------------------------------
 
-{-# INLINABLE mkTree #-}
+{-# NOINLINE mkTree #-}
 mkTree :: CSP -> Tree State
 mkTree CSP{vars=vars,vals=vals} = initTree next []
   where next ss = [ ((maxLevel ss + 1) := j):ss | maxLevel ss < vars, j <- vallist ]  -- Removed [1..vals]
         vallist = interval 1 vals
 
-{-# INLINABLE earliestInconsistency #-}
+{-# NOINLINE earliestInconsistency #-}
 earliestInconsistency :: CSP -> State -> Maybe (Var,Var)
 earliestInconsistency CSP{rel=rel} [] = Nothing
 earliestInconsistency CSP{rel=rel} (a:as) =
@@ -344,12 +344,12 @@ earliestInconsistency CSP{rel=rel} (a:as) =
           []    -> Nothing
           (b:_) -> Just (level a, level b)
 
-{-# INLINABLE labelInconsistencies #-}
+{-# NOINLINE labelInconsistencies #-}
 labelInconsistencies :: CSP -> Transform State (State,Maybe (Var,Var))
 labelInconsistencies csp = mapTree f
     where f s = (s,earliestInconsistency csp s)
 
-{-# INLINABLE btsolver0 #-}
+{-# NOINLINE btsolver0 #-}
 btsolver0 :: CSP -> [State]
 btsolver0 csp =
   (filter (complete csp) . leaves . (mapTree fst) . prune ((/= Nothing) . snd)
@@ -365,28 +365,28 @@ instance TxPrelude.Eq ConflictSet where
     Unknown == Unknown = True
     _ == _             = False
 
-{-# INLINABLE knownConflict #-}
+{-# NOINLINE knownConflict #-}
 knownConflict :: ConflictSet -> Bool
 knownConflict (Known (a:as)) = True
 knownConflict _              = False
 
-{-# INLINABLE knownSolution #-}
+{-# NOINLINE knownSolution #-}
 knownSolution :: ConflictSet -> Bool
 knownSolution (Known []) = True
 knownSolution _          = False
 
-{-# INLINABLE checkComplete #-}
+{-# NOINLINE checkComplete #-}
 checkComplete :: CSP -> State -> ConflictSet
 checkComplete csp s = if complete csp s then Known [] else Unknown
 
 type Labeler = CSP -> Transform State (State, ConflictSet)
 
-{-# INLINABLE search #-}
+{-# NOINLINE search #-}
 search :: Labeler -> CSP -> [State]
 search labeler csp =
   (map fst . filter (knownSolution . snd) . leaves . prune (knownConflict . snd) . labeler csp . mkTree) csp
 
-{-# INLINABLE bt #-}
+{-# NOINLINE bt #-}
 bt :: Labeler
 bt csp = mapTree f
       where f s = (s,
@@ -394,7 +394,7 @@ bt csp = mapTree f
                      Nothing    -> checkComplete csp s
                      Just (a,b) -> Known [a,b])
 
-{-# INLINABLE btsolver #-}
+{-# NOINLINE btsolver #-}
 btsolver :: CSP -> [State]
 btsolver = search bt
 
@@ -402,12 +402,12 @@ btsolver = search bt
 -- Figure 7. Randomization heuristic.
 -------------------------------------
 
-{-# INLINABLE hrandom #-}
+{-# NOINLINE hrandom #-}
 hrandom :: Integer -> Transform a a
 hrandom seed (Node a cs) = Node a (randomList seed' (zipWith hrandom (randoms (length cs) seed') cs))
   where seed' = random seed
 
-{-# INLINABLE btr #-}
+{-# NOINLINE btr #-}
 btr :: Integer -> Labeler
 btr seed csp = bt csp . hrandom seed
 
@@ -415,24 +415,24 @@ btr seed csp = bt csp . hrandom seed
 -- Support for random numbers (not in paper).
 ---------------------------------------------
 
-{-# INLINABLE random2 #-}
+{-# NOINLINE random2 #-}
 random2 :: Integer -> Integer
 random2 n = if test > 0 then test else test + 2147483647
   where test = 16807 * lo - 2836 * hi
         hi   = n `div` 127773
         lo   = n `rem` 127773
 
-{-# INLINABLE randoms #-}
+{-# NOINLINE randoms #-}
 randoms :: Integer -> Integer -> [Integer]
 randoms k = iterateN k random2
 
-{-# INLINABLE random #-}
+{-# NOINLINE random #-}
 random :: Integer -> Integer
 random n = (a * n + c) -- mod m
   where a = 994108973
         c = a
 
-{-# INLINABLE randomList #-}
+{-# NOINLINE randomList #-}
 randomList :: Integer -> [a] -> [a]
 randomList i as = map snd (sortBy (\(a,b) (c,d) -> compare a c) (zip (randoms (length as) i) as))
 
@@ -443,20 +443,20 @@ randomList i as = map snd (sortBy (\(a,b) (c,d) -> compare a c) (zip (randoms (l
 type Table = [Row]       -- indexed by Var
 type Row = [ConflictSet] -- indexed by Value
 
-{-# INLINABLE bm #-}
+{-# NOINLINE bm #-}
 bm :: Labeler
 bm csp = mapTree fst . lookupCache csp . cacheChecks csp (emptyTable csp)
 
-{-# INLINABLE emptyTable #-}
+{-# NOINLINE emptyTable #-}
 emptyTable :: CSP -> Table
 emptyTable CSP{vars=vars,vals=vals} = []:[[Unknown | m <- interval 1 vals] | n <- interval 1 vars]
 
-{-# INLINABLE cacheChecks #-}
+{-# NOINLINE cacheChecks #-}
 cacheChecks :: CSP -> Table -> Transform State (State, Table)
 cacheChecks csp tbl (Node s cs) =
   Node (s, tbl) (map (cacheChecks csp (fillTable s csp (tail tbl))) cs)
 
-{-# INLINABLE fillTable #-}
+{-# NOINLINE fillTable #-}
 fillTable :: State -> CSP -> Table -> Table
 fillTable [] csp tbl = tbl
 fillTable ((var' := val'):as) CSP{vars=vars,vals=vals,rel=rel} tbl =
@@ -465,7 +465,7 @@ fillTable ((var' := val'):as) CSP{vars=vars,vals=vals,rel=rel} tbl =
                                    Known [var',var]
                                  else cs
 
-{-# INLINABLE lookupCache #-}
+{-# NOINLINE lookupCache #-}
 lookupCache :: CSP -> Transform (State, Table) ((State, ConflictSet), Table)
 lookupCache csp t = mapTree f t
   where f ([], tbl)      = (([], Unknown), tbl)
@@ -477,28 +477,28 @@ lookupCache csp t = mapTree f t
 -- Figure 10. Conflict-directed backjumping.
 --------------------------------------------
 
-{-# INLINABLE bjbt #-}
+{-# NOINLINE bjbt #-}
 bjbt :: Labeler
 bjbt csp = bj csp . bt csp
 
-{-# INLINABLE bjbt' #-}
+{-# NOINLINE bjbt' #-}
 bjbt' :: Labeler
 bjbt' csp = bj' csp . bt csp
 
-{-# INLINABLE bj #-}
+{-# NOINLINE bj #-}
 bj :: CSP -> Transform (State, ConflictSet) (State, ConflictSet)
 bj csp = foldTree f
   where f (a, Known cs) chs = Node (a,Known cs) chs
         f (a, Unknown)  chs = Node (a,Known cs') chs
           where cs' = combine (map label chs) []
 
-{-# INLINABLE combine #-}
+{-# NOINLINE combine #-}
 combine :: [(State, ConflictSet)] -> [Var] -> [Var]
 combine []                 acc = acc
 combine ((s, Known cs):css) acc =
   if maxLevel s `notElem` cs then cs else combine css (cs `union` acc)
 
-{-# INLINABLE bj' #-}
+{-# NOINLINE bj' #-}
 bj' :: CSP -> Transform (State, ConflictSet) (State, ConflictSet)
 bj' csp = foldTree f
   where f (a, Known cs) chs = Node (a,Known cs) chs
@@ -509,16 +509,16 @@ bj' csp = foldTree f
 -- Figure 11. Forward checking.
 -------------------------------
 
-{-# INLINABLE fc #-}
+{-# NOINLINE fc #-}
 fc :: Labeler
 fc csp = domainWipeOut csp . lookupCache csp . cacheChecks csp (emptyTable csp)
 
-{-# INLINABLE collect #-}
+{-# NOINLINE collect #-}
 collect :: [ConflictSet] -> [Var]
 collect []             = []
 collect (Known cs:css) = cs `union` (collect css)
 
-{-# INLINABLE domainWipeOut #-}
+{-# NOINLINE domainWipeOut #-}
 domainWipeOut :: CSP -> Transform ((State, ConflictSet), Table) (State, ConflictSet)
 domainWipeOut CSP{vars=vars} t = mapTree f t
   where f ((as, cs), tbl) = (as, cs')

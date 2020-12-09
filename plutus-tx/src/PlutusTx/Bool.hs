@@ -5,7 +5,7 @@ import           Prelude hiding (not, (&&), (||))
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
-{-# INLINABLE (&&) #-}
+{-# NOINLINE (&&) #-}
 -- | Logical AND
 --
 --   >>> True && False
@@ -15,7 +15,7 @@ infixr 3 &&
 (&&) :: Bool -> Bool -> Bool
 (&&) l r = if l then r else False
 
-{-# INLINABLE (||) #-}
+{-# NOINLINE (||) #-}
 -- | Logical OR
 --
 --   >>> True || False
@@ -25,7 +25,7 @@ infixr 2 ||
 (||) :: Bool -> Bool -> Bool
 (||) l r = if l then True else r
 
-{-# INLINABLE not #-}
+{-# NOINLINE not #-}
 -- | Logical negation
 --
 --   >>> not True

@@ -126,6 +126,9 @@ instance MonadDefs key uni fun ann m => MonadDefs key uni fun ann (StateT s m)
 instance MonadDefs key uni fun ann m => MonadDefs key uni fun ann (ExceptT e m)
 instance MonadDefs key uni fun ann m => MonadDefs key uni fun ann (ReaderT r m)
 
+instance MonadIO m => MonadIO (DefT key uni fun ann m) where
+    liftIO = lift . liftIO
+
 defineTerm :: MonadDefs key uni fun ann m => key -> TermDefWithStrictness uni fun ann -> Set.Set key -> m ()
 defineTerm name def deps = liftDef $ DefT $ modify $ over termDefs $ Map.insert name (def, deps)
 

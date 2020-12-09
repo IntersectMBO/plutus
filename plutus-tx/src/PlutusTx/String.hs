@@ -34,7 +34,7 @@ instance IsString Builtins.String where
     -- See Note [noinline hack]
     fromString = Magic.noinline stringToBuiltinString
 
-{-# INLINABLE stringToBuiltinString #-}
+{-# NOINLINE stringToBuiltinString #-}
 stringToBuiltinString :: String -> Builtins.String
 stringToBuiltinString = go
     where

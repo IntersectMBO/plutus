@@ -47,12 +47,12 @@ data Solution = Soln Board
 data Sex = Male | Female
 
 
-{-# INLINABLE sumList #-}
+{-# NOINLINE sumList #-}
 sumList :: [Integer] -> Integer
 sumList []    = 0
 sumList (h:t) = h + sumList t
 
-{-# INLINABLE numSolutions #-}
+{-# NOINLINE numSolutions #-}
 numSolutions :: Solution -> Integer
 numSolutions (Soln _)   = 1
 numSolutions (Choose l) = sumList . map numSolutions $ l
@@ -63,14 +63,14 @@ sizeOfSolution (Soln _)   = 1
 sizeOfSolution (Choose l) = sumList . map sizeOfSolution $ l
 sizeOfSolution Fail       = 1
 
-{-# INLINABLE flipSex #-}
+{-# NOINLINE flipSex #-}
 flipSex :: Sex -> Sex
 flipSex Male   = Female
 flipSex Female = Male
 
 --      The main search
 
-{-# INLINABLE search #-}
+{-# NOINLINE search #-}
 search :: Square -> Sex         -- Square we are up to
        -> Board                 -- Current board
        -> [Piece]               -- Remaining pieces
@@ -93,7 +93,7 @@ search square sex board ps
                              Female -> fs,
                  os <- oss]
 
-{-# INLINABLE prune #-}
+{-# NOINLINE prune #-}
 -- % An attempt to cut down on the size of the result (not in the original program)
 prune :: [Solution] -> Solution
 prune ss =
@@ -104,7 +104,7 @@ prune ss =
       where nonFailure Fail = False
             nonFailure _    = True
 
-{-# INLINABLE try #-}
+{-# NOINLINE try #-}
 try :: Square -> Sex -> Board -> (PieceId,[Offset],[Piece]) -> Maybe Solution
 try square sex board (pid,os,ps)
   = case (fit board square pid os) of
@@ -112,7 +112,7 @@ try square sex board (pid,os,ps)
         Nothing     -> Nothing
 
 
-{-# INLINABLE fit #-}
+{-# NOINLINE fit #-}
 fit :: Board -> Square -> PieceId -> [Offset] -> Maybe Board
 fit board square pid []     = Just (extend board square pid)
 fit board square pid (o:os) =
@@ -124,16 +124,16 @@ fit board square pid (o:os) =
 --------------------------
 --      Offsets and squares
 
-{-# INLINABLE add #-}
+{-# NOINLINE add #-}
 add :: Square -> Offset -> Square
 add (row,col) (orow, ocol) = (row + orow, col + ocol)
 
-{-# INLINABLE next #-}
+{-# NOINLINE next #-}
 next :: Square -> Square
 next (row,col) = (row,col+1)
 
-{-# INLINABLE maxRow #-}
-{-# INLINABLE maxCol #-}
+{-# NOINLINE maxRow #-}
+{-# NOINLINE maxCol #-}
 maxRow,maxCol :: Integer
 maxRow = 8
 maxCol = 8
@@ -142,22 +142,22 @@ maxCol = 8
 ------------------------
 --      Boards
 
-{-# INLINABLE emptyBoard #-}
+{-# NOINLINE emptyBoard #-}
 emptyBoard :: Board
 emptyBoard = [] -- Map.empty
 
-{-# INLINABLE check #-}
+{-# NOINLINE check #-}
 check :: Board -> Square -> Maybe PieceId
 check board square = -- Map.lookup square board
     case board of
       []                   -> Nothing
       (square',pid):board' -> if square == square' then Just pid else check board' square
 
-{-# INLINABLE extend #-}
+{-# NOINLINE extend #-}
 extend :: Board -> Square -> PieceId -> Board
 extend board square pid = (square, pid): board -- Map.insert square pid board
 
-{-# INLINABLE extend_maybe #-}
+{-# NOINLINE extend_maybe #-}
 extend_maybe :: Board -> Square -> PieceId -> Maybe Board
 extend_maybe board square@(row,col) pid
   | row > maxRow || col < 1 || col > maxCol
@@ -171,7 +171,7 @@ extend_maybe board square@(row,col) pid
 --------------------------
 --      Utility
 
-{-# INLINABLE pickOne #-}
+{-# NOINLINE pickOne #-}
 pickOne :: [a] -> [(a,[a])]
 pickOne xs0 = go id xs0
   where
@@ -182,62 +182,62 @@ pickOne xs0 = go id xs0
 -----------------------------------
 --      The initial setup
 
-{-# INLINABLE fromJust #-}
+{-# NOINLINE fromJust #-}
 -- % Library functions is not inlinable
 fromJust :: Maybe a -> a
 fromJust Nothing  = Tx.error ()
 fromJust (Just x) = x
 
-{-# INLINABLE initialBoard #-}
+{-# NOINLINE initialBoard #-}
 initialBoard :: Board
 initialBoard = fromJust (fit emptyBoard (1,1) 'a' [(1,0),(1,1)])
 
-{-# INLINABLE initialPieces #-}
+{-# NOINLINE initialPieces #-}
 initialPieces :: [Piece]
 initialPieces = [bPiece, cPiece, dPiece, ePiece, fPiece,
                  gPiece, hPiece, iPiece, jPiece, kPiece,
                  lPiece, mPiece, nPiece]
 
-{-# INLINABLE nPiece #-}
+{-# NOINLINE nPiece #-}
 nPiece :: Piece
 nPiece = P 'n' [ [(0,1),(1,1),(2,1),(2,2)],
                  [(1,0),(1,-1),(1,-2),(2,-2)] ]
                []
 
-{-# INLINABLE mPiece #-}
+{-# NOINLINE mPiece #-}
 mPiece :: Piece
 mPiece = P 'm' [ [(0,1),(1,0),(2,0),(3,0)] ]
                [ [(0,1),(0,2),(0,3),(1,3)],
                  [(1,0),(2,0),(3,0),(3,-1)] ]
 
-{-# INLINABLE lPiece #-}
+{-# NOINLINE lPiece #-}
 lPiece :: Piece
 lPiece = P 'l' [ [(0,1),(0,2),(0,3),(1,2)],
                  [(1,0),(2,0),(3,0),(2,-1)] ]
                [ [(1,-1),(1,0),(1,1),(1,2)],
                  [(1,0),(2,0),(3,0),(1,1)] ]
 
-{-# INLINABLE kPiece #-}
+{-# NOINLINE kPiece #-}
 kPiece :: Piece
 kPiece = P 'k' [ [(0,1),(1,0),(2,0),(2,-1)] ]
                [ [(1,0),(1,1),(1,2),(2,2)] ]
 
 
-{-# INLINABLE jPiece #-}
+{-# NOINLINE jPiece #-}
 jPiece :: Piece
 jPiece = P 'j' [ [(0,1),(0,2),(0,3),(1,1)],
                  [(1,0),(2,0),(3,0),(1,-1)],
                  [(1,-2),(1,-1),(1,0),(1,1)] ]
                [ [(1,0),(2,0),(3,0),(2,2)] ]
 
-{-# INLINABLE iPiece #-}
+{-# NOINLINE iPiece #-}
 iPiece :: Piece
 iPiece = P 'i' [ [(1,0),(2,0),(2,1),(3,1)],
                  [(0,1),(0,2),(1,0),(1,-1)],
                  [(1,0),(1,1),(2,1),(3,1)] ]
                [ [(0,1),(1,0),(1,-1),(1,-2)] ]
 
-{-# INLINABLE hPiece #-}
+{-# NOINLINE hPiece #-}
 hPiece :: Piece
 hPiece = P 'h' [ [(0,1),(1,1),(1,2),(2,2)],
                  [(1,0),(1,-1),(2,-1),(2,-2)],
@@ -245,7 +245,7 @@ hPiece = P 'h' [ [(0,1),(1,1),(1,2),(2,2)],
                [ [(0,1),(1,0),(1,-1),(2,-1)] ]
 
 
-{-# INLINABLE gPiece #-}
+{-# NOINLINE gPiece #-}
 gPiece :: Piece
 gPiece = P 'g' [ ]
                [ [(0,1),(1,1),(1,2),(1,3)],
@@ -253,7 +253,7 @@ gPiece = P 'g' [ ]
                  [(0,1),(0,2),(1,2),(1,3)],
                  [(1,0),(2,0),(2,-1),(3,-1)] ]
 
-{-# INLINABLE fPiece #-}
+{-# NOINLINE fPiece #-}
 fPiece :: Piece
 fPiece = P 'f' [ [(0,1),(1,1),(2,1),(3,1)],
                  [(1,0),(1,-1),(1,-2),(1,-3)],
@@ -261,21 +261,21 @@ fPiece = P 'f' [ [(0,1),(1,1),(2,1),(3,1)],
                [ [(0,1),(0,2),(0,3),(1,0)] ]
 
 
-{-# INLINABLE ePiece #-}
+{-# NOINLINE ePiece #-}
 ePiece :: Piece
 ePiece = P 'e' [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
                [ [(0,1),(1,1),(1,2)],
                  [(1,0),(1,-1),(2,-1)] ]
 
-{-# INLINABLE dPiece #-}
+{-# NOINLINE dPiece #-}
 dPiece :: Piece
 dPiece = P 'd' [ [(0,1),(1,1),(2,1)],
                  [(1,0),(1,-1),(1,-2)] ]
                [ [(1,0),(2,0),(2,1)] ]
 
 
-{-# INLINABLE cPiece #-}
+{-# NOINLINE cPiece #-}
 cPiece :: Piece
 cPiece = P 'c' [ ]
                [ [(0,1),(0,2),(1,1)],
@@ -283,7 +283,7 @@ cPiece = P 'c' [ ]
                  [(1,-1),(1,0),(1,1)],
                  [(1,0),(1,1),(2,0)] ]
 
-{-# INLINABLE bPiece #-}
+{-# NOINLINE bPiece #-}
 bPiece :: Piece
 bPiece = P 'b'  [ [(0,1),(0,2),(1,2)],
                   [(1,0),(2,0),(2,-1)],

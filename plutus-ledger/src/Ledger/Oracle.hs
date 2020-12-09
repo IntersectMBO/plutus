@@ -103,7 +103,7 @@ data SignedMessageCheckError =
     -- ^ The datum that correponds to the hash is wrong
     deriving (Generic, Haskell.Show)
 
-{-# INLINABLE checkSignature #-}
+{-# NOINLINE checkSignature #-}
 -- | Verify the signature on a signed datum hash
 checkSignature
   :: DatumHash
@@ -121,7 +121,7 @@ checkSignature datumHash pubKey signature_ =
         then Right ()
         else Left $ SignatureMismatch signature_ pubKey datumHash
 
-{-# INLINABLE checkHashConstraints #-}
+{-# NOINLINE checkHashConstraints #-}
 -- | Extrat the contents of the message and produce a constraint that checks
 --   that the hash is correct. In off-chain code, where we check the hash
 --   straightforwardly, 'checkHashOffChain' can be used instead of this.
@@ -136,7 +136,7 @@ checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
         (\a -> pure (a, Constraints.mustHashDatum osmMessageHash (Datum dt)))
         (fromData dt)
 
-{-# INLINABLE verifySignedMessageConstraints #-}
+{-# NOINLINE verifySignedMessageConstraints #-}
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message, producing a 'TxConstraint' value that ensures the hashes match
 --   up.
@@ -149,7 +149,7 @@ verifySignedMessageConstraints pk s@SignedMessage{osmSignature, osmMessageHash} 
     checkSignature osmMessageHash pk osmSignature
     >> checkHashConstraints s
 
-{-# INLINABLE verifySignedMessageOnChain #-}
+{-# NOINLINE verifySignedMessageOnChain #-}
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message, using the pending transaction in lieu of a hash function. See
 --   'verifySignedMessageConstraints' for a version that does not require a

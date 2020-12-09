@@ -40,30 +40,30 @@ instance Tx.Eq ChessSet where
 instance Tx.Ord ChessSet where
     _ <= _ = True
 
-{-# INLINABLE createBoard #-}
+{-# NOINLINE createBoard #-}
 createBoard :: Integer -> Tile -> ChessSet
 createBoard x t = Board x 1 (Just t) [t]
 
-{-# INLINABLE sizeBoard #-}
+{-# NOINLINE sizeBoard #-}
 sizeBoard :: ChessSet -> Integer
 sizeBoard (Board s _ _ _) = s
 
-{-# INLINABLE noPieces #-}
+{-# NOINLINE noPieces #-}
 noPieces :: ChessSet -> Integer
 noPieces (Board _ n _ _) = n
 
-{-# INLINABLE addPiece #-}
+{-# NOINLINE addPiece #-}
 addPiece :: Tile -> ChessSet -> ChessSet
 addPiece t (Board s n f ts) = Board s (n+1) f (t:ts)
 
 -- % Remove the last element from a list
-{-# INLINABLE init #-}
+{-# NOINLINE init #-}
 init :: [a] -> [a]
 init l = case reverse l of
            _:as -> reverse as
            []   -> Tx.error ()
 
-{-# INLINABLE secondLast #-}
+{-# NOINLINE secondLast #-}
 secondLast :: [a] -> Maybe a
 secondLast l =
     case reverse l of
@@ -84,29 +84,29 @@ secondLast l =
     look at it.
 %-}
 
-{-# INLINABLE deleteFirst #-}
+{-# NOINLINE deleteFirst #-}
 deleteFirst :: ChessSet -> ChessSet
 deleteFirst (Board s n _ ts) =
     Board s (n-1) f' ts'
         where ts' = init ts
               f' = secondLast ts
 
-{-# INLINABLE positionPiece #-}
+{-# NOINLINE positionPiece #-}
 positionPiece :: Integer -> ChessSet -> Tile
 positionPiece x (Board _ n _ ts) = ts Tx.!! (n - x)
 
-{-# INLINABLE lastPiece #-}
+{-# NOINLINE lastPiece #-}
 lastPiece :: ChessSet -> Tile
 lastPiece (Board _ _ _ (t:_)) = t
 lastPiece _                   = Tx.error ()
 
-{-# INLINABLE firstPiece #-}
+{-# NOINLINE firstPiece #-}
 firstPiece :: ChessSet -> Tile
 firstPiece (Board _ _ f _) =
     case f of Just tile -> tile
               Nothing   -> Tx.error ()
 
-{-# INLINABLE pieceAtTile #-}
+{-# NOINLINE pieceAtTile #-}
 pieceAtTile :: Tile -> ChessSet -> Integer
 pieceAtTile x0 (Board _ _ _ ts)
    = findPiece x0 ts
@@ -117,12 +117,12 @@ pieceAtTile x0 (Board _ _ _ ts)
            | otherwise = findPiece x xs
 
 
-{-# INLINABLE notIn #-}
+{-# NOINLINE notIn #-}
 notIn :: Eq a => a  -> [a] -> Bool
 notIn _ []     = True
 notIn x (a:as) = (x /= a) && (notIn x as)
 
-{-# INLINABLE isSquareFree #-}
+{-# NOINLINE isSquareFree #-}
 isSquareFree :: Tile -> ChessSet -> Bool
 isSquareFree x (Board _ _ _ ts) = notIn x ts
 

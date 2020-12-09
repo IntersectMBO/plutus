@@ -49,7 +49,7 @@ newtype Map k v = Map { unMap :: [(k, v)] }
     deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where
-    {-# INLINABLE fmap #-}
+    {-# NOINLINE fmap #-}
     fmap f (Map mp) =
         let
             go []           = []
@@ -66,15 +66,15 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
     mempty = empty
 
-{-# INLINABLE fromList #-}
+{-# NOINLINE fromList #-}
 fromList :: [(k, v)] -> Map k v
 fromList = Map
 
-{-# INLINABLE toList #-}
+{-# NOINLINE toList #-}
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
 
-{-# INLINABLE lookup #-}
+{-# NOINLINE lookup #-}
 -- | Find an entry in a 'Map'.
 lookup :: forall k v . (Eq k) => k -> Map k v -> Maybe v
 lookup c (Map xs) =
@@ -85,16 +85,16 @@ lookup c (Map xs) =
     in go xs
 
 
-{-# INLINABLE member #-}
+{-# NOINLINE member #-}
 -- | Is the key a member of the map?
 member :: forall k v . (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
 
-{-# INLINABLE insert #-}
+{-# NOINLINE insert #-}
 insert :: forall k v . Eq k => k -> v -> Map k v -> Map k v
 insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
 
-{-# INLINABLE delete #-}
+{-# NOINLINE delete #-}
 delete :: forall k v . (Eq k) => k -> Map k v -> Map k v
 delete key (Map ls) = Map (go ls)
   where
@@ -102,12 +102,12 @@ delete key (Map ls) = Map (go ls)
     go ((k, v) : rest) | k == key = rest
                        | otherwise = (k, v) : go rest
 
-{-# INLINABLE keys #-}
+{-# NOINLINE keys #-}
 -- | The keys of a 'Map'.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
-{-# INLINABLE union #-}
+{-# NOINLINE union #-}
 -- | Combine two 'Map's.
 union :: forall k v r . (Eq k) => Map k v -> Map k r -> Map k (These v r)
 union (Map ls) (Map rs) =
@@ -128,7 +128,7 @@ union (Map ls) (Map rs) =
 
     in Map (ls' ++ rs'')
 
-{-# INLINABLE unionWith #-}
+{-# NOINLINE unionWith #-}
 -- | Combine two 'Map's with the given combination function.
 unionWith :: forall k a . (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
 unionWith merge (Map ls) (Map rs) =
@@ -146,7 +146,7 @@ unionWith merge (Map ls) (Map rs) =
 
     in Map (ls' ++ rs')
 
-{-# INLINABLE all #-}
+{-# NOINLINE all #-}
 -- | See 'Data.Map.all'
 all :: (v -> Bool) -> Map k v -> Bool
 all p (Map mps) =
@@ -169,12 +169,12 @@ mapThese f mps = (Map mpl, Map mpr)  where
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
-{-# INLINABLE empty #-}
+{-# NOINLINE empty #-}
 -- | An empty 'Map'.
 empty :: Map k v
 empty = Map ([] :: [(k, v)])
 
-{-# INLINABLE null #-}
+{-# NOINLINE null #-}
 -- | Is the map empty?
 null :: Map k v -> Bool
 null = P.null . unMap

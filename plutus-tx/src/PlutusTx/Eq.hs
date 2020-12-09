@@ -19,52 +19,52 @@ class Eq a where
     -- (/=) deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
-{-# INLINABLE (/=) #-}
+{-# NOINLINE (/=) #-}
 (/=) :: Eq a => a -> a -> Bool
 x /= y = not (x == y)
 
 instance Eq Integer where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (==) = Builtins.equalsInteger
 
 instance Eq Builtins.ByteString where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (==) = Builtins.equalsByteString
 
 instance Eq a => Eq [a] where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     [] == []         = True
     (x:xs) == (y:ys) = x == y && xs == ys
     _ == _           = False
 
 instance Eq Bool where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     True == True   = True
     False == False = True
     _ == _         = False
 
 instance Eq a => Eq (Maybe a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (Just a1) == (Just a2) = a1 == a2
     Nothing == Nothing     = True
     _ == _                 = False
 
 instance (Eq a, Eq b) => Eq (Either a b) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (Left a1) == (Left a2)   = a1 == a2
     (Right b1) == (Right b2) = b1 == b2
     _ == _                   = False
 
 instance Eq () where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     _ == _ = True
 
 instance (Eq a, Eq b) => Eq (a, b) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (a, b) == (a', b') = a == a' && b == b'
 
 instance Eq Data where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Constr i ds == Constr i' ds' = i == i' && ds == ds'
     Constr _ _  == _             = False
     Map ds == Map ds'            = ds == ds'

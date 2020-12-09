@@ -27,34 +27,34 @@ class IsData (a :: Type) where
     fromData :: Data -> Maybe a
 
 instance IsData Data where
-    {-# INLINABLE toData #-}
+    {-# NOINLINE toData #-}
     toData d = d
-    {-# INLINABLE fromData #-}
+    {-# NOINLINE fromData #-}
     fromData d = Just d
 
 instance IsData Integer where
-    {-# INLINABLE toData #-}
+    {-# NOINLINE toData #-}
     toData = I
-    {-# INLINABLE fromData #-}
+    {-# NOINLINE fromData #-}
     fromData (I i) = Just i
     fromData _     = Nothing
 
 instance IsData ByteString where
-    {-# INLINABLE toData #-}
+    {-# NOINLINE toData #-}
     toData b = B b
-    {-# INLINABLE fromData #-}
+    {-# NOINLINE fromData #-}
     fromData (B b) = Just b
     fromData _     = Nothing
 
 instance IsData a => IsData [a] where
-    {-# INLINABLE toData #-}
+    {-# NOINLINE toData #-}
     toData xs = List (fmap toData xs)
-    {-# INLINABLE fromData #-}
+    {-# NOINLINE fromData #-}
     fromData (List ds) = traverse fromData ds
     fromData _         = Nothing
 
 instance IsData Void where
-    {-# INLINABLE toData #-}
+    {-# NOINLINE toData #-}
     toData v = absurd v
-    {-# INLINABLE fromData #-}
+    {-# NOINLINE fromData #-}
     fromData _ = Nothing

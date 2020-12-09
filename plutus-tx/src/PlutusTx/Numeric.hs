@@ -25,7 +25,7 @@ class AdditiveSemigroup a => AdditiveMonoid a where
 class AdditiveMonoid a => AdditiveGroup a where
     (-) :: a -> a -> a
 
-{-# INLINABLE negate #-}
+{-# NOINLINE negate #-}
 negate :: AdditiveGroup a => a -> a
 negate x = zero - x
 
@@ -33,15 +33,15 @@ negate x = zero - x
 newtype Additive a = Additive a
 
 instance Semigroup a => AdditiveSemigroup (Additive a) where
-    {-# INLINABLE (+) #-}
+    {-# NOINLINE (+) #-}
     Additive x + Additive y = Additive (x <> y)
 
 instance Monoid a => AdditiveMonoid (Additive a) where
-    {-# INLINABLE zero #-}
+    {-# NOINLINE zero #-}
     zero = Additive mempty
 
 instance Group a => AdditiveGroup (Additive a) where
-    {-# INLINABLE (-) #-}
+    {-# NOINLINE (-) #-}
     Additive x - Additive y = Additive (x `gsub` y)
 
 -- | A 'Semigroup' that it is sensible to describe using multiplication.
@@ -59,11 +59,11 @@ class MultiplicativeSemigroup a => MultiplicativeMonoid a where
 newtype Multiplicative a = Multiplicative a
 
 instance Semigroup a => MultiplicativeSemigroup (Multiplicative a) where
-    {-# INLINABLE (*) #-}
+    {-# NOINLINE (*) #-}
     Multiplicative x * Multiplicative y = Multiplicative (x <> y)
 
 instance Monoid a => MultiplicativeMonoid (Multiplicative a) where
-    {-# INLINABLE one #-}
+    {-# NOINLINE one #-}
     one = Multiplicative mempty
 
 -- | A semiring.
@@ -72,23 +72,23 @@ type Semiring a = (AdditiveMonoid a, MultiplicativeMonoid a)
 type Ring a = (AdditiveGroup a, MultiplicativeMonoid a)
 
 instance AdditiveSemigroup Integer where
-    {-# INLINABLE (+) #-}
+    {-# NOINLINE (+) #-}
     (+) = addInteger
 
 instance AdditiveMonoid Integer where
-    {-# INLINABLE zero #-}
+    {-# NOINLINE zero #-}
     zero = 0
 
 instance AdditiveGroup Integer where
-    {-# INLINABLE (-) #-}
+    {-# NOINLINE (-) #-}
     (-) = subtractInteger
 
 instance MultiplicativeSemigroup Integer where
-    {-# INLINABLE (*) #-}
+    {-# NOINLINE (*) #-}
     (*) = multiplyInteger
 
 instance MultiplicativeMonoid Integer where
-    {-# INLINABLE one #-}
+    {-# NOINLINE one #-}
     one = 1
 
 instance AdditiveSemigroup Bool where

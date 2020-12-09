@@ -6,7 +6,7 @@ import           Prelude       hiding (foldr, maybe)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
-{-# INLINABLE isJust #-}
+{-# NOINLINE isJust #-}
 -- | Check if a 'Maybe' @a@ is @Just a@
 --
 --   >>> isJust Nothing
@@ -17,7 +17,7 @@ import           Prelude       hiding (foldr, maybe)
 isJust :: Maybe a -> Bool
 isJust m = case m of { Just _ -> True; _ -> False; }
 
-{-# INLINABLE isNothing #-}
+{-# NOINLINE isNothing #-}
 -- | Check if a 'Maybe' @a@ is @Nothing@
 --
 --   >>> isNothing Nothing
@@ -28,7 +28,7 @@ isJust m = case m of { Just _ -> True; _ -> False; }
 isNothing :: Maybe a -> Bool
 isNothing m = case m of { Just _ -> False; _ -> True; }
 
-{-# INLINABLE maybe #-}
+{-# NOINLINE maybe #-}
 -- | Plutus Tx version of 'Prelude.maybe'.
 --
 --   >>> maybe "platypus" (\s -> s) (Just "plutus")
@@ -41,12 +41,12 @@ maybe b f m = case m of
     Nothing -> b
     Just a  -> f a
 
-{-# INLINABLE fromMaybe #-}
+{-# NOINLINE fromMaybe #-}
 -- | Plutus Tx version of 'Data.Maybe.fromMaybe'
 fromMaybe :: a -> Maybe a -> a
 fromMaybe a = maybe a id
 
-{-# INLINABLE mapMaybe #-}
+{-# NOINLINE mapMaybe #-}
 -- | Plutus Tx version of 'Data.Maybe.mapMaybe'.
 --
 --   >>> mapMaybe (\i -> if i == 2 then Just '2' else Nothing) [1, 2, 3, 4]

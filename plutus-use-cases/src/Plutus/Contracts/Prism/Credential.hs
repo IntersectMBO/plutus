@@ -49,7 +49,7 @@ data Credential =
     deriving anyclass (ToJSON, FromJSON, Hashable, ToSchema)
 
 -- | The forging policy script validating the creation of credential tokens
-{-# INLINABLE validateForge #-}
+{-# NOINLINE validateForge #-}
 validateForge :: CredentialAuthority -> PolicyCtx -> Bool
 validateForge CredentialAuthority{unCredentialAuthority} PolicyCtx{policyCtxTxInfo=txinfo} =
     -- the credential authority is allwoed to forge or destroy any number of

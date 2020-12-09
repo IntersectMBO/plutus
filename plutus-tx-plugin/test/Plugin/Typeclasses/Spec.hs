@@ -45,7 +45,7 @@ instance Sized Integer where
     size x = x
 
 instance (Sized a, Sized b) => Sized (a, b) where
-    {-# INLINABLE size #-}
+    {-# NOINLINE size #-}
     size (a, b) = size a `Builtins.addInteger` size b
 
 sizedBasic :: CompiledCode (Integer -> Integer)
@@ -60,18 +60,18 @@ class PersonLike a where
     likesAnimal :: a -> Animal -> Bool
 
 instance PersonLike Person where
-    {-# INLINABLE age #-}
+    {-# NOINLINE age #-}
     age Jim  = 30
     age Jane = 35
-    {-# INLINABLE likesAnimal #-}
+    {-# NOINLINE likesAnimal #-}
     likesAnimal Jane Cat = True
     likesAnimal _ _      = False
 
 instance PersonLike Alien where
-    {-# INLINABLE age #-}
+    {-# NOINLINE age #-}
     age AlienJim  = 300
     age AlienJane = 350
-    {-# INLINABLE likesAnimal #-}
+    {-# NOINLINE likesAnimal #-}
     likesAnimal AlienJane Dog = True
     likesAnimal _ _           = False
 

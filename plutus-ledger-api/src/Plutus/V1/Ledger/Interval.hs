@@ -87,14 +87,14 @@ makeLift ''UpperBound
 makeLift ''Interval
 
 instance Eq a => Eq (Extended a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     NegInf   == NegInf   = True
     PosInf   == PosInf   = True
     Finite l == Finite r = l == r
     _        == _        = False
 
 instance Ord a => Ord (Extended a) where
-    {-# INLINABLE compare #-}
+    {-# NOINLINE compare #-}
     NegInf   `compare` NegInf   = EQ
     NegInf   `compare` _        = LT
     _        `compare` NegInf   = GT
@@ -104,11 +104,11 @@ instance Ord a => Ord (Extended a) where
     Finite l `compare` Finite r = l `compare` r
 
 instance Eq a => Eq (UpperBound a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     UpperBound v1 in1 == UpperBound v2 in2 = v1 == v2 && in1 == in2
 
 instance Ord a => Ord (UpperBound a) where
-    {-# INLINABLE compare #-}
+    {-# NOINLINE compare #-}
     UpperBound v1 in1 `compare` UpperBound v2 in2 = case v1 `compare` v2 of
         LT -> LT
         GT -> GT
@@ -117,11 +117,11 @@ instance Ord a => Ord (UpperBound a) where
         EQ -> in1 `compare` in2
 
 instance Eq a => Eq (LowerBound a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     LowerBound v1 in1 == LowerBound v2 in2 = v1 == v2 && in1 == in2
 
 instance Ord a => Ord (LowerBound a) where
-    {-# INLINABLE compare #-}
+    {-# NOINLINE compare #-}
     LowerBound v1 in1 `compare` LowerBound v2 in2 = case v1 `compare` v2 of
         LT -> LT
         GT -> GT
@@ -129,105 +129,105 @@ instance Ord a => Ord (LowerBound a) where
         -- to the *reverse* of the normal order on Bool.
         EQ -> in2 `compare` in1
 
-{-# INLINABLE strictUpperBound #-}
+{-# NOINLINE strictUpperBound #-}
 strictUpperBound :: a -> UpperBound a
 strictUpperBound a = UpperBound (Finite a) False
 
-{-# INLINABLE strictLowerBound #-}
+{-# NOINLINE strictLowerBound #-}
 strictLowerBound :: a -> LowerBound a
 strictLowerBound a = LowerBound (Finite a) False
 
-{-# INLINABLE lowerBound #-}
+{-# NOINLINE lowerBound #-}
 lowerBound :: a -> LowerBound a
 lowerBound a = LowerBound (Finite a) True
 
-{-# INLINABLE upperBound #-}
+{-# NOINLINE upperBound #-}
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
 
 instance Ord a => JoinSemiLattice (Interval a) where
-    {-# INLINABLE (\/) #-}
+    {-# NOINLINE (\/) #-}
     (\/) = hull
 
 instance Ord a => BoundedJoinSemiLattice (Interval a) where
-    {-# INLINABLE bottom #-}
+    {-# NOINLINE bottom #-}
     bottom = never
 
 instance Ord a => MeetSemiLattice (Interval a) where
-    {-# INLINABLE (/\) #-}
+    {-# NOINLINE (/\) #-}
     (/\) = intersection
 
 instance Ord a => BoundedMeetSemiLattice (Interval a) where
-    {-# INLINABLE top #-}
+    {-# NOINLINE top #-}
     top = always
 
 instance Eq a => Eq (Interval a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     l == r = ivFrom l == ivFrom r && ivTo l == ivTo r
 
-{-# INLINABLE interval #-}
+{-# NOINLINE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal
 --   to @a@ and smaller than @b@. Therefore it includes @a@ but not it
 --   does not include @b@.
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 
-{-# INLINABLE singleton #-}
+{-# NOINLINE singleton #-}
 singleton :: a -> Interval a
 singleton s = interval s s
 
-{-# INLINABLE from #-}
+{-# NOINLINE from #-}
 -- | @from a@ is an 'Interval' that includes all values that are
 --  greater than or equal to @a@.
 from :: a -> Interval a
 from s = Interval (lowerBound s) (UpperBound PosInf True)
 
-{-# INLINABLE to #-}
+{-# NOINLINE to #-}
 -- | @to a@ is an 'Interval' that includes all values that are
 --  smaller than @a@.
 to :: a -> Interval a
 to s = Interval (LowerBound NegInf True) (upperBound s)
 
-{-# INLINABLE always #-}
+{-# NOINLINE always #-}
 -- | An 'Interval' that covers every slot.
 always :: Interval a
 always = Interval (LowerBound NegInf True) (UpperBound PosInf True)
 
-{-# INLINABLE never #-}
+{-# NOINLINE never #-}
 -- | An 'Interval' that is empty.
 never :: Interval a
 never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
 
-{-# INLINABLE member #-}
+{-# NOINLINE member #-}
 -- | Check whether a value is in an interval.
 member :: Ord a => a -> Interval a -> Bool
 member a i = i `contains` singleton a
 
-{-# INLINABLE overlaps #-}
+{-# NOINLINE overlaps #-}
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
 overlaps :: Ord a => Interval a -> Interval a -> Bool
 overlaps l r = isEmpty (l `intersection` r)
 
-{-# INLINABLE intersection #-}
+{-# NOINLINE intersection #-}
 -- | 'intersection a b' is the largest interval that is contained in 'a' and in
 --   'b', if it exists.
 intersection :: Ord a => Interval a -> Interval a -> Interval a
 intersection (Interval l1 h1) (Interval l2 h2) = Interval (max l1 l2) (min h1 h2)
 
-{-# INLINABLE hull #-}
+{-# NOINLINE hull #-}
 -- | 'hull a b' is the smallest interval containing 'a' and 'b'.
 hull :: Ord a => Interval a -> Interval a -> Interval a
 hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
 
-{-# INLINABLE contains #-}
+{-# NOINLINE contains #-}
 -- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
 --   @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
 --   @member s a@.
 contains :: Ord a => Interval a -> Interval a -> Bool
 contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 
-{-# INLINABLE isEmpty #-}
+{-# NOINLINE isEmpty #-}
 -- | Check if an 'Interval' is empty.
 isEmpty :: Ord a => Interval a -> Bool
 isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
@@ -235,12 +235,12 @@ isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v
     GT -> False
     EQ -> not (in1 && in2)
 
-{-# INLINABLE before #-}
+{-# NOINLINE before #-}
 -- | Check if a value is earlier than the beginning of an 'Interval'.
 before :: Ord a => a -> Interval a -> Bool
 before h (Interval f _) = lowerBound h < f
 
-{-# INLINABLE after #-}
+{-# NOINLINE after #-}
 -- | Check if a value is later than the end of a 'Interval'.
 after :: Ord a => a -> Interval a -> Bool
 after h (Interval _ t) = upperBound h > t

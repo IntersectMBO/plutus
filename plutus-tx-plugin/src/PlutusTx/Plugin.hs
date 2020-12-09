@@ -17,6 +17,7 @@ import           PlutusTx.Compiler.Error
 import           PlutusTx.Compiler.Expr
 import           PlutusTx.Compiler.Types
 import           PlutusTx.Compiler.Utils
+import           PlutusTx.LookupIface
 import           PlutusTx.PIRTypes
 import           PlutusTx.PLCTypes
 import           PlutusTx.Plugin.Utils
@@ -65,6 +66,7 @@ data PluginCtx = PluginCtx
     { pcOpts       :: PluginOptions
     , pcFamEnvs    :: GHC.FamInstEnvs
     , pcMarkerName :: GHC.Name
+    , pcLookupIf   :: GHC.Name -> IO (Maybe GHC.CoreBind)
     }
 
 {- Note [Making sure unfoldings are present]
@@ -150,20 +152,25 @@ comes with its own downsides however, because the user may have imported "plc" q
 -- looks at the module's top-level bindings for plc markers and compiles their right-hand-side core expressions.
 mkPluginPass :: PluginOptions -> GHC.CoreToDo
 mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
-    -- Family env code borrowed from SimplCore
-    p_fam_env <- GHC.getPackageFamInstEnv
     -- See Note [Marker resolution]
     maybeMarkerName <- GHC.thNameToGhcName 'plc
     case maybeMarkerName of
         -- TODO: test that this branch can happen using TH's 'plc exact syntax. See Note [Marker resolution]
         Nothing -> pure guts
-        Just markerName ->
+        Just markerName -> do
+            -- Family env code borrowed from SimplCore
+            p_fam_env <- GHC.getPackageFamInstEnv
+
+            env    <- GHC.getHscEnv
+            lookupIfFn <- liftIO $ mkLookupIf env guts
+
             let pctx = PluginCtx { pcOpts = opts
                                  , pcFamEnvs = (p_fam_env, GHC.mg_fam_inst_env guts)
                                  , pcMarkerName = markerName
+                                 , pcLookupIf = lookupIfFn
                                  }
                 -- start looking for plc calls from the top-level binds
-            in GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
+            GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
 
 -- | The monad where the plugin runs in for each module.
 -- It is a core->core compiler monad, called PluginM, augmented with pure errors.
@@ -272,6 +279,7 @@ compileMarkedExpr locStr codeTy origE = do
     flags <- GHC.getDynFlags
     famEnvs <- asks pcFamEnvs
     opts <- asks pcOpts
+    lookupIfFn <- asks pcLookupIf
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo builtinNames
     let ctx = CompileContext {
@@ -280,7 +288,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccFamInstEnvs = famEnvs,
             ccBuiltinNameInfo = nameInfo,
             ccScopes = initialScopeStack,
-            ccBlackholed = mempty
+            ccBlackholed = mempty,
+            ccLookupIf = lookupIfFn
             }
 
     (pirP,uplcP) <- runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler opts origE

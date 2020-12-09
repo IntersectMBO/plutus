@@ -161,14 +161,14 @@ initialState StateMachineClient{scInstance=StateMachineInstance{validatorInstanc
         , bsForgingPolicyScript = monetaryPolicyHash $ forwardingMPS $ scriptHash validatorInstance
         }
 
-{-# INLINEABLE convert #-}
+{-# NOINLINE convert #-}
 -- | Convert peg currency units to base currency units using the
 --   observed conversion rate
 convert :: ConversionRate -> PC (Ratio Integer) -> BC (Ratio Integer)
 convert rate (PC pc) =
     BC $ rate * pc
 
-{-# INLINEABLE liabilities #-}
+{-# NOINLINE liabilities #-}
 -- | The bank's liabilities (total value of stablecoins in base currency)
 liabilities ::
     BankState
@@ -178,7 +178,7 @@ liabilities BankState{bsReserves=BC reserves,bsStablecoins=SC stablecoins} cr =
     let BC stableCoinLiabilities = convert cr (PC $ fromInteger stablecoins)
     in BC (min (fromInteger reserves) stableCoinLiabilities)
 
-{-# INLINEABLE equity #-}
+{-# NOINLINE equity #-}
 -- | The bank's equity (what's left of the reserves after subtracting
 --   liabilities).
 equity ::
@@ -204,7 +204,7 @@ data Stablecoin =
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINEABLE minReserve #-}
+{-# NOINLINE minReserve #-}
 -- | Minimum number of base currency coins held by the bank.
 --   Returns 'Nothing' if no stablecoins have been minted.
 minReserve :: Stablecoin -> ConversionRate -> BankState -> Maybe (BC (Ratio Integer))
@@ -216,7 +216,7 @@ minReserve Stablecoin{scMinReserveRatio} cr BankState{bsStablecoins=SC sc}
 
 -- | Maximum number of base currency coins held by the bank.
 --   Returns 'Nothing' if no stablecoins have been minted.
-{-# INLINEABLE maxReserve #-}
+{-# NOINLINE maxReserve #-}
 maxReserve :: Stablecoin -> ConversionRate -> BankState -> Maybe (BC (Ratio Integer))
 maxReserve Stablecoin{scMaxReserveRatio} cr BankState{bsStablecoins=SC sc}
     | sc == zero = Nothing
@@ -224,14 +224,14 @@ maxReserve Stablecoin{scMaxReserveRatio} cr BankState{bsStablecoins=SC sc}
         let BC r = convert cr (PC $ fromInteger sc)
         in Just $ BC $ scMaxReserveRatio * r
 
-{-# INLINEABLE reservecoinNominalPrice #-}
+{-# NOINLINE reservecoinNominalPrice #-}
 -- | Price of a single reservecoin in base currency
 reservecoinNominalPrice :: Stablecoin -> BankState -> ConversionRate -> BC (Ratio Integer)
 reservecoinNominalPrice Stablecoin{scReservecoinDefaultPrice} bankState@BankState{bsReservecoins=RC rc} cr
     | rc /= 0 = let BC e = equity bankState cr in BC (e * R.recip (fromInteger rc))
     | otherwise = fmap fromInteger scReservecoinDefaultPrice
 
-{-# INLINEABLE stablecoinNominalPrice #-}
+{-# NOINLINE stablecoinNominalPrice #-}
 -- | Price of a single stablecoin in base currency. If the banks' liabilities
 --   exceed its reserves then 'stablecoinNominalPrice' is zero.
 stablecoinNominalPrice :: BankState -> ConversionRate -> BC (Ratio Integer)
@@ -249,7 +249,7 @@ data SCAction
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINEABLE calcFees #-}
+{-# NOINLINE calcFees #-}
 -- | Calculate transaction fees (paid in base currency to the bank) as a
 --   fraction of the transaction's volume
 calcFees :: Stablecoin -> BankState -> ConversionRate -> SCAction -> BC (Ratio Integer)
@@ -268,20 +268,20 @@ data Input =
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINEABLE bankReservesValue #-}
+{-# NOINLINE bankReservesValue #-}
 -- | The 'Value' containing the bank's reserve in base currency. This is
 --   the 'Value' locked by the state machine output with that state.
 bankReservesValue :: Stablecoin -> BankState -> Value
 bankReservesValue Stablecoin{scBaseCurrency=(s, n)} BankState{bsReserves = BC i} =
     Value.singleton s n i
 
-{-# INLINEABLE transition #-}
+{-# NOINLINE transition #-}
 transition :: Stablecoin -> State BankState -> Input -> Maybe (TxConstraints Void Void, State BankState)
 transition sc State{stateData=oldState} input =
     let toSmState state = State{stateData=state, stateValue=bankReservesValue sc state}
     in fmap (\(constraints, newState) -> (constraints, toSmState newState)) (step sc oldState input)
 
-{-# INLINEABLE applyInput #-}
+{-# NOINLINE applyInput #-}
 -- | Given a stablecoin definition, current state and input, compute the
 --   new state and tx constraints, without checking whether the new state
 --   is valid.
@@ -305,7 +305,7 @@ applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} 
     let dateConstraints = Constraints.mustValidateIn $ Interval.from obsSlot
     pure (constraints <> newConstraints <> dateConstraints, newState)
 
-{-# INLINEABLE step #-}
+{-# NOINLINE step #-}
 step :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
 step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
     (constraints, newState) <- applyInput sc bs i
@@ -325,11 +325,11 @@ stableCoins sc@Stablecoin{scStablecoinTokenName} =
     let sym = Scripts.monetaryPolicyHash $ scriptInstance sc
     in Value.singleton (Value.mpsSymbol sym) scStablecoinTokenName . unSC
 
-{-# INLINEABLE isValidState #-}
+{-# NOINLINE isValidState #-}
 isValidState :: Stablecoin -> BankState -> ConversionRate -> Bool
 isValidState sc bs cr = isRight (checkValidState sc bs cr)
 
-{-# INLINEABLE checkValidState #-}
+{-# NOINLINE checkValidState #-}
 checkValidState :: Stablecoin -> BankState -> ConversionRate -> Either InvalidStateReason ()
 checkValidState sc bs@BankState{bsReservecoins, bsReserves, bsStablecoins} cr = do
     -- TODO: Do we need a validation type in the state machine lib?

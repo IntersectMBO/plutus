@@ -8,18 +8,18 @@ module Plutus.Benchmark.Knights.Sort
 
 import qualified PlutusTx.Prelude as Tx
 
-{-# INLINABLE insertSort #-}
+{-# NOINLINE insertSort #-}
 insertSort :: (Tx.Ord a) => [a] -> [a]
 insertSort xs = foldr insertion [] xs
 
-{-# INLINABLE insertion #-}
+{-# NOINLINE insertion #-}
 insertion :: (Tx.Ord a) => a -> [a] -> [a]
 insertion x [] = [x]
 insertion x (y:ys)
         | x Tx.<= y    = x:y:ys
         | otherwise = y:insertion x ys
 
-{-# INLINABLE mergeSort #-}
+{-# NOINLINE mergeSort #-}
 mergeSort :: (Tx.Ord a) => [a] -> [a]
 mergeSort xs
         = if (n <=1 ) then xs
@@ -30,7 +30,7 @@ mergeSort xs
           where
                 n = length xs
 
-{-# INLINABLE mergeList #-}
+{-# NOINLINE mergeList #-}
 mergeList :: (Tx.Ord a) => [a] -> [a] -> [a]
 mergeList []   ys = ys
 mergeList xs   [] = xs
@@ -38,23 +38,23 @@ mergeList (x:xs) (y:ys)
         | x Tx.<= y    = x:mergeList xs (y:ys)
         | otherwise = y:mergeList (x:xs) ys
 
-{-# INLINABLE quickSort #-}
+{-# NOINLINE quickSort #-}
 quickSort :: (Tx.Ord a) => [a] -> [a]
 quickSort []     = []
 quickSort (x:xs) = (quickSort [y | y<-xs, y Tx.< x]) ++ [x] ++
                    (quickSort [y | y<-xs, y Tx.>= x])
 
 {-% These don't work in Plutus, and aren't used in the original program.
-{-# INLINABLE lazySortLe #-}
+{-# NOINLINE lazySortLe #-}
 lazySortLe :: (a -> a -> Bool) -> [a] -> [a]
 lazySortLe le l = lazyQsort le   l []
 
-{-# INLINABLE lazySort #-}
+{-# NOINLINE lazySort #-}
 lazySort :: (Tx.Ord a) => [a] -> [a]
 lazySort      l = lazyQsort (<=) l []
 
 -- lazyQsort is stable and does not concatenate.
-{-# INLINABLE lazyQsort #-}
+{-# NOINLINE lazyQsort #-}
 lazyQsort :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 lazyQsort le []     r = r
 lazyQsort le [x]    r = x:r
@@ -62,7 +62,7 @@ lazyQsort le (x:xs) r = qpart le x xs [] [] r
 
 -- rlazyQsort is as lazyQsort but anti-stable,
 -- i.e. reverses equal elements.
-{-# INLINABLE rlazyQsort #-}
+{-# NOINLINE rlazyQsort #-}
 rlazyQsort :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 rlazyQsort  le []     r = r
 rlazyQsort le [x]    r  = x:r
@@ -71,7 +71,7 @@ rlazyQsort  le (x:xs) r = rqpart le x xs [] [] r
 -- qpart partitions and sorts the sublists
 -- rlt and rge are in reverse order and must be sorted with an
 -- anti-stable sorting
-{-# INLINABLE qpart #-}
+{-# NOINLINE qpart #-}
 qpart :: (a -> a -> Bool) -> a -> [a] -> [a] -> [a] -> [a] -> [a]
 qpart le x [] rlt rge r =
     rlazyQsort le rlt (x:rlazyQsort le rge r)
@@ -81,7 +81,7 @@ qpart le x (y:ys) rlt rge r =
     else
         qpart le x ys (y:rlt) rge r
 
-{-# INLINABLE rqpart #-}
+{-# NOINLINE rqpart #-}
 rqpart :: (a -> a -> Bool) -> a -> [a] -> [a] -> [a] -> [a] -> [a]
 rqpart le x [] rle rgt r =
     lazyQsort le rle (x:lazyQsort le rgt r)
@@ -92,7 +92,7 @@ rqpart le x (y:ys) rle rgt r =
         rqpart le x ys rle (y:rgt) r
 %-}
 
-{-# INLINABLE randomIntegers #-}
+{-# NOINLINE randomIntegers #-}
 randomIntegers :: Integer -> Integer -> [Integer]
 randomIntegers s1 s2 =
     if 1 <= s1 && s1 <= 2147483562 then
@@ -103,7 +103,7 @@ randomIntegers s1 s2 =
     else
         error "randomIntegers: Bad first seed."
 
-{-# INLINABLE rands #-}
+{-# NOINLINE rands #-}
 rands :: Integer -> Integer -> [Integer]
 rands s1 s2
    = if z < 1 then z + 2147483562 : rands s1'' s2''

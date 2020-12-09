@@ -81,7 +81,7 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
 
-{-# INLINABLE pubKeyHash #-}
+{-# NOINLINE pubKeyHash #-}
 -- | Compute the hash of a public key.
 pubKeyHash :: PubKey -> PubKeyHash
 pubKeyHash (PubKey (LedgerBytes bs)) =

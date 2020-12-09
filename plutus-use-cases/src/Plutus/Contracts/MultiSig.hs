@@ -57,7 +57,7 @@ PlutusTx.makeLift ''MultiSig
 contract :: AsContractError e => Contract () MultiSigSchema e ()
 contract = (lock `select` unlock) >> contract
 
-{-# INLINABLE validate #-}
+{-# NOINLINE validate #-}
 validate :: MultiSig -> () -> () -> ValidatorCtx -> Bool
 validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy (valCtxTxInfo p)) signatories)

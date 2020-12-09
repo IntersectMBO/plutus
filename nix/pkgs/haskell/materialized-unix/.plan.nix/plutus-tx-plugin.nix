@@ -61,6 +61,7 @@
           "PlutusTx/Compiler/Type"
           "PlutusTx/Compiler/Types"
           "PlutusTx/Compiler/Utils"
+          "PlutusTx/LookupIface"
           "PlutusTx/PIRTypes"
           "PlutusTx/PLCTypes"
           "PlutusTx/Plugin"

@@ -88,7 +88,7 @@ data StateMachineInstance s i = StateMachineInstance {
 machineAddress :: StateMachineInstance s i -> Address
 machineAddress = scriptAddress . validatorInstance
 
-{-# INLINABLE mkValidator #-}
+{-# NOINLINE mkValidator #-}
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check) currentState input ptx =

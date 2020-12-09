@@ -52,7 +52,7 @@ data STOData =
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINABLE validateSTO #-}
+{-# NOINLINE validateSTO #-}
 validateSTO :: STOData -> PolicyCtx -> Bool
 validateSTO STOData{stoIssuer,stoCredentialToken,stoTokenName} PolicyCtx{policyCtxTxInfo=txInfo,policyCtxPolicy=ownHash} =
     let tokenOK = stoCredentialToken `Value.leq` Validation.valueSpent txInfo

@@ -63,7 +63,7 @@ to the previous problem: apply a function which does a pattern match and returns
 otherwise. Then, as before, we just check for error in the overall evaluation.
 -}
 
-{-# INLINABLE wrapValidator #-}
+{-# NOINLINE wrapValidator #-}
 wrapValidator
     :: forall d r
     . (IsData d, IsData r)
@@ -72,7 +72,7 @@ wrapValidator
 wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
 wrapValidator _ _ _ _                                                          = check False
 
-{-# INLINABLE wrapMonetaryPolicy #-}
+{-# NOINLINE wrapMonetaryPolicy #-}
 wrapMonetaryPolicy
     :: (Validation.PolicyCtx -> Bool)
     -> WrappedMonetaryPolicyType
@@ -81,14 +81,14 @@ wrapMonetaryPolicy _ _                    = check False
 
 -- | A monetary policy that checks whether the validator script was run
 --   in the forging transaction.
-{-# INLINABLE forwardingMPS #-}
+{-# NOINLINE forwardingMPS #-}
 forwardingMPS :: ValidatorHash -> MonetaryPolicy
 forwardingMPS vshsh =
     mkMonetaryPolicyScript
     $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (forwardToValidator hsh) ||]))
        `PlutusTx.applyCode` PlutusTx.liftCode vshsh
 
-{-# INLINABLE forwardToValidator #-}
+{-# NOINLINE forwardToValidator #-}
 forwardToValidator :: ValidatorHash -> PolicyCtx -> Bool
 forwardToValidator h PolicyCtx{policyCtxTxInfo=TxInfo{txInfoInputs}} =
     let checkHash (Just (vh, _, _)) = vh == h

@@ -154,35 +154,35 @@ instance  (Integral a)  => Ord (Ratio a)  where
     (x:%y) <  (x':%y')  =  x * y' <  x' * y
 
 instance P.Eq a => P.Eq (Ratio a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (n1 :% d1) == (n2 :% d2) = n1 P.== n2 P.&& d1 P.== d2
 
 instance P.AdditiveSemigroup (Ratio Integer) where
-    {-# INLINABLE (+) #-}
+    {-# NOINLINE (+) #-}
     (x :% y) + (x' :% y') = reduce ((x P.* y') P.+ (x' P.* y)) (y P.* y')
 
 instance P.AdditiveMonoid (Ratio Integer) where
-    {-# INLINABLE zero #-}
+    {-# NOINLINE zero #-}
     zero = P.zero :% P.one
 
 instance P.AdditiveGroup (Ratio Integer) where
-    {-# INLINABLE (-) #-}
+    {-# NOINLINE (-) #-}
     (x :% y) - (x' :% y') = reduce ((x P.* y') P.- (x' P.* y)) (y P.* y')
 
 instance P.MultiplicativeSemigroup (Ratio Integer) where
-    {-# INLINABLE (*) #-}
+    {-# NOINLINE (*) #-}
     (x :% y) * (x' :% y') = reduce (x P.* x') (y P.* y')
 
 instance P.MultiplicativeMonoid (Ratio Integer) where
-    {-# INLINABLE one #-}
+    {-# NOINLINE one #-}
     one = 1 :% 1
 
 instance P.Ord (Ratio Integer) where
-    {-# INLINABLE (<=) #-}
+    {-# NOINLINE (<=) #-}
     (x :% y) <= (x' :% y') = x P.* y' P.<= (x' P.* y)
 
 infixl 7 %
-{-# INLINABLE (%) #-}
+{-# NOINLINE (%) #-}
 -- | Forms the ratio of two integral numbers.
 (%) :: Integer -> Integer -> Ratio Integer
 x % y = reduce (x P.* signum y) (abs y)
@@ -205,17 +205,17 @@ fromGHC (n Ratio.:% d) = n :% d
 toGHC :: Rational -> Ratio.Rational
 toGHC (n :% d) = n Ratio.:% d
 
-{-# INLINABLE numerator #-}
+{-# NOINLINE numerator #-}
 -- | Extract the numerator of the ratio in reduced form: the numerator and denominator have no common factor and the denominator is positive.
 numerator :: Ratio a -> a
 numerator (n :% _) = n
 
-{-# INLINABLE denominator #-}
+{-# NOINLINE denominator #-}
 -- | Extract the denominator of the ratio in reduced form: the numerator and denominator have no common factor and the denominator is positive.
 denominator :: Ratio a -> a
 denominator (_ :% d) = d
 
-{-# INLINABLE gcd #-}
+{-# NOINLINE gcd #-}
 -- From GHC.Real
 -- | @'gcd' x y@ is the non-negative factor of both @x@ and @y@ of which
 -- every common factor of @x@ and @y@ is also a factor; for example
@@ -226,12 +226,12 @@ gcd a b = gcd' (abs a) (abs b) where
         | b' P.== P.zero = a'
         | True           = gcd' b' (a' `Builtins.remainderInteger` b')
 
-{-# INLINABLE truncate #-}
+{-# NOINLINE truncate #-}
 -- | truncate @x@ returns the integer nearest @x@ between zero and @x@
 truncate :: Ratio Integer -> Integer
 truncate r = let (m, _ :: Rational) = properFraction r in m
 
-{-# INLINABLE properFraction #-}
+{-# NOINLINE properFraction #-}
 -- From GHC.Real
 -- | The function 'properFraction' takes a real fractional number @x@
 -- and returns a pair @(n,f)@ such that @x = n+f@, and:
@@ -246,7 +246,7 @@ truncate r = let (m, _ :: Rational) = properFraction r in m
 properFraction :: Ratio Integer -> (Integer, Ratio Integer)
 properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
 
-{-# INLINABLE divMod #-}
+{-# NOINLINE divMod #-}
 -- TODO. This is doing twice as much work as it needs to: the Plutus Core
 -- builtins 'divideInteger' and 'modInteger' are implemented as the Haskell
 -- 'div' and 'mod' operations, which in turn are impemented as fst . divMod and
@@ -258,19 +258,19 @@ properFraction (n :% d) = (q, r :% d) where (q, r) = quotRem n d
 divMod :: Integer -> Integer -> (Integer, Integer)
 divMod x y = ( x `Builtins.divideInteger` y, x `Builtins.modInteger` y)
 
-{-# INLINABLE quotRem #-}
+{-# NOINLINE quotRem #-}
 -- TODO.  Provide a Plutus Core built-in function for this: see the comment for
 -- 'divMod'.
 -- | Simultaneous quot and rem.
 quotRem :: Integer -> Integer -> (Integer, Integer)
 quotRem x y = ( x `Builtins.quotientInteger` y, x `Builtins.remainderInteger` y)
 
-{-# INLINABLE half #-}
+{-# NOINLINE half #-}
 -- | 0.5
 half :: Ratio Integer
 half = 1 :% 2
 
-{-# INLINABLE reduce #-}
+{-# NOINLINE reduce #-}
 -- | From GHC.Real
 -- | 'reduce' is a subsidiary function used only in this module.
 -- It normalises a ratio by dividing both numerator and denominator by
@@ -282,15 +282,15 @@ reduce x y
         let d = gcd x y in
         (x `Builtins.quotientInteger` d) :% (y `Builtins.quotientInteger` d)
 
-{-# INLINABLE abs #-}
+{-# NOINLINE abs #-}
 abs :: (P.Ord n, P.AdditiveGroup n) => n -> n
 abs x = if x P.< P.zero then P.negate x else x
 
-{-# INLINABLE signumR #-}
+{-# NOINLINE signumR #-}
 signumR :: Rational -> Rational
 signumR (n :% d) = signum (n P.* d) :% 1
 
-{-# INLINABLE signum #-}
+{-# NOINLINE signum #-}
 signum :: Integer -> Integer
 signum r =
     if r P.== 0
@@ -299,11 +299,11 @@ signum r =
          then P.one
          else P.negate P.one
 
-{-# INLINABLE even #-}
+{-# NOINLINE even #-}
 even :: Integer -> Bool
 even x = (x `Builtins.remainderInteger` 2) P.== P.zero
 
-{-# INLINABLE round #-}
+{-# NOINLINE round #-}
 -- | From GHC.Real
 -- | @round x@ returns the nearest integer to @x@; the even integer if @x@ is equidistant between two integers
 round :: Ratio Integer -> Integer

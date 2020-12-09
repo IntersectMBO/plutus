@@ -123,7 +123,7 @@ data GameState =
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq GameState where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (Initialised sym tn s) == (Initialised sym' tn' s') = sym == sym' && s == s' && tn == tn'
     (Locked sym tn s) == (Locked sym' tn' s')           = sym == sym' && s == s' && tn == tn'
     _ == _                                              = traceIfFalse "states not equal" False
@@ -143,7 +143,7 @@ data GameInput =
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-{-# INLINABLE transition #-}
+{-# NOINLINE transition #-}
 transition :: State GameState -> GameInput -> Maybe (TxConstraints Void Void, State GameState)
 transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, input) of
     (Initialised mph tn s, ForgeToken) ->
@@ -165,12 +165,12 @@ transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, 
              )
     _ -> Nothing
 
-{-# INLINABLE machine #-}
+{-# NOINLINE machine #-}
 machine :: SM.StateMachine GameState GameInput
 machine = SM.mkStateMachine transition isFinal where
     isFinal _ = False
 
-{-# INLINABLE mkValidator #-}
+{-# NOINLINE mkValidator #-}
 mkValidator :: Scripts.ValidatorType (SM.StateMachine GameState GameInput)
 mkValidator = SM.mkValidator machine
 

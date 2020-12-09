@@ -80,7 +80,7 @@ instance AsSMContractError PingPongError where
 instance AsContractError PingPongError where
     _ContractError = _PingPongContractError
 
-{-# INLINABLE transition #-}
+{-# NOINLINE transition #-}
 transition :: State PingPongState -> Input -> Maybe (TxConstraints Void Void, State PingPongState)
 transition State{stateData=oldData,stateValue} input = case (oldData, input) of
     (_,      Stop) -> Just (mempty, State{stateData=Stopped, stateValue=mempty})
@@ -88,13 +88,13 @@ transition State{stateData=oldData,stateValue} input = case (oldData, input) of
     (Ponged, Ping) -> Just (mempty, State{stateData=Pinged, stateValue})
     _              -> Nothing
 
-{-# INLINABLE machine #-}
+{-# NOINLINE machine #-}
 machine :: SM.StateMachine PingPongState Input
 machine = SM.mkStateMachine transition isFinal where
     isFinal Stopped = True
     isFinal _       = False
 
-{-# INLINABLE mkValidator #-}
+{-# NOINLINE mkValidator #-}
 mkValidator :: Scripts.ValidatorType (SM.StateMachine PingPongState Input)
 mkValidator = SM.mkValidator machine
 

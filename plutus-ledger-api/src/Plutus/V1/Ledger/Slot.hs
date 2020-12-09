@@ -52,7 +52,7 @@ instance Pretty Slot where
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
 
-{-# INLINABLE width #-}
+{-# NOINLINE width #-}
 -- | Number of 'Slot's covered by the interval, if finite. @width (from x) == Nothing@.
 width :: SlotRange -> Maybe Integer
 width (Interval (LowerBound (Finite (Slot s1)) in1) (UpperBound (Finite (Slot s2)) in2)) =

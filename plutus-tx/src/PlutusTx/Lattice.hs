@@ -59,49 +59,49 @@ instance BoundedMeetSemiLattice a => Monoid (Meet a) where
 -- Instances
 
 instance JoinSemiLattice Bool where
-    {-# INLINABLE (\/) #-}
+    {-# NOINLINE (\/) #-}
     (\/) = (||)
 
 instance BoundedJoinSemiLattice Bool where
-    {-# INLINABLE bottom #-}
+    {-# NOINLINE bottom #-}
     bottom = False
 
 instance MeetSemiLattice Bool where
-    {-# INLINABLE (/\) #-}
+    {-# NOINLINE (/\) #-}
     (/\) = (&&)
 
 instance BoundedMeetSemiLattice Bool where
-    {-# INLINABLE top #-}
+    {-# NOINLINE top #-}
     top = True
 
 instance (JoinSemiLattice a, JoinSemiLattice b) => JoinSemiLattice (a, b) where
-    {-# INLINABLE (\/) #-}
+    {-# NOINLINE (\/) #-}
     (a1, b1) \/ (a2, b2) = (a1 \/ a2, b1 \/ b2)
 
 instance (BoundedJoinSemiLattice a, BoundedJoinSemiLattice b) => BoundedJoinSemiLattice (a, b) where
-    {-# INLINABLE bottom #-}
+    {-# NOINLINE bottom #-}
     bottom = (bottom, bottom)
 
 instance (MeetSemiLattice a, MeetSemiLattice b) => MeetSemiLattice (a, b) where
-    {-# INLINABLE (/\) #-}
+    {-# NOINLINE (/\) #-}
     (a1, b1) /\ (a2, b2) = (a1 /\ a2, b1 /\ b2)
 
 instance (BoundedMeetSemiLattice a, BoundedMeetSemiLattice b) => BoundedMeetSemiLattice (a, b) where
-    {-# INLINABLE top #-}
+    {-# NOINLINE top #-}
     top = (top, top)
 
 instance JoinSemiLattice b => JoinSemiLattice (a -> b) where
-    {-# INLINABLE (\/) #-}
+    {-# NOINLINE (\/) #-}
     (f \/ g) a = f a \/ g a
 
 instance BoundedJoinSemiLattice b => BoundedJoinSemiLattice (a -> b) where
-    {-# INLINABLE bottom #-}
+    {-# NOINLINE bottom #-}
     bottom _ = bottom
 
 instance MeetSemiLattice b => MeetSemiLattice (a -> b) where
-    {-# INLINABLE (/\) #-}
+    {-# NOINLINE (/\) #-}
     (f /\ g) a = f a /\ g a
 
 instance BoundedMeetSemiLattice b => BoundedMeetSemiLattice (a -> b) where
-    {-# INLINABLE top #-}
+    {-# NOINLINE top #-}
     top _ = top

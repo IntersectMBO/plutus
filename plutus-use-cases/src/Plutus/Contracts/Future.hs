@@ -284,13 +284,13 @@ mkAccounts long short =
         , ftoShortAccount = TokenAccount.validatorHash short
         }
 
-{-# INLINABLE tokenFor #-}
+{-# NOINLINE tokenFor #-}
 tokenFor :: Role -> FutureAccounts -> Value
 tokenFor = \case
     Long  -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
     Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
 
-{-# INLINABLE adjustMargin #-}
+{-# NOINLINE adjustMargin #-}
 -- | Change the margin account of the role by the given amount.
 adjustMargin :: Role -> Value -> Margins -> Margins
 adjustMargin role value accounts =
@@ -298,13 +298,13 @@ adjustMargin role value accounts =
         Long  -> accounts { ftsLongMargin = ftsLongMargin accounts + value }
         Short -> accounts { ftsShortMargin = ftsShortMargin accounts + value }
 
-{-# INLINABLE totalMargin #-}
+{-# NOINLINE totalMargin #-}
 -- | The combined value of both margin accounts.
 totalMargin :: Margins -> Value
 totalMargin Margins{ftsShortMargin, ftsLongMargin} =
     ftsShortMargin + ftsLongMargin
 
-{-# INLINABLE futureStateMachine #-}
+{-# NOINLINE futureStateMachine #-}
 futureStateMachine
     :: Future
     -> FutureAccounts
@@ -339,7 +339,7 @@ machineClient inst future ftos =
 validator :: Future -> FutureAccounts -> Validator
 validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 
-{-# INLINABLE verifyOracle #-}
+{-# NOINLINE verifyOracle #-}
 verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
 verifyOracle pubKey sm =
     either (const Nothing) pure
@@ -351,7 +351,7 @@ verifyOracleOffChain Future{ftPriceOracle} sm =
         Left _                               -> Nothing
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
-{-# INLINABLE transition #-}
+{-# NOINLINE transition #-}
 transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> Maybe (TxConstraints Void Void, State FutureState)
 transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s, stateValue=currentValue} i =
     case (s, i) of
@@ -398,7 +398,7 @@ data Payouts =
         , payoutsLong  :: Value
         }
 
-{-# INLINABLE payoutsTx #-}
+{-# NOINLINE payoutsTx #-}
 payoutsTx
     :: Payouts
     -> FutureAccounts
@@ -409,7 +409,7 @@ payoutsTx
         Constraints.mustPayToOtherScript ftoLongAccount unitDatum payoutsLong
         <> Constraints.mustPayToOtherScript ftoShortAccount unitDatum payoutsShort
 
-{-# INLINABLE payouts #-}
+{-# NOINLINE payouts #-}
 -- | Compute the payouts for each role given the future data,
 --   margin accounts, and current (spot) price
 payouts :: Future -> Margins -> Value -> Payouts
@@ -422,7 +422,7 @@ payouts Future{ftUnits, ftUnitPrice} Margins{ftsShortMargin, ftsLongMargin} spot
 
 -- | Compute the required margin from the current price of the
 --   underlying asset.
-{-# INLINABLE requiredMargin #-}
+{-# NOINLINE requiredMargin #-}
 requiredMargin :: Future -> Value -> Value
 requiredMargin Future{ftUnits, ftUnitPrice, ftMarginPenalty} spotPrice =
     let
@@ -430,12 +430,12 @@ requiredMargin Future{ftUnits, ftUnitPrice, ftMarginPenalty} spotPrice =
     in
         ftMarginPenalty + delta
 
-{-# INLINABLE initialMargin #-}
+{-# NOINLINE initialMargin #-}
 initialMargin :: Future -> Value
 initialMargin ft@Future{ftUnitPrice, ftMarginPenalty} =
     ftMarginPenalty + ftUnitPrice
 
-{-# INLINABLE initialState #-}
+{-# NOINLINE initialState #-}
 -- | The initial state of the 'Future' contract
 initialState :: Future -> FutureState
 initialState ft =
@@ -445,7 +445,7 @@ initialState ft =
 futureAddress :: Future -> FutureAccounts -> Address
 futureAddress ft fo = Ledger.scriptAddress (validator ft fo)
 
-{-# INLINABLE violatingRole #-}
+{-# NOINLINE violatingRole #-}
 -- | The role that violated its margin requirements
 violatingRole :: Future -> Margins -> Value -> Maybe Role
 violatingRole future margins spotPrice =

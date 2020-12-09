@@ -15,41 +15,41 @@ import qualified PlutusTx                                 as Tx
 import           PlutusTx.Prelude                         as Tx
 import           UntypedPlutusCore
 
-{-# INLINABLE zipConst #-}
+{-# NOINLINE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]
 zipConst _ []     = []
 zipConst a (b:bs) = (a,b) : zipConst a bs
 
-{-# INLINABLE grow #-}
+{-# NOINLINE grow #-}
 grow :: (Integer,ChessSet) -> [(Integer,ChessSet)]
 grow (x,y) = zipConst (x+1) (descendents y)
 
-{-# INLINABLE isFinished #-}
+{-# NOINLINE isFinished #-}
 isFinished :: (Integer,ChessSet) -> Bool
 isFinished (_,y) = tourFinished y
 
-{-# INLINABLE interval #-}
+{-# NOINLINE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
     if a > b then []
     else a:(interval (a+1) b)
 
 
-{-# INLINABLE repl #-}
+{-# NOINLINE repl #-}
 repl :: Integer -> Integer -> [Integer]
 repl n a =
     if n == 0 then []
     else a:(repl (n-1) a)
 
 -- % Original version used infinite lists.
-{-# INLINABLE mkStarts #-}
+{-# NOINLINE mkStarts #-}
 mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
     let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
         numStarts = Tx.length l  -- = sze*sze
     in Tx.zip (repl numStarts (1-numStarts)) l
 
-{-# INLINABLE root #-}
+{-# NOINLINE root #-}
 root :: Integer -> Queue (Integer, ChessSet)
 root sze = addAllFront (mkStarts sze) createQueue
 
@@ -65,7 +65,7 @@ root sze = addAllFront
 
 type Solution = (Integer, ChessSet)
 
-{-# INLINABLE depthSearch #-}
+{-# NOINLINE depthSearch #-}
 -- % Added a depth parameter to stop things getting out of hand in the strict world.
 depthSearch :: (Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
 depthSearch depth q growFn finFn
@@ -85,11 +85,11 @@ unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
 -- % Haskell entry point for testing
-{-# INLINABLE runKnights #-}
+{-# NOINLINE runKnights #-}
 runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 
-{-# INLINABLE mkKnightsTerm #-}
+{-# NOINLINE mkKnightsTerm #-}
 mkKnightsTerm :: Integer -> Integer -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkKnightsTerm depth boardSize =
   let (Program _ _ code) = Tx.getPlc $

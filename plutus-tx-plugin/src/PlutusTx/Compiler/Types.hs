@@ -41,7 +41,8 @@ data CompileContext uni fun = CompileContext {
     ccFamInstEnvs     :: GHC.FamInstEnvs,
     ccBuiltinNameInfo :: BuiltinNameInfo,
     ccScopes          :: ScopeStack uni fun,
-    ccBlackholed      :: Set.Set GHC.Name
+    ccBlackholed      :: Set.Set GHC.Name,
+    ccLookupIf        :: GHC.Name -> IO (Maybe GHC.CoreBind)
     }
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
@@ -112,6 +113,7 @@ stableModuleCmp m1 m2 =
 -- See Note [Scopes]
 type Compiling uni fun m =
     ( Monad m
+    , MonadIO m
     , MonadError (CompileError uni fun) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m

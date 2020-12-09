@@ -27,7 +27,7 @@ data Formula =
 Tx.makeLift ''Formula
 
 -- separate positive and negative literals, eliminating duplicates
-{-# INLINABLE clause #-}
+{-# NOINLINE clause #-}
 clause :: Formula -> LRVars
 clause p = clause' p ([] , [])
            where
@@ -36,17 +36,17 @@ clause p = clause' p ([] , [])
            clause' (Not (Sym s)) (c,a) = (c , insert s a)
 
 -- the main pipeline from propositional formulae to a list of clauses
-{-# INLINABLE clauses #-}
+{-# NOINLINE clauses #-}
 clauses :: Formula -> [LRVars]
 clauses = unicl . split . disin . negin . elim
 
-{-# INLINABLE conjunct #-}
+{-# NOINLINE conjunct #-}
 conjunct :: Formula -> Bool
 conjunct (Con _ _) = True
 conjunct _         = False
 
 -- shift disjunction within conjunction
-{-# INLINABLE disin #-}
+{-# NOINLINE disin #-}
 disin :: Formula -> Formula
 disin (Dis p (Con q r)) = Con (disin (Dis p q)) (disin (Dis p r))
 disin (Dis (Con p q) r) = Con (disin (Dis p r)) (disin (Dis q r))
@@ -60,7 +60,7 @@ disin (Con p q) = Con (disin p) (disin q)
 disin p = p
 
 -- split conjunctive proposition into a list of conjuncts
-{-# INLINABLE split #-}
+{-# NOINLINE split #-}
 split :: Formula -> [Formula]
 split p = split' p []
           where
@@ -68,7 +68,7 @@ split p = split' p []
           split' p a         = p : a
 
 -- eliminate connectives other than not, disjunction and conjunction
-{-# INLINABLE elim #-}
+{-# NOINLINE elim #-}
 elim :: Formula -> Formula
 elim (Sym s)    = Sym s
 elim (Not p)    = Not (elim p)
@@ -79,7 +79,7 @@ elim (Eqv f f') = Con (elim (Imp f f')) (elim (Imp f' f))
 
 -- insertion of an item into an ordered list
 -- Note: this is a corrected version from Colin (94/05/03 WDP)
-{-# INLINABLE insert #-}
+{-# NOINLINE insert #-}
 insert :: (Ord t) => t -> [t] -> [t]
 insert x [] = [x]
 insert x p@(y:ys) =
@@ -88,7 +88,7 @@ insert x p@(y:ys) =
   else p
 
 -- shift negation to innermost positions
-{-# INLINABLE negin #-}
+{-# NOINLINE negin #-}
 negin :: Formula -> Formula
 negin (Not (Not p))   = negin p
 negin (Not (Con p q)) = Dis (negin (Not p)) (negin (Not q))
@@ -98,12 +98,12 @@ negin (Con p q)       = Con (negin p) (negin q)
 negin p               = p
 
 -- does any symbol appear in both consequent and antecedent of clause
-{-# INLINABLE tautclause #-}
+{-# NOINLINE tautclause #-}
 tautclause :: LRVars -> Bool
 tautclause (c,a) = [x | x <- c, x `elem` a] /= []
 
 -- form unique clausal axioms excluding tautologies
-{-# INLINABLE unicl #-}
+{-# NOINLINE unicl #-}
 unicl :: [Formula] -> [LRVars]
 unicl a = foldr unicl' [] a
           where
@@ -111,51 +111,51 @@ unicl a = foldr unicl' [] a
                        where
                        cp = clause p :: LRVars
 
-{-# INLINABLE while #-}
+{-# NOINLINE while #-}
 while :: (t -> Bool) -> (t -> t) -> t -> t
 while p f x = if p x then while p f (f x) else x
 
-{-# INLINABLE replicate #-}
+{-# NOINLINE replicate #-}
 replicate :: Integer -> a -> [a]
 replicate n a = if n <= 0 then []
                 else a:(replicate (n-1) a)
 
-{-# INLINABLE formula1 #-}
+{-# NOINLINE formula1 #-}
 formula1 :: Formula  -- % (a = a) = (a = a) = (a = a)
 formula1 = Eqv (Eqv (Sym 1) (Sym 1))
                (Eqv (Eqv (Sym 1) (Sym 1))
                     (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula2 #-} -- % One execution takes about 0.35s and 300 MB
+{-# NOINLINE formula2 #-} -- % One execution takes about 0.35s and 300 MB
 formula2 :: Formula  -- (a = a = a) = (a = a = a)
 formula2 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula3 #-}  -- % One execution takes about 1.5s and 660 MB
+{-# NOINLINE formula3 #-}  -- % One execution takes about 1.5s and 660 MB
 formula3 :: Formula  -- (a = a = a) = (a = a) = (a = a)
 formula3 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Sym 1))
                     (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula4 #-}  -- % One execution takes about 2s and 1 GB
+{-# NOINLINE formula4 #-}  -- % One execution takes about 2s and 1 GB
 formula4 :: Formula  -- (a = b = c) = (d = e) = (f = g)
 formula4 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
                (Eqv (Eqv (Sym 4) (Sym 5))
                     (Eqv (Sym 6) (Sym 7)))
 
-{-# INLINABLE formula5 #-}  -- % One execution takes about 11s and 5 GB
+{-# NOINLINE formula5 #-}  -- % One execution takes about 11s and 5 GB
 formula5 :: Formula  -- (a = a = a) = (a = a = a) = (a = a)
 formula5 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                     (Eqv (Sym 1) (Sym 1)))
 
-{-# INLINABLE formula6 #-}  -- % Overflow
+{-# NOINLINE formula6 #-}  -- % Overflow
 formula6 :: Formula  -- (a = a = a) = (a = a = a) = (a = a = a)
 formula6 = Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                (Eqv (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
                     (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
 
-{-# INLINABLE formula7 #-} -- % Overflow
+{-# NOINLINE formula7 #-} -- % Overflow
 formula7 :: Formula -- (a = b = c) = (d = e = f) = (g = h = i)
 formula7 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
                (Eqv (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
@@ -164,7 +164,7 @@ formula7 = Eqv (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
 data StaticFormula = F1 | F2 | F3 | F4 | F5 | F6 | F7
 Tx.makeLift ''StaticFormula
 
-{-# INLINABLE getFormula #-}
+{-# NOINLINE getFormula #-}
 getFormula :: StaticFormula -> Formula
 getFormula =
     \case
@@ -177,11 +177,11 @@ getFormula =
      F7 -> formula7
 
 -- % Haskell entry point for testing
-{-# INLINABLE runClausify #-}
+{-# NOINLINE runClausify #-}
 runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
-{-# INLINABLE mkClausifyTerm #-}
+{-# NOINLINE mkClausifyTerm #-}
 mkClausifyTerm :: StaticFormula -> Term NamedDeBruijn DefaultUni DefaultFun ()
 mkClausifyTerm formula =
  let (Program _ _ code) = Tx.getPlc $

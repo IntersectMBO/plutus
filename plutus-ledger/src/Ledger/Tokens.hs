@@ -18,19 +18,19 @@ import qualified Plutus.V1.Ledger.Value    as Value
 -- a pair of 'CurrencySymbol' and 'TokenName'.
 -- To create a token use the
 
-{-# INLINABLE token #-}
+{-# NOINLINE token #-}
 -- | A value that contains exactly the token.
 token :: CurrencySymbol -> TokenName -> Value
 token symbol name = Value.singleton symbol name 1
 
-{-# INLINABLE outputsWith #-}
+{-# NOINLINE outputsWith #-}
 -- | The outputs of the 'ValidatorCtx' that carry a non-zero amount of the currency
 --   defined by the 'CurrencySymbol' and the 'TokenName'.
 outputsWith :: TxInfo -> CurrencySymbol -> TokenName -> [TxOut]
 outputsWith TxInfo{txInfoOutputs} symbol name =
     filter (\output -> token symbol name  `leq` txOutValue output) txInfoOutputs
 
-{-# INLINABLE paidTo #-}
+{-# NOINLINE paidTo #-}
 -- | The total 'Value' paid by the pending transaction to outputs
 --   whose value also includes a non-zero amount of the currency
 --   & token

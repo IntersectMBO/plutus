@@ -113,19 +113,19 @@ data ValidatorCtx = ValidatorCtx { valCtxTxInfo :: TxInfo, valCtxInput :: Intege
 
 data PolicyCtx = PolicyCtx { policyCtxTxInfo :: TxInfo, policyCtxPolicy :: MonetaryPolicyHash }
 
-{-# INLINABLE findOwnInput #-}
+{-# NOINLINE findOwnInput #-}
 -- | Find the input currently being validated.
 findOwnInput :: ValidatorCtx -> TxInInfo
 findOwnInput ValidatorCtx{valCtxTxInfo=TxInfo{txInfoInputs}, valCtxInput} = txInfoInputs !! valCtxInput
 
-{-# INLINABLE findDatum #-}
+{-# NOINLINE findDatum #-}
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
 findDatum dsh TxInfo{txInfoData} = snd <$> find f txInfoData
     where
         f (dsh', _) = dsh' == dsh
 
-{-# INLINABLE findDatumHash #-}
+{-# NOINLINE findDatumHash #-}
 -- | Find the hash of a datum, if it is part of the pending transaction's
 --   hashes
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
@@ -133,14 +133,14 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
     where
         f (_, ds') = ds' == ds
 
-{-# INLINABLE findTxInByTxOutRef #-}
+{-# NOINLINE findTxInByTxOutRef #-}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     listToMaybe
     $ filter (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
 
-{-# INLINABLE findContinuingOutputs #-}
+{-# NOINLINE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: ValidatorCtx -> [Integer]
 findContinuingOutputs ctx@ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}} | TxInInfo{txInInfoWitness=Just (inpHsh, _, _)} <- findOwnInput ctx = findIndices (f inpHsh) txInfoOutputs
@@ -149,7 +149,7 @@ findContinuingOutputs ctx@ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}} | TxI
         f _ _                                                 = False
 findContinuingOutputs _ = Builtins.error()
 
-{-# INLINABLE getContinuingOutputs #-}
+{-# NOINLINE getContinuingOutputs #-}
 getContinuingOutputs :: ValidatorCtx -> [TxOutInfo]
 getContinuingOutputs ctx@ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}} | TxInInfo{txInInfoWitness=Just (inpHsh, _, _)} <- findOwnInput ctx = filter (f inpHsh) txInfoOutputs
     where
@@ -181,43 +181,43 @@ them from the correct types in Haskell, and for comparing them (in
 
 -}
 
-{-# INLINABLE scriptCurrencySymbol #-}
+{-# NOINLINE scriptCurrencySymbol #-}
 -- | The 'CurrencySymbol' of a 'MonetaryPolicy'
 scriptCurrencySymbol :: MonetaryPolicy -> CurrencySymbol
 scriptCurrencySymbol scrpt = let (MonetaryPolicyHash hsh) = monetaryPolicyHash scrpt in Value.currencySymbol hsh
 
-{-# INLINABLE txSignedBy #-}
+{-# NOINLINE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> PubKeyHash -> Bool
 txSignedBy TxInfo{txInfoSignatories} k = case find ((==) k) txInfoSignatories of
     Just _  -> True
     Nothing -> False
 
-{-# INLINABLE pubKeyOutput #-}
+{-# NOINLINE pubKeyOutput #-}
 -- | Get the public key hash that locks the transaction output, if any.
 pubKeyOutput :: TxOut -> Maybe PubKeyHash
 pubKeyOutput TxOut{txOutAddress} = case txOutAddress of
     PubKeyAddress pk -> Just pk
     _                -> Nothing
 
-{-# INLINABLE ownHashes #-}
+{-# NOINLINE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: ValidatorCtx -> (ValidatorHash, RedeemerHash, DatumHash)
 ownHashes (findOwnInput -> TxInInfo{txInInfoWitness=Just witness}) = witness
 ownHashes _                                                        = Builtins.error ()
 
-{-# INLINABLE ownHash #-}
+{-# NOINLINE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: ValidatorCtx -> ValidatorHash
 ownHash p = let (vh, _, _) = ownHashes p in vh
 
-{-# INLINABLE fromSymbol #-}
+{-# NOINLINE fromSymbol #-}
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
 fromSymbol (CurrencySymbol s) = ValidatorHash s
 
-{-# INLINABLE scriptOutputsAt #-}
+{-# NOINLINE scriptOutputsAt #-}
 -- | Get the list of 'TxOutInfo' outputs of the pending transaction at
 --   a given script address.
 scriptOutputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
@@ -228,14 +228,14 @@ scriptOutputsAt h p =
                 _                                                    -> Nothing
     in mapMaybe flt (txInfoOutputs p)
 
-{-# INLINABLE valueLockedBy #-}
+{-# NOINLINE valueLockedBy #-}
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: TxInfo -> ValidatorHash -> Value
 valueLockedBy ptx h =
     let outputs = map snd (scriptOutputsAt h ptx)
     in mconcat outputs
 
-{-# INLINABLE pubKeyOutputsAt #-}
+{-# NOINLINE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: PubKeyHash -> TxInfo -> [Value]
 pubKeyOutputsAt pk p =
@@ -245,24 +245,24 @@ pubKeyOutputsAt pk p =
                 _                             -> Nothing
     in mapMaybe flt (txInfoOutputs p)
 
-{-# INLINABLE valuePaidTo #-}
+{-# NOINLINE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: TxInfo -> PubKeyHash -> Value
 valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
 
-{-# INLINABLE adaLockedBy #-}
+{-# NOINLINE adaLockedBy #-}
 -- | Get the total amount of 'Ada' locked by the given validator in this transaction.
 adaLockedBy :: TxInfo -> ValidatorHash -> Ada
 adaLockedBy ptx h = Ada.fromValue (valueLockedBy ptx h)
 
-{-# INLINABLE signsTransaction #-}
+{-# NOINLINE signsTransaction #-}
 -- | Check if the provided signature is the result of signing the pending
 --   transaction (without witnesses) with the given public key.
 signsTransaction :: Signature -> PubKey -> TxInfo -> Bool
 signsTransaction (Signature sig) (PubKey (LedgerBytes pk)) (TxInfo{txInfoId=TxId h}) =
     verifySignature pk h sig
 
-{-# INLINABLE valueSpent #-}
+{-# NOINLINE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
 valueSpent = foldMap txInInfoValue . txInfoInputs
@@ -272,14 +272,14 @@ valueSpent = foldMap txInInfoValue . txInfoInputs
 valueProduced :: TxInfo -> Value
 valueProduced = foldMap txOutValue . txInfoOutputs
 
-{-# INLINABLE ownCurrencySymbol #-}
+{-# NOINLINE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: PolicyCtx -> CurrencySymbol
 ownCurrencySymbol p =
     let MonetaryPolicyHash h = policyCtxPolicy p
     in  Value.currencySymbol h
 
-{-# INLINABLE spendsOutput #-}
+{-# NOINLINE spendsOutput #-}
 -- | Check if the pending transaction spends a specific transaction output
 --   (identified by the hash of a transaction and an index into that
 --   transactions' outputs)

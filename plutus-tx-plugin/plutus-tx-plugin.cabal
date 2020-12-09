@@ -48,6 +48,7 @@ library
         PlutusTx.Compiler.Type
         PlutusTx.Compiler.Types
         PlutusTx.Compiler.Utils
+        PlutusTx.LookupIface
         PlutusTx.PIRTypes
         PlutusTx.PLCTypes
     build-depends:
@@ -109,3 +110,5 @@ test-suite plutus-tx-tests
         ghc-prim -any,
     -- this makes the plugin give better errors
     ghc-options: -g
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas

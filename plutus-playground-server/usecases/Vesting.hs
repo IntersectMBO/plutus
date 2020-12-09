@@ -77,13 +77,13 @@ data VestingParams = VestingParams {
 
 PlutusTx.makeLift ''VestingParams
 
-{-# INLINABLE totalAmount #-}
+{-# NOINLINE totalAmount #-}
 -- | The total amount vested
 totalAmount :: VestingParams -> Value
 totalAmount VestingParams{vestingTranche1,vestingTranche2} =
     vestingTrancheAmount vestingTranche1 + vestingTrancheAmount vestingTranche2
 
-{-# INLINABLE availableFrom #-}
+{-# NOINLINE availableFrom #-}
 -- | The amount guaranteed to be available from a given tranche in a given slot range.
 availableFrom :: VestingTranche -> Slot.SlotRange -> Value
 availableFrom (VestingTranche d v) range =
@@ -100,13 +100,13 @@ availableAt VestingParams{vestingTranche1, vestingTranche2} sl =
             if sl >= vestingTrancheDate then vestingTrancheAmount else mempty
     in foldMap f [vestingTranche1, vestingTranche2]
 
-{-# INLINABLE remainingFrom #-}
+{-# NOINLINE remainingFrom #-}
 -- | The amount that has not been released from this tranche yet
 remainingFrom :: VestingTranche -> Slot.SlotRange -> Value
 remainingFrom t@VestingTranche{vestingTrancheAmount} range =
     vestingTrancheAmount - availableFrom t range
 
-{-# INLINABLE validate #-}
+{-# NOINLINE validate #-}
 validate :: VestingParams -> () -> () -> ValidatorCtx -> Bool
 validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ValidatorCtx{valCtxTxInfo=txInfo@TxInfo{txInfoValidRange}} =
     let

@@ -32,11 +32,11 @@ andExternal a b = if a then b else False
 
 data MyExternalRecord = MyExternalRecord { myExternal :: Integer }
 
-{-# INLINABLE evenDirect #-}
+{-# NOINLINE evenDirect #-}
 evenDirect :: Integer -> Bool
 evenDirect n = if Builtins.equalsInteger n 0 then True else oddDirect (Builtins.subtractInteger n 1)
 
-{-# INLINABLE oddDirect #-}
+{-# NOINLINE oddDirect #-}
 oddDirect :: Integer -> Bool
 oddDirect n = if Builtins.equalsInteger n 0 then False else evenDirect (Builtins.subtractInteger n 1)
 

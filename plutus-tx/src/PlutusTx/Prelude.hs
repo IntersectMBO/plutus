@@ -108,17 +108,17 @@ import           Prelude              as Prelude (maximum, minimum)
 -- >>> :set -XNoImplicitPrelude
 -- >>> import PlutusTx.Prelude
 
-{-# INLINABLE error #-}
+{-# NOINLINE error #-}
 -- | Terminate the evaluation of the script with an error message.
 error :: () -> a
 error = Builtins.error
 
-{-# INLINABLE check #-}
+{-# NOINLINE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
 check b = if b then () else error ()
 
-{-# INLINABLE trace #-}
+{-# NOINLINE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: Builtins.String -> a -> a
 -- The builtin trace is just a side-effecting function that returns unit, so
@@ -126,22 +126,22 @@ trace :: Builtins.String -> a -> a
 -- thrown away by GHC or the PIR compiler.
 trace str a = case Builtins.trace str of () -> a
 
-{-# INLINABLE traceError #-}
+{-# NOINLINE traceError #-}
 -- | Log a message and then terminate the evaluation with an error.
 traceError :: Builtins.String -> a
 traceError str = error (trace str ())
 
-{-# INLINABLE traceIfFalse #-}
+{-# NOINLINE traceIfFalse #-}
 -- | Emit the given 'String' only if the argument evaluates to 'False'.
 traceIfFalse :: Builtins.String -> Bool -> Bool
 traceIfFalse str a = if a then True else trace str False
 
-{-# INLINABLE traceIfTrue #-}
+{-# NOINLINE traceIfTrue #-}
 -- | Emit the given 'String' only if the argument evaluates to 'True'.
 traceIfTrue :: Builtins.String -> Bool -> Bool
 traceIfTrue str a = if a then trace str True else False
 
-{-# INLINABLE divide #-}
+{-# NOINLINE divide #-}
 -- | Integer division, rounding downwards
 --
 --   >>> divide (-41) 5
@@ -150,7 +150,7 @@ traceIfTrue str a = if a then trace str True else False
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 
-{-# INLINABLE modulo #-}
+{-# NOINLINE modulo #-}
 -- | Integer remainder, always positive for a positive divisor
 --
 --   >>> modulo (-41) 5
@@ -159,7 +159,7 @@ divide = Builtins.divideInteger
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
 
-{-# INLINABLE quotient #-}
+{-# NOINLINE quotient #-}
 -- | Integer division, rouding towards zero
 --
 --   >>> quotient (-41) 5
@@ -169,7 +169,7 @@ modulo = Builtins.modInteger
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
 
-{-# INLINABLE remainder #-}
+{-# NOINLINE remainder #-}
 -- | Integer remainder, same sign as dividend
 --
 --   >>> remainder (-41) 5
@@ -178,19 +178,19 @@ quotient = Builtins.quotientInteger
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
 
-{-# INLINABLE fst #-}
+{-# NOINLINE fst #-}
 -- | Plutus Tx version of 'Data.Tuple.fst'
 fst :: (a, b) -> a
 fst (a, _) = a
 
-{-# INLINABLE snd #-}
+{-# NOINLINE snd #-}
 -- | Plutus Tx version of 'Data.Tuple.snd'
 snd :: (a, b) -> b
 snd (_, b) = b
 
 infixr 0 $
 -- Normal $ is levity-polymorphic, which we can't handle.
-{-# INLINABLE ($) #-}
+{-# NOINLINE ($) #-}
 -- | Plutus Tx version of 'Data.Function.($)'.
 ($) :: (a -> b) -> a -> b
 f $ a = f a

@@ -38,12 +38,12 @@ even n = (n `modInteger` 2) == 0
 -- This satisfies:
 -- \[@makeNumber@ \, @b@ \, [x_0,\,x_1,\,\ldots,\,x_n]
 --  = x_0.@b@^n + x_1.@b@^{n-1} + \cdots + x_n.@b@^0\]
-{-# INLINABLE makeNumber #-}
+{-# NOINLINE makeNumber #-}
 makeNumber :: Integer -> [Integer] -> Integer
 makeNumber b = foldl f 0 where f a x = a * b + x
 
 -- The (left and right) inverse of @makeNumber@ is @chop@.
-{-# INLINABLE chop #-}
+{-# NOINLINE chop #-}
 chop :: Integer -> Integer -> [Integer]
 chop b = chop' []
     where chop' a n =
@@ -59,7 +59,7 @@ chop b = chop' []
    storage, it should be a candidate for being a built-in within the
    Haskell library.
 -}
-{-# INLINABLE powerMod #-}
+{-# NOINLINE powerMod #-}
 powerMod :: Integer -> Integer -> Integer -> Integer
 powerMod a b m =
     if b == 0 then 1
@@ -81,7 +81,7 @@ powerMod a b m =
 
    My implementation uses Newton's method.
 -}
-{-# INLINABLE cubeRoot #-}
+{-# NOINLINE cubeRoot #-}
 cubeRoot :: Integer -> Integer
 cubeRoot x = until satisfy improve x
              where satisfy y = y*y*y >= x && y'*y'*y' < x where y' = y-1
@@ -92,7 +92,7 @@ cubeRoot x = until satisfy improve x
 ---The $@log2@ n$ is the @Integer@ $m$ such that $m = \lfloor\log_2
 -- n\rfloor$.
 
-{-# INLINABLE log2 #-}
+{-# NOINLINE log2 #-}
 log2 :: Integer -> Integer
 log2 = fromIntegral . length . chop 2
 
@@ -109,7 +109,7 @@ data RNGstate = RNGstate Integer Integer
    plugin (non-strict let-bindings): to avoid it, use `case` instead:
    `case complicatedFunction m n r of ...` %-}
 
-{-# INLINABLE initRNG #-}
+{-# NOINLINE initRNG #-}
 initRNG :: Integer -> Integer -> RNGstate
 initRNG s1 s2 =
     if 1 <= s1 && s1 <= 2147483562 then
@@ -121,7 +121,7 @@ initRNG s1 s2 =
 -- % Make a single random integer, returning that and the updated state.  In the
 -- original version this was an infinite list of random numbers, but that's not
 -- a good idea in the strict world.
-{-# INLINABLE getRandom #-}
+{-# NOINLINE getRandom #-}
 getRandom :: RNGstate -> (Integer, RNGstate)
 getRandom (RNGstate s1 s2) =
     let
@@ -149,7 +149,7 @@ getRandoms n r = getRandoms' n r []
 
 -- Given a value @x@ we can test whether we have a witness to @n@'s
 -- compositeness using @singleTestX@.
-{-# INLINABLE singleTestX #-}
+{-# NOINLINE singleTestX #-}
 singleTestX :: Integer -> (Integer, Integer) -> Integer -> Bool
 singleTestX n (k, q) x
  = (t == 1) || (t == (n-1)) || witness ts
@@ -162,7 +162,7 @@ singleTestX n (k, q) x
 
 -- The function @singleTest@ takes an odd, positive, @Integer@ @n@ and a
 -- pair of @Integer@'s derived from @n@ by the @findKQ@ function
-{-# INLINABLE singleTest #-}
+{-# NOINLINE singleTest #-}
 singleTest :: Integer -> (Integer, Integer) -> RNGstate -> (Bool, RNGstate)
 singleTest n kq r =  -- Tx.trace "singleTest" $
     (singleTestX n kq (2+x), r')
@@ -170,7 +170,7 @@ singleTest n kq r =  -- Tx.trace "singleTest" $
 
 --The function @findKQ@ takes an odd integer $n$ and returns the tuple
 -- $(k,q)$ such that $n = q2^k+1$.
-{-# INLINABLE findKQ #-}
+{-# NOINLINE findKQ #-}
 findKQ :: Integer -> (Integer, Integer)
 findKQ n = f (0, (n-1))
     where f (k,q) =
@@ -180,7 +180,7 @@ findKQ n = f (0, (n-1))
                   where (d,r) = q `divMod` 2
 
 -- % Perform k single tests on the integer n
-{-# INLINABLE multiTest #-}
+{-# NOINLINE multiTest #-}
 multiTest :: Integer -> RNGstate-> Integer -> (Bool, RNGstate)
 multiTest k r n = {-Tx.trace "* multiTest" $-}  -- (True, r)
     if (n <= 1 || even n)
@@ -194,7 +194,7 @@ multiTest k r n = {-Tx.trace "* multiTest" $-}  -- (True, r)
                           x          -> x
 
 -- % Original version used `take k (iterate ...)` which doesn't terminate with strict evaluation.
-{-# INLINABLE iterateN #-}
+{-# NOINLINE iterateN #-}
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
     if k == 0 then []
@@ -204,7 +204,7 @@ iterateN k f x =
 -- % The @boundedRandom@ function takes a number @n@ and the state of a (pseudo-) RNG @r@
 -- and returns a tuple consisting of an @Integer@ $x$ in the range $0 \leq x <
 -- @n@$, and the updated RNG state.
-{-# INLINABLE boundedRandom #-}
+{-# NOINLINE boundedRandom #-}
 boundedRandom :: Integer -> RNGstate -> (Integer, RNGstate)
 boundedRandom n r = (makeNumber 65536 (uniform ns rs), r')
               where ns        = chop 65536 n
@@ -213,7 +213,7 @@ boundedRandom n r = (makeNumber 65536 (uniform ns rs), r')
 -- The @uniform@ function generates a sequence of @Integer@'s such that,
 -- when considered as a sequence of digits, we generate a number uniform
 -- in the range @0..ns@ from the random numbers @rs@.
-{-# INLINABLE uniform #-}
+{-# NOINLINE uniform #-}
 uniform :: [Integer] -> [Integer] -> [Integer]
 uniform [n]    [r]    = [r `modInteger` n]
 uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
@@ -230,7 +230,7 @@ data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
    https://primes.utm.edu/lists/small/small.html and
    https://primes.utm.edu/lists/small/small2.html -}
 
-{-# INLINABLE getPrime #-}
+{-# NOINLINE getPrime #-}
 getPrime :: PrimeID -> Integer
 getPrime =
     \case
@@ -253,12 +253,12 @@ unindent d = map (dropWhile isSpace) $ (lines . show $ d)
 
 
 -- % Initialise the RNG
-{-# INLINABLE initState #-}
+{-# NOINLINE initState #-}
 initState :: RNGstate
 initState = initRNG 111 47
 
 -- % Parameter for multiTest: how many rounds of the main primality test do we want to perform?
-{-# INLINABLE numTests #-}
+{-# NOINLINE numTests #-}
 numTests :: Integer
 numTests = 100
 
@@ -268,7 +268,7 @@ data Result = Composite | Prime
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.
-{-# INLINABLE processList #-}
+{-# NOINLINE processList #-}
 processList :: [Integer] -> RNGstate -> [Result]
 processList input r =
     case input of
@@ -278,14 +278,14 @@ processList input r =
                  (False, r') -> Composite : processList ns r'
 
 -- % The @testInteger@ function takes a single input number and produces a single result.
-{-# INLINABLE testInteger #-}
+{-# NOINLINE testInteger #-}
 testInteger :: Integer -> RNGstate -> Result
 testInteger n state = if fst $ multiTest numTests state n -- Discard the RNG state in the result
                       then Prime
                       else Composite
 
 -- % Haskell entry point for testing
-{-# INLINABLE runPrimalityTest #-}
+{-# NOINLINE runPrimalityTest #-}
 runPrimalityTest :: Integer -> Result
 runPrimalityTest n = testInteger n initState
 

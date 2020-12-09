@@ -143,7 +143,7 @@ scriptInstance = Scripts.validatorParam @Crowdfunding
     where
         wrap = Scripts.wrapValidator
 
-{-# INLINABLE validRefund #-}
+{-# NOINLINE validRefund #-}
 validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
 validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
@@ -151,7 +151,7 @@ validRefund campaign contributor txinfo =
     -- Check that the transaction is signed by the contributor
     && (txinfo `V.txSignedBy` contributor)
 
-{-# INLINABLE validCollection #-}
+{-# NOINLINE validCollection #-}
 validCollection :: Campaign -> TxInfo -> Bool
 validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
@@ -162,7 +162,7 @@ validCollection campaign txinfo =
     -- Check that the transaction is signed by the campaign owner
     && (txinfo `V.txSignedBy` campaignOwner campaign)
 
-{-# INLINABLE mkValidator #-}
+{-# NOINLINE mkValidator #-}
 -- | The validator script is of type 'CrowdfundingValidator', and is
 -- additionally parameterized by a 'Campaign' definition. This argument is
 -- provided by the Plutus client, using 'PlutusTx.applyCode'.

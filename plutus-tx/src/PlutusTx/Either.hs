@@ -6,19 +6,19 @@ import           Prelude (Bool (..), Either (..), String)
 
 {-# ANN module ("HLint: ignore"::String) #-}
 
-{-# INLINABLE isLeft #-}
+{-# NOINLINE isLeft #-}
 -- | Return `True` if the given value is a `Left`-value, `False` otherwise.
 isLeft :: Either a b -> Bool
 isLeft (Left _)  = True
 isLeft (Right _) = False
 
-{-# INLINABLE isRight #-}
+{-# NOINLINE isRight #-}
 -- | Return `True` if the given value is a `Right`-value, `False` otherwise.
 isRight :: Either a b -> Bool
 isRight (Left _)  = False
 isRight (Right _) = True
 
-{-# INLINABLE either #-}
+{-# NOINLINE either #-}
 -- | Plutus Tx version of 'Prelude.either'
 either :: (a -> c) -> (b -> c) -> Either a b -> c
 either f _ (Left x)  = f x

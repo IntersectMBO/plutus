@@ -44,7 +44,7 @@ tyConsOfExpr = \case
 tyConsOfBndr :: GHC.CoreBndr -> GHC.UniqSet GHC.TyCon
 tyConsOfBndr = GHC.tyConsOfType . GHC.varType
 
-tyConsOfBind :: GHC.Bind GHC.CoreBndr -> GHC.UniqSet GHC.TyCon
+tyConsOfBind :: GHC.CoreBind -> GHC.UniqSet GHC.TyCon
 tyConsOfBind = \case
     GHC.NonRec bndr rhs -> binderTyCons bndr rhs
     GHC.Rec bndrs       -> foldMap (uncurry binderTyCons) bndrs

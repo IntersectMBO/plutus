@@ -261,7 +261,7 @@ instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
 
 instance PlutusTx.Eq TxOutRef where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r

@@ -71,24 +71,24 @@ import           Text.PrettyPrint.Leijen  (comma, hang, lbrace, line, rbrace, sp
 
 {- Functions that used in Plutus Core must be inlineable,
    so their code is available for PlutusTx compiler -}
-{-# INLINABLE inBounds #-}
-{-# INLINABLE fixInterval #-}
-{-# INLINABLE evalValue #-}
-{-# INLINABLE evalObservation #-}
-{-# INLINABLE refundOne #-}
-{-# INLINABLE moneyInAccount #-}
-{-# INLINABLE updateMoneyInAccount #-}
-{-# INLINABLE addMoneyToAccount #-}
-{-# INLINABLE giveMoney #-}
-{-# INLINABLE reduceContractStep #-}
-{-# INLINABLE reduceContractUntilQuiescent #-}
-{-# INLINABLE applyCases #-}
-{-# INLINABLE applyInput #-}
-{-# INLINABLE convertReduceWarnings #-}
-{-# INLINABLE applyAllInputs #-}
-{-# INLINABLE computeTransaction #-}
-{-# INLINABLE contractLifespanUpperBound #-}
-{-# INLINABLE totalBalance #-}
+{-# NOINLINE inBounds #-}
+{-# NOINLINE fixInterval #-}
+{-# NOINLINE evalValue #-}
+{-# NOINLINE evalObservation #-}
+{-# NOINLINE refundOne #-}
+{-# NOINLINE moneyInAccount #-}
+{-# NOINLINE updateMoneyInAccount #-}
+{-# NOINLINE addMoneyToAccount #-}
+{-# NOINLINE giveMoney #-}
+{-# NOINLINE reduceContractStep #-}
+{-# NOINLINE reduceContractUntilQuiescent #-}
+{-# NOINLINE applyCases #-}
+{-# NOINLINE applyInput #-}
+{-# NOINLINE convertReduceWarnings #-}
+{-# NOINLINE applyAllInputs #-}
+{-# NOINLINE computeTransaction #-}
+{-# NOINLINE contractLifespanUpperBound #-}
+{-# NOINLINE totalBalance #-}
 
 -- * Aliaces
 
@@ -1160,22 +1160,22 @@ instance ToJSON TransactionWarning where
 
 
 instance Eq Party where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (PK p1) == (PK p2)     = p1 == p2
     (Role r1) == (Role r2) = r1 == r2
     _ == _                 = False
 
 
 instance Eq ChoiceId where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (ChoiceId n1 p1) == (ChoiceId n2 p2) = n1 == n2 && p1 == p2
 
 instance Eq Token where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (Token n1 p1) == (Token n2 p2) = n1 == n2 && p1 == p2
 
 instance Eq ValueId where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     (ValueId n1) == (ValueId n2) = n1 == n2
 
 
@@ -1183,19 +1183,19 @@ instance Pretty ValueId where
     prettyFragment (ValueId n) = prettyFragment n
 
 instance Eq Payee where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Account acc1 == Account acc2 = acc1 == acc2
     Party p1 == Party p2         = p1 == p2
     _ == _                       = False
 
 
 instance Eq Payment where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Payment p1 m1 == Payment p2 m2 = p1 == p2 && m1 == m2
 
 
 instance Eq ReduceWarning where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     ReduceNoWarning == ReduceNoWarning = True
     (ReduceNonPositivePay acc1 p1 tn1 a1) == (ReduceNonPositivePay acc2 p2 tn2 a2) =
         acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2
@@ -1207,14 +1207,14 @@ instance Eq ReduceWarning where
 
 
 instance Eq ReduceEffect where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     ReduceNoPayment == ReduceNoPayment           = True
     ReduceWithPayment p1 == ReduceWithPayment p2 = p1 == p2
     _ == _                                       = False
 
 
 instance Eq a => Eq (Value a) where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
         acc1 == acc2 && tok1 == tok2
     Constant i1 == Constant i2 = i1 == i2
@@ -1231,7 +1231,7 @@ instance Eq a => Eq (Value a) where
     _ == _ = False
 
 instance Eq Observation where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     AndObs o1l o2l == AndObs o1r o2r           = o1l == o1r && o2l == o2r
     OrObs  o1l o2l == OrObs  o1r o2r           = o1l == o1r && o2l == o2r
     NotObs ol == NotObs or                     = ol == or
@@ -1247,7 +1247,7 @@ instance Eq Observation where
 
 
 instance Eq Action where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Deposit acc1 party1 tok1 val1 == Deposit acc2 party2 tok2 val2 =
         acc1 == acc2 && party1 == party2 && tok1 == tok2 && val1 == val2
     Choice cid1 bounds1 == Choice cid2 bounds2 =
@@ -1260,7 +1260,7 @@ instance Eq Action where
 
 
 instance Eq Contract where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     Close == Close = True
     Pay acc1 payee1 tok1 value1 cont1 == Pay acc2 payee2 tok2 value2 cont2 =
         acc1 == acc2 && payee1 == payee2 && tok1 == tok2 && value1 == value2 && cont1 == cont2
@@ -1280,7 +1280,7 @@ instance Eq Contract where
 
 
 instance Eq State where
-    {-# INLINABLE (==) #-}
+    {-# NOINLINE (==) #-}
     l == r = minSlot l == minSlot r
         && accounts l == accounts r
         && choices l == choices r

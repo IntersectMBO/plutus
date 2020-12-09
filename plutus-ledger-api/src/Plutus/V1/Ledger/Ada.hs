@@ -42,12 +42,12 @@ import           PlutusTx.Lift                    (makeLift)
 import           PlutusTx.Prelude                 hiding (divide)
 import qualified PlutusTx.Prelude                 as P
 
-{-# INLINABLE adaSymbol #-}
+{-# NOINLINE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol
 adaSymbol = TH.currencySymbol emptyByteString
 
-{-# INLINABLE adaToken #-}
+{-# NOINLINE adaToken #-}
 -- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
 adaToken = TH.tokenName emptyByteString
@@ -76,32 +76,32 @@ instance Monoid Ada where
 
 makeLift ''Ada
 
-{-# INLINABLE getAda #-}
+{-# NOINLINE getAda #-}
 -- | Get the amount of Ada (the unit of the currency Ada) in this 'Ada' value.
 getAda :: Ada -> Micro
 getAda (Lovelace i) = MkFixed i
 
-{-# INLINABLE toValue #-}
+{-# NOINLINE toValue #-}
 -- | Create a 'Value' containing only the given 'Ada'.
 toValue :: Ada -> Value
 toValue (Lovelace i) = TH.singleton adaSymbol adaToken i
 
-{-# INLINABLE fromValue #-}
+{-# NOINLINE fromValue #-}
 -- | Get the 'Ada' in the given 'Value'.
 fromValue :: Value -> Ada
 fromValue v = Lovelace (TH.valueOf v adaSymbol adaToken)
 
-{-# INLINABLE lovelaceOf #-}
+{-# NOINLINE lovelaceOf #-}
 -- | Create 'Ada' representing the given quantity of Lovelace (the unit of the currency Ada).
 lovelaceOf :: Integer -> Ada
 lovelaceOf = Lovelace
 
-{-# INLINABLE adaOf #-}
+{-# NOINLINE adaOf #-}
 -- | Create 'Ada' representing the given quantity of Ada (1M Lovelace).
 adaOf :: Micro -> Ada
 adaOf (MkFixed x) = Lovelace x
 
-{-# INLINABLE lovelaceValueOf #-}
+{-# NOINLINE lovelaceValueOf #-}
 -- | A 'Value' with the given amount of Lovelace (the currency unit).
 --
 --   @lovelaceValueOf == toValue . lovelaceOf@
@@ -109,7 +109,7 @@ adaOf (MkFixed x) = Lovelace x
 lovelaceValueOf :: Integer -> Value
 lovelaceValueOf = TH.singleton adaSymbol adaToken
 
-{-# INLINABLE adaValueOf #-}
+{-# NOINLINE adaValueOf #-}
 -- | A 'Value' with the given amount of Ada (the currency unit).
 --
 --   @adaValueOf == toValue . adaOf@
@@ -117,12 +117,12 @@ lovelaceValueOf = TH.singleton adaSymbol adaToken
 adaValueOf :: Micro -> Value
 adaValueOf (MkFixed x) = TH.singleton adaSymbol adaToken x
 
-{-# INLINABLE divide #-}
+{-# NOINLINE divide #-}
 -- | Divide one 'Ada' value by another.
 divide :: Ada -> Ada -> Ada
 divide (Lovelace a) (Lovelace b) = Lovelace (P.divide a b)
 
-{-# INLINABLE isZero #-}
+{-# NOINLINE isZero #-}
 -- | Check whether an 'Ada' value is zero.
 isZero :: Ada -> Bool
 isZero (Lovelace i) = i == 0

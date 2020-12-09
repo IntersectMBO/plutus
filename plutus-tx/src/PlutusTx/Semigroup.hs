@@ -19,19 +19,19 @@ class Semigroup a where
     -- simpler representation
 
 instance Semigroup Builtins.ByteString where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     (<>) = Builtins.concatenate
 
 instance Semigroup Builtins.String where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     (<>) = Builtins.appendString
 
 instance Semigroup [a] where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     (<>) = (++)
 
 instance (Semigroup a, Semigroup b) => Semigroup (a, b) where
-    {-# INLINABLE (<>) #-}
+    {-# NOINLINE (<>) #-}
     (a1, b1) <> (a2, b2) = (a1 <> a2, b1 <> b2)
 
 instance Semigroup a => Semigroup (Maybe a) where
