@@ -37,3 +37,16 @@ We can build a schema using the ``Endpoint`` type family to construct individual
 
 The ``DemoSchema`` type defined above has a single endpoint called "name", which expects a ``String``.
 
+* Activating endpoints
+* Endpoint status
+* Select / Or
+
+Doing Blockchain Things
+-----------------------
+
+* Creating transactions
+   - constraints
+   - scripts
+* Waiting for on-chain events
+   - watch address
+   - 
