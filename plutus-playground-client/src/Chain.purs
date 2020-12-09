@@ -55,7 +55,7 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
         [ class_ $ ClassName "transactions-header" ]
         [ h2_ [ text "Transactions" ]
         , button
-            [ classes [ btn, btnPrimary ]
+            [ classes [ btn ]
             , onClick $ const $ Just $ ChangeView Simulations
             ]
             [ icon Close ]

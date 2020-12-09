@@ -335,7 +335,12 @@ handleAction AddSimulationSlot = do
         )
     Nothing -> pure unit
 
-handleAction (SetSimulationSlot index) = modifying _simulations (Cursor.setIndex index)
+handleAction (SetSimulationSlot index) = do
+  modifying _simulations (Cursor.setIndex index)
+  -- The following is a temporary fudge to avoid weird behaviour if you're in
+  -- the transaction view; in due course the model should be changed to include
+  -- separate transactions for each simulation
+  assign _currentView Simulations
 
 handleAction (RemoveSimulationSlot index) = modifying _simulations (Cursor.deleteAt index)
 
