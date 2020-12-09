@@ -34,8 +34,8 @@ type BenchmarkRunners =
     , Integer -> Queens.Algorithm -> Benchmarkable
     )
 
-{- | Make a benchmarks with a number of different inputs.  The input values
-   have been chosen to complete in a reasonable time without exhausting memory. -}
+{- | Make a benchmarks with a number of different inputs.  The input values have
+   been chosen to complete in a reasonable time. -}
 mkBenchMarks :: BenchmarkRunners -> [Benchmark]
 mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
     bgroup "clausify" [ bench "formula1" $ benchClausify Clausify.F1
@@ -54,6 +54,8 @@ mkBenchMarks (benchClausify, benchKnights, benchPrime, benchQueens) = [
                        , bench "20digits" $ benchPrime Prime.P20
                        , bench "30digits" $ benchPrime Prime.P30
                        , bench "40digits" $ benchPrime Prime.P40
+                       , bench "50digits" $ benchPrime Prime.P50
+                       -- Larger primes are available in Primes.hs, but may take a long time.
                        ]
   , bgroup "queens4x4" [ -- N-queens problem on a 4x4 board
                       bench "bt"    $ benchQueens 4 Queens.Bt

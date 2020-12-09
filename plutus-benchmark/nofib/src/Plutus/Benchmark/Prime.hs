@@ -224,13 +224,12 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 
 ---------------- Main ----------------
 
-{-% Various test inputs.  The Haskell version easily manages numbers up
-    to 200 digits, but we can't get beyond about 70 digits on the CEK machine.
-    Interestingly, memory consumption on the CK machine is essentially flat and
-    the times aren't much worse (maybe 10-20% greater). %-}
-
-data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60
+data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
      deriving (Read, Show)
+
+{- Some prime numbers.  The larger ones are taken from
+   https://primes.utm.edu/lists/small/small.html and
+   https://primes.utm.edu/lists/small/small2.html -}
 
 {-# INLINABLE getPrime #-}
 getPrime :: PrimeID -> Integer
@@ -244,6 +243,9 @@ getPrime =
      P40 -> 5991810554633396517767024967580894321153
      P50 -> 22953686867719691230002707821868552601124472329079
      P60 -> 511704374946917490638851104912462284144240813125071454126151
+     P100 -> 2193992993218604310884461864618001945131790925282531768679169054389241527895222169476723691605898517
+     P150 -> 533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207
+     P200 -> 58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839
 
 
 -- % Only for textual output of PLC scripts
