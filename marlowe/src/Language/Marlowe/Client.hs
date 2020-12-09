@@ -25,6 +25,7 @@ module Language.Marlowe.Client where
 import           Control.Lens
 import           Control.Monad.Error.Lens                          (catching, throwing)
 import qualified Data.Set                                          as Set
+import qualified Data.Text                                         as T
 import           Language.Marlowe.Semantics                        hiding (Contract)
 import qualified Language.Marlowe.Semantics                        as Marlowe
 import           Language.Marlowe.Util                             (extractContractRoles)
@@ -62,7 +63,6 @@ type MarloweSchema =
 
 data MarloweError =
     StateMachineError SM.SMContractError
-    | TokenSetupFailed Currency.CurrencyError
     | TransitionError (SM.InvalidTransition MarloweData MarloweInput)
     | MarloweEvaluationError TransactionError
     | OtherContractError ContractError
@@ -224,9 +224,10 @@ setupMarloweParams rolePayoutScriptHash owners contract = mapError (review _Marl
                 { rolesCurrency = adaSymbol
                 , rolePayoutValidatorHash = rolePayoutScriptHash }
         pure (params, mempty)
-    else do
+    else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
+    then do
         let tokens = fmap (\role -> (role, 1)) $ Set.toList roles
-        cur <- mapError TokenSetupFailed $ Currency.forgeContract creator tokens
+        cur <- mapError RolesCurrencyError $ Currency.forgeContract creator tokens
         let rolesSymbol = Currency.currencySymbol cur
         let giveToParty (role, pkh) = Constraints.mustPayToPubKey pkh (Val.singleton rolesSymbol role 1)
         let distributeRoleTokens = foldMap giveToParty (AssocMap.toList owners)
@@ -234,6 +235,10 @@ setupMarloweParams rolePayoutScriptHash owners contract = mapError (review _Marl
                 { rolesCurrency = rolesSymbol
                 , rolePayoutValidatorHash = rolePayoutScriptHash }
         pure (params, distributeRoleTokens)
+    else do
+        let missingRoles = roles `Set.difference` Set.fromList (AssocMap.keys owners)
+        let message = T.pack $ "You didn't specify owners of these roles: " <> show missingRoles
+        throwing _ContractError $ OtherError message
 
 
 getAction :: MarloweSlotRange -> Party -> MarloweData -> PartyAction
