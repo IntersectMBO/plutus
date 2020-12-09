@@ -8,7 +8,6 @@ import Types
 import Action (actionsPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alertDanger_, btn, btnDanger, btnWarning, empty, floatRight, nav, navItem, navLink)
-import Bootstrap as Bootstrap
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array as Array
@@ -115,6 +114,9 @@ simulationsNav simulations =
         <> [ addSimulationControl ]
     )
 
+navItemButtonClass :: ClassName
+navItemButtonClass = ClassName "simulation-nav-item-control"
+
 simulationNavItem :: forall p. Boolean -> Int -> Int -> Simulation -> Array (HTML p HAction)
 simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   [ li
@@ -125,16 +127,15 @@ simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
           [ classes navLinkClasses
           , onClick $ const $ Just $ SetSimulationSlot index
           ]
-          [ span [ class_ $ ClassName "simulation-nav-item-text" ] [ text simulationName ]
-          , if canClose then
-              span
-                [ onClick $ const $ Just $ RemoveSimulationSlot index
-                , class_ $ ClassName "simulation-nav-item-control"
-                ]
-                [ icon Close ]
-            else
-              Bootstrap.empty
-          ]
+          [ text simulationName ]
+      , if canClose then
+          button
+            [ classes [ btn, navItemButtonClass ]
+            , onClick $ const $ Just $ RemoveSimulationSlot index
+            ]
+            [ icon Close ]
+        else
+          empty
       ]
   ]
   where
@@ -146,12 +147,12 @@ addSimulationControl =
     [ id_ "simulation-nav-item-add"
     , class_ navItem
     ]
-    [ a
-        [ onClick $ const $ Just $ AddSimulationSlot
-        , class_ navLink
-        ]
-        [ span
-            [ class_ $ ClassName "simulation-nav-item-control" ]
+    [ span
+        [ class_ navLink ]
+        [ button
+            [ classes [ btn, navItemButtonClass ]
+            , onClick $ const $ Just $ AddSimulationSlot
+            ]
             [ icon Plus ]
         ]
     ]

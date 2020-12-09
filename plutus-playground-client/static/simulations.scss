@@ -30,6 +30,11 @@
             border-radius: 0;
             color: inherit;
             margin-left: -1px;
+            height: 100%;
+
+            &:not(:last-child) {
+                padding-right: 3em; // leave room for the close button
+            }
 
             &:hover {
                 border-color: transparent;
@@ -43,14 +48,15 @@
         }
     }
 
-    //.simulation-nav-item-text {}
-
     .simulation-nav-item-control {
         display: inline-block;
         padding: 0 .5em;
 
         &:not(:first-child) {
-            margin-left: .5em;
+            position: absolute;
+            top: .75em;
+            right: .75em;
+            z-index: 2;
         }
 
         &:hover {
