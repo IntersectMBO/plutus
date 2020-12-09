@@ -27,6 +27,10 @@ The Plutus Playground is a lightweight, web-based environment for exploratory Pl
 
 You can also use a normal Haskell development environment on your computer to write Plutus programs. See the main `Plutus repository <https://github.com/input-output-hk/plutus>`_ for more information.
 
+.. _Haskell: http://haskell.org/
+.. _Haddock: haddock/index.html
+.. _Forum: http://forum.cardano.org/
+
 .. toctree::
    :caption: Explore Plutus
    :maxdepth: 2
@@ -36,5 +40,12 @@ You can also use a normal Haskell development environment on your computer to wr
 .. toctree::
    :caption: Plutus Reference
    :maxdepth: 2
+
+References
+----------
+
+1. We develop our software in Haskell_. If you need to gain a better understanding of this powerful programming language, a good place to start is the http://haskell.org site.
+2. We also generate the developer documentation from our source code using Haddock_. You can also find this documentation in the Playground, with the name `API`.
+3. If you want to talk to us directly, you can use the Cardano Forum_.
 
    reference/index
