@@ -267,6 +267,7 @@ library
         data-default-class -any,
         transformers -any,
         witherable -any,
+        vector -any,
         Stream -any
 
 executable plutus-core-generate-evaluation-test

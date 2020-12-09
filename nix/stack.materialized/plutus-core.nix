@@ -94,6 +94,7 @@
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
+          (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           ];
         build-tools = [
