@@ -6,7 +6,7 @@ import Blockly (addChangeListener, removeChangeListener)
 import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Types (BlocklyEvent, Workspace)
 import Blockly.Types as BT
-import Control.Alt ((<|>))
+import Control.Applicative (when)
 import Data.Foldable (oneOf)
 import Data.Lens (Lens', assign)
 import Data.Lens.Record (prop)
@@ -16,7 +16,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, raise)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
-import Prelude (Unit, bind, discard, pure, unit, ($), (<$>))
+import Prelude (Unit, bind, discard, pure, unit, ($), (/=), (<$>))
 import Web.Event.EventTarget (eventListener)
 
 blocklyEvents ::
@@ -63,7 +63,7 @@ updateUnsavedChangesActionHandler codeChange finishLoading event = do
     (BT.Change _) -> setUnsavedChangesToTrue
     -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
     -- one block into another)
-    (BT.Move ev) -> for_ (newParentId ev <|> oldParentId ev) \_ -> setUnsavedChangesToTrue
+    (BT.Move ev) -> when (newParentId ev /= oldParentId ev) setUnsavedChangesToTrue
     (BT.FinishLoading _) -> do
       assign _hasUnsavedChanges' false
       raise finishLoading
