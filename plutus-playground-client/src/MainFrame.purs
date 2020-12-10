@@ -338,15 +338,24 @@ handleAction AddSimulationSlot = do
                 (mkSimulation knownCurrencies simulationName)
         )
     Nothing -> pure unit
-
-handleAction (SetSimulationSlot index) = do
-  modifying _simulations (Cursor.setIndex index)
   -- The following is a temporary fudge to avoid weird behaviour if you're in
   -- the transaction view; in due course the model should be changed to include
   -- separate transactions for each simulation
   assign _currentView Simulations
 
-handleAction (RemoveSimulationSlot index) = modifying _simulations (Cursor.deleteAt index)
+handleAction (SetSimulationSlot index) = do
+  modifying _simulations (Cursor.setIndex index)
+  -- The same temporary fudge used above
+  assign _currentView Simulations
+
+handleAction (RemoveSimulationSlot index) = do
+  -- The same temporary fudge used above (but only if the current simulation is being removed)
+  simulations <- use _simulations
+  if (Cursor.getIndex simulations) == index then
+    assign _currentView Simulations
+  else
+    pure unit
+  modifying _simulations (Cursor.deleteAt index)
 
 handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
