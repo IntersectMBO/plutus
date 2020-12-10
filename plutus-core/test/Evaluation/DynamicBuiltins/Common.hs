@@ -36,7 +36,7 @@ typecheckAnd action runtime term = runQuoteT $ do
 typecheckEvaluateCek
     :: ( MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun
        , GShow uni, GEq uni, Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Typeable uni, Typeable fun, Pretty fun, Hashable fun, ExMemoryUsage fun
+       , Typeable uni, Typeable fun, Pretty fun, Hashable fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term TyName Name uni fun ()
@@ -48,7 +48,7 @@ typecheckReadKnownCek
     :: ( MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun
        , KnownType (Term TyName Name uni fun ()) a, GShow uni, GEq uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
-       , Hashable fun, ExMemoryUsage fun
+       , Hashable fun
        )
     => BuiltinsRuntime fun (CekValue uni fun)
     -> Term TyName Name uni fun ()
