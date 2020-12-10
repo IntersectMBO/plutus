@@ -19,6 +19,8 @@ import qualified Plutus.Benchmark.Knights                          as Knights
 import qualified Plutus.Benchmark.Prime                            as Prime
 import qualified Plutus.Benchmark.Queens                           as Queens
 
+import           Control.Exception
+import           Language.UntypedPlutusCore.HOAS
 
 benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
 benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
