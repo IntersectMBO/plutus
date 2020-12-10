@@ -16,11 +16,9 @@ import qualified Plutus.Benchmark.Knights                          as Knights
 import qualified Plutus.Benchmark.Prime                            as Prime
 import qualified Plutus.Benchmark.Queens                           as Queens
 
-import           Control.Exception
-import           Language.UntypedPlutusCore.HOAS
 
 benchCek :: Term Name DefaultUni DefaultFun () -> Benchmarkable
-benchCek program = nf (unsafeEvaluateHoas) program
+benchCek program = nf (unsafeEvaluateCek defBuiltinsRuntime) program
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

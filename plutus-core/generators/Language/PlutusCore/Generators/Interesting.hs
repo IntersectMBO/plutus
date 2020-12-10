@@ -186,9 +186,9 @@ genIfIntegers :: TermGen Integer
 genIfIntegers = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
-    TermOf b bv <- genTypedBuiltinDef AsKnownType
-    TermOf i iv <- genTypedBuiltinDef typedInt
-    TermOf j jv <- genTypedBuiltinDef typedInt
+    TermOf b bv <- genTermLoose AsKnownType
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
     let instConst = Apply () $ mkIterInst () Function.const [int, unit]
         value = if bv then iv else jv
         term =

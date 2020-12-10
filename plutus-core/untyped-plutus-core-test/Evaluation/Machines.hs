@@ -10,7 +10,6 @@ module Evaluation.Machines
 
 import           Language.UntypedPlutusCore
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import           Language.UntypedPlutusCore.HOAS
 
 import qualified Language.PlutusCore                               as Plc
 import           Language.PlutusCore.Builtins
@@ -52,8 +51,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCek  defBuiltinsRuntime
-        , testMachine "HOAS" $ evaluateHoas
+        [ testMachine "CEK" $ evaluateCek defBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested

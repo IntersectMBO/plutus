@@ -359,8 +359,7 @@ computeCek ctx env (Builtin ex bn) = do
   BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _ Error{} =
-    throwingWithCause _EvaluationFailure () Nothing
+computeCek _ _ Error{} = throwing_ _EvaluationFailure
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
