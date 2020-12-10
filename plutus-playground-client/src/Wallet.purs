@@ -25,7 +25,6 @@ import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgume
 import ValueEditor (valueForm)
 import Wallet.Emulator.Wallet (Wallet)
 
--- reused class names
 walletClass :: ClassName
 walletClass = ClassName "wallet"
 
@@ -38,7 +37,6 @@ actionButtonTextClass = ClassName "action-button-text"
 actionButtonIconClass :: ClassName
 actionButtonIconClass = ClassName "action-button-icon"
 
--- renders the wallets pane
 walletsPane ::
   forall p.
   Signatures ->
@@ -55,7 +53,6 @@ walletsPane signatures initialValue simulatorWallets =
         (Array.snoc (mapWithIndex (walletPane signatures initialValue) simulatorWallets) addWalletPane)
     ]
 
--- renders a wallet pane
 walletPane ::
   forall p.
   Signatures ->
@@ -90,7 +87,7 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
             ]
         ]
 
--- renders a wallet id (N.B. exported so that actions panes can show their associated wallet)
+-- this function is exported so that actions panes can show their associated wallet
 walletIdPane :: forall p i. Wallet -> HTML p i
 walletIdPane wallet =
   span [ class_ $ ClassName "wallet-id" ]
@@ -98,7 +95,6 @@ walletIdPane wallet =
     , text $ show $ _.getWallet $ unwrap wallet
     ]
 
--- renders the add wallet pane
 addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =
   Tuple "add-wallet"
@@ -112,7 +108,6 @@ addWalletPane =
             ]
         ]
 
--- renders a custom action button
 actionButton ::
   forall p.
   Value ->
@@ -136,7 +131,6 @@ actionButton initialValue simulatorWallet functionSchema =
         [ icon Plus ]
     ]
 
--- renders the (ever present) pay to wallet action button
 addPayToWalletButton ::
   forall p.
   Value ->

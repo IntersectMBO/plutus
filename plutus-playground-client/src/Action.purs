@@ -30,11 +30,9 @@ import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
--- reused class names
 actionClass :: ClassName
 actionClass = ClassName "action"
 
--- renders the actions pane
 actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div
@@ -54,7 +52,6 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
         )
     ]
 
--- renders an action pane
 actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
 actionPane isValidWallet actionDrag index action =
   Tuple (show index)
@@ -95,7 +92,6 @@ actionPane isValidWallet actionDrag index action =
                 ]
         ]
 
--- renders an action pane body
 actionPaneBody :: forall p. Int -> ContractCall (Fix FormArgumentF) -> HTML p SimulationAction
 actionPaneBody index (CallEndpoint { caller, argumentValues }) =
   div_
@@ -169,7 +165,6 @@ actionPaneBody index (AddBlocksUntil { slot }) =
         ]
     ]
 
--- renders the wait type buttons
 waitTypeButtons :: forall p. Int -> Either Slot BigInteger -> HTML p SimulationAction
 waitTypeButtons index wait =
   div
@@ -208,7 +203,6 @@ waitTypeButtons index wait =
 
   waitUntilId = "wait-until-" <> show index
 
--- creates validation classes (adding "error" where necessary)
 validationClasses ::
   forall a.
   FormArgument ->
@@ -218,7 +212,6 @@ validationClasses arg Nothing = [ ClassName "error" ]
 
 validationClasses arg (Just _) = []
 
--- renders the add wait action pane
 addWaitActionPane :: forall p. Int -> Tuple String (HTML p HAction)
 addWaitActionPane index =
   Tuple "add-wait"
@@ -237,7 +230,6 @@ addWaitActionPane index =
             ]
         ]
 
--- properties for draggable action pane source
 dragSourceProperties ::
   forall i.
   Int ->
@@ -256,7 +248,6 @@ dragSourceProperties index =
   , onDragEnd $ dragAndDropAction index DragEnd
   ]
 
--- properties for draggable action pane target
 dragTargetProperties ::
   forall i.
   Int ->
@@ -277,10 +268,8 @@ dragTargetProperties index =
   , onDrop $ dragAndDropAction index Drop
   ]
 
--- drag and drop event handler
 dragAndDropAction :: Int -> DragAndDropEventType -> DragEvent -> Maybe HAction
 dragAndDropAction index eventType = Just <<< ActionDragAndDrop index eventType
 
--- big integer input event handler
 onBigIntegerInput :: forall i r. (BigInteger -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onBigIntegerInput f = onValueInput $ map f <<< BigInteger.fromString

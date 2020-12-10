@@ -36,18 +36,15 @@ import Wallet (walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 
--- halogen reflabels for elements that need to be scolled into view
 simulationsPaneRefLabel :: RefLabel
 simulationsPaneRefLabel = RefLabel "simulations-pane"
 
 simulationsErrorRefLabel :: RefLabel
 simulationsErrorRefLabel = RefLabel "simulation-errors"
 
--- repeated class names
 navItemButtonClass :: ClassName
 navItemButtonClass = ClassName "simulation-nav-item-control"
 
--- renders the simulator view title
 simulatorTitle ::
   forall m.
   MonadAff m =>
@@ -63,7 +60,6 @@ simulatorTitle =
         [ text "< Return to Editor" ]
     ]
 
--- renders the simulations pane
 simulationsPane ::
   forall m.
   Value ->
@@ -117,7 +113,6 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
           [ text "Return to the Editor and compile a contract to get started." ]
       ]
 
--- renders the simulations tab interface
 simulationsNav :: forall p. Cursor Simulation -> HTML p HAction
 simulationsNav simulations =
   ul
@@ -131,7 +126,6 @@ simulationsNav simulations =
         <> [ addSimulationControl ]
     )
 
--- renders a simulation tab
 simulationNavItem :: forall p. Boolean -> Int -> Int -> Simulation -> Array (HTML p HAction)
 simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   [ li
@@ -156,7 +150,6 @@ simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   where
   navLinkClasses = if activeIndex == index then [ navLink, active ] else [ navLink ]
 
--- renders the add simulation control (at the end of the tabs)
 addSimulationControl :: forall p. HTML p HAction
 addSimulationControl =
   li
@@ -173,7 +166,6 @@ addSimulationControl =
         ]
     ]
 
--- renders the button for evaluating actions (running the simulation)
 evaluateActionsButton :: forall p. WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsButton evaluationResult actions =
   button
@@ -201,7 +193,6 @@ evaluateActionsButton evaluationResult actions =
 
   hasErrors = validationErrors /= []
 
--- renders the button for viewing transactions (the results of the simulation)
 viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
   button
@@ -215,7 +206,6 @@ viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
     Success _ -> (current simulations) /= lastEvaluatedSimulation
     _ -> true
 
--- renders the evaluations error pane
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
 actionsErrorPane error =
   div

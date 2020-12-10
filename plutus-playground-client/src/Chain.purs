@@ -1,6 +1,6 @@
 module Chain (evaluationPane, extractAmount) where
 
-import Bootstrap (btn, btnPrimary, nbsp)
+import Bootstrap (btn, nbsp)
 import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)

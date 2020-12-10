@@ -31,7 +31,6 @@ import StaticData as StaticData
 
 foreign import plutusLogo :: String
 
--- renders the whole page
 render ::
   forall m.
   MonadAff m =>
@@ -47,7 +46,6 @@ render state =
     , mainFooter
     ]
 
--- renders the page header
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   nav
@@ -65,7 +63,6 @@ mainHeader =
     , documentationLinksPane
     ]
 
--- renders the documentation links
 documentationLinksPane :: forall p i. HTML p i
 documentationLinksPane =
   ul
@@ -79,7 +76,6 @@ documentationLinksPane =
     , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 
--- renders the page sub header
 subHeader ::
   forall m.
   MonadAff m =>
@@ -108,7 +104,6 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos }) =
     else
       icon Bars
 
--- renders the contract demos pane
 contractDemosPane ::
   forall m.
   MonadAff m =>
@@ -130,7 +125,6 @@ contractDemosPane demoFilesMenuOpen contractDemos =
     else
       [ navbarNav, ClassName "menu" ]
 
--- renders a demo script nav item
 demoScriptNavItem :: forall p. ContractDemo -> HTML p HAction
 demoScriptNavItem (ContractDemo { contractDemoName }) =
   li
@@ -142,7 +136,6 @@ demoScriptNavItem (ContractDemo { contractDemoName }) =
         [ text contractDemoName ]
     ]
 
--- renders the main section for the editor
 editorMain ::
   forall m.
   MonadAff m =>
@@ -161,7 +154,6 @@ editorMain state@(State { currentView, editorState }) =
       , editorWrapper state
       ]
 
--- renders the main section for the simulations
 simulationsMain ::
   forall m.
   MonadAff m =>
@@ -173,7 +165,6 @@ simulationsMain state@(State { currentView, editorState }) =
     , simulationsWrapper state
     ]
 
--- renders the main section for the transactions
 transactionsMain ::
   forall m.
   MonadAff m =>
@@ -185,7 +176,6 @@ transactionsMain state@(State { currentView, editorState }) =
     , transactionsWrapper state
     ]
 
--- classes for the main components (editor, simulations, and transactions)
 mainComponentClasses :: forall view. Eq view => view -> view -> Array (ClassName)
 mainComponentClasses currentView targetView =
   if currentView == targetView then
@@ -193,7 +183,6 @@ mainComponentClasses currentView targetView =
   else
     [ containerFluid, hidden, ClassName "main" ]
 
--- renders the editor pane
 editorWrapper ::
   forall m.
   MonadAff m =>
@@ -221,7 +210,6 @@ editorWrapper state@(State { currentView, contractDemos, editorState, compilatio
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
--- renders the simulations pane
 simulationsWrapper ::
   forall m.
   MonadAff m =>
@@ -252,7 +240,6 @@ simulationsWrapper state@(State { currentView }) =
           (view _evaluationResult state)
       ]
 
--- renders the transactions pane
 transactionsWrapper ::
   forall m.
   MonadAff m =>
@@ -285,7 +272,6 @@ transactionsWrapper state@(State { currentView, blockchainVisualisationState }) 
         ]
     ]
 
--- renders the page footer
 mainFooter :: forall p i. HTML p i
 mainFooter =
   footer
@@ -307,7 +293,6 @@ mainFooter =
         [ makeNavItem $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus" ]
     ]
 
--- renders a link
 makeNavItem :: forall p i. HTML p i /\ String -> HTML p i
 makeNavItem (label /\ link) =
   span
@@ -320,6 +305,5 @@ makeNavItem (label /\ link) =
         [ label ]
     ]
 
--- copyright symbol
 copyright :: forall p i. HTML p i
 copyright = text "\x00A9"

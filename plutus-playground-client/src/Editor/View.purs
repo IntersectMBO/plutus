@@ -28,7 +28,6 @@ import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (const, map, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Types (ChildSlots, _editorSlot, HAction(..), View(..))
 
--- renders the editor preferences select dropdown
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
 editorPreferencesSelect active =
   select
@@ -53,7 +52,6 @@ editorPreferencesSelect active =
 
   editorName Vim = "Vim"
 
--- renders the compile button
 compileButton :: forall p a. CompilationState a -> HTML p HAction
 compileButton state =
   button
@@ -67,7 +65,6 @@ compileButton state =
     Loading -> icon Spinner
     _ -> text "Compile"
 
--- renders the simulator button
 simulateButton :: forall p a. CompilationState a -> HTML p HAction
 simulateButton state =
   button
@@ -81,7 +78,6 @@ simulateButton state =
     Success (Right _) -> false
     _ -> true
 
--- renders the editor pane
 editorPane ::
   forall m.
   MonadAff m =>
@@ -106,7 +102,6 @@ editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
         _ -> pre [ id_ "statusline", class_ $ ClassName "hidden" ] [ nbsp ]
     ]
 
--- renders the editor feedback div (showing compilation errors and/or warnings)
 editorFeedback ::
   forall m a.
   MonadAff m =>
@@ -173,13 +168,11 @@ editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
           )
           compilationState
 
--- renders all interpreter errors
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Action)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]
 
 interpreterErrorPane (CompilationErrors errors) = map compilationErrorPane errors
 
--- renders a compilation error
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) =
   div
@@ -203,10 +196,8 @@ compilationErrorPane (CompilationError error) =
         [ code_ [ pre_ [ text $ String.joinWith "\n" error.text ] ] ]
     ]
 
--- renders all compilation warnings
 compilationWarningsPane :: forall p. Array Warning -> HTML p Action
 compilationWarningsPane warnings = listGroup_ (listGroupItem_ <<< pure <<< compilationWarningPane <$> warnings)
 
--- renders a compilation warning
 compilationWarningPane :: forall p. Warning -> HTML p Action
 compilationWarningPane warning = div [ class_ $ ClassName "compilation-warning" ] [ text $ view _Warning warning ]
