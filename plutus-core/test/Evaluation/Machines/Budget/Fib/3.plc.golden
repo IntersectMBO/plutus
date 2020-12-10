@@ -1,35 +1,566 @@
 ( (Right (2))
-, ({ tally: ({ BBuiltin AddInteger causes ({ cpu: 8
-| mem: 2
-})
-| BTyInst causes ({ cpu: 18
-| mem: 18
-})
-| BApply causes ({ cpu: 86
-| mem: 86
-})
-| BVar causes ({ cpu: 59
-| mem: 59
-})
-| BBuiltin LessThanEqInteger causes ({ cpu: 26
-| mem: 5
-})
-| BIWrap causes ({ cpu: 1
+, ({ tally: ({ BBuiltin AddInteger causes [  ({ cpu: 4
 | mem: 1
 })
-| BBuiltin IfThenElse causes ({ cpu: 5
-| mem: 5
+|   ({ cpu: 4
+| mem: 1
+})]
+| BTyInst causes [  ({ cpu: 1
+| mem: 1
 })
-| BUnwrap causes ({ cpu: 6
-| mem: 6
+|   ({ cpu: 1
+| mem: 1
 })
-| BAST causes ({ cpu: 0
-| mem: 118
+|   ({ cpu: 1
+| mem: 1
 })
-| BBuiltin SubtractInteger causes ({ cpu: 22
-| mem: 476
-})})
-| budget: ({ cpu: 231
-| mem: 776
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BApply causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BVar causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin LessThanEqInteger causes [  ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})]
+| BIWrap causes [  ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin IfThenElse causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BUnwrap causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BAST causes [  ({ cpu: 0
+| mem: 193
+})]
+| BBuiltin SubtractInteger causes [  ({ cpu: 4
+| mem: 2
+})
+|   ({ cpu: 4
+| mem: 2
+})
+|   ({ cpu: 4
+| mem: 2
+})
+|   ({ cpu: 4
+| mem: 2
+})]})
+| budget: ({ cpu: 224
+| mem: 383
 })
 }) )

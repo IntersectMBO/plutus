@@ -1,8 +1,8 @@
 ( (Right (/\(a :: *) -> \(ru : ifix (\(rec :: * -> *) -> \(i :: *) -> all (r :: *). rec i -> r -> r) unit) -> unwrap ru {a} ru))
-, ({ tally: ({ BAST causes ({ cpu: 0
-| mem: 18
-})})
+, ({ tally: ({ BAST causes [  ({ cpu: 0
+| mem: 25
+})]})
 | budget: ({ cpu: 0
-| mem: 18
+| mem: 25
 })
 }) )

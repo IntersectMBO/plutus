@@ -1,35 +1,350 @@
 ( (Right (1))
-, ({ tally: ({ BBuiltin AddInteger causes ({ cpu: 4
+, ({ tally: ({ BBuiltin AddInteger causes [  ({ cpu: 4
+| mem: 1
+})]
+| BTyInst causes [  ({ cpu: 1
 | mem: 1
 })
-| BTyInst causes ({ cpu: 12
-| mem: 12
-})
-| BApply causes ({ cpu: 52
-| mem: 52
-})
-| BVar causes ({ cpu: 36
-| mem: 36
-})
-| BBuiltin LessThanEqInteger causes ({ cpu: 16
-| mem: 3
-})
-| BIWrap causes ({ cpu: 1
+|   ({ cpu: 1
 | mem: 1
 })
-| BBuiltin IfThenElse causes ({ cpu: 3
-| mem: 3
+|   ({ cpu: 1
+| mem: 1
 })
-| BUnwrap causes ({ cpu: 4
-| mem: 4
+|   ({ cpu: 1
+| mem: 1
 })
-| BAST causes ({ cpu: 0
-| mem: 118
+|   ({ cpu: 1
+| mem: 1
 })
-| BBuiltin SubtractInteger causes ({ cpu: 12
-| mem: 238
-})})
-| budget: ({ cpu: 140
-| mem: 468
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BApply causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BVar causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin LessThanEqInteger causes [  ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})]
+| BIWrap causes [  ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin IfThenElse causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BUnwrap causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BAST causes [  ({ cpu: 0
+| mem: 193
+})]
+| BBuiltin SubtractInteger causes [  ({ cpu: 4
+| mem: 2
+})
+|   ({ cpu: 4
+| mem: 2
+})]})
+| budget: ({ cpu: 135
+| mem: 309
 })
 }) )

@@ -1,8 +1,8 @@
 ( (Right (/\(a :: *) -> /\(b :: *) -> \(x : a) -> \(y : b) -> \(xs : (\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)) b a) -> iwrap (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b) (/\(r :: *) -> \(z : r) -> \(f : a -> b -> (\(a :: *) -> \(b :: *) -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \(a :: *) -> \(b :: *) -> all (r :: *). r -> (a -> b -> interlist b a -> r) -> r) (\(a :: *) -> \(b :: *) -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)) b a -> r) -> f x y xs)))
-, ({ tally: ({ BAST causes ({ cpu: 0
-| mem: 160
-})})
+, ({ tally: ({ BAST causes [  ({ cpu: 0
+| mem: 176
+})]})
 | budget: ({ cpu: 0
-| mem: 160
+| mem: 176
 })
 }) )

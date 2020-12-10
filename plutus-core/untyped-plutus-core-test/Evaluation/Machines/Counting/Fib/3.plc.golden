@@ -1,29 +1,722 @@
 ( (Right (2))
-, ({ tally: ({ BForce causes ({ cpu: 18
-| mem: 18
+, ({ tally: ({ BBuiltin AddInteger causes [  ({ cpu: 4
+| mem: 1
 })
-| BBuiltin SubtractInteger causes ({ cpu: 18
-| mem: 164
+|   ({ cpu: 4
+| mem: 1
+})]
+| BForce causes [  ({ cpu: 1
+| mem: 1
 })
-| BBuiltin AddInteger causes ({ cpu: 8
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BApply causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BLamAbs causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin LessThanEqInteger causes [  ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})
+|   ({ cpu: 5
+| mem: 1
+})]
+| BVar causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BBuiltin IfThenElse causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BDelay causes [  ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})
+|   ({ cpu: 1
+| mem: 1
+})]
+| BAST causes [  ({ cpu: 0
+| mem: 112
+})]
+| BBuiltin SubtractInteger causes [  ({ cpu: 4
 | mem: 2
 })
-| BApply causes ({ cpu: 86
-| mem: 86
+|   ({ cpu: 4
+| mem: 2
 })
-| BBuiltin IfThenElse causes ({ cpu: 5
-| mem: 5
+|   ({ cpu: 4
+| mem: 2
 })
-| BAST causes ({ cpu: 0
-| mem: 40
-})
-| BVar causes ({ cpu: 59
-| mem: 59
-})
-| BBuiltin LessThanEqInteger causes ({ cpu: 25
-| mem: 5
-})})
-| budget: ({ cpu: 219
-| mem: 379
+|   ({ cpu: 4
+| mem: 2
+})]})
+| budget: ({ cpu: 276
+| mem: 354
 })
 }) )
