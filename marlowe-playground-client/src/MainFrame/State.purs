@@ -492,6 +492,8 @@ handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
         )
   toSaveAs $ SaveAs.handleAction s action
 
+handleAction s (SaveAsAction SaveAs.Cancel) = fullHandleAction s CloseModal
+
 handleAction s (SaveAsAction action) = toSaveAs $ SaveAs.handleAction s action
 
 handleAction settings CheckAuthStatus = do

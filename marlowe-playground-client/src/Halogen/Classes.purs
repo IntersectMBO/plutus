@@ -87,6 +87,12 @@ spaceLeft = ClassName "space-left"
 spaceRight :: ClassName
 spaceRight = ClassName "space-right"
 
+spaceBottom :: ClassName
+spaceBottom = ClassName "space-bottom"
+
+spaceTop :: ClassName
+spaceTop = ClassName "space-top"
+
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
 
@@ -277,3 +283,24 @@ textSm = ClassName "text-sm"
 
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
+
+textLeft :: ClassName
+textLeft = ClassName "text-left"
+
+textCenter :: ClassName
+textCenter = ClassName "text-center"
+
+textRight :: ClassName
+textRight = ClassName "text-right"
+
+textJustify :: ClassName
+textJustify = ClassName "text-justify"
+
+border :: ClassName
+border = ClassName "border"
+
+borderBlue300 :: ClassName
+borderBlue300 = ClassName "border-blue-300"
+
+activeBorderBlue700 :: ClassName
+activeBorderBlue700 = ClassName "active:border-blue-700"

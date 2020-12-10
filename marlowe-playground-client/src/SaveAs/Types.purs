@@ -9,10 +9,12 @@ import Data.Symbol (SProxy(..))
 data Action
   = ChangeInput String
   | SaveProject
+  | Cancel
 
 instance isEventAction :: IsEvent Action where
   toEvent (ChangeInput _) = Nothing
   toEvent SaveProject = Just { category: Just "SaveAs", action: "SaveProject", label: Nothing, value: Nothing }
+  toEvent Cancel = Just { category: Just "SaveAs", action: "Cancel", label: Nothing, value: Nothing }
 
 type State
   = { projectName :: String
