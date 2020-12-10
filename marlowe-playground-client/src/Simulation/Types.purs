@@ -349,6 +349,7 @@ type State
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     , source :: Lang
+    , hasUnsavedChanges :: Boolean
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -407,6 +408,7 @@ mkState =
   , selectedHole: Nothing
   , oldContract: Nothing
   , source: Marlowe
+  , hasUnsavedChanges: false
   }
 
 isContractValid :: State -> Boolean
@@ -424,6 +426,8 @@ data Action
   | SelectEditorKeyBindings KeyBindings
   | LoadScript String
   | SetEditorText String
+  | InitMarloweProject String
+  | MarkProjectAsSaved
   -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
@@ -487,6 +491,8 @@ instance isEventAction :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent Save = Just $ defaultEvent "Save"
+  toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

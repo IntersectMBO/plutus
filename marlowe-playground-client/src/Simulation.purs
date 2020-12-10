@@ -12,7 +12,7 @@ import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.EuclideanRing ((*))
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (assign, has, modifying, only, over, preview, to, use, view, (^.))
+import Data.Lens (assign, has, modifying, only, over, preview, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -36,8 +36,8 @@ import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
-import Halogen (HalogenM, get, query)
-import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
+import Halogen (HalogenM, get, modify_, query)
+import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
@@ -47,7 +47,7 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
@@ -94,7 +94,10 @@ handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
   updateContractInState ""
 
 handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
-  assign _selectedHole Nothing
+  modify_
+    ( set _selectedHole Nothing
+        <<< set _hasUnsavedChanges' true
+    )
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
   assign _activeDemo ""
@@ -293,6 +296,13 @@ handleAction settings AnalyseReachabilityContract = do
 
 handleAction _ Save = pure unit
 
+handleAction _ (InitMarloweProject contents) = do
+  editorSetValue contents
+  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
+  assign _hasUnsavedChanges' false
+
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
+
 setOraclePrice ::
   forall m.
   MonadAff m =>
@@ -457,7 +467,7 @@ render state =
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
-  div [ classes [ ClassName "group" ] ]
+  div [ classes [ group ] ]
     ( [ editorOptions state
       , sendToBlocklyButton state
       ]
