@@ -1,5 +1,7 @@
 module Simulation
-  ( simulationsPane
+  ( simulationsPaneRefLabel
+  , simulationsErrorRefLabel
+  , simulationsPane
   , simulationsNav
   , simulatorTitle
   ) where
@@ -17,9 +19,10 @@ import Data.Lens (view)
 import Data.Maybe (Maybe(..), isJust)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
+import Halogen (RefLabel(RefLabel))
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, span, text, ul, li)
 import Halogen.HTML.Events (onClick, onValueInput)
-import Halogen.HTML.Properties (class_, classes, disabled, id_)
+import Halogen.HTML.Properties (class_, classes, disabled, id_, ref)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
@@ -32,6 +35,17 @@ import Validation (validate)
 import Wallet (walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
+
+-- halogen reflabels for elements that need to be scolled into view
+simulationsPaneRefLabel :: RefLabel
+simulationsPaneRefLabel = RefLabel "simulations-pane"
+
+simulationsErrorRefLabel :: RefLabel
+simulationsErrorRefLabel = RefLabel "simulation-errors"
+
+-- repeated class names
+navItemButtonClass :: ClassName
+navItemButtonClass = ClassName "simulation-nav-item-control"
 
 -- renders the simulator view title
 simulatorTitle ::
@@ -73,7 +87,9 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
               simulationWallets
     in
       div
-        [ class_ $ ClassName "simulations" ]
+        [ class_ $ ClassName "simulations"
+        , ref simulationsPaneRefLabel
+        ]
         [ simulationsNav simulations
         , div
             [ class_ $ ClassName "simulation" ]
@@ -101,6 +117,7 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
           [ text "Return to the Editor and compile a contract to get started." ]
       ]
 
+-- renders the simulations tab interface
 simulationsNav :: forall p. Cursor Simulation -> HTML p HAction
 simulationsNav simulations =
   ul
@@ -114,9 +131,7 @@ simulationsNav simulations =
         <> [ addSimulationControl ]
     )
 
-navItemButtonClass :: ClassName
-navItemButtonClass = ClassName "simulation-nav-item-control"
-
+-- renders a simulation tab
 simulationNavItem :: forall p. Boolean -> Int -> Int -> Simulation -> Array (HTML p HAction)
 simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   [ li
@@ -141,6 +156,7 @@ simulationNavItem canClose activeIndex index (Simulation { simulationName }) =
   where
   navLinkClasses = if activeIndex == index then [ navLink, active ] else [ navLink ]
 
+-- renders the add simulation control (at the end of the tabs)
 addSimulationControl :: forall p. HTML p HAction
 addSimulationControl =
   li
@@ -157,6 +173,7 @@ addSimulationControl =
         ]
     ]
 
+-- renders the button for evaluating actions (running the simulation)
 evaluateActionsButton :: forall p. WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsButton evaluationResult actions =
   button
@@ -184,6 +201,7 @@ evaluateActionsButton evaluationResult actions =
 
   hasErrors = validationErrors /= []
 
+-- renders the button for viewing transactions (the results of the simulation)
 viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
   button
@@ -197,10 +215,13 @@ viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
     Success _ -> (current simulations) /= lastEvaluatedSimulation
     _ -> true
 
+-- renders the evaluations error pane
 actionsErrorPane :: forall p i. PlaygroundError -> HTML p i
 actionsErrorPane error =
   div
-    [ class_ $ ClassName "ajax-error" ]
+    [ class_ $ ClassName "ajax-error"
+    , ref simulationsErrorRefLabel
+    ]
     [ alertDanger_
         ( (div_ <<< pure)
             <$> (showPlaygroundError error <> [ text "Please try again or contact support for assistance." ])

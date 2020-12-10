@@ -58,7 +58,7 @@ import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
 import Ledger.Value (Value)
 import Monaco (IMarkerData, markerSeverity)
-import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
@@ -67,6 +67,7 @@ import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInit
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
+import Simulation (simulationsPaneRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
 import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastCompiledCode, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
@@ -297,12 +298,15 @@ handleAction EvaluateActions =
         assign _evaluationResult Loading
         result <- lift $ postEvaluation evaluation
         assign _evaluationResult result
-        -- If we got a successful result, update last evaluated simulation and switch tab.
         case result of
-          Success (Left _) -> pure unit
+          Success (Left _) -> do
+            -- if there are errors, scroll the error pane into view
+            lift $ scrollIntoView simulationsErrorRefLabel
           _ -> do
+            -- otherwise update last evaluated simulation and show transactions
             updateSimulationOnSuccess result simulation
             replaceViewOnSuccess result Simulations Transactions
+            lift $ scrollIntoView simulationsPaneRefLabel
         pure unit
 
 handleAction (LoadScript key) = do
