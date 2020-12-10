@@ -5,9 +5,14 @@
 module Language.Marlowe.ACTUS.QCGenerator where
 
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.Schedule
+import           Language.Marlowe.ACTUS.Analysis(genProjectedCashflows)
 import           Test.QuickCheck
 import           Data.Time
 import           Data.Time.Clock.POSIX(posixSecondsToUTCTime)
+import qualified Data.List as L
+import qualified Data.Map as M
 
 epochToDay :: Integer -> Day
 epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
@@ -178,3 +183,10 @@ contractTermsGen = do
     }
 
 
+riskFactorsGen :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGen contractTerms = do
+    ct <- contractTerms
+    let days = cashCalculationDay <$> genProjectedCashflows ct --TODO should be all days between start and end
+        riskAtT = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
+    rf <- vectorOf (L.length days) riskAtT
+    return $ M.fromList $ L.zip days rf
