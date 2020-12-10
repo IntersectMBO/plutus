@@ -198,28 +198,25 @@ editorWrapper ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-editorWrapper state@(State { currentView, contractDemos, editorState }) =
-  let
-    compilationResult = view _compilationResult state
-  in
-    div
-      [ classes [ ClassName "main-body", ClassName "editor" ] ]
-      [ div
-          [ class_ $ ClassName "editor-controls" ]
-          [ div
-              [ class_ $ ClassName "key-bindings" ]
-              [ label_ [ text "Key Bindings" ]
-              , mapComponent EditorAction $ editorPreferencesSelect (view _keyBindings editorState)
-              ]
-          , div
-              [ class_ $ ClassName "editor-buttons" ]
-              [ compileButton compilationResult
-              , simulateButton compilationResult
-              ]
-          ]
-      , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState
-      , mapComponent EditorAction $ editorFeedback editorState compilationResult
-      ]
+editorWrapper state@(State { currentView, contractDemos, editorState, compilationResult }) =
+  div
+    [ classes [ ClassName "main-body", ClassName "editor" ] ]
+    [ div
+        [ class_ $ ClassName "editor-controls" ]
+        [ div
+            [ class_ $ ClassName "key-bindings" ]
+            [ label_ [ text "Key Bindings" ]
+            , mapComponent EditorAction $ editorPreferencesSelect (view _keyBindings editorState)
+            ]
+        , div
+            [ class_ $ ClassName "editor-buttons" ]
+            [ compileButton compilationResult
+            , simulateButton compilationResult
+            ]
+        ]
+    , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState
+    , mapComponent EditorAction $ editorFeedback editorState compilationResult
+    ]
   where
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
