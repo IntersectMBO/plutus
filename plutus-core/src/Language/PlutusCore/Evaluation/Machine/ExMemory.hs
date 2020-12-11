@@ -11,6 +11,8 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+{-# LANGUAGE StrictData            #-}
+
 module Language.PlutusCore.Evaluation.Machine.ExMemory
 ( Plain
 , WithMemory
