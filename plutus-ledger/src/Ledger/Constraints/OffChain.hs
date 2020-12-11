@@ -395,7 +395,11 @@ processConstraint = \case
         let value = Value.singleton (Value.mpsSymbol mpsHash) tn i
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
         unbalancedTx . tx . Tx.forge <>= value
-        valueSpentActual <>= value
+        -- If i is negative we are burning tokens. This counts as an output, so we should subtract
+        -- the amount burned from valueSpentRequired, just as in `MustPayToPubKey` below.
+        -- Subtracting the amount burned is the same as adding the (negative) amount forged.
+        if i < 0 then valueSpentRequired <>= value
+                 else valueSpentActual   <>= value
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
         -- we can subtract vl from 'valueSpentRequired' because
