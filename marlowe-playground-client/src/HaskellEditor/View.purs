@@ -75,6 +75,7 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
   where
   setup editor =
     liftEffect do
+      -- TODO we shouldn't access local storage from the view
       mContents <- LocalStorage.getItem StaticData.bufferLocalStorageKey
       let
         contents = fromMaybe HE.escrow mContents

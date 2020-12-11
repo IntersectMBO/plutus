@@ -34,7 +34,7 @@ import Halogen.Monaco (KeyBindings(DefaultBindings))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.Query.EventSource (eventListenerEventSource)
-import HaskellEditor.State (editorGetValue, editorResize, handleAction) as HaskellEditor
+import HaskellEditor.State as HaskellEditor
 import HaskellEditor.Types (Action(..), State, _ContractString, initialState) as HE
 import JavascriptEditor.State as JavascriptEditor
 import JavascriptEditor.Types (Action(..), State, _ContractString, initialState) as JS
@@ -42,12 +42,15 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Gists (mkNewGist, playgroundFiles)
+import Marlowe.Monaco as MM
+import MarloweEditor.State as MarloweEditor
+import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.Types (Action(..), State, emptyState) as NewProject
@@ -88,6 +91,7 @@ initialState =
     , showBottomPanel: true
     , haskellState: HE.initialState
     , javascriptState: JS.initialState
+    , marloweEditorState: ME.initialState
     , simulationState: ST.mkState
     , jsEditorKeybindings: DefaultBindings
     , activeJSDemo: mempty
@@ -135,6 +139,12 @@ toHaskellEditor ::
   HalogenM HE.State HE.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
 toHaskellEditor = mapSubmodule _haskellState HaskellAction
 
+toMarloweEditor ::
+  forall m a.
+  Functor m =>
+  HalogenM ME.State ME.Action ChildSlots Void m a -> HalogenM State Action ChildSlots Void m a
+toMarloweEditor = mapSubmodule _marloweEditorState MarloweEditorAction
+
 toJavascriptEditor ::
   forall m a.
   Functor m =>
@@ -181,6 +191,8 @@ handleSubRoute ::
 handleSubRoute settings Router.Home = selectView HomePage
 
 handleSubRoute settings Router.Simulation = selectView Simulation
+
+handleSubRoute settings Router.MarloweEditor = selectView MarloweEditor
 
 handleSubRoute settings Router.HaskellEditor = selectView HaskellEditor
 
@@ -300,6 +312,15 @@ handleAction s (HaskellAction action) = do
       selectView BlocklyEditor
     -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
     (HE.HandleEditorMessage (Monaco.TextChanged _)) -> do
+      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+      assign _hasUnsavedChanges hasUnsavedChanges
+    _ -> pure unit
+
+handleAction s (MarloweEditorAction action) = do
+  toMarloweEditor (MarloweEditor.handleAction s action)
+  case action of
+    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
+    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> do
       hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
       assign _hasUnsavedChanges hasUnsavedChanges
     _ -> pure unit
@@ -562,6 +583,7 @@ routeToView { subroute } = case subroute of
   Router.Home -> Just HomePage
   Router.Simulation -> Just Simulation
   Router.HaskellEditor -> Just HaskellEditor
+  Router.MarloweEditor -> Just MarloweEditor
   Router.JSEditor -> Just JSEditor
   Router.ActusBlocklyEditor -> Just ActusBlocklyEditor
   Router.Blockly -> Just BlocklyEditor
@@ -571,6 +593,7 @@ routeToView { subroute } = case subroute of
 viewToRoute :: View -> Router.SubRoute
 viewToRoute = case _ of
   HomePage -> Router.Home
+  MarloweEditor -> Router.MarloweEditor
   Simulation -> Router.Simulation
   HaskellEditor -> Router.HaskellEditor
   JSEditor -> Router.JSEditor
@@ -812,6 +835,9 @@ selectView view = do
     Simulation -> do
       Simulation.editorResize
       Simulation.editorSetTheme
+    MarloweEditor -> do
+      MarloweEditor.editorResize
+      void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
     HaskellEditor -> do
       HaskellEditor.editorResize
       void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)

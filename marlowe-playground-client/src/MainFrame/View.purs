@@ -58,6 +58,7 @@ render settings state =
           , section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
+              , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.render state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
               , tabContents BlocklyEditor

@@ -27,6 +27,7 @@ import HaskellEditor.Types as HE
 import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
 import Network.RemoteData (_Loading)
+import MarloweEditor.Types as ME
 import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, ($), (&&), (<<<), (||))
 import Projects.Types (Lang(..))
@@ -73,6 +74,7 @@ data Action
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
   | SendBlocklyToSimulator
+  | MarloweEditorAction ME.Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
   | ChangeView View
@@ -104,6 +106,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SimulationAction action) = toEvent action
   toEvent SendBlocklyToSimulator = Just $ defaultEvent "SendBlocklyToSimulator"
   toEvent (JavascriptAction action) = toEvent action
+  toEvent (MarloweEditorAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
@@ -124,6 +127,7 @@ instance actionIsEvent :: IsEvent Action where
 
 data View
   = HomePage
+  | MarloweEditor
   | HaskellEditor
   | JSEditor
   | Simulation
@@ -144,7 +148,9 @@ type ChildSlots
     , blocklySlot :: H.Slot Blockly.Query Blockly.Message Unit
     , actusBlocklySlot :: H.Slot AB.Query AB.Message Unit
     , simulationSlot :: H.Slot Simulation.Query Blockly.Message Unit
+    -- FIXME: Do deeper investigation and merge these two slots together
     , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
+    , marloweEditorPageSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
 
@@ -166,6 +172,9 @@ _simulationSlot = SProxy
 _marloweEditorSlot :: SProxy "marloweEditorSlot"
 _marloweEditorSlot = SProxy
 
+_marloweEditorPageSlot :: SProxy "marloweEditorPageSlot"
+_marloweEditorPageSlot = SProxy
+
 _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
 
@@ -177,8 +186,10 @@ newtype State
   , jsEditorKeybindings :: KeyBindings
   , activeJSDemo :: String
   , showBottomPanel :: Boolean
+  -- TODO: rename to haskellEditorState
   , haskellState :: HE.State
   , javascriptState :: JS.State
+  , marloweEditorState :: ME.State
   , simulationState :: Simulation.State
   , projects :: Projects.State
   , newProject :: NewProject.State
@@ -215,6 +226,9 @@ _activeJSDemo = _Newtype <<< prop (SProxy :: SProxy "activeJSDemo")
 
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+
+_marloweEditorState :: Lens' State ME.State
+_marloweEditorState = _Newtype <<< prop (SProxy :: SProxy "marloweEditorState")
 
 _haskellState :: Lens' State HE.State
 _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
