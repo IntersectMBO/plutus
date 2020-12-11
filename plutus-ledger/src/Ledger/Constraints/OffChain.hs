@@ -392,7 +392,7 @@ processConstraint = \case
         unbalancedTx . tx . Tx.forgeScripts %= Set.insert monetaryPolicyScript
         unbalancedTx . tx . Tx.forge <>= value
         -- If i is negative we are burning tokens. This counts as an output, so we should subtract
-        -- the amount burned from valueSpentRequired, just as in `MustPayToPubKey` below.
+        -- the amount burned from valueSpentBalance, just as in `MustPayToPubKey` below.
         -- Subtracting the amount burned is the same as adding the (negative) amount forged.
         if i < 0 then valueSpentBalance <>= value
                  else valueSpentBalance  <>= N.negate value
