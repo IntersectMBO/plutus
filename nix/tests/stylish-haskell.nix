@@ -1,4 +1,4 @@
-{ runCommand, stylish-haskell, src, lib, diffutils, glibcLocales }:
+{ runCommand, fixStylishHaskell, src, lib, diffutils, glibcLocales }:
 let
   # just haskell sources and the stylish-haskell config file
   src' = lib.cleanSourceWith {
@@ -9,20 +9,20 @@ let
         (
           (type == "regular" && hasSuffix ".hs" baseName) ||
           (type == "regular" && hasSuffix ".yaml" baseName) ||
-          (type == "directory" && (baseName != "docs" && baseName != "dist" && baseName != ".stack-work"))
+          (type == "directory" && (baseName != "dist-newstyle" && baseName != "dist" && baseName != ".stack-work"))
         );
   };
 in
 runCommand "stylish-check"
 {
-  buildInputs = [ stylish-haskell diffutils glibcLocales ];
+  buildInputs = [ fixStylishHaskell diffutils glibcLocales ];
 } ''
   set +e
   cp -a ${src'} orig
   cp -a ${src'} stylish
   chmod -R +w stylish
   cd stylish
-  find . -type f -name "*hs" -not -name 'HLint.hs' -exec stylish-haskell -i {} \;
+  fix-stylish-haskell
   cd ..
   diff --brief --recursive orig stylish > /dev/null
   EXIT_CODE=$?
