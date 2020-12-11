@@ -33,8 +33,8 @@ import Web.HTML.Event.DragEvent (DragEvent)
 actionClass :: ClassName
 actionClass = ClassName "action"
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
-actionsPane isValidWallet actionDrag actions evaluationResult =
+actionsPane :: forall p. (ContractCall FormArgument -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane hasWallet actionDrag actions evaluationResult =
   div
     [ class_ $ ClassName "actions" ]
     [ h2_ [ text "Actions" ]
@@ -47,13 +47,13 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
                 [ ClassName "actions-being-dragged" ]
         ]
         ( Array.snoc
-            (mapWithIndex (actionPane isValidWallet actionDrag) actions)
+            (mapWithIndex (actionPane hasWallet actionDrag) actions)
             (addWaitActionPane (Array.length actions))
         )
     ]
 
-actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
-actionPane isValidWallet actionDrag index action =
+actionPane :: forall p. (ContractCall FormArgument -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
+actionPane hasWallet actionDrag index action =
   Tuple (show index)
     $ div
         ( [ classes
@@ -62,11 +62,7 @@ actionPane isValidWallet actionDrag index action =
                 , ClassName ("action-" <> show index)
                 , ClassName
                     ( "action-"
-                        <> ( case isValidWallet <$> (preview (_CallEndpoint <<< _caller) action) of
-                              Nothing -> "valid-wallet"
-                              Just true -> "valid-wallet"
-                              Just false -> "invalid-wallet"
-                          )
+                        <> (if hasWallet action then "valid-wallet" else "invalid-wallet")
                     )
                 ]
                   <> if actionDrag == Just index then

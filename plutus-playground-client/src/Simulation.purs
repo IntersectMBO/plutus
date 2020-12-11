@@ -9,14 +9,14 @@ module Simulation
 import Types
 import Action (actionsPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alertDanger_, btn, btnDanger, btnWarning, empty, floatRight, nav, navItem, navLink)
+import Bootstrap (active, alertDanger_, btn, empty, floatRight, nav, navItem, navLink)
 import Cursor (Cursor, current)
 import Cursor as Cursor
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Lens (view)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (RefLabel(RefLabel))
@@ -28,8 +28,8 @@ import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, Failure, Success))
-import Playground.Types (ContractCall, EvaluationResult, PlaygroundError(..), Simulation(..))
-import Prelude (const, map, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
+import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError(..), Simulation(..))
+import Prelude (const, map, not, pure, show, (&&), (||), (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema.Types (FormArgument, Signatures)
 import Validation (validate)
 import Wallet (walletsPane)
@@ -72,15 +72,23 @@ simulationsPane ::
 simulationsPane initialValue actionDrag endpointSignatures simulations lastEvaluatedSimulation evaluationResult = case current simulations of
   Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
     let
-      isValidWallet :: Wallet -> Boolean
-      isValidWallet target =
-        isJust
-          $ Array.find
-              ( \wallet ->
-                  view _walletId target
-                    == view (_simulatorWalletWallet <<< _walletId) wallet
-              )
-              simulationWallets
+      walletExists :: Wallet -> Boolean
+      walletExists wallet =
+        Array.any
+          (\simulationWallet -> view _walletId wallet == view (_simulatorWalletWallet <<< _walletId) simulationWallet)
+          simulationWallets
+
+      actionWalletsExist :: ContractCall FormArgument -> Boolean
+      actionWalletsExist (AddBlocks _) = true -- because there is no wallet to check for in the first place
+
+      actionWalletsExist (AddBlocksUntil _) = true -- ditto
+
+      actionWalletsExist (CallEndpoint a@{ caller }) = walletExists caller
+
+      actionWalletsExist (PayToWallet a@{ sender, recipient }) = walletExists sender && walletExists recipient
+
+      allActionWalletsExist :: Boolean
+      allActionWalletsExist = Array.all actionWalletsExist simulationActions
     in
       div
         [ class_ $ ClassName "simulations"
@@ -91,14 +99,14 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
             [ class_ $ ClassName "simulation" ]
             [ div
                 [ classes [ ClassName "simulation-controls", floatRight ] ]
-                [ evaluateActionsButton evaluationResult simulationActions
+                [ evaluateActionsButton allActionWalletsExist evaluationResult simulationActions
                 , viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult
                 ]
             , walletsPane endpointSignatures initialValue simulationWallets
-            , actionsPane isValidWallet actionDrag simulationActions evaluationResult
+            , actionsPane actionWalletsExist actionDrag simulationActions evaluationResult
             , div
                 [ classes [ ClassName "simulation-controls" ] ]
-                [ evaluateActionsButton evaluationResult simulationActions
+                [ evaluateActionsButton allActionWalletsExist evaluationResult simulationActions
                 , viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult
                 ]
             , case evaluationResult of
@@ -166,23 +174,15 @@ addSimulationControl =
         ]
     ]
 
-evaluateActionsButton :: forall p. WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
-evaluateActionsButton evaluationResult actions =
+evaluateActionsButton :: forall p. Boolean -> WebData (Either PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
+evaluateActionsButton allActionsHaveWallets evaluationResult actions =
   button
-    [ classes [ btn, btnClass evaluationResult hasErrors ]
+    [ classes [ btn, ClassName "btn-green" ]
     , disabled hasErrors
     , onClick $ const $ Just EvaluateActions
     ]
     [ btnText evaluationResult hasErrors ]
   where
-  btnClass _ true = btnWarning
-
-  btnClass (Success (Left _)) _ = btnDanger
-
-  btnClass (Failure _) _ = btnDanger
-
-  btnClass _ _ = ClassName "btn-green"
-
   btnText Loading _ = icon Spinner
 
   btnText _ true = text "Fix Errors"
@@ -191,7 +191,7 @@ evaluateActionsButton evaluationResult actions =
 
   validationErrors = Array.concat $ validate <$> actions
 
-  hasErrors = validationErrors /= []
+  hasErrors = validationErrors /= [] || not allActionsHaveWallets
 
 viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
 viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
