@@ -49,7 +49,8 @@ library
     time -any,
     loch-th -any,
     sort -any,
-    validation -any
+    validation -any,
+    QuickCheck
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -58,6 +59,7 @@ library
   exposed-modules:
     Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.Generator
+    Language.Marlowe.ACTUS.QCGenerator
     Language.Marlowe.ACTUS.Analysis
     Language.Marlowe.ACTUS.Definitions.BusinessEvents
     Language.Marlowe.ACTUS.Definitions.ContractTerms

@@ -14,3 +14,5 @@ tests = testGroup "Marlowe Contracts"
         [
                 Spec.Marlowe.Actus.tests
         ]
+
+
