@@ -38,8 +38,15 @@ zeroOr original = oneof [return 0.0, original]
 oneOr :: Gen Double -> Gen Double
 oneOr original = oneof [return 1.0, original]
 
+maxDate :: Integer
+maxDate = 1607672749
+
+secondsPerYear :: Integer
+secondsPerYear = 31557600
+
 date :: Gen Day
-date = epochToDay <$> choose (0, 1607672749)
+date = epochToDay <$> choose (0, maxDate)
+
 
 cyclePeriodFreq :: Gen Period
 cyclePeriodFreq = frequency [ (1, return P_D)
@@ -51,7 +58,7 @@ cyclePeriodFreq = frequency [ (1, return P_D)
                             ]
 
 datecycle :: Gen Cycle
-datecycle = Cycle <$> choose (0, 100) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub]
+datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secondsPerYear))) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub]
 
 contractTermsGen :: Gen ContractTerms
 contractTermsGen = do 
