@@ -1,9 +1,11 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -22,7 +24,9 @@ module Language.Plutus.Contract.StateMachine.OnChain(
     , mkValidator
     ) where
 
-import Data.Void (Void)
+import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Void                        (Void)
+import           GHC.Generics                     (Generic)
 
 import qualified Language.PlutusTx                as PlutusTx
 import           Language.PlutusTx.Prelude        hiding (check)
@@ -31,10 +35,13 @@ import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
 import           Ledger                           (Address, Value)
 import           Ledger.Typed.Scripts
-import           Ledger.Validation                (ValidatorCtx (..), TxInInfo (..), findOwnInput)
+import           Ledger.Validation                (TxInInfo (..), ValidatorCtx (..), findOwnInput)
 import           Ledger.Value                     (isZero)
+import qualified Prelude                          as Haskell
 
 data State s = State { stateData :: s, stateValue :: Value }
+    deriving stock (Haskell.Eq, Haskell.Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 -- | Specification of a state machine, consisting of a transition function that determines the
 -- next state from the current state and an input, and a checking function that checks the validity

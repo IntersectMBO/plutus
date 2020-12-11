@@ -9,7 +9,7 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (class Foldable, traverse_)
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, EffectFn3, runEffectFn1, runEffectFn3)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, runEffectFn1, runEffectFn2, runEffectFn3)
 import Foreign (Foreign)
 import Global (infinity)
 import Halogen.HTML (AttrName(..), ElemName(..), Node)
@@ -18,6 +18,7 @@ import Halogen.HTML.Properties (IProp, attr)
 import Record as Record
 import Simple.JSON (class WriteForeign)
 import Simple.JSON as JSON
+import Web.Event.EventTarget (EventListener)
 import Web.HTML (HTMLElement)
 
 type GridConfig
@@ -85,6 +86,10 @@ foreign import addBlockType_ :: forall r. Fn3 (STRef r Blockly) String Foreign (
 
 foreign import initializeWorkspace_ :: forall r. Fn2 Blockly (STRef r Workspace) (ST r Unit)
 
+foreign import addChangeListener_ :: EffectFn2 Workspace EventListener Unit
+
+foreign import removeChangeListener_ :: EffectFn2 Workspace EventListener Unit
+
 foreign import render_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
 
 foreign import getBlockById_ :: forall a. Fn4 (a -> Maybe a) (Maybe a) Workspace String (Maybe Block)
@@ -120,24 +125,24 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
     , sounds: true
     , oneBasedIndex: true
     , move:
-      { scrollbars: true
-      , drag: true
-      , wheel: true
-      }
+        { scrollbars: true
+        , drag: true
+        , wheel: true
+        }
     , zoom:
-      { controls: true
-      , wheel: false
-      , startScale: 1.0
-      , maxScale: 3.0
-      , minScale: 0.3
-      , scaleSpeed: 1.2
-      }
+        { controls: true
+        , wheel: false
+        , startScale: 1.0
+        , maxScale: 3.0
+        , minScale: 0.3
+        , scaleSpeed: 1.2
+        }
     , grid:
-      { spacing: 20
-      , length: 3
-      , colour: "#ccc"
-      , snap: true
-      }
+        { spacing: 20
+        , length: 3
+        , colour: "#ccc"
+        , snap: true
+        }
     }
 
 resize :: forall r. Blockly -> STRef r Workspace -> ST r Unit
@@ -157,6 +162,12 @@ addBlockTypes blocklyState = traverse_ (addBlockType blocklyState)
 
 initializeWorkspace :: forall r. Blockly -> STRef r Workspace -> ST r Unit
 initializeWorkspace = runFn2 initializeWorkspace_
+
+addChangeListener :: Workspace -> EventListener -> Effect Unit
+addChangeListener = runEffectFn2 addChangeListener_
+
+removeChangeListener :: Workspace -> EventListener -> Effect Unit
+removeChangeListener = runEffectFn2 removeChangeListener_
 
 render :: forall r. (STRef r Workspace) -> ST r Unit
 render = runFn1 render_

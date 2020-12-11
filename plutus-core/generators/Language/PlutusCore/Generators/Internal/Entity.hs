@@ -28,10 +28,11 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.Generators.Internal.Dependent
-import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
+import           Language.PlutusCore.Generators.Internal.TypedBuiltinGen
 import           Language.PlutusCore.Generators.Internal.Utils
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
@@ -52,8 +53,8 @@ import           Hedgehog                                                hiding 
 import qualified Hedgehog.Gen                                            as Gen
 
 -- | Generators of built-ins supplied to computations that run in the 'PlcGenT' monad.
-newtype BuiltinGensT uni m = BuiltinGensT
-    { _builtinGensTyped :: TypedBuiltinGenT (Plain Term uni) m
+newtype BuiltinGensT uni fun m = BuiltinGensT
+    { _builtinGensTyped :: TypedBuiltinGenT (Plain Term uni fun) m
       -- ^ Generates a PLC 'Term' and the corresponding
       -- Haskell value out of a 'TypedBuiltin'.
     }
@@ -64,7 +65,7 @@ newtype BuiltinGensT uni m = BuiltinGensT
 -- never generates a zero, so this generator can be used in order to avoid the
 -- divide-by-zero-induced @error@. Supplied generators are of arbitrary complexity
 -- and can call the currently running generator recursively, for example.
-type PlcGenT uni m = GenT (ReaderT (BuiltinGensT uni m) m)
+type PlcGenT uni fun m = GenT (ReaderT (BuiltinGensT uni fun m) m)
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
@@ -77,15 +78,15 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
-data IterAppValue uni head arg r = IterAppValue
-    { _iterTerm :: Plain Term uni    -- ^ As a PLC 'Term'.
-    , _iterApp  :: IterApp head arg  -- ^ As an 'IterApp'.
-    , _iterTbv  :: r                 -- ^ As a Haskell value.
+data IterAppValue uni fun head arg r = KnownType arg r => IterAppValue
+    { _iterTerm :: Plain Term uni fun  -- ^ As a PLC 'Term'.
+    , _iterApp  :: IterApp head arg    -- ^ As an 'IterApp'.
+    , _iterTbv  :: r                   -- ^ As a Haskell value.
     }
 
-instance ( PrettyBy config (Plain Term uni)
+instance ( PrettyBy config (Plain Term uni fun)
          , PrettyBy config head, PrettyBy config arg, PrettyConst r
-         ) => PrettyBy config (IterAppValue uni head arg r) where
+         ) => PrettyBy config (IterAppValue uni fun head arg r) where
     prettyBy config (IterAppValue term pia y) = parens $ fold
         [ "{ ", prettyBy config term, line
         , "| ", prettyBy config pia, line
@@ -94,11 +95,11 @@ instance ( PrettyBy config (Plain Term uni)
         ]
 
 -- | Run a 'PlcGenT' computation by supplying built-ins generators.
-runPlcT :: Monad m => TypedBuiltinGenT (Plain Term uni) m -> PlcGenT uni m a -> GenT m a
+runPlcT :: Monad m => TypedBuiltinGenT (Plain Term uni fun) m -> PlcGenT uni fun m a -> GenT m a
 runPlcT genTb = hoistSupply $ BuiltinGensT genTb
 
 -- | Get a 'TermOf' out of an 'IterAppValue'.
-iterAppValueToTermOf :: IterAppValue uni head arg r -> TermOf (Plain Term uni) r
+iterAppValueToTermOf :: IterAppValue uni fun head arg r -> TermOf (Plain Term uni fun) r
 iterAppValueToTermOf (IterAppValue term _ y) = TermOf term y
 
 -- | Add to the 'ByteString' representation of a 'Name' its 'Unique'
@@ -113,20 +114,18 @@ withTypedBuiltinGen
     :: (Generatable uni, HasConstantIn uni term, Monad m)
     => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
-    [ k @Integer        AsKnownType
+    [ k @Integer       AsKnownType
     , k @BS.ByteString AsKnownType
-    , k @Bool           AsKnownType
+    , k @Bool          AsKnownType
     ]
 
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: ( Generatable uni, Monad m
-       , Closed uni, uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
-       )
-    => TypedBuiltinGenT (Plain Term uni) m
-    -> (forall a. AsKnownType (Plain Term uni) a ->
-            TermOf (Plain Term uni) (EvaluationResult (Plain Term uni)) ->
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+    => TypedBuiltinGenT (Plain Term uni fun) m
+    -> (forall a. AsKnownType (Plain Term uni fun) a ->
+            TermOf (Plain Term uni fun) (EvaluationResult (Plain Term uni fun)) ->
                 GenT m c)
     -> GenT m c
 withCheckedTermGen genTb k =
@@ -142,51 +141,51 @@ withCheckedTermGen genTb k =
 --   2. grow the 'IterApp' component by appending arguments to its spine
 --   3. feed arguments to the Haskell function
 genIterAppValue
-    :: forall head uni res m. Monad m
-    => Denotation (Plain Term uni) head res
-    -> PlcGenT uni m (IterAppValue uni head (Plain Term uni) res)
+    :: forall head uni fun res m. Monad m
+    => Denotation (Plain Term uni fun) head res
+    -> PlcGenT uni fun m (IterAppValue uni fun head (Plain Term uni fun) res)
 genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme (Plain Term uni) args res
-        -> Plain Term uni
-        -> ([Plain Term uni] -> [Plain Term uni])
+        :: TypeScheme (Plain Term uni fun) args res
+        -> Plain Term uni fun
+        -> ([Plain Term uni fun] -> [Plain Term uni fun])
         -> FoldArgs args res
-        -> PlcGenT uni m (IterAppValue uni head (Plain Term uni) res)
-    go (TypeSchemeResult _)       term args y = do  -- Computed the result.
+        -> PlcGenT uni fun m (IterAppValue uni fun head (Plain Term uni fun) res)
+    go (TypeSchemeResult _)     term args y = do  -- Computed the result.
         let pia = IterApp object $ args []
         return $ IterAppValue term pia y
-    go (TypeSchemeArrow _ schB)   term args f = do  -- Another argument is required.
+    go (TypeSchemeArrow _ schB) term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
         TermOf v x <- liftT $ genTb AsKnownType  -- Get a Haskell and the correspoding PLC values.
         let term' = Apply () term v              -- Apply the term to the PLC value.
             args' = args . (v :)                 -- Append the PLC value to the spine.
             y     = f x                          -- Apply the Haskell function to the generated argument.
         go schB term' args' y
-    go (TypeSchemeAll _ _ schK) term args f =
+    go (TypeSchemeAll _ schK)   term args f =
         go (schK Proxy) term args f
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.
 -- Generates first-order functions and constants including constant applications.
--- Arguments to functions and 'BuiltinName's are generated recursively.
+-- Arguments to functions and 'Builtin's are generated recursively.
 genTerm
-    :: forall uni m.
+    :: forall uni fun m.
        (Generatable uni, Monad m)
-    => TypedBuiltinGenT (Plain Term uni) m
+    => TypedBuiltinGenT (Plain Term uni fun) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
-    -> DenotationContext (Plain Term uni)
-       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
+    -> DenotationContext (Plain Term uni fun)
+       -- ^ A context to generate terms in. See for example 'typedBuiltins'.
        -- Gets extended by a variable when an applied lambda is generated.
     -> Int
        -- ^ Depth of recursion.
-    -> TypedBuiltinGenT (Plain Term uni) m
+    -> TypedBuiltinGenT (Plain Term uni fun) m
 genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 where
     go
-        :: DenotationContext (Plain Term uni)
+        :: DenotationContext (Plain Term uni fun)
         -> Int
-        -> AsKnownType (Plain Term uni) r
-        -> GenT (QuoteT m) (TermOf (Plain Term uni) r)
+        -> AsKnownType (Plain Term uni fun) r
+        -> GenT (QuoteT m) (TermOf (Plain Term uni fun) r)
     go context depth akt
         -- FIXME: should be using 'variables' but this is now the same as 'recursive'
         | depth == 0 = choiceDef (liftT $ genBase akt) []
@@ -225,15 +224,13 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
 
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
-genTermLoose
-     :: (Generatable uni, Monad m)
-     => TypedBuiltinGenT (Plain Term uni) m
-genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
+genTermLoose :: Monad m => TypedBuiltinGenT (Plain Term DefaultUni DefaultFun) m
+genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: (Generatable uni, Monad m)
-     => (forall a. KnownType (Plain Term uni) a => TermOf (Plain Term uni) a -> GenT m c)
+     :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+     => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k

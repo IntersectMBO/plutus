@@ -23,8 +23,8 @@ import           Data.Text.Prettyprint.Doc
 
 instance
         ( PrettyReadableBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => PrettyBy (PrettyConfigReadable configName) (Term name uni a) where
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        ) => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ val -> unitDocM $ pretty val
         Builtin _ bi -> unitDocM $ pretty bi
@@ -42,8 +42,8 @@ instance
                 "force" <+> prettyEl term
         Error _ -> unitDocM "error"
 
-instance PrettyReadableBy configName (Term name uni a) =>
-        PrettyBy (PrettyConfigReadable configName) (Program name uni a) where
+instance PrettyReadableBy configName (Term name uni fun a) =>
+        PrettyBy (PrettyConfigReadable configName) (Program name uni fun a) where
     prettyBy = inContextM $ \(Program _ version term) ->
         sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
             "program" <+> pretty version <+> prettyEl term

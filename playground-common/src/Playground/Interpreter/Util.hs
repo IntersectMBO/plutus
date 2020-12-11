@@ -55,7 +55,8 @@ import           Playground.Types                                (ContractCall (
 import           Wallet.Emulator.Chain                           (ChainState (ChainState), _chainNewestFirst, _index,
                                                                   _txPool)
 import           Wallet.Emulator.NodeClient                      (NodeClientState, clientIndex)
-import           Wallet.Emulator.Types                           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
+import           Wallet.Emulator.Types                           (EmulatorEvent,
+                                                                  EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
                                                                   Wallet)
 import           Wallet.Emulator.Wallet                          (walletAddress, walletPubKey)
 import           Wallet.Rollup                                   (doAnnotateBlockchain)

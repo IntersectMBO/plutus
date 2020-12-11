@@ -3,8 +3,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans        #-}  -- The @Pretty ByteString@ instance.
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}  -- Appears in generated instances.
 
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -13,6 +15,7 @@ module Language.PlutusCore.Universe.Default
     ( DefaultUni (..)
     ) where
 
+import           Language.PlutusCore.Parsable
 import           Language.PlutusCore.Universe.Core
 
 import qualified Data.ByteString                   as BS
@@ -79,17 +82,26 @@ instance Show (DefaultUni a) where
     show DefaultUniUnit       = "unit"
     show DefaultUniBool       = "bool"
 
+instance Parsable (Some DefaultUni) where
+    parse "bool"       = Just $ Some DefaultUniBool
+    parse "bytestring" = Just $ Some DefaultUniByteString
+    parse "char"       = Just $ Some DefaultUniChar
+    parse "integer"    = Just $ Some DefaultUniInteger
+    parse "string"     = Just $ Some DefaultUniString
+    parse "unit"       = Just $ Some DefaultUniUnit
+    parse _            = Nothing
+
 instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
-instance DefaultUni `Includes` BS.ByteString  where knownUni = DefaultUniByteString
+instance DefaultUni `Includes` BS.ByteString   where knownUni = DefaultUniByteString
 instance a ~ Char => DefaultUni `Includes` [a] where knownUni = DefaultUniString
 instance DefaultUni `Includes` Char            where knownUni = DefaultUniChar
 instance DefaultUni `Includes` ()              where knownUni = DefaultUniUnit
 instance DefaultUni `Includes` Bool            where knownUni = DefaultUniBool
 
 {- Note [Stable encoding of tags]
-'tagOf' and 'uniAt' are used for serialisation and deserialisation of types from the universe and
-we need serialised things to be extremely stable, hence the definitions of 'tagOf' and 'uniAt'
-must be amended only in a backwards compatible manner.
+'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
+universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
+and 'decodeUni' must be amended only in a backwards compatible manner.
 
 See Note [Stable encoding of PLC]
 -}

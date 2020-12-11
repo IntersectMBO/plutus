@@ -1174,9 +1174,9 @@ instance encodeTransactionInput :: Encode TransactionInput where
   ) =
     encode
       { tx_interval:
-        { from: fromSlot
-        , to: toSlot
-        }
+          { from: fromSlot
+          , to: toSlot
+          }
       , tx_inputs: txInps
       }
 

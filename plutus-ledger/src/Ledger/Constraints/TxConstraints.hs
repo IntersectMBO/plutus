@@ -271,13 +271,13 @@ requiredDatums = foldMap f . txConstraints where
 modifiesUtxoSet :: forall i o. TxConstraints i o -> Bool
 modifiesUtxoSet TxConstraints{txConstraints, txOwnOutputs, txOwnInputs} =
     let requiresInputOutput = \case
-            MustSpendValue{} -> True
-            MustSpendPubKeyOutput{} -> True
-            MustSpendScriptOutput{} -> True
-            MustForgeValue{} -> True
-            MustPayToPubKey _ vl -> not (isZero vl)
+            MustSpendValue{}            -> True
+            MustSpendPubKeyOutput{}     -> True
+            MustSpendScriptOutput{}     -> True
+            MustForgeValue{}            -> True
+            MustPayToPubKey _ vl        -> not (isZero vl)
             MustPayToOtherScript _ _ vl -> not (isZero vl)
-            _ -> False
+            _                           -> False
     in any requiresInputOutput txConstraints
         || not (null txOwnOutputs)
         || not (null txOwnInputs)

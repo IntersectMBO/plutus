@@ -1,5 +1,4 @@
 { runCommand, stylish-haskell, src, lib, diffutils, glibcLocales }:
-
 let
   # just haskell sources and the stylish-haskell config file
   src' = lib.cleanSourceWith {

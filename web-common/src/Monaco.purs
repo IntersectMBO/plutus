@@ -8,6 +8,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
+import Data.Nullable (Nullable, toMaybe)
 import Data.String.Regex (Regex)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple)
@@ -226,7 +227,13 @@ foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMa
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
-foreign import addExtraTypesScriptLibsJS_ :: EffectFn1 Monaco Unit
+foreign import addExtraTypeScriptLibsJS_ :: EffectFn1 Monaco Unit
+
+foreign import getDecorationRange_ :: EffectFn2 ITextModel String (Nullable IRange)
+
+foreign import setStrictNullChecks_ :: EffectFn2 Monaco Boolean Unit
+
+foreign import setDeltaDecorations_ :: EffectFn3 Editor Int Int String
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
 
@@ -235,6 +242,8 @@ foreign import getEditorId_ :: Fn1 Editor String
 foreign import getValue_ :: Fn1 ITextModel String
 
 foreign import setValue_ :: EffectFn2 ITextModel String Unit
+
+foreign import getLineCount_ :: Fn1 ITextModel Int
 
 foreign import setTokensProvider_ :: EffectFn3 Monaco String TokensProvider Unit
 
@@ -296,8 +305,17 @@ defineTheme = runEffectFn2 defineTheme_
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
 setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
-addExtraTypesScriptLibsJS :: Monaco -> Effect Unit
-addExtraTypesScriptLibsJS = runEffectFn1 addExtraTypesScriptLibsJS_
+addExtraTypeScriptLibsJS :: Monaco -> Effect Unit
+addExtraTypeScriptLibsJS = runEffectFn1 addExtraTypeScriptLibsJS_
+
+setStrictNullChecks :: Monaco -> Boolean -> Effect Unit
+setStrictNullChecks = runEffectFn2 setStrictNullChecks_
+
+getDecorationRange :: ITextModel -> String -> Effect (Maybe IRange)
+getDecorationRange model id = toMaybe <$> runEffectFn2 getDecorationRange_ model id
+
+setDeltaDecorations :: Editor -> Int -> Int -> Effect String
+setDeltaDecorations = runEffectFn3 setDeltaDecorations_
 
 getModel :: Editor -> Effect ITextModel
 getModel = runEffectFn1 getModel_
@@ -310,6 +328,9 @@ getValue = runFn1 getValue_
 
 setValue :: ITextModel -> String -> Effect Unit
 setValue = runEffectFn2 setValue_
+
+getLineCount :: ITextModel -> Int
+getLineCount = runFn1 getLineCount_
 
 setModelMarkers :: Monaco -> ITextModel -> String -> Array IMarkerData -> Effect Unit
 setModelMarkers = runEffectFn4 setModelMarkers_

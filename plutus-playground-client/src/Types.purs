@@ -22,7 +22,7 @@ import Data.Traversable (traverse)
 import Editor.Types as Editor
 import Foreign.Generic (encodeJSON)
 import Gist (Gist)
-import Gists (GistAction)
+import Gists.Types (GistAction)
 import Halogen as H
 import Halogen.Chartist as Chartist
 import Halogen.Monaco as Monaco
@@ -196,9 +196,11 @@ newtype State
   , contractDemos :: Array ContractDemo
   , editorState :: Editor.State
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
+  , lastCompiledCode :: Maybe SourceCode
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
   , evaluationResult :: WebData (Either PlaygroundError EvaluationResult)
+  , lastEvaluatedSimulation :: Maybe Simulation
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
@@ -216,6 +218,9 @@ _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
 _editorState :: Lens' State Editor.State
 _editorState = _Newtype <<< prop (SProxy :: SProxy "editorState")
 
+_lastCompiledCode :: Lens' State (Maybe SourceCode)
+_lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
+
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
@@ -230,6 +235,9 @@ _simulationWallets = _Newtype <<< prop (SProxy :: SProxy "simulationWallets")
 
 _evaluationResult :: Lens' State (WebData (Either PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
+
+_lastEvaluatedSimulation :: Lens' State (Maybe Simulation)
+_lastEvaluatedSimulation = _Newtype <<< prop (SProxy :: SProxy "lastEvaluatedSimulation")
 
 _resultRollup :: Lens' EvaluationResult (Array (Array AnnotatedTx))
 _resultRollup = _Newtype <<< prop (SProxy :: SProxy "resultRollup")

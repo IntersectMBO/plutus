@@ -44,6 +44,7 @@ library
     plutus-contract -any,
     plutus-core,
     plutus-ledger,
+    plutus-use-cases,
     text,
     vector,
     sbv >= 8.4,
@@ -82,10 +83,9 @@ test-suite marlowe-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-      -- Spec.Common
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
-      -- Spec.Actus
+        Spec.Marlowe.AutoExecute
     build-depends:
         aeson -any,
         base >=4.9 && <5,

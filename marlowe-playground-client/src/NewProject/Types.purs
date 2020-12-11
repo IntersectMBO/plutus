@@ -1,7 +1,7 @@
 module NewProject.Types where
 
 import Prelude
-import Analytics (class IsEvent, Event)
+import Analytics (class IsEvent)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -9,26 +9,17 @@ import Data.Symbol (SProxy(..))
 import Projects.Types (Lang)
 
 data Action
-  = ChangeProjectName String
-  | CreateProject Lang
-
-defaultEvent :: String -> Event
-defaultEvent action = { category: Just "NewProject", action, label: Nothing, value: Nothing }
+  = CreateProject Lang
 
 instance isEventAction :: IsEvent Action where
-  toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
   toEvent (CreateProject lang) = Just { category: Just "NewProject", action: "CreateProject", label: Just (show lang), value: Nothing }
 
 type State
-  = { projectName :: String
-    , error :: Maybe String
+  = { error :: Maybe String
     }
 
 emptyState :: State
-emptyState = { projectName: "New Project", error: Nothing }
-
-_projectName :: Lens' State String
-_projectName = prop (SProxy :: SProxy "projectName")
+emptyState = { error: Nothing }
 
 _error :: Lens' State (Maybe String)
 _error = prop (SProxy :: SProxy "error")

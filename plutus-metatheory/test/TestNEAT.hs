@@ -16,7 +16,7 @@ import           Test.Tasty.HUnit
 
 import           MAlonzo.Code.Main                         (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
                                                             normalizeTypeAgda, normalizeTypeTermAgda, runCKAgda,
-                                                            runLAgda, runTCEKCAgda, runTCEKVAgda, runTCKAgda)
+                                                            runTCEKAgda, runTCKAgda, runTLAgda)
 import           MAlonzo.Code.Scoped                       (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
@@ -40,6 +40,8 @@ allTests genOpts = testGroup "NEAT"
 -- one type-level test to rule them all
 prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
 prop_Type k tyG = do
+  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
+
   -- get a production named type:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
   -- get a production De Bruijn type:
@@ -52,7 +54,7 @@ prop_Type k tyG = do
   k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
   -- infer kind using production kind inferer:
-  k2 <- withExceptT TypeError $ inferKind defConfig ty
+  k2 <- withExceptT TypeError $ inferKind tcConfig ty
 
   -- 2. check that production and Agda kind inferer agree:
   unless (unconvK (unDeBruijnifyK k1) == k2) $
@@ -95,7 +97,7 @@ prop_Term tyG tmG = do
     checkTypeAgda tyDB tmDB
 
   -- 2. run production CK against metatheory CK
-  tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk mempty tm
+  tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
@@ -105,7 +107,7 @@ prop_Term tyG tmG = do
   -- 3. run all the metatheory evaluators against each other. Taking
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
-  let evs = [runLAgda,runCKAgda >=> normalizeTypeTermAgda,runTCKAgda,runTCEKVAgda,runTCEKCAgda]
+  let evs = [runTLAgda,runCKAgda,runTCKAgda,runTCEKAgda]
   let tmEvsM = map ($ tmDB) evs
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ sequence tmEvsM

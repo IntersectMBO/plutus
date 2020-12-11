@@ -23,6 +23,8 @@ module Language.PlutusTx.Builtins (
                                 , subtractInteger
                                 , multiplyInteger
                                 , divideInteger
+                                , modInteger
+                                , quotientInteger
                                 , remainderInteger
                                 , greaterThanInteger
                                 , greaterThanEqInteger
@@ -129,6 +131,16 @@ multiplyInteger = (*)
 -- | Divide two integers.
 divideInteger :: Integer -> Integer -> Integer
 divideInteger = div
+
+{-# NOINLINE modInteger #-}
+-- | Integer modulo operation.
+modInteger :: Integer -> Integer -> Integer
+modInteger = mod
+
+{-# NOINLINE quotientInteger #-}
+-- | Quotient of two integers.
+quotientInteger :: Integer -> Integer -> Integer
+quotientInteger = quot
 
 {-# NOINLINE remainderInteger #-}
 -- | Take the remainder of dividing two 'Integer's.

@@ -12,6 +12,7 @@ module Spec.Marlowe.Marlowe
 where
 
 import           Control.Exception                     (SomeException, catch)
+import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
 import qualified Data.Text                             as T
 import qualified Data.Text.IO                          as T
@@ -20,6 +21,7 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
@@ -27,6 +29,7 @@ import           Data.Aeson.Text                       (encodeToLazyText)
 import qualified Data.ByteString                       as BS
 import           Data.Either                           (isRight)
 import           Data.Ratio                            ((%))
+import qualified Data.Set                              as Set
 import           Data.String
 
 import qualified Codec.CBOR.Write                      as Write
@@ -41,6 +44,7 @@ import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified Ledger.Value                          as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -57,6 +61,7 @@ tests = testGroup "Marlowe"
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testCase "Mul analysis" mulAnalysisTest
+    , testCase "extractContractRoles" extractContractRolesTest
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
@@ -95,7 +100,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
                 (When
                     [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -127,28 +132,21 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     -- /\ emulatorLog (const False) ""
     /\ assertDone alice (const True) "contract should close"
     /\ assertDone bob (const True) "contract should close"
-    /\ walletFundsChange alice (lovelaceValueOf (-256))
-    /\ walletFundsChange bob (lovelaceValueOf (256))
+    /\ walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
+    /\ walletFundsChange bob (Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
     -- Init a contract
     let alicePk = PK $ pubKeyHash $ walletPubKey alice
         bobPk = PK $ pubKeyHash $ walletPubKey bob
 
-    let params = defaultMarloweParams
-    let chId = ChoiceId "1" alicePk
-
-    let contract = When [
-            Case (Choice chId [Bound 100 1500])
-                (When [Case
-                    (Deposit alicePk alicePk ada (ChoiceValue chId))
-                        (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
-                            (Pay alicePk (Party bobPk) ada
-                                (ChoiceValue chId) Close)]
-                        (Slot 300) Close)
-                    ] (Slot 200) Close)
-            ] (Slot 100) Close
-
-    callEndpoint @"create" alice (params, contract)
+    callEndpoint @"create" alice
+        (defaultRolePayoutValidatorHash,
+        AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)],
+        contract)
+    handleBlockchainEvents alice
+    addBlocks 1
+    handleBlockchainEvents alice
+    addBlocks 1
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -158,11 +156,16 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
 
     callEndpoint @"apply-inputs" alice (params,
         [ IChoice chId 256
-        , IDeposit alicePk alicePk ada 256
+        , IDeposit "alice" "alice" ada 256
         ])
+    addBlocks 1
     handleBlockchainEvents alice
-    addBlocks 150
+    addBlocks 1
     handleBlockchainEvents alice
+    handleBlockchainEvents bob
+    addBlocks 15
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
 
     callEndpoint @"wait" alice (params)
 
@@ -175,6 +178,37 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     addBlocks 1
     handleBlockchainEvents alice
     handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
+  where
+    chId = ChoiceId "1" "alice"
+    contract = When [
+            Case (Choice chId [Bound 10 1500])
+                (When [Case
+                    (Deposit "alice" "alice" ada (ChoiceValue chId))
+                        (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 15))
+                            (Pay "alice" (Party "bob") ada
+                                (ChoiceValue chId) Close)]
+                        (Slot 40) Close)
+                    ] (Slot 30) Close)
+            ] (Slot 20) Close
+
+    (params, _) = either error id $ evalTrace @MarloweSchema @MarloweError
+            (setupMarloweParams
+                defaultRolePayoutValidatorHash
+                (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
+                contract
+            )
+            actions
+            alice
+        where
+            actions = do
+                handleBlockchainEvents alice
+                addBlocks 1
+                handleBlockchainEvents alice
+                addBlocks 1
+                handleBlockchainEvents alice
 
 
 uniqueContractHash :: IO ()
@@ -195,6 +229,20 @@ validatorSize = do
     let validator = validatorScript $ scriptInstance defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
     assertBool ("Validator is too large " <> show vsize) (vsize < 1100000)
+
+
+extractContractRolesTest :: IO ()
+extractContractRolesTest = do
+    extractContractRoles Close @=? mempty
+    extractContractRoles
+        (Pay (Role "Alice") (Party (Role "Bob")) ada (Constant 1) Close)
+            @=? Set.fromList ["Alice", "Bob"]
+    extractContractRoles
+        (When [Case (Deposit (Role "Bob") (Role "Alice") ada (Constant 10)) Close] 10 Close)
+            @=? Set.fromList ["Alice", "Bob"]
+    extractContractRoles
+        (When [Case (Choice (ChoiceId "test" (Role "Alice")) [Bound 0 1]) Close] 10 Close)
+            @=? Set.fromList ["Alice"]
 
 
 checkEqValue :: Property

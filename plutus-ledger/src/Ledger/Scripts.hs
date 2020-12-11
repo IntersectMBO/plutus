@@ -55,7 +55,8 @@ module Ledger.Scripts(
 
 import qualified Prelude                             as Haskell
 
-import           Codec.Serialise                     (Serialise, serialise)
+import           Codec.CBOR.Decoding                 (decodeBytes)
+import           Codec.Serialise                     (Serialise, decode, encode, serialise)
 import           Control.DeepSeq                     (NFData)
 import           Control.Monad.Except                (MonadError, runExceptT, throwError)
 import           Crypto.Hash                         (Digest, SHA256, hash)
@@ -68,6 +69,7 @@ import           Data.Hashable                       (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
+import           Flat                                (flat, unflat)
 import           GHC.Generics                        (Generic)
 import           IOTS                                (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                 as PLC
@@ -82,11 +84,30 @@ import           Ledger.Orphans                      ()
 import           LedgerBytes                         (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
-newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni () }
+newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
-  deriving Serialise via UPLC.OmitUnitAnnotations UPLC.DeBruijn PLC.DefaultUni
--- | Don't include unit annotations in the CBOR when serialising.
--- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
+
+{-| Note [Using Flat inside CBOR instance of Script]
+`plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
+choice to use Flat was made to have a more efficient (most wins are in uncompressed
+size) data serialisation format and use less space on-chain.
+
+To make `plutus-ledger` work with scripts serialised with Flat, and keep the CBOR
+format otherwise we have defined a Serialise instance for Script, which is a wrapper
+over Programs serialised with Flat. The instance will see programs as an opaque
+ByteString, which is the result of encoding programs using Flat.
+
+Because Flat is not self-describing and it gets used in the encoding of Programs,
+data structures that include scripts (for example, transactions) no-longer benefit
+for CBOR's ability to self-describe it's format.
+-}
+instance Serialise Script where
+  encode = encode . flat . unScript
+  decode = do
+    bs <- decodeBytes
+    case unflat bs of
+      Left  err    -> fail (show err)
+      Right script -> return $ Script script
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
@@ -133,10 +154,10 @@ scriptSize (Script s) = UPLC.programSize s
 
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
-fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
+fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni () -> Script
+fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun () -> Script
 fromPlc (UPLC.Program a v t) = case UPLC.deBruijnTerm $ t of
     Right t' ->
         let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t'
@@ -185,13 +206,13 @@ instance ToJSON Data where
 instance FromJSON Data where
     parseJSON = JSON.decodeSerialise
 
-mkValidatorScript :: CompiledCode PLC.DefaultUni (Data -> Data -> Data -> ()) -> Validator
+mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
-mkMonetaryPolicyScript :: CompiledCode PLC.DefaultUni (Data -> ()) -> MonetaryPolicy
+mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script

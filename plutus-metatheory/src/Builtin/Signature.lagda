@@ -35,6 +35,8 @@ SIG : Builtin → Σ Ctx⋆ λ Δ → Sig Δ
 -- could have just one context so Signatures extend from ∅...
 -- going in the other direction could take a substitution as an arg and
 -- extend it appropriately...
+
+-- note the list of arg types is in reverse order...
 SIG addInteger =
   ∅ ,, (con integer ∷ con integer ∷ []) ,, con integer
 SIG subtractInteger =
@@ -140,8 +142,26 @@ SIG equalsByteString =
 SIG ifThenElse =
   (∅ ,⋆ *)
   ,,
-  con bool ∷ ` Z ∷ ` Z ∷ []
+  ` Z ∷ ` Z ∷ con bool ∷ []
   ,,
   ` Z
+SIG charToString =
+  ∅
+  ,,
+  con char ∷ []
+  ,,
+  con string
+SIG append =
+  ∅
+  ,,
+  con string ∷ con string ∷ []
+  ,,
+  con string
+SIG trace =
+  ∅
+  ,,
+  con string ∷ []
+  ,,
+  con unit
 
 \end{code}

@@ -37,8 +37,8 @@ import           Data.Proxy        (Proxy (Proxy))
 import           Data.Text         (Text)
 import qualified Data.Text         as T
 import           GHC.Generics      (Generic, Rep)
-import           Servant.API       ((:<|>), (:>), Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Patch,
-                                    Post, ReqBody, ToHttpApiData (toQueryParam))
+import           Servant.API       (Capture, FromHttpApiData (parseQueryParam), Get, Header, JSON, Patch, Post, ReqBody,
+                                    ToHttpApiData (toQueryParam), (:<|>), (:>))
 import           Servant.Client    (ClientM, client)
 import qualified Servant.Extra
 import           Text.Read         (readEither)

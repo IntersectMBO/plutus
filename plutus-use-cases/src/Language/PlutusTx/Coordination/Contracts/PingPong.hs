@@ -35,8 +35,7 @@ import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Tx                       (tyTxOutData)
 
-import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), State (..), Void)
-import           Language.Plutus.Contract.StateMachine (OnChainState)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError (..), OnChainState, State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
@@ -47,7 +46,7 @@ data PingPongState = Pinged | Ponged | Stopped
 instance Eq PingPongState where
     Pinged == Pinged = True
     Ponged == Ponged = True
-    _ == _ = False
+    _ == _           = False
 
 data Input = Ping | Pong | Stop
     deriving stock Show
@@ -62,13 +61,13 @@ type PingPongSchema =
 
 data PingPongError =
     PingPongContractError ContractError
-    | PingPongSMError (SM.SMContractError PingPongState Input)
+    | PingPongSMError SM.SMContractError
     | StoppedUnexpectedly
     deriving stock (Show)
 
 makeClassyPrisms ''PingPongError
 
-instance AsSMContractError PingPongError PingPongState Input where
+instance AsSMContractError PingPongError where
     _SMContractError = _PingPongSMError
 
 instance AsContractError PingPongError where
@@ -113,13 +112,14 @@ run ::
     -> Contract PingPongSchema PingPongError ()
     -> Contract PingPongSchema PingPongError ()
 run expectedState action = do
-    (st, _) <- SM.getOnChainState client
     let extractState = tyTxOutData . fst
         go Nothing = throwError StoppedUnexpectedly
         go (Just currentState)
             | extractState currentState == expectedState = action
             | otherwise = SM.waitForUpdate client >>= go
-    go (Just st)
+    maybeState <- SM.getOnChainState client
+    let datum = fmap fst maybeState
+    go datum
 
 runPing :: Contract PingPongSchema PingPongError ()
 runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))

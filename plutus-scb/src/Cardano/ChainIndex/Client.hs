@@ -17,7 +17,7 @@ import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Address, TxId)
 import           Ledger.AddressMap         (AddressMap)
 import           Ledger.Blockchain         (Block)
-import           Servant                   ((:<|>) (..), NoContent)
+import           Servant                   (NoContent, (:<|>) (..))
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 
 import           Wallet.Effects            (AddressChangeRequest, AddressChangeResponse, ChainIndexEffect (..))
@@ -48,8 +48,8 @@ handleChainIndexClient clientEnv =
         runClient a = (sendM $ liftIO $ runClientM a clientEnv) >>= either throwError pure
     in
       interpret $ \case
-        StartWatching a -> void (runClient (startWatching a))
-        WatchedAddresses -> runClient watchedAddresses
-        ConfirmedBlocks -> runClient confirmedBlocks
+        StartWatching a           -> void (runClient (startWatching a))
+        WatchedAddresses          -> runClient watchedAddresses
+        ConfirmedBlocks           -> runClient confirmedBlocks
         TransactionConfirmed txid -> runClient (transactionConfirmed txid)
-        NextTx req -> runClient (nextTx req)
+        NextTx req                -> runClient (nextTx req)

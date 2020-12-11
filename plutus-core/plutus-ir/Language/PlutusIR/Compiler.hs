@@ -17,11 +17,10 @@ module Language.PlutusIR.Compiler (
     CompilationCtx,
     ccOpts,
     ccEnclosing,
-    ccBuiltinMeanings,
     ccTypeCheckConfig,
     PirTCConfig(..),
     AllowEscape(..),
-    defaultCompilationCtx) where
+    toDefaultCompilationCtx) where
 
 import           Language.PlutusIR
 
@@ -45,39 +44,34 @@ import           Control.Monad.Reader
 import           PlutusPrelude
 
 -- | Perform some simplification of a 'Term'.
-simplifyTerm :: Compiling m e uni a => Term TyName Name uni b -> m (Term TyName Name uni b)
-simplifyTerm = runIfOpts $ \t -> do
-    means <- asks _ccBuiltinMeanings
-    pure $ Inline.inline means $ DeadCode.removeDeadBindings means t
+simplifyTerm :: Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+simplifyTerm = runIfOpts $ pure . Inline.inline . DeadCode.removeDeadBindings
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
-floatTerm :: (Compiling m e uni a, Semigroup b) => Term TyName Name uni b -> m (Term TyName Name uni b)
-floatTerm = runIfOpts letFloat
-    where
-        letFloat t = do
-            means <- asks _ccBuiltinMeanings
-            pure $ LetFloat.floatTerm means t
+floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+floatTerm = runIfOpts $ pure . LetFloat.floatTerm
 
--- | Perform typechecking of a PIR Term.
+-- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
-typeCheckTerm :: Compiling m e uni b => Term TyName Name uni (Provenance b) -> m ()
+typeCheckTerm :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
 typeCheckTerm t = do
-    tcconfig <- asks _ccTypeCheckConfig
-    void . runTypeCheckM tcconfig $ inferTypeM t
+    mtcconfig <- asks _ccTypeCheckConfig
+    case mtcconfig of
+        Just tcconfig -> void . runTypeCheckM tcconfig $ inferTypeM t
+        Nothing       -> pure ()
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
-compileToReadable :: Compiling m e uni a
-                  => Bool
-                  -> Term TyName Name uni a
-                  -> m (Term TyName Name uni (Provenance a))
-compileToReadable doTypecheck =
+compileToReadable :: Compiling m e uni fun a
+                  => Term TyName Name uni fun a
+                  -> m (Term TyName Name uni fun (Provenance a))
+compileToReadable =
     (pure . original)
     -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
     >=> PLC.rename
-    >=> through (when doTypecheck . typeCheckTerm)
+    >=> through typeCheckTerm
     >=> simplifyTerm
     >=> (pure . ThunkRec.thunkRecursions)
     >=> floatTerm
@@ -85,7 +79,7 @@ compileToReadable doTypecheck =
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
 -- Note: the result *does* have globally unique names.
-compileReadableToPlc :: Compiling m e uni a => Term TyName Name uni (Provenance a) -> m (PLCTerm uni a)
+compileReadableToPlc :: Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (PLCTerm uni fun a)
 compileReadableToPlc =
     NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
@@ -97,7 +91,7 @@ compileReadableToPlc =
     >=> lowerTerm
 
 --- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m e uni a
-            => Bool -- ^ flag to run PIR-typecheking or not (for debuggin purposes)
-            -> Term TyName Name uni a -> m (PLCTerm uni a)
-compileTerm doTypecheck  = compileToReadable doTypecheck >=> compileReadableToPlc
+compileTerm :: Compiling m e uni fun a
+            => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
+compileTerm = compileToReadable >=> compileReadableToPlc
+

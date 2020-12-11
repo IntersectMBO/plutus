@@ -4,6 +4,7 @@ import Prelude
 import Data.Array (singleton)
 import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
+import Data.List (List(..))
 import Data.Map as Map
 import Data.Set (toUnfoldable)
 import Data.Tuple (Tuple(..), fst)
@@ -115,7 +116,7 @@ testWarningWithState :: forall a. S.State -> (a -> Array String) -> (a -> String
 testWarningWithState state makeWarning composeExpression expression = case parseContract $ composeExpression expression of
   Right contractTerm -> do
     let
-      State st = lint state contractTerm
+      State st = lint Nil state contractTerm
     Assert.equal (makeWarning expression) $ map show $ toUnfoldable $ st.warnings
   Left err -> failure (show err)
 

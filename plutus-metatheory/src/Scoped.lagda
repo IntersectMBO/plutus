@@ -47,6 +47,9 @@ arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
 arity ifThenElse = 3
+arity charToString = 1
+arity append = 2
+arity trace = 1
 
 arity⋆ : Builtin → ℕ
 arity⋆ ifThenElse = 1
@@ -166,7 +169,7 @@ shifter : ∀{n}(w : Weirdℕ n) → RawTm → RawTm
 shifter w (` x) = ` (maybe (\x → x) 100 (lookupWTm ∣ x - 1 ∣ w))
 shifter w (Λ K t) = Λ K (shifter (T w) t)
 shifter w (t ·⋆ A) = shifter w t ·⋆ shifterTy w A
-shifter w (ƛ A t) = ƛ (shifterTy (S w) A) (shifter (S w) t) 
+shifter w (ƛ A t) = ƛ (shifterTy (S w) A) (shifter (S w) t)
 shifter w (t · u) = shifter w t · shifter w u
 shifter w (con c) = con c
 shifter w (error A) = error (shifterTy w A)
@@ -224,6 +227,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
     → Tel⋆ n m
     → Tel w o
     → ScopedTm w
+  ibuiltin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
@@ -245,7 +249,7 @@ deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
-deBruijnifyC unit           = unit 
+deBruijnifyC unit           = unit
 
 postulate
   FreeVariableError : Set
@@ -255,8 +259,8 @@ postulate
 
 data ScopeError : Set where
   deBError : ScopeError
-  freeVariableError : FreeVariableError → ScopeError  
-  
+  freeVariableError : FreeVariableError → ScopeError
+
 {-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC ScopeError = data ScopeError (DeBError | FreeVariableError) #-}
@@ -353,8 +357,8 @@ unDeBruijnifyC unit           = unit
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
-extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A) 
-extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A) 
+extricateScopeTy (Π K A) = Π (unDeBruijnifyK K) (extricateScopeTy A)
+extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con c
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
@@ -369,6 +373,7 @@ extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con (unDeBruijnifyC c)
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (builtin bn _ _ _) = builtin bn -- TODO
+extricateScope (ibuiltin bn) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
@@ -406,6 +411,7 @@ ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
 ugly (builtin b X As ts) = "builtin" -- FIX ME
+ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
   " " ++

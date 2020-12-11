@@ -27,8 +27,8 @@ import           Language.PlutusCore.Universe
 instance Eq (Kind ann) where
     Type _                == Type _                = True
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
-    Type{}      == _ = False
-    KindArrow{} == _ = False
+    Type{}      == _                               = False
+    KindArrow{} == _                               = False
 
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]
@@ -36,12 +36,16 @@ instance Eq (Version ann) where
 instance (HasUniques (Type tyname uni ann), GEq uni) => Eq (Type tyname uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
 
-instance (HasUniques (Term tyname name uni ann), GEq uni, Closed uni, uni `Everywhere` Eq) =>
-            Eq (Term tyname name uni ann) where
+instance
+        ( HasUniques (Term tyname name uni fun ann)
+        , GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun
+        ) => Eq (Term tyname name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
 
-instance (HasUniques (Program tyname name uni ann), GEq uni, Closed uni, uni `Everywhere` Eq) =>
-            Eq (Program tyname name uni ann) where
+instance
+        ( HasUniques (Program tyname name uni fun ann)
+        , GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun
+        ) => Eq (Program tyname name uni fun ann) where
     prog1 == prog2 = runEqRename $ eqProgramM prog1 prog2
 
 type EqRenameOf ren a = HasUniques a => a -> a -> EqRename ren
@@ -85,8 +89,8 @@ eqTypeM TyBuiltin{} _ = empty
 -- See Note [No catch-all].
 -- | Check equality of two 'Term's.
 eqTermM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq)
-    => EqRenameOf ScopedRenaming (Term tyname name uni ann)
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun)
+    => EqRenameOf ScopedRenaming (Term tyname name uni fun ann)
 eqTermM (LamAbs _ name1 ty1 body1) (LamAbs _ name2 ty2 body2) = do
     eqTypeM ty1 ty2
     withTwinBindings name1 name2 $ eqTermM body1 body2
@@ -126,8 +130,8 @@ eqTermM Builtin{}  _ = empty
 
 -- | Check equality of two 'Program's.
 eqProgramM
-    :: (GEq uni, Closed uni, uni `Everywhere` Eq)
-    => EqRenameOf ScopedRenaming (Program tyname name uni ann)
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun)
+    => EqRenameOf ScopedRenaming (Program tyname name uni fun ann)
 eqProgramM (Program _ ver1 term1) (Program _ ver2 term2) = do
     guard $ ver1 == ver2
     eqTermM term1 term2

@@ -40,6 +40,8 @@ stack.yaml.lock
 # Haskell output files
 *.o
 *.hi
+*.dyn_o
+*.dyn_hi
 *.chi
 *.chs.h
 *.prof
@@ -86,3 +88,4 @@ plutus-scb/plutus-scb.yaml
 hie.yaml
 node-server.sock
 .pre-commit-config.yaml
+secrets/.gpg-id

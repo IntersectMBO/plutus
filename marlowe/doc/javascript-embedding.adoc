@@ -28,7 +28,7 @@ Constructs that have arguments are represented as functions, as in the case of `
 const AvailableMoney: (token: Token, accountId: Party) => Value
 ----
 
-You can see the type declarations for each of the constructs and types by hovering over the identifier in the import declaration at the start of the file appearing in the editor of the JS Editor tab.
+You can see the type declarations for each of the constructs and types by hovering over the identifier in the import declaration at the start of the file appearing in the editor of the JS Editor tab. Both the import declaration and the function declaration are grayed-out to signal that they must not be modified, the code that generates the contract must be written inside the body of the function provided, and the resulting contract must be returned as result of the function (using the `return` instruction).
 
 Internally, the functions and constants of the JavaScript/TypeScript library return a JSON representation of the Marlowe constructs. For example, the function `AvailableMoney` is defined as follows:
 
@@ -41,7 +41,7 @@ const AvailableMoney =
     };
 ----
 
-When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object in the variable `contract` resulting from the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
+When you click the Compile button in the JS tab of the Marlowe Playground, the code in the body of the tab is executed, and the JSON object returned by the function during the execution is parsed into an actual Marlowe contract that can then be sent to the Simulation tab where it can be simulated.
 
 The library implementation itself is quite simple, you can find all of its source code here.
 In principle you could write JavaScript code that produces the Marlowe’s JSON representation directly, but you should not have to worry about JSON at all when using the JS library. 
@@ -96,26 +96,7 @@ type EValue = SomeNumber | Value
 
 === Example: Writing a Swap contract in TypeScript
 
-First of all we need to add the import list, we can get it from one of the examples on the top of the JS Tab, and it reaches down to the following comment:
-
-[source,typescript]
-----
-/* === Code above this comment will be removed at compile time === */
-----
-
-We can remove everything under the line and start coding our own contract. The import list looks like this:
-
-[source,typescript]
-----
-import { Role, Account, Party, ada, AvailableMoney, Constant, NegValue, AddValue,
-        SubValue, MulValue, Scale, ChoiceValue, SlotIntervalStart, SlotIntervalEnd,
-        UseValue, Cond, AndObs, OrObs, NotObs, ChoseSomething, ValueGE, ValueGT,
-        ValueLT, ValueLE, ValueEQ, TrueObs, FalseObs, Deposit, Choice, Notify,
-        Close, Pay, If, When, Let, Assert, SomeNumber, AccountId, ChoiceId, Token,
-        ValueId, Value, EValue, Observation, Bound, Action, Payee, Case, Contract } from 'marlowe-js';
- 
-/* === Code above this comment will be removed at compile time === */
-----
+Whether we start by modifying an existing example, or by creating a new JavaScript contract, we are automatically provided with the import list and the function declaration. We can start by deleting everything that is not grayed-out, and start writing inside the curly brackets of the provided function definition.
 
 Let’s say we want to write a contract so that Alice can exchange 1000 Ada with Bob for $100.
 
@@ -206,7 +187,9 @@ const contract : Contract = makeDeposit(alice, 10n,
                                makeDeposit(bob, 20n,
                                    makePayment(alice, bob,
                                        makePayment(bob, alice,
-                                           Close))))
+                                           Close))));
+
+return contract;
 ----
 
 The contract has four steps:

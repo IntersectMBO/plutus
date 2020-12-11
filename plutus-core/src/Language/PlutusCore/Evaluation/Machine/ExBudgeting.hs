@@ -12,6 +12,16 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# LANGUAGE StrictData             #-}
+
+{- Note [Strict Data for budgeting]
+
+Without the StrictData pragma here, we get a memory leak during evaluation
+because large unevaluated arthimetic expressions build up.  Strictness is only
+really required for ExBudget and ExBudgetState, but it's simpler if we jut make
+everything strict, and it doesn't seem to do any harm.
+-}
+
 {- Note [Budgeting]
 
 When running Plutus code on the chain, you're running code on other peoples
@@ -102,6 +112,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , runCostingFunOneArgument
     , runCostingFunTwoArguments
     , runCostingFunThreeArguments
+    , Hashable
     )
 where
 
@@ -114,8 +125,8 @@ import           Barbies
 import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
-import           Data.Hashable
 import           Data.HashMap.Monoidal
+import           Data.Hashable
 import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
@@ -136,28 +147,26 @@ class ToExMemory term where
     -- return something arbitrary just to fit such a term into the builtin application machinery.
     toExMemory :: term -> ExMemory
 
-instance ToExMemory (Term TyName Name uni ()) where
+instance ToExMemory (Term TyName Name uni fun ()) where
     toExMemory _ = 0
 
-instance ToExMemory (Term TyName Name uni ExMemory) where
+instance ToExMemory (Term TyName Name uni fun ExMemory) where
     toExMemory = termAnn
 
--- | A class for injecting a 'BuiltinName' into an @exBudgetCat@.
+-- | A class for injecting a 'Builtin' into an @exBudgetCat@.
 -- We need it, because the constant application machinery calls 'spendBudget' before reducing a
 -- constant application and we want to be general over @exBudgetCat@ there, but still track the
 -- built-in functions category, hence the ad hoc polymorphism.
-class ExBudgetBuiltin exBudgetCat where
-    exBudgetBuiltin :: BuiltinName -> exBudgetCat
+class ExBudgetBuiltin fun exBudgetCat where
+    exBudgetBuiltin :: fun -> exBudgetCat
 
 -- | A dummy 'ExBudgetBuiltin' instance to be used in monads where we don't care about costing.
-instance ExBudgetBuiltin () where
+instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
 -- This works nicely because @m@ contains @term@.
-class (ExBudgetBuiltin exBudgetCat, ToExMemory term) =>
-            SpendBudget m exBudgetCat term | m -> exBudgetCat term where
-    builtinCostParams :: m CostModel
-
+class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
+            SpendBudget m fun exBudgetCat term | m -> fun exBudgetCat term where
     -- | Spend the budget, which may mean different things depending on the monad:
     --
     -- 1. do nothing for an evaluator that does not care about costing
@@ -176,7 +185,7 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExBudget where
         , "}"
         ]
 
-data ExBudgetState  exBudgetCat = ExBudgetState
+data ExBudgetState exBudgetCat = ExBudgetState
     { _exBudgetStateTally  :: ExTally exBudgetCat -- ^ for counting what cost how much
     , _exBudgetStateBudget :: ExBudget -- ^ for making sure we don't spend too much
     }

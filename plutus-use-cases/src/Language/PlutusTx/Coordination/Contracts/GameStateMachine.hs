@@ -95,7 +95,7 @@ type GameStateMachineSchema =
 
 data GameError =
     GameContractError ContractError
-    | GameSMError (SM.SMContractError GameState GameInput)
+    | GameSMError SM.SMContractError
     deriving stock (Show)
 
 -- | Top-level contract, exposing both endpoints.
@@ -121,8 +121,8 @@ data GameState =
 instance Eq GameState where
     {-# INLINABLE (==) #-}
     (Initialised sym tn s) == (Initialised sym' tn' s') = sym == sym' && s == s' && tn == tn'
-    (Locked sym tn s) == (Locked sym' tn' s') = sym == sym' && s == s' && tn == tn'
-    _ == _ = traceIfFalse "states not equal" False
+    (Locked sym tn s) == (Locked sym' tn' s')           = sym == sym' && s == s' && tn == tn'
+    _ == _                                              = traceIfFalse "states not equal" False
 
 -- | Check whether a 'ClearString' is the preimage of a
 --   'HashedString'

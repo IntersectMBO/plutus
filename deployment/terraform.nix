@@ -10,7 +10,6 @@
 , terraform-providers
 , fetchpatch
 }:
-
 let
   goPackagePath = "github.com/hashicorp/terraform";
 

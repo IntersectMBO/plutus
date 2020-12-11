@@ -37,7 +37,6 @@ import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude hiding (all, lookup, null)
 import qualified Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.These
-import qualified Prelude                   as HP
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
@@ -55,13 +54,6 @@ instance Functor (Map k) where
             go ((c, i):xs') = (c, f i) : go xs'
         in Map (go mp)
 
--- Do not use this 'Read' instance. It is only used by Marlowe Playgrounds
--- and it will be removed after we have proper serialisation.
-instance (Read k, Read e) => Read (Map k e) where
-  readsPrec p = readParen (p HP.> 10) $ \ r -> do
-    ("fromList",s) <- lex r
-    (xs,t) <- reads s
-    return (fromList xs,t)
 
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with

@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -23,7 +24,7 @@ import qualified Language.PlutusCore      as PLC
 
 import           Test.Tasty
 
-import           Codec.Serialise
+import           Flat                     (flat, unflat)
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["plutus-ir-test"] tests
@@ -45,7 +46,7 @@ tests = testGroup "plutus-ir" <$> sequence
 
 prettyprinting :: TestNested
 prettyprinting = testNested "prettyprinting"
-    $ map (goldenPir id term)
+    $ map (goldenPir id $ term @PLC.DefaultUni @PLC.DefaultFun)
     [ "basic"
     , "maybe"
     ]
@@ -80,8 +81,11 @@ serialization = testNested "serialization"
     , "serializeListMatch"
     ]
 
-roundTripPirTerm :: Term TyName Name PLC.DefaultUni a -> Term TyName Name PLC.DefaultUni ()
-roundTripPirTerm = deserialise . serialise . void
+roundTripPirTerm :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a -> Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
+roundTripPirTerm = decodeOrError . unflat . flat . void
+  where
+    decodeOrError (Right tm) = tm
+    decodeOrError (Left err) = error (show err)
 
 errors :: TestNested
 errors = testNested "errors"

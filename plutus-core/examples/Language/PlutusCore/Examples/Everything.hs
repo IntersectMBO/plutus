@@ -10,6 +10,7 @@ module Language.PlutusCore.Examples.Everything
     ( examples
     ) where
 
+import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Universe
 
@@ -21,7 +22,7 @@ import           Language.PlutusCore.Examples.Data.TreeForest
 import           Language.PlutusCore.Examples.Data.Vec
 
 -- | All examples exported as a single value.
-examples :: PlcFolderContents DefaultUni
+examples :: PlcFolderContents DefaultUni DefaultFun
 examples =
     FolderContents
       [ treeFolderContents "Examples"

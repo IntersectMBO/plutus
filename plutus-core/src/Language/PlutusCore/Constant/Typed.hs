@@ -2,32 +2,30 @@
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE DerivingVia            #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE RankNTypes             #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Typed
-    ( TypeScheme (..)
-    , TypedStaticBuiltinName (..)
+    ( KnownKind (..)
+    , TypeScheme (..)
     , FoldArgs
     , FoldArgsEx
-    , DynamicBuiltinNameMeaning (..)
-    , DynamicBuiltinNameDefinition (..)
-    , DynamicBuiltinNameMeanings (..)
     , unliftConstant
+    , TyNameRep (..)
     , TyVarRep
     , TyAppRep
+    , TyForallRep
     , Opaque (..)
     , AsConstant (..)
     , FromConstant (..)
@@ -49,15 +47,24 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
-import qualified Data.ByteString                               as BS
+import qualified Data.ByteString                                    as BS
 import qualified Data.Kind                                          as GHC (Type)
-import           Data.Map                                           (Map)
 import           Data.Proxy
 import           Data.String
 import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
+
+-- | A class for converting Haskell kinds to PLC kinds.
+class KnownKind kind where
+    knownKind :: proxy kind -> Kind ()
+
+instance KnownKind GHC.Type where
+    knownKind _ = Type ()
+
+instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
+    knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
 
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
@@ -70,31 +77,21 @@ data TypeScheme term (args :: [GHC.Type]) res where
         :: KnownType term arg
         => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
     TypeSchemeAll
-        :: (KnownSymbol text, KnownNat uniq)
+        :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
            -- Here we require the user to manually provide the unique of a type variable.
            -- That's nothing but silly, but I do not see what else we can do with the current design.
-        => Proxy '(text, uniq)
-        -> Kind ()
+        => Proxy '(text, uniq, kind)
            -- We use a funny trick here: instead of binding
            --
-           -- > TypedBuiltin (Opaque term (TyVarRep text uniq))
+           -- > TyVarRep ('TyNameRep @kind text uniq)
            --
            -- directly we introduce an additional and "redundant" type variable. The reason why we
            -- do that is because this way we can also bind such a variable later when constructing
-           -- the 'TypeScheme' of a polymorphic builtin, so that for the user this looks exactly
-           -- like a single bound type variable instead of this weird @Opaque@ thing.
-           --
-           -- And note that in most cases we do not need to bind anything at the type level and can
-           -- use the variable bound at the term level directly, because it's of the type that
-           -- 'TypeSchemeResult' expects. Type-level binding is only needed when you want to apply
-           -- a type constructor to the variable, like in
-           --
-           -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ Opaque term (TyVarRep text uniq) => Proxy ot -> TypeScheme term args res)
+           -- the 'TypeScheme' of a polymorphic builtin manually, so that for the user this looks
+           -- exactly like a single bound type variable instead of this weird @TyVarRep@ thing.
+        -> (forall ot. ot ~ TyVarRep ('TyNameRep @kind text uniq) =>
+               Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
-
--- | A 'StaticBuiltinName' with an associated 'TypeScheme'.
-data TypedStaticBuiltinName term args res = TypedStaticBuiltinName StaticBuiltinName (TypeScheme term args res)
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --
@@ -102,7 +99,7 @@ data TypedStaticBuiltinName term args res = TypedStaticBuiltinName StaticBuiltin
 -- >>> :kind! FoldArgs [Char, Bool] Integer
 -- FoldArgs [Char, Bool] Integer :: *
 -- = Char -> Bool -> Integer
-type family FoldArgs args r where
+type family FoldArgs args res where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
@@ -110,36 +107,6 @@ type family FoldArgs args r where
 type family FoldArgsEx args where
     FoldArgsEx '[]           = ExBudget
     FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
-
-{- Note [DynamicBuiltinNameMeaning]
-We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
-We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
-well-typedness to avoid using 'unsafeCoerce' and similar junk, while the denotation is what
-actually computes. We do not need denotations for type checking, nor strongly typed 'TypeScheme'
-is required, however analogously to static built-ins, we compute the types of dynamic built-ins from
-their 'TypeScheme's. This way we only define a 'TypeScheme', which we anyway need, and then compute
-the corresponding 'Type' from it. And we can't go the other way around -- from untyped to typed --
-of course. Therefore a typed thing has to go before the corresponding untyped thing and in the
-final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the 'DynamicBuiltinName's.
--}
-
--- See Note [DynamicBuiltinNameMeaning].
--- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
--- and its Haskell denotation.
-data DynamicBuiltinNameMeaning term =
-    forall args res. DynamicBuiltinNameMeaning
-        (TypeScheme term args res)
-        (FoldArgs args res)
-        (FoldArgsEx args)
-
--- | The definition of a dynamic built-in consists of its name and meaning.
-data DynamicBuiltinNameDefinition term =
-    DynamicBuiltinNameDefinition DynamicBuiltinName (DynamicBuiltinNameMeaning term)
-
--- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
-newtype DynamicBuiltinNameMeanings term = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning term)
-    } deriving (Semigroup, Monoid)
 
 {- Note [Motivation for polymorphic built-in functions]
 We need to support polymorphism for built-in functions for these reasons:
@@ -161,7 +128,7 @@ We need to support polymorphism for built-in functions for these reasons:
 -}
 
 {- Note [Implemetation of polymorphic built-in functions]
-Encoding polymorphism in an AST in an intrinsically typed manner is not a pleasant thing to do in Haskell.
+Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
 It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 But we'd rather avoid such heavy techniques.
 
@@ -195,6 +162,15 @@ proceeds as follows:
 Note how we use the 'Opaque' wrapper in order to unlift a PLC term as an opaque Haskell value
 using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
 
+An opaque PLC @term@ whose type is a PLC type variable `a_0` has the following type on the Haskell
+side:
+
+    Opaque term (TyVarRep ('TyNameRep "a" 0))
+
+where that last argument is a direct counterpart of the term-level
+
+    TyVar () (TyName (Name "a" 0))
+
 @Opaque term rep@ can be used for passing any @term@ through the builtin application machinery,
 not just one whose type is a bound variable. For example, you can define a new data type
 
@@ -208,23 +184,61 @@ with the following signature:
 
     idFInteger : all (f :: * -> *). f integer -> f integer
 
-where the type application is handled with 'TyAppRep'
+where the type application is handled with 'TyAppRep'. Note that the latter is defined as a
+@data family@:
 
-It would be much better if we didn't need to define that @*Rep@ stuff at the type level just to
-demote it to the term level via a type class, but this hasn't been investigated yet. A plausible
-way would be to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually.
-But that doesn't seem to give rise to a terribly nice API.
+    data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 
-The implementation is rather straightforward, but there is one catch, namely that it takes some care
-to adapt the CEK machine to handle polymorphic built-in functions,
-see https://github.com/input-output-hk/plutus/issues/1882
+We do that because a @data family@ can return a poly-kinded argument, which allows us to get an
+intrinsically-kinded representation of PLC types. For example, an opaque @term@ whose type is an
+application of a type variable @f@ to a type variable @a@ is represented like this:
+
+    Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) (TyVarRep ('TyNameRep "a" 1 :: TyNameRep *)))
+
+Note the @TyNameRep *@ kind annotation. It tells us three things:
+
+1. a type-level name has a kind associated with it. The reason for that is that we use names in
+binders (for example, in the universal quantifier) and as variables and kinds are important in
+both these cases due to us having an intrinsically-kinded representation of types, so it's
+convenient to annotate type-level names with kinds. Another reason is that we do not attempt to do
+any kind of static analysis on reflected type variables and associating kinds with them allows us
+to catch errors like "two variables with equal names and uniques, but different kinds" earlier
+2. the kind is not stored as an argument to the @TyNameRep@ constructor. Instead it's stored as
+an index of the data type. The point of this is that if we stored the kind as an argument, we'd
+have to provide it manually, but since the representation is intrinsically-kinded there's no point
+in doing so as GHC can infer all the kinds itself
+3. ... apart from cases where they're inherently ambiguous, like in the case above. If we don't
+specify the kind of the @a_1@ type variable, then there's no way GHC could infer it as the variable
+is passed as an argument to another variable with an unspecified kind (@f_0@)
+4. finally, an opaque term can only be of a type of kind @*@. You can't construct a term whose type
+is of some other kind. That's why we don't need to annotate the @f_0@ type variable: the domain is
+inferred from the kind of the argument (where it's explicitly specified via @TyNameRep *@) and the
+codomain is inferred from the fact that the whole type is passed to 'Opaque' and so it has to be
+of kind @*@
+
+It would be nice if we didn't need to define that @*Rep@ stuff at the type level just to demote it
+to the term level via a type class, but this hasn't been investigated yet. A plausible way would be
+to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually. But that doesn't seem
+to give rise to a terribly nice API. And we'd lose all the static guarantees, which is not a big
+deal, but losing the automatic inference of type schemes would suck, given that it's already quite
+handy and is going to be improved.
+
+Representing contructors as poly-kinded data families and handling those with open type families
+and/or type classes is a way of solving the expression problem for indexed data types at the type
+level, if you are into these things.
 -}
 
--- | Representation of a type variable: its name and unique.
-data TyVarRep (text :: Symbol) (unique :: Nat)
+-- | Representation of a type variable: its name and unique and an implicit kind.
+data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
 
--- | Representation of a type application: a function and an argument.
-data TyAppRep (fun :: GHC.Type) (arg :: GHC.Type)
+-- | Representation of an intrinsically-kinded type variable: a name.
+data family TyVarRep (var :: TyNameRep kind) :: kind
+
+-- | Representation of an intrinsically-kinded type application: a function and an argument.
+data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
+
+-- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
+data family TyForallRep (var :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- See Note [Motivation for polymorphic built-in functions]
 -- See Note [Implemetation of polymorphic built-in functions]
@@ -233,7 +247,7 @@ data TyAppRep (fun :: GHC.Type) (arg :: GHC.Type)
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
 -- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
 -- Haskell and back and instead can keep it intact.
-newtype Opaque term rep = Opaque
+newtype Opaque term (rep :: GHC.Type) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
 
@@ -245,15 +259,15 @@ class FromConstant term where
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
 
-instance AsConstant (Term TyName Name uni ann) where
+instance AsConstant (Term TyName Name uni fun ann) where
     asConstant (Constant _ val) = Just val
     asConstant _                = Nothing
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
-            FromConstant (Term tyname name uni ExMemory) where
+            FromConstant (Term tyname name uni fun ExMemory) where
     fromConstant value = Constant (memoryUsage value) value
 
-instance FromConstant (Term tyname name uni ()) where
+instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
@@ -289,50 +303,67 @@ unliftConstant term = case asConstant term of
     Nothing -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
 {- Note [KnownType's defaults]
-We use @default@ for providing instances for built-in types instead of @DerivingVia@,
-because the latter breaks on
+We'd like to use @default@ for providing instances for built-in types instead of @DerivingVia@,
+because the latter breaks on @m a@
 
-    1. proxy a
-    2. m a
+It's possible to circumvent this, by using @forall r. (a -> m r) -> m r@ instead,
+but then we need to recover the original handy definitions and make the API and
+the code bloated (instances are more verbose with @DerivingVia@).
 
-It's possible to circumvent this, by using
+We don't use @default@ in 'KnownTypeAst', because an attempt to write
 
-    1. Proxy a
-    2. forall r. (a -> m r) -> m r
+    default toTypeAst :: (k ~ GHC.Type, uni `Includes` a) => proxy a -> Type TyName uni ()
+    toTypeAst = toBuiltinTypeAst
 
-instead, but then we need to recover the original handy definitions and
-make the API and the code bloated (instances are more verbose with @DerivingVia@).
+results in
+
+    Expected kind '* -> *', but 'uni' has kind 'k -> *'
+
+see https://gitlab.haskell.org/ghc/ghc/-/issues/15710
 -}
 
-class KnownTypeAst uni a where
+class KnownTypeAst uni (a :: k) where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
-    default toTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
-    toTypeAst _ = mkTyBuiltin @a ()
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
 type KnownBuiltinType term a =
     (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a)
+
+-- See Note [KnownType's defaults].
+-- | A default implementation of 'toTypeAst' for built-in types.
+toBuiltinTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
+toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> EvaluationResult term
-    default makeKnown :: KnownBuiltinType term a => a -> EvaluationResult term
+    makeKnown
+        :: ( MonadError err m, AsEvaluationFailure err
+           )
+        => a -> m term
+    default makeKnown
+        :: ( MonadError err m
+           , KnownBuiltinType term a
+           )
+        => a -> m term
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
-    makeKnown x = EvaluationSuccess . fromConstant . someValue $! x
+    makeKnown x = pure . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
+        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsEvaluationFailure err
+           )
         => term -> m a
     default readKnown
-        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
+        :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err
+           , KnownBuiltinType term a
+           )
         => term -> m a
     readKnown = unliftConstant
 
@@ -341,7 +372,8 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
             KnownType term (EvaluationResult a) where
-    makeKnown mx = mx >>= makeKnown
+    makeKnown EvaluationFailure     = throwing_ _EvaluationFailure
+    makeKnown (EvaluationSuccess x) = makeKnown x
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -351,32 +383,72 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
     readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
 
-instance (KnownSymbol text, KnownNat uniq) => KnownTypeAst uni (TyVarRep text uniq) where
-    toTypeAst _ =
-        TyVar () . TyName $
-            Name (Text.pack $ symbolVal @text Proxy)
-                 (Unique . fromIntegral $ natVal @uniq Proxy)
+toTyNameAst
+    :: forall text uniq. (KnownSymbol text, KnownNat uniq)
+    => Proxy ('TyNameRep text uniq) -> TyName
+toTyNameAst _ =
+    TyName $ Name
+        (Text.pack $ symbolVal @text Proxy)
+        (Unique . fromIntegral $ natVal @uniq Proxy)
+
+instance (KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst uni (TyVarRep ('TyNameRep text uniq)) where
+    toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
+
+instance (KnownSymbol text, KnownNat uniq, KnownKind kind, KnownTypeAst uni a) =>
+            KnownTypeAst uni (TyForallRep ('TyNameRep @kind text uniq) a) where
+    toTypeAst _ =
+        TyForall ()
+            (toTyNameAst $ Proxy @('TyNameRep text uniq))
+            (knownKind $ Proxy @kind)
+            (toTypeAst $ Proxy @a)
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
     toTypeAst _ = toTypeAst $ Proxy @rep
 
 instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
-    makeKnown = EvaluationSuccess . unOpaque
+    makeKnown = pure . unOpaque
     readKnown = pure . Opaque
 
-instance uni `Includes` Integer        => KnownTypeAst uni Integer
-instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString
-instance uni `Includes` String         => KnownTypeAst uni String
-instance uni `Includes` Char           => KnownTypeAst uni Char
-instance uni `Includes` ()             => KnownTypeAst uni ()
-instance uni `Includes` Bool           => KnownTypeAst uni Bool
+instance uni `Includes` Integer       => KnownTypeAst uni Integer       where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` String        => KnownTypeAst uni String        where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` Char          => KnownTypeAst uni Char          where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` ()            => KnownTypeAst uni ()            where
+    toTypeAst = toBuiltinTypeAst
+instance uni `Includes` Bool          => KnownTypeAst uni Bool          where
+    toTypeAst = toBuiltinTypeAst
 
-instance KnownBuiltinType term Integer        => KnownType term Integer
+instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term String         => KnownType term String
-instance KnownBuiltinType term Char           => KnownType term Char
-instance KnownBuiltinType term ()             => KnownType term ()
-instance KnownBuiltinType term Bool           => KnownType term Bool
+instance KnownBuiltinType term String        => KnownType term String
+instance KnownBuiltinType term Char          => KnownType term Char
+instance KnownBuiltinType term ()            => KnownType term ()
+instance KnownBuiltinType term Bool          => KnownType term Bool
+
+{- Note [Int as Integer]
+We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
+unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
+if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
+internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
+being "internal".
+-}
+
+instance uni `Includes` Integer => KnownTypeAst uni Int where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Int as Integer].
+instance KnownBuiltinType term Integer => KnownType term Int where
+    makeKnown = makeKnown . toInteger
+    readKnown term = do
+        i :: Integer <- readKnown term
+        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
+            throwingWithCause _EvaluationFailure () $ Just term
+        pure $ fromIntegral i

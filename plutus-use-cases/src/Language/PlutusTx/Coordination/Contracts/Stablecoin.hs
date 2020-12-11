@@ -239,9 +239,9 @@ data SCAction
 calcFees :: Stablecoin -> BankState -> ConversionRate -> SCAction -> BC (Ratio Integer)
 calcFees sc@Stablecoin{scFee} bs conversionRate = \case
     MintStablecoin (SC i) ->
-        stablecoinNominalPrice bs conversionRate * (BC scFee) * (BC $ fromInteger i)
+        stablecoinNominalPrice bs conversionRate * (BC scFee) * (BC $ abs $ fromInteger i)
     MintReserveCoin (RC i) ->
-        reservecoinNominalPrice sc bs conversionRate * (BC scFee) * (BC $ fromInteger i)
+        reservecoinNominalPrice sc bs conversionRate * (BC scFee) * (BC $ abs $ fromInteger i)
 
 -- | Input to the stablecoin state machine
 data Input =
@@ -337,7 +337,7 @@ type StablecoinSchema =
 
 data StablecoinError =
     InitialiseEPError ContractError
-    | StateMachineError (SMContractError BankState Input)
+    | StateMachineError SMContractError
     | RunStepError ContractError
     deriving stock (Haskell.Show)
 

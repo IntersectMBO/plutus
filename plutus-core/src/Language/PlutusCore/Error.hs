@@ -17,10 +17,6 @@ module Language.PlutusCore.Error
     , AsNormCheckError (..)
     , UniqueError (..)
     , AsUniqueError (..)
-    , UnknownDynamicBuiltinNameError (..)
-    , AsUnknownDynamicBuiltinNameError (..)
-    , InternalTypeError (..)
-    , AsInternalTypeError (..)
     , TypeError (..)
     , AsTypeError (..)
     , Error (..)
@@ -80,68 +76,49 @@ data UniqueError ann
     deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''UniqueError
 
-data NormCheckError tyname name uni ann
+data NormCheckError tyname name uni fun ann
     = BadType ann (Type tyname uni ann) T.Text
-    | BadTerm ann (Term tyname name uni ann) T.Text
-    deriving (Show, Generic, NFData, Functor)
+    | BadTerm ann (Term tyname name uni fun ann) T.Text
+    deriving (Show, Functor, Generic, NFData)
 deriving instance
-    ( HasUniques (Term tyname name uni ann)
+    ( HasUniques (Term tyname name uni fun ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
-    , Eq ann
-    ) => Eq (NormCheckError tyname name uni ann)
+    , Eq fun, Eq ann
+    ) => Eq (NormCheckError tyname name uni fun ann)
 makeClassyPrisms ''NormCheckError
 
--- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
-newtype UnknownDynamicBuiltinNameError
-    = UnknownDynamicBuiltinNameErrorE DynamicBuiltinName
-    deriving (Show, Eq, Generic)
-    deriving newtype (NFData)
-makeClassyPrisms ''UnknownDynamicBuiltinNameError
-
--- | An internal error occurred during type checking.
-data InternalTypeError uni ann
-    = OpenTypeOfBuiltin (Type TyName uni ()) BuiltinName
-    deriving (Show, Eq, Generic, NFData, Functor)
-makeClassyPrisms ''InternalTypeError
-
-data TypeError term uni ann
-    = KindMismatch ann (Type TyName uni ()) (Kind ())  (Kind ())
+data TypeError term uni fun ann
+    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
     | TypeMismatch ann
         term
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
-    | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
-    | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
+    | UnknownBuiltinFunctionE ann fun
     deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''TypeError
 
-data Error uni ann
+data Error uni fun ann
     = ParseErrorE (ParseError ann)
     | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError (Term TyName Name uni ()) uni ann)
-    | NormCheckErrorE (NormCheckError TyName Name uni ann)
+    | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
+    | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
     deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
 
-instance AsParseError (Error uni ann) ann where
+instance AsParseError (Error uni fun ann) ann where
     _ParseError = _ParseErrorE
 
-instance AsUniqueError (Error uni ann) ann where
+instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error uni ann) (Term TyName Name uni ()) uni ann where
+instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann where
     _TypeError = _TypeErrorE
 
 instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error uni ann) tyname name uni ann where
+            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
     _NormCheckError = _NormCheckErrorE
-
-asInternalError :: Doc ann -> Doc ann
-asInternalError doc =
-    "An internal error has occurred:" <+> doc <> hardline <>
-    "Please report this as a bug."
 
 instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
@@ -162,8 +139,8 @@ instance Pretty ann => Pretty (UniqueError ann) where
 
 instance ( Pretty ann
          , PrettyBy config (Type tyname uni ann)
-         , PrettyBy config (Term tyname name uni ann)
-         ) => PrettyBy config (NormCheckError tyname name uni ann) where
+         , PrettyBy config (Term tyname name uni fun ann)
+         ) => PrettyBy config (NormCheckError tyname name uni fun ann) where
     prettyBy config (BadType ann ty expct) =
         "Malformed type at" <+> pretty ann <>
         ". Type" <+>  squotes (prettyBy config ty) <+>
@@ -173,19 +150,8 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance Pretty UnknownDynamicBuiltinNameError where
-    pretty (UnknownDynamicBuiltinNameErrorE dbn) =
-        "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
-
-instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
-    prettyBy config (OpenTypeOfBuiltin ty bi)        =
-        asInternalError $
-            "The type" <+> prettyBy config ty <+>
-            "of the" <+> prettyBy config bi <+>
-            "built-in is open"
-
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty term) =>
-            PrettyBy PrettyConfigPlc (TypeError term uni ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty fun, Pretty term) =>
+            PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -206,15 +172,11 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
         "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (FreeVariableE ann name)              =
         "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
-    prettyBy config (InternalTypeErrorE ann err)        =
-        prettyBy config err <> hardline <>
-        "Error location:" <+> pretty ann
-    prettyBy _      (UnknownDynamicBuiltinName ann err) =
-        "Unknown dynamic built-in name at" <+> pretty ann <>
-        ":" <+> pretty err
+    prettyBy _ (UnknownBuiltinFunctionE ann fun) =
+        "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
-            PrettyBy PrettyConfigPlc (Error uni ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
+            PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e

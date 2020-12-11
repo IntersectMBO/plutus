@@ -102,6 +102,7 @@ step (s ▻ builtin bn (inj₂ (refl ,, ≤‴-step r)) As ts) = s ◅ V-builtin
 step (s ▻ error A) = ◆
 step (s ▻ wrap pat arg L) = (s , wrap- pat arg) ▻ L
 step (s ▻ unwrap L) = (s , unwrap-) ▻ L
+step (_ ▻ ibuiltin b) = ◆
 step (ε ◅ V) = □ V
 step ((s , (-· M)) ◅ V) = (s , (V ·-)) ▻ M
 step (_◅_ (s , (V-ƛ A L ·-)) {M} W) = s ▻ (L [ M ])

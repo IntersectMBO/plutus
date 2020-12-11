@@ -144,14 +144,14 @@ instance FromJSON ContractHandlersResponse where
 
 instance Pretty ContractSCBRequest where
     pretty = \case
-        AwaitSlotRequest s -> "AwaitSlot:" <+> pretty s
+        AwaitSlotRequest s        -> "AwaitSlot:" <+> pretty s
         AwaitTxConfirmedRequest t -> "AwaitTxConfirmed:" <+> pretty t
-        UserEndpointRequest t -> "UserEndpoint:" <+> pretty t
-        OwnPubkeyRequest r -> "OwnPubKey:" <+> pretty r
-        UtxoAtRequest a -> "UtxoAt:" <+> pretty a
-        NextTxAtRequest a -> "NextTxAt:" <+> pretty a
-        WriteTxRequest u -> "WriteTx:" <+> pretty u
-        OwnInstanceIdRequest r -> "OwnInstanceId:" <+> pretty r
+        UserEndpointRequest t     -> "UserEndpoint:" <+> pretty t
+        OwnPubkeyRequest r        -> "OwnPubKey:" <+> pretty r
+        UtxoAtRequest a           -> "UtxoAt:" <+> pretty a
+        NextTxAtRequest a         -> "NextTxAt:" <+> pretty a
+        WriteTxRequest u          -> "WriteTx:" <+> pretty u
+        OwnInstanceIdRequest r    -> "OwnInstanceId:" <+> pretty r
         SendNotificationRequest n -> "Notification:" <+> pretty n
 
 data ContractResponse =
@@ -169,15 +169,15 @@ data ContractResponse =
 
 instance Pretty ContractResponse where
     pretty = \case
-        AwaitSlotResponse s            -> "AwaitSlot:" <+> pretty s
-        UserEndpointResponse n r       -> "UserEndpoint:" <+> pretty n <+> pretty r
-        OwnPubkeyResponse pk           -> "OwnPubKey:" <+> pretty pk
-        UtxoAtResponse utxo            -> "UtxoAt:" <+> pretty utxo
-        NextTxAtResponse rsp        -> "NextTxAt:" <+> pretty rsp
-        WriteTxResponse w           -> "WriteTx:" <+> pretty w
-        AwaitTxConfirmedResponse w  -> "AwaitTxConfirmed:" <+> pretty w
-        OwnInstanceResponse r       -> "OwnInstance:" <+> pretty r
-        NotificationResponse r      -> "Notification:" <+> pretty r
+        AwaitSlotResponse s        -> "AwaitSlot:" <+> pretty s
+        UserEndpointResponse n r   -> "UserEndpoint:" <+> pretty n <+> pretty r
+        OwnPubkeyResponse pk       -> "OwnPubKey:" <+> pretty pk
+        UtxoAtResponse utxo        -> "UtxoAt:" <+> pretty utxo
+        NextTxAtResponse rsp       -> "NextTxAt:" <+> pretty rsp
+        WriteTxResponse w          -> "WriteTx:" <+> pretty w
+        AwaitTxConfirmedResponse w -> "AwaitTxConfirmed:" <+> pretty w
+        OwnInstanceResponse r      -> "OwnInstance:" <+> pretty r
+        NotificationResponse r     -> "Notification:" <+> pretty r
 
 data ContractInstanceState t =
     ContractInstanceState
@@ -224,7 +224,7 @@ data ContractEvent t =
 
 instance Pretty t => Pretty (ContractEvent t) where
     pretty = \case
-        ContractInboxMessage mbx sb -> "InboxMessage:" <+> pretty mbx <+> pretty sb
+        ContractInboxMessage mbx sb        -> "InboxMessage:" <+> pretty mbx <+> pretty sb
         ContractInstanceStateUpdateEvent m -> "StateUpdate:" <+> pretty m
 
 makePrisms ''ContractSCBRequest

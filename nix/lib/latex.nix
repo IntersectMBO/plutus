@@ -10,7 +10,6 @@
     , # Additional build inputs
       ...
     }@attrs:
-
     let
       tex = texlive.combine (texInputs // { inherit (texlive) latexmk; });
       # mkDerivation doesn't like having this as an attr, and we don't need to pass it through
@@ -33,10 +32,10 @@
         mkdir -p $out/nix-support
         for pdf in $out/*.pdf; do
           echo "doc-pdf $(basename $pdf .pdf) $pdf" >> $out/nix-support/hydra-build-products
-        done 
+        done
         runHook postInstall
       '';
     });
-  # A typical good filter for latex sources.
-  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ];
+  # A typical good filter for latex sources. This also includes files for cases where agda sources are being compiled
+  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 }

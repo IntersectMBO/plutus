@@ -45,9 +45,9 @@ substTyVarA _       ty                  = pure ty
 -- | Applicatively replace a variable using the given function.
 substVarA
     :: Applicative f
-    => (name -> f (Maybe (Term tyname name uni ann)))
-    -> Term tyname name uni ann
-    -> f (Term tyname name uni ann)
+    => (name -> f (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> f (Term tyname name uni fun ann)
 substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
 substVarA _     t              = pure t
 
@@ -60,9 +60,9 @@ substTyVar = purely substTyVarA
 
 -- | Replace a variable using the given function.
 substVar
-    :: (name -> Maybe (Term tyname name uni ann))
-    -> Term tyname name uni ann
-    -> Term tyname name uni ann
+    :: (name -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
 substVar = purely substVarA
 
 -- | Naively monadically substitute type names (i.e. do not substitute binders).
@@ -76,17 +76,17 @@ typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
     :: Monad m
-    => (name -> m (Maybe (Term tyname name uni ann)))
-    -> Term tyname name uni ann
-    -> m (Term tyname name uni ann)
+    => (name -> m (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
 -- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNamesM
     :: Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
-    -> Term tyname name uni ann
-    -> m (Term tyname name uni ann)
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
 termSubstTyNamesM =
     transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA
 
@@ -99,24 +99,24 @@ typeSubstTyNames = purely typeSubstTyNamesM
 
 -- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
-    :: (name -> Maybe (Term tyname name uni ann))
-    -> Term tyname name uni ann
-    -> Term tyname name uni ann
+    :: (name -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
 termSubstNames = purely termSubstNamesM
 
 -- | Naively substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNames
     :: (tyname -> Maybe (Type tyname uni ann))
-    -> Term tyname name uni ann
-    -> Term tyname name uni ann
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
 termSubstTyNames = purely termSubstTyNamesM
 
 -- | Applicatively substitute *free* names using the given function.
 termSubstFreeNamesA
     :: (Applicative f, HasUnique name TermUnique)
-    => (name -> f (Maybe (Term tyname name uni ann)))
-    -> Term tyname name uni ann
-    -> f (Term tyname name uni ann)
+    => (name -> f (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> f (Term tyname name uni fun ann)
 termSubstFreeNamesA f = go Set.empty where
     go bvs var@(Var _ name)           =
         if (name ^. unique) `member` bvs
@@ -135,15 +135,15 @@ termSubstFreeNamesA f = go Set.empty where
 -- | Substitute *free* names using the given function.
 termSubstFreeNames
     :: HasUnique name TermUnique
-    => (name -> Maybe (Term tyname name uni ann))
-    -> Term tyname name uni ann
-    -> Term tyname name uni ann
+    => (name -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
 termSubstFreeNames = purely termSubstFreeNamesA
 
 -- Free variables
 
 -- | Get all the free term variables in a term.
-fvTerm :: Ord name => Term tyname name uni ann -> Set name
+fvTerm :: Ord name => Term tyname name uni fun ann -> Set name
 fvTerm = cata f
   where
     f (VarF _ n)        = singleton n
@@ -158,7 +158,7 @@ fvTerm = cata f
     f ErrorF{}          = Set.empty
 
 -- | Get all the free type variables in a term.
-ftvTerm :: Ord tyname => Term tyname name uni ann -> Set tyname
+ftvTerm :: Ord tyname => Term tyname name uni fun ann -> Set tyname
 ftvTerm = cata f
   where
     f (TyAbsF _ ty _ t)    = delete ty t
@@ -190,11 +190,11 @@ setOf :: Getting (Set a) s a -> s -> Set a
 setOf g = foldMapOf g singleton
 
 -- | Get all the term variables in a term.
-vTerm :: Ord name => Term tyname name uni ann -> Set name
+vTerm :: Ord name => Term tyname name uni fun ann -> Set name
 vTerm = setOf $ termSubtermsDeep . termVars
 
 -- | Get all the type variables in a term.
-tvTerm :: Ord tyname => Term tyname name uni ann -> Set tyname
+tvTerm :: Ord tyname => Term tyname name uni fun ann -> Set tyname
 tvTerm = setOf $ termSubtypesDeep . typeTyVars
 
 -- | Get all the type variables in a type.
@@ -208,5 +208,5 @@ uniquesType :: HasUniques (Type tyname uni ann) => Type tyname uni ann -> Set Un
 uniquesType = setOf typeUniquesDeep
 
 -- | Get all the uniques in a term (including the type-level ones).
-uniquesTerm :: HasUniques (Term tyname name uni ann) => Term tyname name uni ann -> Set Unique
+uniquesTerm :: HasUniques (Term tyname name uni fun ann) => Term tyname name uni fun ann -> Set Unique
 uniquesTerm = setOf termUniquesDeep

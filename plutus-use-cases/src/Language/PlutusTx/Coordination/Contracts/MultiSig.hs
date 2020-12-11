@@ -1,17 +1,17 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
-{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements an n-out-of-m multisig contract.
 module Language.PlutusTx.Coordination.Contracts.MultiSig
@@ -23,19 +23,19 @@ module Language.PlutusTx.Coordination.Contracts.MultiSig
     , validate
     ) where
 
-import           Control.Monad                (void)
-import           Data.Aeson (ToJSON, FromJSON)
-import           GHC.Generics (Generic)
+import           Control.Monad                     (void)
+import           Data.Aeson                        (FromJSON, ToJSON)
+import           GHC.Generics                      (Generic)
 import           Language.Plutus.Contract
-import qualified Ledger.Constraints           as Constraints
-import qualified Language.Plutus.Contract.Typed.Tx  as Tx
-import           Language.PlutusTx.Prelude    hiding (Semigroup(..), foldMap)
-import qualified Language.PlutusTx            as PlutusTx
+import qualified Language.Plutus.Contract.Typed.Tx as Tx
+import qualified Language.PlutusTx                 as PlutusTx
+import           Language.PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 import           Ledger
-import qualified Ledger.Typed.Scripts         as Scripts
-import           Ledger.Validation            as V
+import qualified Ledger.Constraints                as Constraints
+import qualified Ledger.Typed.Scripts              as Scripts
+import           Ledger.Validation                 as V
 
-import           Prelude                      (Semigroup(..), foldMap)
+import           Prelude                           (Semigroup (..), foldMap)
 
 type MultiSigSchema =
     BlockchainActions
@@ -44,7 +44,7 @@ type MultiSigSchema =
 
 data MultiSig =
         MultiSig
-                { signatories :: [Ledger.PubKeyHash]
+                { signatories      :: [Ledger.PubKeyHash]
                 -- ^ List of public keys of people who may sign the transaction
                 , minNumSignatures :: Integer
                 -- ^ Minimum number of signatures required to unlock

@@ -18,7 +18,7 @@ import           Cardano.Metadata.Types    (JSONEncoding (AesonEncoding),
                                             MetadataEffect (BatchQuery, GetProperties, GetProperty),
                                             MetadataError (MetadataClientError, SubjectNotFound, SubjectPropertyNotFound),
                                             QueryResult (QueryResult))
-import           Control.Monad.Freer       (Eff, LastMember, Member, type (~>), interpret, sendM)
+import           Control.Monad.Freer       (Eff, LastMember, Member, interpret, sendM, type (~>))
 import           Control.Monad.Freer.Error (Error, throwError)
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
 import           Data.Coerce               (Coercible, coerce)

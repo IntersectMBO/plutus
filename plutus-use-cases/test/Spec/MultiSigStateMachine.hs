@@ -40,7 +40,8 @@ tests =
 
     , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 2x, pay - FAILURE"
         (MS.contract params)
-        (assertContractError w1 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
+        (assertNotDone w1 "contract should proceed after invalid transition"
+        /\ assertNoFailedTransactions
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (Ada.lovelaceValueOf 0))
         (lockProposeSignPay 2 1)
@@ -54,7 +55,8 @@ tests =
 
     , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay x3 - FAILURE"
         (MS.contract params)
-        (assertContractError w2 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
+        (assertNotDone w2 "contract should proceed after invalid transition"
+        /\ assertNoFailedTransactions
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
         (lockProposeSignPay 3 2 >> callEndpoint @"propose-payment" w2 payment >> handleBlockchainEvents w2)

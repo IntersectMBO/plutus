@@ -55,9 +55,9 @@ import           Data.Proxy                           (Proxy)
 import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
 import           Data.UUID                            (UUID)
-import           GHC.Generics                         ((:*:) ((:*:)), (:+:) (L1, R1), C1, Constructor, D1, Generic,
-                                                       K1 (K1), M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord,
-                                                       conName, from, selName)
+import           GHC.Generics                         (C1, Constructor, D1, Generic, K1 (K1), M1 (M1), Rec0, Rep, S1,
+                                                       Selector, U1, conIsRecord, conName, from, selName, (:*:) ((:*:)),
+                                                       (:+:) (L1, R1))
 import           Language.Plutus.Contract.Effects.RPC (RPCParams)
 import qualified Language.PlutusTx.AssocMap
 import qualified Language.PlutusTx.Prelude            as P

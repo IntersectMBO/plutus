@@ -10,6 +10,8 @@ foreign import closeDrawerIcon :: String
 
 foreign import closeDrawerArrowIcon :: String
 
+foreign import closeModal :: String
+
 foreign import githubIcon :: String
 
 foreign import downloadIcon :: String
@@ -49,6 +51,14 @@ foreign import option1 :: String
 foreign import option2 :: String
 
 foreign import option3 :: String
+
+foreign import newProjectHaskellIcon :: String
+
+foreign import newProjectJavascriptIcon :: String
+
+foreign import newProjectMarloweIcon :: String
+
+foreign import newProjectBlocklyIcon :: String
 
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
@@ -130,6 +140,9 @@ plusBtn = ClassName "plus-btn"
 
 minusBtn :: ClassName
 minusBtn = ClassName "minus-btn"
+
+btn :: ClassName
+btn = ClassName "button"
 
 btnSecondary :: ClassName
 btnSecondary = ClassName "btn-secondary"
@@ -246,5 +259,21 @@ collapsed = ClassName "collapsed"
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"
 
+modalContent :: ClassName
+modalContent = ClassName "modal-content"
+
 vl :: forall p a. HTML p a
 vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]
+
+group :: ClassName
+group = ClassName "group"
+
+-- Tailwind's classes.
+textBase :: ClassName
+textBase = ClassName "text-base"
+
+textSm :: ClassName
+textSm = ClassName "text-sm"
+
+fontSemibold :: ClassName
+fontSemibold = ClassName "font-semibold"

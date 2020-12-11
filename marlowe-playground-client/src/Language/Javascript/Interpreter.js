@@ -16,10 +16,10 @@ exports.eval_ = function (left, right, model) {
                                     .then((r) => {
                         var javascript = r.outputFiles[0].text;
                         try {
-                          var slices = javascript.split(/^.*\/\* === Code above this comment will be removed at compile time === \*\/$/gm);
+                          var slices = javascript.split(/^.*from 'marlowe-js';$/gm);
                           var takeSlice = 0;
                           if (slices.length > 1) { takeSlice = 1 };
-                          var justCode = 'function () { \n' + slices.slice(takeSlice).join('') + '\n if (typeof contract !== \'undefined\') { return contract } else { throw new Error("Variable \'contract\' not defined. Please, assign the resulting contract to the variable \'contract\'.") } }';
+                          var justCode = slices.slice(takeSlice).join('');
                           let res = safeEval(justCode, context)();
                           return right(JSON.stringify(res));
                         } catch (error) {

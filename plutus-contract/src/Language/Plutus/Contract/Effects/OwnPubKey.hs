@@ -51,7 +51,7 @@ instance FromJSON OwnPubKeyRequest where
     parseJSON =
         withText "OwnPubKeyRequest" $ \case
             "WaitingForPubKey" -> pure WaitingForPubKey
-            other -> fail $ "Invalid constructor: " <> Text.unpack other
+            other              -> fail $ "Invalid constructor: " <> Text.unpack other
 
 deriving via (PrettyShow OwnPubKeyRequest) instance Pretty OwnPubKeyRequest
 

@@ -1,9 +1,51 @@
 .new-project-container {
-  width: 90%;
+  h3 {
+    margin: 0;
+    margin-bottom: var(--medium-margin);
+  }
+  .environment-selector-group {
+    display: flex;
+    justify-content: space-between;
+    // The negative margin is a way to remove the extra margin
+    // that the child view create. This is needed until
+    // the gap property is general available
+    margin: 0 calc(-1 * var(--small-margin));
+  }
+  .environment-selector {
+    background-color: var(--bg-dark);
+    &:hover {
+      background-color: var(--bg-darker);
+    }
+    &:active {
+      background-color: var(--bg-darkest);
+    }
+    // Vertically and horizontally align the contents of the "button"
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // Align the logo and the tilte vertically
+    flex-direction: column;
+
+    width: 160px;
+    height: 160px;
+    border-radius: var(--bigger-border-radius);
+    cursor: pointer;
+    margin: 0 var(--small-margin);
+    img {
+      height: 40px;
+    }
+    span {
+      margin-top: var(--small-margin);
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+  }
 }
 
-.new-project-container input {
-  margin: 1.5rem 0rem;
+// This class is not used for the new project dialog any more
+// but it is being used by the Save as and Rename modal.
+// TODO: Move to more appropiate location
+.project-name-input {
   font-weight: normal;
   font-size: 1.912em;
   line-height: calc(18px + 1.8vw);
@@ -15,16 +57,4 @@
   appearance: none;
   background-color: var(--bg-light);
   color: var(--text-color);
-}
-
-.new-project-container .language-links {
-  justify-content: flex-start;
-  text-decoration: none;
-}
-.new-project-container .language-links a {
-  margin: 0 1rem 0 0rem;
-  border: solid 1px;
-  border-radius: 1rem;
-  padding: 0 1rem;
-  background-color: white;
 }

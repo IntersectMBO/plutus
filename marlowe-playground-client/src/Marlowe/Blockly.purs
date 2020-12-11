@@ -373,12 +373,12 @@ toDefinition BaseContractType =
         { type: show BaseContractType
         , message0: "%1 CONTRACT %2 %3 %4 %5"
         , args0:
-          [ DummyRight
-          , DummyRight
-          , DummyRight
-          , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
-          , DummyRight
-          ]
+            [ DummyRight
+            , DummyRight
+            , DummyRight
+            , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
+            , DummyRight
+            ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
         }
@@ -390,9 +390,9 @@ toDefinition BoundsType =
         { type: show BoundsType
         , message0: "between %1 and %2"
         , args0:
-          [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-          , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
-          ]
+            [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
+            ]
         , colour: blockColour BoundsType
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
@@ -406,14 +406,14 @@ toDefinition blockType@(ActionType DepositActionType) =
         { type: show DepositActionType
         , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account of %5 continue as %6 %7"
         , args0:
-          [ DummyCentre
-          , Value { name: "from_party", check: "party", align: Right }
-          , Value { name: "value", check: "value", align: Right }
-          , Value { name: "token", check: "token", align: Right }
-          , Value { name: "party", check: "party", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ DummyCentre
+            , Value { name: "from_party", check: "party", align: Right }
+            , Value { name: "value", check: "value", align: Right }
+            , Value { name: "token", check: "token", align: Right }
+            , Value { name: "party", check: "party", align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
@@ -427,14 +427,14 @@ toDefinition blockType@(ActionType ChoiceActionType) =
         { type: show ChoiceActionType
         , message0: "Choice name %1 %2 choice owner %3 choice bounds %4 %5 continue as %6 %7"
         , args0:
-          [ Input { name: "choice_name", text: "name", spellcheck: false }
-          , DummyLeft
-          , Value { name: "party", check: "party", align: Right }
-          , DummyLeft
-          , Statement { name: "bounds", check: (show BoundsType), align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ Input { name: "choice_name", text: "name", spellcheck: false }
+            , DummyLeft
+            , Value { name: "party", check: "party", align: Right }
+            , DummyLeft
+            , Statement { name: "bounds", check: (show BoundsType), align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
@@ -448,10 +448,10 @@ toDefinition blockType@(ActionType NotifyActionType) =
         { type: show NotifyActionType
         , message0: "Notification of %1 continue as %2 %3"
         , args0:
-          [ Value { name: "observation", check: "observation", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ Value { name: "observation", check: "observation", align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
@@ -466,9 +466,9 @@ toDefinition blockType@(PayeeType AccountPayeeType) =
         { type: show AccountPayeeType
         , message0: "Account of %1 %2"
         , args0:
-          [ DummyLeft
-          , Value { name: "party", check: "party", align: Right }
-          ]
+            [ DummyLeft
+            , Value { name: "party", check: "party", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "payee"
         , inputsInline: Just true
@@ -481,8 +481,8 @@ toDefinition blockType@(PayeeType PartyPayeeType) =
         { type: show PartyPayeeType
         , message0: "Party %1"
         , args0:
-          [ Value { name: "party", check: "party", align: Right }
-          ]
+            [ Value { name: "party", check: "party", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "payee"
         , inputsInline: Just true
@@ -496,8 +496,8 @@ toDefinition blockType@(PartyType PKPartyType) =
         { type: show PKPartyType
         , message0: "Public Key %1"
         , args0:
-          [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
-          ]
+            [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
+            ]
         , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
@@ -524,9 +524,9 @@ toDefinition blockType@(TokenType CustomTokenType) =
         { type: show CustomTokenType
         , message0: "Token with currency %1 and token name %2"
         , args0:
-          [ Input { name: "currency_symbol", text: "", spellcheck: false }
-          , Input { name: "token_name", text: "", spellcheck: false }
-          ]
+            [ Input { name: "currency_symbol", text: "", spellcheck: false }
+            , Input { name: "token_name", text: "", spellcheck: false }
+            ]
         , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
@@ -539,8 +539,8 @@ toDefinition blockType@(PartyType RolePartyType) =
         { type: show RolePartyType
         , message0: "Role %1"
         , args0:
-          [ Input { name: "role", text: "role", spellcheck: false }
-          ]
+            [ Input { name: "role", text: "role", spellcheck: false }
+            ]
         , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
@@ -564,14 +564,14 @@ toDefinition blockType@(ContractType PayContractType) =
         { type: show PayContractType
         , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account of %5 continue as %6 %7"
         , args0:
-          [ DummyCentre
-          , Value { name: "payee", check: "payee", align: Right }
-          , Value { name: "value", check: "value", align: Right }
-          , Value { name: "token", check: "token", align: Right }
-          , Value { name: "party", check: "party", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ DummyCentre
+            , Value { name: "payee", check: "payee", align: Right }
+            , Value { name: "value", check: "value", align: Right }
+            , Value { name: "token", check: "token", align: Right }
+            , Value { name: "party", check: "party", align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
@@ -584,12 +584,12 @@ toDefinition blockType@(ContractType IfContractType) =
         { type: show IfContractType
         , message0: "If observation %1 then %2 %3 else %4 %5"
         , args0:
-          [ Value { name: "observation", check: "observation", align: Right }
-          , DummyLeft
-          , Statement { name: "contract1", check: (show BaseContractType), align: Right }
-          , DummyLeft
-          , Statement { name: "contract2", check: (show BaseContractType), align: Right }
-          ]
+            [ Value { name: "observation", check: "observation", align: Right }
+            , DummyLeft
+            , Statement { name: "contract1", check: (show BaseContractType), align: Right }
+            , DummyLeft
+            , Statement { name: "contract2", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
@@ -602,13 +602,13 @@ toDefinition blockType@(ContractType WhenContractType) =
         { type: show WhenContractType
         , message0: "When %1 %2 after slot %3 %4 continue as %5 %6"
         , args0:
-          [ DummyCentre
-          , Statement { name: "case", check: "ActionType", align: Left }
-          , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
-          , DummyLeft
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ DummyCentre
+            , Statement { name: "case", check: "ActionType", align: Left }
+            , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
+            , DummyLeft
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
@@ -621,11 +621,11 @@ toDefinition blockType@(ContractType LetContractType) =
         { type: show LetContractType
         , message0: "Let %1 be %2 continue as %3 %4"
         , args0:
-          [ Input { name: "value_id", text: "value", spellcheck: false }
-          , Value { name: "value", check: "value", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ Input { name: "value_id", text: "value", spellcheck: false }
+            , Value { name: "value", check: "value", align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         }
@@ -637,11 +637,11 @@ toDefinition blockType@(ContractType AssertContractType) =
         { type: show AssertContractType
         , message0: "Assert %1 check that %2 continue as %3 %4"
         , args0:
-          [ DummyCentre
-          , Value { name: "observation", check: "observation", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
+            [ DummyCentre
+            , Value { name: "observation", check: "observation", align: Right }
+            , DummyLeft
+            , Statement { name: "contract", check: (show BaseContractType), align: Right }
+            ]
         , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
@@ -655,9 +655,9 @@ toDefinition blockType@(ObservationType AndObservationType) =
         { type: show AndObservationType
         , message0: "%1 and %2"
         , args0:
-          [ Value { name: "observation1", check: "observation", align: Right }
-          , Value { name: "observation2", check: "observation", align: Right }
-          ]
+            [ Value { name: "observation1", check: "observation", align: Right }
+            , Value { name: "observation2", check: "observation", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -670,9 +670,9 @@ toDefinition blockType@(ObservationType OrObservationType) =
         { type: show OrObservationType
         , message0: "%1 or %2"
         , args0:
-          [ Value { name: "observation1", check: "observation", align: Right }
-          , Value { name: "observation2", check: "observation", align: Right }
-          ]
+            [ Value { name: "observation1", check: "observation", align: Right }
+            , Value { name: "observation2", check: "observation", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -685,8 +685,8 @@ toDefinition blockType@(ObservationType NotObservationType) =
         { type: show NotObservationType
         , message0: "not %1"
         , args0:
-          [ Value { name: "observation", check: "observation", align: Right }
-          ]
+            [ Value { name: "observation", check: "observation", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -699,9 +699,9 @@ toDefinition blockType@(ObservationType ChoseSomethingObservationType) =
         { type: show ChoseSomethingObservationType
         , message0: "party %1 made choice %2"
         , args0:
-          [ Value { name: "party", check: "party", align: Right }
-          , Input { name: "choice_name", text: "name", spellcheck: false }
-          ]
+            [ Value { name: "party", check: "party", align: Right }
+            , Input { name: "choice_name", text: "name", spellcheck: false }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -714,9 +714,9 @@ toDefinition blockType@(ObservationType ValueGEObservationType) =
         { type: show ValueGEObservationType
         , message0: "value %1 is greater than or equal to %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -729,9 +729,9 @@ toDefinition blockType@(ObservationType ValueGTObservationType) =
         { type: show ValueGTObservationType
         , message0: "value %1 is greater than %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -744,9 +744,9 @@ toDefinition blockType@(ObservationType ValueLEObservationType) =
         { type: show ValueLEObservationType
         , message0: "value %1 is less than or equal to %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -759,9 +759,9 @@ toDefinition blockType@(ObservationType ValueLTObservationType) =
         { type: show ValueLTObservationType
         , message0: "value %1 is less than %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -774,9 +774,9 @@ toDefinition blockType@(ObservationType ValueEQObservationType) =
         { type: show ValueEQObservationType
         , message0: "value %1 is equal to %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
@@ -814,12 +814,12 @@ toDefinition blockType@(ValueType AvailableMoneyValueType) =
         { type: show AvailableMoneyValueType
         , message0: "Available currency %1 from account of %2 %3 %4 %5"
         , args0:
-          [ Value { name: "token", check: "token", align: Right }
-          , DummyRight
-          , DummyRight
-          , Value { name: "party", check: "party", align: Right }
-          , DummyRight
-          ]
+            [ Value { name: "token", check: "token", align: Right }
+            , DummyRight
+            , DummyRight
+            , Value { name: "party", check: "party", align: Right }
+            , DummyRight
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -832,8 +832,8 @@ toDefinition blockType@(ValueType ConstantValueType) =
         { type: show ConstantValueType
         , message0: "Constant %1"
         , args0:
-          [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-          ]
+            [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -846,8 +846,8 @@ toDefinition blockType@(ValueType NegValueValueType) =
         { type: show NegValueValueType
         , message0: "- %1"
         , args0:
-          [ Value { name: "value", check: "value", align: Right }
-          ]
+            [ Value { name: "value", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -860,9 +860,9 @@ toDefinition blockType@(ValueType AddValueValueType) =
         { type: show AddValueValueType
         , message0: "%1 + %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -875,9 +875,9 @@ toDefinition blockType@(ValueType MulValueValueType) =
         { type: show MulValueValueType
         , message0: "%1 * %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -890,10 +890,10 @@ toDefinition blockType@(ValueType CondObservationValueValueType) =
         { type: show CondObservationValueValueType
         , message0: "if %1 then %2 else %3"
         , args0:
-          [ Value { name: "condition", check: "observation", align: Right }
-          , Value { name: "then", check: "value", align: Right }
-          , Value { name: "else", check: "value", align: Right }
-          ]
+            [ Value { name: "condition", check: "observation", align: Right }
+            , Value { name: "then", check: "value", align: Right }
+            , Value { name: "else", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -906,9 +906,9 @@ toDefinition blockType@(ValueType SubValueValueType) =
         { type: show SubValueValueType
         , message0: "%1 - %2"
         , args0:
-          [ Value { name: "value1", check: "value", align: Right }
-          , Value { name: "value2", check: "value", align: Right }
-          ]
+            [ Value { name: "value1", check: "value", align: Right }
+            , Value { name: "value2", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -921,10 +921,10 @@ toDefinition blockType@(ValueType ScaleValueType) =
         { type: show ScaleValueType
         , message0: "(%1 / %2) * %3"
         , args0:
-          [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-          , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
-          , Value { name: "value", check: "value", align: Right }
-          ]
+            [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+            , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
+            , Value { name: "value", check: "value", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -937,9 +937,9 @@ toDefinition blockType@(ValueType ChoiceValueValueType) =
         { type: show ChoiceValueValueType
         , message0: "Choice %1 by %2"
         , args0:
-          [ Input { name: "choice_name", text: "name", spellcheck: false }
-          , Value { name: "party", check: "party", align: Right }
-          ]
+            [ Input { name: "choice_name", text: "name", spellcheck: false }
+            , Value { name: "party", check: "party", align: Right }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
@@ -976,8 +976,8 @@ toDefinition blockType@(ValueType UseValueValueType) =
         { type: show UseValueValueType
         , message0: "Use name %1"
         , args0:
-          [ Input { name: "value_id", text: "value", spellcheck: false }
-          ]
+            [ Input { name: "value_id", text: "value", spellcheck: false }
+            ]
         , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true

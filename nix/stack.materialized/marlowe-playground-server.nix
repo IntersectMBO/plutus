@@ -73,6 +73,7 @@
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
           (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+          (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
           ];
         buildable = true;
         modules = [

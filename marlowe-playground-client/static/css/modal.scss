@@ -1,7 +1,19 @@
-/* The Modal (background) */
-.modal {
-  /* Hidden by default */
-  display: block;
+/* TODO: this only works if set on body, need to check how to add it there
+without doing it as an Effect in a mainframe action
+*/
+.avoid-scrolling {
+  overflow-y: hidden;
+}
+
+/* The "grey" background that prevents other actions to be performed */
+.overlay {
+  /*
+    Hidden by default
+    Centered vertically and horizontally
+  */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   /* Stay in place */
   position: fixed;
   /* Sit on top */
@@ -9,11 +21,9 @@
   left: 0;
   top: 0;
   /* Full width */
-  width: 100%;
+  width: 100vw;
   /* Full height */
-  height: 100%;
-  /* Enable scroll if needed */
-  overflow: auto;
+  height: 100vh;
   /* Fallback color */
   background-color: rgb(0, 0, 0);
   /* Black w/ opacity */
@@ -21,28 +31,51 @@
 }
 
 /* Modal Content/Box */
-.modal-container {
+.modal {
   background-color: #fefefe;
-  /* 15% from the top and centered */
-  margin: 15% auto;
-  padding: 20px;
   border: 1px solid #888;
-  /* Could be more or less, depending on screen size */
-  width: 80%;
   position: relative;
+  border-radius: var(--border-radius);
+  box-shadow: 0 3px 27px 0 rgba(0, 0, 0, 0.34);
+
+  /* The width cant be bigger than the 1024 size minus margins of both sides*/
+  max-width: calc(var(--breakpoint-mid) - 2 * var(--medium-margin));
+  /*
+    The height cant be bigger than 90% of the vertical height and it's allowed
+    to scroll.
+  */
+  max-height: 90vh;
+  overflow: auto;
 }
 
-.modal-content .close {
+
+
+.modal-header {
+  padding: var(--small-margin) var(--medium-margin);
+  box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.34);
+  .title {
+    @extend .font-semibold;
+    margin: 0;
+  }
+}
+
+.modal-close {
+  /* Fix the close button on top right*/
   position: absolute;
-  top: 5px;
-  right: 10px;
-  transition: all 200ms;
-  font-size: 30px;
-  font-weight: bold;
-  text-decoration: none;
-  color: #333;
+  top: var(--small-margin);
+  right: var(--medium-margin);
+  cursor: pointer;
 }
 
-.modal-content .close:hover {
-  color: var(--primary-color);
+// This sets the same line-height for the title
+// and the close button so they are horizontally aligned
+// even if they don't have the same parent
+.modal-close, .modal-header .title {
+  @extend .text-xl;
+}
+
+
+.modal-content {
+  padding: var(--medium-margin);
+
 }

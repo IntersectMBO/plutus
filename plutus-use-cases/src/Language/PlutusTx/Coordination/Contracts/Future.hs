@@ -103,9 +103,9 @@ data Role = Long | Short
     deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Role where
-    Long == Long = True
+    Long == Long   = True
     Short == Short = True
-    _ == _ = False
+    _ == _         = False
 
 -- | The token accounts that represent ownership of the two sides of the future.
 --   When the contract is done, payments will be made to these accounts.
@@ -145,7 +145,7 @@ data FutureState =
 instance Eq FutureState where
     Running ma == Running ma' = ma == ma'
     Finished   == Finished    = True
-    _ == _ = False
+    _ == _                    = False
 
 -- | Actions that can be performed on the future contract.
 data FutureAction =
@@ -163,7 +163,7 @@ data FutureAction =
 data FutureError =
     TokenSetupFailed Currency.CurrencyError
     -- ^ Something went wrong during the setup of the two tokens
-    | StateMachineError (SM.SMContractError FutureState FutureAction)
+    | StateMachineError SM.SMContractError
     | OtherFutureError ContractError
     | EscrowFailed EscrowError
     -- ^ The escrow that initialises the future contract failed
@@ -174,7 +174,7 @@ data FutureError =
 
 makeClassyPrisms ''FutureError
 
-instance AsSMContractError FutureError FutureState FutureAction where
+instance AsSMContractError FutureError where
     _SMContractError = _StateMachineError
 
 instance AsContractError FutureError where
@@ -273,7 +273,7 @@ mkAccounts long short =
 {-# INLINABLE tokenFor #-}
 tokenFor :: Role -> FutureAccounts -> Value
 tokenFor = \case
-    Long -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
+    Long  -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
     Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
 
 {-# INLINABLE adjustMargin #-}
@@ -518,7 +518,7 @@ settleFuture client = mapError (review _FutureError) $ do
 settleEarly
     :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -535,7 +535,7 @@ increaseMargin
        , HasWriteTx s
        , HasOwnPubKey s
        , HasTxConfirmation s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction

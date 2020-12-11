@@ -11,8 +11,8 @@ module Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -40,7 +40,7 @@ We encode the following in this module:
 --
 -- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
 -- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
-interListData :: RecursiveType uni ()
+interListData :: RecursiveType uni fun ()
 interListData = runQuote $ do
     a         <- freshTyName "a"
     b         <- freshTyName "b"
@@ -53,7 +53,7 @@ interListData = runQuote $ do
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ TyVar () r
 
-interNil :: Term TyName Name uni ()
+interNil :: Term TyName Name uni fun ()
 interNil = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a <- freshTyName "a"
@@ -71,7 +71,7 @@ interNil = runQuote $ do
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ Var () z
 
-interCons :: Term TyName Name uni ()
+interCons :: Term TyName Name uni fun ()
 interCons = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
     a  <- freshTyName "a"
@@ -99,7 +99,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: uni `Includes` () => Term TyName Name uni ()
+foldrInterList :: uni `Includes` () => Term TyName Name uni fun ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName "a0"

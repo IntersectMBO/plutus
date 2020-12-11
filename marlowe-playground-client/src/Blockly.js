@@ -100,3 +100,13 @@ exports.loadWorkspace_ = function (blockly, workspaceRef, xml) {
         workspace.getAllBlocks()[0].setDeletable(false);
     }
 }
+
+exports.addChangeListener_ = function (workspace, listener) {
+  workspace.addChangeListener(listener)
+}
+
+exports.removeChangeListener_ = function (workspace, listener) {
+  workspace.removeChangeListener(listener)
+}
+
+

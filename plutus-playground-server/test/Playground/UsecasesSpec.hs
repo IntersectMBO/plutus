@@ -32,7 +32,8 @@ import           Ledger.Ada                                      (adaValueOf, lo
 import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
 import           Ledger.Value                                    (TokenName (TokenName), Value)
 import qualified Playground.Interpreter                          as PI
-import           Playground.Types                                (CompilationResult (CompilationResult), ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
+import           Playground.Types                                (CompilationResult (CompilationResult),
+                                                                  ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
                                                                   Evaluation (Evaluation),
                                                                   EvaluationResult (EvaluationResult), Expression,
                                                                   FunctionSchema (FunctionSchema),

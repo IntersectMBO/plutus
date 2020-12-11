@@ -6,7 +6,7 @@ import Prelude
 import Data.Either (Either(..))
 import Data.Generic.Rep.Show (genericShow)
 import Gist (GistId(..))
-import Gists (parseGistUrl)
+import Gists.Types (parseGistUrl)
 import Test.Unit (TestSuite, Test, suite, test)
 import TestUtils (equalWithBiformatter)
 

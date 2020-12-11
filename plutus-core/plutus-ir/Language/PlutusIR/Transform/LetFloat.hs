@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeOperators  #-}
-{-# LANGUAGE GADTs  #-}
+{-# LANGUAGE TypeOperators    #-}
 module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import           Language.PlutusIR
@@ -11,13 +11,13 @@ import           Language.PlutusIR.MkPir                 hiding (error)
 import           Language.PlutusIR.Purity
 
 import           Control.Lens                            hiding (Strict)
-import           Control.Monad.Reader
 import           Control.Monad.RWS
+import           Control.Monad.Reader
 import           Control.Monad.State
 
 import qualified Language.PlutusCore                     as PLC
-import qualified Language.PlutusCore.Name                as PLC
 import qualified Language.PlutusCore.Constant            as PLC
+import qualified Language.PlutusCore.Name                as PLC
 
 import qualified Algebra.Graph.AdjacencyMap              as AM
 import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
@@ -151,7 +151,7 @@ data Rank =
 -- It could also be made 'minBound' or 'Word', but this is conceptually clearer and allows us to use 'IM.IntMap's.
 depth :: Getting r Rank Int
 depth  = to $ \case
-  Top -> 0
+  Top     -> 0
   Dep d _ -> d
 
 instance Ord Rank where
@@ -190,26 +190,25 @@ type FloatData = IM.IntMap ( --  the depth (starting from 0, which is Top)
 -- This sharing of the Recursivity is not optimal, because it may lead to more generated groups than the original program; however,
 -- it is necessary so as to not wrongly demote any recursive lets to nonrecs. This let-floating transformation does not do
 -- any demotion (letrec=>letnonrec) optimization; it is left to be implemented by another pass.
-data Rhs tyname name uni ann = Rhs { _rhsAnn     :: ann
+data Rhs tyname name uni fun ann = Rhs { _rhsAnn :: ann
                                    , _rhsRecurs  :: Recursivity
-                                   , _rhsBinding :: Binding tyname name uni ann
+                                   , _rhsBinding :: Binding tyname name uni fun ann
                                    , _rhsRank    :: Int
                                    }
 makeLenses ''Rhs
 
 -- | First-pass: Traverses a Term to create the needed floating data:
 -- a mapping of let variable to float inside the term ==> to its corresponding rank.
-p1Term ::  forall name tyname uni a term
+p1Term ::  forall name tyname uni fun a
     . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
-      PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
+      PLC.ToBuiltinMeaning uni fun)
+    => Term tyname name uni fun a
     -> FloatData
-p1Term means pir = toFloatData $ runReader
+p1Term pir = toFloatData $ runReader
                            (goTerm pir)
                            Top -- the first "surrounding lambda" is the Top level
   where
-    goTerm :: Term tyname name uni a -> Reader P1Ctx P1Data
+    goTerm :: Term tyname name uni fun a -> Reader P1Ctx P1Data
     goTerm = \case
       -- update the surrounding lamdba/Lambda
       LamAbs _ n _ tBody  -> withAnchor (n^.PLC.theUnique) $ goTerm tBody
@@ -223,10 +222,10 @@ p1Term means pir = toFloatData $ runReader
       -- recurse and then accumulate the return values
       t -> mconcat <$> traverse goTerm (t^..termSubterms)
 
-    goBinding :: Binding tyname name uni a -> Reader P1Ctx P1Data
+    goBinding :: Binding tyname name uni fun a -> Reader P1Ctx P1Data
     goBinding b =
       let subtermRanks = mconcat <$> traverse goTerm (b^..bindingSubterms)
-      in if mayHaveEffects means b
+      in if mayHaveEffects b
          -- leteffectful bindings are anchors themselves like lam/Lam/Top
          then withAnchor (b^.principal) subtermRanks
          -- for all other let bindings we record their ranks
@@ -234,7 +233,7 @@ p1Term means pir = toFloatData $ runReader
 
     -- | Given a binding, return new data ('P1Data') by inserting mapping of principal let-identifier
     -- to this maximum rank (taken from the "enclosing" environment)
-    addRank :: Binding tyname name uni a -- ^ bindings
+    addRank :: Binding tyname name uni fun a -- ^ bindings
              -> Reader P1Ctx P1Data -- ^ the updated scope that includes the added ranks
     addRank b = do
       anchorUp <- ask
@@ -274,9 +273,9 @@ p1Term means pir = toFloatData $ runReader
 -- In case of a datatype-let (which has multiple identifiers&bindings), we add a table entry for each identifier of that datatype.
 -- The multi-let-grouppings of the initial PIR program do not exist anymore in this representation.
 -- OPTIMIZE: We could use UniqueMap (a coerced IntMap) instead of `Map PLC.Unique`, but API is insufficient
-type RhsTable tyname name uni a = M.Map
+type RhsTable tyname name uni fun a = M.Map
                                   PLC.Unique
-                                  (Rhs tyname name uni a)
+                                  (Rhs tyname name uni fun a)
 
 
 
@@ -284,20 +283,19 @@ type RhsTable tyname name uni a = M.Map
 -- stores those lets into a separate table.See Note [Cleaning lets]
 -- OPTIMIZE: this traversal may potentially be included/combined with the 1st-pass.
 removeLets
-    :: forall name tyname uni a term
+    :: forall name tyname uni fun a
     . (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
-      PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
-    -> Term tyname name uni a
-    -> (Term tyname name uni a, RhsTable tyname name uni a)
-removeLets means t =
+      PLC.ToBuiltinMeaning uni fun)
+    => Term tyname name uni fun a
+    -> (Term tyname name uni fun a, RhsTable tyname name uni fun a)
+removeLets t =
   runState
     -- keep track of the current depth, while we are searching for lets, starting from Top depth = 0
     (runReaderT (go t) $ Top^.depth)
     -- initial table is empty
     mempty
  where
-   go :: (MonadReader Int m, MonadState (RhsTable tyname name uni a) m) => Term tyname name uni a -> m (Term tyname name uni a)
+   go :: (MonadReader Int m, MonadState (RhsTable tyname name uni fun a) m) => Term tyname name uni fun a -> m (Term tyname name uni fun a)
    go = \case
          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
          LamAbs a n ty tBody -> LamAbs a n ty <$> local (+1) (go tBody)
@@ -307,7 +305,7 @@ removeLets means t =
           curDepth <- ask
           bs' <- forM bs $ \b -> do
             b' <- b & bindingSubterms go
-            if mayHaveEffects means b
+            if mayHaveEffects b
             then pure $ Just b' -- keep this let
             else do
               -- remove the let and store it in the rhstable
@@ -323,14 +321,13 @@ removeLets means t =
          t' -> t' & termSubterms go
 
 -- | Starts the 2nd pass from the 'Top' depth and the toplevel expression of the cleanedup term (devoid of any lets).
-p2Term :: forall name tyname uni a term .
+p2Term :: forall name tyname uni fun a .
        (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a,
-       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-       => PLC.DynamicBuiltinNameMeanings term
-       -> Term tyname name uni a
+       PLC.ToBuiltinMeaning uni fun)
+       => Term tyname name uni fun a
        -> FloatData
-       -> Term tyname name uni a
-p2Term means pir fd =
+       -> Term tyname name uni fun a
+p2Term pir fd =
   -- the 2nd pass starts by trying to float any lets around the top-level expression (body)
   -- For optimization reasons, we keep a state of remaining SCCs that we need to scan when we are generating let-groups in their correct order.
   -- The initial state starts from the all sccs top.sorted; IMPORTANT: the invariant is that the sccs in the state should always remain top.sorted.
@@ -342,7 +339,7 @@ p2Term means pir fd =
  where
   -- | Prior to starting the second pass, we clean the term from all its let-declarations and store them separately in a table.
   -- The 2nd pass will later re-introduce these let-declarations, potentially placing them differently than before, thus essentially "floating the lets".
-  (pirClean :: Term tyname name uni a, rhsTable :: RhsTable tyname name uni a) = removeLets means pir
+  (pirClean :: Term tyname name uni fun a, rhsTable :: RhsTable tyname name uni fun a) = removeLets pir
 
   -- 2nd-pass functions
   ---------------------
@@ -350,8 +347,8 @@ p2Term means pir fd =
   -- | visit each term to apply the float transformation
   goTerm :: Int -- ^ current depth
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-         -> Term tyname name uni a
-         -> State [NS.NESet PLC.Unique] (Term tyname name uni a)
+         -> Term tyname name uni fun a
+         -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a)
   goTerm curDepth floatData t = do
     curState <- get
     case curState of
@@ -377,8 +374,8 @@ p2Term means pir fd =
             => Int -- ^ current depth
             -> b                  -- ^ lambda/Lambda's/LetEffectful unique
             -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-            -> Term tyname name uni a -- ^ lambda/Lambda's/Let body
-            -> State [NS.NESet PLC.Unique] (Term tyname name uni a)
+            -> Term tyname name uni fun a -- ^ lambda/Lambda's/Let body
+            -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a)
   incrDepth oldDepth n = let newDep = Dep (oldDepth+1) (n^.PLC.theUnique)
                          in goFloat newDep
 
@@ -386,8 +383,8 @@ p2Term means pir fd =
   -- We try to see if we have some lets to float here based on our 1st-pass-table data (searchTable).
   goFloat :: Rank -- ^ the rank/location of the lambda/letEffectful above that has this body
           -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-          -> Term tyname name uni a                           -- ^ the body term
-          -> State [NS.NESet PLC.Unique] (Term tyname name uni a) -- ^ the transformed body term
+          -> Term tyname name uni fun a                           -- ^ the body term
+          -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a) -- ^ the transformed body term
   goFloat curAnchor floatData tBody =
    -- look for the next smallest depth remaining to place
    case IM.minViewWithKey floatData of
@@ -411,14 +408,14 @@ p2Term means pir fd =
   depGraph = AM.induceJust .
              AM.gmap (\case Variable u -> Just u;
                             -- we remove Root because we do not care about it
-                            Root -> Nothing)
-             $ fst $ runTermDeps means pir
+                            Root       -> Nothing)
+             $ fst $ runTermDeps pir
 
   -- | the dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
   reducedDepGraph = M.foldr maybeMergeNode depGraph rhsTable
     where
-      maybeMergeNode :: Rhs tyname name uni a -> AM.AdjacencyMap PLC.Unique -> AM.AdjacencyMap PLC.Unique
+      maybeMergeNode :: Rhs tyname name uni fun a -> AM.AdjacencyMap PLC.Unique -> AM.AdjacencyMap PLC.Unique
       maybeMergeNode rhs = let ids = rhs^..rhsBinding.bindingIds
                            in case ids of
                                -- A lot of binds are termbinds/typebinds with no vertices to merge.
@@ -448,7 +445,7 @@ p2Term means pir fd =
   -- Example: `let {i = e, ...} in let rec {j = e, ...} in let rec {...} in let {...} in ..... in originalTerm`
   genLets :: Maybe (NS.NESet PLC.Unique) -- ^ all the let identifiers to wrap around this term
           -> FloatData -- ^ the remaining data to be floated
-          -> State [NS.NESet PLC.Unique] (Term tyname name uni a -> Term tyname name uni a) -- ^ a wrapper function of term
+          -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a -> Term tyname name uni fun a) -- ^ a wrapper function of term
   genLets Nothing _ = pure id -- nothing to float, return just the term
   genLets (Just lets) restDepthTable = do
     (hereSccs, restSccs) <- gets $ splitSccs lets
@@ -458,9 +455,9 @@ p2Term means pir fd =
         -- | given an SCC, it creates a new (rec or nonrec) let-group from it and wraps it around an accumulated term
         -- Special case: if the new group and the accumulated term are both letnonrecs,
         -- it merges them together into a single let-group (i.e. linear scoped).
-        genLetsFromScc :: (Term tyname name uni a -> Term tyname name uni a)
+        genLetsFromScc :: (Term tyname name uni fun a -> Term tyname name uni fun a)
                        -> NS.NESet PLC.Unique
-                       -> State [NS.NESet PLC.Unique] (Term tyname name uni a -> Term tyname name uni a)
+                       -> State [NS.NESet PLC.Unique] (Term tyname name uni fun a -> Term tyname name uni fun a)
         genLetsFromScc accTerm scc = do
               visitedRhses <- forM (NS.toList scc) $ \v ->
                  case M.lookup v rhsTable of
@@ -480,8 +477,8 @@ p2Term means pir fd =
               pure $ letMergeOrWrap newAnn newRecurs newBindings . accTerm -- wrap the ACCumulator-wrapper function
 
            where
-             rhsToTriple :: Rhs tyname name uni a
-                         -> (a, Recursivity, NE.NonEmpty (Binding tyname name uni a))
+             rhsToTriple :: Rhs tyname name uni fun a
+                         -> (a, Recursivity, NE.NonEmpty (Binding tyname name uni fun a))
              rhsToTriple rhs =
                       (rhs^.rhsAnn
                        -- if the SCC is a single node then use its original 'Recursivity';
@@ -499,9 +496,9 @@ p2Term means pir fd =
 letMergeOrWrap :: Semigroup a
                => a -- ^ the new-let ann
                -> Recursivity -- ^ the new-let recurs
-               -> NE.NonEmpty (Binding tyname name uni a) -- ^ the new-let bindings
-               -> Term tyname name uni a                  -- ^ the term t1 to merge with or to wrap it around `let newlet {bs} in {t1}`
-               -> Term tyname name uni a                  -- ^ the final merged or wrapped term
+               -> NE.NonEmpty (Binding tyname name uni fun a) -- ^ the new-let bindings
+               -> Term tyname name uni fun a                  -- ^ the term t1 to merge with or to wrap it around `let newlet {bs} in {t1}`
+               -> Term tyname name uni fun a                  -- ^ the final merged or wrapped term
 letMergeOrWrap newAnn newRecurs newBindings = \case
   -- MERGE current let-group with previous let-group iff both groups' recursivity is NonRec
   Let nextAnn NonRec nextBs nextIn | newRecurs == NonRec -> Let (newAnn <> nextAnn) NonRec (newBindings <> nextBs) nextIn
@@ -517,14 +514,13 @@ letMergeOrWrap newAnn newRecurs newBindings = \case
 -- See Note [Float algorithm]
 --
 -- NB: This transformation requires that the PLC.rename compiler-pass has prior been run.
-floatTerm :: forall name tyname uni a term .
+floatTerm :: forall name tyname uni fun a.
           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a,
-           PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-          => PLC.DynamicBuiltinNameMeanings term
-          -> Term tyname name uni a -> Term tyname name uni a
-floatTerm means pir = p2Term means pir
+           PLC.ToBuiltinMeaning uni fun)
+          => Term tyname name uni fun a -> Term tyname name uni fun a
+floatTerm pir = p2Term pir
                 -- give the floatdata of the 1st pass to the start of the 2nd pass
-              $ p1Term means pir
+              $ p1Term pir
 
 
 
@@ -535,9 +531,9 @@ floatTerm means pir = p2Term means pir
 -- We need this because let-datatypes introduce multiple identifiers, but in our 'RhsTable', we use a single Unique as the key.
 -- See Note [Principal]. See also: 'bindingIds'.
 principal :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-            => Getting r (Binding tyname name uni a) PLC.Unique
-principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.theUnique
-                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.theUnique
+            => Getting r (Binding tyname name uni fun a) PLC.Unique
+principal = to $ \case TermBind _ _ (VarDecl _ n _) _                            -> n ^. PLC.theUnique
+                       TypeBind _ (TyVarDecl _ n _) _                            -> n ^. PLC.theUnique
                        -- arbitrary: uses the type construtors' unique as the principal unique of this data binding group
                        DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.theUnique
 
@@ -581,7 +577,7 @@ splitSccs lets (scc:sccs) =
     -- CONS operator that skips consing empty-sets in the front
     (?:) :: S.Set a -> [NS.NESet a] -> [NS.NESet a]
     NS.IsNonEmpty n ?: l = n:l
-    _ ?: l = l -- id otherwise
+    _ ?: l               = l -- id otherwise
 
 -- | Returns if a foldable can be folded in 1 iteration, hence its length is 1.
 isSingleton :: NS.NESet a -> Bool
@@ -589,14 +585,13 @@ isSingleton s = NS.size s == 1
 
 -- | Returns if a binding's rhs is strict and may have effects (see Value.hs)
 mayHaveEffects
-    :: (PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
-    => PLC.DynamicBuiltinNameMeanings term
-    -> Binding tyname name uni a
+    :: PLC.ToBuiltinMeaning uni fun
+    => Binding tyname name uni fun a
     -> Bool
 -- See Note [Purity, strictness, and variables]
 -- We could maybe do better here, but not worth it at the moment
-mayHaveEffects means (TermBind _ Strict _ t') = not $ isPure means (const NonStrict) t'
-mayHaveEffects _ _                            = False
+mayHaveEffects (TermBind _ Strict _ t') = not $ isPure (const NonStrict) t'
+mayHaveEffects _                        = False
 
 {- Note [Versus the "Let-floating"-paper]
 

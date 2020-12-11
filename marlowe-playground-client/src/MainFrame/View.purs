@@ -3,14 +3,12 @@ module MainFrame.View where
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
-import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
-import GistButtons (authButton)
-import Gists (GistAction(..))
+import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, group, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
@@ -22,16 +20,13 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
+import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import NewProject.State (render) as NewProject
-import Prelude (const, eq, identity, negate, unit, ($), (<<<), (<>))
-import Projects.State (render) as Projects
-import Rename.State (render) as Rename
-import SaveAs.State (render) as SaveAs
+import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet
@@ -46,12 +41,12 @@ render settings state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]
-              [ div [ classes [ ClassName "group", aHorizontal, ClassName "marlowe-title-group" ] ]
+              [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
                   , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
-              , div [ classes [ ClassName "group", ClassName "marlowe-links-group" ] ]
+              , div [ classes [ group, ClassName "marlowe-links-group" ] ]
                   [ a [ href "./tutorial/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorial" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
@@ -106,11 +101,20 @@ render settings state =
       let
         title = state ^. _projectName
 
+        unsavedChangesIndicator = if state ^. _hasUnsavedChanges then "*" else ""
+
         isLoading = has (_createGistResult <<< _Loading) state
 
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
-        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
+        div [ classes [ ClassName "project-title" ] ]
+          [ h1_
+              {- TODO: Fix style when name is super long -}
+              [ text title
+              , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
+              ]
+          , spinner
+          ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 
@@ -127,7 +131,7 @@ render settings state =
   otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
 
   otherActions BlocklyEditor =
-    [ div [ classes [ ClassName "group" ] ]
+    [ div [ classes [ group ] ]
         [ button
             [ onClick $ const $ Just SendBlocklyToSimulator
             ]
@@ -137,44 +141,18 @@ render settings state =
 
   otherActions _ = []
 
-modal ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML Action ChildSlots m
-modal state = case state ^. _showModal of
-  Nothing -> text ""
-  Just view ->
-    div [ classes [ ClassName "modal" ] ]
-      [ div [ classes [ ClassName "modal-container" ] ]
-          [ div [ classes [ ClassName "modal-content" ] ]
-              [ a [ class_ (ClassName "close"), onClick $ const $ Just CloseModal ] [ text "x" ]
-              , modalContent view
-              ]
-          ]
-      ]
-  where
-  modalContent NewProject = renderSubmodule _newProject NewProjectAction NewProject.render state
-
-  modalContent OpenProject = renderSubmodule _projects ProjectsAction Projects.render state
-
-  modalContent OpenDemo = renderSubmodule identity DemosAction Demos.render state
-
-  modalContent RenameProject = renderSubmodule _rename RenameAction Rename.render state
-
-  modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
-
-  modalContent GithubLogin = authButton state
-
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
   div [ classes [ ClassName "menu-bar" ] ]
-    [ menuButton (OpenModal NewProject) "New Project"
-    , gistModal (OpenModal OpenProject) "Open"
-    , menuButton (OpenModal OpenDemo) "Open Example"
-    , menuButton (OpenModal RenameProject) "Rename"
-    , gistModal (GistAction PublishGist) "Save"
-    , gistModal (OpenModal SaveProjectAs) "Save As..."
-    ]
+    $ [ menuButton (OpenModal NewProject) "New Project"
+      , gistModal (OpenModal OpenProject) "Open"
+      , menuButton (OpenModal OpenDemo) "Open Example"
+      ]
+    <> showInEditor
+        [ menuButton (OpenModal RenameProject) "Rename"
+        , gistModal (GistAction PublishGist) "Save"
+        , gistModal (OpenModal SaveProjectAs) "Save As..."
+        ]
   where
   menuButton action name =
     a [ onClick $ const $ Just action ]
@@ -185,7 +163,19 @@ menuBar state =
     if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then
       menuButton action name
     else
-      menuButton (OpenModal GithubLogin) name
+      menuButton (OpenModal $ GithubLogin action) name
+
+  -- Even if we end up writting more by selecting the cases in which the buttons should
+  -- appear, I prefer this to selecting which views we shouldn't show the buttons. The
+  -- reason is that if we add a new view, we don't need to adjust this.
+  -- TODO: Check if we should show the buttons for WalletEmulator and ActusBlocklyEditor
+  showInEditor buttons = case state ^. _view of
+    HaskellEditor -> buttons
+    JSEditor -> buttons
+    BlocklyEditor -> buttons
+    ActusBlocklyEditor -> buttons
+    Simulation -> buttons
+    _ -> []
 
 marloweIcon :: forall p a. HTML p a
 marloweIcon =

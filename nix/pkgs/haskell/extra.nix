@@ -12,7 +12,6 @@
 , checkMaterialization
 , buildPackages
 }:
-
 let
   compiler-nix-name = "ghc8102";
 in
@@ -20,7 +19,9 @@ in
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "17ypsqyrrsd53g8lhqfq5baa1iyid67r6px8zv4nq29rjpligx6s";
+    plan-sha256 = "1fpj2q02ric566k9pcb812pq219d07l0982rvqq0ijd72mgr9sjz";
+    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
+    # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
@@ -59,66 +60,43 @@ in
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
-    version = "0.10.0.0";
+    version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0gg64j082l4wph2wymp10akyc9qdb5di5r1d5w9nqgjxnjxdwh9v";
+    plan-sha256 = "102zl1rjc8qhr6cf38ja4pxsr39i8pkg1b7pajdc4yb8jz6rdzir";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
-    version = "2.2.11";
+    version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "12xbj6i81nragfcl8aq7hjlxgi0jxaka4jdndh1ag7lrs34c7k7c";
+    plan-sha256 = "0pxqq5lnh7kd8pyhfyh81pq2v00g9lzkb1db8065cdxya6nirpjs";
+    modules = [{ reinstallableLibGhc = false; }];
   };
-  inherit (let hspkgs = haskell-nix.cabalProject {
+}
+  //
+  # We need to lift this let-binding out far enough, otherwise it can get evaluated several times!
+(
+  let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
       name = "haskell-language-server";
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.5.0";
-      sha256 = "0vkh5ff6l5wr4450xmbki3cfhlwf041fjaalnwmj7zskd72s9p7p";
+      rev = "0.6.0";
+      sha256 = "027fq6752024wzzq9izsilm5lkq9gmpxf82rixbimbijw0yk4pwj";
       fetchSubmodules = true;
     };
-    lookupSha256 = { location, tag, ... }: {
+    sha256map = {
       "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
-    }."${location}"."${tag}";
+      "https://github.com/bubba/hie-bios.git"."cec139a1c3da1632d9a59271acc70156413017e7" = "1iqk55jga4naghmh8zak9q7ssxawk820vw8932dhympb767dfkha";
+    };
+    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
+    # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "1vyriqi905kl2yrx1xg04cy11wfm9nq1wswny7xm1cwv03gyj6y8";
-    modules = [{
-      # Tests don't pass for some reason, but this is a somewhat random revision.
-      packages.haskell-language-server.doCheck = false;
-    }];
+    plan-sha256 = "0rjpf8xnamn063hbzi4wij8h2aiv71ailbpgd4ykfkv7mlc9mzny";
   };
-  in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
-    hie-bios haskell-language-server;
-  purty =
-    let hspkgs = haskell-nix.stackProject {
-      src = fetchFromGitLab {
-        owner = "joneshf";
-        repo = "purty";
-        rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
-        sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
-      };
-      # Invalidate and update if you change the version
-      stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
-      inherit checkMaterialization;
-
-      # Force using 8.6.5 to work around https://github.com/input-output-hk/haskell.nix/issues/811
-      ghc = buildPackages.haskell-nix.compiler.ghc865;
-      modules = [{ compiler.nix-name = lib.mkForce "ghc865"; }];
-
-      pkg-def-extras = [
-        # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
-        (hackage: {
-          packages = {
-            "hsc2hs" = (((hackage.hsc2hs)."0.68.6").revisions).default;
-          };
-        })
-      ];
-    };
-    in hspkgs.purty;
-}
+  in { inherit (hspkgs) haskell-language-server hie-bios implicit-hie; }
+)

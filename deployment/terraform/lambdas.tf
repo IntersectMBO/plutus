@@ -96,7 +96,8 @@ resource "aws_lambda_function" "marlowe_playground" {
       GITHUB_CLIENT_ID = var.marlowe_github_client_id
       GITHUB_CLIENT_SECRET = var.marlowe_github_client_secret
       JWT_SIGNATURE = var.marlowe_jwt_signature
-      GITHUB_REDIRECT_URL = "https://${var.env}.${var.marlowe_tld}"
+      FRONTEND_URL = "https://${var.env}.${var.marlowe_tld}"
+      GITHUB_CALLBACK_PATH = "/#/gh-oauth-cb"
     }
   }
 }
@@ -123,8 +124,9 @@ resource "aws_lambda_function" "plutus_playground" {
       GITHUB_CLIENT_ID = var.plutus_github_client_id
       GITHUB_CLIENT_SECRET = var.plutus_github_client_secret
       JWT_SIGNATURE = var.plutus_jwt_signature
-      GITHUB_REDIRECT_URL = "https://${var.env}.${var.plutus_tld}"
-      WEBGHC_URL = "https://${var.env}.${var.marlowe_tld}"
+      FRONTEND_URL = "https://${var.env}.${var.plutus_tld}"
+      GITHUB_CALLBACK_PATH = ""
+      WEBGHC_URL = "https://${var.env}.${var.plutus_tld}"
     }
   }
 }

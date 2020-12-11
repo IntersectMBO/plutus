@@ -46,9 +46,9 @@ import           Ledger.Value               (CurrencySymbol, Value (Value))
 import qualified Ledger.Value               as Value
 import           LedgerBytes                as LedgerBytes
 import           Test.Tasty
-import           Test.Tasty.Hedgehog        (testProperty)
 import           Test.Tasty.HUnit           (testCase)
 import qualified Test.Tasty.HUnit           as HUnit
+import           Test.Tasty.Hedgehog        (testProperty)
 import           Wallet
 import qualified Wallet.API                 as W
 import qualified Wallet.Emulator.Chain      as Chain

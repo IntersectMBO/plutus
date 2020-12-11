@@ -9,7 +9,7 @@ module Cardano.Node.API
 
 import           Cardano.Node.Types    (FollowerID)
 import           Ledger                (Block, Slot, Tx)
-import           Servant.API           ((:<|>), (:>), Capture, Get, JSON, NoContent, Post, Put, ReqBody)
+import           Servant.API           (Capture, Get, JSON, NoContent, Post, Put, ReqBody, (:<|>), (:>))
 import           Wallet.Emulator.Chain (ChainEvent)
 
 type API

@@ -110,8 +110,8 @@ data NodeServerMsg =
 instance Pretty NodeServerMsg where
     pretty = \case
         NodeServerFollowerMsg m -> pretty m
-        NodeGenRandomTxMsg m -> pretty m
-        NodeMockNodeMsg m -> pretty m
+        NodeGenRandomTxMsg m    -> pretty m
+        NodeMockNodeMsg m       -> pretty m
 
 type NodeServerEffects m
      = '[ GenRandomTx

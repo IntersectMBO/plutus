@@ -17,8 +17,7 @@ module Language.PlutusTx.Coordination.Contracts.Prism.Mirror(
     , mirror
     ) where
 
-import           Control.Monad                                               (void)
-import           Control.Monad                                               (forever)
+import           Control.Monad                                               (forever, void)
 import           Data.Aeson                                                  (FromJSON, ToJSON)
 import           GHC.Generics                                                (Generic)
 import           Language.Plutus.Contract
@@ -101,6 +100,6 @@ data MirrorError =
     | IssueEndpointError ContractError
     | RevokeEndpointError ContractError
     | CreateTokenTxError ContractError
-    | StateMachineError (SMContractError IDState IDAction)
+    | StateMachineError SMContractError
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)

@@ -1,27 +1,22 @@
-{ lib
-, writeScriptBin
-, runtimeShell
+{ stdenv
+, lib
+, writeShellScriptBin
 , git
 , fd
-, purty
 , coreutils
 , python
 , gnumake
 , gnused
-, nodejs-10_x
-, node-gyp
-, yarn
-, yarn2nix
+, nodejs
+, nodePackages
 , purs
 , psc-package
 , spago
 , spago2nix
-, isDarwin
 , clang
 }:
 
-lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "update-client-deps" ''
-  #!${runtimeShell}
+lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeShellScriptBin "update-client-deps" ''
   set -eou pipefail
 
   export PATH=${lib.makeBinPath ([
@@ -30,30 +25,21 @@ lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "upda
     python
     gnumake
     gnused
-    nodejs-10_x
-    node-gyp
-    yarn
-    # yarn2nix won't seem to build on hydra, see
-    # https://github.com/moretea/yarn2nix/pull/103
-    # I can't figure out how to fix this...
-    yarn2nix
+    nodejs
+    nodePackages.node-gyp
     purs
     psc-package
     spago
     spago2nix
-  ] ++ lib.optionals isDarwin [ clang ])}
+  ] ++ lib.optionals stdenv.isDarwin [ clang ])}
 
-  if [ ! -f package.json ]
+  if [ ! -f spago.dhall ]
   then
-      echo "package.json not found. Please run this script from the client directory." >&2
+      echo "spago.dhall not found. Please run this script from the client directory." >&2
       exit 1
   fi
 
-  echo Installing JavaScript Dependencies
-  yarn
-
   echo Generating nix configs.
-  yarn2nix > yarn.nix
   spago2nix generate
 
   echo Done

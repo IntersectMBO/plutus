@@ -35,7 +35,7 @@ allUsed usages = Map.keysSet $ Map.filter (> 0) usages
 -- | Compute the 'Usages' for a 'Term'.
 runTermUsages
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
+    => Term tyname name uni fun a
     -> Usages
 runTermUsages term = execState (termUsages term) mempty
 
@@ -48,7 +48,7 @@ runTypeUsages ty = execState (typeUsages ty) mempty
 
 termUsages
     :: (MonadState Usages m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
+    => Term tyname name uni fun a
     -> m ()
 termUsages (Var _ n) = modify (addUsage n)
 termUsages term      = traverse_ termUsages (term ^.. termSubterms) >> traverse_ typeUsages (term ^.. termSubtypes)

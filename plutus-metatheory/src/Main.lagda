@@ -38,8 +38,8 @@ open import Utils
 open import Untyped
 open import Scoped.CK
 open import Algorithmic
+open import Algorithmic.Reduction
 open import Algorithmic.CK
-open import Algorithmic.CEKC
 open import Algorithmic.CEKV
 open import Scoped.Erasure
 
@@ -139,10 +139,10 @@ postulate
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
-{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni () #-}
+{-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC TermN = type Language.PlutusCore.Term TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC Term = type Language.PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 
@@ -157,17 +157,35 @@ postulate
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
 
 data EvalMode : Set where
-  U L TCK CK TCEKC TCEKV : EvalMode
+  U TL L TCK CK TCEK : EvalMode
 
-{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKC | TCEKV) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (U | TL | L | TCK | CK | TCEK) #-}
 
 -- the Error's returned by `plc-agda` and the haskell interface to `metatheory`.
 
 data ERROR : Set where
-  typeError : ERROR
+  typeError : String → ERROR
   parseError : ParseError → ERROR
   scopeError : ScopeError → ERROR
   runtimeError : RuntimeError → ERROR
+
+
+uglyTypeError : TypeError → String
+uglyTypeError (kindMismatch K K' x) = "kindMismatch"
+uglyTypeError (notStar K x) = "notStar"
+uglyTypeError (notFunKind K x) = "NotFunKind"
+uglyTypeError (notPat K x) = "notPat"
+uglyTypeError UnknownType = "UnknownType"
+uglyTypeError (notPi A x) = "notPi"
+uglyTypeError (notMu A x) = "notMu"
+uglyTypeError (notFunType A x) = "notFunType"
+uglyTypeError (typeMismatch A A' x) =
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ A))
+  ++
+  " doesn't match "
+  ++
+  prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
+uglyTypeError builtinError = "builtinError"
 
 -- the haskell version of Error is defined in Raw
 {-# FOREIGN GHC import Raw #-}
@@ -194,13 +212,19 @@ open import Data.String
 
 reportError : ERROR → String
 reportError (parseError _) = "parseError"
-reportError typeError = "typeError"
+reportError (typeError s) = "typeError: " ++ s
 reportError (scopeError _) = "scopeError"
 reportError (runtimeError _) = "gasError"
 
 
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = inj₁ (runtimeError gasError)
+executePLC TL t = do
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
+  just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
+    where nothing → inj₂ "ERROR"
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
+
 executePLC L t with S.run t maxsteps
 ... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (unshifter Z (extricateScope t')))
 ... | t' ,, p ,, inj₁ nothing  = inj₁ (runtimeError gasError)
@@ -211,19 +235,13 @@ executePLC CK t = do
           _  → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope t)))
 executePLC TCK t = do
-  (A ,, t) ← withE (λ _ → typeError) $ typeCheckPLC t
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ {t = t} v ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ t)
     where ◆ _  → inj₂ "ERROR"
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
-executePLC TCEKC t = do
-  (A ,, t) ← withE (λ _ → typeError) $ typeCheckPLC t
-  □ (_ ,, _ ,, V ,, ρ) ← withE runtimeError $ Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ t)
-    where ◆ _  → inj₂ "ERROR"
-          _    → inj₁ (runtimeError gasError)
-  return (prettyPrintTm (unshifter Z (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ))))))
 executePLC TCEKV t = do
-  (A ,, t) ← withE (λ _ → typeError) $ typeCheckPLC t
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₂ "ERROR"
           _    → inj₁ (runtimeError gasError)
@@ -252,7 +270,7 @@ evalByteString m b = do
 typeCheckByteString : ByteString → Either ERROR String
 typeCheckByteString b = do
   t ← parsePLC b
-  (A ,, _) ← withE (λ _ → typeError) $ typeCheckPLC t
+  (A ,, _) ← withE (λ e → typeError (uglyTypeError e) ) $ typeCheckPLC t
 {-
   -- some debugging code
   let extricatedtype = extricateScopeTy (extricateNf⋆ A)
@@ -261,7 +279,7 @@ typeCheckByteString b = do
           "extricated: " ++ rawTyPrinter extricatedtype ++ "\n" ++
           "unshifted: " ++ rawTyPrinter unshiftedtype ++ "\n" ++
           "unconved: " ++ prettyPrintTy unshiftedtype ++ "\n")
--}        
+-}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 
 junk : ∀{n} → Vec String n
@@ -367,8 +385,8 @@ liftSum (inj₁ e) = nothing
 checkKindX : Type → Kind → Either ERROR ⊤
 checkKindX ty k = do
   ty        ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
-  (k' ,, _) ← withE (λ _ → typeError) (inferKind ∅ ty)
-  _         ← withE ((λ _ → typeError) ∘ kindMismatch _ _) (meqKind k k')
+  (k' ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
+  _         ← withE ((λ e → typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
   return tt
 
 {-# COMPILE GHC checkKindX as checkKindAgda #-}
@@ -379,7 +397,7 @@ checkKindX ty k = do
 inferKind∅ : Type → Either ERROR Kind
 inferKind∅ ty = do
   ty       ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
-  (k ,, _) ← withE (λ _ → typeError) (inferKind ∅ ty)
+  (k ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
   return k
 
 {-# COMPILE GHC inferKind∅ as inferKindAgda #-}
@@ -390,7 +408,7 @@ open import Type.BetaNormal
 normalizeType : Type → Either ERROR Type
 normalizeType ty = do
   ty'    ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
-  _ ,, n ← withE (λ _ → typeError) (inferKind ∅ ty')
+  _ ,, n ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
@@ -399,7 +417,7 @@ normalizeType ty = do
 inferType∅ : Term → Either ERROR Type
 inferType∅ t = do
   t' ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  ty ,, _ ← withE (λ _ → typeError) (inferType ∅ t')
+  ty ,, _ ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ t')
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ ty))))
 
 {-# COMPILE GHC inferType∅ as inferTypeAgda #-}
@@ -409,13 +427,13 @@ inferType∅ t = do
 checkType∅ : Type → Term → Either ERROR ⊤
 checkType∅ ty t = do
   ty' ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
-  tyN ← withE (λ _ → typeError) (checkKind ∅ ty' *)
+  tyN ← withE (λ e → typeError (uglyTypeError e)) (checkKind ∅ ty' *)
   t'  ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  withE (λ _ → typeError) (checkType ∅ t' tyN)
+  withE (λ e → typeError (uglyTypeError e)) (checkType ∅ t' tyN)
 {-
-  tyN' ,, tmC ← withE (λ _ → typeError) (inferType ∅ t')
-  refl      ← withE ((λ _ → typeError) ∘ kindMismatch _ _) (meqKind k *)
-  refl      ← withE ((λ _ → typeError) ∘ typeMismatch _ _) (meqNfTy tyN tyN')
+  tyN' ,, tmC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ t')
+  refl      ← withE ((λ e → typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k *)
+  refl      ← withE ((λ e → typeError (uglyTypeError e)) ∘ typeMismatch _ _) (meqNfTy tyN tyN')
 -}
   return _
 
@@ -424,9 +442,9 @@ checkType∅ ty t = do
 normalizeTypeTerm : Term → Either ERROR Term
 normalizeTypeTerm t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
+  _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   return (unconvTm (unshifter Z (extricateScope (extricate tC))))
-  
+
 {-# COMPILE GHC normalizeTypeTerm as normalizeTypeTermAgda #-}
 
 
@@ -436,14 +454,14 @@ normalizeTypeTerm t = do
 
 import Algorithmic.Evaluation as L
 
-runL : Term → Either ERROR Term
-runL t = do
+runTL : Term → Either ERROR Term
+runTL t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
+  _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   t ← withE runtimeError $ L.stepper tC maxsteps
   return (unconvTm (unshifter Z (extricateScope (extricate t))))
 
-{-# COMPILE GHC runL as runLAgda #-}
+{-# COMPILE GHC runTL as runTLAgda #-}
 
 -- Haskell interface to (untypechecked CK)
 runCK : Term → Either ERROR Term
@@ -461,38 +479,25 @@ runCK t = do
 runTCK : Term → Either ERROR Term
 runTCK t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
+  _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   □ V ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ tC)
     where (_ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CK.discharge V)))))
-  
+
 {-# COMPILE GHC runTCK as runTCKAgda #-}
 
 -- Haskell interface to (typechecked) CEKV
-runTCEKV : Term → Either ERROR Term
-runTCEKV t = do
+runTCEK : Term → Either ERROR Term
+runTCEK t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
+  _ ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
   □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ tC)
     where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
   return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
-{-# COMPILE GHC runTCEKV as runTCEKVAgda #-}
-
--- Haskell interface to (typechecked) CEKC
-runTCEKC : Term → Either ERROR Term
-runTCEKC t = do
-  tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
-  _ ,, tC ← withE (λ _ → typeError) (inferType ∅ tDB)
-  □ (_ ,, _ ,, V ,, ρ) ← withE runtimeError $ Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ tC)
-    where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
-          (_ ; _ ◅ _) → inj₁ (runtimeError gasError)
-          ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (error missing)))) -- NOTE: we could use the typechecker to get the correct type
-  return (unconvTm (unshifter Z (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ))))))
-  
-{-# COMPILE GHC runTCEKC as runTCEKCAgda #-}
+{-# COMPILE GHC runTCEK as runTCEKAgda #-}
 \end{code}

@@ -47,8 +47,8 @@ instance (PrettyClassicBy configName tyname, GShow uni) =>
 instance
         ( PrettyClassicBy configName tyname
         , PrettyClassicBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
-        ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun a) where
     prettyBy config = cata a where
         a (ConstantF _ b)      = parens' ("con" </> prettyTypeOf b </> pretty b)  -- NB: actually calls prettyConst
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
@@ -69,7 +69,7 @@ instance
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ TypeIn uni
 
 
-instance PrettyClassicBy configName (Term tyname name uni a) =>
-        PrettyBy (PrettyConfigClassic configName) (Program tyname name uni a) where
+instance PrettyClassicBy configName (Term tyname name uni fun a) =>
+        PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun a) where
     prettyBy config (Program _ version term) =
         parens' $ "program" <+> pretty version <//> prettyBy config term

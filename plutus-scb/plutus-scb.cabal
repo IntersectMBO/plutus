@@ -257,7 +257,6 @@ executable plutus-game
 executable plutus-currency
     main-is: Main.hs
     hs-source-dirs: currency-contract
-    other-modules:
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -270,7 +269,6 @@ executable plutus-currency
 executable plutus-atomic-swap
     main-is: Main.hs
     hs-source-dirs: atomic-swap-contract
-    other-modules:
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -282,7 +280,6 @@ executable plutus-atomic-swap
 executable plutus-pay-to-wallet
     main-is: Main.hs
     hs-source-dirs: pay-to-wallet-contract
-    other-modules:
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -338,7 +335,6 @@ executable prism-credential-manager
     import: lang
     main-is: Main.hs
     hs-source-dirs: prism/credential-manager
-    other-modules:
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
@@ -350,7 +346,6 @@ executable prism-mirror
     import: lang
     main-is: Main.hs
     hs-source-dirs: prism/mirror
-    other-modules:
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
@@ -362,7 +357,6 @@ executable prism-unlock-sto
     import: lang
     main-is: Main.hs
     hs-source-dirs: prism/unlock-sto
-    other-modules:
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
@@ -374,7 +368,6 @@ executable prism-unlock-exchange
     import: lang
     main-is: Main.hs
     hs-source-dirs: prism/unlock-exchange
-    other-modules:
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
