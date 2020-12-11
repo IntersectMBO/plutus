@@ -4,15 +4,15 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-name-shadowing -fno-warn-unused-do-bind #-}
 module Language.Marlowe.ACTUS.QCGenerator where
 
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
-import           Language.Marlowe.ACTUS.Definitions.Schedule
-import           Language.Marlowe.ACTUS.Analysis(genProjectedCashflows)
-import           Test.QuickCheck
+import qualified Data.List                                         as L
+import qualified Data.Map                                          as M
 import           Data.Time
-import           Data.Time.Clock.POSIX(posixSecondsToUTCTime)
-import qualified Data.List as L
-import qualified Data.Map as M
+import           Data.Time.Clock.POSIX                             (posixSecondsToUTCTime)
+import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import           Language.Marlowe.ACTUS.Definitions.Schedule
+import           Test.QuickCheck
 
 epochToDay :: Integer -> Day
 epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
@@ -61,7 +61,7 @@ datecycle :: Gen Cycle
 datecycle = Cycle <$> sized (\n -> choose (0, maxDate `div` (toInteger n * secondsPerYear))) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub]
 
 contractTermsGen :: Gen ContractTerms
-contractTermsGen = do 
+contractTermsGen = do
     contracttype <- elements [PAM]
     sd <- date
     ied <- date
