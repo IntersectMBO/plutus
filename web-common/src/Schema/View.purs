@@ -100,7 +100,9 @@ actionArgumentField ancestors _ arg@(Fix (FormStringF s)) =
         [ type_ InputText
         , classes (Array.cons formControl (actionArgumentClass ancestors))
         , value $ fromMaybe "" s
-        , required true
+        -- empty text inputs give `Just ""` as a value, which might be wanted,
+        -- so don't mark these fields as required
+        , required false
         , placeholder "String"
         , onValueInput (Just <<< SetField <<< SetStringField)
         ]
