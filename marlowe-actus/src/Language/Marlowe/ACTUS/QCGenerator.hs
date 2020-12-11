@@ -18,16 +18,16 @@ epochToDay :: Integer -> Day
 epochToDay = utctDay . posixSecondsToUTCTime . fromIntegral
 
 largeamount :: Gen Double
-largeamount = choose (0.0, 10000000.0)
+largeamount = choose (-1.0, 10000000.0)
 
 smallamount :: Gen Double
-smallamount = choose (0.0, 1000.0)
+smallamount = choose (-1.0, 1000.0)
 
 percentage :: Gen Double
-percentage = choose (0.0, 100.0)
+percentage = choose (-1.0, 100.0)
 
 scalingFactor :: Gen Double
-scalingFactor = choose (0.0, 100.0)
+scalingFactor = choose (-1.0, 100.0)
 
 mightbe :: Gen a -> Gen (Maybe a)
 mightbe original = oneof [ Just <$> original, return Nothing ]
@@ -39,10 +39,19 @@ oneOr :: Gen Double -> Gen Double
 oneOr original = oneof [return 1.0, original]
 
 date :: Gen Day
-date = epochToDay <$> choose (0, 1000)
+date = epochToDay <$> choose (0, 1607672749)
+
+cyclePeriodFreq :: Gen Period
+cyclePeriodFreq = frequency [ (1, return P_D)
+                            , (10, return P_W)
+                            , (20, return P_M)
+                            , (5, return P_Q)
+                            , (5, return P_H)
+                            , (70, return P_Y)
+                            ]
 
 datecycle :: Gen Cycle
-datecycle = Cycle <$> choose (0, 100) <*> elements [P_D, P_W, P_M, P_Q, P_H, P_Y] <*> elements [ShortStub, LongStub]
+datecycle = Cycle <$> choose (0, 100) <*> cyclePeriodFreq <*> elements [ShortStub, LongStub]
 
 contractTermsGen :: Gen ContractTerms
 contractTermsGen = do 
