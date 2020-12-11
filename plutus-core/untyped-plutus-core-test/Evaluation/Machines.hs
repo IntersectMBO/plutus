@@ -34,10 +34,10 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 testMachine
-    :: PrettyPlc termErr
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
     => String
-    -> (Term Name DefaultUni DefaultFun () ->
-            Either (EvaluationException user DefaultFun termErr) (Term Name DefaultUni DefaultFun ()))
+    -> (Term Name uni fun () ->
+           Either (EvaluationException user internal (Term Name uni fun ())) (Term Name uni fun ()))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
