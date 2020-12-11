@@ -165,19 +165,16 @@ instance Pretty UnbalancedTx where
 
 data ConstraintProcessingState =
     ConstraintProcessingState
-        { cpsUnbalancedTx       :: UnbalancedTx
+        { cpsUnbalancedTx      :: UnbalancedTx
         -- ^ The unbalanced transaction that we're building
-        , cpsValueSpentActual   :: Value.Value
-        -- ^ The total value spent by the UnbalancedTx, including
-        --   any currency forged by it.
-        , cpsValueSpentRequired :: Value.Value
-        -- ^ The value that should be spent by the transaction
+        , cpsValueSpentBalance :: Value.Value
+        -- ^ Balance of required vs actual value spent by the transaction. If positive, an output needs to be added.
         }
 
 initialState :: ConstraintProcessingState
-initialState = ConstraintProcessingState{ cpsUnbalancedTx = emptyUnbalancedTx, cpsValueSpentActual = mempty, cpsValueSpentRequired = mempty }
+initialState = ConstraintProcessingState{ cpsUnbalancedTx = emptyUnbalancedTx, cpsValueSpentBalance = mempty }
 
-makeLensesFor [("cpsUnbalancedTx", "unbalancedTx"), ("cpsValueSpentActual", "valueSpentActual"), ("cpsValueSpentRequired", "valueSpentRequired")] ''ConstraintProcessingState
+makeLensesFor [("cpsUnbalancedTx", "unbalancedTx"), ("cpsValueSpentBalance", "valueSpentBalance")] ''ConstraintProcessingState
 
 -- | Some typed 'TxConstraints' and the 'ScriptLookups' needed to turn them
 --   into an 'UnbalancedTx'.
@@ -233,11 +230,11 @@ addMissingValueSpent
        )
     => m ()
 addMissingValueSpent = do
-    ConstraintProcessingState{cpsValueSpentActual, cpsValueSpentRequired} <- get
+    ConstraintProcessingState{cpsValueSpentBalance} <- get
 
-    -- 'missing' is everything positive (i.e. required) that's in
-    -- 'cpsValueSpentRequired' but not in 'cpsValueSpentActual'
-    let (_, missing) = Value.split (cpsValueSpentRequired N.- cpsValueSpentActual)
+    -- 'missing' is the value that the transaction is supposed to spend, but
+    -- that's not matched by an input or output.
+    let (_, missing) = Value.split cpsValueSpentBalance
 
     if Value.isZero missing
         then pure ()
@@ -362,14 +359,13 @@ processConstraint = \case
         unbalancedTx . tx . Tx.validRange %= (slotRange /\)
     MustBeSignedBy pk ->
         unbalancedTx . requiredSignatories %= Set.insert pk
-    MustSpendValue vl ->
-        valueSpentRequired <>= vl
+    MustSpendValue vl -> valueSpentBalance <>= vl
     MustSpendPubKeyOutput txo -> do
         TxOutTx{txOutTxOut} <- lookupTxOutRef txo
         case Tx.txOutAddress txOutTxOut of
             PubKeyAddress pk -> do
                 unbalancedTx . tx . Tx.inputs %= Set.insert (Tx.pubKeyTxIn txo)
-                valueSpentActual <>= Tx.txOutValue txOutTxOut
+                valueSpentBalance <>= N.negate (Tx.txOutValue txOutTxOut)
                 unbalancedTx . requiredSignatories %= Set.insert pk
             _                 -> throwError (TxOutRefWrongType txo)
     MustSpendScriptOutput txo red -> do
@@ -387,7 +383,7 @@ processConstraint = \case
                 --       'lookupDatum'
                 let input = Tx.scriptTxIn txo validator red dataValue
                 unbalancedTx . tx . Tx.inputs %= Set.insert input
-                valueSpentActual <>= Tx.txOutValue (txOutTxOut txOutTx)
+                valueSpentBalance <>= N.negate (Tx.txOutValue (txOutTxOut txOutTx))
             _                 -> throwError (TxOutRefWrongType txo)
 
     MustForgeValue mpsHash tn i -> do
@@ -398,20 +394,20 @@ processConstraint = \case
         -- If i is negative we are burning tokens. This counts as an output, so we should subtract
         -- the amount burned from valueSpentRequired, just as in `MustPayToPubKey` below.
         -- Subtracting the amount burned is the same as adding the (negative) amount forged.
-        if i < 0 then valueSpentRequired <>= value
-                 else valueSpentActual   <>= value
+        if i < 0 then valueSpentBalance <>= value
+                 else valueSpentBalance  <>= N.negate value
     MustPayToPubKey pk vl -> do
         unbalancedTx . tx . Tx.outputs %= (Tx.TxOut (PubKeyAddress pk) vl Tx.PayToPubKey :)
         -- we can subtract vl from 'valueSpentRequired' because
         -- we know for certain that it will be matched by an input
         -- after balancing
-        valueSpentRequired <>= N.negate vl
+        valueSpentBalance <>= N.negate vl
     MustPayToOtherScript vlh dv vl -> do
         let addr = Address.scriptHashAddress vlh
             theHash = datumHash dv
         unbalancedTx . tx . Tx.datumWitnesses %= set (at theHash) (Just dv)
         unbalancedTx . tx . Tx.outputs %= (Tx.scriptTxOut' vl addr dv :)
-        valueSpentRequired <>= N.negate vl
+        valueSpentBalance <>= N.negate vl
     MustHashDatum dvh dv -> do
         unless (datumHash dv == dvh)
             (throwError $ DatumWrongHash dvh dv)
