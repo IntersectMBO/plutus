@@ -681,7 +681,7 @@ handleGistAction settings LoadGist = do
   toEither x NotAsked = x
 
 -- other gist actions are irrelevant here
-handleGistAction _ = pure unit
+handleGistAction _ _ = pure unit
 
 loadGist ::
   forall m.
