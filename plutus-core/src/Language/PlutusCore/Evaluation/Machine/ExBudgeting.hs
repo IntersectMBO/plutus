@@ -12,6 +12,8 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# LANGUAGE StrictData             #-}
+
 {- Note [Budgeting]
 
 When running Plutus code on the chain, you're running code on other peoples
