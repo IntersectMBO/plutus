@@ -63,6 +63,8 @@ let
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
+          # Should be in roots, see https://github.com/input-output-hk/haskell.nix/issues/967
+          inherit (pkgs.haskell-nix) internal-nix-tools internal-cabal-install;
 
           # build the shell expression to be sure it works on all platforms
           shell = import ./shell.nix { inherit packages; };
