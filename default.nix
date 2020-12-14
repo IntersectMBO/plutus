@@ -59,15 +59,15 @@ rec {
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {
-    haskellPackages = haskell.muslPackages;
+    inherit (haskell.muslProject) ghcWithPackages;
   };
 
   marlowe-playground-lambda = plutusMusl.callPackage ./marlowe-playground-server/lambda.nix {
-    haskellPackages = haskell.muslPackages;
+    inherit (haskell.muslProject) ghcWithPackages;
   };
 
   plutus-playground-lambda = plutusMusl.callPackage ./plutus-playground-server/lambda.nix {
-    haskellPackages = haskell.muslPackages;
+    inherit (haskell.muslProject) ghcWithPackages;
   };
 
   plutus-scb = pkgs.callPackage ./plutus-scb-client {

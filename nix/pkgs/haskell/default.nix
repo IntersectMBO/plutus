@@ -27,10 +27,15 @@ let
     in
     parseIndexState (builtins.readFile ../../../cabal.project);
 
+  # The compiler that we are using. We are using a patched version so we need to specify it explicitly.
+  # This version has the experimental core interface files patch, and a fix for unboxed tuples in
+  # GHCi, which helps with HLS.
+  compiler-nix-name = "ghc810220201118";
+
   # The haskell project created by haskell-nix.stackProject'
   project = import ./haskell.nix {
     inherit lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
   };
 
   # All the packages defined by our project, including dependencies
@@ -45,14 +50,15 @@ let
   # The haskell project created by haskell-nix.stackProject' (musl version)
   muslProject = import ./haskell.nix {
     inherit (plutusMusl) lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
   };
 
   # All the packages defined by our project, built for musl
   muslPackages = muslProject.hsPkgs;
 
   extraPackages = import ./extra.nix {
-    inherit lib haskell-nix fetchFromGitHub fetchFromGitLab index-state checkMaterialization buildPackages;
+    inherit lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
+    inherit index-state checkMaterialization compiler-nix-name;
   };
 
 in
