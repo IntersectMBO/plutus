@@ -306,7 +306,7 @@ type PrefixMap
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-type ReachabilityInProgressRecord
+type AnalysisInProgressRecord
   = { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
@@ -315,26 +315,26 @@ type ReachabilityInProgressRecord
     , subproblems :: RemainingSubProblemInfo
     , numSubproblems :: Int
     , numSolvedSubproblems :: Int
-    , unreachableSubcontracts :: List ContractPath
+    , counterExampleSubcontracts :: List ContractPath
     }
 
-type UnreachableSubcontractRecord
+type AnalysisCounterExamplesRecord
   = { originalState :: S.State
     , originalContract :: Contract
-    , unreachableSubcontracts :: NonEmptyList ContractPath
+    , counterExampleSubcontracts :: NonEmptyList ContractPath
     }
 
-data ReachabilityAnalysisData
-  = ReachabilityNotStarted
-  | ReachabilityInProgress ReachabilityInProgressRecord
-  | ReachabilityFailure String
-  | UnreachableSubcontract UnreachableSubcontractRecord
-  | AllReachable
+data MultiStageAnalysisData
+  = AnalysisNotStarted
+  | AnalysisInProgress AnalysisInProgressRecord
+  | AnalyisisFailure String
+  | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
+  | AnalysisFinishedAndPassed
 
 data AnalysisState
   = NoneAsked
   | WarningAnalysis (WebData Result)
-  | ReachabilityAnalysis ReachabilityAnalysisData
+  | ReachabilityAnalysis MultiStageAnalysisData
 
 type State
   = { showRightPanel :: Boolean

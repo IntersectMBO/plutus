@@ -30,7 +30,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), ReachabilityAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), MultiStageAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 
 bottomPanel :: forall p. State -> HTML p Action
@@ -108,7 +108,7 @@ isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
 isStaticLoading _ = false
 
 isReachabilityLoading :: AnalysisState -> Boolean
-isReachabilityLoading (ReachabilityAnalysis (ReachabilityInProgress _)) = true
+isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
 
 isReachabilityLoading _ = false
 
@@ -479,28 +479,28 @@ analysisResultPane state =
               ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
-        ReachabilityNotStarted ->
+        AnalysisNotStarted ->
           explanation
             [ text ""
             ]
-        ReachabilityInProgress
+        AnalysisInProgress
           { numSubproblems: totalSteps
         , numSolvedSubproblems: doneSteps
-        , unreachableSubcontracts: foundUnreachableSubcontracts
+        , counterExampleSubcontracts: foundcounterExampleSubcontracts
         } ->
           explanation
             ( [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
-                <> if null foundUnreachableSubcontracts then
+                <> if null foundcounterExampleSubcontracts then
                     [ br_, text "No unreachable subcontracts found so far." ]
                   else
                     ( [ br_, text "Found the following unreachable subcontracts so far:" ]
                         <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
-                              contractPath <- toUnfoldable foundUnreachableSubcontracts
+                              contractPath <- toUnfoldable foundcounterExampleSubcontracts
                               pure (li_ [ text (show contractPath) ])
                           ]
                     )
             )
-        ReachabilityFailure err ->
+        AnalyisisFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
             , text "Reachability analysis failed for the following reason:"
@@ -510,17 +510,17 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        UnreachableSubcontract { unreachableSubcontracts } ->
+        AnalysisFoundCounterExamples { counterExampleSubcontracts } ->
           explanation
             ( [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
               , text "Static analysis found the following subcontracts that are unreachable:"
               ]
                 <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
-                      contractPath <- toUnfoldable (toList unreachableSubcontracts)
+                      contractPath <- toUnfoldable (toList counterExampleSubcontracts)
                       pure (li_ [ text (show contractPath) ])
                   ]
             )
-        AllReachable ->
+        AnalysisFinishedAndPassed ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]
             , text "Reachability analysis could not find any subcontract that is not reachable."
