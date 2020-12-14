@@ -1,39 +1,36 @@
-.projects-container {
-}
+.project-list {
+  display: grid;
+  // Creates a grid of 7 colums. The last four being the Open Actions
+  grid-template-columns: auto 15% 15% [actions-start] repeat(4, auto) [actions-end];
 
-.gists tr:nth-child(even) {
-  background-color: #f1f1f1;
-}
-
-.gists tr:nth-child(odd) {
-  background-color: white;
-}
-
-table.gists {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.gists th, td {
-  border: 1px solid grey;
-  padding: 0.1rem 0.5rem;
-}
-
-.language-links {
-  justify-content: space-evenly;
-  color: #3677f7;
-  text-decoration: underline;
-  text-align: center;
-  a {
-    flex: 1;
-    // TODO: temporary fix to separate project types, need to redesign the whole modal
-    margin-right: var(--small-margin);
+  // Make the Open header to span accross all actions
+  & div:nth-child(4) {
+    grid-column: actions-start / span actions-end;
   }
-  .empty {
-    flex: 1;
-  }
-}
 
-td.date {
-  text-align: center;
+  & > div {
+    border-bottom: 1px solid #d0d0d4;
+    padding: var(--small-margin) 0;
+  }
+
+  .project-name {
+    // max-width: 15rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .language-link {
+    @extend .font-semibold;
+    justify-content: space-evenly;
+    color: var(--blue-800);
+    padding-right: var(--small-margin);
+    &.disabled {
+      a {
+        cursor: initial;
+        text-decoration: none;
+      }
+      color: var(--grey-700);
+    }
+  }
 }
