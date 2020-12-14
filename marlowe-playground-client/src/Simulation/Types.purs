@@ -306,7 +306,7 @@ type PrefixMap
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-type InProgressRecord
+type ReachabilityInProgressRecord
   = { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
@@ -325,8 +325,8 @@ type UnreachableSubcontractRecord
     }
 
 data ReachabilityAnalysisData
-  = NotStarted
-  | InProgress InProgressRecord
+  = ReachabilityNotStarted
+  | ReachabilityInProgress ReachabilityInProgressRecord
   | ReachabilityFailure String
   | UnreachableSubcontract UnreachableSubcontractRecord
   | AllReachable

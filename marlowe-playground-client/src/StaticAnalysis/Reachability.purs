@@ -28,7 +28,7 @@ import Network.RemoteData as RemoteData
 import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, when, ($), (&&), (+), (-), (/=), (<$>), (<>), (==), (>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), InProgressRecord, PrefixMap, ReachabilityAnalysisData(..), State, WebData, _analysisState)
+import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), ReachabilityInProgressRecord, PrefixMap, ReachabilityAnalysisData(..), State, WebData, _analysisState)
 import StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath)
 
 runAjax ::
@@ -77,7 +77,7 @@ startReachabilityAnalysis settings contract state = do
         newPath /\ newContract = expandSubproblem contractZipper
 
         progress =
-          ( InProgress
+          ( ReachabilityInProgress
               { currPath: newPath
               , currContract: newContract
               , currChildren: newChildren
@@ -96,7 +96,7 @@ startReachabilityAnalysis settings contract state = do
   where
   initialSubproblems = initSubproblems contract
 
-stepSubproblem :: Boolean -> InProgressRecord -> Boolean /\ InProgressRecord
+stepSubproblem :: Boolean -> ReachabilityInProgressRecord -> Boolean /\ ReachabilityInProgressRecord
 stepSubproblem isReachable ( rad@{ currPath: oldPath
   , originalState: state
   , subproblems: oldSubproblems
@@ -137,12 +137,12 @@ stepSubproblem isReachable ( rad@{ currPath: oldPath
 
   newResults = results <> (if isReachable then Nil else Cons oldPath Nil)
 
-finishAnalysis :: InProgressRecord -> ReachabilityAnalysisData
+finishAnalysis :: ReachabilityInProgressRecord -> ReachabilityAnalysisData
 finishAnalysis { originalState, originalContract, unreachableSubcontracts: Cons h t } = UnreachableSubcontract { originalState, originalContract, unreachableSubcontracts: NonEmptyList (h :| t) }
 
 finishAnalysis { unreachableSubcontracts: Nil } = AllReachable
 
-stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> InProgressRecord -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
+stepAnalysis :: forall m. MonadAff m => SPSettings_ SPParams_ -> Boolean -> ReachabilityInProgressRecord -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
 stepAnalysis settings isReachable rad =
   let
     thereAreMore /\ newRad = stepSubproblem isReachable rad
@@ -150,10 +150,10 @@ stepAnalysis settings isReachable rad =
     thereAreNewCounterExamples = length newRad.unreachableSubcontracts > length rad.unreachableSubcontracts
   in
     if thereAreMore then do
-      assign _analysisState (ReachabilityAnalysis (InProgress newRad))
+      assign _analysisState (ReachabilityAnalysis (ReachabilityInProgress newRad))
       when thereAreNewCounterExamples refreshEditor
       response <- checkContractForReachability settings (newRad.currContract) (newRad.originalState)
-      updateWithResponse settings (InProgress newRad) response
+      updateWithResponse settings (ReachabilityInProgress newRad) response
     else do
       let
         result = finishAnalysis newRad
@@ -171,25 +171,25 @@ updateWithResponse ::
   SPSettings_ SPParams_ ->
   ReachabilityAnalysisData ->
   WebData Result -> HalogenM State Action ChildSlots Void m ReachabilityAnalysisData
-updateWithResponse _ (InProgress _) (Failure (AjaxError err)) = pure (ReachabilityFailure "connection error")
+updateWithResponse _ (ReachabilityInProgress _) (Failure (AjaxError err)) = pure (ReachabilityFailure "connection error")
 
-updateWithResponse _ (InProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
+updateWithResponse _ (ReachabilityInProgress { currPath: path }) (Success (Error err)) = pure (ReachabilityFailure err)
 
-updateWithResponse settings (InProgress rad) (Success Valid) = stepAnalysis settings false rad
+updateWithResponse settings (ReachabilityInProgress rad) (Success Valid) = stepAnalysis settings false rad
 
-updateWithResponse settings (InProgress rad) (Success (CounterExample _)) = stepAnalysis settings true rad
+updateWithResponse settings (ReachabilityInProgress rad) (Success (CounterExample _)) = stepAnalysis settings true rad
 
 updateWithResponse _ rad _ = pure rad
 
 getUnreachableContracts :: AnalysisState -> List ContractPath
-getUnreachableContracts (ReachabilityAnalysis (InProgress ipr)) = ipr.unreachableSubcontracts
+getUnreachableContracts (ReachabilityAnalysis (ReachabilityInProgress ipr)) = ipr.unreachableSubcontracts
 
 getUnreachableContracts (ReachabilityAnalysis (UnreachableSubcontract us)) = toList us.unreachableSubcontracts
 
 getUnreachableContracts _ = Nil
 
 areContractAndStateTheOnesAnalysed :: AnalysisState -> Maybe Contract -> S.State -> Boolean
-areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (InProgress ipr)) (Just contract) state = ipr.originalContract == contract && ipr.originalState == state
+areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (ReachabilityInProgress ipr)) (Just contract) state = ipr.originalContract == contract && ipr.originalState == state
 
 areContractAndStateTheOnesAnalysed (ReachabilityAnalysis (UnreachableSubcontract us)) (Just contract) state = us.originalContract == contract && us.originalState == state
 

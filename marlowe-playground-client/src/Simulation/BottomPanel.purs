@@ -108,7 +108,7 @@ isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
 isStaticLoading _ = false
 
 isReachabilityLoading :: AnalysisState -> Boolean
-isReachabilityLoading (ReachabilityAnalysis (InProgress _)) = true
+isReachabilityLoading (ReachabilityAnalysis (ReachabilityInProgress _)) = true
 
 isReachabilityLoading _ = false
 
@@ -479,11 +479,11 @@ analysisResultPane state =
               ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
-        NotStarted ->
+        ReachabilityNotStarted ->
           explanation
             [ text ""
             ]
-        InProgress
+        ReachabilityInProgress
           { numSubproblems: totalSteps
         , numSolvedSubproblems: doneSteps
         , unreachableSubcontracts: foundUnreachableSubcontracts
