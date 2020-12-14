@@ -1,4 +1,4 @@
-module Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap, updateWithResponse) where
+module StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap, updateWithResponse) where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
@@ -29,7 +29,7 @@ import Prelude (Unit, Void, bind, discard, map, mempty, pure, unit, void, when, 
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), InProgressRecord, PrefixMap, ReachabilityAnalysisData(..), State, WebData, _analysisState)
-import StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath)
+import StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath)
 
 runAjax ::
   forall m a.

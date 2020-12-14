@@ -62,12 +62,12 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
 import Projects.Types (Lang(..))
-import Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (applyInput, getAsMuchStateAsPossible, hasHistory, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), ActionInput(..), ActionInputId(..), AnalysisState(..), ExecutionState(..), Parties(..), State, WebData, _SimulationNotStarted, _SimulationRunning, _activeDemo, _analysisState, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
+import StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)

@@ -1,4 +1,4 @@
-module StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath) where
+module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath) where
 
 import Prelude
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
