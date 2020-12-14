@@ -336,6 +336,12 @@ data AnalysisState
   | WarningAnalysis (WebData Result)
   | ReachabilityAnalysis MultiStageAnalysisData
 
+type MultiStageAnalysisProblemDef
+  = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
+    , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
+    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
+    }
+
 type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState

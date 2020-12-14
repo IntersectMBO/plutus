@@ -1,11 +1,30 @@
-module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, zipperToContractPath) where
+module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
 
-import Prelude
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (runReaderT)
+import Data.Foldable (for_)
+import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
+import Data.List.Types (NonEmptyList(..))
 import Data.Maybe (Maybe(..))
+import Data.NonEmpty ((:|))
 import Data.Tuple.Nested (type (/\), (/\))
+import Effect.Aff.Class (class MonadAff)
+import Halogen (HalogenM, query)
+import Halogen.Monaco as Monaco
+import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import Marlowe (SPParams_)
+import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
-import Simulation.Types (ContractPath, ContractPathStep(..), ContractZipper(..), RemainingSubProblemInfo)
+import Marlowe.Semantics as S
+import Marlowe.Symbolic.Types.Request as MSReq
+import Marlowe.Symbolic.Types.Response (Result(..))
+import Network.RemoteData (RemoteData(..))
+import Network.RemoteData as RemoteData
+import Prelude (Void, bind, discard, flip, identity, map, pure, unit, void, when, ($), (+), (-), (<$>), (<>), (>))
+import Servant.PureScript.Ajax (AjaxError(..))
+import Servant.PureScript.Settings (SPSettings_)
+import Simulation.Types (Action, AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, State, WebData, _analysisState)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -131,3 +150,140 @@ getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
   children = expandChildren zipper contract
 
 getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
+
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
+
+checkContractForFailedAssertions ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Contract ->
+  S.State ->
+  HalogenM State Action ChildSlots Void m (WebData Result)
+checkContractForFailedAssertions settings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state }))
+
+startMultiStageAnalysis ::
+  forall m.
+  MonadAff m =>
+  MultiStageAnalysisProblemDef ->
+  SPSettings_ SPParams_ ->
+  Contract ->
+  S.State -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+startMultiStageAnalysis problemDef settings contract state = do
+  case getNextSubproblem (problemDef.isValidSubproblemImpl) initialSubproblems Nil of
+    Nothing -> pure AnalysisFinishedAndPassed
+    Just ((contractZipper /\ subContract /\ newChildren) /\ newSubproblems) -> do
+      let
+        numSubproblems = countSubproblems problemDef.isValidSubproblemImpl (newChildren <> newSubproblems)
+
+        newPath /\ newContract = problemDef.expandSubproblemImpl contractZipper subContract
+
+        progress =
+          ( AnalysisInProgress
+              { currPath: newPath
+              , currContract: newContract
+              , currChildren: newChildren
+              , originalState: state
+              , originalContract: contract
+              , subproblems: newSubproblems
+              , numSubproblems: 1 + numSubproblems
+              , numSolvedSubproblems: 0
+              , counterExampleSubcontracts: Nil
+              }
+          )
+      assign _analysisState (problemDef.analysisDataSetter progress)
+      response <- checkContractForFailedAssertions settings newContract state
+      result <- updateWithResponse problemDef settings progress response
+      pure result
+  where
+  initialSubproblems = initSubproblems contract
+
+stepSubproblem :: MultiStageAnalysisProblemDef -> Boolean -> AnalysisInProgressRecord -> Boolean /\ AnalysisInProgressRecord
+stepSubproblem problemDef isCounterExample ( rad@{ currPath: oldPath
+  , originalState: state
+  , subproblems: oldSubproblems
+  , currChildren: oldChildren
+  , numSolvedSubproblems: n
+  , numSubproblems: oldTotalN
+  , counterExampleSubcontracts: results
+  }
+) = case getNextSubproblem problemDef.isValidSubproblemImpl oldSubproblems (if isCounterExample then oldChildren else Nil) of
+  Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) ->
+    let
+      newPath /\ newContract = problemDef.expandSubproblemImpl contractZipper subcontract
+    in
+      true
+        /\ ( rad
+              { currPath = newPath
+              , currContract = newContract
+              , currChildren = newChildren
+              , subproblems = newSubproblems
+              , numSolvedSubproblems = newN
+              , numSubproblems = newTotalN
+              , counterExampleSubcontracts = newResults
+              }
+          )
+  Nothing ->
+    false
+      /\ ( rad
+            { subproblems = Nil
+            , numSolvedSubproblems = newN
+            , numSubproblems = newTotalN
+            , counterExampleSubcontracts = newResults
+            }
+        )
+  where
+  newN = n + 1
+
+  newTotalN = oldTotalN - (if isCounterExample then 0 else countSubproblems problemDef.isValidSubproblemImpl oldChildren)
+
+  newResults = results <> (if isCounterExample then Nil else Cons oldPath Nil)
+
+updateWithResponse ::
+  forall m.
+  MonadAff m =>
+  MultiStageAnalysisProblemDef ->
+  SPSettings_ SPParams_ ->
+  MultiStageAnalysisData ->
+  WebData Result -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+updateWithResponse _ _ (AnalysisInProgress _) (Failure (AjaxError err)) = pure (AnalyisisFailure "connection error")
+
+updateWithResponse _ _ (AnalysisInProgress { currPath: path }) (Success (Error err)) = pure (AnalyisisFailure err)
+
+updateWithResponse problemDef settings (AnalysisInProgress rad) (Success Valid) = stepAnalysis problemDef settings false rad
+
+updateWithResponse problemDef settings (AnalysisInProgress rad) (Success (CounterExample _)) = stepAnalysis problemDef settings true rad
+
+updateWithResponse _ _ rad _ = pure rad
+
+finishAnalysis :: AnalysisInProgressRecord -> MultiStageAnalysisData
+finishAnalysis { originalState, originalContract, counterExampleSubcontracts: Cons h t } = AnalysisFoundCounterExamples { originalState, originalContract, counterExampleSubcontracts: NonEmptyList (h :| t) }
+
+finishAnalysis { counterExampleSubcontracts: Nil } = AnalysisFinishedAndPassed
+
+stepAnalysis :: forall m. MonadAff m => MultiStageAnalysisProblemDef -> SPSettings_ SPParams_ -> Boolean -> AnalysisInProgressRecord -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+stepAnalysis problemDef settings isCounterExample rad =
+  let
+    thereAreMore /\ newRad = stepSubproblem problemDef isCounterExample rad
+
+    thereAreNewCounterExamples = length newRad.counterExampleSubcontracts > length rad.counterExampleSubcontracts
+  in
+    if thereAreMore then do
+      assign _analysisState (problemDef.analysisDataSetter (AnalysisInProgress newRad))
+      when thereAreNewCounterExamples refreshEditor
+      response <- checkContractForFailedAssertions settings (newRad.currContract) (newRad.originalState)
+      updateWithResponse problemDef settings (AnalysisInProgress newRad) response
+    else do
+      let
+        result = finishAnalysis newRad
+      assign _analysisState (problemDef.analysisDataSetter result)
+      when thereAreNewCounterExamples refreshEditor
+      pure result
+  where
+  refreshEditor = do
+    mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
+    for_ mContent (\content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit)
