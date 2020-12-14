@@ -141,7 +141,7 @@ testLexConstants =
   both standard ASCII escape sequences and Unicode ones.  Hedgehog has generators
   for both of these, but the Unicode one essentially never generates anything readable:
   all of the output looks like '\857811'.  For this reason we have separate generators
-  for Unicode characters and Latin1 ones (characters 0-255, including standard
+  for Unicode characters and Latin-1 ones (characters 0-255, including standard
   ASCII from 0-127); there is also a generator for UTF8-encoded Unicode. -}
 
 -- TODO: Language.PlutusCore.Generators.AST has a genConstant function, but it only
@@ -153,7 +153,7 @@ genConstantForLexerTest = Gen.choice
     , mkConstant () <$> Gen.unicode  -- Unicode character: typically '\857811' etc; almost never generates anything readable.
     , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.latin1
     , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.unicode
-    , mkConstant () <$> Gen.utf8 (Range.linear 0 100) Gen.unicode
+    , mkConstant () <$> Gen.utf8   (Range.linear 0 100) Gen.unicode
     , mkConstant () <$> Gen.bytes  (Range.linear 0 100)      -- Bytestring
     , mkConstant () <$> Gen.integral (Range.linear (-k1) k1) -- Smallish Integers
     , mkConstant () <$> Gen.integral (Range.linear (-k2) k2) -- Big Integers, generally not Ints
@@ -162,14 +162,14 @@ genConstantForLexerTest = Gen.choice
           k2 = m*m
           m = fromIntegral (maxBound::Int) :: Integer
 
--- Check that printing followed by parsing is the identity function on constants.
+-- | Check that printing followed by parsing is the identity function on constants.
 propLexConstants :: Property
 propLexConstants = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ runAstGen genConstantForLexerTest
     Hedgehog.tripping term reprintTerm (fmap void . parse)
 
 
--- Generate a random 'Program', pretty-print it, and parse the pretty-printed
+-- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
