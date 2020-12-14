@@ -22,6 +22,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST         as AST
 import           Language.PlutusCore.Generators.Interesting
 import qualified Language.PlutusCore.Generators.NEAT.Spec   as NEAT
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
@@ -33,10 +34,12 @@ import           Flat                                       (flat)
 import qualified Flat                                       as Flat
 import           Hedgehog                                   hiding (Var)
 import qualified Hedgehog.Gen                               as Gen
+import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
+
 
 main :: IO ()
 main = do
@@ -102,13 +105,78 @@ propFlat = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
+{- The lexer contains some quite complex regular expressions for literal
+   constants, allowing escape sequences inside quoted strings, among other
+   things.  The following tests check that it can handle the output of the
+   prettyprinter on the types in the default universe.  We have unit tests for
+   the unit and boolean types, and property tests for integers, characters,
+   strings, and bytestrings. -}
+
+type DefaultTerm  a = Term TyName Name DefaultUni DefaultFun a
+type DefaultError a = Error DefaultUni DefaultFun a
+
+parse :: BSL.ByteString -> Either (DefaultError AlexPosn) (DefaultTerm AlexPosn)
+parse t = runQuote
+          $ runExceptT
+          $ parseTerm @(DefaultError AlexPosn) t
+
+reprintTerm :: DefaultTerm () -> BSL.ByteString
+reprintTerm = BSL.fromStrict . encodeUtf8 . displayPlcDef
+
+{-| Test that the lexer/parser can successfully consume the output
+   from the prettyprinter for the unit and boolean types. -}
+testLexConstants :: Assertion
+testLexConstants =
+    mapM_ (\t -> (fmap void . parse . reprintTerm $ t) @?= Right t) smallConsts
+        where
+          smallConsts :: [DefaultTerm ()]
+          smallConsts =
+              [ mkConstant () ()
+              , mkConstant () False
+              , mkConstant () True
+              ]
+
+{-| Generate constant terms of type `integer`, `char`, `string`, and `bytestring`.
+  The lexer should be able to consume escape sequences in characters and strings;
+  both standard ASCII escape sequences and Unicode ones.  Hedgehog has generators
+  for both of these, but the Unicode one essentially never generates anything readable:
+  all of the output looks like '\857811'.  For this reason we have separate generators
+  for Unicode characters and Latin1 ones (characters 0-255, including standard
+  ASCII from 0-127); there is also a generator for UTF8-encoded Unicode. -}
+
+-- TODO: Language.PlutusCore.Generators.AST has a genConstant function, but it only
+-- generates integers and UTF8-encoded Unicode strings. Should we replace that with
+-- this function?
+genConstantForLexerTest :: AstGen (DefaultTerm ())
+genConstantForLexerTest = Gen.choice
+    [ mkConstant () <$> Gen.latin1   -- Character: 'c', '\n', '\SYN', \253,  etc.
+    , mkConstant () <$> Gen.unicode  -- Unicode character: typically '\857811' etc; almost never generates anything readable.
+    , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.latin1
+    , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.unicode
+    , mkConstant () <$> Gen.utf8 (Range.linear 0 100) Gen.unicode
+    , mkConstant () <$> Gen.bytes  (Range.linear 0 100)      -- Bytestring
+    , mkConstant () <$> Gen.integral (Range.linear (-k1) k1) -- Smallish Integers
+    , mkConstant () <$> Gen.integral (Range.linear (-k2) k2) -- Big Integers, generally not Ints
+    ]
+    where k1 = 1000000 :: Integer
+          k2 = m*m
+          m = fromIntegral (maxBound::Int) :: Integer
+
+-- Check that printing followed by parsing is the identity function on constants.
+propLexConstants :: Property
+propLexConstants = withTests (1000 :: Hedgehog.TestLimit) . property $ do
+    term <- forAllPretty $ runAstGen genConstantForLexerTest
+    Hedgehog.tripping term reprintTerm (fmap void . parse)
+
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
-    Hedgehog.tripping prog reprint (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(Error DefaultUni DefaultFun AlexPosn) p)
+    Hedgehog.tripping prog reprint
+                (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
 
 propRename :: Property
 propRename = property $ do
@@ -141,6 +209,8 @@ allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -
 allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
   testGroup "all tests"
     [ tests
+    , testCase "lexing constants from small types" testLexConstants
+    , testProperty "lexing constants" propLexConstants
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (CBOR)" propCBOR
     , testProperty "serialization round-trip (Flat)" propFlat
