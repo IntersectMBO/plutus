@@ -25,7 +25,7 @@ import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError
 import Language.Haskell.Monaco as HM
 import LocalStorage (Key)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
-import Prelude (const, map, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
+import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Types (ChildSlots, _editorSlot, HAction(..), View(..))
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
@@ -65,8 +65,8 @@ compileButton state =
     Loading -> icon Spinner
     _ -> text "Compile"
 
-simulateButton :: forall p a. CompilationState a -> HTML p HAction
-simulateButton state =
+simulateButton :: forall p a. Boolean -> CompilationState a -> HTML p HAction
+simulateButton currentCodeIsCompiled state =
   button
     [ classes [ btn, ClassName "btn-turquoise" ]
     , onClick $ const $ Just (ChangeView Simulations)
@@ -75,7 +75,7 @@ simulateButton state =
     [ text "Simulate" ]
   where
   isDisabled = case state of
-    Success (Right _) -> false
+    Success (Right _) -> not currentCodeIsCompiled
     _ -> true
 
 editorPane ::

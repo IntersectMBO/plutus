@@ -41,7 +41,7 @@ import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
 import Editor.State (initialState) as Editor
-import Editor.Types (_feedbackPaneMinimised)
+import Editor.Types (_currentCodeIsCompiled, _feedbackPaneMinimised, _lastCompiledCode)
 import Editor.Types (Action(..), State) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -70,7 +70,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulationsPaneRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastCompiledCode, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -102,7 +102,6 @@ mkInitialState editorState = do
         , editorState
         , contractDemos
         , compilationResult: NotAsked
-        , lastCompiledCode: Nothing
         , simulations: Cursor.empty
         , actionDrag: Nothing
         , evaluationResult: NotAsked
@@ -319,6 +318,8 @@ handleAction (LoadScript key) = do
       assign _demoFilesMenuOpen false
       assign _currentView Editor
       assign _simulations $ Cursor.fromArray contractDemoSimulations
+      assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
+      assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
 
@@ -388,12 +389,13 @@ handleAction CompileProgram = do
       assign (_editorState <<< _feedbackPaneMinimised) false
       newCompilationResult <- postContract contents
       assign _compilationResult newCompilationResult
-      -- If we got a successful result, update last compiled code and switch tab.
+      -- If we got a successful result, update lastCompiledCode and switch tab.
       case newCompilationResult of
         Success (Left _) -> pure unit
         _ -> do
-          updateCodeOnSuccess newCompilationResult mContents
-          replaceViewOnSuccess newCompilationResult Editor Simulations
+          -- next line commented out for now - I don't think we're doing this any more
+          -- replaceViewOnSuccess newCompilationResult Editor Simulations
+          updateCodeOnSuccess newCompilationResult (Just contents)
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
@@ -524,8 +526,9 @@ updateSimulationOnSuccess result simulation = do
 
 updateCodeOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> Maybe SourceCode -> m Unit
 updateCodeOnSuccess result code = do
-  when (isSuccess result)
-    (assign _lastCompiledCode code)
+  when (isSuccess result) do
+    assign (_editorState <<< _lastCompiledCode) code
+    assign (_editorState <<< _currentCodeIsCompiled) true
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do

@@ -11,7 +11,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
-import Editor.Types (_keyBindings)
+import Editor.Types (_currentCodeIsCompiled, _keyBindings)
 import Editor.View (compileButton, editorPreferencesSelect, simulateButton, editorPane, editorFeedback)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
@@ -200,7 +200,7 @@ editorWrapper state@(State { currentView, contractDemos, editorState, compilatio
         , div
             [ class_ $ ClassName "editor-buttons" ]
             [ compileButton compilationResult
-            , simulateButton compilationResult
+            , simulateButton (view _currentCodeIsCompiled editorState) compilationResult
             ]
         ]
     , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState

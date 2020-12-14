@@ -5,11 +5,12 @@ import Data.Enum (enumFromTo)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message) as Monaco
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
+import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import LocalStorage (Key(..))
 import Monaco (IPosition)
 import Network.RemoteData (RemoteData)
@@ -42,6 +43,8 @@ newtype State
   = State
   { keyBindings :: KeyBindings
   , feedbackPaneMinimised :: Boolean
+  , lastCompiledCode :: Maybe SourceCode
+  , currentCodeIsCompiled :: Boolean
   }
 
 derive instance newtypeState :: Newtype State _
@@ -61,3 +64,9 @@ _keyBindings = _Newtype <<< prop (SProxy :: SProxy "keyBindings")
 
 _feedbackPaneMinimised :: Lens' State Boolean
 _feedbackPaneMinimised = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneMinimised")
+
+_lastCompiledCode :: Lens' State (Maybe SourceCode)
+_lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
+
+_currentCodeIsCompiled :: Lens' State Boolean
+_currentCodeIsCompiled = _Newtype <<< prop (SProxy :: SProxy "currentCodeIsCompiled")

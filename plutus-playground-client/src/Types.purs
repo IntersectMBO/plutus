@@ -199,7 +199,6 @@ newtype State
   , contractDemos :: Array ContractDemo
   , editorState :: Editor.State
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
-  , lastCompiledCode :: Maybe SourceCode
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
   , evaluationResult :: WebData (Either PlaygroundError EvaluationResult)
@@ -223,9 +222,6 @@ _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
 
 _editorState :: Lens' State Editor.State
 _editorState = _Newtype <<< prop (SProxy :: SProxy "editorState")
-
-_lastCompiledCode :: Lens' State (Maybe SourceCode)
-_lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")

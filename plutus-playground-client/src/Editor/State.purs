@@ -2,25 +2,32 @@ module Editor.State where
 
 import Editor.Types
 import Control.Alternative ((<|>))
-import Data.Lens (assign, modifying)
-import Data.Maybe (Maybe, fromMaybe, maybe)
+import Data.Lens (assign, modifying, use)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import FileEvents (preventDefault, readFileFromDragEvent)
 import Halogen (HalogenM, liftEffect, query, tell)
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import Language.Haskell.Interpreter (SourceCode(SourceCode))
 import LocalStorage (Key)
 import LocalStorage as LocalStorage
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
-import Prelude (Unit, bind, discard, not, pure, show, unit, void, ($), (<$>))
+import Prelude (Unit, bind, discard, not, pure, show, unit, void, ($), (<$>), (==))
 import Types (ChildSlots, _editorSlot)
 
 initialState :: forall m. MonadEffect m => m State
 initialState =
   liftEffect do
     keyBindings <- loadKeyBindings
-    pure $ State { keyBindings, feedbackPaneMinimised: false }
+    pure
+      $ State
+          { keyBindings
+          , feedbackPaneMinimised: false
+          , lastCompiledCode: Nothing
+          , currentCodeIsCompiled: false
+          }
 
 handleAction ::
   forall action output m.
@@ -34,7 +41,12 @@ handleAction bufferLocalStorageKey Init = do
   assign _keyBindings binding
   handleAction bufferLocalStorageKey (SetKeyBindings binding)
 
-handleAction bufferLocalStorageKey (HandleEditorMessage (Monaco.TextChanged text)) = liftEffect $ saveBuffer bufferLocalStorageKey text
+handleAction bufferLocalStorageKey (HandleEditorMessage (Monaco.TextChanged text)) = do
+  lastCompiledCode <- use _lastCompiledCode
+  case lastCompiledCode of
+    Just (SourceCode code) -> assign _currentCodeIsCompiled (code == text)
+    Nothing -> assign _currentCodeIsCompiled false
+  liftEffect $ saveBuffer bufferLocalStorageKey text
 
 handleAction _ (SetKeyBindings binding) = do
   void $ query _editorSlot unit $ tell $ Monaco.SetKeyBindings binding
