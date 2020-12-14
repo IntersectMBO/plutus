@@ -5,7 +5,7 @@ module MainFrame
   ) where
 
 import Prelude
-import AjaxUtils (renderForeignErrors)
+import AjaxUtils (ajaxErrorRefLabel, renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
@@ -67,7 +67,7 @@ import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInit
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Simulation (simulationsPaneRefLabel, simulationsErrorRefLabel)
+import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
 import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
@@ -298,14 +298,18 @@ handleAction EvaluateActions =
         result <- lift $ postEvaluation evaluation
         assign _evaluationResult result
         case result of
-          Success (Left _) -> do
-            -- if there are errors, scroll the error pane into view
-            lift $ scrollIntoView simulationsErrorRefLabel
-          _ -> do
-            -- otherwise update last evaluated simulation and show transactions
+          Success (Right _) -> do
+            -- on successful evaluation, update last evaluated simulation and show transactions
             updateSimulationOnSuccess result simulation
             replaceViewOnSuccess result Simulations Transactions
-            lift $ scrollIntoView simulationsPaneRefLabel
+            lift $ scrollIntoView simulatorTitleRefLabel
+          Success (Left _) -> do
+            -- on failed evaluation, scroll the error pane into view
+            lift $ scrollIntoView simulationsErrorRefLabel
+          Failure _ -> do
+            -- on failed response, scroll the ajax error pane into view
+            lift $ scrollIntoView ajaxErrorRefLabel
+          _ -> pure unit
         pure unit
 
 handleAction (LoadScript key) = do

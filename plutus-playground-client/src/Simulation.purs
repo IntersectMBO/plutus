@@ -1,5 +1,5 @@
 module Simulation
-  ( simulationsPaneRefLabel
+  ( simulatorTitleRefLabel
   , simulationsErrorRefLabel
   , simulationsPane
   , simulationsNav
@@ -36,8 +36,8 @@ import Wallet (walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
 import Web.Event.Event (Event)
 
-simulationsPaneRefLabel :: RefLabel
-simulationsPaneRefLabel = RefLabel "simulations-pane"
+simulatorTitleRefLabel :: RefLabel
+simulatorTitleRefLabel = RefLabel "simulations"
 
 simulationsErrorRefLabel :: RefLabel
 simulationsErrorRefLabel = RefLabel "simulation-errors"
@@ -51,7 +51,9 @@ simulatorTitle ::
   ComponentHTML HAction ChildSlots m
 simulatorTitle =
   div
-    [ class_ $ ClassName "main-header" ]
+    [ class_ $ ClassName "main-header"
+    , ref simulatorTitleRefLabel
+    ]
     [ h1_ [ text "Simulator" ]
     , a
         [ class_ btn
@@ -91,9 +93,7 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
       allActionWalletsExist = Array.all actionWalletsExist simulationActions
     in
       div
-        [ class_ $ ClassName "simulations"
-        , ref simulationsPaneRefLabel
-        ]
+        [ class_ $ ClassName "simulations" ]
         [ simulationsNav simulations
         , div
             [ class_ $ ClassName "simulation" ]
