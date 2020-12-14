@@ -108,7 +108,7 @@ editorFeedback ::
   State ->
   CompilationState a ->
   ComponentHTML Action ChildSlots m
-editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
+editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised }) compilationState =
   div
     [ class_ $ ClassName "editor-feedback-container" ]
     [ div
@@ -140,7 +140,11 @@ editorFeedback editorState@(State { feedbackPaneMinimised }) compilationState =
     Loading -> text "Compiling ..."
     Success (Left error) -> text "Compilation failed"
     Failure error -> text "Compilation failed"
-    _ -> text "Compilation successful"
+    _ ->
+      if currentCodeIsCompiled then
+        text "Compilation successful"
+      else
+        text "Code changed since last compilation"
 
   minMaxButton =
     a
