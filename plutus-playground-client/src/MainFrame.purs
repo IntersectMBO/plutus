@@ -70,7 +70,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -101,6 +101,7 @@ mkInitialState editorState = do
         , currentView: Editor
         , editorState
         , contractDemos
+        , currentDemoName: Nothing
         , compilationResult: NotAsked
         , simulations: Cursor.empty
         , actionDrag: Nothing
@@ -317,16 +318,18 @@ handleAction (LoadScript key) = do
   contractDemos <- use _contractDemos
   case StaticData.lookup key contractDemos of
     Nothing -> pure unit
-    Just (ContractDemo { contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
+    Just (ContractDemo { contractDemoName, contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
       editorSetContents contractDemoEditorContents (Just 1)
       saveBuffer (unwrap contractDemoEditorContents)
       assign _demoFilesMenuOpen false
       assign _currentView Editor
+      assign _currentDemoName (Just contractDemoName)
       assign _simulations $ Cursor.fromArray contractDemoSimulations
       assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
       assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
+      assign _createGistResult NotAsked
 
 handleAction AddSimulationSlot = do
   knownCurrencies <- getKnownCurrencies
@@ -469,6 +472,7 @@ handleGistAction PublishGist = do
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
+        clearCurrentDemoNameOnSuccess newResult
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
@@ -482,6 +486,7 @@ handleGistAction LoadGist =
         assign _gistErrorPaneVisible true
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
+        clearCurrentDemoNameOnSuccess aGist
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
         -- Load the source, if available.
@@ -540,6 +545,11 @@ replaceViewOnSuccess result source target = do
   currentView <- use _currentView
   when (isSuccess result && currentView == source)
     (assign _currentView target)
+
+clearCurrentDemoNameOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> m Unit
+clearCurrentDemoNameOnSuccess result = do
+  when (isSuccess result)
+    (assign _currentDemoName Nothing)
 
 ------------------------------------------------------------
 toAnnotations :: InterpreterError -> Array IMarkerData

@@ -28,6 +28,7 @@
             color: $gray-text-color;
             text-decoration: underline;
     
+            &.active,
             &:hover {
                 color: $blue;
                 text-decoration: underline;

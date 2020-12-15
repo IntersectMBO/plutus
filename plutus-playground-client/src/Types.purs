@@ -197,6 +197,7 @@ newtype State
   { demoFilesMenuOpen :: Boolean
   , currentView :: View
   , contractDemos :: Array ContractDemo
+  , currentDemoName :: Maybe String
   , editorState :: Editor.State
   , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
   , simulations :: Cursor Simulation
@@ -220,6 +221,9 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _contractDemos :: Lens' State (Array ContractDemo)
 _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
+
+_currentDemoName :: Lens' State (Maybe String)
+_currentDemoName = _Newtype <<< prop (SProxy :: SProxy "currentDemoName")
 
 _editorState :: Lens' State Editor.State
 _editorState = _Newtype <<< prop (SProxy :: SProxy "editorState")

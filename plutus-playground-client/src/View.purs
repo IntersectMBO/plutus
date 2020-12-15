@@ -1,7 +1,7 @@
 module View (render) where
 
 import Types
-import Bootstrap (btn, containerFluid, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
+import Bootstrap (active, btn, containerFluid, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
 import Data.Either (Either(..))
@@ -80,7 +80,7 @@ subHeader ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-subHeader state@(State { demoFilesMenuOpen, contractDemos }) =
+subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
   nav
     [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
     [ a
@@ -88,15 +88,17 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos }) =
         , onClick $ const $ Just $ ToggleDemoFilesMenu
         ]
         [ buttonIcon ]
-    , contractDemosPane demoFilesMenuOpen contractDemos
+    , contractDemosPane demoFilesMenuOpen contractDemos currentDemoName
     , GistAction <$> gistControls (unwrap state)
     ]
   where
   buttonClasses =
     if demoFilesMenuOpen then
-      [ btn, ClassName "menu-button", ClassName "open" ]
+      [ btn, buttonClass, ClassName "open" ]
     else
-      [ btn, ClassName "menu-button" ]
+      [ btn, buttonClass ]
+
+  buttonClass = ClassName "menu-button"
 
   buttonIcon =
     if demoFilesMenuOpen then
@@ -107,8 +109,8 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos }) =
 contractDemosPane ::
   forall m.
   MonadAff m =>
-  Boolean -> Array ContractDemo -> ComponentHTML HAction ChildSlots m
-contractDemosPane demoFilesMenuOpen contractDemos =
+  Boolean -> Array ContractDemo -> Maybe String -> ComponentHTML HAction ChildSlots m
+contractDemosPane demoFilesMenuOpen contractDemos currentDemoName =
   div
     [ classes demoPaneClasses ]
     [ span
@@ -116,7 +118,7 @@ contractDemosPane demoFilesMenuOpen contractDemos =
         [ text "Demo files" ]
     , ul
         [ class_ navbarNav ]
-        (demoScriptNavItem <$> contractDemos)
+        (demoScriptNavItem currentDemoName <$> contractDemos)
     ]
   where
   demoPaneClasses =
@@ -125,16 +127,24 @@ contractDemosPane demoFilesMenuOpen contractDemos =
     else
       [ navbarNav, ClassName "menu" ]
 
-demoScriptNavItem :: forall p. ContractDemo -> HTML p HAction
-demoScriptNavItem (ContractDemo { contractDemoName }) =
+demoScriptNavItem :: forall p. Maybe String -> ContractDemo -> HTML p HAction
+demoScriptNavItem currentDemoName (ContractDemo { contractDemoName }) =
   li
     [ class_ navItem ]
     [ a
-        [ class_ navLink
+        [ classes navLinkClasses
         , onClick $ const $ Just $ LoadScript contractDemoName
         ]
         [ text contractDemoName ]
     ]
+  where
+  navLinkClasses = case currentDemoName of
+    Just name ->
+      if contractDemoName == name then
+        [ active, navLink ]
+      else
+        [ navLink ]
+    Nothing -> [ navLink ]
 
 editorMain ::
   forall m.
