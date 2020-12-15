@@ -345,13 +345,14 @@ type MultiStageAnalysisProblemDef
 type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState
-    , activeDemo :: String
     , helpContext :: HelpContext
+    -- FIXME: remove editorKeybindings
     , editorKeybindings :: KeyBindings
     , showBottomPanel :: Boolean
     , showErrorDetail :: Boolean
     , bottomPanelView :: BottomPanelView
     , analysisState :: AnalysisState
+    -- FIXME: Remove selectedHole
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     , source :: Lang
@@ -369,9 +370,6 @@ _currentMarloweState = _marloweState <<< _Head
 
 _currentContract :: Lens' State (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
-
-_activeDemo :: Lens' State String
-_activeDemo = prop (SProxy :: SProxy "activeDemo")
 
 _helpContext :: Lens' State HelpContext
 _helpContext = prop (SProxy :: SProxy "helpContext")
@@ -404,7 +402,6 @@ mkState :: State
 mkState =
   { showRightPanel: true
   , marloweState: NEL.singleton emptyMarloweState
-  , activeDemo: mempty
   , helpContext: MarloweHelp
   , editorKeybindings: DefaultBindings
   , showBottomPanel: true

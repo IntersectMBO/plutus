@@ -85,7 +85,7 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
     let
-      lintResult = lint Nil marloweState parsedContract
+      lintResult = lint Nil parsedContract
 
       mContract = fromTerm parsedContract
     in
@@ -198,9 +198,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-              
+
               -- otherwise there can be hidden pending inputs in the simulation
-              
+
               <<< set _pendingInputs mempty
           )
             executionState

@@ -8,7 +8,7 @@ import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.EuclideanRing ((*))
 import Data.HeytingAlgebra (not, (&&))
@@ -37,7 +37,7 @@ import FileEvents as FileEvents
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
-import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
@@ -50,18 +50,18 @@ import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
+import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
-import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import Prim.TypeError (class Warn, Text)
 import Projects.Types (Lang(..))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
@@ -69,7 +69,6 @@ import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (applyInput, getAsMuchStateAsPossible, hasHistory, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), ActionInput(..), ActionInputId(..), AnalysisState(..), ExecutionState(..), Parties(..), State, WebData, _SimulationNotStarted, _SimulationRunning, _activeDemo, _analysisState, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
-import StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
@@ -102,21 +101,18 @@ handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
     )
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
-  assign _activeDemo ""
-  executionState <- use (_currentMarloweState <<< _executionState)
   analysisState <- use _analysisState
-  currContract <- use (_currentMarloweState <<< _contract)
   currState <- getAsMuchStateAsPossible
   let
-    reachabilityResultsValid = areContractAndStateTheOnesAnalysed analysisState currContract currState
+    parsedContract = parseContract text
+
+    maybeContract = fromTerm =<< hush parsedContract
+
+    reachabilityResultsValid = areContractAndStateTheOnesAnalysed analysisState maybeContract currState
 
     unreachableContracts = if reachabilityResultsValid then getUnreachableContracts analysisState else Nil
 
-    state = case executionState of
-      SimulationRunning runRecord -> runRecord.state
-      SimulationNotStarted notRunRecord -> emptyState $ notRunRecord.initialSlot
-
-    (Tuple markerData additionalContext) = Linter.markers unreachableContracts state text
+    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorSlot unit (Monaco.SetModelMarkers markerData identity)
   void $ traverse editorSetMarkers markers
   objects <- query _marloweEditorSlot unit (Monaco.GetObjects identity)
@@ -150,7 +146,6 @@ handleAction settings (LoadScript key) = do
     liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
     updateContractInState prettyContents
     resetContract
-    assign _activeDemo key
     setOraclePrice settings
 
 handleAction settings (SetEditorText contents) = do
@@ -422,6 +417,7 @@ resetContract = do
   assign _oldContract Nothing
   updateContractInState $ fromMaybe "" newContract
 
+-- FIXME: remove this
 editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
 editorSetMarkers markers = do
   let
@@ -462,10 +458,6 @@ render state =
     ]
   where
   showRightPanel = state ^. _showRightPanel
-
-  demoScriptLink key =
-    li [ state ^. _activeDemo <<< activeClasses (eq key) ]
-      [ a [ onClick $ const $ Just $ LoadScript key ] [ text key ] ]
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =

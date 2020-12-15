@@ -13,7 +13,7 @@ import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Simulation.Types (WebData)
+import Simulation.Types (AnalysisState(..), WebData)
 import Text.Pretty (pretty)
 
 data Action
@@ -39,6 +39,10 @@ type State
   = { keybindings :: KeyBindings
     , showBottomPanel :: Boolean
     , hasUnsavedChanges :: Boolean
+    , selectedHole :: Maybe String
+    -- This is pagination information that we need to provide to the haskell backend
+    -- so that it can do the analysis in chunks
+    , analysisState :: AnalysisState
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -47,9 +51,17 @@ _keybindings = prop (SProxy :: SProxy "keybindings")
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
+_selectedHole :: Lens' State (Maybe String)
+_selectedHole = prop (SProxy :: SProxy "selectedHole")
+
+_analysisState :: Lens' State AnalysisState
+_analysisState = prop (SProxy :: SProxy "analysisState")
+
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
   , showBottomPanel: true
   , hasUnsavedChanges: false
+  , selectedHole: Nothing
+  , analysisState: NoneAsked
   }

@@ -5,29 +5,28 @@ module MarloweEditor.State
   ) where
 
 import Prelude hiding (div)
-import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Reader (runReaderT)
-import Data.Array (catMaybes)
-import Data.Either (Either(..))
-import Data.Lens (assign, set, use, view)
+import Data.Array (filter)
+import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
+import Data.String (codePointFromChar)
 import Data.String as String
+import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, liftEffect, modify_, query)
-import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges', _marloweEditorPageSlot)
-import Marlowe (SPParams_, postRunghc)
-import Monaco (IMarkerData, markerSeverity)
-import Network.RemoteData (RemoteData(..))
-import Network.RemoteData as RemoteData
-import Servant.PureScript.Ajax (AjaxError)
+import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorPageSlot)
+import Marlowe (SPParams_)
+import Marlowe.Linter as Linter
+import Marlowe.Monaco (updateAdditionalContext)
+import Marlowe.Parser (parseContract)
+import MarloweEditor.Types (Action(..), State, _analysisState, _keybindings, _selectedHole, _showBottomPanel)
+import Monaco (IMarker, isError, isWarning)
+import Reachability (getUnreachableContracts)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (WebData, _result)
 import StaticData (marloweBufferLocalStorageKey)
-import Webghc.Server (CompileRequest(..))
 
 handleAction ::
   forall m.
@@ -40,8 +39,25 @@ handleAction _ (ChangeKeyBindings bindings) = do
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
+  modify_
+    ( set _selectedHole Nothing
+        <<< set _hasUnsavedChanges' true
+    )
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
-  assign _hasUnsavedChanges' true
+  analysisState <- use _analysisState
+  let
+    parsedContract = parseContract text
+
+    unreachableContracts = getUnreachableContracts analysisState
+
+    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
+  markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
+  void $ traverse editorSetMarkers markers
+  -- QUESTION: Why do we need to update providers on every text change?
+  providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
+  case providers of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -65,3 +81,30 @@ editorSetValue contents = void $ query _marloweEditorPageSlot unit (Monaco.SetTe
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _marloweEditorPageSlot unit (Monaco.GetText identity)
+
+editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
+editorSetMarkers markers = do
+  let
+    warnings = filter (\{ severity } -> isWarning severity) markers
+
+    trimHoles =
+      map
+        ( \marker ->
+            let
+              trimmedMessage =
+                if String.take 6 marker.source == "Hole: " then
+                  String.takeWhile (\c -> c /= codePointFromChar '\n') marker.message
+                else
+                  marker.message
+            in
+              marker { message = trimmedMessage }
+        )
+        warnings
+  let
+    errors = filter (\{ severity } -> isError severity) markers
+  -- FIXME: This is not doing anything at the moment. We were probably hijacking the
+  -- errors and warnings from the simulation. We proably need to add editorWarnings and errors
+  -- to the MarloweEditor state. Do it later
+  -- assign (_marloweState <<< _Head <<< _editorWarnings) trimHoles
+  -- assign (_marloweState <<< _Head <<< _editorErrors) errors
+  pure unit

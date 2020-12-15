@@ -18,6 +18,7 @@ import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
+import Marlowe.Monaco as MM
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
@@ -82,7 +83,7 @@ marloweEditor state = slot _marloweEditorPageSlot unit component unit (Just <<< 
       model <- Monaco.getModel editor
       Monaco.setValue model contents
 
-  component = monacoComponent $ HM.settings setup
+  component = monacoComponent $ MM.settings setup
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state = div_ [ text "" ]
