@@ -104,7 +104,7 @@ propFlat = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
-{-| The lexer contains some quite complex regular expressions for literal
+{- The lexer contains some quite complex regular expressions for literal
   constants, allowing escape sequences inside quoted strings, among other
   things.  The lexer returns 'TkLiteralConst' tokens and then individual
   built-in types interpret these using their own parsing functions via the
