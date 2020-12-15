@@ -28,6 +28,7 @@ instance showLang :: Show Lang where
 data Action
   = LoadProjects
   | LoadProject Lang GistId
+  | Cancel
 
 defaultEvent :: String -> Event
 defaultEvent action = { category: Just "Projects", action, label: Nothing, value: Nothing }
@@ -35,6 +36,7 @@ defaultEvent action = { category: Just "Projects", action, label: Nothing, value
 instance isEventAction :: IsEvent Action where
   toEvent LoadProjects = Just $ defaultEvent "LoadProjects"
   toEvent (LoadProject lang _) = Just { category: Just "Projects", action: "LoadProject", label: Just (show lang), value: Nothing }
+  toEvent Cancel = Just $ defaultEvent "Cancel"
 
 type State
   = { projects :: RemoteData String (Array Gist)

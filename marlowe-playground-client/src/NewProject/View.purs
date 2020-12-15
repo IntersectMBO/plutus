@@ -1,27 +1,18 @@
-module NewProject.State where
+module NewProject.View where
 
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (ClassName(..), ComponentHTML, HalogenM)
+import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (fontSemibold, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, textBase, textSm)
 import Halogen.HTML (div, div_, h3, img, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (ChildSlots)
-import Marlowe (SPParams_)
-import Modal.ViewHelpers (modalHeaderTitle)
+import Modal.ViewHelpers (modalHeaderWithClose)
 import NewProject.Types (Action(..), State, _error)
-import Prelude (Unit, Void, const, map, pure, unit, ($), (<<<))
+import Prelude (const, map, ($), (<<<))
 import Projects.Types (Lang(..))
-import Servant.PureScript.Settings (SPSettings_)
-
-handleAction ::
-  forall m.
-  MonadAff m =>
-  SPSettings_ SPParams_ ->
-  Action -> HalogenM State Action ChildSlots Void m Unit
-handleAction settings (CreateProject lang) = pure unit
 
 render ::
   forall m.
@@ -30,7 +21,7 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [ modalHeaderTitle "New Project"
+    [ modalHeaderWithClose "New Project" Cancel
     , div [ classes [ modalContent, ClassName "new-project-container" ] ]
         [ h3 [ classes [ textBase, fontSemibold ] ] [ text "Please choose your initial coding environment" ]
         , div [ classes [ ClassName "environment-selector-group" ] ] (map link [ Haskell, Javascript, Marlowe, Blockly ])

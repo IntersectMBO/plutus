@@ -51,6 +51,11 @@ without doing it as an Effect in a mainframe action
 .modal-header {
   padding: var(--small-margin) var(--medium-margin);
   box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.34);
+  /* Make the position of the modal to always appear at the top */
+  position: sticky;
+  top: 0;
+  background: white; /* if we dont set background it gets transparent */
+  /* end sticky*/
   .title {
     @extend .font-semibold;
     margin: 0;

@@ -10,7 +10,7 @@ import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Foldable (fold, for_)
-import Data.Lens (assign, preview, use, view, set, (^.), has)
+import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
@@ -410,6 +410,8 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
   toProjects $ Projects.handleAction s action
   selectView $ selectLanguageView lang
 
+handleAction s (ProjectsAction Projects.Cancel) = fullHandleAction s CloseModal
+
 handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
 
 handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
@@ -442,6 +444,8 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _showModal Nothing
     )
 
+handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
+
 handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell ->
@@ -459,6 +463,8 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     Actus -> pure unit
   assign _showModal Nothing
   selectView $ selectLanguageView lang
+
+handleAction s (DemosAction Demos.Cancel) = fullHandleAction s CloseModal
 
 handleAction s (RenameAction action@Rename.SaveProject) = do
   projectName <- use (_rename <<< Rename._projectName)
@@ -599,6 +605,7 @@ checkAuthStatus settings = do
 handleGistAction ::
   forall m.
   Warn (Text "Check if the handler for LoadGist is being used") =>
+  Warn (Text "SCP-1591 Saving failure does not provide enough information") =>
   MonadAff m =>
   MonadEffect m =>
   SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
