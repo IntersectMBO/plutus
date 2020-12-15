@@ -472,6 +472,7 @@ handleGistAction PublishGist = do
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
+        updateViewOnSuccess newResult Editor
         clearCurrentDemoNameOnSuccess newResult
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
@@ -486,6 +487,7 @@ handleGistAction LoadGist =
         assign _gistErrorPaneVisible true
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
+        updateViewOnSuccess aGist Editor
         clearCurrentDemoNameOnSuccess aGist
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
@@ -539,6 +541,11 @@ updateCodeOnSuccess result code = do
   when (isSuccess result) do
     assign (_editorState <<< _lastCompiledCode) code
     assign (_editorState <<< _currentCodeIsCompiled) true
+
+updateViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> m Unit
+updateViewOnSuccess result target = do
+  when (isSuccess result)
+    (assign _currentView target)
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
