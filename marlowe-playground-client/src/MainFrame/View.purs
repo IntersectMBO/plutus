@@ -24,6 +24,7 @@ import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), 
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
+import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
 import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
@@ -131,6 +132,8 @@ render settings state =
   otherActions Simulation = [ renderSubmodule _simulationState SimulationAction Simulation.otherActions state ]
 
   otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
+
+  otherActions MarloweEditor = [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.otherActions state ]
 
   otherActions BlocklyEditor =
     [ div [ classes [ group ] ]

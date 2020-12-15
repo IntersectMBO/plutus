@@ -1,7 +1,7 @@
 module MarloweEditor.State
   ( handleAction
   , editorGetValue
-  , -- FIXME: this should be an action editorResize
+  , {- FIXME: this should be an action -} editorResize
   ) where
 
 import Prelude hiding (div)

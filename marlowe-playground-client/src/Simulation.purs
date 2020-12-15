@@ -62,6 +62,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
+import Prim.TypeError (class Warn, Text)
 import Projects.Types (Lang(..))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -521,12 +522,15 @@ actusSourceButton state =
     ]
     [ text "Edit Actus Source" ]
 
-editorOptions :: forall p. State -> HTML p Action
+editorOptions ::
+  Warn (Text "Refactor all editorOptions into a single submodule") =>
+  forall p. State -> HTML p Action
 editorOptions state =
   div [ class_ (ClassName "editor-options") ]
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _editorKeybindings
         , onSelectedIndexChange (\idx -> SelectEditorKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))

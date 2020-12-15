@@ -55,6 +55,7 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _haskellEditorKeybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))

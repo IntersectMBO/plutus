@@ -54,6 +54,7 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _keybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))
