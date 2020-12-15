@@ -96,7 +96,7 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
     [ classes ([ card, clickable, ClassName "transaction" ] <> if isActive then [ active ] else [])
     , onClickFocusTx txId
     ]
-    [ entryCardHeader sequenceId ]
+    [ entryCardHeader sequenceId false ]
   where
   isActive = has (_chainFocus <<< _Just <<< filtered (eq txId)) state
 
@@ -118,7 +118,7 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
         , col6_
             [ h2_ [ text "Transaction" ]
             , div [ classes [ card, active ] ]
-                [ entryCardHeader (view _sequenceId annotatedTx)
+                [ entryCardHeader (view _sequenceId annotatedTx) true
                 , cardBody_
                     [ div
                         [ class_ textTruncate ]
@@ -161,12 +161,13 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
         (view _balances annotatedTx)
     ]
 
-entryCardHeader :: forall i p. SequenceId -> HTML p i
-entryCardHeader sequenceId =
+entryCardHeader :: forall i p. SequenceId -> Boolean -> HTML p i
+entryCardHeader sequenceId withTriangle =
   cardHeader_
-    [ triangleRight
-    , sequenceIdView sequenceId
-    ]
+    if withTriangle then
+      [ triangleRight, sequenceIdView sequenceId ]
+    else
+      [ sequenceIdView sequenceId ]
 
 entryClass :: ClassName
 entryClass = ClassName "entry"
@@ -291,11 +292,11 @@ sequenceIdView (SequenceId { slotIndex, txIndex }) =
   span_
     [ span_ [ text "Slot" ]
     , nbsp
-    , span_ [ text $ "#" <> show slotIndex ]
+    , span_ [ text $ show slotIndex ]
     , span_ [ text ", " ]
     , span_ [ text "Tx" ]
     , nbsp
-    , span_ [ text $ "#" <> show txIndex ]
+    , span_ [ text $ show txIndex ]
     ]
 
 txIdView :: forall p. TxId -> HTML p Action
