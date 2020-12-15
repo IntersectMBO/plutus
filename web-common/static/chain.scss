@@ -6,6 +6,10 @@
     th, .card-header {
         color: $entry-color;
         background-color: $entry-background-color;
+
+        .clipboard .btn-link {
+            color: $entry-color;
+        }
     }
 }
 
@@ -60,6 +64,10 @@
                 border-width: 10px 0 10px $entry-arrow-width;
                 border-color: transparent transparent transparent $entry-arrow-color;
             }
+        }
+
+        .clipboard .btn-link {
+            color: $gray-600;
         }
 
         .amount {
@@ -118,10 +126,6 @@
         }
         .script {
             @include entry-background($entry-color, $entry-detail-color-script);
-        }
-
-        .blocks {
-            margin-right: $entry-arrow-width;
         }
 
         overflow: hidden;

@@ -88,10 +88,11 @@
             }
         }
     }
+}
 
-    h2 {
-        font-size: 1.2rem;
-    }
+.wallets,
+.actions {
+    margin-bottom: 1rem;
 
     h3 {
         font-size: 1.1rem;
@@ -101,11 +102,6 @@
         font-size: 1rem;
         margin-bottom: .75em;
     }    
-}
-
-.wallets,
-.actions {
-    margin-bottom: 1rem;
 }
 
 .actions-being-dragged {

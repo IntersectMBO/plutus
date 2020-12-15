@@ -59,6 +59,19 @@ $chart-grid-stroke: $gray-500;
             @extend .h3;
         }
 
+        p {
+            font-size: $font-size-sm;
+        }
+
+        .blocks,
+        .detail {
+            margin-bottom: 1rem;
+        }
+
+        .transaction {
+            margin-bottom: 1rem;
+        }
+
         .card {
             margin-bottom: .5rem;
             border-radius: 0;
