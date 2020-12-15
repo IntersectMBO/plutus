@@ -5,7 +5,7 @@ module Gists.View
   ) where
 
 import Gists.Types (GistAction(..), parseGistUrl)
-import AjaxUtils (ajaxErrorPane)
+import AjaxUtils (closeableAjaxErrorPane)
 import Auth (AuthRole(..), AuthStatus, authStatusAuthRole)
 import Bootstrap (btn, btnDanger, btnSecondary, btnSmall, empty, formControl, formGroup, isInvalid, isValid, nbsp)
 import DOM.HTML.Indexed.InputType (InputType(..))
@@ -31,11 +31,12 @@ gistControls ::
   forall a p.
   { authStatus :: RemoteData AjaxError AuthStatus
   , createGistResult :: RemoteData AjaxError Gist
+  , gistErrorPaneVisible :: Boolean
   , gistUrl :: Maybe String
   | a
   } ->
   HTML p GistAction
-gistControls { authStatus, createGistResult, gistUrl } =
+gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
   authButton
     $ div
         [ class_ $ ClassName "gist-controls" ]
@@ -65,7 +66,7 @@ gistControls { authStatus, createGistResult, gistUrl } =
             ]
         , case createGistResult of
             Success gist -> gistPane gist
-            Failure err -> ajaxErrorPane err
+            Failure err -> AjaxErrorPaneAction <$> closeableAjaxErrorPane err
             Loading -> empty
             NotAsked -> empty
         ]

@@ -5,7 +5,7 @@ module MainFrame
   ) where
 
 import Prelude
-import AjaxUtils (ajaxErrorRefLabel, renderForeignErrors)
+import AjaxUtils (ajaxErrorRefLabel, renderForeignErrors, AjaxErrorPaneAction(CloseErrorPane))
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
@@ -70,7 +70,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _lastEvaluatedSimulation, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -109,6 +109,7 @@ mkInitialState editorState = do
         , authStatus: NotAsked
         , createGistResult: NotAsked
         , gistUrl: Nothing
+        , gistErrorPaneVisible: true
         , blockchainVisualisationState: Chain.initialState
         }
 
@@ -478,6 +479,7 @@ handleGistAction LoadGist =
         eGistId <- except $ Gists.parseGistUrl mGistId
         --
         assign _createGistResult Loading
+        assign _gistErrorPaneVisible true
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
@@ -503,8 +505,7 @@ handleGistAction LoadGist =
 
   toEither x NotAsked = x
 
--- other gist actions are irrelevant (but one will soon be needed for the refresh...)
-handleGistAction _ = pure unit
+handleGistAction (AjaxErrorPaneAction CloseErrorPane) = assign _gistErrorPaneVisible false
 
 handleActionWalletEvent :: (BigInteger -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 handleActionWalletEvent mkWallet AddWallet wallets =

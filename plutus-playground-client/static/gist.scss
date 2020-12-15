@@ -1,7 +1,7 @@
 .gist-controls {
     position: relative;
-    $label-width: 56px;
-    $gist-id-input-width: 230px;
+    $label-width: 3.5rem;
+    $gist-id-input-width: 14rem;
     $button-width: 5rem;
     $button-margin: .5rem;
     $arrow-width: 12px;
@@ -65,6 +65,7 @@
         border-color: $red;
         background: lighten($red, 50%);
         color: $red;
+        width: $gist-id-input-width + ($button-margin + $button-width) * 2;
 
         &::before {
             border-bottom-color: $red;
@@ -77,9 +78,15 @@
 
         .alert {
             background: transparent;
-          border: 0;
-          padding: 0;
-          margin: 0;
-      }
-  }
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .btn {
+            width: 2em;
+            padding: .25em;
+            color: $red;
+        }
+    }
 }

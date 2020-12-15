@@ -1,6 +1,7 @@
 module AjaxUtils
   ( AjaxErrorPaneAction(..)
   , ajaxErrorPane
+  , closeableAjaxErrorPane
   , ajaxErrorRefLabel
   , renderForeignErrors
   , defaultJsonOptions
@@ -14,8 +15,8 @@ import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
 import Halogen (RefLabel(RefLabel))
 import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, text)
-import Halogen.HTML.Properties (class_, classes, ref)
 import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, ref)
 import Icons (Icon(..), icon)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 
@@ -51,14 +52,14 @@ closeableAjaxErrorPane error =
         ]
     ]
 
+ajaxErrorRefLabel :: RefLabel
+ajaxErrorRefLabel = RefLabel "ajax-error"
+
 ajaxErrorClass :: ClassName
 ajaxErrorClass = ClassName "ajax-error"
 
 helpText :: forall p i. HTML p i
 helpText = text "Please try again or contact support for assistance."
-
-ajaxErrorRefLabel :: RefLabel
-ajaxErrorRefLabel = RefLabel "ajax-error"
 
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription

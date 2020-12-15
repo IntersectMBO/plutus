@@ -206,6 +206,7 @@ newtype State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
+  , gistErrorPaneVisible :: Boolean
   , blockchainVisualisationState :: Chain.State
   }
 
@@ -258,6 +259,9 @@ _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
 _gistUrl :: Lens' State (Maybe String)
 _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
+
+_gistErrorPaneVisible :: Lens' State Boolean
+_gistErrorPaneVisible = _Newtype <<< prop (SProxy :: SProxy "gistErrorPaneVisible")
 
 _resultBlockchain :: Lens' EvaluationResult Blockchain
 _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
