@@ -34,11 +34,10 @@ import           Flat                                       (flat)
 import qualified Flat                                       as Flat
 import           Hedgehog                                   hiding (Var)
 import qualified Hedgehog.Gen                               as Gen
-import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
-import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.Hedgehog
 
 
 main :: IO ()
@@ -138,38 +137,12 @@ testLexConstants =
               , mkConstant () True
               ]
 
-{-| Generate constant terms of type @integer@, @char@, @string@, and @bytestring@.
-  The lexer should be able to consume escape sequences in characters and strings;
-  both standard ASCII escape sequences and Unicode ones.  Hedgehog has generators
-  for both of these, but the Unicode one essentially never generates anything readable:
-  all of the output looks like '\857811'.  For this reason we have separate generators
-  for Unicode characters and Latin-1 ones (characters 0-255, including standard
-  ASCII from 0-127); there is also a generator for UTF8-encoded Unicode. -}
-
--- TODO: Language.PlutusCore.Generators.AST has a 'genConstant' function, but it only
--- generates integers and UTF8-encoded Unicode strings. Should we replace that with
--- this function?
-genConstantForLexerTest :: AstGen (DefaultTerm ())
-genConstantForLexerTest = Gen.choice
-    [ mkConstant () <$> Gen.latin1   -- Character: 'c', '\n', '\SYN', \253,  etc.
-    , mkConstant () <$> Gen.unicode  -- Unicode character: typically '\857811' etc. Almost never generates anything readable.
-    , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.latin1
-    , mkConstant () <$> Gen.string (Range.linear 0 100) Gen.unicode
-    , mkConstant () <$> Gen.utf8   (Range.linear 0 100) Gen.unicode
-    , mkConstant () <$> Gen.bytes  (Range.linear 0 100)      -- Bytestring
-    , mkConstant () <$> Gen.integral (Range.linear (-k1) k1) -- Smallish Integers
-    , mkConstant () <$> Gen.integral (Range.linear (-k2) k2) -- Big Integers, generally not Ints
-    ]
-    where k1 = 1000000 :: Integer
-          k2 = m*m
-          m = fromIntegral (maxBound::Int) :: Integer
-
 {-| Check that printing followed by parsing is the identity function on
   constants.  This is quite fast, so we do it 1000 times to get good coverage
   of the various generators. -}
 propLexConstants :: Property
 propLexConstants = withTests (1000 :: Hedgehog.TestLimit) . property $ do
-    term <- forAllPretty $ runAstGen genConstantForLexerTest
+    term <- forAllPretty $ Constant () <$> runAstGen genConstant
     Hedgehog.tripping term reprint (fmap void . parseTm)
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
@@ -196,14 +169,14 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
+propDeBruijn :: Gen (TermOf (DefaultTerm ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let
         forward = deBruijnTerm
         backward
             :: Except FreeVariableError (Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a)
-            -> Except FreeVariableError (Term TyName Name DefaultUni DefaultFun a)
+            -> Except FreeVariableError (DefaultTerm a)
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
@@ -235,7 +208,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles =
     ]
 
 
-type TestFunction a = BSL.ByteString -> Either (Error DefaultUni DefaultFun a) T.Text
+type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
 
 asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
@@ -249,7 +222,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-evalFile :: BSL.ByteString -> Either (Error DefaultUni DefaultFun AlexPosn) T.Text
+evalFile :: BSL.ByteString -> Either (DefaultError AlexPosn) T.Text
 evalFile contents =
     second displayPlcDef $
         unsafeEvaluateCek defBuiltinsRuntime . toTerm . void <$> runQuoteT (parseScoped contents)
@@ -284,7 +257,7 @@ testEqTerm =
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
 
-        term0, term1 :: Term TyName Name DefaultUni DefaultFun ()
+        term0, term1 :: DefaultTerm ()
 
         -- [(lam x a x) x]
         term0 = Apply () lamX varX
