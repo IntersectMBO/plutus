@@ -82,11 +82,24 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+constantWidth :: NumBits
+constantWidth = 3
+
+encodeConstant :: Word8 -> Encoding
+encodeConstant = eBits constantWidth
+
+decodeConstant :: Get Word8
+decodeConstant = dBEBits8 constantWidth
+
 -- See Note [The G, the Tag and the Auto].
 instance Closed uni => Flat (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) = encode . map (fromIntegral :: Int -> Word) $ encodeUni uni
+    encode (Some (TypeIn uni)) =
+      encodeListWith encodeConstant .
+        map (fromIntegral :: Int -> Word8) $ encodeUni uni
 
-    decode = go . decodeUni . map (fromIntegral :: Word -> Int) =<< decode where
+    decode = go . decodeUni . map (fromIntegral :: Word8 -> Int)
+                =<< decodeListWith decodeConstant
+        where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
