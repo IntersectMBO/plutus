@@ -53,8 +53,8 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Reachability (initialisePrefixMap, stepPrefixMap)
 import Simulation.Types (ContractPath, ContractPathStep(..), PrefixMap)
+import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
