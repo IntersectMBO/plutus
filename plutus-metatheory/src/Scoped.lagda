@@ -221,12 +221,6 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  builtin : (b : Builtin) 
-    → ∀{m o}
-    → (m ≤‴ arity⋆ b × o ≡ 0) ⊎ (m ≡ arity⋆ b × o ≤‴ arity b)
-    → Tel⋆ n m
-    → Tel w o
-    → ScopedTm w
   ibuiltin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
@@ -315,8 +309,8 @@ scopeCheckTm (t · u) = do
   u ← scopeCheckTm u
   return (t · u)
 scopeCheckTm (con c) = return (con (deBruijnifyC c))
+scopeCheckTm (builtin b) = return (ibuiltin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
-scopeCheckTm (builtin b) = return (builtin b (inj₁ (z≤‴n , refl)) [] [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -372,7 +366,6 @@ extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con (unDeBruijnifyC c)
 extricateScope (error A) = error (extricateScopeTy A)
-extricateScope (builtin bn _ _ _) = builtin bn -- TODO
 extricateScope (ibuiltin bn) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
@@ -410,7 +403,6 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (builtin b X As ts) = "builtin" -- FIX ME
 ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
