@@ -70,14 +70,10 @@ tags and their used/available encoding possibilities.
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
 
-TODO: Update comments
 All encodings use the function `safeEncodeBits :: NumBits -> Word8 -> Encoding`, which encodes
 at most 8 bits of data, and the first argument specifies how many bits from the 8
 available are actually used. This function also checks the size of the `Word8`
 argument at runtime.
-All encodings use the function `safeEncodeBits :: NumBits -> Word8 -> Encoding`, which encodes
-at most 8 bits of data, and the first argument specifies how many bits from the 8
-available are actually used.
 
 Flat uses an extra function in its class definition called `size`. Since we want
 to reserve some space for future data constructors and we don't want to have the
