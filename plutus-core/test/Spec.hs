@@ -37,11 +37,8 @@ import qualified Hedgehog.Gen                               as Gen
 import qualified Hedgehog.Range                             as Range
 import           Test.Tasty
 import           Test.Tasty.Golden
-import           Test.Tasty.HUnit
 import           Test.Tasty.Hedgehog
-
-import           Debug.Trace
-
+import           Test.Tasty.HUnit
 
 main :: IO ()
 main = do
@@ -177,7 +174,7 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Debug.Trace.trace (displayPlcDef term) $    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term reprint (fmap void . parseTm)
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
