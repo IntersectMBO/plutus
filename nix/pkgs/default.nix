@@ -29,14 +29,15 @@ let
   #
   # additional haskell packages from ./nix/pkgs/haskell-extra
   #
+  exeFromPkgs = x: haskell.packages."${x}".components.exes."${x}";
   exeFromExtras = x: haskell.extraPackages."${x}".components.exes."${x}";
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
-  stylish-haskell = exeFromExtras "stylish-haskell";
-  hlint = exeFromExtras "hlint";
+  stylish-haskell = exeFromPkgs "stylish-haskell";
+  hlint = exeFromPkgs "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
   hie-bios = exeFromExtras "hie-bios";
   gen-hie = haskell.extraPackages.implicit-hie.components.exes.gen-hie;
-  haskellNixAgda = haskell.extraPackages.Agda;
+  haskellNixAgda = haskell.packages.Agda;
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
@@ -68,7 +69,10 @@ let
   #
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
-  updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+  updateMaterialized = pkgs.writeShellScript "updateAllMaterialized" ''
+    ${haskell.project.plan-nix.passthru.updateMaterialized}
+    ${haskell.muslProject.plan-nix.passthru.updateMaterialized}
+    '';
   updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {

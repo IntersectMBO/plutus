@@ -15,7 +15,7 @@
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
-  project = haskell-nix.stackProject' {
+  project = haskell-nix.cabalProject' {
     inherit compiler-nix-name;
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
@@ -26,9 +26,11 @@ let
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
         name = "plutus";
       };
-    # These files need to be regenerated when you change the cabal files or stack resolver.
+    # These files need to be regenerated when you change the cabal files.
     # See ../CONTRIBUTING.doc for more information.
-    materialized = ../../stack.materialized;
+    # Unfortuntely, they are *not* constant across systems, so we need to have separate sets of files
+    # for each system that we target. See https://github.com/input-output-hk/nix-tools/issues/97
+    materialized = ./materialized + "-" + stdenv.system;
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     sha256map = {
@@ -41,62 +43,12 @@ let
       "https://github.com/raduom/cardano-ledger-specs"."2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3" = "0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447";
       "https://github.com/input-output-hk/iohk-monitoring-framework"."5c9627b6aee487f9b7ec44981aba57a6afc659b1" = "0ndnhff32h37xsc61b181m4vwaj4vm1z04p2rfwffnjjmgz23584";
       "https://github.com/input-output-hk/ouroboros-network"."75153affa23a0e68e035d7bb19880fe1ae35b1d4" = "0aj6rsqp93k2079bipv2ia7m56h2xwwlcjffr7mr99cz6l9xj96i";
+      "https://github.com/input-output-hk/goblins"."26d35ad52fe9ade3391532dbfeb2f416f07650bc" = "17p5x0hj6c67jkdqx0cysqlwq2zs2l87azihn1alzajy9ak6ii0b";
     };
     modules = [
       {
-        # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427
-        # This corresponds to the set of packages that comes with GHC. We are
-        # here saying that we must get them from GHC itself, rather than trying
-        # to "re-install" them into the package database.
-        nonReinstallablePkgs =
-          [
-            "rts"
-            "ghc-heap"
-            "ghc-prim"
-            "integer-gmp"
-            "integer-simple"
-            "base"
-            "deepseq"
-            "array"
-            "ghc-boot-th"
-            "pretty"
-            "template-haskell"
-            "ghc-boot"
-            "ghc"
-            "Cabal"
-            "Win32"
-            "array"
-            "binary"
-            "bytestring"
-            "containers"
-            "directory"
-            "filepath"
-            "ghc-boot"
-            "ghc-compact"
-            "ghc-prim"
-            "ghci"
-            "haskeline"
-            "hpc"
-            "mtl"
-            "parsec"
-            "process"
-            "text"
-            "time"
-            "transformers"
-            "unix"
-            "xhtml"
-            "stm"
-            "terminfo"
-          ];
-
+        reinstallableLibGhc = false;
         packages = {
-          # Using https connections ultimately requires x509. But on
-          # OSX, a pure build can't find the package. This is the
-          # solution used by the wallet build, and we reuse it here.
-          x509-system.components.library.preBuild = lib.optionalString (stdenv.isDarwin) ''
-            substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
-          '';
-          inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
           # See https://github.com/input-output-hk/plutus/issues/1213
           marlowe.doHaddock = false;
           plutus-use-cases.doHaddock = false;
@@ -169,6 +121,42 @@ let
           plutus-tx-plugin.package.ghcOptions = "-Werror";
           plutus-doc.package.ghcOptions = "-Werror";
           plutus-use-cases.package.ghcOptions = "-Werror";
+
+          # External package settings
+
+          # Using https connections ultimately requires x509. But on
+          # OSX, a pure build can't find the package. This is the
+          # solution used by the wallet build, and we reuse it here.
+          x509-system.components.library.preBuild = lib.optionalString (stdenv.isDarwin) ''
+            substituteInPlace System/X509/MacOS.hs --replace security /usr/bin/security
+          '';
+          inline-r.package.ghcOptions = "-XStandaloneKindSignatures";
+
+          eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses";
+          # Agda is a huge pain. They have a special custom setup that compiles the interface files for
+          # the Agda that ships with the compiler. These go in the data files for the *library*, but they
+          # require the *executable* to compile them, which depends on the library!
+          # They get away with it by using the old-style builds and building everything together, we can't
+          # do that.
+          # So we work around it:
+          # - turn off the custom setup
+          # - manually compile the executable (fortunately it has no extra dependencies!) and do the
+          # compilation at the end of the library derivation.
+          Agda.package.buildType = lib.mkForce "Simple";
+          Agda.components.library.postInstall = ''
+            # Compile the executable using the package DB we've just made, which contains
+            # the main Agda library
+            ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
+            # Find all the files in $out (would be $data if we had a separate data output)
+            shopt -s globstar
+            files=($out/**/*.agda)
+            for f in "''${files[@]}" ; do
+              echo "Compiling $f"
+              # This is what the custom setup calls in the end
+              ./agda --no-libraries --local-interfaces $f
+            done
+          '';
         };
       }
     ];
