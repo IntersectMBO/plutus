@@ -12,7 +12,7 @@ import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Gist (Gist, gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (fontSemibold, modalContent, paddingRight, smallPaddingRight, spaceRight, textSm)
+import Halogen.Classes (fontSemibold, modalContent, paddingRight, smallPaddingRight, textSm)
 import Halogen.HTML (HTML, a, a_, div, div_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -21,7 +21,7 @@ import Marlowe.Gists (fileExists, filenames, playgroundGist)
 import Modal.ViewHelpers (modalHeaderWithClose)
 import Network.RemoteData (RemoteData(..))
 import Prim.TypeError (class Warn, Text)
-import Projects.Types (Action(..), Lang(..), State, _projects)
+import Projects.Types (Action(..), Lang(..), State, _projects, isLoading)
 import Text.Parsing.Parser (runParser)
 
 render ::
@@ -31,12 +31,15 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  div_
-    [ modalHeaderWithClose "Open Project" Cancel
-    , div [ classes [ modalContent ] ]
-        [ body (view _projects state)
-        ]
-    ]
+  if isLoading state then
+    text mempty
+  else
+    div_
+      [ modalHeaderWithClose "Open Project" Cancel
+      , div [ classes [ modalContent ] ]
+          [ body (view _projects state)
+          ]
+      ]
   where
   body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]
 
@@ -44,9 +47,7 @@ render state =
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
 
-  body Loading = span [ class_ (ClassName "loading") ] [ text "Loading..." ]
-
-  body NotAsked = text mempty
+  body _ = text mempty
 
 projectList ::
   forall p.

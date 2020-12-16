@@ -4,12 +4,12 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens')
+import Data.Lens (Lens', has)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Gist (Gist, GistId)
-import Network.RemoteData (RemoteData(..))
+import Network.RemoteData (RemoteData(..), _Loading)
 
 data Lang
   = Marlowe
@@ -47,3 +47,6 @@ emptyState = { projects: NotAsked }
 
 _projects :: Lens' State (RemoteData String (Array Gist))
 _projects = prop (SProxy :: SProxy "projects")
+
+isLoading :: State -> Boolean
+isLoading = has (_projects <<< _Loading)

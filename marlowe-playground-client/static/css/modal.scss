@@ -24,12 +24,19 @@ without doing it as an Effect in a mainframe action
   width: 100vw;
   /* Full height */
   height: 100vh;
+}
+
+/* The overlay and overlay-background are separated because modals can have a global loading indicator
+    which is an overlay on top of another. If both overlay have the transparency background, then what
+    is outside the overlay is too dark. This way, in the modal view, we can select to only have the positional
+    aspects of the overlay, without the background, if there are other overlays.
+*/
+.overlay-background {
   /* Fallback color */
   background-color: rgb(0, 0, 0);
   /* Black w/ opacity */
   background-color: rgba(0, 0, 0, 0.4);
 }
-
 /* Modal Content/Box */
 .modal {
   background-color: #fefefe;

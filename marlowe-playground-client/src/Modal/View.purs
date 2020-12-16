@@ -2,6 +2,7 @@ module Modal.View
   ( modal
   ) where
 
+import ConfirmUnsavedNavigation.View (render) as ConfirmUnsavedNavigation
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Demos.View (render) as Demos
@@ -11,13 +12,12 @@ import Halogen (ComponentHTML)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), div, text)
 import Halogen.HTML.Properties (classes)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal, hasGlobalLoading)
 import NewProject.View (render) as NewProject
 import Prelude (identity)
 import Projects.View (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs
-import ConfirmUnsavedNavigation.View (render) as ConfirmUnsavedNavigation
 
 modal ::
   forall m.
@@ -27,11 +27,17 @@ modal ::
 modal state = case state ^. _showModal of
   Nothing -> text ""
   Just view ->
-    div [ classes [ ClassName "overlay" ] ]
+    div [ classes overlayClass ]
       [ div [ classes [ ClassName "modal" ] ]
           [ modalContent view ]
       ]
   where
+  overlayClass =
+    if hasGlobalLoading state then
+      [ ClassName "overlay" ]
+    else
+      [ ClassName "overlay", ClassName "overlay-background" ]
+
   modalContent = case _ of
     NewProject -> renderSubmodule _newProject NewProjectAction NewProject.render state
     OpenProject -> renderSubmodule _projects ProjectsAction Projects.render state

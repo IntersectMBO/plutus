@@ -6,7 +6,7 @@ import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', (^.))
+import Data.Lens (Lens', has, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -25,8 +25,9 @@ import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
+import Network.RemoteData (_Loading)
 import NewProject.Types as NewProject
-import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($), (||))
 import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename
@@ -267,6 +268,17 @@ currentLang state = case state ^. _view of
   BlocklyEditor -> Just Blockly
   ActusBlocklyEditor -> Just Actus
   _ -> Nothing
+
+-- This function checks wether some action that we triggered requires the global state to be present.
+-- Initially the code to track this was thought to handle a global state that can be set from the
+-- different handleActions, but I wasn't able to set it to false once the Projects modal has completed
+-- loading the gists. The reason I wasn't able to do that is that we can't fire a MainFrame.handleAction
+-- from a submodule action.
+-- The good thing is that "Save" now automatically uses the global indicator.
+-- The downside is that the "Save as" modal now has a loading indicator in the button and
+-- also in the overlay.
+hasGlobalLoading :: State -> Boolean
+hasGlobalLoading state = Projects.isLoading (state ^. _projects) || has (_createGistResult <<< _Loading) state
 
 -- editable
 _timestamp ::
