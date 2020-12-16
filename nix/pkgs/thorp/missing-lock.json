@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "org.codehaus.plexus:plexus-velocity:pom:1.1.2": {
+      "layout": "org/codehaus/plexus/plexus-velocity/1.1.2/plexus-velocity-1.1.2.pom",
+      "sha256": "f45fc03d76b3b1318f1fd0b9d8562cccb15f975396f38157a7cbb961678126ce",
+      "url": "https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-velocity/1.1.2/plexus-velocity-1.1.2.pom"
+    }
+  }
+}

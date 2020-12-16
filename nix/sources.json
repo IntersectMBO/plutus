@@ -51,6 +51,7 @@
     },
     "mvn2nix": {
         "branch": "master",
+        "builtin": false,
         "description": "Easily package your Maven Java application with the Nix package manager.",
         "homepage": "",
         "owner": "fzakaria",

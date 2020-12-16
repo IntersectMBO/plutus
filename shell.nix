@@ -45,6 +45,7 @@ let
     cacert
     ghcid
     niv
+    nixops
     nixpkgs-fmt
     nodejs
     pass
