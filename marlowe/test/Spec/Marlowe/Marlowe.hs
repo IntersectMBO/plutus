@@ -83,8 +83,8 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bond Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (150))
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -100,7 +100,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
                 (When
                     [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
-    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
+    callEndpoint @"create" alice (AssocMap.empty, zeroCouponBond)
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -130,18 +130,17 @@ trustFundTest :: TestTree
 trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
-    /\ walletFundsChange bob (Val.singleton (rolesCurrency params) "bob" 1)
+    /\ walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
     -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
+    let alicePkh = pubKeyHash $ walletPubKey alice
+        bobPkh = pubKeyHash $ walletPubKey bob
 
     callEndpoint @"create" alice
-        (defaultRolePayoutValidatorHash,
-        AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)],
+        (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
         contract)
     handleBlockchainEvents alice
     addBlocks 1
@@ -181,6 +180,12 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     addBlocks 1
     handleBlockchainEvents alice
     handleBlockchainEvents bob
+
+    callEndpoint @"redeem" bob (params, "bob", bobPkh)
+    addBlocks 1
+    handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents bob
   where
     chId = ChoiceId "1" "alice"
     contract = When [
@@ -196,7 +201,6 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
 
     (params, _) = either error id $ evalTrace @MarloweSchema @MarloweError
             (setupMarloweParams
-                defaultRolePayoutValidatorHash
                 (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
                 contract
             )
@@ -215,7 +219,7 @@ uniqueContractHash :: IO ()
 uniqueContractHash = do
     let params cs = MarloweParams
             { rolesCurrency = cs
-            , rolePayoutValidatorHash = validatorHash rolePayoutScript }
+            , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
     let hash1 = scriptHash $ scriptInstance (params "11")
     let hash2 = scriptHash $ scriptInstance (params "22")
