@@ -80,31 +80,11 @@ genKind = simpleRecursive nonRecursive recursive where
 genBuiltin :: (Bounded fun, Enum fun) => AstGen fun
 genBuiltin = Gen.element [minBound .. maxBound]
 
-{- Generate constant terms for each type in the default universe. The lexer
-  should be able to consume escape sequences in characters and strings; both
-  standard ASCII escape sequences and Unicode ones.  Hedgehog has generators for
-  both of these, but the Unicode one essentially never generates anything
-  readable: all of the output looks like '\857811'.  For this reason we have
-  separate generators for Unicode characters and Latin-1 ones (characters 0-255,
-  including standard ASCII from 0-127); there is also a generator for
-  UTF8-encoded Unicode. -}
 genConstant :: AstGen (Some (ValueOf DefaultUni))
-genConstant= Gen.frequency
-    [ (3,  someValue <$> pure ())
-    , (3,  someValue <$> pure False)
-    , (3,  someValue <$> pure True)
-    , (10, someValue <$> Gen.latin1)   -- Character: 'c', '\n', '\SYN', \253,  etc.
-    , (10, someValue <$> Gen.unicode)  -- Unicode character: typically '\857811' etc. Almost never generates anything readable.
-    , (10, someValue <$> Gen.string (Range.linear 0 100) Gen.latin1)
-    , (10, someValue <$> Gen.string (Range.linear 0 100) Gen.unicode)
-    , (10, someValue <$> Gen.utf8   (Range.linear 0 100) Gen.unicode)
-    , (10, someValue <$> Gen.bytes  (Range.linear 0 100))      -- Bytestring
-    , (10, someValue <$> Gen.integral (Range.linear (-k1) k1)) -- Smallish Integers
-    , (10, someValue <$> Gen.integral (Range.linear (-k2) k2)) -- Big Integers, generally not Ints
+genConstant = Gen.choice
+    [ someValue @Integer <$> Gen.integral_ (Range.linear (-10000000) 10000000)
+    , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
     ]
-    where k1 = 1000000 :: Integer
-          k2 = m*m
-          m = fromIntegral (maxBound::Int) :: Integer
 
 genType :: AstGen (Type TyName DefaultUni ())
 genType = simpleRecursive nonRecursive recursive where
