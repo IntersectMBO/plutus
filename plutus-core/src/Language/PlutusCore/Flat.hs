@@ -14,6 +14,7 @@
 
 module Language.PlutusCore.Flat ( encode
                                 , decode
+                                , safeEncodeBits
                                 ) where
 
 import           Language.PlutusCore.Core
@@ -69,10 +70,14 @@ tags and their used/available encoding possibilities.
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
 
-All encodings use the function `eBits :: NumBits -> Word8 -> Encoding`, which encodes
+TODO: Update comments
+All encodings use the function `safeEncodeBits :: NumBits -> Word8 -> Encoding`, which encodes
 at most 8 bits of data, and the first argument specifies how many bits from the 8
-available are actually used. The function `dBEBits8 :: Int -> Get Word8` is used for
-decoding the encoded values.
+available are actually used. This function also checks the size of the `Word8`
+argument at runtime.
+All encodings use the function `safeEncodeBits :: NumBits -> Word8 -> Encoding`, which encodes
+at most 8 bits of data, and the first argument specifies how many bits from the 8
+available are actually used.
 
 Flat uses an extra function in its class definition called `size`. Since we want
 to reserve some space for future data constructors and we don't want to have the
@@ -82,11 +87,18 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+safeEncodeBits :: NumBits -> Word8 -> Encoding
+safeEncodeBits n v =
+  if 2 ^ n < v
+  then error $ "Overflow detected, cannot fit "
+               <> show v <> " in " <> show n <> " bits."
+  else eBits n v
+
 constantWidth :: NumBits
-constantWidth = 3
+constantWidth = 4
 
 encodeConstant :: Word8 -> Encoding
-encodeConstant = eBits constantWidth
+encodeConstant = safeEncodeBits constantWidth
 
 decodeConstant :: Get Word8
 decodeConstant = dBEBits8 constantWidth
@@ -144,7 +156,7 @@ kindTagWidth :: NumBits
 kindTagWidth = 1
 
 encodeKind :: Word8 -> Encoding
-encodeKind = eBits kindTagWidth
+encodeKind = safeEncodeBits kindTagWidth
 
 decodeKind :: Get Word8
 decodeKind = dBEBits8 kindTagWidth
@@ -168,7 +180,7 @@ typeTagWidth :: NumBits
 typeTagWidth = 3
 
 encodeType :: Word8 -> Encoding
-encodeType = eBits typeTagWidth
+encodeType = safeEncodeBits typeTagWidth
 
 decodeType :: Get Word8
 decodeType = dBEBits8 typeTagWidth
@@ -206,7 +218,7 @@ termTagWidth :: NumBits
 termTagWidth = 4
 
 encodeTerm :: Word8 -> Encoding
-encodeTerm = eBits termTagWidth
+encodeTerm = safeEncodeBits termTagWidth
 
 decodeTerm :: Get Word8
 decodeTerm = dBEBits8 termTagWidth
