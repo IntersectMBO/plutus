@@ -6,7 +6,7 @@ module AjaxUtils
   ) where
 
 import Prelude hiding (div)
-import Bootstrap (alertDanger_, btn, floatRight, hidden)
+import Bootstrap (alertDanger_, btn, floatRight)
 import Data.Foldable (intercalate)
 import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
@@ -31,10 +31,10 @@ ajaxErrorPane error =
         ]
     ]
 
-closeableAjaxErrorPane :: forall p. AjaxError -> Boolean -> HTML p AjaxErrorPaneAction
-closeableAjaxErrorPane error isOpen =
+closeableAjaxErrorPane :: forall p. AjaxError -> HTML p AjaxErrorPaneAction
+closeableAjaxErrorPane error =
   div
-    [ classes ajaxErrorClasses ]
+    [ class_ ajaxErrorClass ]
     [ alertDanger_
         [ button
             [ classes [ btn, floatRight, ClassName "ajax-error-close-button" ]
@@ -46,12 +46,6 @@ closeableAjaxErrorPane error isOpen =
         , helpText
         ]
     ]
-  where
-  ajaxErrorClasses =
-    if isOpen then
-      [ ajaxErrorClass ]
-    else
-      [ ajaxErrorClass, hidden ]
 
 ajaxErrorClass :: ClassName
 ajaxErrorClass = ClassName "ajax-error"
