@@ -66,7 +66,11 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
             ]
         , case createGistResult of
             Success gist -> gistPane gist
-            Failure err -> AjaxErrorPaneAction <$> closeableAjaxErrorPane err
+            Failure err ->
+              if gistErrorPaneVisible then
+                AjaxErrorPaneAction <$> closeableAjaxErrorPane err
+              else
+                empty
             Loading -> empty
             NotAsked -> empty
         ]
