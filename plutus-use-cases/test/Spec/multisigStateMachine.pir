@@ -19,7 +19,7 @@
         (datatypebind
           (datatype
             (tyvardecl Bool (type))
-            
+
             Bool_match
             (vardecl True Bool) (vardecl False Bool)
           )
@@ -188,7 +188,7 @@
               (datatypebind
                 (datatype
                   (tyvardecl Data (type))
-                  
+
                   Data_match
                   (vardecl B (fun (con bytestring) Data))
                   (vardecl Constr (fun (con integer) (fun [List Data] Data)))
@@ -1847,7 +1847,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl Payment (type))
-                              
+
                               Payment_match
                               (vardecl
                                 Payment
@@ -2398,7 +2398,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl MSState (type))
-                              
+
                               MSState_match
                               (vardecl
                                 CollectingSignatures
@@ -3045,7 +3045,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl Address (type))
-                              
+
                               Address_match
                               (vardecl
                                 PubKeyAddress (fun (con bytestring) Address)
@@ -3058,7 +3058,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl TxOutType (type))
-                              
+
                               TxOutType_match
                               (vardecl PayToPubKey TxOutType)
                               (vardecl
@@ -3069,7 +3069,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl TxOut (type))
-                              
+
                               TxOut_match
                               (vardecl
                                 TxOut
@@ -3096,7 +3096,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl TxOutRef (type))
-                              
+
                               TxOutRef_match
                               (vardecl
                                 TxOutRef
@@ -3107,7 +3107,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl TxInInfo (type))
-                              
+
                               TxInInfo_match
                               (vardecl
                                 TxInInfo
@@ -3118,7 +3118,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl TxInfo (type))
-                              
+
                               TxInfo_match
                               (vardecl
                                 TxInfo
@@ -3129,7 +3129,7 @@
                           (datatypebind
                             (datatype
                               (tyvardecl ValidatorCtx (type))
-                              
+
                               ValidatorCtx_match
                               (vardecl
                                 ValidatorCtx
@@ -5620,7 +5620,7 @@
                                 (datatypebind
                                   (datatype
                                     (tyvardecl Ordering (type))
-                                    
+
                                     Ordering_match
                                     (vardecl EQ Ordering)
                                     (vardecl GT Ordering)
@@ -8624,7 +8624,7 @@
                                     (datatypebind
                                       (datatype
                                         (tyvardecl TxConstraint (type))
-                                        
+
                                         TxConstraint_match
                                         (vardecl
                                           MustBeSignedBy
@@ -12959,7 +12959,7 @@
                                         (datatypebind
                                           (datatype
                                             (tyvardecl Input (type))
-                                            
+
                                             Input_match
                                             (vardecl
                                               AddSignature
@@ -12975,7 +12975,7 @@
                                         (datatypebind
                                           (datatype
                                             (tyvardecl Params (type))
-                                            
+
                                             Params_match
                                             (vardecl
                                               Params

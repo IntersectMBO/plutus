@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl MyExternalRecord (type))
-        
+
         MyExternalRecord_match
         (vardecl MyExternalRecord (fun (con integer) MyExternalRecord))
       )

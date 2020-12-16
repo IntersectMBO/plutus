@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl Ordering (type))
-        
+
         Ordering_match
         (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
       )
@@ -12,7 +12,7 @@
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
-        
+
         Bool_match
         (vardecl True Bool) (vardecl False Bool)
       )
