@@ -90,6 +90,18 @@ spaceRight = ClassName "space-right"
 spaceBottom :: ClassName
 spaceBottom = ClassName "space-bottom"
 
+paddingRight :: ClassName
+paddingRight = ClassName "padding-right"
+
+smallPaddingRight :: ClassName
+smallPaddingRight = ClassName "small-padding-right"
+
+paddingLeft :: ClassName
+paddingLeft = ClassName "padding-left"
+
+smallPaddingLeft :: ClassName
+smallPaddingLeft = ClassName "small-padding-left"
+
 spaceTop :: ClassName
 spaceTop = ClassName "space-top"
 

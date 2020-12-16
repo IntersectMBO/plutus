@@ -12,7 +12,7 @@ import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Gist (Gist, gistCreatedAt, gistDescription, gistId, gistUpdatedAt)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (fontSemibold, modalContent, textSm)
+import Halogen.Classes (fontSemibold, modalContent, paddingRight, smallPaddingRight, spaceRight, textSm)
 import Halogen.HTML (HTML, a, a_, div, div_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -67,19 +67,19 @@ projectList gists =
   projects =
     gists
       >>= \gist ->
-          [ div [ class_ (ClassName "project-name") ] [ gist ^. (gistDescription <<< to text) ]
-          , div [ class_ (ClassName "date") ] [ gist ^. (gistCreatedAt <<< to formatDate <<< to text) ]
-          , div [ class_ (ClassName "date") ] [ gist ^. (gistUpdatedAt <<< to formatDate <<< to text) ]
-          , loadLink gist Javascript "Javascript" $ fileExists filenames.javascript gist
-          , loadLink gist Haskell "Haskell" $ fileExists filenames.haskell gist
-          , loadLink gist Marlowe "Marlowe" $ fileExists filenames.marlowe gist
-          , loadLink gist Blockly "Blockly" $ fileExists filenames.blockly gist
+          [ div [ classes [ ClassName "project-name", paddingRight ] ] [ gist ^. (gistDescription <<< to text) ]
+          , div [ classes [ ClassName "date", paddingRight ] ] [ gist ^. (gistCreatedAt <<< to formatDate <<< to text) ]
+          , div [ classes [ ClassName "date", paddingRight ] ] [ gist ^. (gistUpdatedAt <<< to formatDate <<< to text) ]
+          , loadLink gist Javascript [ smallPaddingRight, fontSemibold ] $ fileExists filenames.javascript gist
+          , loadLink gist Haskell [ smallPaddingRight, fontSemibold ] $ fileExists filenames.haskell gist
+          , loadLink gist Marlowe [ smallPaddingRight, fontSemibold ] $ fileExists filenames.marlowe gist
+          , loadLink gist Blockly [ fontSemibold ] $ fileExists filenames.blockly gist
           ]
 
-  loadLink :: Gist -> Lang -> String -> Boolean -> HTML p Action
-  loadLink gist action name = case _ of
-    false -> div [ classes [ ClassName "language-link", ClassName "disabled" ] ] $ [ a_ $ [ text name ] ]
-    true -> div [ classes [ ClassName "language-link" ] ] $ [ a [ onClick (const <<< Just $ LoadProject action (gist ^. gistId)) ] $ [ text name ] ]
+  loadLink :: Gist -> Lang -> Array ClassName -> Boolean -> HTML p Action
+  loadLink gist lang style = case _ of
+    false -> div [ classes ([ ClassName "language-link", ClassName "disabled" ] <> style) ] $ [ a_ $ [ text $ show lang ] ]
+    true -> div [ classes ([ ClassName "language-link" ] <> style) ] $ [ a [ onClick (const <<< Just $ LoadProject lang (gist ^. gistId)) ] $ [ text $ show lang ] ]
 
 formatDate :: String -> String
 formatDate s = case runParser s ISO.parseISO of

@@ -1,7 +1,7 @@
 .project-list {
   display: grid;
   // Creates a grid of 7 colums. The last four being the Open Actions
-  grid-template-columns: auto 15% 15% [actions-start] repeat(4, auto) [actions-end];
+  grid-template-columns: 1fr max-content max-content [actions-start] repeat(4, min-content) [actions-end];
 
   // Make the Open header to span accross all actions
   & div:nth-child(4) {
@@ -10,21 +10,19 @@
 
   & > div {
     border-bottom: 1px solid #d0d0d4;
-    padding: var(--small-margin) 0;
+    padding-bottom: var(--small-margin);
+    padding-top: var(--small-margin);
   }
 
   .project-name {
-    // max-width: 15rem;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
   .language-link {
-    @extend .font-semibold;
     justify-content: space-evenly;
     color: var(--blue-800);
-    padding-right: var(--small-margin);
     &.disabled {
       a {
         cursor: initial;
