@@ -71,8 +71,8 @@ autoexecZCBTest :: TestTree
 autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone alice "contract should close"
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (150))
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -108,8 +108,8 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone alice "contract should close"
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (P.inv defaultLovelaceAmount)
     /\ walletFundsChange carol defaultLovelaceAmount
     ) $ do
@@ -140,8 +140,8 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone alice "contract should close"
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (-850))
     /\ walletFundsChange carol defaultLovelaceAmount
     ) $ do
@@ -171,7 +171,7 @@ awaitUntilTimeoutTest = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone bob "contract should not have any errors"
     ) $ do
 
     -- Bob will wait for the contract to appear on chain

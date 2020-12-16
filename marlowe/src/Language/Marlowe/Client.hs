@@ -62,7 +62,7 @@ type MarloweSchema =
         .\/ Endpoint "apply-inputs" (MarloweParams, [Input])
         .\/ Endpoint "wait" MarloweParams
         .\/ Endpoint "auto" (MarloweParams, Party, Slot)
-        .\/ Endpoint "redeem" (MarloweParams, Party, PubKeyHash)
+        .\/ Endpoint "redeem" (MarloweParams, TokenName, PubKeyHash)
 
 data MarloweError =
     StateMachineError SM.SMContractError
@@ -126,47 +126,41 @@ marlowePlutusContract = do
         _ <- applyInputs params inputs
         marlowePlutusContract
     redeem = mapError (review _MarloweError) $ do
-        (MarloweParams{rolesCurrency}, party, pkh) <-
-            endpoint @"redeem" @(MarloweParams, Party, PubKeyHash) @MarloweSchema
-        case party of
-            PK _ -> do
-                logWarn @String $ "Can't redeem a PubKey party "
-                    <> show party <> ". This is only for Role parties."
-                marlowePlutusContract
-            Role role -> do
-                let address = ScriptAddress (mkRolePayoutValidatorHash rolesCurrency)
-                utxos <- utxoAt address
-                let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
-                        expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
-                        amount = txOutValue txOutTxOut
-                        in case txOutDatum txOutTxOut of
-                            Just datumHash | datumHash == expectedDatumHash ->
-                                -- we spend the rolePayoutScript address
-                                Constraints.mustSpendScriptOutput ref unitRedeemer
-                                -- and pay to a token owner
-                                    <> Constraints.mustPayToPubKey pkh amount
-                            _ -> tx
+        (MarloweParams{rolesCurrency}, role, pkh) <-
+            endpoint @"redeem" @(MarloweParams, TokenName, PubKeyHash) @MarloweSchema
+        let address = ScriptAddress (mkRolePayoutValidatorHash rolesCurrency)
+        utxos <- utxoAt address
+        let spendPayoutConstraints tx ref TxOutTx{txOutTxOut} = let
+                expectedDatumHash = datumHash (Datum $ PlutusTx.toData role)
+                amount = txOutValue txOutTxOut
+                in case txOutDatum txOutTxOut of
+                    Just datumHash | datumHash == expectedDatumHash ->
+                        -- we spend the rolePayoutScript address
+                        Constraints.mustSpendScriptOutput ref unitRedeemer
+                        -- and pay to a token owner
+                            <> Constraints.mustPayToPubKey pkh amount
+                    _ -> tx
 
-                let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
-                    constraints = spendPayouts
-                        -- must spend a role token for authorization
-                        <> Constraints.mustSpendValue (Val.singleton rolesCurrency role 1)
-                    -- lookup for payout validator and role payouts
-                    validator = rolePayoutScript rolesCurrency
-                    lookups = Constraints.otherScript validator
-                        <> Constraints.unspentOutputs utxos
-                        <> Constraints.ownPubKeyHash pkh
-                tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
-                _ <- submitUnbalancedTx tx
-                marlowePlutusContract
+        let spendPayouts = Map.foldlWithKey spendPayoutConstraints mempty utxos
+            constraints = spendPayouts
+                -- must spend a role token for authorization
+                <> Constraints.mustSpendValue (Val.singleton rolesCurrency role 1)
+            -- lookup for payout validator and role payouts
+            validator = rolePayoutScript rolesCurrency
+            lookups = Constraints.otherScript validator
+                <> Constraints.unspentOutputs utxos
+                <> Constraints.ownPubKeyHash pkh
+        tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx @Void lookups constraints)
+        _ <- submitUnbalancedTx tx
+        marlowePlutusContract
     auto = do
         (params, party, untilSlot) <- endpoint @"auto" @(MarloweParams, Party, Slot) @MarloweSchema
         let theClient = mkMarloweClient params
         let continueWith :: MarloweData -> Contract MarloweSchema MarloweError ()
-            continueWith md@MarloweData{marloweContract} = do
+            continueWith md@MarloweData{marloweContract} =
                 if canAutoExecuteContractForParty party marloweContract
-                then do autoExecuteContract theClient party md
-                else do marlowePlutusContract
+                then autoExecuteContract theClient party md
+                else marlowePlutusContract
 
         maybeState <- SM.getOnChainState theClient
         case maybeState of

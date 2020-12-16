@@ -83,8 +83,8 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bond Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone alice "contract should close"
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (150))
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -130,8 +130,8 @@ trustFundTest :: TestTree
 trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertNotDone alice "contract should close"
-    /\ assertNotDone bob "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
     /\ walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
