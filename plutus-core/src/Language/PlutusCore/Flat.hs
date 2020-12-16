@@ -104,7 +104,10 @@ instance Closed uni => Flat (Some (TypeIn uni)) where
         go (Just uni) = pure uni
 
     -- Encode a view of the universe, not the universe itself.
-    size (Some (TypeIn uni)) acc = size (encodeUni uni) acc
+    size (Some (TypeIn uni)) acc =
+      acc +
+      length (encodeUni uni) * (1 + constantWidth) + -- List Cons (1 bit) + constant
+      1 -- List Nil (1 bit)
 
 -- See Note [The G, the Tag and the Auto].
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
