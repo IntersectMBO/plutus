@@ -72,12 +72,14 @@ Tel⋆ n m = Vec (ScopedTy n) m
 
 open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con
 
--- variables
+-- contexts
 
 data Weirdℕ : ℕ → Set where
   Z : Weirdℕ 0
   S : ∀{n} → Weirdℕ n  → Weirdℕ n
   T : ∀{n} → Weirdℕ n → Weirdℕ (suc n)
+
+-- variables
 
 data WeirdFin : ∀{n} → Weirdℕ n → Set where
   Z : ∀{n}{w : Weirdℕ n} → WeirdFin (S w)
