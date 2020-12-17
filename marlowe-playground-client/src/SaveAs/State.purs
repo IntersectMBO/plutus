@@ -37,7 +37,7 @@ render state =
     [ div [ classes [ spaceTop, spaceLeft ] ]
         [ h2 [ classes [ textBase, fontSemibold, noMargins ] ] [ text "Save as" ]
         ]
-    , div [ classes [ modalContent, ClassName "saved-as-modal" ] ]
+    , div [ classes [ modalContent, ClassName "save-as-modal" ] ]
         [ input
             [ classes [ spaceBottom, fullWidth, textSm, border, borderBlue300, activeBorderBlue700 ]
             , value (state ^. _projectName)
