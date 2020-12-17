@@ -563,7 +563,9 @@ readKnownCek
     -> Either (CekEvaluationException uni fun) a
 readKnownCek runtime = evaluateCek runtime >=> readKnown
 
--- Don't trust this one, use the function from the untyped Cek.
+-- Don't trust this one, use the function from the untyped CeK. Type sizes
+-- aren't annotated correctly, and the general cost models are based on the
+-- untyped CeK.
 annotateMemory :: (Everywhere uni ExMemoryUsage, Closed uni) =>
     Term TyName Name uni fun () -> Term TyName Name uni fun ExMemory
 annotateMemory = cata $ \case

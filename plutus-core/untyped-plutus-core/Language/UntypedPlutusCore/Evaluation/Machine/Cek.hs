@@ -69,7 +69,7 @@ import           Data.Text.Prettyprint.Doc
 
 import           Data.Functor.Foldable                              (Recursive (cata))
 import qualified Data.Vector                                        as Vector
-import           Language.PlutusCore.Core.Type                      (ToAnnotation (toAnnotation))
+import           Language.PlutusCore.Core.Type                      (HasAnnotation (toAnnotation))
 
 {- Note [Scoping]
    The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a

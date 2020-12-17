@@ -595,7 +595,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
   TypedProgram typedProg <- getProgram TypedPLC ifmt inp
-  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
+  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgramWith id typedProg)
   case ofmt of
     Plc           -> writePlc outp mode untypedProg
     Cbor cborMode -> writeCBOR outp cborMode untypedProg

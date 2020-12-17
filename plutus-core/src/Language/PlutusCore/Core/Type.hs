@@ -17,7 +17,7 @@ module Language.PlutusCore.Core.Type
     , Program(..)
     , UniOf
     , Normalized(..)
-    , ToAnnotation(..)
+    , HasAnnotation(..)
     , HasUniques
     , defaultVersion
     -- * Helper functions
@@ -107,11 +107,11 @@ defaultVersion ann = Version ann 1 0 0
 toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
 toTerm (Program _ _ term) = term
 
-class ToAnnotation term where
+class HasAnnotation term where
     type Annotation term :: *
     toAnnotation :: term -> Annotation term
 
-instance ToAnnotation (Term tyname name uni fun ann) where
+instance HasAnnotation (Term tyname name uni fun ann) where
     type Annotation (Term tyname name uni fun ann) = ann
     toAnnotation (Var ann _       ) = ann
     toAnnotation (TyAbs ann _ _ _ ) = ann
@@ -124,7 +124,7 @@ instance ToAnnotation (Term tyname name uni fun ann) where
     toAnnotation (Error ann _     ) = ann
     toAnnotation (LamAbs ann _ _ _) = ann
 
-instance ToAnnotation (Type tyname uni ann) where
+instance HasAnnotation (Type tyname uni ann) where
     type Annotation (Type tyname uni ann) = ann
     toAnnotation (TyVar ann _       ) = ann
     toAnnotation (TyFun ann _ _     ) = ann
@@ -134,7 +134,7 @@ instance ToAnnotation (Type tyname uni ann) where
     toAnnotation (TyLam ann _ _ _   ) = ann
     toAnnotation (TyApp ann _ _     ) = ann
 
-instance ToAnnotation (Kind ann) where
+instance HasAnnotation (Kind ann) where
     type Annotation (Kind ann) = ann
     toAnnotation (Type ann)          = ann
     toAnnotation (KindArrow ann _ _) = ann
