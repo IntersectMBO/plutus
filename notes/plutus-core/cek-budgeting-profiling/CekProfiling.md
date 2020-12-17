@@ -204,10 +204,10 @@ The instance of `spendBudget` in `Cek.hs` begins
         ...
 ```
 
-I'm guessing that item 1 comes from the use of `singleton` above, item 2 comes
+I think that item 1 comes from the use of `singleton` above, item 2 comes
 from the lens function `<%=` (zooming in on item 2 in the graph shows that it's
 calling `ExBudgeting.<>` again, presumably where it says `<> budget`), and item
-3 comes from `<> (ExTally (singleton key budget)`.
+3 comes from `<> (ExTally (singleton key budget))`.
 
 The occurrence of `spendBudget` on the left of the graph, where it's being called
 while executing builtins, is slightly different.  That accounts for 11.39% of
