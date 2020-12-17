@@ -45,7 +45,7 @@ extracted from Criterion output, so they're averages over mulitple runs and
 don't include any overhead from parsing or deserialisation.
 
 
-##### Validation
+#### Validation
 
 Benchmark             |      A   |    B   |    C   |     D
 ----------------------|---------:|-------:|-------:|--------:
@@ -79,7 +79,7 @@ marlowe/trustfund/2   |    4.916 |  5.240 |  16.48 |   16.69
 marlowe/zerocoupon/1  |    6.554 |  6.888 |  22.23 |   22.45
 marlowe/zerocoupon/2  |    4.442 |  5.342 |  15.37 |   15.33
 
-##### Nofib
+#### Nofib
 
 Benchmark             |     A    |     B    |    C    |    D
 ----------------------|---------:|---------:|--------:|--------:
@@ -108,7 +108,7 @@ queens5x5/bjbt1       |   566.3  |   629.0  | 2456.0  |  2539.0
 queens5x5/bjbt2       |   587.1  |   655.4  | 2532.0  |  2638.0 
 queens5x5/fc          |   1176.0 |  1333.0  | 5516.0  |  5753.0
 
-#### Discussion
+### Discussion
 Comparison of columns A and B shows that there is a not insignificant
 overhead from calling a typeclass method, even when it do.esn't do any
 real work: times are increased by an average of 7.5% for the validation
@@ -126,7 +126,7 @@ For the validation benchmarks the difference isn't very noticeable: the ratio
 D/C lies between 0.97 and 1.04, with a mean of 1.006; for nofib the figures are
 similar: 0.97-1.05, with a mean of 1.03.   
 
-### Detailed profiling
+## Detailed profiling
 
 Why is budgeting taking up so much time?  I looked in more detail at three
 examples: the `crowdfunding/1` and `zerocoupon/1` validation benchmarks, and the
@@ -139,7 +139,12 @@ case in the earlier results.
 
 What do svg files look like in markdown?
 
-Let's try an ![embedded image](./prime20-counting.svg)
+### primetest/20digits: no budgeting
 
-and also just a [link](./prime20-counting.svg).
+![primetest/20digits: no budgeting](./prime20-no-budgeting.svg)
+
+![primetest/20digits: Counting mode](./prime20-counting.svg)
+
+![primetest/20digits: Restricting mode](./prime20-restricting.svg)
+
 
