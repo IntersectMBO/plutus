@@ -109,16 +109,6 @@ instance ordToken :: Ord Token where
 instance showToken :: Show Token where
   show (Token cur tok) = genericShow (Token (toLower cur) tok)
 
-{- Use this to show a token to a user, i.e. in browser or logs.
-  If we choose to redefine either 'show' or 'pretty' we'd need to
-  make 'ADA' a valid Marlowe construct and add it to the Marlowe parser.
-  That we don't want to do, because 'ADA' can't be a Haskell function identifier.
- -}
-showPrettyToken :: Token -> String
-showPrettyToken (Token "" "") = "ADA"
-
-showPrettyToken tok = show tok
-
 instance prettyToken :: Pretty Token where
   pretty = genericPretty
 

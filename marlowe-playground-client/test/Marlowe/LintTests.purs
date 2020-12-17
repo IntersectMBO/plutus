@@ -340,27 +340,27 @@ negativePay :: Test
 negativePay = testWarningSimple (payContract "(Constant -1)") $ show NegativePayment
 
 payBeforeWarning :: Test
-payBeforeWarning = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payBeforeWarning = testWarningSimple contract "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   contract = "When [Case (Deposit (Role \"role1\" ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 payBeforeWarningBranch :: Test
-payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   contract = "When [Case (Deposit (Role \"role\") (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
 payDepositDifferentCurrency :: Test
-payDepositDifferentCurrency = testWarningSimple (depositAndThenDo "(Constant 10)" continuation) "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payDepositDifferentCurrency = testWarningSimple (depositAndThenDo "(Constant 10)" continuation) "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   continuation = "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"0000\" \"0000\") (Constant 10) Close)"
 
 payInsufficientDeposit :: Test
-payInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 10 (Token \"\" \"\") from account (Role \"role\") but the account only has 9"
+payInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 10 ADA from account \"role\" but the account only has 9"
   where
   continuation = "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
 payTwiceInsufficientDeposit :: Test
-payTwiceInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 5 (Token \"\" \"\") from account (Role \"role\") but the account only has 4"
+payTwiceInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 5 ADA from account \"role\" but the account only has 4"
   where
   continuation =
     "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) "

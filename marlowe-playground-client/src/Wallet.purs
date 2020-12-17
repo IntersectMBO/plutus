@@ -39,9 +39,10 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
 import Simulation.State (updateContractInStateP, updatePossibleActions, updateStateP)
 import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
 import Text.Extra (stripParens)
@@ -704,13 +705,16 @@ renderCurrentState state =
   displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
-    , div [ class_ rTableCell ]
-        [ text $ "Party " <> show party <> " is asked to deposit " <> show amount
+    , div [ class_ (ClassName "RTable-4-cells") ]
+        [ text $ "Party "
+        , renderPrettyParty party
+        , text $ " is asked to deposit "
+            <> showPrettyMoney amount
             <> " units of "
-            <> show tok
-            <> " into account of "
-            <> show owner
-            <> "."
+        , renderPrettyToken tok
+        , text " into account of "
+        , renderPrettyParty owner
+        , text "."
         ]
     ]
 
@@ -718,40 +722,38 @@ renderCurrentState state =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositivePay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "The contract is supposed to make a payment of "
-            <> show amount
-            <> " units of "
-            <> show tok
-            <> " from account of "
-            <> show owner
-            <> " to "
-            <> ( case payee of
-                  (Account owner2) -> "account of " <> show owner2
-                  (Party dest) -> "party " <> show dest
-              )
-            <> "."
-        ]
+        ( [ text $ "The contract is supposed to make a payment of "
+              <> showPrettyMoney amount
+              <> " units of "
+          , renderPrettyToken tok
+          , text $ " from account of "
+              <> show owner
+              <> " to "
+          ]
+            <> renderPrettyPayee payee
+            <> [ text "." ]
+        )
     ]
 
   displayWarning' (TransactionPartialPay owner payee tok amount expected) =
     [ div [ classes [ rTableCell, first ] ] []
     , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionPartialPay" ]
     , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "The contract is supposed to make a payment of "
-            <> show expected
-            <> " units of "
-            <> show tok
-            <> " from account of "
-            <> show owner
-            <> " to "
-            <> ( case payee of
-                  (Account owner2) -> ("account of " <> show owner2)
-                  (Party dest) -> ("party " <> show dest)
-              )
-            <> " but there is only "
-            <> show amount
-            <> "."
-        ]
+        ( [ text $ "The contract is supposed to make a payment of "
+              <> showPrettyMoney expected
+              <> " units of "
+          , renderPrettyToken tok
+          , text " from account of "
+          , renderPrettyParty owner
+          , text $ " to "
+          ]
+            <> renderPrettyPayee payee
+            <> [ text $ "."
+                  <> " but there is only "
+                  <> showPrettyMoney amount
+                  <> "."
+              ]
+        )
     ]
 
   displayWarning' (TransactionShadowing valId oldVal newVal) =
