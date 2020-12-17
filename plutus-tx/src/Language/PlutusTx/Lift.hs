@@ -64,7 +64,7 @@ safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm lifted
-    pure $ void $ UPLC.erase compiled
+    pure $ void $ UPLC.eraseWith id compiled
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
