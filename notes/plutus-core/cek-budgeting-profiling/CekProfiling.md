@@ -136,8 +136,21 @@ results because the programs were loaded in CBOR form and the reading and
 deserialisation time is included in the profiling information, which wasn't the
 case in the earlier results.
 
+Each benchmark was profiled in three budgeting modes: with all budgeting code
+removed, in Counting mode, and in Restricting mode (corresponding to columns A,
+C, and D above).  [Flame graphs](http://www.brendangregg.com/flamegraphs.html)
+for each are shown below; these were obtained by building `plutus-core` with
+profiling turned on, then runnning the CEK machine with `stack exec --profile --
+plc evaluate <args> +RTS -p`; the `.prof` file produced by this was then
+converted into a flam graph using the `ghc-prof-flamegraph` command.  These are
+interactive SVG images: if you click on the image to open the underlying file
+and then click on `Raw` you can zoom in to specific parts of the image by
+clicking.  Unfortunately this doesn't seem to work when viewing the files on
+GitHub, but it does work if you use a browser to open the files in a local copy
+of the repository.
 
-What do svg files look like in markdown?
+
+
 
 ### primetest/20digits
 
