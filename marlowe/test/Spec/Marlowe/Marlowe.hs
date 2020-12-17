@@ -21,6 +21,7 @@ import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Client
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.Util
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import           System.IO.Unsafe                      (unsafePerformIO)
 
 import           Data.Aeson                            (decode, encode)
@@ -43,6 +44,7 @@ import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (lovelaceValueOf)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
+import qualified Ledger.Value                          as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -81,8 +83,8 @@ zeroCouponBondTest :: TestTree
 zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bond Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (150))
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -98,7 +100,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
                 (When
                     [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (AssocMap.empty, zeroCouponBond)
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -128,30 +130,22 @@ trustFundTest :: TestTree
 trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
-    /\ walletFundsChange alice (lovelaceValueOf (-256))
-    /\ walletFundsChange bob (lovelaceValueOf (256))
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
+    /\ walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
+    /\ walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
     -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
+    let alicePkh = pubKeyHash $ walletPubKey alice
+        bobPkh = pubKeyHash $ walletPubKey bob
 
-    let params = defaultMarloweParams
-    let chId = ChoiceId "1" alicePk
-
-    let contract = When [
-            Case (Choice chId [Bound 100 1500])
-                (When [Case
-                    (Deposit alicePk alicePk ada (ChoiceValue chId))
-                        (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
-                            (Pay alicePk (Party bobPk) ada
-                                (ChoiceValue chId) Close)]
-                        (Slot 300) Close)
-                    ] (Slot 200) Close)
-            ] (Slot 100) Close
-
-    callEndpoint @"create" alice (params, contract)
+    callEndpoint @"create" alice
+        (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
+        contract)
+    handleBlockchainEvents alice
+    addBlocks 1
+    handleBlockchainEvents alice
+    addBlocks 1
     handleBlockchainEvents alice
     addBlocks 1
     handleBlockchainEvents alice
@@ -161,11 +155,16 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
 
     callEndpoint @"apply-inputs" alice (params,
         [ IChoice chId 256
-        , IDeposit alicePk alicePk ada 256
+        , IDeposit "alice" "alice" ada 256
         ])
+    addBlocks 1
     handleBlockchainEvents alice
-    addBlocks 150
+    addBlocks 1
     handleBlockchainEvents alice
+    handleBlockchainEvents bob
+    addBlocks 15
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
 
     callEndpoint @"wait" alice (params)
 
@@ -178,13 +177,49 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
     addBlocks 1
     handleBlockchainEvents alice
     handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents alice
+    handleBlockchainEvents bob
+
+    callEndpoint @"redeem" bob (params, "bob", bobPkh)
+    addBlocks 1
+    handleBlockchainEvents bob
+    addBlocks 1
+    handleBlockchainEvents bob
+  where
+    chId = ChoiceId "1" "alice"
+    contract = When [
+            Case (Choice chId [Bound 10 1500])
+                (When [Case
+                    (Deposit "alice" "alice" ada (ChoiceValue chId))
+                        (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 15))
+                            (Pay "alice" (Party "bob") ada
+                                (ChoiceValue chId) Close)]
+                        (Slot 40) Close)
+                    ] (Slot 30) Close)
+            ] (Slot 20) Close
+
+    (params, _) = either error id $ evalTrace @MarloweSchema @MarloweError
+            (setupMarloweParams
+                (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
+                contract
+            )
+            actions
+            alice
+        where
+            actions = do
+                handleBlockchainEvents alice
+                addBlocks 1
+                handleBlockchainEvents alice
+                addBlocks 1
+                handleBlockchainEvents alice
 
 
 uniqueContractHash :: IO ()
 uniqueContractHash = do
     let params cs = MarloweParams
             { rolesCurrency = cs
-            , rolePayoutValidatorHash = validatorHash rolePayoutScript }
+            , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
     let hash1 = scriptHash $ scriptInstance (params "11")
     let hash2 = scriptHash $ scriptInstance (params "22")

@@ -19,11 +19,12 @@ import Text.Pretty (pretty)
 data Action
   = Compile
   | ChangeKeyBindings KeyBindings
-  | LoadScript String
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
   | SendResultToBlockly
+  | InitHaskellProject String
+  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -31,16 +32,18 @@ defaultEvent s = A.defaultEvent $ "Haskell." <> s
 instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
-  toEvent (LoadScript _) = Just $ defaultEvent "LoadScript"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
+  toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
+    , hasUnsavedChanges :: Boolean
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -71,4 +74,5 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , showBottomPanel: true
+  , hasUnsavedChanges: false
   }

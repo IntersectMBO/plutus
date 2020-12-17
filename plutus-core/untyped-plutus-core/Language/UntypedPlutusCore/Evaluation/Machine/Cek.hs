@@ -147,7 +147,7 @@ failure into a 'Term', apart from the straightforward generalization of 'CekM'.
 
 -- | The CEK machine-specific 'EvaluationException', parameterized over @term@.
 type CekEvaluationExceptionCarrying term fun =
-    EvaluationException CekUserError fun term
+    EvaluationException CekUserError (MachineError fun term) term
 
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
@@ -347,7 +347,7 @@ computeCek ctx env (Builtin ex bn) = do
   returnCek ctx (VBuiltin ex bn arity arity 0 [] env)
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _ _ (Error _) =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) . Just $ Error ()
+    throwingWithCause _EvaluationFailure () . Just $ Error ()
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
@@ -478,7 +478,7 @@ applyBuiltin
 applyBuiltin ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
-  let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
+  let dischargeError = hoist $ withExceptT $ mapCauseInMachineException $ void . dischargeCekValue
   BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
   returnCek ctx result

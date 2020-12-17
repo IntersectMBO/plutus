@@ -53,8 +53,9 @@ import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choi
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Reachability (initialisePrefixMap, stepPrefixMap)
+import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
 import Simulation.Types (ContractPath, ContractPathStep(..), PrefixMap)
+import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
@@ -110,14 +111,14 @@ instance showWarningDetail :: Show WarningDetail where
   show DivisionByZero = "Scale construct divides by zero"
   show (SimplifiableValue oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
   show (SimplifiableObservation oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
-  show (PayBeforeDeposit account) = "The contract makes a payment from account " <> show account <> " before a deposit has been made"
+  show (PayBeforeDeposit account) = "The contract makes a payment from account " <> showPrettyParty account <> " before a deposit has been made"
   show (PartialPayment accountId tokenId availableAmount demandedAmount) =
-    "The contract makes a payment of " <> show demandedAmount <> " "
-      <> show tokenId
+    "The contract makes a payment of " <> showPrettyMoney demandedAmount <> " "
+      <> showPrettyToken tokenId
       <> " from account "
-      <> show accountId
+      <> showPrettyParty accountId
       <> " but the account only has "
-      <> show availableAmount
+      <> showPrettyMoney availableAmount
 
 shortWarning :: WarningDetail -> String
 shortWarning NegativePayment = ""

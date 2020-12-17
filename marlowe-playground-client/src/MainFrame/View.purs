@@ -8,7 +8,7 @@ import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, group, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
@@ -20,16 +20,16 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
+import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
 import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Wallet as Wallet
-import Modal.View (modal)
 
 render ::
   forall m.
@@ -41,12 +41,12 @@ render settings state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]
-              [ div [ classes [ ClassName "group", aHorizontal, ClassName "marlowe-title-group" ] ]
+              [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
                   , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
-              , div [ classes [ ClassName "group", ClassName "marlowe-links-group" ] ]
+              , div [ classes [ group, ClassName "marlowe-links-group" ] ]
                   [ a [ href "./tutorial/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorial" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
@@ -101,11 +101,20 @@ render settings state =
       let
         title = state ^. _projectName
 
+        unsavedChangesIndicator = if state ^. _hasUnsavedChanges then "*" else ""
+
         isLoading = has (_createGistResult <<< _Loading) state
 
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
-        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
+        div [ classes [ ClassName "project-title" ] ]
+          [ h1_
+              {- TODO: Fix style when name is super long -}
+              [ text title
+              , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
+              ]
+          , spinner
+          ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 
@@ -122,7 +131,7 @@ render settings state =
   otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
 
   otherActions BlocklyEditor =
-    [ div [ classes [ ClassName "group" ] ]
+    [ div [ classes [ group ] ]
         [ button
             [ onClick $ const $ Just SendBlocklyToSimulator
             ]
@@ -164,6 +173,7 @@ menuBar state =
     HaskellEditor -> buttons
     JSEditor -> buttons
     BlocklyEditor -> buttons
+    ActusBlocklyEditor -> buttons
     Simulation -> buttons
     _ -> []
 

@@ -3,6 +3,7 @@
 @import './css_var_globals.scss';
 @import './typo.scss';
 @import './globals.scss';
+@import './utilities.scss';
 @import './layout.scss';
 @import './header.scss';
 @import './panels.scss';
@@ -19,6 +20,7 @@
 @import './modal.scss';
 @import './font-size.scss';
 @import './font-weight.scss';
+@import './confirm_unsaved_navigation.scss';
 
 .ace_editor {
     height: 100%;

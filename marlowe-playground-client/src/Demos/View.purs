@@ -6,7 +6,7 @@ import Data.Newtype (wrap)
 import Demos.Types (Action(..), Demo)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (modalContent)
+import Halogen.Classes (group, modalContent)
 import Halogen.HTML (HTML, button, div, div_, h2_, hr_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
@@ -34,9 +34,9 @@ demoFile :: forall p. Demo -> String -> String -> HTML p Action
 demoFile key name description =
   div []
     [ h2_ [ text name ]
-    , div [ class_ (ClassName "group") ]
+    , div [ class_ group ]
         [ span [ class_ (ClassName "description") ] [ text description ]
-        , div [ classes [ ClassName "group", ClassName "open-buttons" ] ]
+        , div [ classes [ group, ClassName "open-buttons" ] ]
             [ button [ onClick $ const $ Just $ LoadDemo Haskell key ] [ text "Haskell" ]
             , button [ onClick $ const $ Just $ LoadDemo Javascript key ] [ text "Javascript" ]
             , button [ onClick $ const $ Just $ LoadDemo Marlowe key ] [ text "Marlowe" ]

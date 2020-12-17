@@ -36,6 +36,7 @@ import           Language.Haskell.Interpreter          (Extension (OverloadedStr
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
 import           Language.Plutus.Contract.Test
+import qualified Language.PlutusTx.AssocMap            as AssocMap
 import           Language.PlutusTx.Lattice
 
 import qualified Language.PlutusTx.Prelude             as P
@@ -70,8 +71,8 @@ autoexecZCBTest :: TestTree
 autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute Contract" marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (150))
     /\ walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
@@ -81,7 +82,7 @@ autoexecZCBTest = checkPredicate @MarloweSchema @MarloweError "ZCB Auto Execute 
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
@@ -107,8 +108,8 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (P.inv defaultLovelaceAmount)
     /\ walletFundsChange carol defaultLovelaceAmount
     ) $ do
@@ -118,7 +119,7 @@ autoexecZCBTestAliceWalksAway = checkPredicate @MarloweSchema @MarloweError
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     -- Move all Alice's money to Carol, so she can't make a payment
@@ -139,8 +140,8 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone alice "contract should not have any errors"
+    /\ assertNotDone bob "contract should not have any errors"
     /\ walletFundsChange alice (lovelaceValueOf (-850))
     /\ walletFundsChange carol defaultLovelaceAmount
     ) $ do
@@ -150,7 +151,7 @@ autoexecZCBTestBobWalksAway = checkPredicate @MarloweSchema @MarloweError
     handleBlockchainEvents bob
 
     -- Init a contract
-    callEndpoint @"create" alice (params, zeroCouponBond)
+    callEndpoint @"create" alice (AssocMap.empty, zeroCouponBond)
     addBlocksNotify 1
 
     payToWallet bob carol defaultLovelaceAmount
@@ -170,7 +171,7 @@ awaitUntilTimeoutTest = checkPredicate @MarloweSchema @MarloweError
     marlowePlutusContract
     (assertNoFailedTransactions
     -- /\ emulatorLog (const False) ""
-    /\ assertDone bob (const True) "contract should close"
+    /\ assertNotDone bob "contract should not have any errors"
     ) $ do
 
     -- Bob will wait for the contract to appear on chain

@@ -40,6 +40,9 @@ lib.fix (jobsets: ciJobsets // {
         ++ (allJobs [ "darwin" "plutus-playground" ] jobsets)
         ++ (allJobs [ "darwin" "marlowe-playground" ] jobsets)
         ++ (allJobs [ "linux" "plutus-scb" ] jobsets)
+        # deployment tools
+        ++ (allJobs [ "darwin" "thorp" ] jobsets)
+        ++ (allJobs [ "linux" "thorp" ] jobsets)
         # Shell environment so it never breaks
         ++ (if (lib.hasAttrByPath [ "linux" "shell" ] jobsets) then [ jobsets.linux.shell ] else [ ])
         ++ (if (lib.hasAttrByPath [ "darwin" "shell" ] jobsets) then [ jobsets.darwin.shell ] else [ ]);

@@ -30,10 +30,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "c583fb3e775d0f071b58a53f82f726cec623c800",
-        "sha256": "0pzsaxwap6jmmpcyzwvygbrfcanjzkwfrmlqac4jnjrfixd8g27s",
+        "rev": "99fdad764061f4166e4c0d1d8783bd039c7bb851",
+        "sha256": "10z6slbxr1386zyc5cn03s0vmlqvv2br56b51ndcd8x9kq107ck3",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/c583fb3e775d0f071b58a53f82f726cec623c800.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/99fdad764061f4166e4c0d1d8783bd039c7bb851.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -51,6 +51,7 @@
     },
     "mvn2nix": {
         "branch": "master",
+        "builtin": false,
         "description": "Easily package your Maven Java application with the Nix package manager.",
         "homepage": "",
         "owner": "fzakaria",
@@ -68,10 +69,10 @@
         "homepage": "",
         "owner": "siers",
         "repo": "nix-gitignore",
-        "rev": "a9609739209cef90e2e8eaa0b5b656721d3da63e",
-        "sha256": "1h7dgiy0kiyzsv0s2w5p6z5103k4s8wc6i793cwq1srk2kwdsrxm",
+        "rev": "0b788a5875163ec210cd6597cb3757fd59e73902",
+        "sha256": "01cl7hamp9n2rk0xaqrbfzg7s3g9hl40y1q184zlmqvgqx4fysmr",
         "type": "tarball",
-        "url": "https://github.com/siers/nix-gitignore/archive/a9609739209cef90e2e8eaa0b5b656721d3da63e.tar.gz",
+        "url": "https://github.com/siers/nix-gitignore/archive/0b788a5875163ec210cd6597cb3757fd59e73902.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -81,10 +82,10 @@
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d105075a1fd870b1d1617a6008cb38b443e65433",
-        "sha256": "1jcs44wn0s6mlf2jps25bvcai1rij9b2dil6zcj8zqwf2i8xmqjh",
+        "rev": "ffb3aab257e8851b558cdc6079241a7eb0c7239e",
+        "sha256": "147d4nsq0334skyr9rghcfnizasvba1pr2rq72axwdldlma0qli1",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/d105075a1fd870b1d1617a6008cb38b443e65433.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/ffb3aab257e8851b558cdc6079241a7eb0c7239e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "npmlock2nix": {
@@ -107,10 +108,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "431227b41d0aaa83fabdee6611e145b7d9bd150b",
-        "sha256": "0ff24n8i3mfw0jw5r5lsgvbahmh88zhi3qsk9yxrb8x82jprgzsy",
+        "rev": "1b11ce0f8c65dd3d8e9520e23c100b76d09a858b",
+        "sha256": "0l2v8hsxrvj8w335xxxln49rpd9z5ncv6bl2wnk65zzzd4wa5rkm",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/431227b41d0aaa83fabdee6611e145b7d9bd150b.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/1b11ce0f8c65dd3d8e9520e23c100b76d09a858b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {
@@ -140,6 +141,7 @@
     },
     "thorp": {
         "branch": "master",
+        "builtin": false,
         "description": "Synchronisation of files with the cloud using the hash of the file contents",
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",

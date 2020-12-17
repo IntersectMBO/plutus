@@ -84,7 +84,7 @@ let
   # `set-git-rev` is a function that can be called on a haskellPackages
   # package to inject the git revision post-compile
   set-git-rev = pkgs.callPackage ./set-git-rev {
-    inherit (haskell.packages) ghcWithPackages;
+    inherit (haskell.project) ghcWithPackages;
     inherit git-rev;
   };
 
@@ -97,9 +97,13 @@ let
       inherit mvn2nix;
     };
 
-  # not available in 20.03 and we depend on several recent changes
-  # including stylish-haskell support
-  nix-pre-commit-hooks = import (sources."pre-commit-hooks.nix");
+  # By default pre-commit-hooks.nix uses its own pinned version of nixpkgs. In order to
+  # to get it to use our version we have to (somewhat awkwardly) use `nix/default.nix`
+  # to which both `nixpkgs` and `system` can be passed.
+  nix-pre-commit-hooks = (pkgs.callPackage ((sources."pre-commit-hooks.nix") + "/nix/default.nix") {
+    inherit system;
+    inherit (sources) nixpkgs;
+  }).packages;
 
   # purty is unable to process several files but that is what pre-commit
   # does. pre-commit-hooks.nix does provide a wrapper for that but when

@@ -141,6 +141,9 @@ plusBtn = ClassName "plus-btn"
 minusBtn :: ClassName
 minusBtn = ClassName "minus-btn"
 
+btn :: ClassName
+btn = ClassName "button"
+
 btnSecondary :: ClassName
 btnSecondary = ClassName "btn-secondary"
 
@@ -261,6 +264,9 @@ modalContent = ClassName "modal-content"
 
 vl :: forall p a. HTML p a
 vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]
+
+group :: ClassName
+group = ClassName "group"
 
 -- Tailwind's classes.
 textBase :: ClassName

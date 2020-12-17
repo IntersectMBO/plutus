@@ -2,7 +2,7 @@ module MainFrame.Types where
 
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
-import Blockly.Types (BlocklyState)
+import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -27,6 +27,7 @@ import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
 import NewProject.Types as NewProject
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename
 import Router (Route)
@@ -43,6 +44,7 @@ data ModalView
   | RenameProject
   | SaveProjectAs
   | GithubLogin Action
+  | ConfirmUnsavedNavigation Action
 
 derive instance genericModalView :: Generic ModalView _
 
@@ -52,6 +54,7 @@ instance showModalView :: Show ModalView where
   show OpenDemo = "OpenDemo"
   show RenameProject = "RenameProject"
   show SaveProjectAs = "SaveProjectAs"
+  show (ConfirmUnsavedNavigation _) = "ConfirmUnsavedNavigation"
   show (GithubLogin _) = "GithubLogin"
 
 -- Before adding the intended action to GithubLogin, this instance was being
@@ -71,6 +74,7 @@ data Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
   | ChangeView View
+  | ConfirmUnsavedNavigationAction Action ConfirmUnsavedNavigation.Action
   -- blockly
   | HandleBlocklyMessage Blockly.Message
   | HandleActusBlocklyMessage AB.Message
@@ -108,6 +112,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (DemosAction action) = toEvent action
   toEvent (RenameAction action) = toEvent action
   toEvent (SaveAsAction action) = toEvent action
+  toEvent (ConfirmUnsavedNavigationAction _ _) = Just $ defaultEvent "ConfirmUnsavedNavigation"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (GistAction _) = Just $ defaultEvent "GistAction"
   toEvent (OpenModal view) = Just $ (defaultEvent (show view)) { category = Just "OpenModal" }
@@ -167,8 +172,6 @@ newtype State
   = State
   { view :: View
   , jsCompilationResult :: CompilationState
-  , blocklyState :: Maybe BlocklyState
-  , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings
   , activeJSDemo :: String
   , showBottomPanel :: Boolean
@@ -185,6 +188,13 @@ newtype State
   , loadGistResult :: Either String (WebData Gist)
   , projectName :: String
   , showModal :: Maybe ModalView
+  -- The source of truth for the unsaved change lives inside each editor
+  -- The only reason we store a copy of the state here is because of the render function
+  -- in the Mainframe view, which uses this derived state to show an unsaved indicator.
+  -- Inside the Mainframe view we can inspect the state of the submodules (Haskell/JS/Marlowe)
+  -- as their state is part of the MainFrame state, but we cannot inspect the state of the
+  -- child components Blockly and ActusBlockly as we need a Query.
+  , hasUnsavedChanges :: Boolean
   }
 
 derive instance newtypeState :: Newtype State _
@@ -194,12 +204,6 @@ _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
 _jsCompilationResult :: Lens' State CompilationState
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
-
-_blocklyState :: Lens' State (Maybe BlocklyState)
-_blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
-
-_actusBlocklyState :: Lens' State (Maybe BlocklyState)
-_actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")
 
 _jsEditorKeybindings :: Lens' State KeyBindings
 _jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
@@ -248,6 +252,21 @@ _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 
 _showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
+
+_hasUnsavedChanges' :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
+_hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
+
+_hasUnsavedChanges :: Lens' State Boolean
+_hasUnsavedChanges = _Newtype <<< _hasUnsavedChanges'
+
+currentLang :: State -> Maybe Lang
+currentLang state = case state ^. _view of
+  HaskellEditor -> Just Haskell
+  JSEditor -> Just Javascript
+  Simulation -> Just Marlowe
+  BlocklyEditor -> Just Blockly
+  ActusBlocklyEditor -> Just Actus
+  _ -> Nothing
 
 -- editable
 _timestamp ::

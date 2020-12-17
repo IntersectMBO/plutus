@@ -1,28 +1,57 @@
 module AjaxUtils
-  ( ajaxErrorPane
+  ( AjaxErrorPaneAction(..)
+  , ajaxErrorPane
   , renderForeignErrors
   , defaultJsonOptions
   ) where
 
 import Prelude hiding (div)
-import Bootstrap (alertDanger_)
+import Bootstrap (alertDanger_, btn, floatRight)
 import Data.Foldable (intercalate)
+import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
-import Halogen.HTML (ClassName(..), HTML, br_, div, div_, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, text)
+import Halogen.HTML.Properties (class_, classes)
+import Halogen.HTML.Events (onClick)
+import Icons (Icon(..), icon)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
+
+data AjaxErrorPaneAction
+  = CloseErrorPane
 
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
   div
-    [ class_ $ ClassName "ajax-error" ]
+    [ class_ ajaxErrorClass ]
     [ alertDanger_
         [ showAjaxError error
         , br_
-        , text "Please try again or contact support for assistance."
+        , helpText
         ]
     ]
+
+closeableAjaxErrorPane :: forall p. AjaxError -> HTML p AjaxErrorPaneAction
+closeableAjaxErrorPane error =
+  div
+    [ class_ ajaxErrorClass ]
+    [ alertDanger_
+        [ button
+            [ classes [ btn, floatRight, ClassName "ajax-error-close-button" ]
+            , onClick $ const $ Just CloseErrorPane
+            ]
+            [ icon Close ]
+        , showAjaxError error
+        , br_
+        , helpText
+        ]
+    ]
+
+ajaxErrorClass :: ClassName
+ajaxErrorClass = ClassName "ajax-error"
+
+helpText :: forall p i. HTML p i
+helpText = text "Please try again or contact support for assistance."
 
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription

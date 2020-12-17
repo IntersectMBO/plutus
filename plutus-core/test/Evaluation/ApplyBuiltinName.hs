@@ -26,7 +26,11 @@ import           Test.Tasty.Hedgehog
 
 -- A monad to keep 'applyTypeSchemed' happy.
 -- We can't use CekM or CkM because their exception types don't match 'Term'.
-type AppErr = EvaluationException () DefaultFun (Term TyName Name DefaultUni DefaultFun ())
+type AppErr =
+    EvaluationException
+        ()
+        (MachineError DefaultFun (Term TyName Name DefaultUni DefaultFun ()))
+        (Term TyName Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM

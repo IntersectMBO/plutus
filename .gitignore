@@ -40,6 +40,8 @@ stack.yaml.lock
 # Haskell output files
 *.o
 *.hi
+*.dyn_o
+*.dyn_hi
 *.chi
 *.chs.h
 *.prof
