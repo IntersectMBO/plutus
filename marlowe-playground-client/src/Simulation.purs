@@ -54,13 +54,14 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
+import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import Projects.Types (Lang(..))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -810,11 +811,11 @@ marloweActionInput isEnabled f current =
 renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
 renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
+  , b_ [ spanText (showPrettyMoney money) ]
   , spanText " units of "
-  , b_ [ spanText (showPrettyToken tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner) ]
+  , b_ [ renderPrettyToken tok ]
+  , spanText " into account of "
+  , b_ [ renderPrettyParty accountOwner ]
   , spanText " as "
-  , b_ [ spanText (show party) ]
+  , b_ [ renderPrettyParty party ]
   ]
