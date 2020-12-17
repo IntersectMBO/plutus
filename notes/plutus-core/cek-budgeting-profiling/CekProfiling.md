@@ -215,7 +215,7 @@ the execution time, with `singleton` taking up 5.19% and `ExBudgeting.<>` taking
 1.7%; in this case, `Data.Profunctor.Unsafe.#.` takes only 0.3% whereas it took
 twice as long as `singleton` in the main usage of `spendBudget`.  I think this
 is using the same instance of `SpendBudget` as in `Cek.hs`, so I'm not sure why
-there's a discrepancy.  (
+there's a discrepancy.
 
 The graph for `Restricting` mode is broadly similar, except that a total of
 11.5% (1.50% + 10.10%) of the execution time is consumed by
