@@ -301,8 +301,10 @@ handleAction EvaluateActions =
         assign _evaluationResult result
         case result of
           Success (Right _) -> do
-            -- on successful evaluation, update last evaluated simulation and show transactions
-            updateSimulationOnSuccess result simulation
+            -- on successful evaluation, update last evaluated simulation, and reset and show transactions
+            when (isSuccess result) do
+              (assign _lastEvaluatedSimulation simulation)
+              (assign _blockchainVisualisationState Chain.initialState)
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
           Success (Left _) -> do
@@ -331,40 +333,51 @@ handleAction (LoadScript key) = do
       assign _evaluationResult NotAsked
       assign _createGistResult NotAsked
 
+-- Note: the following three cases involve some temporary fudges that should become
+-- unnecessary when we remodel and have one evaluationResult per simulation. In
+-- particular: we prevent simulation changes while the evaluationResult is Loading,
+-- and switch to the simulations view (from transactions) following any change
 handleAction AddSimulationSlot = do
-  knownCurrencies <- getKnownCurrencies
-  mSignatures <- peruse (_successfulCompilationResult <<< _functionSchema)
-  case mSignatures of
-    Just signatures ->
-      modifying _simulations
-        ( \simulations ->
-            let
-              count = Cursor.length simulations
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      knownCurrencies <- getKnownCurrencies
+      mSignatures <- peruse (_successfulCompilationResult <<< _functionSchema)
+      case mSignatures of
+        Just signatures ->
+          modifying _simulations
+            ( \simulations ->
+                let
+                  count = Cursor.length simulations
 
-              simulationName = "Simulation " <> show (count + 1)
-            in
-              Cursor.snoc simulations
-                (mkSimulation knownCurrencies simulationName)
-        )
-    Nothing -> pure unit
-  -- The following is a temporary fudge to avoid weird behaviour if you're in
-  -- the transaction view; in due course the model should be changed to include
-  -- separate transactions for each simulation
-  assign _currentView Simulations
+                  simulationName = "Simulation " <> show (count + 1)
+                in
+                  Cursor.snoc simulations
+                    (mkSimulation knownCurrencies simulationName)
+            )
+        Nothing -> pure unit
+      assign _currentView Simulations
 
 handleAction (SetSimulationSlot index) = do
-  modifying _simulations (Cursor.setIndex index)
-  -- The same temporary fudge used above
-  assign _currentView Simulations
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      modifying _simulations (Cursor.setIndex index)
+      assign _currentView Simulations
 
 handleAction (RemoveSimulationSlot index) = do
-  -- The same temporary fudge used above (but only if the current simulation is being removed)
-  simulations <- use _simulations
-  if (Cursor.getIndex simulations) == index then
-    assign _currentView Simulations
-  else
-    pure unit
-  modifying _simulations (Cursor.deleteAt index)
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      simulations <- use _simulations
+      if (Cursor.getIndex simulations) == index then
+        assign _currentView Simulations
+      else
+        pure unit
+      modifying _simulations (Cursor.deleteAt index)
 
 handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
@@ -403,7 +416,9 @@ handleAction CompileProgram = do
         _ -> do
           -- next line commented out for now - I don't think we're doing this any more
           -- replaceViewOnSuccess newCompilationResult Editor Simulations
-          updateCodeOnSuccess newCompilationResult (Just contents)
+          when (isSuccess newCompilationResult) do
+            assign (_editorState <<< _lastCompiledCode) (Just contents)
+            assign (_editorState <<< _currentCodeIsCompiled) true
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
@@ -472,8 +487,9 @@ handleGistAction PublishGist = do
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
-        updateViewOnSuccess newResult Editor
-        clearCurrentDemoNameOnSuccess newResult
+        when (isSuccess newResult) do
+          (assign _currentView Editor)
+          (assign _currentDemoName Nothing)
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
@@ -487,8 +503,9 @@ handleGistAction LoadGist =
         assign _gistErrorPaneVisible true
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
-        updateViewOnSuccess aGist Editor
-        clearCurrentDemoNameOnSuccess aGist
+        when (isSuccess aGist) do
+          (assign _currentView Editor)
+          (assign _currentDemoName Nothing)
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
         -- Load the source, if available.
@@ -531,32 +548,11 @@ handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
     (Schema.handleValueEvent action)
     wallets
 
-updateSimulationOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> Maybe Simulation -> m Unit
-updateSimulationOnSuccess result simulation = do
-  when (isSuccess result)
-    (assign _lastEvaluatedSimulation simulation)
-
-updateCodeOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> Maybe SourceCode -> m Unit
-updateCodeOnSuccess result code = do
-  when (isSuccess result) do
-    assign (_editorState <<< _lastCompiledCode) code
-    assign (_editorState <<< _currentCodeIsCompiled) true
-
-updateViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> m Unit
-updateViewOnSuccess result target = do
-  when (isSuccess result)
-    (assign _currentView target)
-
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do
   currentView <- use _currentView
   when (isSuccess result && currentView == source)
     (assign _currentView target)
-
-clearCurrentDemoNameOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> m Unit
-clearCurrentDemoNameOnSuccess result = do
-  when (isSuccess result)
-    (assign _currentDemoName Nothing)
 
 ------------------------------------------------------------
 toAnnotations :: InterpreterError -> Array IMarkerData
