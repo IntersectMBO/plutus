@@ -24,7 +24,10 @@ import           Control.Concurrent.Async
 import           Control.Concurrent.STM
 import           Control.Lens                                        hiding (ix)
 import qualified Control.Monad.Freer                                 as Free
+import           Control.Monad.Freer.Log                             (LogMessage, LogMsg)
+import qualified Control.Monad.Freer.Log                             as Free
 import qualified Control.Monad.Freer.State                           as Free
+import           Control.Monad.Freer.Writer                          (Writer)
 import qualified Control.Monad.Freer.Writer                          as Free
 import           Control.Monad.Reader
 import           Control.Tracer
@@ -113,8 +116,9 @@ handleCommand commandQueue InternalState {isBlocks, isState} =
             state <- takeMVar isState
             let ((block, _events), newState) = Free.run
                     $ Free.runState state
-                    $ Free.runWriter @[ChainEvent]
-                    $ Chain.handleControlChain Chain.processBlock
+                    $ Free.runWriter @[LogMessage ChainEvent]
+                    $ Free.reinterpret @(LogMsg ChainEvent) @(Writer [LogMessage ChainEvent]) (Free.handleLogWriter @ChainEvent @[LogMessage ChainEvent] (unto return))
+                    $ Free.interpret Chain.handleControlChain Chain.processBlock
             putMVar isState newState
             atomically $ do
                 -- It is important for the blocks channel and chain

@@ -65,6 +65,9 @@
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+          (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
+          (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -103,16 +106,16 @@
           "Language/Plutus/Contract/Typed/Tx"
           "Wallet/Emulator"
           "Wallet/Emulator/Types"
-          "Wallet/Emulator/Generators"
           "Wallet/Emulator/Chain"
           "Wallet/Emulator/ChainIndex"
           "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
+          "Wallet/Emulator/Folds"
           "Wallet/Emulator/LogMessages"
           "Wallet/Emulator/NodeClient"
           "Wallet/Emulator/Notify"
           "Wallet/Emulator/MultiAgent"
-          "Wallet/Emulator/SigningProcess"
+          "Wallet/Emulator/Stream"
           "Wallet/Emulator/Wallet"
           "Wallet/Rollup"
           "Wallet/Rollup/Types"
@@ -124,6 +127,21 @@
           "Wallet/Types"
           "Control/Monad/Freer/Extras"
           "Control/Monad/Freer/Log"
+          "Control/Monad/Freer/Stream"
+          "Plutus/Trace"
+          "Plutus/Trace/Effects/ContractInstanceId"
+          "Plutus/Trace/Effects/RunContract"
+          "Plutus/Trace/Effects/RunContractPlayground"
+          "Plutus/Trace/Effects/EmulatedWalletAPI"
+          "Plutus/Trace/Effects/EmulatorControl"
+          "Plutus/Trace/Effects/Waiting"
+          "Plutus/Trace/Emulator"
+          "Plutus/Trace/Emulator/ContractInstance"
+          "Plutus/Trace/Emulator/System"
+          "Plutus/Trace/Emulator/Types"
+          "Plutus/Trace/Playground"
+          "Plutus/Trace/Scheduler"
+          "Plutus/Trace/Tag"
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "Language/Plutus/Contract/Test";
         hsSourceDirs = [ "src" ];
         };

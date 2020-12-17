@@ -1,0 +1,10 @@
+Slot 1: 00000000-0000-0000-0000-000000000000 {Contract instance for wallet 1}:
+          Contract instance started
+Slot 1: 00000000-0000-0000-0000-000000000000 {Contract instance for wallet 1}:
+          Receive endpoint call: Object (fromList [("tag",String "schedule collection"),("value",Object (fromList [("unEndpointValue",Array [])]))])
+Slot 1: 00000000-0000-0000-0000-000000000000 {Contract instance for wallet 1}:
+          Contract log: String "Campaign started. Waiting for campaign deadline to collect funds."
+Slot 20: 00000000-0000-0000-0000-000000000000 {Contract instance for wallet 1}:
+           Contract log: String "Collecting funds"
+Slot 20: 00000000-0000-0000-0000-000000000000 {Contract instance for wallet 1}:
+           Contract instance stopped (no errors)

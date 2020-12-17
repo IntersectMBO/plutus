@@ -39,7 +39,7 @@ import           Control.Lens                       (AReview, Lens', Prism', ano
 import           Control.Monad.Freer                (Eff, Members, interpret, subsume, type (~>))
 import           Control.Monad.Freer.Error          (Error, handleError, throwError)
 import           Control.Monad.Freer.Extra.Log      (LogMsg)
-import           Control.Monad.Freer.Extras         (handleZoomedState, handleZoomedWriter, raiseEnd17, raiseEnd9)
+import           Control.Monad.Freer.Extras         (handleZoomedState, handleZoomedWriter, raiseEnd10, raiseEnd18)
 import           Control.Monad.Freer.Log            (LogLevel (..), LogMessage, LogObserve, handleLogWriter,
                                                      handleObserveLog, logMessage)
 import qualified Control.Monad.Freer.Log            as Log
@@ -76,11 +76,11 @@ import qualified Wallet.Emulator.ChainIndex         as ChainIndex
 import           Wallet.Emulator.Error              (WalletAPIError)
 import           Wallet.Emulator.MultiAgent         (EmulatorEvent, EmulatorTimeEvent, _singleton, chainIndexEvent,
                                                      emulatorTimeEvent, walletClientEvent, walletEvent)
-import           Wallet.Emulator.NodeClient         (NodeClientControlEffect)
+import           Wallet.Emulator.NodeClient         (NodeClientControlEffect, NodeClientEvent)
 import qualified Wallet.Emulator.NodeClient         as NC
-import           Wallet.Emulator.SigningProcess     (SigningProcessControlEffect)
-import qualified Wallet.Emulator.SigningProcess     as SP
-import           Wallet.Emulator.Wallet             (Wallet, WalletState)
+import           Wallet.Emulator.Wallet             (SigningProcess, SigningProcessControlEffect, Wallet, WalletState,
+                                                     defaultSigningProcess, handleSigningProcess,
+                                                     handleSigningProcessControl)
 import qualified Wallet.Emulator.Wallet             as Wallet
 
 -- $multiagent
@@ -94,7 +94,7 @@ data AgentState =
         { _walletState         :: WalletState
         , _nodeClientState     :: NC.NodeClientState
         , _chainIndexState     :: CI.AppState
-        , _signingProcessState :: SP.SigningProcess
+        , _signingProcessState :: SigningProcess
         , _agentEventState     :: EventMap (ChainEvent TestContracts)
         }
 
@@ -106,7 +106,7 @@ emptyAgentState wallet =
         { _walletState = Wallet.emptyWalletState wallet
         , _nodeClientState = NC.emptyNodeClientState
         , _chainIndexState = CI.initialAppState
-        , _signingProcessState = SP.defaultSigningProcess wallet
+        , _signingProcessState = defaultSigningProcess wallet
         , _agentEventState = emptyEventMap
         }
 
@@ -149,6 +149,7 @@ type SCBClientEffects =
     , NodeFollowerEffect
     , Error WalletAPIError
     , Error SCBError
+    , LogMsg NodeClientEvent
     , LogMsg (ContractInstanceMsg TestContracts)
     , LogMsg (CoreMsg TestContracts)
     , LogMsg MetadataLogMessage
@@ -163,6 +164,7 @@ type SCBControlEffects =
     , NodeClientControlEffect
     , SigningProcessControlEffect
     , State CI.AppState
+    , LogMsg NodeClientEvent
     , LogMsg ChainIndexServerMsg
     , LogMsg MetadataLogMessage
     , LogMsg T.Text
@@ -200,8 +202,8 @@ handleMultiAgent = interpret $ \effect -> do
         let
             p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
-            p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
-            p2 = below (logMessage Info . _EmulatorMsg . timed . walletClientEvent wallet)
+            p2 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage NC.NodeClientEvent)
+            p2 = _singleton . below (_EmulatorMsg . timed . walletClientEvent wallet)
             p3 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage ChainIndex.ChainIndexEvent)
             p3 = _singleton . below (_EmulatorMsg . timed . chainIndexEvent wallet)
             p6 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage (CoreMsg TestContracts))
@@ -211,19 +213,20 @@ handleMultiAgent = interpret $ \effect -> do
             p8 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage ContractRuntimeMsg)
             p8 = _singleton . below _RuntimeLog
         action
-            & raiseEnd17
+            & raiseEnd18
             & Wallet.handleWallet
             & interpret (handleContractRuntime @TestContracts)
             & handleContractTest
             & handleMetadata
             & NC.handleNodeClient
             & ChainIndex.handleChainIndex
-            & SP.handleSigningProcess
+            & handleSigningProcess
             & subsume
             & handleEventLogState
             & NF.handleNodeFollower
             & subsume
             & subsume
+            & interpret (handleLogWriter p2)
             & interpret (handleLogWriter _InstanceMsg)
             & interpret (handleLogWriter p6)
             & interpret (handleLogWriter p7)
@@ -243,8 +246,8 @@ handleMultiAgent = interpret $ \effect -> do
         let
             p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
-            p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
-            p2 = below (logMessage Info . _EmulatorMsg . timed . walletClientEvent wallet)
+            p2 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage NC.NodeClientEvent)
+            p2 = _singleton . below (_EmulatorMsg . timed . walletClientEvent wallet)
             p3 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage ChainIndex.ChainIndexEvent)
             p3 = _singleton . below (_EmulatorMsg . timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage T.Text)
@@ -254,13 +257,14 @@ handleMultiAgent = interpret $ \effect -> do
             p6 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage MetadataLogMessage)
             p6 = _singleton . below _MetadataLog
         action
-            & raiseEnd9
+            & raiseEnd10
             & ChainIndex.handleChainIndexControl
             & handleMetadata
             & NF.handleNodeFollower
             & NC.handleNodeControl
-            & SP.handleSigningProcessControl
+            & handleSigningProcessControl
             & interpret (handleZoomedState (agentState wallet . chainIndexState))
+            & interpret (handleLogWriter p2)
             & interpret (handleLogWriter p5)
             & interpret (handleLogWriter p6)
             & interpret (handleLogWriter p4)

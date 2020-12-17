@@ -12,6 +12,7 @@ import           Control.Monad.Reader                      (MonadReader)
 import           Data.Proxy                                (Proxy (Proxy))
 import           Gist                                      (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Plutus.Contract.Checkpoint       (CheckpointError)
+import           Language.Plutus.Contract.Resumable        (IterationID, Request, RequestID, Response)
 import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
                                                             TypeInfo (TypeInfo), doCheck, equal, equal1, functor,
                                                             genericShow, haskType, isTuple, mkSumType, order,
@@ -31,6 +32,10 @@ import           Ledger.Slot                               (Slot)
 import           Ledger.Typed.Tx                           (ConnectionError)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
 import           Playground.Types                          (ContractCall, FunctionSchema, KnownCurrency)
+import           Plutus.Trace.Emulator.Types               (ContractInstanceLog, ContractInstanceMsg,
+                                                            ContractInstanceTag, EmulatorRuntimeError, UserThreadMsg)
+import           Plutus.Trace.Scheduler                    (Priority, SchedulerLog, StopReason, ThreadEvent, ThreadId)
+import           Plutus.Trace.Tag                          (Tag)
 import           Schema                                    (FormArgumentF, FormSchema)
 import           Wallet.API                                (WalletAPIError)
 import qualified Wallet.Emulator.Wallet                    as EM
@@ -262,6 +267,21 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AssertionError)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceLog)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UserThreadMsg)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @SchedulerLog)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tag)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceMsg)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceTag)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EmulatorRuntimeError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ThreadEvent)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ThreadId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Response A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Priority)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @StopReason)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
     ]
 
 walletTypes :: [SumType 'Haskell]

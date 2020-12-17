@@ -46,7 +46,7 @@ newtype Slot = Slot { getSlot :: Integer }
 makeLift ''Slot
 
 instance Pretty Slot where
-    pretty (Slot i) = "Slot:" <+> pretty i
+    pretty (Slot i) = "Slot" <+> pretty i
 
 -- | An 'Interval' of 'Slot's.
 type SlotRange = Interval Slot
