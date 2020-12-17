@@ -67,17 +67,6 @@ oracleKeys =
     let wllt = Wallet 10 in
         (walletPrivKey wllt, walletPubKey wllt)
 
-accounts :: Future.FutureAccounts
-accounts =
-    either error id
-        $ evalTrace @Future.FutureSchema @Future.FutureError
-            Future.setupTokens
-            ( handleBlockchainEvents wallet1 >>
-              addBlocks 1 >>
-              handleBlockchainEvents wallet1 >>
-              addBlocks 1 >>
-              handleBlockchainEvents wallet1 ) wallet1
-
 theFuture :: Future.Future
 theFuture = Future.Future {
     Future.ftDeliveryDate  = Ledger.Slot 100,
@@ -112,7 +101,7 @@ contractsWithNames = map (second (runQuote . nameDeBruijn . getTerm . Plutus.unS
   , ("crowdfunding-names", Crowdfunding.contributionScript Crowdfunding.theCampaign)
   , ("vesting-names", Vesting.vestingScript vesting)
   , ("escrow-names", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
-  , ("future-names", Future.validator theFuture accounts) ]
+  , ("future-names", Future.validator theFuture Future.testAccounts) ]
 
 contractsWithIndices ::
   [ (Text, Term DeBruijn DefaultUni DefaultFun ()) ]
@@ -121,5 +110,5 @@ contractsWithIndices = map (second (getTerm . Plutus.unScript . Plutus.unValidat
   , ("crowdfunding-indices", Crowdfunding.contributionScript Crowdfunding.theCampaign)
   , ("vesting-indices", Vesting.vestingScript vesting)
   , ("escrow-indices", Plutus.validatorScript $ Escrow.scriptInstance escrowParams)
-  , ("future-indices", Future.validator theFuture accounts) ]
+  , ("future-indices", Future.validator theFuture Future.testAccounts) ]
 

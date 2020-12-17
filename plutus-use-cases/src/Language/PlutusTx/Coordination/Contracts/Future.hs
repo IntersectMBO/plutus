@@ -39,11 +39,16 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , initialState
     , scriptInstance
     , setupTokens
+    -- * Test data
+    , testAccounts
+    , setupTokensTrace
     ) where
 
 import           Control.Lens                                          (makeClassyPrisms, prism', review)
 import           Control.Monad                                         (void)
 import           Control.Monad.Error.Lens                              (throwing)
+import qualified Control.Monad.Freer                                   as Freer
+import qualified Control.Monad.Freer.Error                             as Freer
 import           Data.Aeson                                            (FromJSON, ToJSON)
 import           GHC.Generics                                          (Generic)
 import           Language.Plutus.Contract
@@ -72,6 +77,11 @@ import           Language.PlutusTx.Coordination.Contracts.Escrow       (AsEscrow
 import qualified Language.PlutusTx.Coordination.Contracts.Escrow       as Escrow
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
+import qualified Plutus.Trace.Emulator                                 as Trace
+import qualified Streaming.Prelude                                     as S
+import qualified Wallet.Emulator.Folds                                 as Folds
+import qualified Wallet.Emulator.Stream                                as Stream
+import qualified Wallet.Emulator.Wallet                                as Wallet
 
 import qualified Prelude                                               as Haskell
 
@@ -611,6 +621,26 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
         { escrowDeadline = contractStart
         , escrowTargets = targets
         }
+
+testAccounts :: FutureAccounts
+testAccounts =
+    let con = setupTokens @FutureSchema @FutureError
+        fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
+        getOutcome (Folds.Done a) = a
+        getOutcome e              = Haskell.error $ "not finished: " <> show e
+    in
+    either (Haskell.error . Haskell.show) (getOutcome . S.fst')
+        $ Freer.run
+        $ Freer.runError @Folds.EmulatorFoldErr
+        $ Stream.foldEmulatorStreamM fld
+        $ Stream.takeUntilSlot 10
+        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig setupTokensTrace
+
+setupTokensTrace :: Trace.EmulatorTrace ()
+setupTokensTrace = do
+    _ <- Trace.waitNSlots 1
+    _ <- Trace.activateContractWallet (Wallet.Wallet 1) (void $ setupTokens @FutureSchema @FutureError)
+    void $ Trace.waitNSlots 2
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureAccounts

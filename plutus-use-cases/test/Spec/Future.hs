@@ -9,14 +9,11 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-module Spec.Future(tests, theFuture, accounts) where
+module Spec.Future(tests, theFuture) where
 
 import           Control.Monad                                   (void)
-import           Control.Monad.Freer                             (run)
-import           Control.Monad.Freer.Error                       (runError)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                as HUnit
-import           Wallet.Emulator.Stream                          (foldEmulatorStreamM, takeUntilSlot)
 
 import qualified Spec.Lib                                        as Lib
 import           Spec.TokenAccount                               (assertAccountBalance)
@@ -36,24 +33,22 @@ import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), F
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
 import           Plutus.Trace.Emulator                           (ContractHandle, EmulatorTrace)
 import qualified Plutus.Trace.Emulator                           as Trace
-import qualified Streaming.Prelude                               as S
-import qualified Wallet.Emulator.Folds                           as Folds
 
 tests :: TestTree
 tests =
     testGroup "futures"
     [ checkPredicate "setup tokens"
         (assertDone (F.setupTokens @FutureSchema @FutureError) (Trace.walletInstanceTag w1) (const True) "setupTokens")
-        $ void $ setupTokens
+        $ void F.setupTokensTrace
 
     , checkPredicate "can initialise and obtain tokens"
-        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short accounts)
-        .&&. walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long accounts))
+        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short F.testAccounts)
+        .&&. walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long F.testAccounts))
         (void (initContract >> joinFuture))
 
     , checkPredicate "can increase margin"
-        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
-        .&&. assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2410)))
+        (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 1936))
+        .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 2410)))
         $ do
             _ <- initContract
             hdl2 <- joinFuture
@@ -63,8 +58,8 @@ tests =
             payOut hdl2
 
     , checkPredicate "can settle early"
-        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 0))
-        .&&. assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 4246)))
+        (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 0))
+        .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 4246)))
         $ do
             _ <- initContract
             hdl2 <- joinFuture
@@ -72,8 +67,8 @@ tests =
             settleEarly hdl2
 
      , checkPredicate "can pay out"
-        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
-        .&&. assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
+        (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 1936))
+        .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 2310)))
         $ do
             _ <- initContract
             hdl2 <- joinFuture
@@ -82,7 +77,7 @@ tests =
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 63000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture F.testAccounts) 63000)
 
     ]
 
@@ -126,7 +121,7 @@ initContract = do
 joinFuture :: EmulatorTrace (ContractHandle FutureSchema FutureError)
 joinFuture = do
     hdl2 <- Trace.activateContractWallet w2 (F.futureContract theFuture)
-    Trace.callEndpoint @"join-future" hdl2 (accounts, setup)
+    Trace.callEndpoint @"join-future" hdl2 (F.testAccounts, setup)
     _ <- Trace.waitNSlots 2
     pure hdl2
 
@@ -156,26 +151,6 @@ oracleKeys :: (PrivateKey, PubKey)
 oracleKeys =
     let wllt = Wallet 10 in
         (walletPrivKey wllt, walletPubKey wllt)
-
-setupTokens :: EmulatorTrace ()
-setupTokens = do
-    _ <- Trace.waitNSlots 1
-    _ <- Trace.activateContractWallet w1 (void $ F.setupTokens @FutureSchema @FutureError)
-    void $ Trace.waitNSlots 2
-
-accounts :: FutureAccounts
-accounts =
-    let con = F.setupTokens @FutureSchema @FutureError
-        fld = Folds.instanceOutcome con (Trace.walletInstanceTag w1)
-        getOutcome (Done a) = a
-        getOutcome e        = error $ "not finished: " <> show e
-    in
-    either (error . show) (getOutcome . S.fst')
-        $ run
-        $ runError @Folds.EmulatorFoldErr
-        $ foldEmulatorStreamM fld
-        $ takeUntilSlot 10
-        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig setupTokens
 
 increaseMargin :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 increaseMargin hdl = do

@@ -77,7 +77,8 @@ library
         text -any,
         prettyprinter -any,
         hashable -any,
-        freer-simple -any
+        freer-simple -any,
+        streaming -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
