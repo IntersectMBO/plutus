@@ -176,6 +176,8 @@ toEvent (GistAction (SetGistUrl _)) = Nothing
 
 toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
+toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing
+
 toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
 
 toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
@@ -467,6 +469,9 @@ handleGistAction LoadGist =
   toEither x Loading = x
 
   toEither x NotAsked = x
+
+-- other gist actions are irrelevant (but one will soon be needed for the refresh...)
+handleGistAction _ = pure unit
 
 handleActionWalletEvent :: (BigInteger -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 handleActionWalletEvent mkWallet AddWallet wallets =
