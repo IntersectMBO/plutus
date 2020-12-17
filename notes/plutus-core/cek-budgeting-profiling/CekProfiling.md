@@ -2,7 +2,7 @@
 
 [December 2020, Plutus repository at c5e5cb6]
 
-While trying to fix a memory leak in the CEK machine, it tranpsired that
+While trying to fix a memory leak in the CEK machine, it transpired that
 budgeting was taking up a surprisingly large proportion of the CEK execution
 time.  This document investigates what's going on.
 
@@ -33,7 +33,7 @@ execution being terminated if the budget falls below zero.
 The `spendBudget` function is called in two places: (1) in `Cek.hs`, whenever
 `computeCek` is called, and (2) in the `applyTypeSchemed` function in
 `Language.PlutusCore.Constant.Apply`, which is called to execute a built-in
-function once all of its arguments are avaliable.
+function once all of its arguments are available.
 
 
 ### Benchmark results
@@ -50,7 +50,7 @@ different benchmarking strategies:
 
 The benchmarks were run on commit 844f3073 (10th December 2020), and the results
 are in the tables below.  All times are in milliseconds.  The times are
-extracted from Criterion output, so they're averages over mulitple runs and
+extracted from Criterion output, so they're averages over multiple runs and
 don't include any overhead from parsing or deserialisation.
 
 
@@ -119,7 +119,7 @@ queens5x5/fc          |   1176.0 |  1333.0  | 5516.0  |  5753.0
 
 ### Discussion
 Comparison of columns A and B shows that there is a not insignificant
-overhead from calling a typeclass method, even when it do.esn't do any
+overhead from calling a typeclass method, even when it doesn't do any
 real work: times are increased by an average of 7.5% for the validation
 benchmarks and 10% for the nofib benchmarks.
 
@@ -130,7 +130,7 @@ completely removed; for the `nofib` benchmarks execution time increases by a
 factor of 2.8x to 5.0x, with a mean of 4.2x.
 
 The figures for `Restricting` mode (column D), which is what we'll be using to
-limit on-chain fuel comsumption, are very similar to those for `Counting` mode.
+limit on-chain fuel consumption, are very similar to those for `Counting` mode.
 For the validation benchmarks the difference isn't very noticeable: the ratio
 D/C lies between 0.97 and 1.04, with a mean of 1.006; for nofib the figures are
 similar: 0.97-1.05, with a mean of 1.03.   
@@ -151,9 +151,9 @@ Each benchmark was profiled in three budgeting modes: with all budgeting code
 removed, in Counting mode, and in Restricting mode (corresponding to columns A,
 C, and D above).  [Flame graphs](http://www.brendangregg.com/flamegraphs.html)
 for each are shown below; these were obtained by building `plutus-core` with
-profiling turned on, then runnning the CEK machine with `stack exec --profile --
+profiling turned on, then running the CEK machine with `stack exec --profile --
 plc evaluate <args> +RTS -p`; the `.prof` file produced by this was then
-converted into a flam graph using the `ghc-prof-flamegraph` command.  These are
+converted into a flame graph using the `ghc-prof-flamegraph` command.  These are
 interactive SVG images: you can hover over part of the graph to see what
 percentage of the execution time the relevant function consumes, and you can
 click to zoom in (click on `Reset Zoom` in the top left corner to zoom back
@@ -182,7 +182,7 @@ with the rest being accounted for by initialisation code, including setting up a
 tables of built-in function meanings.  `spendBudget` takes up a total of 11.25%
 + 53.45% = 64.7% of the execution time (there are two entries, one inside
 `Language.PlutusCore.Constant.Apply.applyTypeSchemed` (on the left) for costs of
-builtin functions, and a more ovbious one accounting for most of the right hand
+builtin functions, and a more obvious one accounting for most of the right hand
 side of the graph).  This suggests that budgeting accounts for about 2/3 of the
 execution time, and this agrees well with the earlier table of benchmark results,
 which shows that this benchmark takes 989.9ms without budgeting and 2981.0ms with
@@ -209,7 +209,7 @@ from the lens function `<%=` (zooming in on item 2 in the graph shows that it's
 calling `ExBudgeting.<>` again, presumably where it says `<> budget`), and item
 3 comes from `<> (ExTally (singleton key budget)`.
 
-The occurence of `spendBudget` on the left of the graph, where it's being called
+The occurrence of `spendBudget` on the left of the graph, where it's being called
 while executing builtins, is slightly different.  That accounts for 11.39% of
 the execution time, with `singleton` taking up 5.19% and `ExBudgeting.<>` taking
 1.7%; in this case, `Data.Profunctor.Unsafe.#.` takes only 0.3% whereas it took
@@ -243,7 +243,7 @@ it occupies almost 72% of the CEK time. (This suggests that we could expect a sl
 of 1.0/0.28 = 3.57, but the slowdown in the table for the validation benchmarks is
 6.531/2.268 = 2.87; this roughly the same order of magnitude, but the correspondence
 is less accurate than for the primetest example.  We're dealing with very short
-preiods of time here, so perhaps we shouldn't expect high accuracy?)
+periods of time here, so perhaps we shouldn't expect high accuracy?)
 
 Again the majority of the budgeting time is spent in things related to hashmaps and
 `<>`.  Also, 7.42% of the total runtime is spent in `ExMemory.memoryusage`, which
@@ -296,22 +296,23 @@ of the total execution time is spent in `evaluateCek`; in contrast, the much
 longer-running primetest example spends 94% of its time there.  We should
 definitely try to make deserialisation as efficient as possible.  I've used CBOR
 here, but fortunately Radu's benchmarks suggest that `flat` deserialisation is
-generally faster, taking about 75-95% of the time required to deseralise CBOR.
+generally faster, taking about 75-95% of the time required to deserialise CBOR.
 
 Quite a lot of time seems to be spent looking up names in environments, and
 inserting new names (about 80% for crowdfunding, 60% for zerocoupon, 25% for
-primetest).  Using de Bruijn levels could help wtih this: we already know that
+primetest).  Using de Bruijn levels could help with this: we already know that
 de Bruijn _indices_ help to reduce script sizes, and presumably the same would
 apply for levels.  However, if we can compute directly with de Bruijn levels it
-mgiht be possible to look things up more rapidly: since we know in advance how
+might be possible to look things up more rapidly: since we know in advance how
 deep recursion will be I think we could pre-allocate an array of mutable
 variables to store the terms referred to by the levels, and this would allow
 constant-time retrieval and update.
 
-Anotheer thing to optimise would be execution of built-in functions, although
+Another thing to optimise would be execution of built-in functions, although
 this doesn't seem to occur very often in the validation examples.  In the
 crowdfunding example `applyTypeSchemed` isn't mentioned at all in the graph, and
 for zerocoupon it takes about 13%.  In the primetest example (which is doing a
-lot of computation) it takes about 34% of the evaluation time, but this is perhaps
-a rarther unrealistic example.
+lot of computation) it takes about 34% of the evaluation time, but this is
+perhaps a rather unrealistic example.  We should do some more profiling
+to investigate this.
 
