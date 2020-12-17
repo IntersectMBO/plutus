@@ -44,20 +44,21 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import Halogen.Monaco (monacoComponent)
+import Halogen.Monaco (Settings, monacoComponent)
 import Help (HelpContext(..), toHTML)
+import Language.Haskell.Monaco (languageExtensionPoint, refLabel)
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
-import Marlowe.Monaco (updateAdditionalContext)
+import Marlowe.Monaco (daylightTheme, updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
 import Marlowe.Symbolic.Types.Request as MSReq
-import Monaco (IMarker, isError, isWarning)
+import Monaco (Editor, IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -552,7 +553,23 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Hand
       monaco <- Monaco.getMonaco
       Monaco.setTheme monaco MM.daylightTheme.name
 
-  component = monacoComponent $ MM.settings setup
+  component = monacoComponent $ settings setup
+
+-- FIXME while doing the refactor this settigns were colliding with the marlowe. Delete
+settings :: forall m. (Editor -> m Unit) -> Settings m
+settings setup =
+  { languageExtensionPoint
+  , theme: Just daylightTheme
+  , monarchTokensProvider: Nothing
+  , tokensProvider: Nothing
+  , hoverProvider: Nothing
+  , completionItemProvider: Nothing
+  , codeActionProvider: Nothing
+  , documentFormattingEditProvider: Nothing
+  , refLabel
+  , owner: "marloweEditor"
+  , setup
+  }
 
 sidebar ::
   forall p.

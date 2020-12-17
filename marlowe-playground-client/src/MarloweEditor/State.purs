@@ -53,7 +53,14 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
   void $ traverse editorSetMarkers markers
-  -- QUESTION: Why do we need to update providers on every text change?
+  {-
+    There are three different Monaco objects that require the linting information:
+      * Markers
+      * Code completion (type aheads)
+      * Code suggestions (Quick fixes)
+     To avoid having to recalculate the linting multiple times, we add aditional context to the providers
+     whenever the code changes.
+  -}
   providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
   case providers of
     Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext

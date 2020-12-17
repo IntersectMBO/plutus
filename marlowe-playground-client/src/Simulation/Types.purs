@@ -355,7 +355,7 @@ type State
     -- FIXME: Remove selectedHole
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
-    , source :: Lang
+    , source :: Lang -- FIXME: change to Workflow (and probably in the MainFrame)
     , hasUnsavedChanges :: Boolean
     }
 
@@ -421,7 +421,7 @@ isContractValid state =
 
 data Action
   = Init
-  -- editor
+  -- editor (FIXME to MarloweEditor)
   | HandleEditorMessage Monaco.Message
   | HandleDragEvent DragEvent
   | HandleDropEvent DragEvent
@@ -431,7 +431,7 @@ data Action
   | SetEditorText String
   | InitMarloweProject String
   | MarkProjectAsSaved
-  -- marlowe actions
+  -- marlowe actions (FIXME to SimulationPage)
   | SetInitialSlot Slot
   | StartSimulation
   | MoveSlot Slot
@@ -442,19 +442,19 @@ data Action
   | ResetContract
   | ResetSimulator
   | Undo
-  | SelectHole (Maybe String)
+  | SelectHole (Maybe String) -- FIXME (check, but most likely MarloweEditor)
   -- simulation view
   | ChangeSimulationView BottomPanelView
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
   | ShowErrorDetail Boolean
-  -- Editors
+  -- Editors -- FIXME: split to both
   | SetBlocklyCode
-  | EditHaskell
+  | EditHaskell -- FIXME: change to EditSource (and use Workflow)
   | EditJavascript
   | EditActus
-  -- websocket
+  -- websocket -- FIXME to MarloweEditor
   | AnalyseContract
   | AnalyseReachabilityContract
   | Save
