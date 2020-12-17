@@ -290,7 +290,7 @@ idea of what's taking time in the basic CEK machine.
 
 ![crowdfunding/1: no budgeting](./cf1-no-budgeting.svg)
 
-For the two validation examples, much of the time is consumed by startup
+For the two validation examples much of the time is consumed by startup
 overhead: in both the crowdfunding example and the zerocoupon example only 25%
 of the total execution time is spent in `evaluateCek`; in contrast, the much
 longer-running primetest example spends 94% of its time there.  We should
@@ -298,7 +298,7 @@ definitely try to make deserialisation as efficient as possible.  I've used CBOR
 here, but fortunately Radu's benchmarks suggest that `flat` deserialisation is
 generally faster, taking about 75-95% of the time required to deserialise CBOR.
 
-Quite a lot of time seems to be spent looking up names in environments, and
+Quite a lot of time seems to be spent looking up names in environments and
 inserting new names (about 80% for crowdfunding, 60% for zerocoupon, 25% for
 primetest).  Using de Bruijn levels could help with this: we already know that
 de Bruijn _indices_ help to reduce script sizes, and presumably the same would
