@@ -139,7 +139,7 @@ case in the earlier results.
 
 What do svg files look like in markdown?
 
-### primetest/20digits: no budgeting
+### primetest/20digits
 
 ![primetest/20digits: no budgeting](./prime20-no-budgeting.svg)
 
@@ -147,4 +147,20 @@ What do svg files look like in markdown?
 
 ![primetest/20digits: Restricting mode](./prime20-restricting.svg)
 
+
+### crowdfunding/1
+
+![crowdfunding/1: no budgeting](./cf1-no-budgeting.svg)
+
+![crowdfunding/1: Counting mode](./cf1-counting.svg)
+
+![crowdfunding/1: Restricting mode](./cf1-restricting.svg)
+
+### marlowe/zerocoupon/1
+
+![marlowe/zerocoupon/1: no budgeting](./zc1-no-budgeting.svg)
+
+![marlowe/zerocoupon/1: Counting mode](./zc1-counting.svg)
+
+![marlowe/zerocoupon/1: Restricting mode](./zc1-restricting.svg)
 
