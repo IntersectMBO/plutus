@@ -1371,6 +1371,91 @@ the untyped CEK machine halts in the $\blacklozenge$ state.
 closure $C$ with $\discharge{C} = \erase{V}$.
 \end{itemize}
 
+\section{Serialisation}
+
+We use the flat format to serialise plutus terms. Flat encodes variant types as tagged unions,
+so for fully specifying the serialisation protocol we need to define:
+
+\begin{enumerate}
+  \item The size and number of tags available for each data type (terms, names, builtins and constants).
+  \item The exact values which identify datatype variants.
+  \item The encoding of lists (used when encoding constants).
+  \item The padding upto word boundaries.
+\end{enumerate}
+
+We have the following space reserved for tags in our data types:
+
+\begin{itemize}
+  \item \textrm{Terms} have 8 constructors, extensible to 16 and using 3 bits of storage.
+  \item \textrm{Builtins} have 25 constructors, extensible to 32 and using 5 bits of storage.
+  \item \textrm{Constants} have 5 possible types and are encoded as a list. Each element of the list is word sized.
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|c|c|l|}
+  \hline
+  \textrm{Name} & \textrm{Tag} & \textrm{Arguments} \\
+  \hline
+  Variable & 0 & name \\
+  Delay & 1 & term \\
+  Lambda abstraction & 2 & name, term \\
+  Application & 3 & term, term \\
+  Constant & 4 & constant \\
+  Force & 5 & term \\
+  Error & 6 & term \\
+  Builtin & 7 & builtin \\
+  \hline
+\end{tabular}
+\captionof{figure}{Untyped term tags}
+\label{fig:serialisation-terms}
+\end{minipage}
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+  \hline
+  \textrm{Name} & \textrm{Tag} & \textrm{Name} & \textrm{Tag} & \textrm{Name} & \textrm{Tag} \\
+  \hline
+   AddInteger & 0 & GreaterThanEqInteger & 8 & QuotientInteger & 17 \\
+   SubtractInteger & 1 & EqInteger & 9 & ModInteger & 18 \\
+   MultiplyInteger & 2 & Concatenate & 10 & LtByteString & 19 \\
+   DivideInteger & 3 & TakeByteString & 11 & GtByteString & 20 \\
+   RemainderInteger & 4 & DropByteString & 12 & IfThenElse & 21 \\
+   LessThanInteger & 5 & SHA2 & 13 & CharToString & 22 \\
+   LessThanEqInteger & 6 & SHA3 & 14 & Append & 23 \\
+   GreaterThanInteger & 7 & VerifySignature & 15 & Trace & 24 \\
+   & 0 & EqByteString & 16 & & 0 \\
+   \hline
+\end{tabular}
+\captionof{figure}{Builtin tags}
+\label{fig:serialisation-builtins}
+\end{minipage}
+
+\vspace{1cm}
+
+\begin{minipage}{\linewidth}
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  \textrm{Name} & \textrm{Tag} \\
+  \hline
+  Integer & 0 \\
+  ByteString & 1 \\
+  String & 2 \\
+  Char & 3 \\
+  Unit & 4 \\
+  Bool & 5 \\
+  \hline
+\end{tabular}
+\captionof{figure}{Constant tags}
+\label{fig:serialisation-constants}
+\end{minipage}
+
 \end{appendices}
 
 \bibliographystyle{plainnat} %% ... or whatever
