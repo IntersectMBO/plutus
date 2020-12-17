@@ -48,5 +48,5 @@ emptyState = { projects: NotAsked }
 _projects :: Lens' State (RemoteData String (Array Gist))
 _projects = prop (SProxy :: SProxy "projects")
 
-isLoading :: State -> Boolean
-isLoading = has (_projects <<< _Loading)
+modalIsLoading :: State -> Boolean
+modalIsLoading = has (_projects <<< _Loading)

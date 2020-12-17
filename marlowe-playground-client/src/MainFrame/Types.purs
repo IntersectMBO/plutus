@@ -3,6 +3,7 @@ module MainFrame.Types where
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
+import Data.BooleanAlgebra (not)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -27,7 +28,7 @@ import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
 import Network.RemoteData (_Loading)
 import NewProject.Types as NewProject
-import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($), (||))
+import Prelude (class Eq, class Show, Unit, eq, show, ($), (&&), (<<<), (||))
 import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename
@@ -270,15 +271,22 @@ currentLang state = case state ^. _view of
   _ -> Nothing
 
 -- This function checks wether some action that we triggered requires the global state to be present.
--- Initially the code to track this was thought to handle a global state that can be set from the
+-- Initially the code to track this was thought to handle a global boolean state that can be set from the
 -- different handleActions, but I wasn't able to set it to false once the Projects modal has completed
 -- loading the gists. The reason I wasn't able to do that is that we can't fire a MainFrame.handleAction
 -- from a submodule action.
--- The good thing is that "Save" now automatically uses the global indicator.
--- The downside is that the "Save as" modal now has a loading indicator in the button and
--- also in the overlay.
+-- The good thing is that this becomes a derived state and we got a global loading for "Save" automatically.
+-- The downside is that the logic is a little bit contrived. We may need to rethink when and why we use "_createGistResult"
 hasGlobalLoading :: State -> Boolean
-hasGlobalLoading state = Projects.isLoading (state ^. _projects) || has (_createGistResult <<< _Loading) state
+hasGlobalLoading state = Projects.modalIsLoading (state ^. _projects) || (projectIsLoadingOrSaving && not isSaveAsModal)
+  where
+  projectIsLoadingOrSaving = has (_createGistResult <<< _Loading) state
+
+  -- If Action -> ModalView had an Eq instance, we could replace isSaveAsModal with
+  -- has (_showModal <<< _Just <<< only SaveProjectAs) state
+  isSaveAsModal = case state ^. _showModal of
+    Just SaveProjectAs -> true
+    _ -> false
 
 -- editable
 _timestamp ::

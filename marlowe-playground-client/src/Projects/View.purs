@@ -21,7 +21,7 @@ import Marlowe.Gists (fileExists, filenames, playgroundGist)
 import Modal.ViewHelpers (modalHeaderWithClose)
 import Network.RemoteData (RemoteData(..))
 import Prim.TypeError (class Warn, Text)
-import Projects.Types (Action(..), Lang(..), State, _projects, isLoading)
+import Projects.Types (Action(..), Lang(..), State, _projects, modalIsLoading)
 import Text.Parsing.Parser (runParser)
 
 render ::
@@ -31,7 +31,7 @@ render ::
   State ->
   ComponentHTML Action ChildSlots m
 render state =
-  if isLoading state then
+  if modalIsLoading state then
     text mempty
   else
     div_
