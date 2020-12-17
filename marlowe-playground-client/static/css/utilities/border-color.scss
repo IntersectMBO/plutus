@@ -1,0 +1,15 @@
+/*
+  The names for these utilities are inspired from tailwind's
+  Border Color module, but the values are tailored with our
+  color pallete. If at some moment we need introduce to introduce
+  Tailwind to our build process, the colors can be customized
+  https://tailwindcss.com/docs/border-color#customizing
+*/
+
+.border-blue-300 {
+  border-color: var(--blue-300)
+}
+
+.active\:border-blue-700:active {
+  border-color: var(--blue-700)
+}

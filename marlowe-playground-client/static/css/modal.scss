@@ -48,8 +48,6 @@ without doing it as an Effect in a mainframe action
   overflow: auto;
 }
 
-
-
 .modal-header {
   padding: var(--small-margin) var(--medium-margin);
   box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.34);
@@ -70,12 +68,15 @@ without doing it as an Effect in a mainframe action
 // This sets the same line-height for the title
 // and the close button so they are horizontally aligned
 // even if they don't have the same parent
-.modal-close, .modal-header .title {
+.modal-close,
+.modal-header .title {
   @extend .text-xl;
 }
 
-
 .modal-content {
   padding: var(--medium-margin);
+}
 
+.modal .modal-error {
+  border: 1px solid var(--error-color);
 }

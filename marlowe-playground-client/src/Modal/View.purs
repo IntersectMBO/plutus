@@ -46,6 +46,7 @@ modal state = case state ^. _showModal of
 
   showCloseButton = case _ of
     (ConfirmUnsavedNavigation _) -> false
+    SaveProjectAs -> false
     _ -> true
 
   closeButton view children =

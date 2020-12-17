@@ -63,7 +63,7 @@ import Router as Router
 import Routing.Duplex as RD
 import Routing.Hash as Routing
 import SaveAs.State (handleAction) as SaveAs
-import SaveAs.Types (Action(..), State, _error, _projectName, emptyState) as SaveAs
+import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
@@ -477,20 +477,26 @@ handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
   modify_
     ( set _gistId Nothing
         <<< set _projectName projectName
+        <<< set (_saveAs <<< SaveAs._status) Loading
     )
   handleGistAction s PublishGist
   res <- peruse (_createGistResult <<< _Success)
   case res of
     Just gist -> do
       liftEffect $ LocalStorage.setItem gistIdLocalStorageKey (gist ^. (gistId <<< _GistId))
-      assign _showModal Nothing
+      modify_
+        ( set _showModal Nothing
+            <<< set (_saveAs <<< SaveAs._status) NotAsked
+        )
     Nothing ->
       modify_
-        ( set (_saveAs <<< SaveAs._error) (Just "Could not save project")
+        ( set (_saveAs <<< SaveAs._status) (Failure "Could not save project")
             <<< set _projectName currentName
             <<< set _gistId currentGistId
         )
   toSaveAs $ SaveAs.handleAction s action
+
+handleAction s (SaveAsAction SaveAs.Cancel) = fullHandleAction s CloseModal
 
 handleAction s (SaveAsAction action) = toSaveAs $ SaveAs.handleAction s action
 
