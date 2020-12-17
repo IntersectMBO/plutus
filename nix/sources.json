@@ -141,6 +141,7 @@
     },
     "thorp": {
         "branch": "master",
+        "builtin": false,
         "description": "Synchronisation of files with the cloud using the hash of the file contents",
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",
