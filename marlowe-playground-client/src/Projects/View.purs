@@ -37,13 +37,15 @@ render state =
     div_
       [ modalHeaderWithClose "Open Project" Cancel
       , div [ classes [ modalContent ] ]
-          [ body (view _projects state)
+          [ body playgroundGists
           ]
       ]
   where
+  playgroundGists = filter playgroundGist <$> state ^. _projects
+
   body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]
 
-  body (Success gists) = projectList $ filter playgroundGist gists
+  body (Success gists) = projectList gists
 
   body (Failure _) = span [ class_ (ClassName "error") ] [ text "Failed to load gists" ]
 
