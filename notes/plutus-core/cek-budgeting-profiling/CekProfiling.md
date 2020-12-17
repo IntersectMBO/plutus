@@ -10,9 +10,18 @@ time.  This document investigates what's going on.
 
 The (untyped) CEK machine in
 `plutus-core/untyped-plutus-core/Language/UntypedPlutusCore/Evaluation/Machine/Cek.hs`
-monitors execution costs by defining a type ``` data ExBudgetCategory fun =
-BForce | BApply | BVar | BBuiltin fun | BAST ``` with a constructor for each of
-the Plutus Core AST node types.  This implements the `SpendBudget` class from
+monitors execution costs by defining a type
+
+``` data ExBudgetCategory fun =
+    BForce
+  | BApply
+  | BVar
+  | BBuiltin fun
+  | BAST
+```
+
+with a constructor for each of the Plutus Core AST node types.  This implements
+the `SpendBudget` class from
 `Language.PlutusCore.Evaluation.Machine.ExBudgeting` which provides a
 `spendBudget` method which knows the CPU and memory costs of each operation. The
 machine can run in two modes: `Counting`, in which calling `spendBudget` adds
@@ -134,7 +143,9 @@ examples: the `crowdfunding/1` and `zerocoupon/1` validation benchmarks, and the
 mode and ran these examples once each. Some care is needed in interpreting the
 results because the programs were loaded in CBOR form and the reading and
 deserialisation time is included in the profiling information, which wasn't the
-case in the earlier results.
+case in the earlier results (I should have used `flat`, but it's too late now.
+I don't believe that'll have a significant effect on the results here because
+I've discounted deserialisation time in the discussions).
 
 Each benchmark was profiled in three budgeting modes: with all budgeting code
 removed, in Counting mode, and in Restricting mode (corresponding to columns A,
@@ -143,37 +154,164 @@ for each are shown below; these were obtained by building `plutus-core` with
 profiling turned on, then runnning the CEK machine with `stack exec --profile --
 plc evaluate <args> +RTS -p`; the `.prof` file produced by this was then
 converted into a flam graph using the `ghc-prof-flamegraph` command.  These are
-interactive SVG images: if you click on the image to open the underlying file
-and then click on `Raw` you can zoom in to specific parts of the image by
-clicking.  Unfortunately this doesn't seem to work when viewing the files on
-GitHub, but it does work if you use a browser to open the files in a local copy
-of the repository.
+interactive SVG images: you can hover over part of the graph to see what
+percentage of the execution time the relevant function consumes, and you can
+click to zoom in (click on `Reset Zoom` in the top left corner to zoom back
+out).  Unfortunately this doesn't seem to work when viewing the files on GitHub,
+but it does work if you use a browser to open the files in a local copy of the
+repository.
 
+The graphs for `Counting` and `Restricting` mode for each example are presented
+first since the budgeting overhead is what we're mostly interested in here, and
+we start with the `primetest/20digits` example because it runs for quite a long
+time and CBOR overhead is negligible.
+
+Graphs for no budgeting are included at the end, together with some comments
+on possible CEK machine optimisations which they suggest.
 
 
 
 ### primetest/20digits
 
-![primetest/20digits: no budgeting](./prime20-no-budgeting.svg)
-
 ![primetest/20digits: Counting mode](./prime20-counting.svg)
 
 ![primetest/20digits: Restricting mode](./prime20-restricting.svg)
 
+In `Counting` mode, `unsafeEvaluateCek` takes up 95.8% of the execution time,
+with the rest being accounted for by initialisation code, including setting up a
+tables of built-in function meanings.  `spendBudget` takes up a total of 11.25%
++ 53.45% = 64.7% of the execution time (there are two entries, one inside
+`Language.PlutusCore.Constant.Apply.applyTypeSchemed` (on the left) for costs of
+builtin functions, and a more ovbious one accounting for most of the right hand
+side of the graph).  This suggests that budgeting accounts for about 2/3 of the
+execution time, and this agrees well with the earlier table of benchmark results,
+which shows that this benchmark takes 989.9ms without budgeting and 2981.0ms with
+budgeting, an increase of 3x.
+
+In the main occurrence of `spendBudget`, the cost is mostly accounted for by three functions:
+
+  1. `Data.HashMap.Internal.Singleton`  (14.19% of total runtime)
+  2. `Data.Profunctor.Unsafe.#.` (28.17%)
+  3. `Language.PlutusCore.Evaluation.Machine.ExBudgeting.<>` (5.0%)
+
+The instance of `spendBudget` in `Cek.hs` begins
+
+```
+    spendBudget key budget = do
+        modifying exBudgetStateTally
+                (<> (ExTally (singleton key budget)))
+        newBudget <- exBudgetStateBudget <%= (<> budget)
+        ...
+```
+
+I'm guessing that item 1 comes from the use of `singleton` above, item 2 comes
+from the lens function `<%=` (zooming in on item 2 in the graph shows that it's
+calling `ExBudgeting.<>` again, presumably where it says `<> budget`), and item
+3 comes from `<> (ExTally (singleton key budget)`.
+
+The occurence of `spendBudget` on the left of the graph, where it's being called
+while executing builtins, is slightly different.  That accounts for 11.39% of
+the execution time, with `singleton` taking up 5.19% and `ExBudgeting.<>` taking
+1.7%; in this case, `Data.Profunctor.Unsafe.#.` takes only 0.3% whereas it took
+twice as long as `singleton` in the main usage of `spendBudget`.  I think this
+is using the same instance of `SpendBudget` as in `Cek.hs`, so I'm not sure why
+there's a discrepancy.  (
+
+The graph for `Restricting` mode is broadly similar, except that a total of
+11.5% (1.50% + 10.10%) of the execution time is consumed by
+`ExBudgeting.exceedsBudget`, which is called at the end of every invocation of
+`spendBudget` to check that the budget limits have not been exceeded.  There's
+some disagreement with the figures for this benchmark in the earlier table :
+there the mean execution time in `Counting` mode was 2981ms but in `Restricting`
+mode it was _less_, at 2882ms.  For all the other benchmarks `Restricting` took
+longer than `Counting`, as would be expected (on average, 3.3% longer)).
+
+
 
 ### crowdfunding/1
-
-![crowdfunding/1: no budgeting](./cf1-no-budgeting.svg)
 
 ![crowdfunding/1: Counting mode](./cf1-counting.svg)
 
 ![crowdfunding/1: Restricting mode](./cf1-restricting.svg)
 
-### marlowe/zerocoupon/1
+The crowdfunding validation example is much faster than the primality testing
+example (6.5ms vs. 2981ms in `Counting` mode).  In this case there's quite a lot
+of overhead from CBOR deserialisation and `evaluateCek`, the main function
+of the CEK machine, only takes 79.6% of the total evaluation time;  1.88% + 55.39%
+= 57.27% of the total evaluation time is consumed by `spendBudget`, which means that
+it occupies almost 72% of the CEK time. (This suggests that we could expect a slowdown
+of 1.0/0.28 = 3.57, but the slowdown in the table for the validation benchmarks is
+6.531/2.268 = 2.87; this roughly the same order of magnitude, but the correspondence
+is less accurate than for the primetest example.  We're dealing with very short
+preiods of time here, so perhaps we shouldn't expect high accuracy?)
 
-![marlowe/zerocoupon/1: no budgeting](./zc1-no-budgeting.svg)
+Again the majority of the budgeting time is spent in things related to hashmaps and
+`<>`.  Also, 7.42% of the total runtime is spent in `ExMemory.memoryusage`, which
+wasn't visible in the primetest example (closer examination of the profiling
+data suggests it took something like 0.6% of the execution time).  This is startup
+overhead: it's called when the initial AST is annotated with the memory usage of nodes
+(and I didn't remove this in the versions with `spendBudget` removed).
+
+The picture for `Restricting` mode is very similar to that for `Counting`.
+
+### marlowe/zerocoupon/1
 
 ![marlowe/zerocoupon/1: Counting mode](./zc1-counting.svg)
 
 ![marlowe/zerocoupon/1: Restricting mode](./zc1-restricting.svg)
+
+The graphs for the zerocoupon example are a little strange, with some
+data floating in midair.  This is for CBOR decoding functions called via
+typeclasses; I'm not sure why it's not attached to the main graph.
+
+The situation is broadly similar to the crowdfunding example.  The main
+CEK function `evaluateCek` takes 73.6% of the total evaluation time
+and `spendBudget` takes 40.7%  (29.7% + 1%), so it takes up 55%
+of the main CEK evaluation function (again, this would suggest a 2x slowdown,
+but we saw a 3.39x slowdown in the benchmark table).
+
+
+## Conclusions on budgeting
+
+It seems clear that budgeting is taking a lot of time in the CEK machine,
+particularly where hashmaps are used.  We should probably try to simplify things
+as much as possible, possibly using some other data structure and reducing the
+use of lenses, monads, and typeclasses.
+
+
+### No budgeting
+
+The graphs below show what happens when we have no budgeting, and so give some
+idea of what's taking time in the basic CEK machine.
+
+![marlowe/zerocoupon/1: no budgeting](./zc1-no-budgeting.svg)
+
+![primetest/20digits: no budgeting](./prime20-no-budgeting.svg)
+
+![crowdfunding/1: no budgeting](./cf1-no-budgeting.svg)
+
+For the two validation examples, much of the time is consumed by startup
+overhead: in both the crowdfunding example and the zerocoupon example only 25%
+of the total execution time is spent in `evaluateCek`; in contrast, the much
+longer-running primetest example spends 94% of its time there.  We should
+definitely try to make deserialisation as efficient as possible.  I've used CBOR
+here, but fortunately Radu's benchmarks suggest that `flat` deserialisation is
+generally faster, taking about 75-95% of the time required to deseralise CBOR.
+
+Quite a lot of time seems to be spent looking up names in environments, and
+inserting new names (about 80% for crowdfunding, 60% for zerocoupon, 25% for
+primetest).  Using de Bruijn levels could help wtih this: we already know that
+de Bruijn _indices_ help to reduce script sizes, and presumably the same would
+apply for levels.  However, if we can compute directly with de Bruijn levels it
+mgiht be possible to look things up more rapidly: since we know in advance how
+deep recursion will be I think we could pre-allocate an array of mutable
+variables to store the terms referred to by the levels, and this would allow
+constant-time retrieval and update.
+
+Anotheer thing to optimise would be execution of built-in functions, although
+this doesn't seem to occur very often in the validation examples.  In the
+crowdfunding example `applyTypeSchemed` isn't mentioned at all in the graph, and
+for zerocoupon it takes about 13%.  In the primetest example (which is doing a
+lot of computation) it takes about 34% of the evaluation time, but this is perhaps
+a rarther unrealistic example.
 
