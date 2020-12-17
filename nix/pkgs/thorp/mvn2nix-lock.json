@@ -145,11 +145,6 @@
       "sha256": "5566a0bb51dc994c0350206608c7b4cdcc9b66881497bab56a32c42edca53e79",
       "url": "https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-containers/1.7.1/plexus-containers-1.7.1.pom"
     },
-    "com.amazonaws:aws-java-sdk-core:jar:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-core/1.11.893/aws-java-sdk-core-1.11.893.jar",
-      "sha256": "1699aa86f65c2d7f42655bb381a38ef4e82da7a8794b7f9fd18e24f8f38c1a1c",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.893/aws-java-sdk-core-1.11.893.jar"
-    },
     "xpp3:xpp3_min:pom:1.1.4c": {
       "layout": "xpp3/xpp3_min/1.1.4c/xpp3_min-1.1.4c.pom",
       "sha256": "b5b46ac0c09da41b04dbc753456b48912856a7ffbb1490676910b510c471d13f",
@@ -159,6 +154,11 @@
       "layout": "net/kemitix/tiles/enforcer/2.7.0/enforcer-2.7.0.pom",
       "sha256": "1ee8a69d88c68c71ce14ee7ab3464793cad53ec7ac817b3adb23463641b02bd5",
       "url": "https://repo.maven.apache.org/maven2/net/kemitix/tiles/enforcer/2.7.0/enforcer-2.7.0.pom"
+    },
+    "com.amazonaws:aws-java-sdk-core:jar:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-core/1.11.897/aws-java-sdk-core-1.11.897.jar",
+      "sha256": "4d6423c86f7c2385439b5df3a17b83fa6b7e24b837b3c9878ae0fa5f172c4130",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.897/aws-java-sdk-core-1.11.897.jar"
     },
     "org.sonatype.plexus:plexus-cipher:pom:1.4": {
       "layout": "org/sonatype/plexus/plexus-cipher/1.4/plexus-cipher-1.4.pom",
@@ -930,6 +930,11 @@
       "sha256": "028d029948d0c83ca090173d1e31537f481beada8b1f138b71aed454978db89c",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-io/3.0.0/maven-shared-io-3.0.0.pom"
     },
+    "net.kemitix.aws:kemitix-aws-java-sdk-s3-wrapper:jar:1.11.897": {
+      "layout": "net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.897/kemitix-aws-java-sdk-s3-wrapper-1.11.897.jar",
+      "sha256": "e4b23ae523712fc4851319b216b6ba5c870c70945f017936766ef5dc1fc8bb2d",
+      "url": "https://repo.maven.apache.org/maven2/net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.897/kemitix-aws-java-sdk-s3-wrapper-1.11.897.jar"
+    },
     "org.apache.maven:maven-repository-metadata:jar:2.2.1": {
       "layout": "org/apache/maven/maven-repository-metadata/2.2.1/maven-repository-metadata-2.2.1.jar",
       "sha256": "5fe283f47b0e7f7d95a4252af3fa7a0db4d8f080cd9df308608c0472b8f168a1",
@@ -959,11 +964,6 @@
       "layout": "org/apache/maven/maven-project/2.2.1/maven-project-2.2.1.jar",
       "sha256": "24ddb65b7a6c3befb6267ce5f739f237c84eba99389265c30df67c3dd8396a40",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/maven-project/2.2.1/maven-project-2.2.1.jar"
-    },
-    "net.kemitix.aws:kemitix-aws-java-sdk-s3-wrapper:jar:1.11.893": {
-      "layout": "net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.893/kemitix-aws-java-sdk-s3-wrapper-1.11.893.jar",
-      "sha256": "9351a13b71c5a98efbe71a6f166b77604cfa6c84ac11659addd13ea2ad5c0384",
-      "url": "https://repo.maven.apache.org/maven2/net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.893/kemitix-aws-java-sdk-s3-wrapper-1.11.893.jar"
     },
     "org.apache.struts:struts-tiles:jar:1.3.8": {
       "layout": "org/apache/struts/struts-tiles/1.3.8/struts-tiles-1.3.8.jar",
@@ -1930,11 +1930,6 @@
       "sha256": "d8b27f9b6c6c0f75de9861a7b3a4d2e4e6b0c20459eb13015d855ec4870e9f40",
       "url": "https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.22/plexus-interpolation-1.22.pom"
     },
-    "com.amazonaws:aws-java-sdk-kms:pom:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-kms/1.11.893/aws-java-sdk-kms-1.11.893.pom",
-      "sha256": "c361b8a30f4cc58a482a6e3fe17516dd3494d0c44a3c14a02004914b38a00488",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-kms/1.11.893/aws-java-sdk-kms-1.11.893.pom"
-    },
     "org.codehaus.plexus:plexus-interpolation:pom:1.21": {
       "layout": "org/codehaus/plexus/plexus-interpolation/1.21/plexus-interpolation-1.21.pom",
       "sha256": "e078ac8780c6f2da5c11c5d2164bf2c2262112a89a82884de9c9886333267f7d",
@@ -1974,6 +1969,11 @@
       "layout": "org/codehaus/plexus/plexus-classworlds/1.2-alpha-9/plexus-classworlds-1.2-alpha-9.pom",
       "sha256": "224fe4d0c650f085c012f0a03c1995c598c7b5c506bc5350b727c75874330f00",
       "url": "https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-classworlds/1.2-alpha-9/plexus-classworlds-1.2-alpha-9.pom"
+    },
+    "com.amazonaws:aws-java-sdk-kms:pom:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-kms/1.11.897/aws-java-sdk-kms-1.11.897.pom",
+      "sha256": "392c546e0bb13e7b22a6e2a0fe5afe956859928193b4c08ede23fc71205fa355",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-kms/1.11.897/aws-java-sdk-kms-1.11.897.pom"
     },
     "org.easymock:easymock:pom:2.4": {
       "layout": "org/easymock/easymock/2.4/easymock-2.4.pom",
@@ -2210,11 +2210,6 @@
       "sha256": "b6aca6465a28b027686f025d57702f90ad0d128e14d1cfceca0bd871f0084ad9",
       "url": "https://repo.maven.apache.org/maven2/commons-beanutils/commons-beanutils/1.7.0/commons-beanutils-1.7.0.pom"
     },
-    "com.amazonaws:aws-java-sdk-kms:jar:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-kms/1.11.893/aws-java-sdk-kms-1.11.893.jar",
-      "sha256": "d19999ae6d5a5eca8089da4d807209ce5baf7afd8c0892bece1150de9e383a2a",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-kms/1.11.893/aws-java-sdk-kms-1.11.893.jar"
-    },
     "org.sonatype.aether:aether:pom:1.13.1": {
       "layout": "org/sonatype/aether/aether/1.13.1/aether-1.13.1.pom",
       "sha256": "719fe091fd3fe4c6a7b8f69c8714935138b85a2b6145068a1ccfdb57d2e500d1",
@@ -2234,6 +2229,11 @@
       "layout": "org/ow2/asm/asm/7.3.1/asm-7.3.1.pom",
       "sha256": "eacdcd500d6527e963888daeda31923e4bc241a25424dcc38acca2e601e7fde2",
       "url": "https://repo.maven.apache.org/maven2/org/ow2/asm/asm/7.3.1/asm-7.3.1.pom"
+    },
+    "com.amazonaws:aws-java-sdk-kms:jar:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-kms/1.11.897/aws-java-sdk-kms-1.11.897.jar",
+      "sha256": "2158a784898abdceaaf93be1a2c47b09c99ca749719377ec00083d81439c8108",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-kms/1.11.897/aws-java-sdk-kms-1.11.897.jar"
     },
     "org.apache.maven.resolver:maven-resolver-util:pom:1.4.1": {
       "layout": "org/apache/maven/resolver/maven-resolver-util/1.4.1/maven-resolver-util-1.4.1.pom",
@@ -2270,11 +2270,6 @@
       "sha256": "48b9144e8421761d5a47c6cb9a881c9a32bba2d8646e871e049d169b7a370e07",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/scm/maven-scm-provider-git-commons/1.3/maven-scm-provider-git-commons-1.3.pom"
     },
-    "com.amazonaws:jmespath-java:pom:1.11.893": {
-      "layout": "com/amazonaws/jmespath-java/1.11.893/jmespath-java-1.11.893.pom",
-      "sha256": "5cca7ef2b501ca3a344292031d7511e272fdb1c7164f32e161ff5d7e370973e2",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/jmespath-java/1.11.893/jmespath-java-1.11.893.pom"
-    },
     "org.apache.maven:maven-settings-builder:pom:3.3.9": {
       "layout": "org/apache/maven/maven-settings-builder/3.3.9/maven-settings-builder-3.3.9.pom",
       "sha256": "74c4de94135d61fc11e18651380e6d9f33787e3c635daf8293ed1f9ff4e381e8",
@@ -2299,6 +2294,11 @@
       "layout": "org/projectlombok/lombok/1.18.16/lombok-1.18.16.pom",
       "sha256": "34353bdceac715ac005aa8bcb89930cde3897ba9fc61280c1f1c0e7863de941c",
       "url": "https://repo.maven.apache.org/maven2/org/projectlombok/lombok/1.18.16/lombok-1.18.16.pom"
+    },
+    "com.amazonaws:jmespath-java:pom:1.11.897": {
+      "layout": "com/amazonaws/jmespath-java/1.11.897/jmespath-java-1.11.897.pom",
+      "sha256": "148aa4d406e6c73b8eb659bd1ec29afb9bcf66fe4cff29b90a38c476352786db",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/jmespath-java/1.11.897/jmespath-java-1.11.897.pom"
     },
     "org.apache.maven:maven-repository-metadata:pom:2.2.1": {
       "layout": "org/apache/maven/maven-repository-metadata/2.2.1/maven-repository-metadata-2.2.1.pom",
@@ -2950,15 +2950,15 @@
       "sha256": "59721f0805e223d84b90677887d9ff567dc534d7c502ca903c0c2b17f05c116a",
       "url": "https://repo.maven.apache.org/maven2/junit/junit/4.12/junit-4.12.jar"
     },
-    "org.assertj:assertj-core:jar:3.18.0": {
-      "layout": "org/assertj/assertj-core/3.18.0/assertj-core-3.18.0.jar",
-      "sha256": "282a661e525fcd42ee471a7d6dc422d18092c7e580696f7de8867c165f54ed36",
-      "url": "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.18.0/assertj-core-3.18.0.jar"
-    },
     "com.sun.jersey:jersey-client:jar:1.17.1": {
       "layout": "com/sun/jersey/jersey-client/1.17.1/jersey-client-1.17.1.jar",
       "sha256": "f4b805760be9edfef9680f4affd39180316d7e93dee39ef5c1f240e38012ae61",
       "url": "https://repo.maven.apache.org/maven2/com/sun/jersey/jersey-client/1.17.1/jersey-client-1.17.1.jar"
+    },
+    "org.assertj:assertj-core:jar:3.18.1": {
+      "layout": "org/assertj/assertj-core/3.18.1/assertj-core-3.18.1.jar",
+      "sha256": "721aba451a5b1019986d38c728327173b116d961c637cae15aedcf524baddfd5",
+      "url": "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.18.1/assertj-core-3.18.1.jar"
     },
     "org.junit.platform:junit-platform-commons:jar:1.6.2": {
       "layout": "org/junit/platform/junit-platform-commons/1.6.2/junit-platform-commons-1.6.2.jar",
@@ -3110,15 +3110,15 @@
       "sha256": "62dd8e35a2c4432bb22f8250bbfe08639635599b4064d5d747bd24cf3c02fac5",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/2.2.1/maven-model-2.2.1.pom"
     },
+    "com.amazonaws:aws-java-sdk-pom:pom:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-pom/1.11.897/aws-java-sdk-pom-1.11.897.pom",
+      "sha256": "b580462e419f6bf3793f215cbfca63e8ad848bbf612fa2dc81a10e23b664fd9f",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-pom/1.11.897/aws-java-sdk-pom-1.11.897.pom"
+    },
     "org.apache.maven:maven-artifact:pom:2.0.2": {
       "layout": "org/apache/maven/maven-artifact/2.0.2/maven-artifact-2.0.2.pom",
       "sha256": "0123d59dd14fa00b8a50eb299bf59945dbd824b6deec43823e2612151ca38c17",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/2.0.2/maven-artifact-2.0.2.pom"
-    },
-    "com.amazonaws:aws-java-sdk-pom:pom:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-pom/1.11.893/aws-java-sdk-pom-1.11.893.pom",
-      "sha256": "84846ec570aa2e347a51c7b6d6081a7d679c5429a074b036c20f07e3622e17fc",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-pom/1.11.893/aws-java-sdk-pom-1.11.893.pom"
     },
     "net.bytebuddy:byte-buddy:jar:1.10.15": {
       "layout": "net/bytebuddy/byte-buddy/1.10.15/byte-buddy-1.10.15.jar",
@@ -3285,6 +3285,11 @@
       "sha256": "759ff889a33d9c82ce6074a7c8fca390a5932e082d00cbea8dd4355d457aa93d",
       "url": "https://repo.maven.apache.org/maven2/org/apache/felix/maven-bundle-plugin/4.2.0/maven-bundle-plugin-4.2.0.pom"
     },
+    "com.amazonaws:aws-java-sdk-core:pom:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-core/1.11.897/aws-java-sdk-core-1.11.897.pom",
+      "sha256": "831b6351af63bd7ec5bf62bfc3cd9e7e94861439aba063c445dfbc1bd0682b65",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.897/aws-java-sdk-core-1.11.897.pom"
+    },
     "org.apache.commons:commons-parent:pom:11": {
       "layout": "org/apache/commons/commons-parent/11/commons-parent-11.pom",
       "sha256": "b9e0306f393460105b8a3fa5105250c5291b1efaa99954ace0ec1c783109a02a",
@@ -3294,11 +3299,6 @@
       "layout": "org/objenesis/objenesis-parent/2.2/objenesis-parent-2.2.pom",
       "sha256": "fe0a4d482cddaf2eeab57c834f2463e151788e3b762f67abd5faef73516bc932",
       "url": "https://repo.maven.apache.org/maven2/org/objenesis/objenesis-parent/2.2/objenesis-parent-2.2.pom"
-    },
-    "com.amazonaws:aws-java-sdk-core:pom:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-core/1.11.893/aws-java-sdk-core-1.11.893.pom",
-      "sha256": "59241f1076ebbafd36bd1eaab86d8f8988e076b76ffcaa362e55d19dd8043a51",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-core/1.11.893/aws-java-sdk-core-1.11.893.pom"
     },
     "org.apache.httpcomponents:httpcomponents-parent:pom:11": {
       "layout": "org/apache/httpcomponents/httpcomponents-parent/11/httpcomponents-parent-11.pom",
@@ -4060,10 +4060,10 @@
       "sha256": "259d528a29722cab6349d7e7d432e3fd4877c087ffcb04985a6612e97023bba8",
       "url": "https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-classworlds/2.4/plexus-classworlds-2.4.jar"
     },
-    "org.assertj:assertj-core:pom:3.18.0": {
-      "layout": "org/assertj/assertj-core/3.18.0/assertj-core-3.18.0.pom",
-      "sha256": "6cc60c3dcfc49b98b05e4538f633927d5cd0b9b4dca5294ff77cc761dc828957",
-      "url": "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.18.0/assertj-core-3.18.0.pom"
+    "org.assertj:assertj-core:pom:3.18.1": {
+      "layout": "org/assertj/assertj-core/3.18.1/assertj-core-3.18.1.pom",
+      "sha256": "c98e3addb2ed242645d902ea271c68dadfab0cfcc51f6bcc8d816af11926a20b",
+      "url": "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.18.1/assertj-core-3.18.1.pom"
     },
     "org.antlr:antlr4-runtime:jar:4.7": {
       "layout": "org/antlr/antlr4-runtime/4.7/antlr4-runtime-4.7.jar",
@@ -4090,15 +4090,15 @@
       "sha256": "9675906bddadebf6bc88b3c90b0bc80cc299a82942876ccfa67d909a75a903f5",
       "url": "https://repo.maven.apache.org/maven2/org/osgi/org.osgi.core/4.1.0/org.osgi.core-4.1.0.pom"
     },
+    "net.kemitix.aws:kemitix-aws-java-sdk-s3-wrapper:pom:1.11.897": {
+      "layout": "net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.897/kemitix-aws-java-sdk-s3-wrapper-1.11.897.pom",
+      "sha256": "51e01ac739d7e0a93fd333b3b868b0a2c6e735eddac254aa555d3007261f368c",
+      "url": "https://repo.maven.apache.org/maven2/net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.897/kemitix-aws-java-sdk-s3-wrapper-1.11.897.pom"
+    },
     "org.apache.maven.doxia:doxia-module-apt:pom:1.0": {
       "layout": "org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.pom",
       "sha256": "4e21576d0ca654101e048e54fc2dc5375ae9f4a433b5cee0a95110f6fbbcbb39",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-module-apt/1.0/doxia-module-apt-1.0.pom"
-    },
-    "net.kemitix.aws:kemitix-aws-java-sdk-s3-wrapper:pom:1.11.893": {
-      "layout": "net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.893/kemitix-aws-java-sdk-s3-wrapper-1.11.893.pom",
-      "sha256": "f51ce6f46aa96343fe2b9413649875e66256f3283e43f6c88e53f5c75b341f9e",
-      "url": "https://repo.maven.apache.org/maven2/net/kemitix/aws/kemitix-aws-java-sdk-s3-wrapper/1.11.893/kemitix-aws-java-sdk-s3-wrapper-1.11.893.pom"
     },
     "org.sonatype.sisu.siesta:siesta-jackson:jar:1.7": {
       "layout": "org/sonatype/sisu/siesta/siesta-jackson/1.7/siesta-jackson-1.7.jar",
@@ -4124,6 +4124,11 @@
       "layout": "org/apache/maven/shared/maven-dependency-tree/2.2/maven-dependency-tree-2.2.jar",
       "sha256": "1672dc69008e72e0785ebc7ba605bf854d20d56e8b6b62ce3c14b7b03cf377f1",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-dependency-tree/2.2/maven-dependency-tree-2.2.jar"
+    },
+    "org.junit:junit-bom:pom:5.6.3": {
+      "layout": "org/junit/junit-bom/5.6.3/junit-bom-5.6.3.pom",
+      "sha256": "ee7fe2e2a6e16792aed486a0d0a6bbc238e9b8a9b764722894e835cfe2f4cc20",
+      "url": "https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.6.3/junit-bom-5.6.3.pom"
     },
     "joda-time:joda-time:pom:2.8.1": {
       "layout": "joda-time/joda-time/2.8.1/joda-time-2.8.1.pom",
@@ -5000,11 +5005,6 @@
       "sha256": "878c40d7d74624fbaa28c614ccff3c82fa8cedfd33d4bc510627fdc7fe246310",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/maven-model-builder/3.3.9/maven-model-builder-3.3.9.pom"
     },
-    "com.amazonaws:jmespath-java:jar:1.11.893": {
-      "layout": "com/amazonaws/jmespath-java/1.11.893/jmespath-java-1.11.893.jar",
-      "sha256": "ce6ec37b115439e1614a850805283ad01394fac21f8a08e4b58235cbc3b34ef9",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/jmespath-java/1.11.893/jmespath-java-1.11.893.jar"
-    },
     "org.codehaus.plexus:plexus-interpolation:jar:1.25": {
       "layout": "org/codehaus/plexus/plexus-interpolation/1.25/plexus-interpolation-1.25.jar",
       "sha256": "e003802501574637f7abdc4e83e6d509a31e9ff825d12da6d1e419acf9688705",
@@ -5090,20 +5090,25 @@
       "sha256": "9c50ff65fb7ee9045bcf94eea07d4451d13acee678387de82547cddc4d05aae9",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-compiler-plugin/3.8.1/maven-compiler-plugin-3.8.1.pom"
     },
+    "com.amazonaws:aws-java-sdk-s3:jar:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-s3/1.11.897/aws-java-sdk-s3-1.11.897.jar",
+      "sha256": "4f0a4c2c982e11eccc6f90248eb46db35006347f33b8adf249cb6b851502bc6f",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-s3/1.11.897/aws-java-sdk-s3-1.11.897.jar"
+    },
     "org.apache.maven.shared:maven-filtering:pom:3.1.1": {
       "layout": "org/apache/maven/shared/maven-filtering/3.1.1/maven-filtering-3.1.1.pom",
       "sha256": "e3a57b487aeac4bb9411bb6d11ba3e655585c389cff0085372c973b418431c73",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-filtering/3.1.1/maven-filtering-3.1.1.pom"
     },
-    "com.amazonaws:aws-java-sdk-s3:jar:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-s3/1.11.893/aws-java-sdk-s3-1.11.893.jar",
-      "sha256": "e189097b5a69b27e78a4cf4da80fbfae0303f12603c1bc0c570722ac078b77bd",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-s3/1.11.893/aws-java-sdk-s3-1.11.893.jar"
-    },
     "org.apache.maven.wagon:wagon-provider-api:jar:1.0": {
       "layout": "org/apache/maven/wagon/wagon-provider-api/1.0/wagon-provider-api-1.0.jar",
       "sha256": "b28dd1302ac34433d8d1b45fb254e093cd7b47277441af2018c8a3a4d8c1a60d",
       "url": "https://repo.maven.apache.org/maven2/org/apache/maven/wagon/wagon-provider-api/1.0/wagon-provider-api-1.0.jar"
+    },
+    "com.amazonaws:jmespath-java:jar:1.11.897": {
+      "layout": "com/amazonaws/jmespath-java/1.11.897/jmespath-java-1.11.897.jar",
+      "sha256": "3c38162fa1fef2c9b1e7e31a9312d2a8469d5dc6a3f9f21dd99a724b18c47524",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/jmespath-java/1.11.897/jmespath-java-1.11.897.jar"
     },
     "org.apache.maven:maven-plugin-registry:pom:2.0.6": {
       "layout": "org/apache/maven/maven-plugin-registry/2.0.6/maven-plugin-registry-2.0.6.pom",
@@ -6090,11 +6095,6 @@
       "sha256": "c6e6887988ca316556762b86ab60ecb644980474d9124a6f2b0edce7f34309d2",
       "url": "https://repo.maven.apache.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.6.2/junit-jupiter-engine-5.6.2.pom"
     },
-    "com.amazonaws:aws-java-sdk-s3:pom:1.11.893": {
-      "layout": "com/amazonaws/aws-java-sdk-s3/1.11.893/aws-java-sdk-s3-1.11.893.pom",
-      "sha256": "c17d4c3e8b0e9612fb2f787b153deffbdef2e6e2f050bd1956a128462fc29f2a",
-      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-s3/1.11.893/aws-java-sdk-s3-1.11.893.pom"
-    },
     "org.apache.maven:maven-plugin-descriptor:jar:2.0.6": {
       "layout": "org/apache/maven/maven-plugin-descriptor/2.0.6/maven-plugin-descriptor-2.0.6.jar",
       "sha256": "e6e99e03921e576358e24a797e3034d0587ad08dac8ebf78b3fcf3e1a96a37d9",
@@ -6104,6 +6104,11 @@
       "layout": "org/apache/velocity/velocity-tools/2.0/velocity-tools-2.0.pom",
       "sha256": "b12f13ab462281d48c573acabf124e067a9d49e65ec72b27597db9e91f721b95",
       "url": "https://repo.maven.apache.org/maven2/org/apache/velocity/velocity-tools/2.0/velocity-tools-2.0.pom"
+    },
+    "com.amazonaws:aws-java-sdk-s3:pom:1.11.897": {
+      "layout": "com/amazonaws/aws-java-sdk-s3/1.11.897/aws-java-sdk-s3-1.11.897.pom",
+      "sha256": "7c88fa6f869707bed04b92a1a6baa40f9ab42b7acf9acea4a50db96827193902",
+      "url": "https://repo.maven.apache.org/maven2/com/amazonaws/aws-java-sdk-s3/1.11.897/aws-java-sdk-s3-1.11.897.pom"
     },
     "org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.2": {
       "layout": "org/eclipse/sisu/org.eclipse.sisu.inject/0.3.2/org.eclipse.sisu.inject-0.3.2.jar",

@@ -51,6 +51,7 @@
     },
     "mvn2nix": {
         "branch": "master",
+        "builtin": false,
         "description": "Easily package your Maven Java application with the Nix package manager.",
         "homepage": "",
         "owner": "fzakaria",
@@ -140,6 +141,7 @@
     },
     "thorp": {
         "branch": "master",
+        "builtin": false,
         "description": "Synchronisation of files with the cloud using the hash of the file contents",
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",

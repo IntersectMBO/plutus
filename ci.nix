@@ -69,6 +69,9 @@ let
           # build the shell expression to be sure it works on all platforms
           shell = import ./shell.nix { inherit packages; };
 
+          # build deployment tools
+          inherit (plutus) thorp;
+
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs (mkHaskellDimension pkgs plutus.haskell.projectPackages);
         };
