@@ -171,4 +171,9 @@ sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 sub⋆-cong p missing     = refl
+
+sub-cons : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → ScopedTm w' →
+  Sub (S w) w'
+sub-cons σ t Z     = t
+sub-cons σ t (S x) = σ x  
 \end{code}

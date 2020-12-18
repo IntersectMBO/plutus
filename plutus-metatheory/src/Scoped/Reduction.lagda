@@ -29,62 +29,10 @@ infix 2 _—→_
 \end{code}
 
 \begin{code}
-data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
-  V-ƛ : ∀ (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ A t)
-  V-Λ : ∀ {K}(t : ScopedTm (T w)) → Value (Λ K t)
-  V-con : (tcn : TermCon) → Value (con {n} tcn)
-  V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
-  V-builtin : (b : Builtin)
-            → (t : ScopedTm w)
-            → Value t
-  V-builtin⋆ : (b : Builtin)
-             → (t : ScopedTm w)
-             → Value t
-
-voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
-voidVal w = V-con {w = w} unit
-
-open import Data.Unit
-VTel : ∀{n} m (w : Weirdℕ n) → Tel w m → Set
-VTel 0       w []       = ⊤
-VTel (suc m) w (t ∷ ts) = Value t × VTel m w ts
-
--- a term that satisfies this predicate has an error term in it somewhere
--- or we encountered a rumtime type error
-data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
-   -- a genuine runtime error returned from a builtin
-   E-error : (A : ScopedTy n) → Error (error A)
-
-data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel w m → Set
-  where
-  here  : ∀{m t}{ts : Tel w m} → P t → Any P (t ∷ ts)
-  there : ∀{m t}{ts : Tel w m} → Value t → Any P ts → Any P (t ∷ ts)
-
-VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
-VERIFYSIG (just false) = con (bool false)
-VERIFYSIG (just true)  = con (bool true)
-VERIFYSIG nothing      = error (con bool)
-
-{-
 data _≤W'_ {n}(w : Weirdℕ n) : ∀{n'} → Weirdℕ n' → Set where
  base : w ≤W' w
  skipT : ∀{n'}{w' : Weirdℕ n'} → (T w) ≤W' w' → w ≤W' w'
  skipS : ∀{n'}{w' : Weirdℕ n'} → (S w) ≤W' w' → w ≤W' w'
--}
-open import Data.List using (List;[];_∷_)
-open import Type using (Kind)
-data _≤W'_ : ℕ → ℕ → Set where
- base : 0 ≤W' 0
- skip : ∀{n n'} → Kind → ℕ.suc n ≤W' n' → n ≤W' n'
-
-
-sig2type⇒ : ∀{Φ} → List (ScopedTy Φ) → ScopedTy Φ → ScopedTy Φ
-sig2type⇒ []       C = C
-sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
-
-sig2type' : ∀{Φ Φ'} → Φ ≤W' Φ' → List (ScopedTy Φ') → ScopedTy Φ' → ScopedTy Φ
-sig2type' base       As C = sig2type⇒ As C
-sig2type' (skip K p) As C = Π K (sig2type' p As C)
 
 -- the number of arguments for builtin, type arguments and then term
 -- arguments type arguments and term arguments can be interspersed
@@ -112,6 +60,84 @@ ISIG ifThenElse = 1 , S (S (T Z))
 ISIG charToString = 0 , S (S Z)
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
+
+data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
+  V-ƛ : ∀ (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ A t)
+  V-Λ : ∀ {K}(t : ScopedTm (T w)) → Value (Λ K t)
+  V-con : (tcn : TermCon) → Value (con {n} tcn)
+  V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
+  V-builtin : (b : Builtin)
+            → (t : ScopedTm w)
+            → ∀{m m'}{v : Weirdℕ m}{v' : Weirdℕ m'}
+            -- the next arg expected is a term arg
+            → let m'' , v'' = ISIG b in
+              (p : m' ≡ m'')
+            → (q : subst Weirdℕ p v' ≡ v'')
+            → S v ≤W' v'
+            → Sub v w
+            → Value t
+  V-builtin⋆ : (b : Builtin)
+             → (t : ScopedTm w)
+             -- the next arg expected is a type arg
+             → Value t
+
+--we could process the arity of t...
+
+
+-- (b : Builtin) → Sub v' w → v < snd (ISIG b)
+
+voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
+voidVal w = V-con {w = w} unit
+
+deval : ∀{n}{w : Weirdℕ n}{t : ScopedTm w} → Value t → ScopedTm w
+deval {t = t} v = t
+
+open import Data.Unit
+VTel : ∀{n} m (w : Weirdℕ n) → Tel w m → Set
+VTel 0       w []       = ⊤
+VTel (suc m) w (t ∷ ts) = Value t × VTel m w ts
+
+-- a term that satisfies this predicate has an error term in it somewhere
+-- or we encountered a rumtime type error
+data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
+   -- a genuine runtime error returned from a builtin
+   E-error : (A : ScopedTy n) → Error (error A)
+
+data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel w m → Set
+  where
+  here  : ∀{m t}{ts : Tel w m} → P t → Any P (t ∷ ts)
+  there : ∀{m t}{ts : Tel w m} → Value t → Any P ts → Any P (t ∷ ts)
+
+VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
+VERIFYSIG (just false) = con (bool false)
+VERIFYSIG (just true)  = con (bool true)
+VERIFYSIG nothing      = error (con bool)
+
+open import Data.List using (List;[];_∷_)
+open import Type using (Kind)
+
+{-
+data _≤W'_ : ℕ → ℕ → Set where
+ base : 0 ≤W' 0
+ skip : ∀{n n'} → Kind → ℕ.suc n ≤W' n' → n ≤W' n'
+
+
+sig2type⇒ : ∀{Φ} → List (ScopedTy Φ) → ScopedTy Φ → ScopedTy Φ
+sig2type⇒ []       C = C
+sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
+
+sig2type' : ∀{Φ Φ'} → Φ ≤W' Φ' → List (ScopedTy Φ') → ScopedTy Φ' → ScopedTy Φ
+sig2type' base       As C = sig2type⇒ As C
+sig2type' (skip K p) As C = Π K (sig2type' p As C)
+-}
+
+IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → Sub (proj₂ (ISIG b)) w → ScopedTm w
+IBUILTIN b σ = {!!}
+
+IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : n' ≡ proj₁ (ISIG b)) → subst Weirdℕ p w' ≡ proj₂ (ISIG b) → Sub w' w → ScopedTm w
+IBUILTIN' = {!!}
+
+
 
 -- this is currently in reverse order...
 BUILTIN : ∀{n}{w : Weirdℕ n}
@@ -268,7 +294,9 @@ progress·V (V-con tcn)           (done v)            = step E-con·
 progress·V (V-wrap A B t)        (done v)            = step E-wrap·
 progress·V (V-builtin⋆ b t)   (done v)            =
   {!!} --  step (E-builtin⋆· b As q _)
-progress·V (V-builtin b t) (done v)            = {!!} -- step sat-builtin
+progress·V (V-builtin b t p q base σ) (done v) = step {! IBUILTIN' b p q ? !}
+progress·V (V-builtin b t p q (skipT r) σ) (done v) = done {!V-built!}
+progress·V (V-builtin b t p q (skipS r) σ) (done v) = done (V-builtin b (t · deval v) p q r (sub-cons σ (deval v)))
 
 progress· : ∀{n}{i : Weirdℕ n}
   → {t : ScopedTm i} → Progress t
@@ -286,7 +314,7 @@ progress·⋆ (done (V-Λ p))               A = step β-Λ
 progress·⋆ (done (V-con tcn))           A = step E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))    A = step E-wrap·⋆
 progress·⋆ (done (V-builtin⋆ b t))   A = {!!} -- step sat⋆-builtin
-progress·⋆ (done (V-builtin b t)) A = {!!} -- step E-builtin·⋆
+progress·⋆ (done (V-builtin b t p q r s)) A = {!!} -- step E-builtin·⋆
 
 progress·⋆ (error (E-error A))          B = step E-·⋆
 
@@ -297,7 +325,7 @@ progress-unwrap (done (V-ƛ A t))             = step E-ƛunwrap
 progress-unwrap (done (V-Λ p))               = step E-Λunwrap
 progress-unwrap (done (V-con tcn))           = step E-conunwrap
 progress-unwrap (done (V-wrap A B v))        = step (β-wrap v)
-progress-unwrap (done (V-builtin b t)) = {!!} -- step E-builtinunwrap
+progress-unwrap (done (V-builtin b t p q r s)) = {!!} -- step E-builtinunwrap
 progress-unwrap (done (V-builtin⋆ b t))   = {!!} -- step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
