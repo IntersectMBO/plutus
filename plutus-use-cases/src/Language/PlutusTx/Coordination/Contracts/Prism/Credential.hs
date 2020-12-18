@@ -23,7 +23,7 @@ import qualified Language.PlutusTx                                     as Plutus
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import           Language.PlutusTx.Prelude
 import           Ledger.Crypto                                         (PubKeyHash)
-import           Ledger.Scripts                                        (MonetaryPolicy, mkMonetaryPolicyScript,
+import           Ledger.Scripts                                        (MonetaryPolicy, mkMonetaryPolicyScript',
                                                                         monetaryPolicyHash)
 import qualified Ledger.Typed.Scripts                                  as Scripts
 import           Ledger.Validation                                     (PolicyCtx (..), txSignedBy)
@@ -58,10 +58,9 @@ validateForge CredentialAuthority{unCredentialAuthority} PolicyCtx{policyCtxTxIn
     txinfo `txSignedBy` unCredentialAuthority
 
 policy :: CredentialAuthority -> MonetaryPolicy
-policy credential = mkMonetaryPolicyScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validateForge c) ||])
-        `PlutusTx.applyCode`
-            PlutusTx.liftCode credential
+policy = mkMonetaryPolicyScript' p . PlutusTx.liftCode
+  where
+    p = $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validateForge c) ||])
 
 -- | A single credential of the given name
 token :: Credential -> Value

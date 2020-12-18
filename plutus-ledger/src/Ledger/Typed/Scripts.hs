@@ -12,7 +12,7 @@ module Ledger.Typed.Scripts(
     , Validator
     , ScriptInstance
     , MonetaryPolicy
-    , validator
+    , validator, validator'
     , scriptHash
     , scriptAddress
     , validatorScript
@@ -67,6 +67,30 @@ validator vc wrapper =
         , instanceMPS     = mps
         , instanceMPSHash = Ledger.Scripts.monetaryPolicyHash mps
         }
+
+-- | The 'ScriptInstance' of a validator script and its wrapper.
+validator' :: forall a b.
+    CompiledCode (b -> ValidatorType a)
+    -- ^ Validator script (compiled)
+    -> CompiledCode (ValidatorType a -> WrappedValidatorType)
+    -- ^ A wrapper for the compiled validator
+    -> CompiledCode b
+    -- ^ Validator script argument (compiled)
+    -> ScriptInstance a
+validator' vc wrapper = \ vcarg ->
+    let argS  = fromCompiledCode vcarg
+        val = mkValidatorScript' $ wrapS `applyScript` (valS `applyScript` argS)
+        hsh = validatorHash val
+        mps = forwardingMPS hsh
+    in Validator
+        { instanceScript  = val
+        , instanceHash    = hsh
+        , instanceMPS     = mps
+        , instanceMPSHash = Ledger.Scripts.monetaryPolicyHash mps
+        }
+    where
+        wrapS = fromCompiledCode wrapper
+        valS  = fromCompiledCode vc
 
 -- | The script's 'ValidatorHash'
 scriptHash :: ScriptInstance a -> ValidatorHash

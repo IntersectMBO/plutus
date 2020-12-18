@@ -23,17 +23,20 @@ module Ledger.Scripts(
     Script (..),
     scriptSize,
     fromCompiledCode,
+    applyScript,
     ScriptError (..),
     evaluateScript,
     runScript,
     runMonetaryPolicyScript,
     -- * Script wrappers
     mkValidatorScript,
+    mkValidatorScript',
     Validator,
     unValidatorScript,
     Redeemer(..),
     Datum(..),
     mkMonetaryPolicyScript,
+    mkMonetaryPolicyScript',
     MonetaryPolicy (..),
     unMonetaryPolicyScript,
     Context(..),
@@ -209,11 +212,19 @@ instance FromJSON Data where
 mkValidatorScript :: CompiledCode (Data -> Data -> Data -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
 
+mkValidatorScript' :: Script -> Validator
+mkValidatorScript' = Validator
+
 unValidatorScript :: Validator -> Script
 unValidatorScript = getValidator
 
 mkMonetaryPolicyScript :: CompiledCode (Data -> ()) -> MonetaryPolicy
 mkMonetaryPolicyScript = MonetaryPolicy . fromCompiledCode
+
+mkMonetaryPolicyScript' :: CompiledCode (a -> Data -> ()) -> CompiledCode a -> MonetaryPolicy
+mkMonetaryPolicyScript' p = \ arg -> MonetaryPolicy $ pS `applyScript` fromCompiledCode arg
+  where
+    pS = fromCompiledCode p
 
 unMonetaryPolicyScript :: MonetaryPolicy -> Script
 unMonetaryPolicyScript = getMonetaryPolicy
