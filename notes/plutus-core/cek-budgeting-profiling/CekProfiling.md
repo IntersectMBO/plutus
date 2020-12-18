@@ -316,3 +316,63 @@ lot of computation) it takes about 34% of the evaluation time, but this is
 perhaps a rather unrealistic example.  We should do some more profiling
 to investigate this.
 
+### Addendum: builtin evaluation statistics
+
+The previous section mentions that there doesn't seem to be a lot of time spent
+evaluating builtins in the validation examples, and particularly in the
+crowdfunding example.  I have a version of the OCaml CEK machine which records
+how often the machine encounters the different PLC node types (among other things).
+Here's what it says for the examples we've been looking at here.
+
+#### Crowdfunding
+
+```
+   24,088 calls to compute_cek
+   15,460 calls to return_cek
+
+   Var:     6,888
+   Lam:     6,524
+   Apply:   6,495
+   Const:   117
+   Delay:   1,484
+   Force  : 2,469
+   Builtin: 111
+   Error  : 0
+```
+
+#### Zerocoupon
+
+```
+   70,640 calls to compute_cek
+   45,607 calls to return_cek
+
+   Var:     20,419
+   Lam:     19,056
+   Apply:   19,353
+   Const:   283
+   Delay:   4,217
+   Force  : 6,900
+   Builtin: 412
+   Error  : 0
+```
+
+
+#### Prime20
+
+```
+   7,334,166 calls to compute_cek
+   5,692,258 calls to return_cek
+
+   Var:     1,958,665
+   Lam:     1,006,700
+   Apply:   2,667,199
+   Const:   374,748
+   Delay:   349,664
+   Force  : 357,859
+   Builtin: 619,331
+   Error  : 0
+```
+
+This confirms that there's not a lot of builtin evaluation happening in these
+validation examples, so improving builtin evaluation time maybe shouldn't be the
+most urgent thing on our list.
