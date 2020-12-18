@@ -10,7 +10,7 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import Modal.ViewHelpers (modalHeaderTitle)
+import Modal.ViewHelpers (modalHeader)
 import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
 import Rename.Types (Action(..), State, _error, _projectName)
 import Servant.PureScript.Settings (SPSettings_)
@@ -31,7 +31,7 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [ modalHeaderTitle "Rename Project"
+    [ modalHeader "Rename Project" Nothing
     , div [ classes [ modalContent ] ]
         [ input [ class_ (ClassName "project-name-input"), value (state ^. _projectName), onValueChange (Just <<< ChangeInput) ]
         , button [ onClick $ const $ Just SaveProject ] [ text "Save" ]

@@ -9,7 +9,7 @@ import Halogen.HTML (div, div_, h3, img, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (ChildSlots)
-import Modal.ViewHelpers (modalHeaderWithClose)
+import Modal.ViewHelpers (modalHeader)
 import NewProject.Types (Action(..), State, _error)
 import Prelude (const, map, ($), (<<<))
 import Projects.Types (Lang(..))
@@ -21,7 +21,7 @@ render ::
   ComponentHTML Action ChildSlots m
 render state =
   div_
-    [ modalHeaderWithClose "New Project" Cancel
+    [ modalHeader "New Project" (Just Cancel)
     , div [ classes [ modalContent, ClassName "new-project-container" ] ]
         [ h3 [ classes [ textBase, fontSemibold ] ] [ text "Please choose your initial coding environment" ]
         , div [ classes [ ClassName "environment-selector-group" ] ] (map link [ Haskell, Javascript, Marlowe, Blockly ])

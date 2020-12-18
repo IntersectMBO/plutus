@@ -18,7 +18,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
 import Marlowe.Gists (fileExists, filenames, playgroundGist)
-import Modal.ViewHelpers (modalHeaderWithClose)
+import Modal.ViewHelpers (modalHeader)
 import Network.RemoteData (RemoteData(..))
 import Prim.TypeError (class Warn, Text)
 import Projects.Types (Action(..), Lang(..), State, _projects, modalIsLoading)
@@ -34,7 +34,7 @@ render state =
     text mempty
   else
     div_
-      [ modalHeaderWithClose "Open Project" Cancel
+      [ modalHeader "Open Project" (Just Cancel)
       , div [ classes [ modalContent, ClassName "open-project-modal" ] ]
           [ body playgroundGists
           ]

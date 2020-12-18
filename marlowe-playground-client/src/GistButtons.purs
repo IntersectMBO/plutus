@@ -5,23 +5,22 @@ import Auth (AuthRole(..), authStatusAuthRole)
 import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..))
 import Gists.View (idPublishGist)
-import Halogen (ComponentHTML)
 import Halogen.Classes (modalContent)
-import Halogen.HTML (ClassName(..), a, button, div, div_, p_, text)
+import Halogen.HTML (ClassName(..), HTML, a, button, div, div_, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, disabled)
 import Icons (Icon(..), icon)
-import MainFrame.Types (Action(..), State, ChildSlots, _authStatus)
-import Modal.ViewHelpers (modalHeaderWithClose)
+import MainFrame.Types (Action(..), State, _authStatus)
+import Modal.ViewHelpers (modalHeader)
 import Network.RemoteData (RemoteData(..))
 import Prim.TypeError (class Warn, Text)
 
 authButton ::
-  forall m.
-  Warn (Text "We need to redesing the authButton modal after this task is done SCP-1512") =>
+  forall p.
+  Warn (Text "We need to redesign the authButton modal after this task is done SCP-1512") =>
   Action ->
   State ->
-  ComponentHTML Action ChildSlots m
+  HTML p Action
 authButton intendedAction state =
   let
     authStatus = state ^. (_authStatus <<< to (map (view authStatusAuthRole)))
@@ -34,7 +33,7 @@ authButton intendedAction state =
           [ text "Failed to login" ]
       Success Anonymous ->
         div_
-          [ modalHeaderWithClose "Login with github" CloseModal
+          [ modalHeader "Login with github" (Just CloseModal)
           , div [ classes [ modalContent, ClassName "auth-button-container" ] ]
               [ p_ [ text "We use gists to save your projects, in order to save and load your projects you will need to login to Github." ]
               , p_ [ text "If you don't wish to login you can still use the Marlowe Playground however you won't be able to save your work." ]
