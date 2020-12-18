@@ -59,7 +59,6 @@ all = do
     test "Defined ChoiceValue" $ normalChoiceValue
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
-    test "Deposit in state" $ depositFromState
     test "Pay to hole" payToHole
     test "Pay to account and then Pay" $ payThroughAccount
     test "Pay twice" $ payTwice
@@ -116,7 +115,7 @@ testWarningWithState :: forall a. S.State -> (a -> Array String) -> (a -> String
 testWarningWithState state makeWarning composeExpression expression = case parseContract $ composeExpression expression of
   Right contractTerm -> do
     let
-      State st = lint Nil state contractTerm
+      State st = lint Nil contractTerm
     Assert.equal (makeWarning expression) $ map show $ toUnfoldable $ st.warnings
   Left err -> failure (show err)
 
@@ -393,21 +392,6 @@ normalChoiceValue = testNoWarning (choiceAndThenDo (addParenthesis (payContract 
 
 positiveDeposit :: Test
 positiveDeposit = testNoWarning (depositContract "(Constant 1)")
-
-depositFromState :: Test
-depositFromState =
-  let
-    accountId = Role "test"
-
-    state =
-      S.State
-        { accounts: Map.singleton (Tuple accountId (Token "" "")) (fromInt 10)
-        , choices: mempty
-        , boundValues: mempty
-        , minSlot: zero
-        }
-  in
-    testNoWarningWithState state "When [] 2 (Pay (Role \"test\" ) (Party (Role \"test\")) (Token \"\" \"\") (Constant 10) Close)"
 
 positivePay :: Test
 positivePay = testNoWarning (payContract "(Constant 1)")

@@ -13,7 +13,7 @@ import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Simulation.Types (AnalysisState(..), WebData)
+import SimulationPage.Types (AnalysisState(..), WebData)
 import Text.Pretty (pretty)
 
 data Action

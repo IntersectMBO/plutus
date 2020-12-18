@@ -1,5 +1,5 @@
 -- A separate module for types that are shared between Simulation and Simulation.BottomPanel
-module Simulation.Types where
+module SimulationPage.Types where
 
 import Prelude
 import Analytics (class IsEvent, Event)

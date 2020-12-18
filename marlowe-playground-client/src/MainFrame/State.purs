@@ -69,9 +69,9 @@ import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation as Simulation
-import Simulation.Types (_source)
-import Simulation.Types as ST
+import SimulationPage.State as Simulation
+import SimulationPage.Types (_source)
+import SimulationPage.Types as ST
 import StaticData (gistIdLocalStorageKey)
 import StaticData as StaticData
 import Types (WebData)
@@ -675,7 +675,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-
+              
               <<< set _hasUnsavedChanges false
           )
 

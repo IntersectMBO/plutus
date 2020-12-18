@@ -35,7 +35,7 @@ import Projects.Types as Projects
 import Rename.Types as Rename
 import Router (Route)
 import SaveAs.Types as SaveAs
-import Simulation.Types as Simulation
+import SimulationPage.Types as Simulation
 import Types (WebData)
 import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)

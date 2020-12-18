@@ -43,7 +43,7 @@ import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(
 import Marlowe.Semantics as S
 import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
-import Simulation.State (updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
 import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)

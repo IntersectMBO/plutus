@@ -1,4 +1,4 @@
-module Simulation.BottomPanel where
+module SimulationPage.BottomPanel where
 
 import Control.Alternative (map)
 import Data.Array (concatMap, drop, head, length, reverse)
@@ -31,7 +31,7 @@ import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), MultiStageAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
+import SimulationPage.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), ReachabilityAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 
 bottomPanel :: forall p. State -> HTML p Action

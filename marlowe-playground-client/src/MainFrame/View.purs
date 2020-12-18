@@ -29,7 +29,7 @@ import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
 import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation as Simulation
+import SimulationPage.View as Simulation
 import Wallet as Wallet
 
 render ::
