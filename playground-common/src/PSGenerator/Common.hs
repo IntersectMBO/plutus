@@ -25,7 +25,7 @@ import           Ledger                                    (Address, Datum, Datu
                                                             TxOut, TxOutRef, TxOutTx, TxOutType, UtxoIndex, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
-import           Ledger.Index                              (ValidationError)
+import           Ledger.Index                              (ScriptType, ScriptValidationEvent, ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
@@ -282,6 +282,8 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Priority)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StopReason)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptValidationEvent)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     ]
 
 walletTypes :: [SumType 'Haskell]
