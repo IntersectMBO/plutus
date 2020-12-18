@@ -5,7 +5,7 @@ import Data.Array (filter)
 import Data.DateTime.ISO as ISO
 import Data.Either (Either(..))
 import Data.Formatter.DateTime (FormatterCommand(..), format)
-import Data.Lens (to, view, (^.))
+import Data.Lens (to, (^.))
 import Data.List (fromFoldable)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -26,7 +26,6 @@ import Text.Parsing.Parser (runParser)
 
 render ::
   forall m.
-  Warn (Text "Fix 'body Loading' design") =>
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
@@ -36,7 +35,7 @@ render state =
   else
     div_
       [ modalHeaderWithClose "Open Project" Cancel
-      , div [ classes [ modalContent ] ]
+      , div [ classes [ modalContent, ClassName "open-project-modal" ] ]
           [ body playgroundGists
           ]
       ]
