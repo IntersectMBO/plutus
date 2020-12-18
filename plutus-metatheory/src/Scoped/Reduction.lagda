@@ -71,8 +71,8 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
             → ∀{m m'}{v : Weirdℕ m}{v' : Weirdℕ m'}
             -- the next arg expected is a term arg
             → let m'' , v'' = ISIG b in
-              (p : m' ≡ m'')
-            → (q : subst Weirdℕ p v' ≡ v'')
+              (p : m'' ≡ m')
+            → (q : subst Weirdℕ p v'' ≡ v')
             → S v ≤W' v'
             → Sub v w
             → Value t
@@ -134,7 +134,7 @@ sig2type' (skip K p) As C = Π K (sig2type' p As C)
 IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → Sub (proj₂ (ISIG b)) w → ScopedTm w
 IBUILTIN b σ = {!!}
 
-IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : n' ≡ proj₁ (ISIG b)) → subst Weirdℕ p w' ≡ proj₂ (ISIG b) → Sub w' w → ScopedTm w
+IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → Sub w' w → ScopedTm w
 IBUILTIN' = {!!}
 
 
@@ -226,6 +226,16 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
 
+  β-builtin : (b : Builtin)
+            → (t u : ScopedTm w)
+            → ∀{m}{v : Weirdℕ m}
+            -- the next arg expected is a term arg
+            → let m' , v' = ISIG b in
+              (p : m' ≡ m)
+            → (q : subst Weirdℕ p v' ≡ S v)
+            → (σ : Sub v w)
+            → t · u —→ IBUILTIN' b p q (sub-cons σ u)
+
   E-·₁ : {A : ScopedTy n}{M : ScopedTm w} → error A · M —→ error missing
   E-·₂ : {A : ScopedTy n}{L : ScopedTm w} → Value L → L · error A —→ error missing
 
@@ -294,7 +304,8 @@ progress·V (V-con tcn)           (done v)            = step E-con·
 progress·V (V-wrap A B t)        (done v)            = step E-wrap·
 progress·V (V-builtin⋆ b t)   (done v)            =
   {!!} --  step (E-builtin⋆· b As q _)
-progress·V (V-builtin b t p q base σ) (done v) = step {! IBUILTIN' b p q ? !}
+progress·V (V-builtin b t p q base σ) (done v) =
+  step (β-builtin b t (deval v) p q σ)
 progress·V (V-builtin b t p q (skipT r) σ) (done v) = done {!V-built!}
 progress·V (V-builtin b t p q (skipS r) σ) (done v) = done (V-builtin b (t · deval v) p q r (sub-cons σ (deval v)))
 
