@@ -80,21 +80,15 @@
       name = "haskell-language-server";
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.6.0";
-      sha256 = "027fq6752024wzzq9izsilm5lkq9gmpxf82rixbimbijw0yk4pwj";
+      rev = "0.7.1";
+      sha256 = "0gkzvjx4dgf53yicinqjshlj80gznx5khb62i7g3kqjr85iy0raa";
       fetchSubmodules = true;
     };
-    sha256map = {
-      "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
-      "https://github.com/bubba/hie-bios.git"."cec139a1c3da1632d9a59271acc70156413017e7" = "1iqk55jga4naghmh8zak9q7ssxawk820vw8932dhympb767dfkha";
-    };
-    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
-    # in recent haskell.nix, delete the index-state passing when we update.
-    inherit compiler-nix-name index-state checkMaterialization;
+    inherit compiler-nix-name checkMaterialization;
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "0g3v4zxhzv2hyd1n5iqw6ldc01j5hai557vcl4likfq7nssymla3";
+    plan-sha256 = "0fps65f5dj1y8xr9478049j2541bkdjx0iw4ynknk9cnr512xcmk";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
     }];
