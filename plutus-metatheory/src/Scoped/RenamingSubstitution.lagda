@@ -176,4 +176,8 @@ sub-cons : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → ScopedTm
   Sub (S w) w'
 sub-cons σ t Z     = t
 sub-cons σ t (S x) = σ x  
+
+sub-cons⋆ : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → Sub (T w) w'
+sub-cons⋆ σ (T x) = σ x
+
 \end{code}
