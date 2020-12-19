@@ -61,6 +61,9 @@ ISIG charToString = 0 , S (S Z)
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
 
+open import Data.Unit
+ITel : Builtin → ∀{n n'}(w : Weirdℕ n)(w' : Weirdℕ n') → Set
+
 data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
   V-ƛ : ∀ (A : ScopedTy n)(t : ScopedTm (S w)) → Value (ƛ A t)
   V-Λ : ∀ {K}(t : ScopedTm (T w)) → Value (Λ K t)
@@ -74,7 +77,7 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
               (p : m'' ≡ m')
             → (q : subst Weirdℕ p v'' ≡ v')
             → S v ≤W' v'
-            → Sub v w
+            → ITel b v w
             → Value t
   V-builtin⋆ : (b : Builtin)
              → (t : ScopedTm w)
@@ -84,8 +87,12 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
               (p : m'' ≡ m')
             → (q : subst Weirdℕ p v'' ≡ v')
             → T v ≤W' v'
-            → Sub v w
+            → ITel b v w
             → Value t
+
+ITel b Z     w' = ⊤
+ITel b (S w) w' = ITel b w w' × Σ (ScopedTm w') Value
+ITel b (T w) w' = ITel b w w'
 
 voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
 voidVal w = V-con {w = w} unit
@@ -117,26 +124,37 @@ VERIFYSIG nothing      = error (con bool)
 open import Data.List using (List;[];_∷_)
 open import Type using (Kind)
 
+IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → ITel b (proj₂ (ISIG b)) w → ScopedTm w
+IBUILTIN addInteger ((_ , t , V-con (integer i)) , t' , V-con (integer j)) =
+  con (integer (i I.+ j))
 {-
-data _≤W'_ : ℕ → ℕ → Set where
- base : 0 ≤W' 0
- skip : ∀{n n'} → Kind → ℕ.suc n ≤W' n' → n ≤W' n'
-
-
-sig2type⇒ : ∀{Φ} → List (ScopedTy Φ) → ScopedTy Φ → ScopedTy Φ
-sig2type⇒ []       C = C
-sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
-
-sig2type' : ∀{Φ Φ'} → Φ ≤W' Φ' → List (ScopedTy Φ') → ScopedTy Φ' → ScopedTy Φ
-sig2type' base       As C = sig2type⇒ As C
-sig2type' (skip K p) As C = Π K (sig2type' p As C)
+IBUILTIN subtractInteger σ = {!!}
+IBUILTIN multiplyInteger σ = {!!}
+IBUILTIN divideInteger σ = {!!}
+IBUILTIN quotientInteger σ = {!!}
+IBUILTIN remainderInteger σ = {!!}
+IBUILTIN modInteger σ = {!!}
+IBUILTIN lessThanInteger σ = {!!}
+IBUILTIN lessThanEqualsInteger σ = {!!}
+IBUILTIN greaterThanInteger σ = {!!}
+IBUILTIN greaterThanEqualsInteger σ = {!!}
+IBUILTIN equalsInteger σ = {!!}
+IBUILTIN concatenate σ = {!!}
+IBUILTIN takeByteString σ = {!!}
+IBUILTIN dropByteString σ = {!!}
+IBUILTIN sha2-256 σ = {!!}
+IBUILTIN sha3-256 σ = {!!}
+IBUILTIN verifySignature σ = {!!}
+IBUILTIN equalsByteString σ = {!!}
+IBUILTIN ifThenElse σ = {!!}
+IBUILTIN charToString σ = {!!}
+IBUILTIN append σ = {!!}
+IBUILTIN trace σ = {!!}
 -}
+IBUILTIN _ _ = error missing
 
-IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → Sub (proj₂ (ISIG b)) w → ScopedTm w
-IBUILTIN b σ = {!!}
-
-IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → Sub w' w → ScopedTm w
-IBUILTIN' = {!!}
+IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → ITel b w' w → ScopedTm w
+IBUILTIN' b refl refl σ = IBUILTIN b σ
 
 
 
@@ -234,8 +252,9 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → let m' , v' = ISIG b in
               (p : m' ≡ m)
             → (q : subst Weirdℕ p v' ≡ S v)
-            → (σ : Sub v w)
-            → t · u —→ IBUILTIN' b p q (sub-cons σ u)
+            → (σ : ITel b v w)
+            → (V : Value u)
+            → t · u —→ IBUILTIN' b p q (σ , u , V)
 
   β-builtin⋆ : (b : Builtin)
             → (t : ScopedTm w)
@@ -245,8 +264,8 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → let m' , v' = ISIG b in
               (p : m' ≡ ℕ.suc m)
             → (q : subst Weirdℕ p v' ≡ T v)
-            → (σ : Sub v w)
-            → t ·⋆ A —→ IBUILTIN' b p q (sub-cons⋆ σ)
+            → (σ : ITel b v w)
+            → t ·⋆ A —→ IBUILTIN' b p q σ
 
   E-·₁ : {A : ScopedTy n}{M : ScopedTm w} → error A · M —→ error missing
   E-·₂ : {A : ScopedTy n}{L : ScopedTm w} → Value L → L · error A —→ error missing
@@ -314,11 +333,11 @@ progress·V (V-ƛ A t)                (done v)            = step (β-ƛ v)
 progress·V (V-Λ p)                  (done v)            = step E-Λ·
 progress·V (V-con tcn)              (done v)            = step E-con·
 progress·V (V-wrap A B t)           (done v)            = step E-wrap·
-progress·V (V-builtin⋆ b t p q r σ) (done v)       = {!!} --  step (E-builtin⋆· b As q _)
+progress·V (V-builtin⋆ b t p q r σ) (done v)       = step {!!} --  step (E-builtin⋆· b As q _)
 progress·V (V-builtin b t p q base σ) (done v) =
-  step (β-builtin b t (deval v) p q σ)
-progress·V (V-builtin b t p q (skipT r) σ) (done v) = done (V-builtin⋆ b (t · deval v) p q r (sub-cons σ (deval v)))
-progress·V (V-builtin b t p q (skipS r) σ) (done v) = done (V-builtin b (t · deval v) p q r (sub-cons σ (deval v)))
+  step (β-builtin b t (deval v) p q σ v)
+progress·V (V-builtin b t p q (skipT r) σ) (done v) = done (V-builtin⋆ b (t · deval v) p q r (σ , deval v , v))
+progress·V (V-builtin b t p q (skipS r) σ) (done v) = done (V-builtin b (t · deval v) p q r (σ , deval v , v))
 
 progress· : ∀{n}{i : Weirdℕ n}
   → {t : ScopedTm i} → Progress t
@@ -336,9 +355,9 @@ progress·⋆ (done (V-Λ p))               A = step β-Λ
 progress·⋆ (done (V-con tcn))           A = step E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))    A = step E-wrap·⋆
 progress·⋆ (done (V-builtin⋆ b t p q base σ)) A = step (β-builtin⋆ b t A p q σ)
-progress·⋆ (done (V-builtin⋆ b t p q (skipT r) σ)) A = done (V-builtin⋆ b (t ·⋆ A) p q r (sub-cons⋆ σ))
-progress·⋆ (done (V-builtin⋆ b t p q (skipS r) σ)) A = done (V-builtin b (t ·⋆ A) p q r (sub-cons⋆ σ))
-progress·⋆ (done (V-builtin b t p q r s)) A = {!!} -- error
+progress·⋆ (done (V-builtin⋆ b t p q (skipT r) σ)) A = done (V-builtin⋆ b (t ·⋆ A) p q r σ)
+progress·⋆ (done (V-builtin⋆ b t p q (skipS r) σ)) A = done (V-builtin b (t ·⋆ A) p q r σ)
+progress·⋆ (done (V-builtin b t p q r s)) A = step {!!} -- error
 
 progress·⋆ (error (E-error A))          B = step E-·⋆
 
@@ -349,8 +368,8 @@ progress-unwrap (done (V-ƛ A t))             = step E-ƛunwrap
 progress-unwrap (done (V-Λ p))               = step E-Λunwrap
 progress-unwrap (done (V-con tcn))           = step E-conunwrap
 progress-unwrap (done (V-wrap A B v))        = step (β-wrap v)
-progress-unwrap (done (V-builtin b t p q r σ)) = {!!} -- step E-builtinunwrap
-progress-unwrap (done (V-builtin⋆ b t p q r σ))   = {!!} -- step E-builtin⋆unwrap
+progress-unwrap (done (V-builtin b t p q r σ)) = step {!!} -- step E-builtinunwrap
+progress-unwrap (done (V-builtin⋆ b t p q r σ))   = step {!!} -- step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
 progress : (t : ScopedTm Z) → Progress t
