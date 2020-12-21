@@ -51,11 +51,12 @@ import Prelude (Unit, Void, bind, discard, flip, identity, mempty, pure, show, u
 import Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, getAsMuchStateAsPossible, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), AnalysisState(..), ExecutionState(..), Parties(..), State, WebData, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
+import Types (WebData)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -72,69 +73,6 @@ handleAction ::
 handleAction settings Init = do
   editorSetTheme
   setOraclePrice settings
-
-handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
-  assign _marloweState $ NEL.singleton emptyMarloweState
-  assign _oldContract Nothing
-  updateContractInState ""
-
-handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
-  modify_
-    ( set _selectedHole Nothing
-        <<< set _hasUnsavedChanges' true
-    )
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
-  updateContractInState text
-  analysisState <- use _analysisState
-  currState <- getAsMuchStateAsPossible
-  let
-    parsedContract = parseContract text
-
-    maybeContract = fromTerm =<< hush parsedContract
-
-    reachabilityResultsValid = areContractAndStateTheOnesAnalysed analysisState maybeContract currState
-
-    unreachableContracts = if reachabilityResultsValid then getUnreachableContracts analysisState else Nil
-
-    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
-  markers <- query _marloweEditorSlot unit (Monaco.SetModelMarkers markerData identity)
-  void $ traverse editorSetMarkers markers
-  objects <- query _marloweEditorSlot unit (Monaco.GetObjects identity)
-  case objects of
-    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
-    _ -> pure unit
-
-handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
-
-handleAction settings (HandleDropEvent event) = do
-  liftEffect $ FileEvents.preventDefault event
-  contents <- liftAff $ readFileFromDragEvent event
-  void $ editorSetValue contents
-  updateContractInState contents
-  setOraclePrice settings
-
-handleAction _ (MoveToPosition lineNumber column) = do
-  void $ query _marloweEditorSlot unit (Monaco.SetPosition { column, lineNumber } unit)
-
-handleAction _ (SelectEditorKeyBindings bindings) = do
-  assign _editorKeybindings bindings
-  void $ query _marloweEditorSlot unit (Monaco.SetKeyBindings bindings unit)
-
-handleAction settings (LoadScript key) = do
-  for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
-    let
-      prettyContents = case parseContract contents of
-        Right pcon -> show $ pretty pcon
-        Left _ -> contents
-    editorSetValue prettyContents
-    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
-    updateContractInState prettyContents
-    resetContract
-    setOraclePrice settings
-
-handleAction settings (SetEditorText contents) = do
-  editorSetValue contents
-  updateContractInState contents
 
 handleAction settings (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
@@ -229,6 +167,11 @@ handleAction settings Undo = do
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
+handleAction settings (LoadContract contents) = do
+  editorSetValue contents
+  updateContractInState contents
+  handleAction settings ResetContract
+
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
   assign _showBottomPanel true
@@ -244,7 +187,7 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
 
-handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
+handleAction _ (ShowErrorDetail val) =  {- FIXME assign _showErrorDetail val -} pure unit
 
 handleAction _ SetBlocklyCode = pure unit
 
@@ -253,36 +196,6 @@ handleAction _ EditHaskell = pure unit
 handleAction _ EditJavascript = pure unit
 
 handleAction _ EditActus = pure unit
-
-handleAction settings AnalyseContract = do
-  currContract <- use _currentContract
-  currState <- getAsMuchStateAsPossible
-  case currContract of
-    Nothing -> pure unit
-    Just contract -> do
-      assign _analysisState (WarningAnalysis Loading)
-      response <- checkContractForWarnings contract currState
-      assign _analysisState (WarningAnalysis response)
-  where
-  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
-
-handleAction settings AnalyseReachabilityContract = do
-  currContract <- use _currentContract
-  currState <- getAsMuchStateAsPossible
-  case currContract of
-    Nothing -> pure unit
-    Just contract -> do
-      newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
-      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
-
-handleAction _ Save = pure unit
-
-handleAction _ (InitMarloweProject contents) = do
-  editorSetValue contents
-  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
-  assign _hasUnsavedChanges' false
-
-handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
 setOraclePrice ::
   forall m.

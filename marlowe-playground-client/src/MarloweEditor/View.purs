@@ -17,12 +17,13 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
-import Marlowe.Monaco as MM
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
+import Marlowe.Monaco as MM
+import MarloweEditor.BottomPanel (bottomPanel)
+import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Loading, isLoading, isSuccess)
 import StaticData as StaticData
@@ -45,9 +46,22 @@ otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
-    -- , sendResultButton state "Send To Simulator" SendResultToSimulator
-    -- , sendResultButton state "Send To Blockly" SendResultToBlockly
+    , sendToButton state "Send To Simulator" SendToSimulator
+    -- , sendToButton state "Send To Blockly" SendResultToBlockly
     ]
+
+sendToButton :: forall p. State -> String -> Action -> HTML p Action
+sendToButton state msg action =
+  -- FIXME: Only make available when there are no compilation errors
+  -- FIXME: instead of not showing, add a disable flag and maybe a tooltip
+  if true then
+    button
+      [ onClick $ const $ Just action
+      , disabled (false)
+      ]
+      [ text msg ]
+  else
+    text ""
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =
@@ -84,6 +98,3 @@ marloweEditor state = slot _marloweEditorPageSlot unit component unit (Just <<< 
       Monaco.setValue model contents
 
   component = monacoComponent $ MM.settings setup
-
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state = div_ [ text "" ]

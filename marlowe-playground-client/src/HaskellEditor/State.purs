@@ -27,7 +27,8 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import SimulationPage.Types (WebData, _result)
+import SimulationPage.Types (_result)
+import Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import Webghc.Server (CompileRequest(..))
 

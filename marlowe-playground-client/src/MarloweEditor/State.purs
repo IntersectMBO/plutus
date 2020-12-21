@@ -5,28 +5,50 @@ module MarloweEditor.State
   ) where
 
 import Prelude hiding (div)
+import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Control.Monad.Reader (runReaderT)
 import Data.Array (filter)
-import Data.Lens (assign, set, use)
+import Data.Either (Either(..), hush)
+import Data.Foldable (for_)
+import Data.Lens (assign, preview, set, use)
+import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..))
 import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import FileEvents (readFileFromDragEvent)
+import FileEvents as FileEvents
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorPageSlot)
 import Marlowe (SPParams_)
+import Marlowe as Server
+import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
-import MarloweEditor.Types (Action(..), State, _analysisState, _keybindings, _selectedHole, _showBottomPanel)
+import Marlowe.Semantics (Contract, emptyState)
+import Marlowe.Semantics as Semantics
+import Marlowe.Symbolic.Types.Request as MSReq
+import Marlowe.Symbolic.Types.Response (Result)
+import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _keybindings, _selectedHole, _showBottomPanel)
 import Monaco (IMarker, isError, isWarning)
-import Reachability (getUnreachableContracts)
+import Network.RemoteData (RemoteData(..))
+import Network.RemoteData as RemoteData
+import Reachability (getUnreachableContracts, startReachabilityAnalysis)
+import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
+import Simulator (updateContractInState)
 import StaticData (marloweBufferLocalStorageKey)
+import StaticData as StaticData
+import Text.Pretty (genericPretty, pretty)
+import Types (WebData)
 
 handleAction ::
   forall m.
@@ -66,6 +88,43 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
     Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
     _ -> pure unit
 
+handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
+
+handleAction settings (HandleDropEvent event) = do
+  liftEffect $ FileEvents.preventDefault event
+  contents <- liftAff $ readFileFromDragEvent event
+  void $ editorSetValue contents
+  -- updateContractInState contents --FIXME
+  -- FIXME: check but I don't think this is needed after the split
+  -- setOraclePrice settings
+  -- pure unit is only here so the comment stays in place
+  pure unit
+
+handleAction _ (MoveToPosition lineNumber column) = do
+  void $ query _marloweEditorPageSlot unit (Monaco.SetPosition { column, lineNumber } unit)
+
+handleAction settings (LoadScript key) = do
+  for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
+    let
+      prettyContents = case parseContract contents of
+        Right pcon -> show $ pretty pcon
+        Left _ -> contents
+    editorSetValue prettyContents
+    liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
+    --FIXME
+    -- updateContractInState prettyContents
+    -- resetContract
+    -- setOraclePrice settings
+    -- pure unit is only here so the comment stays in place
+    pure unit
+
+handleAction settings (SetEditorText contents) = do
+  editorSetValue contents
+  -- FIXME
+  -- updateContractInState contents
+  -- pure unit is only here so the comment stays in place
+  pure unit
+
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
@@ -73,12 +132,54 @@ handleAction _ (ShowBottomPanel val) = do
 -- FIXME fix in the Mainframe (refactor from Simulation)
 handleAction _ SetBlocklyCode = pure unit
 
+handleAction _ SendToSimulator = pure unit
+
 handleAction _ (InitMarloweProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
   assign _hasUnsavedChanges' false
 
 handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
+
+handleAction settings AnalyseContract =
+  void
+    $ runMaybeT do
+        contents <- MaybeT $ query _marloweEditorPageSlot unit (Monaco.GetText identity)
+        contract <- hoistMaybe $ parseContract' contents
+        -- FIXME: when editor and simulator were together the analyse contract could be made
+        --        at any step of the simulator. Now that they are separate, it can only be done
+        --        with initial state
+        let
+          emptySemanticState = emptyState zero
+        assign _analysisState (WarningAnalysis Loading)
+        response <- lift $ checkContractForWarnings contract emptySemanticState
+        assign _analysisState (WarningAnalysis response)
+  where
+  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+
+handleAction settings AnalyseReachabilityContract =
+  void
+    $ runMaybeT do
+        contents <- MaybeT $ query _marloweEditorPageSlot unit (Monaco.GetText identity)
+        contract <- hoistMaybe $ parseContract' contents
+        -- FIXME: when editor and simulator were together the analyse contract could be made
+        --        at any step of the simulator. Now that they are separate, it can only be done
+        --        with initial state
+        let
+          emptySemanticState = emptyState zero
+        newReachabilityAnalysisState <- lift $ startReachabilityAnalysis settings contract emptySemanticState
+        assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+
+handleAction _ Save = pure unit
+
+parseContract' :: String -> Maybe Contract
+parseContract' = fromTerm <=< hush <<< parseContract
+
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
+  HalogenM State Action ChildSlots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)

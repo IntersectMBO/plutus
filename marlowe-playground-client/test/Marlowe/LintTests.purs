@@ -2,16 +2,13 @@ module Marlowe.LintTests where
 
 import Prelude
 import Data.Array (singleton)
-import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.List (List(..))
-import Data.Map as Map
 import Data.Set (toUnfoldable)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Party(..), Token(..))
 import Marlowe.Semantics as S
 import Test.Unit (TestSuite, Test, suite, test, failure)
 import Test.Unit.Assert as Assert

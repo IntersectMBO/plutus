@@ -69,7 +69,7 @@ import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.BottomPanel (bottomPanel)
 import Simulator (applyInput, getAsMuchStateAsPossible, hasHistory, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), AnalysisState(..), ExecutionState(..), Parties(..), State, WebData, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
@@ -101,8 +101,7 @@ render state =
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div [ classes [ group ] ]
-    ( [ editorOptions state
-      , sendToBlocklyButton state
+    ( [ sendToBlocklyButton state
       ]
         <> ( if has (_source <<< only Haskell) state then
               [ haskellSourceButton state ]
@@ -153,33 +152,14 @@ actusSourceButton state =
     ]
     [ text "Edit Actus Source" ]
 
-editorOptions ::
-  Warn (Text "Refactor all editorOptions into a single submodule") =>
-  forall p. State -> HTML p Action
-editorOptions state =
-  div [ class_ (ClassName "editor-options") ]
-    [ select
-        [ HTML.id_ "editor-options"
-        , class_ (ClassName "dropdown-header")
-        , HTML.value $ show $ state ^. _editorKeybindings
-        , onSelectedIndexChange (\idx -> SelectEditorKeyBindings <$> toEnum idx)
-        ]
-        (map keybindingItem (upFromIncluding bottom))
-    ]
-  where
-  keybindingItem item =
-    if state ^. _editorKeybindings == item then
-      option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
-    else
-      option [ HTML.value (show item) ] [ text $ show item ]
-
 marloweEditor ::
   forall m.
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< HandleEditorMessage)
+marloweEditor state = slot _marloweEditorSlot unit component unit (const Nothing)
   where
+  -- FIXME: probably dont use local storage nor empty ?contract... see what a good default should be
   setup editor = do
     mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
     let
