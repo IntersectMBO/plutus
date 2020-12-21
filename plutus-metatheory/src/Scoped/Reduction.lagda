@@ -56,7 +56,7 @@ ISIG sha2-256 = 0 , S Z
 ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
-ISIG ifThenElse = 1 , S (S (T Z))
+ISIG ifThenElse = 1 , S (S (T Z)) -- this may be in the wrong order
 ISIG charToString = 0 , S (S Z)
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
@@ -372,8 +372,32 @@ progress-unwrap (done (V-builtin b t p q r σ)) = step {!!} -- step E-builtinunw
 progress-unwrap (done (V-builtin⋆ b t p q r σ))   = step {!!} -- step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
-progress : (t : ScopedTm Z) → Progress t
+ival : ∀ b → Value {w = Z} (ibuiltin b)
+ival addInteger = V-builtin addInteger _ refl refl (skipS base) _
+ival subtractInteger = V-builtin subtractInteger _ refl refl (skipS base) _
+ival multiplyInteger = V-builtin multiplyInteger _ refl refl (skipS base) _
+ival divideInteger = V-builtin divideInteger _ refl refl (skipS base) _
+ival quotientInteger = V-builtin quotientInteger _ refl refl (skipS base) _
+ival remainderInteger = V-builtin remainderInteger _ refl refl (skipS base) _
+ival modInteger = V-builtin modInteger _ refl refl (skipS base) _
+ival lessThanInteger = V-builtin lessThanInteger _ refl refl (skipS base) _
+ival lessThanEqualsInteger = V-builtin lessThanEqualsInteger _ refl refl (skipS base) _
+ival greaterThanInteger = V-builtin greaterThanInteger _ refl refl (skipS base) _
+ival greaterThanEqualsInteger = V-builtin greaterThanEqualsInteger _ refl refl (skipS base) _
+ival equalsInteger = V-builtin equalsInteger _ refl refl (skipS base) _
+ival concatenate = V-builtin concatenate _ refl refl (skipS base) _
+ival takeByteString = V-builtin takeByteString _ refl refl (skipS base) _
+ival dropByteString = V-builtin dropByteString _ refl refl (skipS base) _
+ival sha2-256 = V-builtin sha2-256 _ refl refl base _
+ival sha3-256 = V-builtin sha2-256 _ refl refl base _
+ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
+ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
+ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS base) _
+ival charToString = V-builtin charToString _ refl refl (skipS base) _
+ival append = V-builtin append _ refl refl (skipS base) _
+ival trace = V-builtin trace _ refl refl base _
 
+progress : (t : ScopedTm Z) → Progress t
 progress (Λ K t)           = done (V-Λ t)
 progress (t ·⋆ A)          = progress·⋆ (progress t) A
 progress (ƛ A t)           = done (V-ƛ A t)
@@ -381,7 +405,7 @@ progress (t · u)           = progress· (progress t) (progress u)
 progress (con c)           = done (V-con c)
 progress (error A)         = error (E-error A)
 -- type telescope is full
-progress (ibuiltin b) = {!!}
+progress (ibuiltin b) = done (ival b)
 progress (wrap A B t) with progress t
 progress (wrap A B t)          | step  q           = step (ξ-wrap q)
 progress (wrap A B t)          | done  q           = done (V-wrap A B q)
