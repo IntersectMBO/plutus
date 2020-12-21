@@ -71,33 +71,37 @@ step (s ▻ (L ·⋆ A)) = (s , (-·⋆ A)) ▻ L
 step (s ▻ ƛ A L)    = s ◅ V-ƛ A L
 step (s ▻ (L · M))  = (s , (-· M)) ▻ L
 step (s ▻ con cn)   = s ◅ V-con cn
-  -- ^ why is i inferrable?
-
--- type telescope is full
 step (s ▻ error A) = ◆
 step (s ▻ wrap pat arg L) = (s , wrap- pat arg) ▻ L
 step (s ▻ unwrap L) = (s , unwrap-) ▻ L
-step (_ ▻ ibuiltin b) = ◆
+step (s ▻ ibuiltin b) = s ◅ ival b
 step (ε ◅ V) = □ V
 step ((s , (-· M)) ◅ V) = (s , (V ·-)) ▻ M
 step (_◅_ (s , (V-ƛ A L ·-)) {M} W) = s ▻ (L [ M ])
+step ((s , (V-builtin b t p q base vs ·-)) ◅ V) =
+  s ▻ IBUILTIN' b p q (vs , _ , V) 
+step ((s , (V-builtin b t p q (skipT r) vs ·-)) ◅ V) =
+  s ◅ V-builtin⋆ b (t · deval V) p q r (vs , _ , V)
+step ((s , (V-builtin b t p q (skipS r) vs ·-)) ◅ V) =
+  s ◅ V-builtin b (t · deval V) p q r (vs , _ , V)
 step ((s , (V-Λ V ·-)) ◅ W) = ◆
 step ((s , (V-con tcn ·-)) ◅ W) = ◆
 step ((s , (V-wrap A B V ·-)) ◅ W) = ◆
-step ((s , (-·⋆ A)) ◅ V-ƛ A' L) = ◆
+step ((s , (V-builtin⋆ b t p q r vs ·-)) ◅ V) = ◆
+
 step ((s , (-·⋆ A)) ◅ V-Λ  t)  = s ▻ (t [ A ]⋆)
+step ((s , (-·⋆ A)) ◅ V-builtin⋆ b t p q base vs) = s ▻ IBUILTIN' b p q vs
+step ((s , (-·⋆ A)) ◅ V-builtin⋆ b t p q (skipT r) vs) =
+  s ◅ V-builtin⋆ b (t ·⋆ A) p q r vs
+step ((s , (-·⋆ A)) ◅ V-builtin⋆ b t p q (skipS r) vs) =
+  s ◅ V-builtin b (t ·⋆ A) p q r vs
+step ((s , wrap- A B) ◅ V) = s ◅ V-wrap A B V
+step ((s , (-·⋆ A)) ◅ V-ƛ A' L) = ◆
 step ((s , (-·⋆ A)) ◅ V-con tcn) = ◆
 step ((s , (-·⋆ A)) ◅ V-wrap A' B V) = ◆
-step ((s , (-·⋆ A)) ◅ V-builtin a b c d e f) = ◆
-step ((s , wrap- A B) ◅ V) = s ◅ V-wrap A B V
-step ((s , (V-builtin b t p q base vs ·-)) ◅ V) =
-  s ▻ IBUILTIN' b p q (vs , _ , V) 
-step ((s , (V-builtin b t p q (skipT r) vs ·-)) ◅ V) = {!!}
-step ((s , (V-builtin b t p q (skipS r) vs ·-)) ◅ V) = {!!}
+step ((s , (-·⋆ A)) ◅ V-builtin b t p q r vs) = ◆
 
--- β-unwrap
 step ((s , unwrap-) ◅ V-wrap A B V) = s ◅ V
--- error conditions
 step ((s , unwrap-) ◅ V-builtin a b c d e f) = ◆
 step ((s , unwrap-) ◅ V-builtin⋆ a b c d e f) = ◆
 step ((s , unwrap-) ◅ V-ƛ A t) = ◆
