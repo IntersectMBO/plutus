@@ -43,6 +43,7 @@ coin = Stablecoin
     { scOracle = walletPubKey oracle
     , scFee = onePercent
     , scMinReserveRatio = zero
+    , scMaxReserveRatio = 500 % 1
     , scReservecoinDefaultPrice = BC 1
     , scBaseCurrency = (adaSymbol, adaToken)
     , scStablecoinTokenName = "stablecoin"

@@ -76,6 +76,7 @@ module Language.PlutusTx.Coordination.Contracts.Stablecoin(
     -- * Etc.
     , stableCoins
     , reserveCoins
+    , checkValidState
     ) where
 
 import           Control.Monad                         (forever, guard)
@@ -98,6 +99,7 @@ import           Ledger.Scripts                        (MonetaryPolicyHash, mone
 import           Ledger.Typed.Scripts                  (scriptHash)
 import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Scripts.Validators       (forwardingMPS)
+import           Ledger.Typed.Tx                       (TypedScriptTxOut (..))
 import           Ledger.Value                          (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value                          as Value
 import qualified Prelude                               as Haskell
@@ -193,6 +195,7 @@ data Stablecoin =
         { scOracle                  :: PubKey -- ^ Public key of the oracle that provides exchange rates
         , scFee                     :: Ratio Integer -- ^ Fee charged by bank for transactions. Calculated as a fraction of the total transaction volume in base currency.
         , scMinReserveRatio         :: Ratio Integer -- ^ The minimum ratio of reserves to liabilities
+        , scMaxReserveRatio         :: Ratio Integer -- ^ The maximum ratio of reserves to liabilities
         , scReservecoinDefaultPrice :: BC Integer -- ^ The price of a single reservecoin if no reservecoins have been issued
         , scBaseCurrency            :: (CurrencySymbol, TokenName) -- ^ The base currency. Value of this currency will be locked by the stablecoin state machine instance
         , scStablecoinTokenName     :: TokenName -- ^ 'TokenName' of the stablecoin
@@ -202,11 +205,24 @@ data Stablecoin =
     deriving anyclass (ToJSON, FromJSON)
 
 {-# INLINEABLE minReserve #-}
--- | Minimum number of base currency coins held by the bank
-minReserve :: Stablecoin -> ConversionRate -> BankState -> BC (Ratio Integer)
-minReserve Stablecoin{scMinReserveRatio} cr BankState{bsStablecoins=SC sc} =
-    let BC r = convert cr (PC $ fromInteger sc)
-    in BC $ scMinReserveRatio * r
+-- | Minimum number of base currency coins held by the bank.
+--   Returns 'Nothing' if no stablecoins have been minted.
+minReserve :: Stablecoin -> ConversionRate -> BankState -> Maybe (BC (Ratio Integer))
+minReserve Stablecoin{scMinReserveRatio} cr BankState{bsStablecoins=SC sc}
+    | sc == zero = Nothing
+    | otherwise =
+        let BC r = convert cr (PC $ fromInteger sc)
+        in Just $ BC $ scMinReserveRatio * r
+
+-- | Maximum number of base currency coins held by the bank.
+--   Returns 'Nothing' if no stablecoins have been minted.
+{-# INLINEABLE maxReserve #-}
+maxReserve :: Stablecoin -> ConversionRate -> BankState -> Maybe (BC (Ratio Integer))
+maxReserve Stablecoin{scMaxReserveRatio} cr BankState{bsStablecoins=SC sc}
+    | sc == zero = Nothing
+    | otherwise =
+        let BC r = convert cr (PC $ fromInteger sc)
+        in Just $ BC $ scMaxReserveRatio * r
 
 {-# INLINEABLE reservecoinNominalPrice #-}
 -- | Price of a single reservecoin in base currency
@@ -265,9 +281,12 @@ transition sc State{stateData=oldState} input =
     let toSmState state = State{stateData=state, stateValue=bankReservesValue sc state}
     in fmap (\(constraints, newState) -> (constraints, toSmState newState)) (step sc oldState input)
 
-{-# INLINEABLE step #-}
-step :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
-step sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsForgingPolicyScript} Input{inpSCAction, inpConversionRate} = do
+{-# INLINEABLE applyInput #-}
+-- | Given a stablecoin definition, current state and input, compute the
+--   new state and tx constraints, without checking whether the new state
+--   is valid.
+applyInput :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
+applyInput sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@BankState{bsForgingPolicyScript} Input{inpSCAction, inpConversionRate} = do
     (Observation{obsValue=rate, obsSlot}, constraints) <- either (const Nothing) pure (verifySignedMessageConstraints scOracle inpConversionRate)
     let fees = calcFees sc bs rate inpSCAction
         (newState, newConstraints) = case inpSCAction of
@@ -283,9 +302,16 @@ step sc@Stablecoin{scOracle,scStablecoinTokenName,scReservecoinTokenName} bs@Ban
                 { bsReservecoins = bsReservecoins bs + rc
                 , bsReserves = bsReserves bs + fmap round (fees + rcValue)
                 }, Constraints.mustForgeCurrency bsForgingPolicyScript scReservecoinTokenName (unRC rc))
-    guard $ isValidState sc newState rate
     let dateConstraints = Constraints.mustValidateIn $ Interval.from obsSlot
     pure (constraints <> newConstraints <> dateConstraints, newState)
+
+{-# INLINEABLE step #-}
+step :: forall i o. Stablecoin -> BankState -> Input -> Maybe (TxConstraints i o, BankState)
+step sc@Stablecoin{scOracle} bs i@Input{inpConversionRate} = do
+    (constraints, newState) <- applyInput sc bs i
+    (Observation{obsValue=rate}, _ :: TxConstraints i o) <- either (const Nothing) pure (verifySignedMessageConstraints scOracle inpConversionRate)
+    guard $ isValidState sc newState rate
+    pure (constraints, newState)
 
 -- | A 'Value' with the given number of reservecoins
 reserveCoins :: Stablecoin -> RC Integer -> Value
@@ -301,13 +327,36 @@ stableCoins sc@Stablecoin{scStablecoinTokenName} =
 
 {-# INLINEABLE isValidState #-}
 isValidState :: Stablecoin -> BankState -> ConversionRate -> Bool
-isValidState sc bs@BankState{bsReservecoins, bsReserves, bsStablecoins} cr =
-    traceIfFalse "reservecoins < 0" (bsReservecoins >= RC 0)
-    && traceIfFalse "reserves < 0" (bsReserves >= BC 0)
-    && traceIfFalse "stablecoins < 0" (bsStablecoins >= SC 0)
-    && traceIfFalse "min reserves" (fmap fromInteger bsReserves >= minReserve sc cr bs)
-    && traceIfFalse "liabilities < 0" (liabilities bs cr >= zero)
-    && traceIfFalse "equity < 0" (equity bs cr >= zero)
+isValidState sc bs cr = isRight (checkValidState sc bs cr)
+
+{-# INLINEABLE checkValidState #-}
+checkValidState :: Stablecoin -> BankState -> ConversionRate -> Either InvalidStateReason ()
+checkValidState sc bs@BankState{bsReservecoins, bsReserves, bsStablecoins} cr = do
+    -- TODO: Do we need a validation type in the state machine lib?
+    unless (bsReservecoins >= RC 0) (Left NegativeReserveCoins)
+    unless (bsReserves >= BC 0) (Left NegativeReserves)
+    unless (bsStablecoins >= SC 0) (Left NegativeStablecoins)
+    unless (liabilities bs cr >= zero) (Left NegativeLiabilities)
+    unless (equity bs cr >= zero) (Left NegativeEquity)
+
+    let actualReserves = fmap fromInteger bsReserves
+        allowedReserves = (,) <$> minReserve sc cr bs <*> maxReserve sc cr bs
+
+    case allowedReserves of
+        Just (minReserves, maxReserves) -> do
+            unless (actualReserves >= minReserves) (Left $ MinReserves minReserves actualReserves)
+            unless (actualReserves <= maxReserves) (Left $ MaxReserves maxReserves actualReserves)
+        Nothing -> pure ()
+
+data InvalidStateReason
+    = NegativeReserveCoins
+    | NegativeReserves
+    | NegativeStablecoins
+    | MinReserves { allowed :: BC (Ratio Integer), actual :: BC (Ratio Integer)  }
+    | MaxReserves { allowed :: BC (Ratio Integer), actual :: BC (Ratio Integer)  }
+    | NegativeLiabilities
+    | NegativeEquity
+    deriving (Show)
 
 stablecoinStateMachine :: Stablecoin -> StateMachine BankState Input
 stablecoinStateMachine sc = StateMachine.mkStateMachine (transition sc) isFinal
@@ -350,7 +399,29 @@ contract = do
     let theClient = machineClient (scriptInstance sc) sc
     _ <- mapError StateMachineError $ StateMachine.runInitialise theClient (initialState theClient) mempty
     forever $ do
-        mapError RunStepError (endpoint @"run step") >>= mapError StateMachineError . StateMachine.runStep theClient
+        i <- mapError RunStepError (endpoint @"run step")
+        checkTransition theClient sc i
+        mapError StateMachineError $ StateMachine.runStep theClient i
+
+-- | Apply 'checkValidState' to the states before and after a transition
+--   and log a warning if something isn't right.
+checkTransition :: StateMachineClient BankState Input -> Stablecoin -> Input -> Contract StablecoinSchema StablecoinError ()
+checkTransition theClient sc i@Input{inpConversionRate} = do
+        currentState <- mapError StateMachineError $ StateMachine.getOnChainState theClient
+        case checkHashOffChain inpConversionRate of
+            Right Observation{obsValue} -> do
+                case currentState of
+                    Just ((TypedScriptTxOut{tyTxOutData}, _), _) -> do
+                        case checkValidState sc tyTxOutData obsValue of
+                            Right _ -> logInfo @String "Current state OK"
+                            Left w  -> logWarn $ "Current state is invalid: " <> show w
+                        case applyInput sc tyTxOutData i of
+                            Just (_, newState) -> case checkValidState sc newState obsValue of
+                                Right _ -> logInfo @String "New state OK"
+                                Left w  -> logWarn $ "New state is invalid: " <> show w
+                            Nothing -> logWarn @String "applyInput is Nothing (transition failed)"
+                    Nothing -> logWarn @String "Unable to find current state."
+            Left e -> logWarn $ "Unable to decode oracle value from datum: " <> show e
 
 PlutusTx.makeLift ''SC
 PlutusTx.makeLift ''RC
