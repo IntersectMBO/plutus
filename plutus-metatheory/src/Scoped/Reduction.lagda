@@ -297,6 +297,11 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   E-Λunwrap : ∀{K}{t : ScopedTm (T w)} → unwrap (Λ K t) —→ error missing
   E-conunwrap : ∀{tcn} → unwrap (con tcn) —→ error missing
 
+  E-builtin⋆· : ∀{t u : ScopedTm w} → t · u —→ error missing
+  E-builtin·⋆ : ∀{t : ScopedTm w}{A} → t ·⋆ A —→ error missing
+  E-builtinunwrap : ∀{t : ScopedTm w} → unwrap t —→ error missing
+  E-builtin⋆unwrap : ∀{t : ScopedTm w} → unwrap t —→ error missing
+
 data _—→T_ {n}{w} where
   here  : ∀{m t t'}{ts : Tel w m} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
   there : ∀{m t}{ts ts' : Tel w m}
@@ -333,7 +338,7 @@ progress·V (V-ƛ A t)                (done v)            = step (β-ƛ v)
 progress·V (V-Λ p)                  (done v)            = step E-Λ·
 progress·V (V-con tcn)              (done v)            = step E-con·
 progress·V (V-wrap A B t)           (done v)            = step E-wrap·
-progress·V (V-builtin⋆ b t p q r σ) (done v)       = step {!!} --  step (E-builtin⋆· b As q _)
+progress·V (V-builtin⋆ b t p q r σ) (done v)            = step E-builtin⋆·
 progress·V (V-builtin b t p q base σ) (done v) =
   step (β-builtin b t (deval v) p q σ v)
 progress·V (V-builtin b t p q (skipT r) σ) (done v) = done (V-builtin⋆ b (t · deval v) p q r (σ , deval v , v))
@@ -357,20 +362,20 @@ progress·⋆ (done (V-wrap pat arg t))    A = step E-wrap·⋆
 progress·⋆ (done (V-builtin⋆ b t p q base σ)) A = step (β-builtin⋆ b t A p q σ)
 progress·⋆ (done (V-builtin⋆ b t p q (skipT r) σ)) A = done (V-builtin⋆ b (t ·⋆ A) p q r σ)
 progress·⋆ (done (V-builtin⋆ b t p q (skipS r) σ)) A = done (V-builtin b (t ·⋆ A) p q r σ)
-progress·⋆ (done (V-builtin b t p q r s)) A = step {!!} -- error
+progress·⋆ (done (V-builtin b t p q r s)) A = step E-builtin·⋆
 
 progress·⋆ (error (E-error A))          B = step E-·⋆
 
 progress-unwrap : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
   → Progress t → Progress (unwrap t)
-progress-unwrap (step p)                     = step (ξ-unwrap p)
-progress-unwrap (done (V-ƛ A t))             = step E-ƛunwrap
-progress-unwrap (done (V-Λ p))               = step E-Λunwrap
-progress-unwrap (done (V-con tcn))           = step E-conunwrap
-progress-unwrap (done (V-wrap A B v))        = step (β-wrap v)
-progress-unwrap (done (V-builtin b t p q r σ)) = step {!!} -- step E-builtinunwrap
-progress-unwrap (done (V-builtin⋆ b t p q r σ))   = step {!!} -- step E-builtin⋆unwrap
-progress-unwrap (error (E-error A))          = step E-unwrap
+progress-unwrap (step p)                        = step (ξ-unwrap p)
+progress-unwrap (done (V-ƛ A t))                = step E-ƛunwrap
+progress-unwrap (done (V-Λ p))                  = step E-Λunwrap
+progress-unwrap (done (V-con tcn))              = step E-conunwrap
+progress-unwrap (done (V-wrap A B v))           = step (β-wrap v)
+progress-unwrap (done (V-builtin b t p q r σ))  = step E-builtinunwrap
+progress-unwrap (done (V-builtin⋆ b t p q r σ)) = step E-builtin⋆unwrap
+progress-unwrap (error (E-error A))             = step E-unwrap
 
 ival : ∀ b → Value {w = Z} (ibuiltin b)
 ival addInteger = V-builtin addInteger _ refl refl (skipS base) _
