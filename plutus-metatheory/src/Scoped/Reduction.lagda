@@ -56,7 +56,7 @@ ISIG sha2-256 = 0 , S Z
 ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
-ISIG ifThenElse = 1 , S (S (T Z)) -- this may be in the wrong order
+ISIG ifThenElse = 1 , S (S (S (T Z))) -- this may be in the wrong order
 ISIG charToString = 0 , S (S Z)
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
@@ -125,32 +125,32 @@ open import Data.List using (List;[];_∷_)
 open import Type using (Kind)
 
 IBUILTIN : ∀{n}{w : Weirdℕ n}(b : Builtin) → ITel b (proj₂ (ISIG b)) w → ScopedTm w
-IBUILTIN addInteger ((_ , t , V-con (integer i)) , t' , V-con (integer j)) =
-  con (integer (i I.+ j))
-{-
-IBUILTIN subtractInteger σ = {!!}
-IBUILTIN multiplyInteger σ = {!!}
-IBUILTIN divideInteger σ = {!!}
-IBUILTIN quotientInteger σ = {!!}
-IBUILTIN remainderInteger σ = {!!}
-IBUILTIN modInteger σ = {!!}
-IBUILTIN lessThanInteger σ = {!!}
-IBUILTIN lessThanEqualsInteger σ = {!!}
-IBUILTIN greaterThanInteger σ = {!!}
-IBUILTIN greaterThanEqualsInteger σ = {!!}
-IBUILTIN equalsInteger σ = {!!}
-IBUILTIN concatenate σ = {!!}
-IBUILTIN takeByteString σ = {!!}
-IBUILTIN dropByteString σ = {!!}
-IBUILTIN sha2-256 σ = {!!}
-IBUILTIN sha3-256 σ = {!!}
-IBUILTIN verifySignature σ = {!!}
-IBUILTIN equalsByteString σ = {!!}
-IBUILTIN ifThenElse σ = {!!}
-IBUILTIN charToString σ = {!!}
-IBUILTIN append σ = {!!}
-IBUILTIN trace σ = {!!}
--}
+IBUILTIN addInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = con (integer (i I.+ i'))
+IBUILTIN subtractInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = con (integer (i I.- i'))
+IBUILTIN multiplyInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = con (integer (i I.* i'))
+IBUILTIN divideInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (div i i')))
+IBUILTIN quotientInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (quot i i')))
+IBUILTIN remainderInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (rem i i')))
+IBUILTIN modInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
+IBUILTIN lessThanInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.<? i') (con (bool true)) (con (bool false))
+IBUILTIN lessThanEqualsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≤? i') (con (bool true)) (con (bool false))
+IBUILTIN greaterThanInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i >? i') (con (bool true)) (con (bool false))
+IBUILTIN greaterThanEqualsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i ≥? i') (con (bool true)) (con (bool false))
+IBUILTIN equalsInteger ((_ , t , V-con (integer i)) , t' , V-con (integer i')) = decIf (i I.≟ i') (con (bool true)) (con (bool false))
+IBUILTIN concatenate ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b')) 
+IBUILTIN takeByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (take i b)) 
+IBUILTIN dropByteString ((_ , t , V-con (integer i)) , t' , V-con (bytestring b)) = con (bytestring (drop i b)) 
+IBUILTIN sha2-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA2-256 b))
+IBUILTIN sha3-256 (_ , t , V-con (bytestring b)) = con (bytestring (SHA3-256 b))
+IBUILTIN verifySignature (((_ , t , V-con (bytestring k)) , t' , V-con (bytestring d)) , t'' , V-con (bytestring c)) = VERIFYSIG (verifySig k d c)
+IBUILTIN equalsByteString  ((_ , t , V-con (bytestring b)) , t' , V-con (bytestring b')) = con (bool (equals b b'))
+IBUILTIN ifThenElse (((_ , _ , V-con (bool true))  , t , _) , f , _) = t
+IBUILTIN ifThenElse (((_ , _ , V-con (bool false)) , t , _) , f , _) = f
+IBUILTIN charToString (_ , t , V-con (char c)) =
+  con (string (primStringFromList (c ∷ [])))
+IBUILTIN append ((_ , t , V-con (string s)) , t' , V-con (string s')) =
+  con (string (primStringAppend s s'))
+IBUILTIN trace (_ , t , V-con (string s)) = con (Debug.trace s unit)
 IBUILTIN _ _ = error missing
 
 IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : proj₁ (ISIG b) ≡ n') → subst Weirdℕ p (proj₂ (ISIG b)) ≡ w' → ITel b w' w → ScopedTm w
@@ -397,7 +397,7 @@ ival sha2-256 = V-builtin sha2-256 _ refl refl base _
 ival sha3-256 = V-builtin sha2-256 _ refl refl base _
 ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
 ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
-ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS base) _
+ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS (skipS base)) _
 ival charToString = V-builtin charToString _ refl refl (skipS base) _
 ival append = V-builtin append _ refl refl (skipS base) _
 ival trace = V-builtin trace _ refl refl base _
