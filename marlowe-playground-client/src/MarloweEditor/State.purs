@@ -37,7 +37,7 @@ import Marlowe.Semantics (Contract, emptyState)
 import Marlowe.Semantics as Semantics
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result)
-import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _keybindings, _selectedHole, _showBottomPanel)
+import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showBottomPanel)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -129,6 +129,13 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
 
+handleAction _ (ShowErrorDetail val) =  {- FIXME assign _showErrorDetail val -} pure unit
+
+handleAction _ (ChangeBottomPanelView view) = do
+  assign _bottomPanelView view
+  assign _showBottomPanel true
+  editorResize
+
 -- FIXME fix in the Mainframe (refactor from Simulation)
 handleAction _ SetBlocklyCode = pure unit
 
@@ -144,7 +151,7 @@ handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 handleAction settings AnalyseContract =
   void
     $ runMaybeT do
-        contents <- MaybeT $ query _marloweEditorPageSlot unit (Monaco.GetText identity)
+        contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
         -- FIXME: when editor and simulator were together the analyse contract could be made
         --        at any step of the simulator. Now that they are separate, it can only be done
@@ -160,7 +167,7 @@ handleAction settings AnalyseContract =
 handleAction settings AnalyseReachabilityContract =
   void
     $ runMaybeT do
-        contents <- MaybeT $ query _marloweEditorPageSlot unit (Monaco.GetText identity)
+        contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
         -- FIXME: when editor and simulator were together the analyse contract could be made
         --        at any step of the simulator. Now that they are separate, it can only be done
@@ -190,6 +197,7 @@ editorSetValue contents = void $ query _marloweEditorPageSlot unit (Monaco.SetTe
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _marloweEditorPageSlot unit (Monaco.GetText identity)
 
+-- FIXME: This receives markers and sets errors and warnings. Maybe rename to processErrorsAndWarnings
 editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
 editorSetMarkers markers = do
   let
@@ -210,9 +218,7 @@ editorSetMarkers markers = do
         warnings
   let
     errors = filter (\{ severity } -> isError severity) markers
-  -- FIXME: This is not doing anything at the moment. We were probably hijacking the
-  -- errors and warnings from the simulation. We proably need to add editorWarnings and errors
-  -- to the MarloweEditor state. Do it later
-  -- assign (_marloweState <<< _Head <<< _editorWarnings) trimHoles
-  -- assign (_marloweState <<< _Head <<< _editorErrors) errors
-  pure unit
+  modify_
+    ( set _editorWarnings trimHoles
+        <<< set _editorErrors errors
+    )

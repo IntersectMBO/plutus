@@ -320,7 +320,7 @@ handleAction s (MarloweEditorAction action) = do
   toMarloweEditor (MarloweEditor.handleAction s action)
   case action of
     ME.SendToSimulator -> do
-      mContents <- query _marloweEditorPageSlot unit (Monaco.GetText identity)
+      mContents <- MarloweEditor.editorGetValue
       for_ mContents \contents -> do
         sendToSimulation s Marlowe contents
     -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state

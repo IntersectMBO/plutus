@@ -27,18 +27,11 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, showPrettyToken, timeouts)
 import Marlowe.Symbolic.Types.Response as R
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isContractValid)
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _showBottomPanel, _showErrorDetail)
--- FIXME: _editorErrors, _editorWarnings, _executionState,  _transactionError, _transactionWarnings, isContractValid
 import Text.Parsing.StringParser.Basic (lines)
-
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state = text ""
-
-{-
--- The bottom panel in the MarloweEditor is commented as it’s very tied to the simulation. It will be restored in a future commit of this refactor
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
@@ -65,17 +58,17 @@ bottomPanel state =
                         , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
                             [ li
                                 [ classes ([] <> isActive StaticAnalysisView)
-                                , onClick $ const $ Just $ ChangeSimulationView StaticAnalysisView
+                                , onClick $ const $ Just $ ChangeBottomPanelView StaticAnalysisView
                                 ]
                                 [ a_ [ text "Static Analysis" ] ]
                             , li
                                 [ classes ([] <> isActive MarloweWarningsView)
-                                , onClick $ const $ Just $ ChangeSimulationView MarloweWarningsView
+                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweWarningsView
                                 ]
                                 [ a_ [ text $ "Warnings" <> if Array.null warnings then "" else " (" <> show (length warnings) <> ")" ] ]
                             , li
                                 [ classes ([] <> isActive MarloweErrorsView)
-                                , onClick $ const $ Just $ ChangeSimulationView MarloweErrorsView
+                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweErrorsView
                                 ]
                                 [ a_ [ text $ "Errors" <> if Array.null errors then "" else " (" <> show (length errors) <> ")" ] ]
                             ]
@@ -89,13 +82,9 @@ bottomPanel state =
   where
   isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
 
-  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+  warnings = state ^. _editorWarnings
 
-  errors = state ^. (_marloweState <<< _Head <<< _editorErrors)
-
-  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
-
-  hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
+  errors = state ^. _editorErrors
 
   showingBottomPanel = state ^. _showBottomPanel
 
@@ -133,7 +122,7 @@ panelContents state MarloweWarningsView =
     ]
     content
   where
-  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+  warnings = state ^. _editorWarnings
 
   content =
     if Array.null warnings then
@@ -162,7 +151,7 @@ panelContents state MarloweErrorsView =
     ]
     content
   where
-  errors = state ^. (_marloweState <<< _Head <<< _editorErrors <<< to (map formatError))
+  errors = state ^. (_editorErrors <<< to (map formatError))
 
   content =
     if Array.null errors then
@@ -541,4 +530,3 @@ unfoldAssets (Assets mon) f =
         )
     )
     (Map.toUnfoldable mon)
--}

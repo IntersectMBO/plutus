@@ -220,13 +220,24 @@ stateToTxInput executionState =
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
 
-updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
+updateMarloweState ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  (MarloweState -> MarloweState) ->
+  m Unit
 updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
 
-updateContractInState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => String -> m Unit
+updateContractInState ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  String ->
+  m Unit
 updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
 
-applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
+applyTransactions ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  m Unit
 applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
 
 applyInput ::

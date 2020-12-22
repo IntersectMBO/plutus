@@ -187,8 +187,6 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
 
-handleAction _ (ShowErrorDetail val) =  {- FIXME assign _showErrorDetail val -} pure unit
-
 handleAction _ SetBlocklyCode = pure unit
 
 handleAction _ EditHaskell = pure unit
@@ -310,31 +308,8 @@ saveInitialState = do
 resetContract :: forall m. HalogenM State Action ChildSlots Void m Unit
 resetContract = do
   newContract <- editorGetValue
-  assign _marloweState $ NEL.singleton emptyMarloweState
-  assign _oldContract Nothing
+  modify_
+    ( set _marloweState (NEL.singleton emptyMarloweState)
+        <<< set _oldContract Nothing
+    )
   updateContractInState $ fromMaybe "" newContract
-
--- FIXME: remove this
-editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
-editorSetMarkers markers = do
-  let
-    warnings = filter (\{ severity } -> isWarning severity) markers
-
-    trimHoles =
-      map
-        ( \marker ->
-            let
-              trimmedMessage =
-                if String.take 6 marker.source == "Hole: " then
-                  String.takeWhile (\c -> c /= codePointFromChar '\n') marker.message
-                else
-                  marker.message
-            in
-              marker { message = trimmedMessage }
-        )
-        warnings
-  let
-    errors = filter (\{ severity } -> isError severity) markers
-  assign (_marloweState <<< _Head <<< _editorWarnings) trimHoles
-  assign (_marloweState <<< _Head <<< _editorErrors) errors
-  pure unit

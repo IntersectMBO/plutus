@@ -224,9 +224,12 @@ simulationNotStarted = simulationNotStartedWithSlot zero
 type MarloweState
   = { executionState :: ExecutionState
     , contract :: Maybe Contract
+    , holes :: Holes
+    -- NOTE: as part of the marlowe editor and simulator split this part of the
+    --       state wont be used, but it is leaved as it is because it may make sense
+    --       to use it as part of task SCP-1642
     , editorErrors :: Array IMarker
     , editorWarnings :: Array IMarker
-    , holes :: Holes
     }
 
 _executionState :: forall s a. Lens' { executionState :: a | s } a
@@ -353,7 +356,6 @@ data Action
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
-  | ShowErrorDetail Boolean
   -- Editors -- FIXME: split to both
   | SetBlocklyCode
   | EditHaskell -- FIXME: change to EditSource (and use Workflow)
@@ -381,7 +383,6 @@ instance isEventAction :: IsEvent Action where
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
   toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
   toEvent EditHaskell = Just $ defaultEvent "EditHaskell"
   toEvent EditJavascript = Just $ defaultEvent "EditJavascript"
