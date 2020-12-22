@@ -111,7 +111,7 @@ type ContractPath
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-type InProgressRecord
+type AnalysisInProgressRecord
   = { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
@@ -120,26 +120,32 @@ type InProgressRecord
     , subproblems :: RemainingSubProblemInfo
     , numSubproblems :: Int
     , numSolvedSubproblems :: Int
-    , unreachableSubcontracts :: List ContractPath
+    , counterExampleSubcontracts :: List ContractPath
     }
 
-type UnreachableSubcontractRecord
+type AnalysisCounterExamplesRecord
   = { originalState :: S.State
     , originalContract :: Contract
-    , unreachableSubcontracts :: NonEmptyList ContractPath
+    , counterExampleSubcontracts :: NonEmptyList ContractPath
     }
 
-data ReachabilityAnalysisData
-  = NotStarted
-  | InProgress InProgressRecord
-  | ReachabilityFailure String
-  | UnreachableSubcontract UnreachableSubcontractRecord
-  | AllReachable
+data MultiStageAnalysisData
+  = AnalysisNotStarted
+  | AnalysisInProgress AnalysisInProgressRecord
+  | AnalyisisFailure String
+  | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
+  | AnalysisFinishedAndPassed
 
 data AnalysisState
   = NoneAsked
   | WarningAnalysis (WebData Result)
-  | ReachabilityAnalysis ReachabilityAnalysisData
+  | ReachabilityAnalysis MultiStageAnalysisData
+
+type MultiStageAnalysisProblemDef
+  = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
+    , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
+    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
+    }
 
 data BottomPanelView
   = StaticAnalysisView

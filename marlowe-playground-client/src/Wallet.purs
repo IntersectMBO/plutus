@@ -44,7 +44,7 @@ import Marlowe.Semantics as S
 import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
 import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
-import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
+import SimulationPage.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import WalletSimulation.Types (Action(..), ChildSlots, LoadedContract, Message(..), Query(..), State, View(..), Wallet(..), _addInputError, _assetChanges, _assets, _contracts, _currentLoadedMarloweState, _helpContext, _initialized, _loadContractError, _loadedMarloweState, _name, _openWallet, _parties, _runningContracts, _showRightPanel, _started, _tokens, _view, _walletContracts, _walletLoadedContract, _wallets, mkState)
@@ -952,13 +952,13 @@ marloweActionInput isEnabled f current =
 renderDeposit :: forall p a. AccountId -> S.Party -> Token -> BigInteger -> Array (HTML p a)
 renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
+  , b_ [ spanText (showPrettyMoney money) ]
   , spanText " units of "
-  , b_ [ spanText (show tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner) ]
+  , b_ [ renderPrettyToken tok ]
+  , spanText " into account of "
+  , b_ [ renderPrettyParty accountOwner ]
   , spanText " as "
-  , b_ [ spanText (show party) ]
+  , b_ [ renderPrettyParty party ]
   ]
 
 transactionComposer ::

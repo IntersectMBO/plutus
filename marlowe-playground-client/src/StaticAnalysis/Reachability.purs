@@ -15,7 +15,7 @@ import Marlowe.Semantics (Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import Prelude (Unit, Void, discard, map, mempty, pure, ($), (&&), (/=), (==))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, State)
+import MarloweEditor.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, State)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 
 expandSubproblem :: ContractZipper -> Contract -> (ContractPath /\ Contract)

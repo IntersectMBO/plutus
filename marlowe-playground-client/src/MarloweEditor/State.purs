@@ -41,7 +41,7 @@ import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Reachability (getUnreachableContracts, startReachabilityAnalysis)
+import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulator (updateContractInState)
