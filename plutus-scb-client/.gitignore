@@ -1,6 +1,9 @@
 /node_modules/
 /output/
 /generated/
+/generated
+/yarn-error.log
+/yarn.lock
 /.psci_modules/
 /generated-docs/
 /.psc-package/
