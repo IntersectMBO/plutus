@@ -17,7 +17,7 @@ import Halogen.HTML (HTML, a, a_, div, div_, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import MainFrame.Types (ChildSlots)
-import Marlowe.Gists (fileExists, filenames, playgroundGist)
+import Marlowe.Gists (fileExists, filenames, isPlaygroundGist)
 import Modal.ViewHelpers (modalHeader)
 import Network.RemoteData (RemoteData(..))
 import Prim.TypeError (class Warn, Text)
@@ -40,7 +40,7 @@ render state =
           ]
       ]
   where
-  playgroundGists = filter playgroundGist <$> state ^. _projects
+  playgroundGists = filter isPlaygroundGist <$> state ^. _projects
 
   body (Success []) = span [ class_ (ClassName "empty-result") ] [ text "No saved projects found" ]
 
@@ -52,7 +52,7 @@ render state =
 
 projectList ::
   forall p.
-  Warn (Text "Only 30 projects seem to be loading. Check why and define what should we do about it") =>
+  Warn (Text "SCP-1645: Only 30 projects are loading because of gist pagination. We should probably add infinite scrolling capabilities") =>
   Array Gist ->
   HTML p Action
 projectList gists =
