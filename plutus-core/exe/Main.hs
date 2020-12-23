@@ -616,7 +616,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
                   CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
-        -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- performGC >> getCPUTime
         case evaluate body of
