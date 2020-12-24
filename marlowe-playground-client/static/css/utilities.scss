@@ -86,12 +86,36 @@
   margin-bottom: var(--medium-margin);
 }
 
+.small-space-bottom {
+  margin-bottom: var(--small-margin);
+}
+
 .space-top {
-  margin-top: var(--medium-margin);;
+  margin-top: var(--medium-margin);
+}
+
+.padding-right {
+  padding-right: var(--medium-margin);
+}
+
+.small-padding-right {
+  padding-right: var(--small-margin);
+}
+
+.padding-left {
+  padding-left: var(--medium-margin);
+}
+
+.small-padding-left {
+  padding-left: var(--small-margin);
 }
 
 .text-secondary-color {
   color: var(--secondary-color);
+}
+
+.text-white {
+  color: white;
 }
 
 .accent-border-bottom {
