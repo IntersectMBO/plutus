@@ -12,7 +12,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, query)
 import Halogen.Monaco as Monaco
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
@@ -286,5 +286,5 @@ stepAnalysis problemDef settings isCounterExample rad =
       pure result
   where
   refreshEditor = do
-    mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
-    for_ mContent (\content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit)
+    mContent <- query _simulatorEditorSlot unit (Monaco.GetText identity)
+    for_ mContent (\content -> void $ query _simulatorEditorSlot unit $ Monaco.SetText content unit)

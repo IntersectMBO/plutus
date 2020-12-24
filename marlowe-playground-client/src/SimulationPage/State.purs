@@ -34,7 +34,7 @@ import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (fromTerm)
@@ -285,16 +285,16 @@ scrollHelpPanel =
       _, _ -> pure unit
 
 editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorSetTheme = void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+editorSetTheme = void $ query _simulatorEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
-editorResize = void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+editorResize = void $ query _simulatorEditorSlot unit (Monaco.Resize unit)
 
 editorSetValue :: forall state action msg m. String -> HalogenM state action ChildSlots msg m Unit
-editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
+editorSetValue contents = void $ query _simulatorEditorSlot unit (Monaco.SetText contents unit)
 
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
-editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
+editorGetValue = query _simulatorEditorSlot unit (Monaco.GetText identity)
 
 saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 saveInitialState = do

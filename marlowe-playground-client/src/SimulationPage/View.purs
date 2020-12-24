@@ -1,85 +1,42 @@
 module SimulationPage.View where
 
-import Control.Alternative (map, void, when, (<*>), (<|>))
-import Control.Monad.Except (ExceptT, runExceptT, runExcept)
-import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, intercalate, snoc, sortWith)
+import Control.Alternative (map, (<|>))
+import Data.Array (intercalate, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.Decimal (truncated, fromNumber)
-import Data.Decimal as Decimal
-import Data.Either (Either(..), hush)
-import Data.Enum (toEnum, upFromIncluding)
-import Data.EuclideanRing ((*))
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (assign, has, modifying, only, over, preview, set, to, use, view, (^.))
-import Data.Lens.Extra (peruse)
-import Data.Lens.Index (ix)
+import Data.Lens (has, only, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
-import Data.List.NonEmpty as NEL
-import Data.List.Types (List(..), NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
-import Data.NonEmptyList.Extra (tailIfNotEmpty)
-import Data.RawJson (RawJson(..))
-import Data.String (codePointFromChar)
-import Data.String as String
-import Data.Traversable (for_, traverse)
 import Data.Tuple (Tuple(..), snd)
-import Effect.Aff.Class (class MonadAff, liftAff)
-import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Console (log)
-import FileEvents (readFileFromDragEvent)
-import FileEvents as FileEvents
-import Foreign.Generic (ForeignError, decode)
-import Foreign.JSON (parseJSON)
-import Halogen (HalogenM, RefLabel(..), get, modify_, query)
+import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
+import Halogen (RefLabel(..))
 import Halogen.Classes (aHorizontal, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
-import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, p, p_, section, slot, small, strong_, text, ul, ul_)
+import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, src, type_, value)
-import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Settings, monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
-import Marlowe (SPParams_)
-import Marlowe as Server
-import Marlowe.Holes (fromTerm)
-import Marlowe.Linter as Linter
-import Marlowe.Monaco (daylightTheme, documentFormattingEditProvider, languageExtensionPoint, updateAdditionalContext)
+import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
+import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
-import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds)
-import Marlowe.Symbolic.Types.Request as MSReq
-import Monaco (Editor, IMarker, isError, isWarning)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds)
+import Monaco (Editor)
 import Monaco (getModel, getMonaco, setTheme, setValue, setReadOnly) as Monaco
-import Network.RemoteData (RemoteData(..))
-import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
+import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), (<>), (==))
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
-import Prim.TypeError (class Warn, Text)
 import Projects.Types (Lang(..))
-import Servant.PureScript.Ajax (AjaxError, errorToString)
-import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.BottomPanel (bottomPanel)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
-import Simulator (applyInput, getAsMuchStateAsPossible, hasHistory, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
-import StaticData (marloweBufferLocalStorageKey)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), State, _SimulationRunning, _currentMarloweState, _editorErrors, _executionState, _helpContext, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, _source, isContractValid, otherActionsParty)
+import Simulator (hasHistory, inFuture)
 import StaticData as StaticData
-import Text.Pretty (genericPretty, pretty)
-import Web.DOM.Document as D
-import Web.DOM.Element (setScrollTop)
-import Web.DOM.Element as E
-import Web.DOM.HTMLCollection as WC
-import Web.HTML as Web
-import Web.HTML.HTMLDocument (toDocument)
-import Web.HTML.Window as W
 
 render ::
   forall m.
@@ -157,7 +114,7 @@ marloweEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-marloweEditor state = slot _marloweEditorSlot unit component unit (const Nothing)
+marloweEditor state = slot _simulatorEditorSlot unit component unit (const Nothing)
   where
   -- FIXME: probably dont use local storage nor empty ?contract... see what a good default should be
   setup editor = do

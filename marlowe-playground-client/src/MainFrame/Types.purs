@@ -148,8 +148,7 @@ type ChildSlots
     , blocklySlot :: H.Slot Blockly.Query Blockly.Message Unit
     , actusBlocklySlot :: H.Slot AB.Query AB.Message Unit
     , simulationSlot :: H.Slot Simulation.Query Blockly.Message Unit
-    -- FIXME: Do deeper investigation and merge these two slots together
-    , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
+    , simulatorEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , marloweEditorPageSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
@@ -169,8 +168,8 @@ _actusBlocklySlot = SProxy
 _simulationSlot :: SProxy "simulationSlot"
 _simulationSlot = SProxy
 
-_marloweEditorSlot :: SProxy "marloweEditorSlot"
-_marloweEditorSlot = SProxy
+_simulatorEditorSlot :: SProxy "simulatorEditorSlot"
+_simulatorEditorSlot = SProxy
 
 _marloweEditorPageSlot :: SProxy "marloweEditorPageSlot"
 _marloweEditorPageSlot = SProxy
