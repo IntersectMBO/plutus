@@ -58,7 +58,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (Editor, IMarker, isError, isWarning)
-import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
+import Monaco (getModel, getMonaco, setTheme, setValue, setReadOnly) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
@@ -170,6 +170,7 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (const Nothing
       -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
       monaco <- Monaco.getMonaco
       Monaco.setTheme monaco MM.daylightTheme.name
+      Monaco.setReadOnly editor true
 
   component = monacoComponent $ settings setup
 
