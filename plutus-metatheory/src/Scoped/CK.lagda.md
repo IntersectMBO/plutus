@@ -7,6 +7,7 @@ module Scoped.CK where
 ```
 open import Function
 open import Data.Bool using (Bool;true;false)
+open import Data.Nat
 open import Data.String
 open import Data.Sum
 open import Data.Product
@@ -55,15 +56,6 @@ open import Data.Empty
 
 -- this could also be presented as a relation and then there would be
 -- more function rather like progress
-
-open import Data.Nat
-
-VTel-extend : ∀{o}{tel : Tel Z o} → VTel o Z tel → {t : ScopedTm Z} → Value t → VTel (suc o) Z (tel :< t)
-VTel-extend {tel = []}       vs         v = v ,, _
-VTel-extend {tel = t' ∷ tel} (v' ,, vs) v = v' ,, VTel-extend vs v
-
-vtel-lem : ∀{n n'}(p : n' ≡ n)(ts : Tel Z n') → VTel n' Z ts → VTel n Z (subst (Tel Z) p ts)
-vtel-lem refl ts vs = vs
 
 step : State → State
 step (s ▻ Λ K L)    = s ◅ V-Λ {K = K} L

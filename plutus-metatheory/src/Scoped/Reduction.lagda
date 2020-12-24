@@ -100,11 +100,6 @@ voidVal w = V-con {w = w} unit
 deval : ∀{n}{w : Weirdℕ n}{t : ScopedTm w} → Value t → ScopedTm w
 deval {t = t} v = t
 
-open import Data.Unit
-VTel : ∀{n} m (w : Weirdℕ n) → Tel w m → Set
-VTel 0       w []       = ⊤
-VTel (suc m) w (t ∷ ts) = Value t × VTel m w ts
-
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
 data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
@@ -157,79 +152,6 @@ IBUILTIN' : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}(b : Builtin) → (p : pr
 IBUILTIN' b refl refl σ = IBUILTIN b σ
 
 
-
--- this is currently in reverse order...
-BUILTIN : ∀{n}{w : Weirdℕ n}
-  → (b : Builtin)
-  → Tel⋆ n (arity⋆ b) → (ts : Tel w (arity b)) → VTel (arity b) w ts → ScopedTm w
-BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  con (integer (i I.+ i'))
-BUILTIN addInteger _ _ _ = error (con integer)
-BUILTIN subtractInteger  _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  con (integer (i I.- i'))
-BUILTIN subtractInteger _ _ _ = error (con integer)
-BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  con (integer (i I.* i'))
-BUILTIN multiplyInteger _ _ _ = error (con integer)
-BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (div i i')))
-BUILTIN divideInteger _ _ _ = error (con integer)
-BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (quot i i')))
-BUILTIN quotientInteger _ _ _ = error (con integer)
-BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-    decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (rem i i')))
-BUILTIN remainderInteger _ _ _ = error (con integer)
-BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-    decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
-BUILTIN modInteger _ _ _ = error (con integer)
--- Int -> Int -> Bool
-BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i <? i') (con (bool true)) (con (bool false))
-BUILTIN lessThanInteger _ _ _ = error (con bool)
-BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≤? i') (con (bool true)) (con (bool false))
-BUILTIN lessThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i >? i') (con (bool true)) (con (bool false))
-BUILTIN greaterThanInteger _ _ _ = error (con bool)
-BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i ≥? i') (con (bool true)) (con (bool false))
-BUILTIN greaterThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≟ i') (con (bool true)) (con (bool false))
-BUILTIN equalsInteger _ _ _ = error (con bool)
--- BS -> BS -> BS
-BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (concat b b'))
-BUILTIN concatenate _ _ _ = error (con bytestring)
--- Int -> BS -> BS
-BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (take i b))
-BUILTIN takeByteString _ _ _ = error (con bytestring)
-BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (drop i b))
-BUILTIN dropByteString _ _ _ = error (con bytestring)
--- BS -> BS
-BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-256 b))
-BUILTIN sha2-256 _ _ _ = error (con bytestring)
-BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
-BUILTIN sha3-256 _ _ _ = error (con bytestring)
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
-BUILTIN verifySignature _ _ _ = error (con bytestring)
--- Int -> Int
-BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  con (bool (equals b b'))
-BUILTIN equalsByteString _ _ _ = error (con bool)
-BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , tt) = t
-BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , tt) = u
-BUILTIN ifThenElse (A ∷ []) _ _ = error A
-BUILTIN charToString _ (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList List.[ c ]))
-BUILTIN charToString _ _ _ = error (con string)
-BUILTIN append _ (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
-  con (string (primStringAppend s t))
-BUILTIN append _ _ _ = error (con string)
-BUILTIN trace _ (_ ∷ []) (V-con (string s) , tt) = con (Debug.trace s unit)
-BUILTIN trace _ _ _ = error (con unit)
-
-data _—→T_ {n}{w : Weirdℕ n} : ∀{m} → Tel w m → Tel w m → Set
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
@@ -301,11 +223,6 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   E-builtin·⋆ : ∀{t : ScopedTm w}{A} → t ·⋆ A —→ error missing
   E-builtinunwrap : ∀{t : ScopedTm w} → unwrap t —→ error missing
   E-builtin⋆unwrap : ∀{t : ScopedTm w} → unwrap t —→ error missing
-
-data _—→T_ {n}{w} where
-  here  : ∀{m t t'}{ts : Tel w m} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
-  there : ∀{m t}{ts ts' : Tel w m}
-    → Value t → ts —→T ts' → (t ∷ ts) —→T (t ∷ ts')
 \end{code}
 
 \begin{code}
@@ -319,12 +236,6 @@ data Progress {n}{i : Weirdℕ n}(t : ScopedTm i) : Set where
   step : ∀{t'} → t —→ t' → Progress t
   done : Value t → Progress t
   error : Error t → Progress t
-
-data TelProgress {m}{n}{w : Weirdℕ n} : Tel w m → Set where
-  done : {tel : Tel w m}(vtel : VTel m w tel) → TelProgress tel
-  step : {ts ts' : Tel w m} → ts —→T ts' → TelProgress ts
-  error : {ts : Tel w m} → Any Error ts → TelProgress ts
-
 \end{code}
 
 \begin{code}
