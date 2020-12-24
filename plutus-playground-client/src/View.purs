@@ -1,17 +1,18 @@
 module View (render) where
 
-import Types
 import Bootstrap (active, btn, containerFluid, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
 import Chain (evaluationPane)
+import Chain.Types as Chain
 import Control.Monad.State (evalState)
+import Cursor (Cursor)
 import Data.Either (Either(..))
-import Data.Lens (_Right, view)
-import Data.Lens.Iso.Newtype (_Newtype)
+import Data.Lens (view)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
 import Editor.Types (_currentCodeIsCompiled, _keyBindings)
+import Editor.Types as Editor
 import Editor.View (compileButton, editorPreferencesSelect, simulateButton, editorPane, editorFeedback)
 import Effect.Aff.Class (class MonadAff)
 import Gists.View (gistControls)
@@ -21,28 +22,26 @@ import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, height, href, src, target, width)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
-import Network.RemoteData (RemoteData(..), _Success)
-import Playground.Types (ContractDemo(..))
+import Network.RemoteData (RemoteData(..))
+import Playground.Types (ContractDemo(..), Simulation)
 import Prelude (class Eq, const, ($), (<$>), (<<<), (==))
 import Schema.Types (mkInitialValue)
 import Simulation (simulatorTitle, simulationsPane, simulationsNav)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
+import Types (ChildSlots, HAction(..), State(..), View(..), WebCompilationResult, WebEvaluationResult, getKnownCurrencies)
 
 foreign import plutusLogo :: String
 
-render ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-render state =
+render :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
+render state@(State { contractDemos, currentView, editorState, compilationResult, simulations, evaluationResult, blockchainVisualisationState }) =
   div
     [ class_ $ ClassName "frame" ]
     [ mainHeader
     , subHeader state
-    , editorMain state
+    , editorMain contractDemos currentView editorState compilationResult
     , simulationsMain state
-    , transactionsMain state
+    , transactionsMain currentView simulations evaluationResult blockchainVisualisationState
     , mainFooter
     ]
 
@@ -76,10 +75,7 @@ documentationLinksPane =
     , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
     ]
 
-subHeader ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
+subHeader :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
 subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
   nav
     [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
@@ -106,10 +102,7 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
     else
       icon Bars
 
-contractDemosPane ::
-  forall m.
-  MonadAff m =>
-  Boolean -> Array ContractDemo -> Maybe String -> ComponentHTML HAction ChildSlots m
+contractDemosPane :: forall p. Boolean -> Array ContractDemo -> Maybe String -> HTML p HAction
 contractDemosPane demoFilesMenuOpen contractDemos currentDemoName =
   div
     [ classes demoPaneClasses ]
@@ -146,44 +139,32 @@ demoScriptNavItem currentDemoName (ContractDemo { contractDemoName }) =
         [ navLink ]
     Nothing -> [ navLink ]
 
-editorMain ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-editorMain state@(State { currentView, editorState }) =
-  let
-    compilationResult = view _compilationResult state
-  in
-    main
-      [ classes $ mainComponentClasses currentView Editor ]
-      [ div
-          [ class_ $ ClassName "main-header" ]
-          [ h1_ [ text "Editor" ]
-          , button [ classes [ btn, ClassName "hidden" ] ] [ nbsp ]
-          ] -- invisible button so the height matches the simulator header
-      , editorWrapper state
-      ]
+editorMain :: forall m. MonadAff m => Array ContractDemo -> View -> Editor.State -> WebCompilationResult -> ComponentHTML HAction ChildSlots m
+editorMain contractDemos currentView editorState compilationResult =
+  main
+    [ classes $ mainComponentClasses currentView Editor ]
+    [ div
+        [ class_ $ ClassName "main-header" ]
+        [ h1_ [ text "Editor" ]
+        , button [ classes [ btn, ClassName "hidden" ] ] [ nbsp ]
+        ] -- invisible button so the height matches the simulator header
+    , editorWrapper contractDemos currentView editorState compilationResult
+    ]
 
-simulationsMain ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-simulationsMain state@(State { currentView, editorState }) =
+simulationsMain :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
+simulationsMain state@(State { currentView }) =
   main
     [ classes $ mainComponentClasses currentView Simulations ]
     [ simulatorTitle
     , simulationsWrapper state
     ]
 
-transactionsMain ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-transactionsMain state@(State { currentView, editorState }) =
+transactionsMain :: forall m. MonadAff m => View -> Cursor Simulation -> WebEvaluationResult -> Chain.State -> ComponentHTML HAction ChildSlots m
+transactionsMain currentView simulations evaluationResult blockchainVisualisationState =
   main
     [ classes $ mainComponentClasses currentView Transactions ]
     [ simulatorTitle
-    , transactionsWrapper state
+    , transactionsWrapper simulations evaluationResult blockchainVisualisationState
     ]
 
 mainComponentClasses :: forall view. Eq view => view -> view -> Array (ClassName)
@@ -193,11 +174,8 @@ mainComponentClasses currentView targetView =
   else
     [ containerFluid, hidden, ClassName "main" ]
 
-editorWrapper ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-editorWrapper state@(State { currentView, contractDemos, editorState, compilationResult }) =
+editorWrapper :: forall m. MonadAff m => Array ContractDemo -> View -> Editor.State -> WebCompilationResult -> ComponentHTML HAction ChildSlots m
+editorWrapper contractDemos currentView editorState compilationResult =
   div
     [ classes [ ClassName "main-body", ClassName "editor" ] ]
     [ div
@@ -220,11 +198,8 @@ editorWrapper state@(State { currentView, contractDemos, editorState, compilatio
   defaultContents :: Maybe String
   defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-simulationsWrapper ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-simulationsWrapper state@(State { currentView }) =
+simulationsWrapper :: forall p. State -> HTML p HAction
+simulationsWrapper state@(State { actionDrag, currentView, compilationResult, simulations, lastEvaluatedSimulation, evaluationResult }) =
   let
     knownCurrencies = evalState getKnownCurrencies state
 
@@ -234,34 +209,22 @@ simulationsWrapper state@(State { currentView }) =
       [ classes [ ClassName "main-body", ClassName "simulator" ] ]
       [ simulationsPane
           initialValue
-          (view _actionDrag state)
-          ( view
-              ( _compilationResult
-                  <<< _Success
-                  <<< _Right
-                  <<< _Newtype
-                  <<< _result
-                  <<< _functionSchema
-              )
-              state
-          )
-          (view _simulations state)
-          (view _lastEvaluatedSimulation state)
-          (view _evaluationResult state)
+          actionDrag
+          compilationResult
+          simulations
+          lastEvaluatedSimulation
+          evaluationResult
       ]
 
-transactionsWrapper ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML HAction ChildSlots m
-transactionsWrapper state@(State { currentView, blockchainVisualisationState }) =
+transactionsWrapper :: forall m. MonadAff m => Cursor Simulation -> WebEvaluationResult -> Chain.State -> ComponentHTML HAction ChildSlots m
+transactionsWrapper simulations evaluationResult blockchainVisualisationState =
   div
     [ classes [ ClassName "main-body", ClassName "simulator" ] ]
     [ div
         [ class_ $ ClassName "simulations" ]
-        [ simulationsNav (view _simulations state)
+        [ simulationsNav simulations
         , div
-            [ class_ $ ClassName "simulation" ] case view _evaluationResult state of
+            [ class_ $ ClassName "simulation" ] case evaluationResult of
             Success (Right evaluation) -> [ evaluationPane blockchainVisualisationState evaluation ]
             Success (Left error) ->
               [ text "Your simulation has errors. Click the "

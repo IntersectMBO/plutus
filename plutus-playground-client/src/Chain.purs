@@ -42,12 +42,7 @@ import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
-evaluationPane ::
-  forall m.
-  MonadAff m =>
-  State ->
-  EvaluationResult ->
-  ComponentHTML HAction ChildSlots m
+evaluationPane :: forall m. MonadAff m => State -> EvaluationResult -> ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div
     [ class_ $ ClassName "transactions" ]

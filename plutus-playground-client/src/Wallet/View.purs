@@ -3,13 +3,11 @@ module Wallet.View
   , walletIdPane
   ) where
 
-import Types
 import Bootstrap (btn, btnSecondary, btnSmall, card, cardBody_, cardTitle_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Halogen.HTML (ClassName(ClassName), HTML, br_, button, div, div_, h2_, h3_, h4_, p_, span, text)
 import Halogen.HTML.Elements.Keyed as Keyed
@@ -19,30 +17,14 @@ import Icons (Icon(..), icon)
 import Ledger.Value (Value)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
-import Prelude (const, show, ($), (<$>), (<<<))
+import Prelude (const, show, ($), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
+import Types (HAction(..), WalletEvent(..), _simulatorWalletWallet)
 import ValueEditor (valueForm)
-import Wallet.Emulator.Wallet (Wallet)
+import Wallet.Emulator.Wallet (Wallet(..))
 
-walletClass :: ClassName
-walletClass = ClassName "wallet"
-
-actionButtonClass :: ClassName
-actionButtonClass = ClassName "action-button"
-
-actionButtonTextClass :: ClassName
-actionButtonTextClass = ClassName "action-button-text"
-
-actionButtonIconClass :: ClassName
-actionButtonIconClass = ClassName "action-button-icon"
-
-walletsPane ::
-  forall p.
-  Signatures ->
-  Value ->
-  Array SimulatorWallet ->
-  HTML p HAction
+walletsPane :: forall p. Signatures -> Value -> Array SimulatorWallet -> HTML p HAction
 walletsPane signatures initialValue simulatorWallets =
   div
     [ class_ $ ClassName "wallets" ]
@@ -53,18 +35,8 @@ walletsPane signatures initialValue simulatorWallets =
         (Array.snoc (mapWithIndex (walletPane signatures initialValue) simulatorWallets) addWalletPane)
     ]
 
-walletPane ::
-  forall p.
-  Signatures ->
-  Value ->
-  Int ->
-  SimulatorWallet ->
-  Tuple String (HTML p HAction)
-walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
-    { simulatorWalletWallet: wallet
-  , simulatorWalletBalance: balance
-  }
-) =
+walletPane :: forall p. Signatures -> Value -> Int -> SimulatorWallet -> Tuple String (HTML p HAction)
+walletPane signatures initialValue walletIndex simulatorWallet@(SimulatorWallet { simulatorWalletWallet, simulatorWalletBalance }) =
   Tuple (show walletIndex)
     $ div
         [ classes [ card, walletClass ] ]
@@ -74,9 +46,9 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
                 , onClick $ const $ Just $ ModifyWallets $ RemoveWallet walletIndex
                 ]
                 [ icon Close ]
-            , cardTitle_ [ h3_ [ walletIdPane wallet ] ]
+            , cardTitle_ [ h3_ [ walletIdPane simulatorWalletWallet ] ]
             , h4_ [ text "Opening Balances" ]
-            , valueForm (ModifyWallets <<< ModifyBalance walletIndex) balance
+            , valueForm (ModifyWallets <<< ModifyBalance walletIndex) simulatorWalletBalance
             , br_
             , h4_ [ text "Available functions" ]
             , div
@@ -87,13 +59,11 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
             ]
         ]
 
--- this function is exported so that actions panes can show their associated wallet
+-- this function is exported so that action panes can show their associated wallet
 walletIdPane :: forall p i. Wallet -> HTML p i
-walletIdPane wallet =
+walletIdPane wallet@(Wallet { getWallet }) =
   span [ class_ $ ClassName "wallet-id" ]
-    [ text "Wallet "
-    , text $ show $ _.getWallet $ unwrap wallet
-    ]
+    [ text $ "Wallet " <> show getWallet ]
 
 addWalletPane :: forall p. Tuple String (HTML p HAction)
 addWalletPane =
@@ -108,12 +78,7 @@ addWalletPane =
             ]
         ]
 
-actionButton ::
-  forall p.
-  Value ->
-  SimulatorWallet ->
-  FunctionSchema FormSchema ->
-  HTML p SimulationAction
+actionButton :: forall p. Value -> SimulatorWallet -> FunctionSchema FormSchema -> HTML p SimulationAction
 actionButton initialValue simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, actionButtonClass ]
@@ -131,11 +96,7 @@ actionButton initialValue simulatorWallet functionSchema =
         [ icon Plus ]
     ]
 
-addPayToWalletButton ::
-  forall p.
-  Value ->
-  SimulatorWallet ->
-  HTML p SimulationAction
+addPayToWalletButton :: forall p. Value -> SimulatorWallet -> HTML p SimulationAction
 addPayToWalletButton initialValue simulatorWallet =
   button
     [ classes [ btn, btnSecondary, btnSmall, actionButtonClass ]
@@ -153,3 +114,16 @@ addPayToWalletButton initialValue simulatorWallet =
         [ class_ actionButtonIconClass ]
         [ icon Plus ]
     ]
+
+------------------------------------------------------------
+walletClass :: ClassName
+walletClass = ClassName "wallet"
+
+actionButtonClass :: ClassName
+actionButtonClass = ClassName "action-button"
+
+actionButtonTextClass :: ClassName
+actionButtonTextClass = ClassName "action-button-text"
+
+actionButtonIconClass :: ClassName
+actionButtonIconClass = ClassName "action-button-icon"

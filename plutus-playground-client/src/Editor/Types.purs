@@ -53,9 +53,6 @@ derive instance newtypeState :: Newtype State _
 keybindingsLocalStorageKey :: Key
 keybindingsLocalStorageKey = Key "EditorPreferences.KeyBindings"
 
-type CompilationState a
-  = RemoteData AjaxError (Either InterpreterError (InterpreterResult a))
-
 _warnings :: forall s a. Lens' { warnings :: a | s } a
 _warnings = prop (SProxy :: SProxy "warnings")
 

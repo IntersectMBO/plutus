@@ -1,12 +1,11 @@
 module Simulation
-  ( simulatorTitleRefLabel
-  , simulationsErrorRefLabel
+  ( simulatorTitle
   , simulationsPane
   , simulationsNav
-  , simulatorTitle
+  , simulatorTitleRefLabel
+  , simulationsErrorRefLabel
   ) where
 
-import Types
 import Action.View (actionsPane)
 import Action.Validation (actionsAreValid)
 import AjaxUtils (ajaxErrorPane)
@@ -16,37 +15,26 @@ import Cursor as Cursor
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Int as Int
+import Data.Lens (_Right, view)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.String as String
-import Effect.Aff.Class (class MonadAff)
 import Halogen (RefLabel(RefLabel))
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, span, text, ul, li)
+import Halogen.HTML (ClassName(ClassName), HTML, IProp, a, button, code_, div, div_, h1_, p_, pre_, span, text, ul, li)
 import Halogen.HTML.Events (onClick, onValueInput)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, ref)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
 import Ledger.Value (Value)
-import Network.RemoteData (RemoteData(Loading, Failure, Success))
-import Playground.Types (ContractCall, EvaluationResult, PlaygroundError(..), Simulation(..), SimulatorWallet)
+import Network.RemoteData (RemoteData(..), _Success)
+import Playground.Types (PlaygroundError(..), Simulation(..), SimulatorWallet)
 import Prelude (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
-import Schema.Types (FormArgument, Signatures)
+import Types (HAction(..), View(..), SimulatorAction, WebCompilationResult, WebEvaluationResult, _functionSchema, _result)
 import Wallet.View (walletsPane)
 import Web.Event.Event (Event)
 
-simulatorTitleRefLabel :: RefLabel
-simulatorTitleRefLabel = RefLabel "simulations"
-
-simulationsErrorRefLabel :: RefLabel
-simulationsErrorRefLabel = RefLabel "simulation-errors"
-
-navItemButtonClass :: ClassName
-navItemButtonClass = ClassName "simulation-nav-item-control"
-
-simulatorTitle ::
-  forall m.
-  MonadAff m =>
-  ComponentHTML HAction ChildSlots m
+simulatorTitle :: forall p. HTML p HAction
 simulatorTitle =
   div
     [ class_ $ ClassName "main-header"
@@ -60,16 +48,8 @@ simulatorTitle =
         [ text "< Return to Editor" ]
     ]
 
-simulationsPane ::
-  forall m.
-  Value ->
-  Maybe Int ->
-  Signatures ->
-  Cursor Simulation ->
-  Maybe Simulation ->
-  WebData (Either PlaygroundError EvaluationResult) ->
-  ComponentHTML HAction ChildSlots m
-simulationsPane initialValue actionDrag endpointSignatures simulations lastEvaluatedSimulation evaluationResult = case current simulations of
+simulationsPane :: forall p. Value -> Maybe Int -> WebCompilationResult -> Cursor Simulation -> Maybe Simulation -> WebEvaluationResult -> HTML p HAction
+simulationsPane initialValue actionDrag compilationResult simulations lastEvaluatedSimulation evaluationResult = case current simulations of
   Just (Simulation simulation@{ simulationWallets, simulationActions }) ->
     div
       [ class_ $ ClassName "simulations" ]
@@ -98,6 +78,8 @@ simulationsPane initialValue actionDrag endpointSignatures simulations lastEvalu
     div
       [ class_ $ ClassName "simulations" ]
       [ p_ [ text "Return to the Editor and compile a contract to get started." ] ]
+  where
+  endpointSignatures = view (_Success <<< _Right <<< _Newtype <<< _result <<< _functionSchema) compilationResult
 
 simulationsNav :: forall p. Cursor Simulation -> HTML p HAction
 simulationsNav simulations =
@@ -152,7 +134,7 @@ addSimulationControl =
         ]
     ]
 
-evaluateActionsButton :: forall p. Array SimulatorWallet -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
+evaluateActionsButton :: forall p. Array SimulatorWallet -> Array SimulatorAction -> WebEvaluationResult -> HTML p HAction
 evaluateActionsButton simulationWallets simulationActions evaluationResult =
   button
     [ classes [ btn, ClassName "btn-green" ]
@@ -169,7 +151,7 @@ evaluateActionsButton simulationWallets simulationActions evaluationResult =
 
   btnText _ _ = text "Evaluate"
 
-viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
+viewTransactionsButton :: forall p. Cursor Simulation -> Maybe Simulation -> WebEvaluationResult -> HTML p HAction
 viewTransactionsButton simulations lastEvaluatedSimulation evaluationResult =
   button
     [ classes [ btn, ClassName "btn-turquoise" ]
@@ -194,6 +176,7 @@ actionsErrorPane error =
         )
     ]
 
+------------------------------------------------------------
 -- | There's a few errors that make sense to display nicely, others should not occur so lets
 -- | not deal with them.
 showPlaygroundError :: forall p i. PlaygroundError -> Array (HTML p i)
@@ -234,3 +217,13 @@ showCompilationError (CompilationError { text: errors }) = pre_ [ text (String.j
 
 onIntInput :: forall i r. (Int -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onIntInput f = onValueInput $ map f <<< Int.fromString
+
+------------------------------------------------------------
+simulatorTitleRefLabel :: RefLabel
+simulatorTitleRefLabel = RefLabel "simulations"
+
+simulationsErrorRefLabel :: RefLabel
+simulationsErrorRefLabel = RefLabel "simulation-errors"
+
+navItemButtonClass :: ClassName
+navItemButtonClass = ClassName "simulation-nav-item-control"

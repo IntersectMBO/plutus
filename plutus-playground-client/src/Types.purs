@@ -182,7 +182,7 @@ _editorSlot = SProxy
 _balancesChartSlot :: SProxy "balancesChartSlot"
 _balancesChartSlot = SProxy
 
------------------------------------------------------------
+------------------------------------------------------------
 type ChainSlot
   = Array Tx
 
@@ -192,6 +192,17 @@ type Blockchain
 type WebData
   = RemoteData AjaxError
 
+type WebCompilationResult
+  = WebData (Either InterpreterError (InterpreterResult CompilationResult))
+
+type WebEvaluationResult
+  = WebData (Either PlaygroundError EvaluationResult)
+
+-- this synonym is defined in playground-common/src/Playground/Types.hs
+-- is this the best place to put it?
+type SimulatorAction
+  = ContractCall FormArgument
+
 newtype State
   = State
   { demoFilesMenuOpen :: Boolean
@@ -199,10 +210,10 @@ newtype State
   , contractDemos :: Array ContractDemo
   , currentDemoName :: Maybe String
   , editorState :: Editor.State
-  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
+  , compilationResult :: WebCompilationResult
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
-  , evaluationResult :: WebData (Either PlaygroundError EvaluationResult)
+  , evaluationResult :: WebEvaluationResult
   , lastEvaluatedSimulation :: Maybe Simulation
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist

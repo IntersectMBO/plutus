@@ -6,7 +6,6 @@ module Editor.View
   , editorFeedback
   ) where
 
-import Editor.Types
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, card, cardHeader, cardHeader_, cardBody_, customSelect, empty, listGroupItem_, listGroup_, nbsp)
 import Data.Array as Array
@@ -15,6 +14,7 @@ import Data.Lens (_Right, preview, to, view)
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
+import Editor.Types (Action(..), State(..), _warnings, allKeyBindings)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
@@ -26,7 +26,7 @@ import Language.Haskell.Monaco as HM
 import LocalStorage (Key)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (ChildSlots, _editorSlot, HAction(..), View(..))
+import Types (ChildSlots, _editorSlot, HAction(..), View(..), WebCompilationResult)
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
 editorPreferencesSelect active =
@@ -52,21 +52,21 @@ editorPreferencesSelect active =
 
   editorName Vim = "Vim"
 
-compileButton :: forall p a. CompilationState a -> HTML p HAction
-compileButton state =
+compileButton :: forall p. WebCompilationResult -> HTML p HAction
+compileButton compilationResult =
   button
     [ classes [ btn, ClassName "btn-green" ]
     , onClick $ const $ Just CompileProgram
-    , disabled (isLoading state)
+    , disabled (isLoading compilationResult)
     ]
     [ btnText ]
   where
-  btnText = case state of
+  btnText = case compilationResult of
     Loading -> icon Spinner
     _ -> text "Compile"
 
-simulateButton :: forall p a. Boolean -> CompilationState a -> HTML p HAction
-simulateButton currentCodeIsCompiled state =
+simulateButton :: forall p. Boolean -> WebCompilationResult -> HTML p HAction
+simulateButton currentCodeIsCompiled compilationResult =
   button
     [ classes [ btn, ClassName "btn-turquoise" ]
     , onClick $ const $ Just (ChangeView Simulations)
@@ -74,18 +74,12 @@ simulateButton currentCodeIsCompiled state =
     ]
     [ text "Simulate" ]
   where
-  isDisabled = case state of
+  isDisabled = case compilationResult of
     Success (Right _) -> not currentCodeIsCompiled
     _ -> true
 
-editorPane ::
-  forall m.
-  MonadAff m =>
-  Maybe String ->
-  Key ->
-  State ->
-  ComponentHTML Action ChildSlots m
-editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
+editorPane :: forall m. MonadAff m => Maybe String -> Key -> State -> ComponentHTML Action ChildSlots m
+editorPane initialContents bufferLocalStorageKey editorState@(State { keyBindings }) =
   div
     [ class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
@@ -94,7 +88,7 @@ editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
     [ slot
         _editorSlot
         unit
-        (monacoComponent (HM.settings (initEditor initialContents bufferLocalStorageKey state)))
+        (monacoComponent (HM.settings (initEditor initialContents bufferLocalStorageKey editorState)))
         unit
         (Just <<< HandleEditorMessage)
     , case keyBindings of
@@ -102,13 +96,8 @@ editorPane initialContents bufferLocalStorageKey state@(State { keyBindings }) =
         _ -> pre [ id_ "statusline", class_ $ ClassName "hidden" ] [ nbsp ]
     ]
 
-editorFeedback ::
-  forall m a.
-  MonadAff m =>
-  State ->
-  CompilationState a ->
-  ComponentHTML Action ChildSlots m
-editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised }) compilationState =
+editorFeedback :: forall p. State -> WebCompilationResult -> HTML p Action
+editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised }) compilationResult =
   div
     [ class_ $ ClassName "editor-feedback-container" ]
     [ div
@@ -116,7 +105,7 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
         [ div
             [ class_ $ ClassName "editor-feedback-header" ]
             [ p_ [ summaryText ]
-            , case compilationState of
+            , case compilationResult of
                 Success (Left error) -> minMaxButton
                 Failure error -> minMaxButton
                 _ -> empty
@@ -135,7 +124,7 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
     else
       [ ClassName "editor-feedback" ]
 
-  summaryText = case compilationState of
+  summaryText = case compilationResult of
     NotAsked -> text "Not compiled"
     Loading -> text "Compiling ..."
     Success (Left error) -> text "Compilation failed"
@@ -156,7 +145,7 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
       else
         [ icon ArrowDown ]
 
-  errorList = case compilationState of
+  errorList = case compilationResult of
     Success (Left error) -> listGroup_ (interpreterErrorPane error)
     Failure error -> ajaxErrorPane error
     _ -> empty
@@ -170,7 +159,7 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
               <<< _warnings
               <<< to compilationWarningsPane
           )
-          compilationState
+          compilationResult
 
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Action)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]

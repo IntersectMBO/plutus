@@ -9,7 +9,6 @@ import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
 import Data.Lens (review, view)
 import Data.Maybe (Maybe(..))
-import Data.Functor.Foldable (Fix)
 import Data.Tuple (Tuple(..))
 import Halogen.HTML (ClassName(ClassName), HTML, IProp, button, div, div_, h2_, h3_, input, label, p_, text)
 import Halogen.HTML.Elements.Keyed as Keyed
@@ -21,19 +20,15 @@ import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (ContractCall(..), SimulatorWallet, _FunctionSchema)
 import Prelude (const, map, show, ($), (+), (<$>), (<<<), (<>), (==))
-import Schema (FormArgumentF)
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
-import Types
+import Types (DragAndDropEventType(..), HAction(..), SimulatorAction, _InSlot, _walletId)
 import Validation (_argument)
 import ValueEditor (valueForm)
 import Wallet.View (walletIdPane)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
-actionClass :: ClassName
-actionClass = ClassName "action"
-
-actionsPane :: forall p. Maybe Int -> Array SimulatorWallet -> Array (ContractCall FormArgument) -> HTML p HAction
+actionsPane :: forall p. Maybe Int -> Array SimulatorWallet -> Array SimulatorAction -> HTML p HAction
 actionsPane actionDrag wallets actions =
   div
     [ class_ $ ClassName "actions" ]
@@ -88,7 +83,7 @@ actionPane actionDrag wallets index action =
                 ]
         ]
 
-actionPaneBody :: forall p. Int -> ContractCall (Fix FormArgumentF) -> HTML p SimulationAction
+actionPaneBody :: forall p. Int -> SimulatorAction -> HTML p SimulationAction
 actionPaneBody index (CallEndpoint { caller, argumentValues }) =
   div_
     [ h3_
@@ -199,15 +194,6 @@ waitTypeButtons index wait =
 
   waitUntilId = "wait-until-" <> show index
 
-validationClasses ::
-  forall a.
-  FormArgument ->
-  Maybe a ->
-  Array ClassName
-validationClasses arg Nothing = [ ClassName "error" ]
-
-validationClasses arg (Just _) = []
-
 addWaitActionPane :: forall p. Int -> Tuple String (HTML p HAction)
 addWaitActionPane index =
   Tuple "add-wait"
@@ -226,6 +212,7 @@ addWaitActionPane index =
             ]
         ]
 
+------------------------------------------------------------
 dragSourceProperties ::
   forall i.
   Int ->
@@ -269,3 +256,7 @@ dragAndDropAction index eventType = Just <<< ActionDragAndDrop index eventType
 
 onBigIntegerInput :: forall i r. (BigInteger -> i) -> IProp ( onInput :: Event, value :: String | r ) i
 onBigIntegerInput f = onValueInput $ map f <<< BigInteger.fromString
+
+------------------------------------------------------------
+actionClass :: ClassName
+actionClass = ClassName "action"
