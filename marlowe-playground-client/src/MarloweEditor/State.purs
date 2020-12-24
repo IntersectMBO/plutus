@@ -5,7 +5,7 @@ module MarloweEditor.State
   ) where
 
 import Prelude hiding (div)
-import Control.Monad.Except (ExceptT, lift, runExcept, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (runReaderT)
@@ -34,20 +34,17 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract, emptyState)
-import Marlowe.Semantics as Semantics
 import Marlowe.Symbolic.Types.Request as MSReq
-import Marlowe.Symbolic.Types.Response (Result)
 import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showBottomPanel)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
-import Servant.PureScript.Ajax (AjaxError(..))
+import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulator (updateContractInState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Pretty (genericPretty, pretty)
+import Text.Pretty (pretty)
 import Types (WebData)
 
 handleAction ::

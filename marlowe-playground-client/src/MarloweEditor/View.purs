@@ -1,31 +1,24 @@
 module MarloweEditor.View where
 
 import Prelude hiding (div)
-import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.Lens (has, to, view, (^.))
+import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String (Pattern(..), split)
-import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, group, minimizeIcon)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
+import Halogen.Classes (codeEditor, group)
+import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
+import Halogen.HTML.Properties (class_, classes, disabled)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
-import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (bottomPanel)
 import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
 import Monaco (getModel, setValue) as Monaco
-import Network.RemoteData (RemoteData(..), _Loading, isLoading, isSuccess)
 import StaticData as StaticData
 
 render ::

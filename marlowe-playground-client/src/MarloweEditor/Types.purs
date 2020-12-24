@@ -4,31 +4,24 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Fold', Getter', Lens', _Right, to, view)
+import Data.Lens (Lens', to, view)
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
-import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Assets, Bound, Case, ChoiceId, ChosenNum, Contract, Input, Observation, Party(..), Payee, Payment, Slot, SlotInterval, Timeout, Token, TransactionError, TransactionInput, TransactionWarning, Value, ValueId, aesonCompatibleOptions, emptyState)
+import Marlowe.Semantics (AccountId, Case, Contract, Observation, Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
-import Network.RemoteData (RemoteData(..), _Success)
-import Servant.PureScript.Ajax (AjaxError(..))
 import Text.Parsing.StringParser (Pos)
-import Text.Pretty (pretty)
 import Types (WebData)
 import Web.HTML.Event.DragEvent (DragEvent)
 

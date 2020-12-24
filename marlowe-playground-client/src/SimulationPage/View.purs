@@ -29,7 +29,7 @@ import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds)
 import Monaco (Editor)
-import Monaco (getModel, getMonaco, setTheme, setValue, setReadOnly) as Monaco
+import Monaco as Monaco
 import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), (<>), (==))
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import Projects.Types (Lang(..))

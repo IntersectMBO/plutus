@@ -1,61 +1,46 @@
 module SimulationPage.State where
 
-import Control.Alternative (map, void, when, (<*>), (<|>))
+import Control.Alternative (void, when, (<*>), (<|>))
 import Control.Monad.Except (ExceptT, runExceptT, runExcept)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, snoc)
+import Data.Array (delete, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
-import Data.Either (Either(..), hush)
+import Data.Either (Either(..))
 import Data.EuclideanRing ((*))
-import Data.Lens (assign, modifying, over, preview, set, to, use)
+import Data.Lens (assign, modifying, over, set, to, use)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty as NEL
-import Data.List.Types (List(..), NonEmptyList)
+import Data.List.Types (NonEmptyList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
-import Data.String (codePointFromChar)
-import Data.String as String
-import Data.Traversable (for_, traverse)
+import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
-import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
-import FileEvents (readFileFromDragEvent)
-import FileEvents as FileEvents
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
-import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _simulatorEditorSlot)
+import Halogen.Monaco (Query(..)) as Monaco
+import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Holes (fromTerm)
-import Marlowe.Linter as Linter
-import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
-import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), inBounds)
-import Marlowe.Symbolic.Types.Request as MSReq
-import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, discard, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
-import StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
+import Prelude (Unit, Void, bind, discard, flip, identity, mempty, pure, show, unit, zero, ($), (-), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator (applyInput, getAsMuchStateAsPossible, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
-import StaticData (marloweBufferLocalStorageKey)
-import StaticData as StaticData
-import Text.Pretty (genericPretty, pretty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
+import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
+import Text.Pretty (genericPretty)
 import Types (WebData)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)

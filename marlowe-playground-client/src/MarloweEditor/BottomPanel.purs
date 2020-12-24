@@ -1,36 +1,33 @@
 module MarloweEditor.BottomPanel where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, drop, head, length, reverse)
+import Data.Array (concatMap, drop, head, length)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
-import Data.Either (Either(..), either)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
-import Data.HeytingAlgebra (not, (||))
-import Data.Lens (_Just, has, only, previewOn, to, (^.))
-import Data.Lens.NonEmptyList (_Head)
+import Data.HeytingAlgebra (not)
+import Data.Lens (to, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, isNothing)
-import Data.Newtype (unwrap)
+import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
-import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, timeouts)
+import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isContractValid)
 import Network.RemoteData (RemoteData(..), isLoading)
-import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Pretty (showPrettyToken)
+import Prelude (bind, const, mempty, pure, show, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Text.Parsing.StringParser.Basic (lines)
 

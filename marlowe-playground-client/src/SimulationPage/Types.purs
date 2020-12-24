@@ -16,30 +16,23 @@ import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
-import Data.List (List)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (class Newtype)
-import Data.Set (Set)
 import Data.Symbol (SProxy(..))
-import Data.Tuple.Nested (type (/\))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Halogen.Monaco (KeyBindings(..))
-import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
 import Marlowe.Holes (Holes)
-import Marlowe.Semantics (AccountId, Assets, Bound, Case, ChoiceId, ChosenNum, Contract, Input, Observation, Party(..), Payee, Payment, Slot, SlotInterval, Timeout, Token, TransactionError, TransactionInput, TransactionWarning, Value, ValueId, aesonCompatibleOptions, emptyState)
+import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
 import Projects.Types (Lang(..))
-import Servant.PureScript.Ajax (AjaxError)
-import Text.Parsing.StringParser (Pos)
-import Web.HTML.Event.DragEvent (DragEvent)
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
