@@ -1,4 +1,4 @@
-module Wallet
+module Wallet.View
   ( walletsPane
   , walletIdPane
   ) where

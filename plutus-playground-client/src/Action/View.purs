@@ -1,6 +1,6 @@
-module Action (actionsPane) where
+module Action.View (actionsPane) where
 
-import Types
+import Action.Validation (actionIsValid)
 import Bootstrap (btn, card, cardBody_, col, colFormLabel, col_, formCheck, formCheckInline, formCheckInput, formCheckLabel, formControl, formGroup_, formRow_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -19,21 +19,22 @@ import Icons (Icon(..), icon)
 import Ledger.Slot (Slot)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Schema (actionArgumentForm)
-import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError, _FunctionSchema)
+import Playground.Types (ContractCall(..), SimulatorWallet, _FunctionSchema)
 import Prelude (const, map, show, ($), (+), (<$>), (<<<), (<>), (==))
 import Schema (FormArgumentF)
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
+import Types
 import Validation (_argument)
 import ValueEditor (valueForm)
-import Wallet (walletIdPane)
+import Wallet.View (walletIdPane)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 actionClass :: ClassName
 actionClass = ClassName "action"
 
-actionsPane :: forall p. (ContractCall FormArgument -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (Either PlaygroundError EvaluationResult) -> HTML p HAction
-actionsPane hasWallet actionDrag actions evaluationResult =
+actionsPane :: forall p. Maybe Int -> Array SimulatorWallet -> Array (ContractCall FormArgument) -> HTML p HAction
+actionsPane actionDrag wallets actions =
   div
     [ class_ $ ClassName "actions" ]
     [ h2_ [ text "Actions" ]
@@ -46,13 +47,13 @@ actionsPane hasWallet actionDrag actions evaluationResult =
                 [ ClassName "actions-being-dragged" ]
         ]
         ( Array.snoc
-            (mapWithIndex (actionPane hasWallet actionDrag) actions)
+            (mapWithIndex (actionPane actionDrag wallets) actions)
             (addWaitActionPane (Array.length actions))
         )
     ]
 
-actionPane :: forall p. (ContractCall FormArgument -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
-actionPane hasWallet actionDrag index action =
+actionPane :: forall p. Maybe Int -> Array SimulatorWallet -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
+actionPane actionDrag wallets index action =
   Tuple (show index)
     $ div
         ( [ classes
@@ -61,7 +62,7 @@ actionPane hasWallet actionDrag index action =
                 , ClassName ("action-" <> show index)
                 , ClassName
                     ( "action-"
-                        <> (if hasWallet action then "valid-wallet" else "invalid-wallet")
+                        <> (if actionIsValid wallets action then "valid-wallet" else "invalid-wallet")
                     )
                 ]
                   <> if actionDrag == Just index then
