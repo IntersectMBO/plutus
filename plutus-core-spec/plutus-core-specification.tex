@@ -1,4 +1,4 @@
-%g Plutus Core Specification
+% Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0)}
 \date{27th May 2020}
 
@@ -1380,20 +1380,18 @@ closure $C$ with $\discharge{C} = \erase{V}$.
 
 \section{Serialisation}
 
-We use the \texttt{flat} format to serialise plutus terms. The \texttt{flat} format
-encodes sum types as tagged unions and products by concatenating their contents. We
-proceed by defining the structure and the data types of untyped plutus core and how
-they get serialised.
+We use the \texttt{flat} \citep{flat} format to serialise plutus terms. The
+\texttt{flat} format encodes sum types as tagged unions and products by
+concatenating their contents. We proceed by defining the structure and the data
+types of untyped plutus core and how they get serialised.
 
 \subsection{Variable length data}
 
-\texttt{Lists} are encoded by prefixing (using the most significant bit) the element
-stored in the list with one of the two list constructor tags. If we want to follow the
-current element with another one we use the bit `1` for the \texttt{Cons} constructor,
-or `0` for the \texttt{Nil} constructor if this is the last element of the list.
+\texttt{Non-empty lists} are encoded by prefixing the element stored with `0'
+if this is the last element or `1' if there is more data following.
 
-\noindent We encode variable length data as a list of chunks, 7 bits each, with the least
-significant chunk first and the most significant bit first in the chunk.
+\noindent We encode variable length data as a non-empty list of chunks, 7 bits each,
+with the least significant chunk first and the most significant bit first in the chunk.
 
 \medskip
 \noindent Lets calculate the encoding of the \texttt{32768} index (unsigned, arbitrary
@@ -1408,24 +1406,6 @@ length integer):
   \item Add list constructor tags: \\
     \verb|0000000 0000000 0000010| $\rightarrow$ \verb|10000000 10000000 00000010|
 \end{enumerate}
-
-\noindent Encoding primtive types:
-
-\begin{itemize}
-  \item Unsigned \texttt{Integer}s and \texttt{ByteString}s are encoded using the
-    previously introduced encoding for variable length data types.
-  \item Signed \texttt{Integer}s are first converted to an unsigned value using the
-    \texttt{ZigZag} encoding, then they are encoded as variable length data types.
-  \item \texttt{String}s are encoded as lists of characters and use the \texttt{UTF-8}
-    encoding.
-  \item \texttt{Unit} and data structures which have only one constructor, are removed
-    from the serialised data.
-  \item Variable names are encoded using DeBruijn indices, which are unsigned, arbitrary
-    length integers.
-\end{itemize}
-
-Encoded values are aligned to byte/word boundary using a meaningless sequence of `0` bits
-terminated with a `1` bit.
 
 \subsection{Constants}
 
@@ -1447,7 +1427,7 @@ maximum of 16 constructors, of which 6 are currently used.
   String & 2 & UTF-8 \\[\sep]
   Char & 3 & UTF-8 \\[\sep]
   Unit & 4 & Empty \\[\sep]
-  Bool & 5 & `1` is True, `0` is False \\[\sep]
+  Bool & 5 & `1' is True, `0' is False \\[\sep]
   \hline
 \end{tabular}
 \captionof{figure}{Constant kinds}
@@ -1513,6 +1493,29 @@ functions of which 25 are used.
 
 \vspace{1cm}
 
+\noindent Encoding primtive types:
+
+\begin{itemize}
+  \item Unsigned \texttt{Integer}s and \texttt{ByteString}s are encoded using the
+    previously introduced encoding for variable length data types.
+  \item Signed \texttt{Integer}s are first converted to an unsigned value using the
+    \texttt{ZigZag}\footnote{The \texttt{ZigZag} encoding interleaves positive and negative numbers such that small
+    negative numbers are stored using a small number of bytes.} encoding, then they are encoded as variable length data types.
+  \item \texttt{String}s are encoded as lists of characters and use the \texttt{UTF-8}
+    encoding.
+  \item \texttt{Unit} and data structures which have only one constructor, are removed
+    from the serialised data.
+  \item Variable names are encoded using DeBruijn indices, which are unsigned, arbitrary
+    length integers.
+\end{itemize}
+
+
+Possibly empty lists are encoded in the standard way, by the tag for the constructor,
+`0' for `Nil' and `1' for `Cons'. The `Cons' constructor is followed by the serialised
+element, and then, recursiveley another list.
+
+Encoded values are aligned to byte/word boundary using a meaningless sequence of `0' bits
+terminated with a `1' bit.
 \end{appendices}
 
 \bibliographystyle{plainnat} %% ... or whatever
