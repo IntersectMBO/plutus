@@ -1,6 +1,6 @@
 module Marlowe.Gists
   ( mkNewGist
-  , playgroundGist
+  , isPlaygroundGist
   , playgroundFiles
   , filenames
   , fileExists
@@ -68,8 +68,8 @@ filenames =
   , actus: "actus.xml"
   }
 
-playgroundGist :: Gist -> Boolean
-playgroundGist = has (gistFiles <<< ix filenames.playground)
+isPlaygroundGist :: Gist -> Boolean
+isPlaygroundGist = has (gistFiles <<< ix filenames.playground)
 
 playgroundFiles :: Gist -> PlaygroundFiles
 playgroundFiles gist =

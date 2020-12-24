@@ -24,12 +24,19 @@ without doing it as an Effect in a mainframe action
   width: 100vw;
   /* Full height */
   height: 100vh;
+}
+
+/* The overlay and overlay-background are separated because modals can have a global loading indicator
+    which is an overlay on top of another. If both overlay have the transparency background, then what
+    is outside the overlay is too dark. This way, in the modal view, we can select to only have the positional
+    aspects of the overlay, without the background, if there are other overlays.
+*/
+.overlay-background {
   /* Fallback color */
   background-color: rgb(0, 0, 0);
   /* Black w/ opacity */
   background-color: rgba(0, 0, 0, 0.4);
 }
-
 /* Modal Content/Box */
 .modal {
   background-color: #fefefe;
@@ -44,13 +51,18 @@ without doing it as an Effect in a mainframe action
     The height cant be bigger than 90% of the vertical height and it's allowed
     to scroll.
   */
-  max-height: 90vh;
+  max-height: 96vh;
   overflow: auto;
 }
 
 .modal-header {
   padding: var(--small-margin) var(--medium-margin);
   box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.34);
+  /* Make the position of the modal to always appear at the top */
+  position: sticky;
+  top: 0;
+  background: white; /* if we dont set background it gets transparent */
+  /* end sticky*/
   .title {
     @extend .font-semibold;
     margin: 0;

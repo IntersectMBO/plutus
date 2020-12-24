@@ -90,6 +90,21 @@ spaceRight = ClassName "space-right"
 spaceBottom :: ClassName
 spaceBottom = ClassName "space-bottom"
 
+smallSpaceBottom :: ClassName
+smallSpaceBottom = ClassName "small-space-bottom"
+
+paddingRight :: ClassName
+paddingRight = ClassName "padding-right"
+
+smallPaddingRight :: ClassName
+smallPaddingRight = ClassName "small-padding-right"
+
+paddingLeft :: ClassName
+paddingLeft = ClassName "padding-left"
+
+smallPaddingLeft :: ClassName
+smallPaddingLeft = ClassName "small-padding-left"
+
 spaceTop :: ClassName
 spaceTop = ClassName "space-top"
 
@@ -281,6 +296,9 @@ textBase = ClassName "text-base"
 textSm :: ClassName
 textSm = ClassName "text-sm"
 
+text3xl :: ClassName
+text3xl = ClassName "text-3xl"
+
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
 
@@ -295,6 +313,9 @@ textRight = ClassName "text-right"
 
 textJustify :: ClassName
 textJustify = ClassName "text-justify"
+
+textWhite :: ClassName
+textWhite = ClassName "text-white"
 
 border :: ClassName
 border = ClassName "border"
