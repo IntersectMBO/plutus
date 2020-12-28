@@ -1,9 +1,8 @@
-module MarloweEditor.BottomPanel where
+module MarloweEditor.BottomPanel (bottomPanel) where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, drop, head, length)
+import Data.Array (drop, head, length)
 import Data.Array as Array
-import Data.BigInteger (BigInteger)
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not)
@@ -11,18 +10,16 @@ import Data.Lens (to, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
-import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
-import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..))
+import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isValidContract)
 import Network.RemoteData (RemoteData(..), isLoading)
@@ -463,68 +460,3 @@ displayWarning TransactionAssertionFailed =
   [ b_ [ text "TransactionAssertionFailed" ]
   , text " - An assertion in the contract did not hold."
   ]
-
-inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
-inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Deposit "
-        , strong_ [ text (show money) ]
-        , text " units of "
-        , strong_ [ text (showPrettyToken token) ]
-        , text " into account of "
-        , strong_ [ text (show accountOwner) ]
-        , text " as "
-        , strong_ [ text (show party) ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Participant "
-        , strong_ [ text (show choiceOwner) ]
-        , text " chooses the value "
-        , strong_ [ text (show chosenNum) ]
-        , text " for choice with id "
-        , strong_ [ text (show choiceName) ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-inputToLine (SlotInterval start end) INotify =
-  li [ classes [ ClassName "error-row" ] ]
-    [ text "Notify"
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines slotInterval (Payment party money) = unfoldAssets money (paymentToLine slotInterval party)
-
-paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> HTML p a
-paymentToLine (SlotInterval start end) party token money =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "The contract pays "
-        , strong_ [ text (show money) ]
-        , text " units of "
-        , strong_ [ text (showPrettyToken token) ]
-        , text " to participant "
-        , strong_ [ text (show party) ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-unfoldAssets :: forall a. Assets -> (Token -> BigInteger -> a) -> Array a
-unfoldAssets (Assets mon) f =
-  concatMap
-    ( \(Tuple currencySymbol tokenMap) ->
-        ( map
-            ( \(Tuple tokenName value) ->
-                f (Token currencySymbol tokenName) value
-            )
-            (Map.toUnfoldable tokenMap)
-        )
-    )
-    (Map.toUnfoldable mon)
