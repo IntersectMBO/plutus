@@ -105,7 +105,6 @@ ren-comp ρ ρ' (t · u)          = cong₂ _·_ (ren-comp ρ ρ' t) (ren-comp �
 ren-comp ρ ρ' (con c)          = refl
 ren-comp ρ ρ' (builtin b p ts) = cong (builtin b p) (renTel-comp ρ ρ' ts)
 ren-comp ρ ρ' error            = refl 
-
 --
 
 Sub : ℕ → ℕ → Set

@@ -35,13 +35,26 @@ benchKnights depth sz = benchCek $ Knights.mkKnightsTerm depth sz
 {- This runs all of the benchmarks, which will take a long time.
    To run an individual benmark, try, for example,
 
-     stack bench plutus-benchmark -ba queens/bjbt
+     stack bench plutus-benchmark:nofib --ba primetest/40digits
+
+   or
+
+     cabal bench plutus-benchmark:nofib --benchmark-options "primetest/40digits".
 
    Better results will be obtained with more repetitions of the benchmark.  Set
    the minimum time for the benchmarking process (in seconds) with the -L
    option. For example,
 
-     stack bench plutus-benchmark -ba "queens/bjbt -L300"
+     stack bench plutus-benchmark:nofib --ba "primetest/40digits -L300"
+
+   You can list the avaiable benchmarks with
+
+     stack bench plutus-benchmark:nofib --ba --list
+
+   or
+
+     cabal bench plutus-benchmark:nofib --benchmark-options --list
+
 -}
 
 main :: IO ()

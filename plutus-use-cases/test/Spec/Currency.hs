@@ -2,26 +2,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Spec.Currency(tests) where
 
+import           Control.Monad                                     (void)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger
 
 import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
+import qualified Plutus.Trace.Emulator                             as Trace
 
 import           Test.Tasty
 
 tests :: TestTree
 tests = testGroup "currency"
-    [ checkPredicate "can create a new currency"
-        theContract
-        (assertDone w1 (const True) "currency contract not done")
-        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
+    [ checkPredicate
+        "can create a new currency"
+        (assertDone theContract (Trace.walletInstanceTag w1) (const True) "currency contract not done")
+        (void $ Trace.activateContractWallet w1 (void theContract) >> Trace.waitNSlots 2)
 
-    , checkPredicate "script size is reasonable"
-        theContract
-        (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
-        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
+    , checkPredicate
+        "script size is reasonable"
+        (assertDone theContract (Trace.walletInstanceTag w1) ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
+        (void $ Trace.activateContractWallet w1 (void theContract) >> Trace.waitNSlots 2)
 
     ]
 

@@ -18,10 +18,13 @@ ul {
   padding: 0;
 }
 
-button {
+// TODO: it is preferred to stye classes than actual html components. At the moment I add
+// the btn class, but later on we should make sure all buttons have that class and remove this global
+// style
+button, .btn {
   cursor: pointer;
   position: relative;
-  background: var(--gradient-bg);
+  background: var(--btn-primary-color);
   color: var(--white);
   padding: 0.5rem 1.5rem;
   border-radius: var(--border-radius);
@@ -29,34 +32,17 @@ button {
   z-index: 1;
 }
 
-button::before {
-  position: absolute;
-  content: "";
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: var(--border-radius);
-  background-image: var(--btn-hover-gradient-bg);
-  z-index: -1;
-  transition: opacity 0.3s ease-in-out;
-  opacity: 0;
+button:hover, .btn:hover {
+  background: var(--btn-primary-color-hover);
 }
 
-button:hover::before {
-  opacity: 1;
+button:active, .btn:active {
+  background: var(--btn-primary-color-active);
 }
 
-button:active {
-  transform: var(--animate-btn);
-}
-
-button.disabled {
-  background: lightgray;
-}
-
-button.disabled::before {
-  background: lightgray;
+button:disabled, .btn:disabled {
+  background: var(--btn-primary-color-disabled);
+  cursor: default;
 }
 
 button.small-btn {
@@ -66,124 +52,17 @@ button.small-btn {
 }
 
 .btn-secondary {
-  background: var(--accent-color);
+  border: 1px solid var(--btn-primary-color);
+  color: var(--btn-primary-color);
+  background: var(--btn-secondary-color);
+  font-weight: bold;
 }
 
 .btn-secondary:hover {
-  background: var(--accent-color-hover);
+  background: var(--btn-secondary-color-hover);
 }
 
-.btn-secondary:before {
-  content: none;
+.btn-secondary:active {
+  background: var(--btn-secondary-color-active);
 }
 
-.outline {
-  outline: 1px solid lime;
-}
-
-.inline {
-  display: inline;
-}
-
-.no-margins,
-.no-margins * {
-  margin: 0;
-}
-
-.no-padding,
-.no-padding * {
-  padding: 0;
-}
-
-.t-align-center {
-  text-align: center;
-}
-
-.m-align-center {
-  margin: 0 auto;
-}
-
-.a-horizontal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.a-center {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-}
-
-.flex {
-  display: flex;
-}
-
-.flex-ten {
-  flex: 10;
-  max-width: 100%;
-}
-
-.flex-four {
-  flex: 4;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.j-flex-start {
-  justify-content: flex-start;
-}
-
-.j-flex-end {
-  justify-content: flex-end;
-}
-
-.end-item {
-  margin-left: auto;
-}
-
-.space-left {
-  margin-left: 1rem;
-}
-
-.space-right {
-  margin-right: 1rem;
-}
-
-.space-top {
-  margin-top: 2rem;
-}
-
-.space-top-05 {
-  margin-top: 0.5rem;
-}
-
-.text-secondary-color {
-  color: var(--secondary-color);
-}
-
-.accent-border-bottom {
-  border-bottom: 1px solid var(--layout-accent-color);
-}
-
-.hide {
-  display: none;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.full-height {
-  height: 100%;
-}
-
-.scroll {
-  overflow: scroll;
-}
-
-.flip {
-  transform: rotate(180deg);
-}

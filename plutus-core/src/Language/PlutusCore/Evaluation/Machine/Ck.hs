@@ -102,7 +102,7 @@ data CkUserError =
 
 -- | The CK machine-specific 'EvaluationException' parameterized over @term@.
 type CkEvaluationExceptionCarrying term fun =
-    EvaluationException CkUserError fun term
+    EvaluationException CkUserError (MachineError fun term) term
 
 -- See Note [Being generic over @term@ in 'CekM']
 type CkCarryingM term uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationExceptionCarrying term fun))
@@ -110,6 +110,9 @@ type CkCarryingM term uni fun = ReaderT (CkEnv uni fun) (Either (CkEvaluationExc
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
     CkEvaluationExceptionCarrying (Term TyName Name uni fun ()) fun
+
+instance AsEvaluationFailure CkUserError where
+    _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
 
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
@@ -334,13 +337,10 @@ applyBuiltin
     -> [CkValue uni fun]
     -> CkM uni fun (Term TyName Name uni fun ())
 applyBuiltin stack bn args = do
-    let ckValueToTermInError = hoist $ first $ mapErrorWithCauseF ckValueToTerm
+    let ckValueToTermInError = hoist $ first $ mapCauseInMachineException ckValueToTerm
     BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . ckEnvRuntime
     result <- ckValueToTermInError $ applyTypeSchemed bn sch f exF args
-    case result of
-        EvaluationSuccess t -> stack <| t
-        EvaluationFailure ->
-            throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
+    stack <| result
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 evaluateCk

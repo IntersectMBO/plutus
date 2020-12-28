@@ -2,7 +2,7 @@
   --white: white;
   --black: black;
   --primary-color: #832dc4;
-  --secondary-color: #1746a0;
+  --secondary-color: #1746a0; // TODO: replace with --blue
   --accent-color: #709cf0;
   --accent-color-hover: #6288d1;
   --error-color: #ff0000;
@@ -17,4 +17,42 @@
   --layout-accent-color: rgba(51, 51, 51, 0.2);
   --gradient-bg: linear-gradient(to right, #832dc4, #1746a0);
   --btn-hover-gradient-bg: linear-gradient(to left, #832dc4, #1746a0);
+  // These colors are taken from this design
+  // https://app.zeplin.io/project/5e459242407814b27aa5fc98/screen/5fc65512c0a7dd9cb591c9df
+  --btn-primary-color: #1746a0; // TODO: replace with --blue
+  --btn-primary-color-hover: #3760ad; // TODO: replace with --blue-xxx
+  --btn-primary-color-active: #123880; // TODO: replace with --blue-xxx
+  --btn-primary-color-disabled: rgb(176, 196, 221);
+  --btn-secondary-color: white;
+  --btn-secondary-color-hover: rgba(23, 70, 160, 0.1); // TODO: replace with blue-100
+  --btn-secondary-color-active: rgba(23, 70, 160, 0.2); // TODO: replace with blue-200
+  // These color names definition is inspired from the tailwinds pallete,
+  // but customized with our colors.
+  // https://tailwindcss.com/docs/customizing-colors
+  // TODO: Replace names that are currently tied to components (btn-, text-, bg-)
+  //       with these color names that can be used in any property that accepts a color
+  //       that way instead of having
+  //          border-color: var(--btn-primary-color)
+  //       we can have
+  //          border-color: var(--blue-900)
+  --blue: rgba(23, 70, 160, 1);
+  --blue-900: rgba(23, 70, 160, 0.9);
+  --blue-800: rgba(23, 70, 160, 0.8);
+  --blue-700: rgba(23, 70, 160, 0.7);
+  --blue-600: rgba(23, 70, 160, 0.6);
+  --blue-500: rgba(23, 70, 160, 0.5);
+  --blue-400: rgba(23, 70, 160, 0.4);
+  --blue-300: rgba(23, 70, 160, 0.3);
+  --blue-200: rgba(23, 70, 160, 0.2);
+  --blue-100: rgba(23, 70, 160, 0.1);
+
+  --grey-900: rgba(160, 160, 160, 0.9);
+  --grey-800: rgba(160, 160, 160, 0.8);
+  --grey-700: rgba(160, 160, 160, 0.7);
+  --grey-600: rgba(160, 160, 160, 0.6);
+  --grey-500: rgba(160, 160, 160, 0.5);
+  --grey-400: rgba(160, 160, 160, 0.4);
+  --grey-300: rgba(160, 160, 160, 0.3);
+  --grey-200: rgba(160, 160, 160, 0.2);
+  --grey-100: rgba(160, 160, 160, 0.1);
 }

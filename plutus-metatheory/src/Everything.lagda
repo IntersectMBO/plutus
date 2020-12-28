@@ -46,14 +46,12 @@ import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
 import Algorithmic.Main
-import Algorithmic.Soundness
 import Algorithmic.Completeness
+import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.Erasure.Reduction
+--import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
-import Algorithmic.CEKD
-import Algorithmic.CEKC
 import Algorithmic.CEKV
 
 import Algorithmic.Examples
@@ -73,9 +71,8 @@ import Scoped.Reduction
 import Scoped.Extrication
 import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
-
 import Scoped.Erasure
-import Scoped.Erasure.RenamingSubstitution
+--import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
 
 import Scoped.CK

@@ -21,7 +21,7 @@ import Marlowe.Holes (fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class HeytingAlgebra, class Ord, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
 import Simulation.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
@@ -192,6 +192,7 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
             <<< set _contract (Just txOutContract)
         )
           oldState
+    (Error TEUselessTransaction) -> oldState
     (Error txError) ->
       let
         newExecutionState =
@@ -259,7 +260,7 @@ evalObservation state@{ executionState: SimulationRunning executionState } obser
   in
     case fixInterval (unwrap txInput).interval (executionState ^. _state) of
       IntervalTrimmed env state' -> S.evalObservation env state' observation
-      -- if there is an error in the state we will say that the observation is false. 
+      -- if there is an error in the state we will say that the observation is false.
       -- Nothing should happen anyway because applying the input will fail later
       IntervalError _ -> false
 

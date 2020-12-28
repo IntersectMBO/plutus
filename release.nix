@@ -37,10 +37,12 @@ lib.fix (jobsets: ciJobsets // {
         ++ (allJobs [ "linux" "docs" "papers" ] jobsets)
         ++ (allJobs [ "linux" "plutus-playground" ] jobsets)
         ++ (allJobs [ "linux" "marlowe-playground" ] jobsets)
+        ++ (allJobs [ "darwin" "plutus-playground" ] jobsets)
+        ++ (allJobs [ "darwin" "marlowe-playground" ] jobsets)
         ++ (allJobs [ "linux" "plutus-scb" ] jobsets)
-        # Developer scripts so they're definitely cached
-        ++ (allJobs [ "linux" "dev" "scripts" ] jobsets)
-        ++ (allJobs [ "darwin" "dev" "scripts" ] jobsets)
+        # deployment tools
+        ++ (allJobs [ "darwin" "thorp" ] jobsets)
+        ++ (allJobs [ "linux" "thorp" ] jobsets)
         # Shell environment so it never breaks
         ++ (if (lib.hasAttrByPath [ "linux" "shell" ] jobsets) then [ jobsets.linux.shell ] else [ ])
         ++ (if (lib.hasAttrByPath [ "darwin" "shell" ] jobsets) then [ jobsets.darwin.shell ] else [ ]);

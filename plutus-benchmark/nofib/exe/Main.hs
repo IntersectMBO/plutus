@@ -96,18 +96,21 @@ lastpieceOptions = P.pure LastPiece
 -- Primes options --
 
 knownPrimes :: String
-knownPrimes = "P05, P08, P10, P20, P30, P40, P50, or P60 (a prime with the indicated number of digits)"
+knownPrimes = "P05, P08, P10, P20, P30, P40, P50, P60, P100, P150, or P200 (a prime with the indicated number of digits)"
 
 primeIdReader :: String -> Either String Prime.PrimeID
-primeIdReader "P05" = Right Prime.P5
-primeIdReader "P08" = Right Prime.P8
-primeIdReader "P10" = Right Prime.P10
-primeIdReader "P20" = Right Prime.P20
-primeIdReader "P30" = Right Prime.P30
-primeIdReader "P40" = Right Prime.P40
-primeIdReader "P50" = Right Prime.P50
-primeIdReader "P60" = Right Prime.P60
-primeIdReader f     = Left $ "Cannot parse `" <> f <> "`. Possible values are " ++ knownPrimes ++"."
+primeIdReader "P05"  = Right Prime.P5
+primeIdReader "P08"  = Right Prime.P8
+primeIdReader "P10"  = Right Prime.P10
+primeIdReader "P20"  = Right Prime.P20
+primeIdReader "P30"  = Right Prime.P30
+primeIdReader "P40"  = Right Prime.P40
+primeIdReader "P50"  = Right Prime.P50
+primeIdReader "P60"  = Right Prime.P60
+primeIdReader "P100" = Right Prime.P100
+primeIdReader "P150" = Right Prime.P150
+primeIdReader "P200" = Right Prime.P200
+primeIdReader f      = Left $ "Cannot parse `" <> f <> "`. Possible values are " ++ knownPrimes ++"."
 
 -- | Apply the primality test to one of the built-in primes
 primeOptions :: Parser ProgAndArgs

@@ -18,6 +18,7 @@ module Language.PlutusTx.Compiler.Error (
 
 import qualified Language.PlutusIR.Compiler        as PIR
 
+import qualified Language.Haskell.TH               as TH
 import qualified Language.PlutusCore               as PLC
 import qualified Language.PlutusCore.Check.Uniques as PLC
 import qualified Language.PlutusCore.Pretty        as PLC
@@ -64,11 +65,13 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             ]
 
 data Error uni fun a = PLCError (PLC.Error uni fun a)
-                     | PIRError (PIR.Error uni fun (PIR.Provenance a))
-                     | CompilationError T.Text
-                     | UnsupportedError T.Text
-                     | FreeVariableError T.Text
-                     deriving Typeable
+                 | PIRError (PIR.Error uni fun (PIR.Provenance a))
+                 | CompilationError T.Text
+                 | UnsupportedError T.Text
+                 | FreeVariableError T.Text
+                 | InvalidMarkerError String
+                 | CoreNameLookupError TH.Name
+                 deriving Typeable
 makeClassyPrisms ''Error
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
@@ -98,3 +101,5 @@ instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, P
         CompilationError e -> "Unexpected error during compilation, please report this to the Plutus team:" PP.<+> PP.pretty e
         UnsupportedError e -> "Unsupported feature:" PP.<+> PP.pretty e
         FreeVariableError e -> "Reference to a name which is not a local, a builtin, or an external INLINABLE function:" PP.<+> PP.pretty e
+        InvalidMarkerError e -> "Found invalid marker, not applied correctly in expression" PP.<+> PP.pretty e
+        CoreNameLookupError n -> "Unable to get Core name needed for the plugin to function: " PP.<+> PP.viaShow n

@@ -145,7 +145,7 @@ guessingGameTest :: TestTree
 guessingGameTest =
     testCase "Guessing Game" $
           runScenario $ do
-              let openingBalance = 10000
+              let openingBalance = 100000000
                   lockAmount = 15
               address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
               balance0 <- valueAt address

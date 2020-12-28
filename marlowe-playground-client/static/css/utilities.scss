@@ -1,0 +1,144 @@
+@import './utilities/font-size.scss';
+@import './utilities/font-weight.scss';
+@import './utilities/text-align.scss';
+@import './utilities/border-color.scss';
+@import './utilities/border-width.scss';
+.outline {
+  outline: 1px solid lime;
+}
+
+.inline {
+  display: inline;
+}
+
+// TODO: instead of having a no-margins utitities that resets the current defaults we should
+//       remove margin defaults in headers and other elements, and specify automatically.
+//       As a rule of thumb, each component should now how to render "itself" and parent components
+//       should know how to position it's children. So properties like margin should never be set globally.
+.no-margins,
+.no-margins * {
+  margin: 0;
+}
+
+.no-padding,
+.no-padding * {
+  padding: 0;
+}
+
+.t-align-center {
+  text-align: center;
+}
+
+.m-align-center {
+  margin: 0 auto;
+}
+
+.a-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.a-center {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-ten {
+  flex: 10;
+  max-width: 100%;
+}
+
+.flex-four {
+  flex: 4;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.j-flex-start {
+  justify-content: flex-start;
+}
+
+.j-flex-end {
+  justify-content: flex-end;
+}
+
+.end-item {
+  margin-left: auto;
+}
+
+.space-left {
+  margin-left: var(--medium-margin);
+}
+
+.space-right {
+  margin-right: var(--medium-margin);
+}
+
+.space-bottom {
+  margin-bottom: var(--medium-margin);
+}
+
+.small-space-bottom {
+  margin-bottom: var(--small-margin);
+}
+
+.space-top {
+  margin-top: var(--medium-margin);
+}
+
+.padding-right {
+  padding-right: var(--medium-margin);
+}
+
+.small-padding-right {
+  padding-right: var(--small-margin);
+}
+
+.padding-left {
+  padding-left: var(--medium-margin);
+}
+
+.small-padding-left {
+  padding-left: var(--small-margin);
+}
+
+.text-secondary-color {
+  color: var(--secondary-color);
+}
+
+.text-white {
+  color: white;
+}
+
+.accent-border-bottom {
+  border-bottom: 1px solid var(--layout-accent-color);
+}
+
+.hide {
+  display: none;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.scroll {
+  overflow: scroll;
+}
+
+.flip {
+  transform: rotate(180deg);
+}
+

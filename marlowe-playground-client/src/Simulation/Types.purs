@@ -306,7 +306,7 @@ type PrefixMap
 type RemainingSubProblemInfo
   = List (ContractZipper /\ Contract)
 
-type InProgressRecord
+type AnalysisInProgressRecord
   = { currPath :: ContractPath
     , currContract :: Contract
     , currChildren :: RemainingSubProblemInfo
@@ -315,26 +315,32 @@ type InProgressRecord
     , subproblems :: RemainingSubProblemInfo
     , numSubproblems :: Int
     , numSolvedSubproblems :: Int
-    , unreachableSubcontracts :: List ContractPath
+    , counterExampleSubcontracts :: List ContractPath
     }
 
-type UnreachableSubcontractRecord
+type AnalysisCounterExamplesRecord
   = { originalState :: S.State
     , originalContract :: Contract
-    , unreachableSubcontracts :: NonEmptyList ContractPath
+    , counterExampleSubcontracts :: NonEmptyList ContractPath
     }
 
-data ReachabilityAnalysisData
-  = NotStarted
-  | InProgress InProgressRecord
-  | ReachabilityFailure String
-  | UnreachableSubcontract UnreachableSubcontractRecord
-  | AllReachable
+data MultiStageAnalysisData
+  = AnalysisNotStarted
+  | AnalysisInProgress AnalysisInProgressRecord
+  | AnalyisisFailure String
+  | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
+  | AnalysisFinishedAndPassed
 
 data AnalysisState
   = NoneAsked
   | WarningAnalysis (WebData Result)
-  | ReachabilityAnalysis ReachabilityAnalysisData
+  | ReachabilityAnalysis MultiStageAnalysisData
+
+type MultiStageAnalysisProblemDef
+  = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
+    , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
+    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
+    }
 
 type State
   = { showRightPanel :: Boolean
@@ -349,6 +355,7 @@ type State
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     , source :: Lang
+    , hasUnsavedChanges :: Boolean
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -407,6 +414,7 @@ mkState =
   , selectedHole: Nothing
   , oldContract: Nothing
   , source: Marlowe
+  , hasUnsavedChanges: false
   }
 
 isContractValid :: State -> Boolean
@@ -424,6 +432,8 @@ data Action
   | SelectEditorKeyBindings KeyBindings
   | LoadScript String
   | SetEditorText String
+  | InitMarloweProject String
+  | MarkProjectAsSaved
   -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
@@ -487,6 +497,8 @@ instance isEventAction :: IsEvent Action where
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent Save = Just $ defaultEvent "Save"
+  toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
+  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

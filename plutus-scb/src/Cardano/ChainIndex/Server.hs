@@ -194,7 +194,7 @@ processIndexEffects stateVar eff = do
     (result, newState) <- liftIO
                             $ runM
                             $ runStderrLog
-                            $ renderLogMessages
+                            $ interpret renderLogMessages
                             $ Eff.runState _indexState
                             $ ChainIndex.handleChainIndex
                             $ ChainIndex.handleChainIndexControl eff

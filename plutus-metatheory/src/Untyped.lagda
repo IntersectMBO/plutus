@@ -64,7 +64,6 @@ data _⊢ n where
   con     : TermCon → n ⊢
   builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
   error   : n ⊢
-
 \end{code}
 
 

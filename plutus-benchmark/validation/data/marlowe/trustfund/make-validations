@@ -1,0 +1,3 @@
+#!/bin/bash
+stack run plc -- apply Validator01.plc Datum01.plc Redeemer01.plc Context01.plc -o validation1.plc
+stack run plc -- apply Validator01.plc Datum02.plc Redeemer02.plc Context02.plc -o validation2.plc

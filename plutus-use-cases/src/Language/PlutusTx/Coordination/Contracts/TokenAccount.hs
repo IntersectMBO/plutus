@@ -41,6 +41,7 @@ import           Control.Lens
 import           Control.Monad                                     (void)
 import           Control.Monad.Error.Lens
 import           Data.Aeson                                        (FromJSON, ToJSON)
+import qualified Data.Map                                          as Map
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                                      (Generic)
 
@@ -117,7 +118,7 @@ tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pa
         tokenAccountContract
     pay_ = do
         (accountOwner, value) <- endpoint @"pay" @_ @s
-        void $ pay (scriptInstance accountOwner) value
+        void $ pay accountOwner value
         tokenAccountContract
     newAccount_ = do
         (tokenName, initialOwner) <- endpoint @"new-account" @_ @s
@@ -161,10 +162,19 @@ pay
     :: ( HasWriteTx s
        , AsTokenAccountError e
        )
-    => Scripts.ScriptInstance TokenAccount
+    => Account --Scripts.ScriptInstance TokenAccount
     -> Value
     -> Contract s e Tx
-pay inst = mapError (review _TAContractError) . submitTxConstraints inst . payTx
+pay account vl = do
+    let inst = scriptInstance account
+    logInfo @String
+        $ "TokenAccount.pay: Paying "
+        <> show vl
+        <> " into "
+        <> show account
+    mapError (review _TAContractError)
+        $ submitTxConstraints inst
+        $ payTx vl
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx :: forall s e.
@@ -177,6 +187,13 @@ redeemTx :: forall s e.
 redeemTx account pk = mapError (review _TAContractError) $ do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
+    let totalVal = foldMap (V.txOutValue . txOutTxOut) utxos
+        numInputs = Map.size utxos
+    logInfo @String
+        $ "TokenAccount.redeemTx: Redeeming "
+            <> show numInputs
+            <> " outputs with a total value of "
+            <> show totalVal
     let constraints = TypedTx.collectFromScript utxos ()
                 <> Constraints.mustPayToPubKey pk (accountToken account)
         lookups = Constraints.scriptInstanceLookups inst

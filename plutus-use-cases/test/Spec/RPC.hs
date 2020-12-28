@@ -3,18 +3,15 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.RPC(tests) where
 
+import           Control.Monad                                (void)
 import           Data.Either                                  (isRight)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
-import           Wallet.Emulator.Notify                       (walletInstanceId)
+import qualified Plutus.Trace.Emulator                        as Trace
 
 import           Language.PlutusTx.Coordination.Contracts.RPC
 
 import           Test.Tasty
-
-theContract :: Contract AdderSchema AdderError (Either (Either CancelRPC Integer) ())
-theContract = callAdder `selectEither` respondAdder
 
 cancelContract :: Contract AdderSchema AdderError (Either (Either CancelRPC Integer) ())
 cancelContract = callAdderCancel `selectEither` respondAdder
@@ -26,28 +23,23 @@ client = Wallet 2
 tests :: TestTree
 tests = testGroup "RPC"
     [ checkPredicate "call RPC"
-        theContract
-        (assertDone server isRight ""
-        /\ assertDone client (\case { Left (Right 4) -> True; _ -> False}) "")
-        (callEndpoint @"serve" server ()
-        >> handleBlockchainEvents server
-        >> callEndpoint @"target instance" client (walletInstanceId server)
-        >> handleBlockchainEvents server
-        >> handleBlockchainEvents client
-        >> handleBlockchainEvents server
-        >> handleBlockchainEvents client
-        )
-    , checkPredicate "call RPC with error"
-        cancelContract
-        (assertDone server isRight ""
-        /\ assertDone client (\case { Left (Left CancelRPC) -> True; _ -> False}) "")
-        (callEndpoint @"serve" server ()
-        >> handleBlockchainEvents server
-        >> callEndpoint @"target instance" client (walletInstanceId server)
-        >> handleBlockchainEvents server
-        >> handleBlockchainEvents client
-        >> handleBlockchainEvents server
-        >> handleBlockchainEvents client
-        )
+        (assertDone respondAdder (Trace.walletInstanceTag server) (const True) "server not done"
+        .&&. assertDone callAdder (Trace.walletInstanceTag client) (\case { (Right 4) -> True; _ -> False}) "client not done")
+        $ do
+            shdl <- Trace.activateContractWallet server (void respondAdder)
+            chdl <- Trace.activateContractWallet client (void callAdder)
+            Trace.callEndpoint @"serve" shdl ()
+            Trace.callEndpoint @"target instance" chdl (Trace.chInstanceId shdl)
+            void $ Trace.nextSlot
 
+    , checkPredicate "call RPC with error"
+        (assertDone cancelContract (Trace.walletInstanceTag server) isRight ""
+        .&&. assertDone cancelContract (Trace.walletInstanceTag client) (\case { Left (Left CancelRPC) -> True; _ -> False}) "")
+        $ do
+            (shdl, chdl) <-
+                (,) <$> Trace.activateContractWallet server (void cancelContract)
+                    <*> Trace.activateContractWallet client (void cancelContract)
+            Trace.callEndpoint @"serve" shdl ()
+            Trace.callEndpoint @"target instance" chdl (Trace.chInstanceId shdl)
+            void $ Trace.nextSlot
     ]

@@ -16,7 +16,6 @@ import qualified Test.Tasty.HUnit                                              a
 
 import           Spec.Lib                                                      as Lib
 
-import           Language.PlutusTx.Lattice
 import qualified Ledger
 import qualified Ledger.Ada                                                    as Ada
 import qualified Ledger.Typed.Scripts                                          as Scripts
@@ -24,40 +23,37 @@ import qualified Wallet.Emulator                                               a
 
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                                             as PlutusTx
-
-import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine (MultiSigError, MultiSigSchema)
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine as MS
+import           Plutus.Trace.Emulator                                         (EmulatorTrace)
+import qualified Plutus.Trace.Emulator                                         as Trace
 
 tests :: TestTree
 tests =
     testGroup "multi sig state machine tests"
-    [ checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay - SUCCESS"
-        (MS.contract params)
+    [ checkPredicate "lock, propose, sign 3x, pay - SUCCESS"
         (assertNoFailedTransactions
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        /\ walletFundsChange w2 (Ada.lovelaceValueOf 5))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 5))
         (lockProposeSignPay 3 1)
 
-    , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 2x, pay - FAILURE"
-        (MS.contract params)
-        (assertContractError w1 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        /\ walletFundsChange w2 (Ada.lovelaceValueOf 0))
+    , checkPredicate "lock, propose, sign 2x, pay - FAILURE"
+        (assertNotDone (MS.contract  @MS.MultiSigError params) (Trace.walletInstanceTag w1) "contract should proceed after invalid transition"
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 0))
         (lockProposeSignPay 2 1)
 
-    , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay x2 - SUCCESS"
-        (MS.contract params)
+    , checkPredicate "lock, propose, sign 3x, pay x2 - SUCCESS"
         (assertNoFailedTransactions
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
         (lockProposeSignPay 3 2)
 
-    , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay x3 - FAILURE"
-        (MS.contract params)
-        (assertContractError w2 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
-        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-        /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
-        (lockProposeSignPay 3 2 >> callEndpoint @"propose-payment" w2 payment >> handleBlockchainEvents w2)
+    , checkPredicate "lock, propose, sign 3x, pay x3 - FAILURE"
+        (assertNotDone (MS.contract  @MS.MultiSigError params) (Trace.walletInstanceTag w2) "contract should proceed after invalid transition"
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+        .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
+        -- (lockProposeSignPay 3 2 >> callEndpoint @"propose-payment" w2 payment >> handleBlockchainEvents w2)
+        (lockProposeSignPay 3 3) -- FIXME
 
     , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 51000)
@@ -85,35 +81,25 @@ payment =
 -- | Lock some funds in the contract, then propose the payment
 --   'payment', then call @"add-signature"@ a number of times and
 --   finally call @"pay"@ a number of times.
-lockProposeSignPay
-    :: Integer
-    -> Integer
-    -> ContractTrace MultiSigSchema MultiSigError a ()
+lockProposeSignPay :: Integer -> Integer -> EmulatorTrace ()
 lockProposeSignPay signatures rounds = do
+    let wallets = EM.Wallet <$> [1..signatures]
+        activate w = Trace.activateContractWallet w (MS.contract @MS.MultiSigError params)
 
-    let
-        wallets = EM.Wallet <$> [1..signatures]
-        handleAll = traverse_ handleBlockchainEvents wallets
-    callEndpoint @"lock" w1 (Ada.lovelaceValueOf 10)
-    handleAll
-    addBlocks 1
-    handleAll
-    addBlocks 1
-
+    -- the 'proposeSignPay' trace needs at least 2 signatures
+    handle1 <- activate (EM.Wallet 1)
+    handle2 <- activate (EM.Wallet 2)
+    handles <- traverse activate (drop 2 wallets)
+    _ <- Trace.callEndpoint @"lock" handle1 (Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 1
     let proposeSignPay = do
-            callEndpoint @"propose-payment" w2 payment
-            handleBlockchainEvents w2
-            addBlocks 1
-            handleBlockchainEvents w2
-
+            Trace.callEndpoint @"propose-payment" handle2 payment
+            _ <- Trace.waitNSlots 1
             -- Call @"add-signature"@ @signatures@ times
-            traverse_ (\wllt -> callEndpoint @"add-signature" wllt () >> handleAll >> addBlocks 1) wallets
+            traverse_ (\hdl -> Trace.callEndpoint @"add-signature" hdl () >> Trace.waitNSlots 1) (handle1:handle2:handles)
 
             -- Call @"pay"@ on wallet 1
-            handleAll
-            callEndpoint @"pay" w1 ()
-            handleAll
-            addBlocks 1
-            handleAll
+            Trace.callEndpoint @"pay" handle1 ()
+            Trace.waitNSlots 1
 
     traverse_ (\_ -> proposeSignPay) [1..rounds]

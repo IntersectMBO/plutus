@@ -15,5 +15,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          blacklist: 'hackage.nix,stackage.nix,haskell.nix'
+          blacklist: 'hackage.nix,stackage.nix,haskell.nix,iohk-nix'
 

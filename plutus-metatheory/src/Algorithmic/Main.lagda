@@ -73,10 +73,7 @@ con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con2 = con (integer (pos 2)) -- _) -- (-≤+ ,, (+≤+ (s≤s (s≤s (s≤s z≤n))))))
 
 builtin2plus2 : ∅ ⊢ con integer
-builtin2plus2 = builtin
-  addInteger
-  (λ {()})
-  (con2 ∷ con2 ∷ [])
+builtin2plus2 = ibuiltin addInteger · con2 · con2
 
 {-
 inc : ∅ ⊢ Π (con integer (ne (` Z)) ⇒ con integer (ne (` Z)))

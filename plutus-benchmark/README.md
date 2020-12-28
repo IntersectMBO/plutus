@@ -14,8 +14,17 @@ This directory contains two sets of benchmarks:
           benchmark with a time limit of 300 seconds)
 
    * The corresponding cabal commands are
-       * `cabal v2-bench plutus-benchmark:nofib`
-       * `cabal v2-bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
+       * `cabal bench plutus-benchmark:nofib`
+       * `cabal bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
+
+   * With cabal, you can also say
+       * `cabal run plutus-benchmark:nofib`
+       * `cabal run plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
+
+     The difference is that `cabal run` runs the benchmarks with the working directory
+     set to the shell's current working directory, but `cabal bench` sets the working directory
+     to the `plutus-benchmark` directory.  Stack uses the benchmark directory for its
+     working directory; there doesn't seem to be any way to get it to use any other directory.
 
    * By default, the benchmarks are run for a minimum of **60 seconds each** in order to get a
      statistically reasonable number of executions.  You can change this with Criterion's `-L` option.
@@ -31,9 +40,11 @@ This directory contains two sets of benchmarks:
        * `stack bench plutus-benchmark:validation` (run all benchmarks)
        * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L10"` (run the `crowdfunding/2`
            benchmark with a time limit of 10 seconds)
+
    * The corresponding cabal commands are
-       * `cabal v2-bench plutus-benchmark:validation`
-       * `cabal v2-bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
+       * `cabal bench plutus-benchmark:validation`
+       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L10"`
+     or the `cabal run` equivalents.
 
 See also  [nofib/README.md](./nofib/README.md)  and [validation/README.md](./validation/README.md).
 
@@ -46,14 +57,17 @@ for details.
 
 Both sets of benchmarks will generate a file called `report.html` containing
 detailed information about the results of running the benchmarks. This will be
-written to the `plutus-benchmarks` directory.  To put it elsewhere, pass
+written to the `plutus-benchmark` directory.  To put it elsewhere, pass
 Criterion the `--output` option along with an *absolute* path (relative paths
-are interpreted relative to `plutus-benchmarks` when running the benchmarks via
+are interpreted relative to `plutus-benchmark` when running the benchmarks via
 stack or cabal): for example
 
 ```
   stack bench plutus-benchmark:validation --ba "crowdfunding -L10 --output $PWD/crowdfunding-report.html"
 ```
+
+If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into
+the current directory.
 
 The `templates` directory contains some template files for use by Criterion.
 
@@ -61,7 +75,5 @@ The `templates` directory contains some template files for use by Criterion.
 
 The directory `nofib/test` contains some tests for the nofib examples which
 compare the result of evaluating the benchmarks as Haskell programs and as
-Plutus Core programs.  **Running the tests may consume a considerable amount of
-time and (especially) memory**; you may wish to restrict which tests are run,
-for example by using stack's `--ta/--test-arguments` option (with `-p`), or cabal's
-`--test-option` option.
+Plutus Core programs.  Run these with `stack test plutus-benchmark` or
+`cabal test plutus-benchmark`.

@@ -21,6 +21,7 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 
 import           Control.Lens                                     (ix, (^?))
 import           Control.Monad.Except
@@ -142,12 +143,16 @@ collected in the order that they appear in (i.e. just like in Haskell). For exam
 a type signature like
 
     const
-        :: (a ~ Opaque term (TyVarRep "a" 0), b ~ Opaque term (TyVarRep "b" 1))
+        :: ( a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+           , b ~ Opaque term (TyVarRep ('TyNameRep "b" 1))
+           )
         => b -> a -> b
 
 with 'ToBinds' results in the following list of bindings:
 
-    '[ '("b", 1), '("a", 0) ]
+    '[ 'Some ('TyNameRep "b" 1), 'Some ('TyNameRep "a" 0) ]
+
+Higher-kinded type variables are fully supported.
 
 The implementation of the 'KnownMonotype' and 'KnownPolytype' classes are structured in an
 inference-friendly manner:
@@ -159,31 +164,15 @@ inference-friendly manner:
 3. the @args res -> a@ dependency allows us not to mention @a@ in the type of 'knownMonotype'
 
 The end result is that the user only has to specify the type of the denotation of a built-in
-function and the 'TypeScheme' of the built-in function will be derived automatically.
-
-Higher-kinded type variables are not supported currently. There are options, as always:
-
-1. we can make the user annotate type variables with kinds
-1.1. and check them
-1.2. or not check them
-2. or maybe we can make Haskell infer the kinds for us? For example, if we made it
-
-    data family TyVarRepK (text :: Symbol) (unique :: Nat) :: kind
-    data family TyAppRepK (fun :: dom -> cod) (arg :: dom) :: cod
-
-then we could write things like
-
-    type FA = TyAppRepK (TyVarRepK "f" 0) (TyVarRepK "a" 1)
-
-and make Haskell kind check everything for us. And then we could match on the inferred kind using
-a type class and generate a PLC kind at the Haskell's term level.
+function and the 'TypeScheme' of the built-in function will be derived automatically. And in the
+monomorphic case no types need to be specified at all.
 -}
 
 type family GetArgs a :: [GHC.Type] where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
--- | A class that allows to derive a 'Monotype' for a builtin.
+-- | A class that allows us to derive a monotype for a builtin.
 class KnownMonotype term args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme term args res
 
@@ -207,15 +196,39 @@ type family Merge xs ys :: [a] where
     Merge '[]       ys = ys
     Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
 
--- | Collect all unique variables (a variable consists of a textual name and a unique) in an @x@.
-type family ToBinds (x :: a) :: [(Symbol, Nat)]
+-- | 'Transparent' is used to cancel 'Opaque'. We need this in cases like
+--
+--     TyAppRep (TyVarRep ('TyNameRep "f" 0)) (Transparent Integer)
+--
+-- because 'ToBinds' only handles PLC types and so if it's applied to just 'Integer', then it's
+-- stuck. The additional 'Transparent' wrapper allows us to move from handling PLC types back to
+-- handling Haskell ones.
+--
+-- Don't use 'Transparent' when there's no surrounding 'Opaque'. It's of no use in that case and
+-- you can get weird behavior.
+newtype Transparent a = Transparent
+    { unTransparent :: a
+    }
 
-type instance ToBinds (TyVarRep name uniq) = '[ '(name, uniq) ]
-type instance ToBinds (TyAppRep fun arg) = TypeError ('Text "Not supported yet")
+instance KnownTypeAst uni a => KnownTypeAst uni (Transparent a) where
+    toTypeAst _ = toTypeAst $ Proxy @a
+
+instance KnownType term a => KnownType term (Transparent a) where
+    makeKnown = makeKnown . unTransparent
+    readKnown = fmap Transparent . readKnown
+
+-- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
+-- in an @x@.
+type family ToBinds (x :: a) :: [Some TyNameRep]
+
+type instance ToBinds (TyVarRep var) = '[ 'Some var ]
+type instance ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
+type instance ToBinds (TyForallRep var a) = Delete ('Some var) (ToBinds a)
+type instance ToBinds (Transparent a) = TypeToBinds a
 
 -- | A standalone Haskell type either stands for a PLC type (when it's an 'Opaque') or
 -- it's an actual Haskell type, in which case it doesn't contain any PLC type variables.
-type family TypeToBinds (a :: GHC.Type) :: [(Symbol, Nat)] where
+type family TypeToBinds (a :: GHC.Type) :: [Some TyNameRep] where
     TypeToBinds (Opaque _ rep) = ToBinds rep
     TypeToBinds _              = '[]
 
@@ -223,18 +236,22 @@ type instance ToBinds (TypeScheme term '[]           res) = TypeToBinds res
 type instance ToBinds (TypeScheme term (arg ': args) res) =
     Merge (TypeToBinds arg) (ToBinds (TypeScheme term args res))
 
--- | A class that allows to derive a 'Polytype' for a builtin.
-class KnownPolytype (binds :: [(Symbol, Nat)]) term args res a | args res -> a, a -> res where
+-- | A class that allows us to derive a polytype for a builtin.
+class KnownPolytype (binds :: [Some TyNameRep]) term args res a | args res -> a, a -> res where
     knownPolytype :: Proxy binds -> TypeScheme term args res
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype term args res a => KnownPolytype '[] term args res a where
     knownPolytype _ = knownMonotype
 
+-- Here we unpack an existentially packed @kind@ and constrain it afterwards!
+-- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
+-- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,
+-- all information is lost and we can't do anything with @kind@.
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
-instance (KnownSymbol name, KnownNat uniq, KnownPolytype binds term args res a) =>
-            KnownPolytype ('(name, uniq) ': binds) term args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq Proxy (Type ()) $ \_ -> knownPolytype (Proxy @binds)
+instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds term args res a) =>
+            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
+    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a dynamic built-in function by automatically deriving its

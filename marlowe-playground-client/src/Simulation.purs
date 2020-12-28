@@ -12,7 +12,7 @@ import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.EuclideanRing ((*))
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (assign, has, modifying, only, over, preview, to, use, view, (^.))
+import Data.Lens (assign, has, modifying, only, over, preview, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -36,8 +36,8 @@ import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
-import Halogen (HalogenM, get, query)
-import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
+import Halogen (HalogenM, get, modify_, query)
+import Halogen.Classes (aHorizontal, activeClasses, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, option, p, p_, section, select, slot, small, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange)
@@ -47,27 +47,28 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
 import Help (HelpContext(..), toHTML)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds, showPrettyToken)
+import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, emptyState, inBounds)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, Void, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
+import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import Projects.Types (Lang(..))
-import Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (applyInput, getAsMuchStateAsPossible, hasHistory, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), ActionInput(..), ActionInputId(..), AnalysisState(..), ExecutionState(..), Parties(..), State, WebData, _SimulationNotStarted, _SimulationRunning, _activeDemo, _analysisState, _bottomPanelView, _contract, _currentContract, _currentMarloweState, _editorErrors, _editorKeybindings, _editorWarnings, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _slot, _source, emptyExecutionStateWithSlot, emptyMarloweState, isContractValid, mapPartiesActionInput, otherActionsParty)
+import StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, startReachabilityAnalysis)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
@@ -94,7 +95,10 @@ handleAction settings (HandleEditorMessage (Monaco.TextChanged "")) = do
   updateContractInState ""
 
 handleAction settings (HandleEditorMessage (Monaco.TextChanged text)) = do
-  assign _selectedHole Nothing
+  modify_
+    ( set _selectedHole Nothing
+        <<< set _hasUnsavedChanges' true
+    )
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
   assign _activeDemo ""
@@ -293,6 +297,13 @@ handleAction settings AnalyseReachabilityContract = do
 
 handleAction _ Save = pure unit
 
+handleAction _ (InitMarloweProject contents) = do
+  editorSetValue contents
+  liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
+  assign _hasUnsavedChanges' false
+
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
+
 setOraclePrice ::
   forall m.
   MonadAff m =>
@@ -457,7 +468,7 @@ render state =
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
-  div [ classes [ ClassName "group" ] ]
+  div [ classes [ group ] ]
     ( [ editorOptions state
       , sendToBlocklyButton state
       ]
@@ -800,11 +811,11 @@ marloweActionInput isEnabled f current =
 renderDeposit :: forall p. AccountId -> Party -> Token -> BigInteger -> Array (HTML p Action)
 renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
+  , b_ [ spanText (showPrettyMoney money) ]
   , spanText " units of "
-  , b_ [ spanText (showPrettyToken tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner) ]
+  , b_ [ renderPrettyToken tok ]
+  , spanText " into account of "
+  , b_ [ renderPrettyParty accountOwner ]
   , spanText " as "
-  , b_ [ spanText (show party) ]
+  , b_ [ renderPrettyParty party ]
   ]

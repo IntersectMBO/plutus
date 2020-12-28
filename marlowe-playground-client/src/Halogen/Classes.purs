@@ -10,6 +10,8 @@ foreign import closeDrawerIcon :: String
 
 foreign import closeDrawerArrowIcon :: String
 
+foreign import closeModal :: String
+
 foreign import githubIcon :: String
 
 foreign import downloadIcon :: String
@@ -50,6 +52,14 @@ foreign import option2 :: String
 
 foreign import option3 :: String
 
+foreign import newProjectHaskellIcon :: String
+
+foreign import newProjectJavascriptIcon :: String
+
+foreign import newProjectMarloweIcon :: String
+
+foreign import newProjectBlocklyIcon :: String
+
 fullWidth :: ClassName
 fullWidth = ClassName "full-width"
 
@@ -76,6 +86,27 @@ spaceLeft = ClassName "space-left"
 
 spaceRight :: ClassName
 spaceRight = ClassName "space-right"
+
+spaceBottom :: ClassName
+spaceBottom = ClassName "space-bottom"
+
+smallSpaceBottom :: ClassName
+smallSpaceBottom = ClassName "small-space-bottom"
+
+paddingRight :: ClassName
+paddingRight = ClassName "padding-right"
+
+smallPaddingRight :: ClassName
+smallPaddingRight = ClassName "small-padding-right"
+
+paddingLeft :: ClassName
+paddingLeft = ClassName "padding-left"
+
+smallPaddingLeft :: ClassName
+smallPaddingLeft = ClassName "small-padding-left"
+
+spaceTop :: ClassName
+spaceTop = ClassName "space-top"
 
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
@@ -130,6 +161,9 @@ plusBtn = ClassName "plus-btn"
 
 minusBtn :: ClassName
 minusBtn = ClassName "minus-btn"
+
+btn :: ClassName
+btn = ClassName "button"
 
 btnSecondary :: ClassName
 btnSecondary = ClassName "btn-secondary"
@@ -246,5 +280,48 @@ collapsed = ClassName "collapsed"
 horizontalFlip :: ClassName
 horizontalFlip = ClassName "flip"
 
+modalContent :: ClassName
+modalContent = ClassName "modal-content"
+
 vl :: forall p a. HTML p a
 vl = div [ classes [ ClassName "vl" ] ] [ text "|" ]
+
+group :: ClassName
+group = ClassName "group"
+
+-- Tailwind's classes.
+textBase :: ClassName
+textBase = ClassName "text-base"
+
+textSm :: ClassName
+textSm = ClassName "text-sm"
+
+text3xl :: ClassName
+text3xl = ClassName "text-3xl"
+
+fontSemibold :: ClassName
+fontSemibold = ClassName "font-semibold"
+
+textLeft :: ClassName
+textLeft = ClassName "text-left"
+
+textCenter :: ClassName
+textCenter = ClassName "text-center"
+
+textRight :: ClassName
+textRight = ClassName "text-right"
+
+textJustify :: ClassName
+textJustify = ClassName "text-justify"
+
+textWhite :: ClassName
+textWhite = ClassName "text-white"
+
+border :: ClassName
+border = ClassName "border"
+
+borderBlue300 :: ClassName
+borderBlue300 = ClassName "border-blue-300"
+
+activeBorderBlue700 :: ClassName
+activeBorderBlue700 = ClassName "active:border-blue-700"

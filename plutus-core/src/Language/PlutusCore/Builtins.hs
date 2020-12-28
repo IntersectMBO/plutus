@@ -125,12 +125,7 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
-integerToInt :: Integer -> Int
-integerToInt = fromIntegral
-
-defBuiltinsRuntime
-    :: (HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinsRuntime DefaultFun term
+defBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defBuiltinsRuntime = toBuiltinsRuntime defDefaultFunDyn defaultCostModel
 
 instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni DefaultFun where
@@ -190,11 +185,11 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             (runCostingFunTwoArguments . paramConcatenate)
     toBuiltinMeaning TakeByteString =
         toStaticBuiltinMeaning
-            (BS.take . integerToInt)
+            BS.take
             (runCostingFunTwoArguments . paramTakeByteString)
     toBuiltinMeaning DropByteString =
         toStaticBuiltinMeaning
-            (BS.drop . integerToInt)
+            BS.drop
             (runCostingFunTwoArguments . paramDropByteString)
     toBuiltinMeaning SHA2 =
         toStaticBuiltinMeaning
@@ -222,7 +217,8 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             (runCostingFunTwoArguments . paramGtByteString)
     toBuiltinMeaning IfThenElse =
         toStaticBuiltinMeaning
-            ((\b x y -> if b then x else y) :: a ~ Opaque term (TyVarRep "a" 0) => Bool -> a -> a -> a)
+            ((\b x y -> if b then x else y)
+                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0)) => Bool -> a -> a -> a)
             (runCostingFunThreeArguments . paramIfThenElse)
     toBuiltinMeaning CharToString =
         toStaticBuiltinMeaning

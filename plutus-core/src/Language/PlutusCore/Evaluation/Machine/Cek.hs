@@ -144,7 +144,7 @@ failure into a 'Term', apart from the straightforward generalization of 'CekM'.
 
 -- | The CEK machine-specific 'EvaluationException', parameterized over @term@.
 type CekEvaluationExceptionCarrying term fun =
-    EvaluationException CekUserError fun term
+    EvaluationException CekUserError (MachineError fun term) term
 
 -- See Note [Being generic over @term@ in 'CekM'].
 -- | A generalized version of 'CekM' carrying a @term@.
@@ -176,6 +176,9 @@ instance Show fun => PrettyBy config (ExBudgetCategory fun) where
 
 type CekExBudgetState fun = ExBudgetState (ExBudgetCategory fun)
 type CekExTally       fun = ExTally       (ExBudgetCategory fun)
+
+instance AsEvaluationFailure CekUserError where
+    _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -356,8 +359,7 @@ computeCek ctx env (Builtin ex bn) = do
   BuiltinRuntime _ arity _ _ <- asksM $ lookupBuiltin bn . cekEnvRuntime
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _ Error{} =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing
+computeCek _ _ Error{} = throwing_ _EvaluationFailure
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
@@ -493,19 +495,10 @@ applyBuiltin
 applyBuiltin ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
-  let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
+  let dischargeError = hoist $ withExceptT $ mapCauseInMachineException $ void . dischargeCekValue
   BuiltinRuntime sch _ f exF <- asksM $ lookupBuiltin bn . cekEnvRuntime
   result <- dischargeError $ applyTypeSchemed bn sch f exF args
-  case result of
-    EvaluationSuccess t -> returnCek ctx t
-    EvaluationFailure ->
-        throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
-        {- NB: we're not reporting any context here.  When UserEvaluationError is
-           invloved, Exception.extractEvaluationResult just throws the cause
-           away (see Note [Ignoring context in UserEvaluationError]), so it
-           doesn't matter if we don't have any context. We could provide
-           applyBuiltin with sufficient information to reconstruct the
-           application, but that would add a cost without adding any benefit. -}
+  returnCek ctx result
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

@@ -7,6 +7,7 @@ pkgs.stdenv.mkDerivation rec {
   buildInputs = with pkgs; [
     terraform
     awscli
+    nixops
   ];
   shellHook = ''
       export EDITOR=nvim

@@ -6,10 +6,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "7b1c1635e16c7f12065db2f8ec049030fcc63655",
-        "sha256": "1nybcann9aiwbvj95p6wam8xyhxwaxmfnkxmgylxcw42np2lvbzr",
+        "rev": "860a95cb9e1ebdf574cede2b4fcb0f66eac77242",
+        "sha256": "1ly3bm6i1viw6d64gi1zfiwdvjncm3963rj59320cr15na5bzjri",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/7b1c1635e16c7f12065db2f8ec049030fcc63655.tar.gz",
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/860a95cb9e1ebdf574cede2b4fcb0f66eac77242.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hackage.nix": {
@@ -18,10 +18,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "469ab02425cc691c400ee42637e6b379adc2f08d",
-        "sha256": "1yxz7fs4pc4rhlyir0ghjj9xa866hd2lb00b5z6i7q8m2xwda1x0",
+        "rev": "a4cc756399f44f0e961e6e27a43b88314ea32856",
+        "sha256": "0rl1b1xy5zw4mn3v9ch8xbnhgbfizfi4blaxn4cn50d4hd3q7mmd",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/469ab02425cc691c400ee42637e6b379adc2f08d.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/a4cc756399f44f0e961e6e27a43b88314ea32856.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -30,10 +30,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "c583fb3e775d0f071b58a53f82f726cec623c800",
-        "sha256": "0pzsaxwap6jmmpcyzwvygbrfcanjzkwfrmlqac4jnjrfixd8g27s",
+        "rev": "99fdad764061f4166e4c0d1d8783bd039c7bb851",
+        "sha256": "10z6slbxr1386zyc5cn03s0vmlqvv2br56b51ndcd8x9kq107ck3",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/c583fb3e775d0f071b58a53f82f726cec623c800.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/99fdad764061f4166e4c0d1d8783bd039c7bb851.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -43,14 +43,15 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "72b62e35a3c4931a65d89026bbdecffb3442b88d",
+        "rev": "9dd0d1d10ae187df885996b85c9cb4f6990dae86",
         "sha256": "1rdaa3c4sz3h1ky9ilp4sm5j9xm9v0vhnzlgnwcs3z1l8ygmvghf",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/72b62e35a3c4931a65d89026bbdecffb3442b88d.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/9dd0d1d10ae187df885996b85c9cb4f6990dae86.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "mvn2nix": {
         "branch": "master",
+        "builtin": false,
         "description": "Easily package your Maven Java application with the Nix package manager.",
         "homepage": "",
         "owner": "fzakaria",
@@ -68,10 +69,10 @@
         "homepage": "",
         "owner": "siers",
         "repo": "nix-gitignore",
-        "rev": "a9609739209cef90e2e8eaa0b5b656721d3da63e",
-        "sha256": "1h7dgiy0kiyzsv0s2w5p6z5103k4s8wc6i793cwq1srk2kwdsrxm",
+        "rev": "0b788a5875163ec210cd6597cb3757fd59e73902",
+        "sha256": "01cl7hamp9n2rk0xaqrbfzg7s3g9hl40y1q184zlmqvgqx4fysmr",
         "type": "tarball",
-        "url": "https://github.com/siers/nix-gitignore/archive/a9609739209cef90e2e8eaa0b5b656721d3da63e.tar.gz",
+        "url": "https://github.com/siers/nix-gitignore/archive/0b788a5875163ec210cd6597cb3757fd59e73902.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -81,10 +82,10 @@
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d105075a1fd870b1d1617a6008cb38b443e65433",
-        "sha256": "1jcs44wn0s6mlf2jps25bvcai1rij9b2dil6zcj8zqwf2i8xmqjh",
+        "rev": "65c9cc79f1d179713c227bf447fb0dac384cdcda",
+        "sha256": "0whxlm098vas4ngq6hm3xa4mdd2yblxcl5x5ny216zajp08yp1wf",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/d105075a1fd870b1d1617a6008cb38b443e65433.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/65c9cc79f1d179713c227bf447fb0dac384cdcda.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "npmlock2nix": {
@@ -107,10 +108,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "431227b41d0aaa83fabdee6611e145b7d9bd150b",
-        "sha256": "0ff24n8i3mfw0jw5r5lsgvbahmh88zhi3qsk9yxrb8x82jprgzsy",
+        "rev": "d16e007e6bd263ba5899a9a425d76a78906570cd",
+        "sha256": "1c0lv3yzq1kkqm4j37wl5hlawlsrj1413vkr1mdm661klad2sa0d",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/431227b41d0aaa83fabdee6611e145b7d9bd150b.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/d16e007e6bd263ba5899a9a425d76a78906570cd.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {
@@ -140,6 +141,7 @@
     },
     "thorp": {
         "branch": "master",
+        "builtin": false,
         "description": "Synchronisation of files with the cloud using the hash of the file contents",
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",

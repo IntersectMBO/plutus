@@ -8,7 +8,7 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, minimizeIcon)
+import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, group, minimizeIcon)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, href, src)
@@ -37,7 +37,7 @@ render state =
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
-  div [ classes [ ClassName "group" ] ]
+  div [ classes [ group ] ]
     [ editorOptions state
     , compileButton state
     , sendButton state

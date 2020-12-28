@@ -5,22 +5,22 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Cardano.Node.Mock where
 
 import           Control.Concurrent              (threadDelay)
 import           Control.Concurrent.MVar         (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Lens                    (over, set, view)
+import           Control.Lens                    (over, set, unto, view)
 import           Control.Monad                   (forever, unless, void)
-import           Control.Monad.Freer             (Eff, Member, interpret, runM)
+import           Control.Monad.Freer             (Eff, Member, interpret, reinterpret, runM)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
-import           Control.Monad.Freer.Log         (mapLog, renderLogMessages)
+import           Control.Monad.Freer.Log         (LogMessage, handleLogWriter, mapLog, renderLogMessages)
 import           Control.Monad.Freer.Reader      (Reader)
 import qualified Control.Monad.Freer.Reader      as Eff
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
-import           Control.Monad.Freer.Writer      (Writer)
 import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.Logger            (MonadLogger, logDebugN)
@@ -84,10 +84,10 @@ getBlocksSince ::
     -> Eff effs [Block]
 getBlocksSince (Slot slotNumber) = do
     void Chain.processBlock
-    chainNewestFirst <- Eff.gets (view EM.chainNewestFirst)
+    chainNewestFirst <- Eff.gets (view Chain.chainNewestFirst)
     pure $ genericDrop slotNumber $ reverse chainNewestFirst
 
-consumeEventHistory :: MonadIO m => MVar AppState -> m [ChainEvent]
+consumeEventHistory :: MonadIO m => MVar AppState -> m [LogMessage ChainEvent]
 consumeEventHistory stateVar =
     liftIO $ do
         oldState <- takeMVar stateVar
@@ -122,7 +122,7 @@ type NodeServerEffects m
         , ChainEffect
         , State NodeFollowerState
         , State ChainState
-        , Writer [ChainEvent]
+        , LogMsg ChainEvent
         , Reader Client.ClientHandler
         , Reader Server.ServerHandler
         , State AppState
@@ -137,25 +137,26 @@ runChainEffects ::
  -> Client.ClientHandler
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
- -> IO ([ChainEvent], a)
+ -> IO ([LogMessage ChainEvent], a)
 runChainEffects serverHandler clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
         $ runM
         $ runStderrLog
-        $ renderLogMessages
-        $ mapLog NodeMockNodeMsg
+        $ interpret renderLogMessages
+        $ interpret (mapLog NodeMockNodeMsg)
         $ Eff.runState oldAppState
         $ Eff.runReader serverHandler
         $ Eff.runReader clientHandler
         $ Eff.runWriter
+        $ reinterpret (handleLogWriter @ChainEvent @[LogMessage ChainEvent] (unto return))
         $ interpret (handleZoomedState T.chainState)
         $ interpret (handleZoomedState T.followerState)
         $ CE.handleChain
-        $ Chain.handleControlChain
-        $ mapLog NodeServerFollowerMsg
+        $ interpret Chain.handleControlChain
+        $ interpret (mapLog NodeServerFollowerMsg)
         $ FE.handleNodeFollower
-        $ mapLog NodeGenRandomTxMsg
+        $ interpret (mapLog NodeGenRandomTxMsg)
         $ runGenRandomTx
         $ do result <- eff
              void Chain.processBlock
@@ -225,5 +226,5 @@ blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler clien
                 serverHandler
                 clientHandler
                 stateVar
-                (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
+                (Eff.modify (over Chain.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval

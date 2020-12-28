@@ -44,6 +44,7 @@ library
     plutus-contract -any,
     plutus-core,
     plutus-ledger,
+    plutus-use-cases,
     text,
     vector,
     sbv >= 8.4,
@@ -106,7 +107,8 @@ test-suite marlowe-test
         sbv >= 8.4,
         plutus-tx -any,
         QuickCheck,
-        template-haskell -any
+        template-haskell -any,
+        streaming -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

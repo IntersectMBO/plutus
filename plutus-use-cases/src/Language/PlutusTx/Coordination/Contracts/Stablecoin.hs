@@ -337,9 +337,10 @@ type StablecoinSchema =
 
 data StablecoinError =
     InitialiseEPError ContractError
-    | StateMachineError (SMContractError BankState Input)
+    | StateMachineError SMContractError
     | RunStepError ContractError
-    deriving stock (Haskell.Show)
+    deriving stock (Haskell.Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 -- | A 'Contract' that initialises the state machine and then accepts 'Input'
 --   transitions.

@@ -28,8 +28,7 @@ module.exports = {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
-        host: "0.0.0.0",
-        https: false,
+        https: true,
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'

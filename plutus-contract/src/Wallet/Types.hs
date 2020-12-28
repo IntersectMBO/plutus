@@ -9,6 +9,8 @@
 -- | Defines a number of types that are used in Wallet.XXX modules
 module Wallet.Types(
     ContractInstanceId(..)
+    , contractInstanceIDs
+    , randomID
     , Notification(..)
     , EndpointDescription(..)
     , EndpointValue(..)
@@ -40,6 +42,9 @@ import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc           (Pretty (..), colon, hang, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras    (PrettyShow (..), Tagged (..))
 import           Data.UUID                           (UUID)
+import qualified Data.UUID                           as UUID
+import qualified Data.UUID.V4                        as UUID
+import           Data.Word                           (Word32)
 import           GHC.Generics                        (Generic)
 import qualified Language.Haskell.TH.Syntax          as TH
 
@@ -123,6 +128,15 @@ newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
     deriving newtype (FromJSONKey, ToJSONKey)
     deriving anyclass (FromJSON, ToJSON)
     deriving Pretty via (PrettyShow UUID)
+
+-- | A pure list of all 'ContractInstanceId' values. To be used in testing.
+contractInstanceIDs :: [ContractInstanceId]
+contractInstanceIDs =
+    let ws :: [Word32] = enumFromTo minBound maxBound in
+    fmap ContractInstanceId (UUID.fromWords <$> ws <*> ws <*> ws <*> ws)
+
+randomID :: IO ContractInstanceId
+randomID = ContractInstanceId <$> UUID.nextRandom
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)

@@ -45,6 +45,7 @@ let
     cacert
     ghcid
     niv
+    nixops
     nixpkgs-fmt
     nodejs
     pass
@@ -76,7 +77,7 @@ let
   ]);
 
 in
-haskell.packages.shellFor {
+haskell.project.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
 
   # we have a local passwords store that we use for deployments etc.

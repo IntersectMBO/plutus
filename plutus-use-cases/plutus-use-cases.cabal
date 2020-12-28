@@ -76,7 +76,9 @@ library
         lens -any,
         text -any,
         prettyprinter -any,
-        hashable -any
+        hashable -any,
+        freer-simple -any,
+        streaming -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
@@ -133,7 +135,10 @@ test-suite plutus-use-cases-test
         text -any,
         lens -any,
         mtl -any,
-        row-types -any
+        row-types -any,
+        freer-simple -any,
+        foldl -any,
+        streaming -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

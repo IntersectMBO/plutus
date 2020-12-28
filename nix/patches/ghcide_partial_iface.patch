@@ -1,0 +1,13 @@
+diff --git i/src/Development/IDE/Core/Compile.hs w/src/Development/IDE/Core/Compile.hs
+index 3d33b6c..ce86f9c 100644
+--- i/src/Development/IDE/Core/Compile.hs
++++ w/src/Development/IDE/Core/Compile.hs
+@@ -194,7 +194,7 @@ mkHiFileResultCompile session' tcm simplified_guts ltype = catchErrs $ do
+ 
+   (diags, linkable) <- genLinkable session ms guts
+ #if MIN_GHC_API_VERSION(8,10,0)
+-  let !partial_iface = force (mkPartialIface session details simplified_guts)
++  !partial_iface <- liftIO $ force <$> (mkPartialIface session details simplified_guts)
+   final_iface <- mkFullIface session partial_iface
+ #else
+   (final_iface,_) <- mkIface session Nothing details simplified_guts

@@ -85,6 +85,8 @@
           (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
+          (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+          (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
           ];
         buildable = true;
         modules = [

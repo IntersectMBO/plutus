@@ -1,20 +1,23 @@
-module JavascriptEditor.State where
+module JavascriptEditor.State
+  ( handleAction
+  , mkEditor
+  , editorGetValue
+  ) where
 
 import Prelude hiding (div)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, to, use, view)
+import Data.Lens (assign, set, to, use, view)
 import Data.List ((:))
 import Data.List as List
-import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Examples.JS.Contracts as JSE
-import Halogen (Component, HalogenM, gets, liftEffect, query)
+import Halogen (Component, HalogenM, gets, liftEffect, modify_, query)
 import Halogen.Blockly as Blockly
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
@@ -24,7 +27,7 @@ import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges', _jsEditorSlot)
 import Marlowe (SPParams_)
 import Monaco (IRange, getModel, isError, setValue)
 import Servant.PureScript.Settings (SPSettings_)
@@ -45,6 +48,18 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
+      -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
+      --       current implementation uses editorSetValue to overwrite the editor contents with the last
+      --       correct value (taken from local storage). By using editorSetValue inside the TextChanged handler
+      --       the events get fired multiple times on init, which makes hasUnsavedChanges always true for a new
+      --       JS project or a project load.
+      --
+      --       Once the PR 2498 gets merged, I want to try changing the web-commons Monaco component so that the
+      --       TextChanged handler returns an IModelContentChangedEvent instead of a string. That event cointains
+      --       information of the range of the modifications, and if the action was triggered by an undo/redo
+      --       action. With that information we can reimplement this by firing an undo event if a "read only"
+      --       decoration. At this moment I'm not sure if that will solve the bubble problem but at least it will
+      --       allow us to decouple from local storage.
       let
         prunedText = pruneJSboilerplate text
 
@@ -57,12 +72,18 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
           mContent <- liftEffect $ LocalStorage.getItem jsBufferLocalStorageKey
           if ((mContent == Nothing) || (mContent == Just prunedText)) then
             -- The case where `mContent == Just prunedText` is to prevent potential infinite loops, it should not happen
-            assign _compilationResult NotCompiled
+            modify_
+              ( set _compilationResult NotCompiled
+                  <<< set _hasUnsavedChanges' true
+              )
           else
             if checkJSboilerplate text && checkDecorationPosition numLines mRangeHeader mRangeFooter then
               ( do
                   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedText
-                  assign _compilationResult NotCompiled
+                  modify_
+                    ( set _compilationResult NotCompiled
+                        <<< set _hasUnsavedChanges' true
+                    )
               )
             else
               editorSetValue (fromMaybe "" mContent)
@@ -97,12 +118,6 @@ handleAction settings Compile = do
   assign _showBottomPanel true
   editorResize
 
-handleAction _ (LoadScript key) = do
-  case Map.lookup key StaticData.demoFilesJS of
-    Nothing -> pure unit
-    Just contents -> do
-      editorSetValue contents
-
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
@@ -117,6 +132,13 @@ handleAction _ SendResultToBlockly = do
         source = view (_result <<< to show) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
     _ -> pure unit
+
+handleAction _ (InitJavascriptProject prunedContent) = do
+  editorSetValue prunedContent
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
+  assign _hasUnsavedChanges' false
+
+handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)
