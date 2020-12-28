@@ -144,6 +144,8 @@ handleAction _ (InitMarloweProject contents) = do
 
 handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
+handleAction _ (SelectHole hole) = assign _selectedHole hole
+
 handleAction settings AnalyseContract =
   void
     $ runMaybeT do

@@ -42,6 +42,7 @@ data Action
   | ViewAsBlockly
   | InitMarloweProject String
   | MarkProjectAsSaved
+  | SelectHole (Maybe String)
   -- websocket
   | AnalyseContract
   | AnalyseReachabilityContract
@@ -65,6 +66,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
   toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
+  toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
   toEvent Save = Just $ defaultEvent "Save"

@@ -24,7 +24,6 @@ import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
-import Halogen.Monaco (KeyBindings(..))
 import Help (HelpContext(..))
 import Marlowe.Holes (Holes)
 import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
@@ -266,12 +265,9 @@ type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
-    -- FIXME: remove editorKeybindings
-    , editorKeybindings :: KeyBindings
     , showBottomPanel :: Boolean
     , bottomPanelView :: BottomPanelView
-    -- FIXME: Remove selectedHole
-    , selectedHole :: Maybe String
+    -- QUESTION: What is the use of oldContract?
     , oldContract :: Maybe String
     , hasUnsavedChanges :: Boolean
     }
@@ -291,17 +287,11 @@ _currentContract = _currentMarloweState <<< _contract
 _helpContext :: Lens' State HelpContext
 _helpContext = prop (SProxy :: SProxy "helpContext")
 
-_editorKeybindings :: Lens' State KeyBindings
-_editorKeybindings = prop (SProxy :: SProxy "editorKeybindings")
-
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 _bottomPanelView :: Lens' State BottomPanelView
 _bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
-
-_selectedHole :: Lens' State (Maybe String)
-_selectedHole = prop (SProxy :: SProxy "selectedHole")
 
 _oldContract :: Lens' State (Maybe String)
 _oldContract = prop (SProxy :: SProxy "oldContract")
@@ -311,10 +301,8 @@ mkState =
   { showRightPanel: true
   , marloweState: NEL.singleton emptyMarloweState
   , helpContext: MarloweHelp
-  , editorKeybindings: DefaultBindings
   , showBottomPanel: true
   , bottomPanelView: CurrentStateView
-  , selectedHole: Nothing
   , oldContract: Nothing
   , hasUnsavedChanges: false
   }
@@ -338,7 +326,6 @@ data Action
   | ResetContract
   | ResetSimulator
   | Undo
-  | SelectHole (Maybe String) -- FIXME (check, but most likely MarloweEditor)
   | LoadContract String
   -- simulation view
   | ChangeSimulationView BottomPanelView
@@ -364,7 +351,6 @@ instance isEventAction :: IsEvent Action where
   toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (LoadContract _) = Just $ defaultEvent "LoadContract"
-  toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
