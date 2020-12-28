@@ -34,6 +34,7 @@ import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
 import Halogen.Monaco (Query(..)) as Monaco
+import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
@@ -46,6 +47,7 @@ import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
+import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
 import Types (WebData)
 import Web.DOM.Document as D
@@ -64,6 +66,8 @@ handleAction ::
 handleAction settings Init = do
   editorSetTheme
   setOraclePrice settings
+  mContents <- liftEffect $ LocalStorage.getItem simulatorBufferLocalStorageKey
+  for_ mContents \contents -> handleAction settings (LoadContract contents)
 
 handleAction settings (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
@@ -157,6 +161,7 @@ handleAction settings Undo = do
     Nothing -> pure unit
 
 handleAction settings (LoadContract contents) = do
+  liftEffect $ LocalStorage.setItem simulatorBufferLocalStorageKey contents
   editorSetValue contents
   updateContractInState contents
   handleAction settings ResetContract

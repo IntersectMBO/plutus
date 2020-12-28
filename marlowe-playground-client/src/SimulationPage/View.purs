@@ -147,14 +147,9 @@ marloweEditor ::
   ComponentHTML Action ChildSlots m
 marloweEditor state = slot _simulatorEditorSlot unit component unit (const Nothing)
   where
-  -- FIXME: probably dont use local storage nor empty ?contract... see what a good default should be
   setup editor = do
-    mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
-    let
-      contents = fromMaybe "?contract" (mContents <|> Map.lookup "Example" StaticData.marloweContracts)
     model <- liftEffect $ Monaco.getModel editor
     liftEffect do
-      Monaco.setValue model contents
       -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
       monaco <- Monaco.getMonaco
       Monaco.setTheme monaco MM.daylightTheme.name

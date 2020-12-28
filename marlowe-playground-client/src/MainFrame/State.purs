@@ -26,7 +26,6 @@ import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (withAnalytics)
-import Halogen.Blockly (Message(..))
 import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
@@ -690,7 +689,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-
+              
               <<< set _hasUnsavedChanges false
           )
 

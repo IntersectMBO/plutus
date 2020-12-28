@@ -1,7 +1,7 @@
 module MainFrame.View where
 
 import Auth (_GithubUser, authStatusAuthRole)
-import Data.Lens (has, to, view, (^.))
+import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Gists.Types (GistAction(..))
