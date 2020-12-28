@@ -199,10 +199,23 @@ contractTermsGen = do
     }
 
 
+riskAtT :: Gen RiskFactors
+riskAtT = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
+
 riskFactorsGen :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGen contractTerms = do
     ct <- contractTerms
-    let days = cashCalculationDay <$> genProjectedCashflows ct --TODO should be all days between start and end
-        riskAtT = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
+    let days = cashCalculationDay <$> genProjectedCashflows ct
     rf <- vectorOf (L.length days) riskAtT
     return $ M.fromList $ L.zip days rf
+
+riskFactorsGenRandomWalk :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalk contractTerms = do
+    rfs <- M.toList <$> riskFactorsGen contractTerms
+    let 
+        fluctuate state fluctiation = state + (fluctiation - 50) / 100
+        walk rf st = 
+            let fluctuate' extractor = fluctuate (extractor rf) (extractor st)
+            in RiskFactors (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
+    path <- (\init -> L.scanl walk init (snd <$> rfs)) <$> riskAtT
+    return $ M.fromList $ L.zip (fst <$> rfs) path
