@@ -46,7 +46,9 @@ otherActions state =
     [ editorOptions state
     , compileButton state
     , sendResultButton state "Send To Simulator" SendResultToSimulator
-    , sendResultButton state "Send To Blockly" SendResultToBlockly
+    -- FIXME: I think we want to change this action to be called from the simulator
+    --        with the action "soon to be implemented" ViewAsBlockly
+    -- , sendResultButton state "Send To Blockly" SendResultToBlockly
     ]
 
 editorOptions :: forall p. State -> HTML p Action

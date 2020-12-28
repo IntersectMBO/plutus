@@ -11,6 +11,7 @@ import Data.Symbol (SProxy(..))
 import Gist (Gist, GistId)
 import Network.RemoteData (RemoteData(..), _Loading)
 
+-----------------------------------------------------------
 data Lang
   = Marlowe
   | Haskell
@@ -22,6 +23,7 @@ derive instance eqLang :: Eq Lang
 
 derive instance genericLang :: Generic Lang _
 
+-----------------------------------------------------------
 instance showLang :: Show Lang where
   show lang = genericShow lang
 

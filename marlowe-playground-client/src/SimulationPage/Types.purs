@@ -32,7 +32,6 @@ import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
-import Projects.Types (Lang(..))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -262,6 +261,7 @@ emptyMarloweStateWithSlot sn =
   , executionState: emptyExecutionStateWithSlot sn
   }
 
+--
 type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState
@@ -273,7 +273,6 @@ type State
     -- FIXME: Remove selectedHole
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
-    , source :: Lang -- FIXME: change to Workflow (and probably in the MainFrame)
     , hasUnsavedChanges :: Boolean
     }
 
@@ -307,9 +306,6 @@ _selectedHole = prop (SProxy :: SProxy "selectedHole")
 _oldContract :: Lens' State (Maybe String)
 _oldContract = prop (SProxy :: SProxy "oldContract")
 
-_source :: Lens' State Lang
-_source = prop (SProxy :: SProxy "source")
-
 mkState :: State
 mkState =
   { showRightPanel: true
@@ -320,10 +316,10 @@ mkState =
   , bottomPanelView: CurrentStateView
   , selectedHole: Nothing
   , oldContract: Nothing
-  , source: Marlowe
   , hasUnsavedChanges: false
   }
 
+-- FIXME: check, but if we are in the simulator, the contract should be valid.
 isContractValid :: State -> Boolean
 isContractValid state =
   (view (_marloweState <<< _Head <<< _contract <<< to isJust) state)
@@ -349,11 +345,8 @@ data Action
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
-  -- Editors -- FIXME: split to both
-  | SetBlocklyCode
-  | EditHaskell -- FIXME: change to EditSource (and use Workflow)
-  | EditJavascript
-  | EditActus
+  | ViewAsBlockly
+  | EditSource
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Simulation." <> s
@@ -376,10 +369,8 @@ instance isEventAction :: IsEvent Action where
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
-  toEvent EditHaskell = Just $ defaultEvent "EditHaskell"
-  toEvent EditJavascript = Just $ defaultEvent "EditJavascript"
-  toEvent EditActus = Just $ defaultEvent "EditActus"
+  toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
+  toEvent EditSource = Just $ defaultEvent "EditSource"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a

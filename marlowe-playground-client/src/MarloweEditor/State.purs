@@ -133,10 +133,9 @@ handleAction _ (ChangeBottomPanelView view) = do
   assign _showBottomPanel true
   editorResize
 
--- FIXME fix in the Mainframe (refactor from Simulation)
-handleAction _ SetBlocklyCode = pure unit
-
 handleAction _ SendToSimulator = pure unit
+
+handleAction _ ViewAsBlockly = pure unit
 
 handleAction _ (InitMarloweProject contents) = do
   editorSetValue contents

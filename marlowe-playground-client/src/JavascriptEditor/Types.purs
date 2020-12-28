@@ -40,6 +40,9 @@ data Action
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
+  -- FIXME: I think we want to change this action to be called from the simulator
+  --        with the action "soon to be implemented" ViewAsBlockly.
+  --        Actually, in the JavaScript editor there isn't even a button to send to blockly.
   | SendResultToBlockly
   | InitJavascriptProject String
   | MarkProjectAsSaved

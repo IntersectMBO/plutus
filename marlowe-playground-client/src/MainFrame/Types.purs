@@ -73,7 +73,7 @@ data Action
   | HandleKey H.SubscriptionId KeyboardEvent
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
-  | SendBlocklyToSimulator
+  | BlocklyEditorAction BlocklySubAction
   | MarloweEditorAction ME.Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
@@ -104,7 +104,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (HandleKey _ _) = Just $ defaultEvent "HandleKey"
   toEvent (HaskellAction action) = toEvent action
   toEvent (SimulationAction action) = toEvent action
-  toEvent SendBlocklyToSimulator = Just $ defaultEvent "SendBlocklyToSimulator"
+  toEvent (BlocklyEditorAction action) = toEvent action
   toEvent (JavascriptAction action) = toEvent action
   toEvent (MarloweEditorAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
@@ -124,6 +124,17 @@ instance actionIsEvent :: IsEvent Action where
   toEvent CloseModal = Just $ defaultEvent "CloseModal"
   toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
   toEvent (OpenLoginPopup _) = Just $ defaultEvent "OpenLoginPopup"
+
+-- TODO: When we change Blockly into a submodule (SCP-1646) this is going to be part of the actions it provides
+--       at the moment I put this to refactor "SendBlocklyToSimulator" into SendToSimulator and to
+--       add another action
+data BlocklySubAction
+  = SendToSimulator
+  | ViewAsMarlowe
+
+instance blocklyActionIsEvent :: IsEvent BlocklySubAction where
+  toEvent SendToSimulator = Just $ (defaultEvent "SendToSimulator") { category = Just "Blockly" }
+  toEvent ViewAsMarlowe = Just $ (defaultEvent "ViewAsMarlowe") { category = Just "Blockly" }
 
 data View
   = HomePage
@@ -187,6 +198,7 @@ newtype State
   , showBottomPanel :: Boolean
   -- TODO: rename to haskellEditorState
   , haskellState :: HE.State
+  -- TODO: rename to javascriptEditorState
   , javascriptState :: JS.State
   , marloweEditorState :: ME.State
   , simulationState :: Simulation.State
@@ -207,6 +219,12 @@ newtype State
   -- as their state is part of the MainFrame state, but we cannot inspect the state of the
   -- child components Blockly and ActusBlockly as we need a Query.
   , hasUnsavedChanges :: Boolean
+  -- The initial language selected when you create/load a project indicates the workflow a user might take
+  -- A user can start with a haskell/javascript example that eventually gets compiled into
+  -- marlowe/blockly and runned in the simulator, or can create a marlowe/blockly contract directly,
+  -- which can be used interchangeably. This is used all across the site to know what are the posible
+  -- transitions.
+  , workflow :: Maybe Lang
   }
 
 derive instance newtypeState :: Newtype State _
@@ -273,6 +291,9 @@ _hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
 
 _hasUnsavedChanges :: Lens' State Boolean
 _hasUnsavedChanges = _Newtype <<< _hasUnsavedChanges'
+
+_workflow :: Lens' State (Maybe Lang)
+_workflow = _Newtype <<< prop (SProxy :: SProxy "workflow")
 
 currentLang :: State -> Maybe Lang
 currentLang state = case state ^. _view of

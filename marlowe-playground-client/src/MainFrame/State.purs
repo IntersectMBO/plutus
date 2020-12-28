@@ -14,7 +14,7 @@ import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -42,7 +42,8 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, currentLang)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, currentLang)
+import MainFrame.Types (BlocklySubAction(..)) as BL
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -70,7 +71,6 @@ import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as Sa
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.State as Simulation
-import SimulationPage.Types (_source)
 import SimulationPage.Types as ST
 import StaticData (gistIdLocalStorageKey)
 import StaticData as StaticData
@@ -106,6 +106,7 @@ initialState =
     , projectName: "Untitled Project"
     , showModal: Nothing
     , hasUnsavedChanges: false
+    , workflow: Nothing
     }
 
 ------------------------------------------------------------
@@ -306,9 +307,8 @@ handleAction s (HaskellAction action) = do
       mContract <- peruse (_haskellState <<< HE._ContractString)
       let
         contract = fold mContract
-      sendToSimulation s Haskell contract
+      sendToSimulation s contract
     HE.SendResultToBlockly -> do
-      assign (_simulationState <<< _source) Haskell
       selectView BlocklyEditor
     -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
     (HE.HandleEditorMessage (Monaco.TextChanged _)) -> do
@@ -322,7 +322,13 @@ handleAction s (MarloweEditorAction action) = do
     ME.SendToSimulator -> do
       mContents <- MarloweEditor.editorGetValue
       for_ mContents \contents -> do
-        sendToSimulation s Marlowe contents
+        sendToSimulation s contents
+    ME.ViewAsBlockly -> do
+      mSource <- MarloweEditor.editorGetValue
+      for_ mSource \source -> do
+        void $ query _blocklySlot unit (Blockly.SetCode source unit)
+        assign _workflow (Just Blockly)
+        selectView BlocklyEditor
     -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
     (ME.HandleEditorMessage (Monaco.TextChanged _)) -> do
       hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
@@ -336,9 +342,8 @@ handleAction s (JavascriptAction action) = do
       mContract <- peruse (_javascriptState <<< JS._ContractString)
       let
         contract = fold mContract
-      sendToSimulation s Javascript contract
+      sendToSimulation s contract
     JS.SendResultToBlockly -> do
-      assign (_simulationState <<< _source) Javascript
       selectView BlocklyEditor
     -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
     (JS.HandleEditorMessage (Monaco.TextChanged _)) -> do
@@ -349,16 +354,34 @@ handleAction s (JavascriptAction action) = do
 handleAction settings (SimulationAction action) = do
   toSimulation (Simulation.handleAction settings action)
   case action of
-    ST.SetBlocklyCode -> do
-      mSource <- Simulation.editorGetValue
-      for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
-      selectView BlocklyEditor
-    ST.EditHaskell -> selectView HaskellEditor
-    ST.EditJavascript -> selectView JSEditor
-    ST.EditActus -> selectView ActusBlocklyEditor
+    -- TODO: reimplement once we have the simulator in blockly and marlowe
+    ST.ViewAsBlockly -> pure unit
+    ST.EditSource -> do
+      flow <- use _workflow
+      case flow of
+        (Just lang) -> selectView $ selectLanguageView lang
+        _ -> pure unit
     _ -> pure unit
 
-handleAction _ SendBlocklyToSimulator = void $ query _blocklySlot unit (Blockly.GetCodeQuery unit)
+handleAction settings (BlocklyEditorAction action) = case action of
+  BL.SendToSimulator -> do
+    -- TODO: We used to block moving code to the simulation however due to the new UX there is no way to navigate this
+    -- I am leaving the old code here as we want to come up with a solution asap and it will involve using this same logic
+    -- The same occurs with Actus too
+    -- hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
+    -- if hasStarted then
+    --   void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
+    -- else do
+    mCode <- query _blocklySlot unit $ H.request Blockly.GetCode
+    for_ mCode \code -> do
+      selectView Simulation
+      void $ toSimulation $ Simulation.handleAction settings (ST.LoadContract code)
+  BL.ViewAsMarlowe -> do
+    mCode <- query _blocklySlot unit $ H.request Blockly.GetCode
+    for_ mCode \code -> do
+      selectView MarloweEditor
+      assign _workflow (Just Marlowe)
+      toMarloweEditor $ MarloweEditor.handleAction settings $ ME.InitMarloweProject code
 
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
@@ -369,17 +392,6 @@ handleAction settings (ChangeView view) = selectView view
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   pure unit
-
-handleAction settings (HandleBlocklyMessage (CurrentCode code)) = do
-  -- TODO: We used to block moving code to the simulation however due to the new UX there is no way to navigate this
-  -- I am leaving the old code here as we want to come up with a solution asap and it will involve using this same logic
-  -- The same occurs with Actus too
-  -- hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
-  -- if hasStarted then
-  --   void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
-  -- else do
-  selectView Simulation
-  void $ toSimulation $ Simulation.handleAction settings (ST.LoadContract code)
 
 handleAction settings (HandleBlocklyMessage _) = do
   -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
@@ -424,10 +436,14 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
       modify_
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
+            <<< set _workflow (Just lang)
         )
-    Left error -> do
-      assign _createGistResult $ Failure error
-      assign (_projects <<< Projects._projects) (Failure "Failed to load gist")
+    Left error ->
+      modify_
+        ( set _createGistResult (Failure error)
+            <<< set (_projects <<< Projects._projects) (Failure "Failed to load gist")
+            <<< set _workflow Nothing
+        )
   toProjects $ Projects.handleAction s action
   selectView $ selectLanguageView lang
 
@@ -461,8 +477,8 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     _ -> pure unit
   selectView $ selectLanguageView lang
   modify_
-    ( set (_simulationState <<< ST._source) lang
-        <<< set _showModal Nothing
+    ( set _showModal Nothing
+        <<< set _workflow (Just lang)
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -482,7 +498,10 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         void $ query _blocklySlot unit (Blockly.SetCode contents unit)
     Actus -> pure unit
-  assign _showModal Nothing
+  modify_
+    ( set _showModal Nothing
+        <<< set _workflow (Just lang)
+    )
   selectView $ selectLanguageView lang
 
 handleAction s (DemosAction Demos.Cancel) = fullHandleAction s CloseModal
@@ -561,9 +580,8 @@ handleAction settings (ConfirmUnsavedNavigationAction intendedAction modalAction
     intendedAction
     modalAction
 
-sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> Lang -> String -> HalogenM State Action ChildSlots Void m Unit
-sendToSimulation settings language contract = do
-  assign (_simulationState <<< _source) language
+sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> String -> HalogenM State Action ChildSlots Void m Unit
+sendToSimulation settings contract = do
   selectView Simulation
   toSimulation $ Simulation.handleAction settings (ST.LoadContract contract)
 
@@ -672,7 +690,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-              
+
               <<< set _hasUnsavedChanges false
           )
 
@@ -844,5 +862,4 @@ selectView view = do
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> do
-      assign (_simulationState <<< ST._source) Actus
       void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)

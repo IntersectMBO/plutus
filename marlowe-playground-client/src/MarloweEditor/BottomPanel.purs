@@ -24,7 +24,7 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isContractValid)
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isValidContract)
 import Network.RemoteData (RemoteData(..), isLoading)
 import Pretty (showPrettyToken)
 import Prelude (bind, const, mempty, pure, show, ($), (&&), (<$>), (<<<), (<>))
@@ -112,7 +112,7 @@ panelContents state StaticAnalysisView =
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
-  enabled' = not loading && not loadingReachability && isContractValid state
+  enabled' = not loading && not loadingReachability && isValidContract state
 
 panelContents state MarloweWarningsView =
   section

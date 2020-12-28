@@ -3,16 +3,18 @@ module MarloweEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import Data.Array (filter)
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Lens', to, view)
+import Data.Lens (Lens', to, view, (^.))
 import Data.Lens.Record (prop)
 import Data.List (List)
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
+import Data.String (Pattern(..), contains)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Halogen.Monaco (KeyBindings(..))
@@ -36,8 +38,8 @@ data Action
   | ShowBottomPanel Boolean
   | ShowErrorDetail Boolean
   | ChangeBottomPanelView BottomPanelView
-  | SetBlocklyCode
   | SendToSimulator
+  | ViewAsBlockly
   | InitMarloweProject String
   | MarkProjectAsSaved
   -- websocket
@@ -59,8 +61,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
   toEvent (ChangeBottomPanelView view) = Just $ (defaultEvent "ChangeBottomPanelView") { label = Just $ show view }
-  toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
   toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"
+  toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
   toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
@@ -203,9 +205,18 @@ initialState =
   , editorWarnings: mempty
   }
 
-isContractValid :: State -> Boolean
-isContractValid state =  {-
-    FIXME: We currently don't have a Maybe Contract in the marlowe editor state.
-    check if we need to, or if just by having the _editorErrors is enough
-    -- (view (_marloweState <<< _Head <<< _contract <<< to isJust) state) &&
-    -} (view (_editorErrors <<< to Array.null) state)
+-- Check if we could convert to a valid contract. Meaning one that has no errors and may have
+-- warnings, but no holes.
+isValidContract :: State -> Boolean
+isValidContract state =
+  let
+    errors = state ^. _editorErrors
+
+    warnings = state ^. _editorWarnings
+
+    holes = filter (\warning -> contains (Pattern "hole") warning.message) warnings
+  in
+    Array.null errors && Array.null holes
+
+isValidContractWithHoles :: State -> Boolean
+isValidContractWithHoles state = view (_editorErrors <<< to Array.null) state

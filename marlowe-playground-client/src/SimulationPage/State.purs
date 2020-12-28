@@ -172,13 +172,9 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
 
-handleAction _ SetBlocklyCode = pure unit
+handleAction _ ViewAsBlockly = pure unit
 
-handleAction _ EditHaskell = pure unit
-
-handleAction _ EditJavascript = pure unit
-
-handleAction _ EditActus = pure unit
+handleAction _ EditSource = pure unit
 
 setOraclePrice ::
   forall m.

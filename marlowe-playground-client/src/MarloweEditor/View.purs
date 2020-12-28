@@ -10,15 +10,16 @@ import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (codeEditor, group)
 import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, disabled)
+import Halogen.HTML.Properties (class_, classes, disabled, enabled, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (bottomPanel)
-import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel)
+import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel, isValidContract, isValidContractWithHoles)
 import Monaco (getModel, setValue) as Monaco
+import Prim.TypeError (class Warn, Text)
 import StaticData as StaticData
 
 render ::
@@ -39,22 +40,57 @@ otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
-    , sendToButton state "Send To Simulator" SendToSimulator
-    -- , sendToButton state "Send To Blockly" SendResultToBlockly
+    , viewAsBlocklyButton state
+    , sendToSimulatorButton state
     ]
 
-sendToButton :: forall p. State -> String -> Action -> HTML p Action
-sendToButton state msg action =
-  -- FIXME: Only make available when there are no compilation errors
-  -- FIXME: instead of not showing, add a disable flag and maybe a tooltip
-  if true then
-    button
-      [ onClick $ const $ Just action
-      , disabled (false)
+sendToSimulatorButton ::
+  forall p.
+  Warn (Text "Create a custom tooltip element") =>
+  State ->
+  HTML p Action
+sendToSimulatorButton state =
+  button
+    ( [ onClick $ const $ Just SendToSimulator
+      , enabled enabled'
       ]
-      [ text msg ]
-  else
-    text ""
+        <> disabledTooltip
+    )
+    [ text "Send To Simulator" ]
+  where
+  -- We only enable this button when the contract is valid and has no holes
+  enabled' = isValidContract state
+
+  disabledTooltip =
+    if enabled' then
+      []
+    else
+      {-
+        TODO: The title property generates a native tooltip in the browser, but it takes a couple
+        of seconds to appear, we should ask for a design and then implement a custom tooltip element.
+      -}
+      [ title "In order to send the contract to the simulator, it can't have errors nor holes"
+      ]
+
+viewAsBlocklyButton :: forall p. State -> HTML p Action
+viewAsBlocklyButton state =
+  button
+    ( [ onClick $ const $ Just ViewAsBlockly
+      , enabled enabled'
+      ]
+        <> disabledTooltip
+    )
+    [ text "View as blocks" ]
+  where
+  -- We only enable this button when the contract is valid, even if it has holes
+  enabled' = isValidContractWithHoles state
+
+  disabledTooltip =
+    if enabled' then
+      []
+    else
+      [ title "We can't send the contract to blockly while it has errors"
+      ]
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =

@@ -70,6 +70,8 @@ handleAction _ (ShowBottomPanel val) = do
 
 handleAction _ SendResultToSimulator = pure unit
 
+-- FIXME: I think we want to change this action to be called from the simulator
+--        with the action "soon to be implemented" ViewAsBlockly
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
   case mContract of

@@ -34,7 +34,7 @@ import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), 
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import Projects.Types (Lang(..))
 import SimulationPage.BottomPanel (bottomPanel)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), State, _SimulationRunning, _currentMarloweState, _editorErrors, _executionState, _helpContext, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, _source, isContractValid, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), State, _SimulationRunning, _currentMarloweState, _editorErrors, _executionState, _helpContext, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, isContractValid, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 import StaticData as StaticData
 
@@ -58,7 +58,32 @@ render state =
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
   div [ classes [ group ] ]
-    ( [ sendToBlocklyButton state
+    [ editSourceButton ]
+
+{-
+    FIXME: This code was disabled because we changed "source" to "workflow" and
+           we move it to the MainFrame. This posses a challenge, were this subcomponent
+           needs to see information from the parent state which is not available in the
+           subcomponent state.
+           There were four possible solutions to this problem:
+             * the easy but error prone would be to duplicate state in the MainFrame and here
+             * we could change the type of Simulation.State to be
+                type State =
+                  { ownState :: OwnState -- what we currently call State
+                  , parentState :: ProjectedState -- what data from the parent we need in this view, namely workflow
+                  }
+                or
+                type State =
+                  { simulationState :: Simulation.OwnState
+                  , workflow :: Maybe Workflow
+                  }
+               which is similar but more "direct", and use a custom lense to provide access to both
+               parts of the state.
+             * Add the notion of "input" to the subcomponents, similar to what Halogen components do
+             * we can reduce functionality and just say "Edit source"
+           We opted for the last one as it's the simplest and least conflicting. In January the frontend
+           team should meet to discuss the alternatives.
+    [ sendToBlocklyButton state
       ]
         <> ( if has (_source <<< only Haskell) state then
               [ haskellSourceButton state ]
@@ -75,7 +100,6 @@ otherActions state =
             else
               []
           )
-    )
 
 sendToBlocklyButton :: forall p. State -> HTML p Action
 sendToBlocklyButton state =
@@ -108,6 +132,13 @@ actusSourceButton state =
     [ onClick $ const $ Just $ EditActus
     ]
     [ text "Edit Actus Source" ]
+-}
+editSourceButton :: forall p. HTML p Action
+editSourceButton =
+  button
+    [ onClick $ const $ Just $ EditSource
+    ]
+    [ text "Edit source" ]
 
 marloweEditor ::
   forall m.

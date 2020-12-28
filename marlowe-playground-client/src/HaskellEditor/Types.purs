@@ -22,6 +22,8 @@ data Action
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
+  -- FIXME: I think we want to change this action to be called from the simulator
+  --        with the action "soon to be implemented" ViewAsBlockly
   | SendResultToBlockly
   | InitHaskellProject String
   | MarkProjectAsSaved
