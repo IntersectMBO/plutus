@@ -1,42 +1,38 @@
 module SimulationPage.View where
 
-import Control.Alternative (map, (<|>))
-import Data.Array (intercalate, sortWith)
+import Control.Alternative (map)
+import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (has, only, to, view, (^.))
+import Data.Lens (to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (wrap)
+import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap, wrap)
 import Data.Tuple (Tuple(..), snd)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, closeDrawerIcon, codeEditor, expanded, fullHeight, group, infoIcon, noMargins, panelSubHeaderSide, plusBtn, pointer, scroll, sidebarComposer, smallBtn, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, li, p, p_, section, slot, small, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
-import Halogen.HTML.Properties (InputType(..), alt, class_, classes, enabled, placeholder, src, type_, value)
+import Halogen.HTML.Properties (InputType(..), class_, classes, disabled, enabled, placeholder, type_, value)
 import Halogen.Monaco (Settings, monacoComponent)
-import Help (HelpContext(..), toHTML)
-import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe.Monaco (daylightTheme, languageExtensionPoint)
 import Marlowe.Monaco as MM
-import Marlowe.Semantics (AccountId, Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, inBounds)
+import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Monaco (Editor)
 import Monaco as Monaco
-import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), (<>), (==))
+import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), (<>), (==), zero)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
-import Projects.Types (Lang(..))
 import SimulationPage.BottomPanel (bottomPanel)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), State, _SimulationRunning, _currentMarloweState, _editorErrors, _executionState, _helpContext, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, isContractValid, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, isContractValid, otherActionsParty)
 import Simulator (hasHistory, inFuture)
-import StaticData as StaticData
 
 render ::
   forall m.
@@ -176,6 +172,7 @@ settings setup =
   , setup
   }
 
+------------------------------------------------------------
 sidebar ::
   forall p.
   State ->
@@ -183,86 +180,114 @@ sidebar ::
 sidebar state =
   let
     showRightPanel = state ^. _showRightPanel
+
+    contents = case view (_marloweState <<< _Head <<< _executionState) state of
+      SimulationNotStarted { initialSlot } -> [ startSimulationWidget initialSlot ]
+      SimulationRunning _ ->
+        -- FIXME: change to smallSpaceBottom in the first widget after rebase
+        [ div [ class_ spaceBottom ] [ simulationStateWidget state ]
+        , div [ class_ spaceBottom ] [ actionWidget state ]
+        , logWidget state
+        ]
   in
     aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
-      [ div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
+      {- FIXME the drawer icon to show/hide the right panel is currently not shown and is not present in the
+                 designs. Check if we need to remove that functionality and if so, remove the action and state
+                 that goes with it.
+       div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel), ClassName "drawer-icon-container" ] ]
           [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
               [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
           ]
-      , div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
-          [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
-              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Available Actions" ] ]
-          , a [ onClick $ const $ Just $ ChangeHelpContext AvailableActionsHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
-          ]
-      , transactionComposer state
+        -}
+      contents
+
+{-
+        FIXME The new designs of the simulator does not have contextual help, and there is a lot
+        of code related to this. Confirm if we really don't want this before deleting, or if it may
+        come back later on.
       , article [ class_ (ClassName "documentation-panel") ]
           (toHTML (state ^. _helpContext))
-      ]
+      -}
+------------------------------------------------------------
+startSimulationWidget :: forall p. Slot -> HTML p Action
+startSimulationWidget initialSlot =
+  cardWidget "Simulation has not started yet"
+    $ div [ classes [] ]
+        [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
+            [ spanText "Initial slot:"
+            , marloweActionInput true (SetInitialSlot <<< wrap) initialSlot
+            ]
+        , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
+            [ button
+                [ classes [ btn, bold ]
+                , onClick $ const $ Just StartSimulation
+                ]
+                [ text "Start simulation" ]
+            ]
+        ]
 
-transactionComposer ::
+------------------------------------------------------------
+simulationStateWidget ::
   forall p.
   State ->
   HTML p Action
-transactionComposer state = case view (_marloweState <<< _Head <<< _executionState) state of
-  SimulationNotStarted { initialSlot } ->
-    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
-      [ ul_
-          [ h6
-              [ classes
-                  [ ClassName "input-composer-heading"
-                  , noMargins
-                  ]
-              ]
-              [ text "Simulation has not started yet" ]
-          , div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
-              [ spanText "Initial slot:"
-              , marloweActionInput true (SetInitialSlot <<< wrap) initialSlot
-              ]
-          ]
-      , div [ class_ (ClassName "transaction-btns") ]
-          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              [ li [ classes [ bold, pointer ] ]
-                  [ a [ onClick $ const $ Just StartSimulation ]
-                      [ text "Start simulation" ]
-                  ]
-              ]
-          ]
+simulationStateWidget state =
+  let
+    currentSlot = state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show)
+
+    expirationSlot = state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime)
+
+    contractMaxTime = case _ of
+      Nothing -> "Closed"
+      Just contract ->
+        let
+          t = (_.maxTime <<< unwrap <<< timeouts) contract
+        in
+          if t == zero then "Closed" else show t
+
+    indicator name value =
+      div_
+        [ span
+            [ class_ bold ]
+            [ text $ name <> ": " ]
+        , span_ [ text value ]
+        ]
+  in
+    div
+      [ classes [ flex, justifyBetween ] ]
+      [ indicator "current slot" currentSlot
+      , indicator "expiration slot" expirationSlot
       ]
-  SimulationRunning _ ->
-    div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
-      [ ul [ class_ (ClassName "participants") ]
-          if (Map.isEmpty possibleActions) then
-            [ text "No valid inputs can be added to the transaction" ]
-          else
-            (actionsForParties possibleActions)
-      , div [ class_ (ClassName "transaction-btns") ]
-          [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              [ li [ classes [ bold, pointer ] ]
-                  [ a
-                      [ onClick $ const
-                          $ if hasHistory state then
-                              Just Undo
-                            else
-                              Nothing
-                      , class_ (Classes.disabled $ not isEnabled)
-                      ]
-                      [ text "Undo" ]
-                  ]
-              , li [ classes [ bold, pointer ] ]
-                  [ a
-                      [ onClick $ const
-                          $ if hasHistory state then
-                              Just ResetSimulator
-                            else
-                              Nothing
-                      , class_ (Classes.disabled $ not isEnabled)
-                      ]
-                      [ text "Reset" ]
-                  ]
-              ]
-          ]
-      ]
+
+------------------------------------------------------------
+actionWidget ::
+  forall p.
+  State ->
+  HTML p Action
+actionWidget state =
+  cardWidget "Actions"
+    $ div [ classes [] ]
+        [ ul [ class_ (ClassName "participants") ]
+            if (Map.isEmpty possibleActions) then
+              [ text "No valid inputs can be added to the transaction" ]
+            else
+              (actionsForParties possibleActions)
+        , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
+            [ button
+                [ classes [ btn, bold, (Classes.disabled $ not isEnabled), spaceRight ]
+                , disabled $ not $ hasHistory state
+                , onClick $ const $ Just Undo
+                ]
+                [ text "Undo" ]
+            , button
+                [ classes [ btn, bold, (Classes.disabled $ not isEnabled) ]
+                , onClick $ const $ Just ResetSimulator
+                ]
+                [ text "Reset" ]
+            ]
+        ]
   where
+  -- FIXME: I think the contract should always be valid if we are in the simulation
   isEnabled = isContractValid state
 
   possibleActions = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _Newtype) state
@@ -297,6 +322,7 @@ participant state isEnabled party actionInputs =
   where
   title =
     if party == otherActionsParty then
+      -- QUESTION: if we only have "move to slot", could we rename this to "Slot Actions"?
       [ text "Other Actions" ]
     else
       [ text "Participant ", strong_ [ text partyName ] ]
@@ -437,3 +463,102 @@ renderDeposit accountOwner party tok money =
   , spanText " as "
   , b_ [ renderPrettyParty party ]
   ]
+
+------------------------------------------------------------
+logWidget ::
+  forall p.
+  State ->
+  HTML p Action
+logWidget state =
+  cardWidget "Transaction log"
+    $ div []
+        [ div
+            [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
+            [ div [] [ text "Action" ]
+            , div [] [ text "Slot" ]
+            ]
+        , ul [] (reverse inputLines)
+        ]
+  where
+  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines))
+
+logToLines :: forall p a. MarloweEvent -> Array (HTML p a)
+logToLines (InputEvent (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
+
+logToLines (OutputEvent interval payment) = paymentToLines interval payment
+
+inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
+inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "Deposit "
+        , strong_ [ text (showPrettyMoney money) ]
+        , text " units of "
+        , strong_ [ renderPrettyToken token ]
+        , text " into account of "
+        , strong_ [ renderPrettyParty accountOwner ]
+        , text " as "
+        , strong_ [ renderPrettyParty party ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "Participant "
+        , strong_ [ renderPrettyParty choiceOwner ]
+        , text " chooses the value "
+        , strong_ [ text (showPrettyMoney chosenNum) ]
+        , text " for choice with id "
+        , strong_ [ text (show choiceName) ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+inputToLine (SlotInterval start end) INotify =
+  li [ classes [ ClassName "error-row" ] ]
+    [ text "Notify"
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
+paymentToLines slotInterval (Payment party money) = unfoldAssets money (paymentToLine slotInterval party)
+
+paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> HTML p a
+paymentToLine (SlotInterval start end) party token money =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "The contract pays "
+        , strong_ [ text (showPrettyMoney money) ]
+        , text " units of "
+        , strong_ [ renderPrettyToken token ]
+        , text " to participant "
+        , strong_ [ renderPrettyParty party ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+unfoldAssets :: forall a. Assets -> (Token -> BigInteger -> a) -> Array a
+unfoldAssets (Assets mon) f =
+  concatMap
+    ( \(Tuple currencySymbol tokenMap) ->
+        ( map
+            ( \(Tuple tokenName value) ->
+                f (Token currencySymbol tokenName) value
+            )
+            (Map.toUnfoldable tokenMap)
+        )
+    )
+    (Map.toUnfoldable mon)
+
+------------------------------------------------------------
+cardWidget :: forall p a. String -> HTML p a -> HTML p a
+cardWidget name body =
+  let
+    title' = h6 [ classes [ noMargins, textSecondaryColor, bold, uppercase, textXs ] ] [ text name ]
+  in
+    div [ classes [ ClassName "simulation-card-widget" ] ]
+      [ div [ class_ (ClassName "simulation-card-widget-header") ] [ title' ]
+      , div [ class_ (ClassName "simulation-card-widget-body") ] [ body ]
+      ]

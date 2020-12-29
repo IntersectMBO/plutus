@@ -262,7 +262,9 @@ moveToSlot ::
 moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set (_executionState <<< _SimulationRunning <<< _slot) slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
-hasHistory state = has (_marloweState <<< _Tail) state
+hasHistory state = case state ^. (_marloweState <<< _Tail) of
+  Nil -> false
+  Cons _ _ -> true
 
 evalObservation :: MarloweState -> Observation -> Boolean
 evalObservation state@{ executionState: SimulationRunning executionState } observation =

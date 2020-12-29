@@ -60,14 +60,12 @@ import Web.HTML.Window as W
 
 handleAction ::
   forall m.
-  MonadEffect m =>
   MonadAff m =>
   SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
 handleAction settings Init = do
   editorSetTheme
-  setOraclePrice settings
   mContents <- liftEffect $ LocalStorage.getItem simulatorBufferLocalStorageKey
-  for_ mContents \contents -> handleAction settings (LoadContract contents)
+  handleAction settings $ LoadContract $ fromMaybe "" mContents
 
 handleAction settings (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
@@ -76,6 +74,7 @@ handleAction settings (SetInitialSlot initialSlot) = do
 handleAction settings StartSimulation = do
   maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
   for_ maybeInitialSlot \initialSlot -> do
+    -- FIXME: there is currently bug with the UNDO button on the first step
     saveInitialState
     assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
     moveToSignificantSlot initialSlot
@@ -163,7 +162,6 @@ handleAction settings Undo = do
 handleAction settings (LoadContract contents) = do
   liftEffect $ LocalStorage.setItem simulatorBufferLocalStorageKey contents
   editorSetValue contents
-  updateContractInState contents
   handleAction settings ResetContract
 
 handleAction _ (ChangeSimulationView view) = do

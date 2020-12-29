@@ -363,7 +363,6 @@ data Query a
 
 data BottomPanelView
   = CurrentStateView
-  | MarloweLogView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 
