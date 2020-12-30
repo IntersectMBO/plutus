@@ -29,7 +29,7 @@ import Monaco (Editor)
 import Monaco as Monaco
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (bottomPanel)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, isContractValid, otherActionsParty)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, otherActionsParty)
 import Simulator (hasHistory, inFuture)
 
 render ::
@@ -212,7 +212,7 @@ startSimulationWidget initialSlot =
     $ div [ classes [] ]
         [ div [ classes [ ClassName "slot-input", ClassName "initial-slot-input" ] ]
             [ spanText "Initial slot:"
-            , marloweActionInput true (SetInitialSlot <<< wrap) initialSlot
+            , marloweActionInput (SetInitialSlot <<< wrap) initialSlot
             ]
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
             [ button
@@ -271,22 +271,19 @@ actionWidget state =
               (actionsForParties possibleActions)
         , div [ classes [ ClassName "transaction-btns", flex, justifyCenter ] ]
             [ button
-                [ classes [ btn, bold, (Classes.disabled $ not isEnabled), spaceRight ]
+                [ classes [ btn, bold, spaceRight ]
                 , disabled $ not $ hasHistory state
                 , onClick $ const $ Just Undo
                 ]
                 [ text "Undo" ]
             , button
-                [ classes [ btn, bold, (Classes.disabled $ not isEnabled) ]
+                [ classes [ btn, bold ]
                 , onClick $ const $ Just ResetSimulator
                 ]
                 [ text "Reset" ]
             ]
         ]
   where
-  -- FIXME: I think the contract should always be valid if we are in the simulation
-  isEnabled = isContractValid state
-
   possibleActions = view (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _Newtype) state
 
   kvs :: forall k v. Map k v -> Array (Tuple k v)
@@ -302,19 +299,18 @@ actionWidget state =
   sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
   actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (sortParties (kvs m))
+  actionsForParties m = map (\(Tuple k v) -> participant state k (vs v)) (sortParties (kvs m))
 
 participant ::
   forall p.
   State ->
-  Boolean ->
   Party ->
   Array ActionInput ->
   HTML p Action
-participant state isEnabled party actionInputs =
+participant state party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
     ( [ h6_ [ em_ title ] ]
-        <> (map (inputItem state isEnabled partyName) actionInputs)
+        <> (map (inputItem state partyName) actionInputs)
     )
   where
   title =
@@ -331,17 +327,15 @@ participant state isEnabled party actionInputs =
 inputItem ::
   forall p.
   State ->
-  Boolean ->
   PubKey ->
   ActionInput ->
   HTML p Action
-inputItem _ isEnabled person (DepositInput accountId party token value) =
+inputItem _ person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
     , div [ class_ (ClassName "align-top") ]
         [ button
-            [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-            , enabled isEnabled
+            [ classes [ plusBtn, smallBtn ]
             , onClick $ const $ Just
                 $ AddInput (IDeposit accountId party token value) []
             ]
@@ -349,7 +343,7 @@ inputItem _ isEnabled person (DepositInput accountId party token value) =
         ]
     ]
 
-inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+inputItem _ person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
@@ -358,7 +352,7 @@ inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOw
               , b_ [ spanText (show choiceName <> ":") ]
               , br_
               , spanText "Choose value "
-              , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+              , marloweActionInput (SetChoice choiceId) chosenNum
               ]
           , p [ class_ (ClassName "choice-error") ] error
           ]
@@ -367,7 +361,7 @@ inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOw
     )
   where
   addButton =
-    if isEnabled && inBounds chosenNum bounds then
+    if inBounds chosenNum bounds then
       [ button
           [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
           , onClick $ const $ Just
@@ -388,26 +382,25 @@ inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOw
 
   boundError (Bound from to) = show from <> " and " <> show to
 
-inputItem _ isEnabled person NotifyInput =
+inputItem _ person NotifyInput =
   li
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled), ClassName "align-top" ]
-        , enabled isEnabled
+        [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
         , onClick $ const $ Just
             $ AddInput INotify []
         ]
         [ text "+" ]
     ]
 
-inputItem state isEnabled person (MoveToSlot slot) =
+inputItem state person (MoveToSlot slot) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
           [ p [ class_ (ClassName "slot-input") ]
               [ spanText "Move to slot "
-              , marloweActionInput isEnabled (SetSlot <<< wrap) slot
+              , marloweActionInput (SetSlot <<< wrap) slot
               ]
           , p [ class_ (ClassName "choice-error") ] error
           ]
@@ -416,7 +409,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     )
   where
   addButton =
-    if isEnabled && inFuture state slot then
+    if inFuture state slot then
       [ button
           [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
           , onClick $ const $ Just $ MoveSlot slot
@@ -430,11 +423,10 @@ inputItem state isEnabled person (MoveToSlot slot) =
 
   boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _slot <<< to show))
 
-marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Action) -> a -> HTML p Action
-marloweActionInput isEnabled f current =
+marloweActionInput :: forall p a. Show a => (BigInteger -> Action) -> a -> HTML p Action
+marloweActionInput f current =
   input
     [ type_ InputNumber
-    , enabled isEnabled
     , placeholder "BigInteger"
     , class_ $ ClassName "action-input"
     , value $ show current

@@ -5,12 +5,11 @@ import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Array (mapMaybe)
-import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Getter', Lens', Prism', Traversal', lens, preview, prism, set, to, view)
+import Data.Lens (Getter', Lens', Prism', Traversal', lens, preview, prism, set, to)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -20,7 +19,7 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
@@ -306,12 +305,6 @@ mkState =
   , oldContract: Nothing
   , hasUnsavedChanges: false
   }
-
--- FIXME: check, but if we are in the simulator, the contract should be valid.
-isContractValid :: State -> Boolean
-isContractValid state =
-  (view (_marloweState <<< _Head <<< _contract <<< to isJust) state)
-    && (view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state)
 
 data Action
   = Init
