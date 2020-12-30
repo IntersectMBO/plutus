@@ -683,7 +683,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-
+              
               <<< set _hasUnsavedChanges false
           )
 

@@ -197,9 +197,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-
+              
               -- otherwise there can be hidden pending inputs in the simulation
-
+              
               <<< set _pendingInputs mempty
           )
             executionState
