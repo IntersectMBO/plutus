@@ -1,12 +1,10 @@
 module SimulationPage.BottomPanel (bottomPanel) where
 
-import Control.Alternative (map)
+import Prelude hiding (div)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
-import Data.Eq (eq)
 import Data.Foldable (foldMap)
-import Data.HeytingAlgebra (not, (||))
 import Data.Lens (has, only, previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map as Map
@@ -19,7 +17,6 @@ import Halogen.HTML (ClassName(..), HTML, a, a_, div, img, li, section, text, ul
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, src)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
-import Prelude (const, mempty, show, ($), (<<<), (<>))
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.Types (Action(..), BottomPanelView(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _executionState, _initialSlot, _marloweState, _showBottomPanel, _slot, _state, _transactionError, _transactionWarnings)
 

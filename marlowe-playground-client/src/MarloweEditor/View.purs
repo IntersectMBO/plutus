@@ -4,6 +4,7 @@ import Prelude hiding (div)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
@@ -17,7 +18,7 @@ import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (bottomPanel)
-import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel, isValidContract, isValidContractWithHoles)
+import MarloweEditor.Types (Action(..), State, _keybindings, _showBottomPanel, contractHasErrors, contractHasHoles)
 import Monaco (getModel, setValue) as Monaco
 import Prim.TypeError (class Warn, Text)
 import StaticData as StaticData
@@ -52,45 +53,44 @@ sendToSimulatorButton ::
 sendToSimulatorButton state =
   button
     ( [ onClick $ const $ Just SendToSimulator
-      , enabled enabled'
+      , disabled disabled'
       ]
         <> disabledTooltip
     )
     [ text "Send To Simulator" ]
   where
-  -- We only enable this button when the contract is valid and has no holes
-  enabled' = isValidContract state
+  disabled' = (spy "contract has errors" $ contractHasErrors state) || (spy "contract has holes" $ contractHasHoles state)
 
   disabledTooltip =
-    if enabled' then
-      []
-    else
+    if disabled' then
       {-
         TODO: The title property generates a native tooltip in the browser, but it takes a couple
         of seconds to appear, we should ask for a design and then implement a custom tooltip element.
       -}
-      [ title "In order to send the contract to the simulator, it can't have errors nor holes"
+      [ title "A contract can only be sent to the simulator if it has no errors and no holes"
       ]
+    else
+      []
 
 viewAsBlocklyButton :: forall p. State -> HTML p Action
 viewAsBlocklyButton state =
   button
     ( [ onClick $ const $ Just ViewAsBlockly
-      , enabled enabled'
+      , disabled disabled'
       ]
         <> disabledTooltip
     )
     [ text "View as blocks" ]
   where
   -- We only enable this button when the contract is valid, even if it has holes
-  enabled' = isValidContractWithHoles state
+  disabled' = contractHasErrors state
 
   disabledTooltip =
-    if enabled' then
-      []
-    else
+    if disabled' then
       [ title "We can't send the contract to blockly while it has errors"
       ]
+    else
+      []
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =

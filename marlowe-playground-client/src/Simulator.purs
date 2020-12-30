@@ -1,6 +1,6 @@
 module Simulator where
 
-import Control.Bind
+import Prelude
 import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
@@ -23,7 +23,6 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
-import Prelude (class HeytingAlgebra, class Ord, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
 import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum
@@ -198,9 +197,9 @@ updateStateP oldState@{ executionState: SimulationRunning executionState } = act
         newExecutionState =
           ( set _transactionError (Just txError)
               -- apart from setting the error, we also removing the pending inputs
-              
+
               -- otherwise there can be hidden pending inputs in the simulation
-              
+
               <<< set _pendingInputs mempty
           )
             executionState

@@ -1,5 +1,6 @@
 module MainFrame.Types where
 
+import Prelude hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
@@ -29,7 +30,7 @@ import JavascriptEditor.Types as JS
 import Network.RemoteData (_Loading)
 import MarloweEditor.Types as ME
 import NewProject.Types as NewProject
-import Prelude (class Eq, class Show, Unit, eq, show, ($), (&&), (<<<), (||))
+import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename
@@ -221,7 +222,7 @@ newtype State
   , hasUnsavedChanges :: Boolean
   -- The initial language selected when you create/load a project indicates the workflow a user might take
   -- A user can start with a haskell/javascript example that eventually gets compiled into
-  -- marlowe/blockly and runned in the simulator, or can create a marlowe/blockly contract directly,
+  -- marlowe/blockly and run in the simulator, or can create a marlowe/blockly contract directly,
   -- which can be used interchangeably. This is used all across the site to know what are the posible
   -- transitions.
   , workflow :: Maybe Lang

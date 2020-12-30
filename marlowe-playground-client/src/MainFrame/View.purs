@@ -1,5 +1,6 @@
 module MainFrame.View where
 
+import Prelude hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
@@ -27,7 +28,6 @@ import Marlowe.Blockly as MB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import Prelude (const, eq, negate, unit, ($), (<<<), (<>))
 import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.View as Simulation

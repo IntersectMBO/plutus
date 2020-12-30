@@ -1,5 +1,6 @@
 module Wallet where
 
+import Prelude hiding (div)
 import Control.Alt ((<|>))
 import Control.Monad.State (class MonadState)
 import Data.Array (concatMap, delete, drop, fold, foldMap, snoc)
@@ -41,7 +42,6 @@ import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
-import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
 import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
 import SimulationPage.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)

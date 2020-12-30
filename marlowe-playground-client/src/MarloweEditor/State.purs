@@ -11,13 +11,12 @@ import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
-import Data.Foldable (for_)
+import Data.Foldable (for_, traverse_)
 import Data.Lens (assign, preview, set, use)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..))
 import Data.String (codePointFromChar)
 import Data.String as String
-import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -39,9 +38,9 @@ import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -71,7 +70,7 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
 
     (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
   markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
-  void $ traverse editorSetMarkers markers
+  traverse_ editorSetMarkers markers
   {-
     There are three different Monaco objects that require the linting information:
       * Markers
@@ -184,9 +183,14 @@ editorGetValue = query _marloweEditorPageSlot unit (Monaco.GetText identity)
 editorSetMarkers :: forall m. MonadEffect m => Array IMarker -> HalogenM State Action ChildSlots Void m Unit
 editorSetMarkers markers = do
   let
+    errors = filter (\{ severity } -> isError severity) markers
+
     warnings = filter (\{ severity } -> isWarning severity) markers
 
-    trimHoles =
+    -- The initial message of a hole warning is very lengthy, so we trim it before
+    -- displaying it.
+    -- see https://github.com/input-output-hk/plutus/pull/2560#discussion_r550252989
+    warningsWithTrimmedHoleMessage =
       map
         ( \marker ->
             let
@@ -199,9 +203,7 @@ editorSetMarkers markers = do
               marker { message = trimmedMessage }
         )
         warnings
-  let
-    errors = filter (\{ severity } -> isError severity) markers
   modify_
-    ( set _editorWarnings trimHoles
+    ( set _editorWarnings warningsWithTrimmedHoleMessage
         <<< set _editorErrors errors
     )

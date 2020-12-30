@@ -1,5 +1,6 @@
 module Rename.State where
 
+import Prelude hiding (div)
 import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -10,7 +11,7 @@ import Halogen.HTML.Events (onClick, onValueChange)
 import Halogen.HTML.Properties (class_, classes, value)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import Modal.ViewHelpers (modalHeader)
+import Modal.ViewHelpers (modalHeaderTitle)
 import Prelude (Unit, Void, const, pure, unit, ($), (<<<))
 import Rename.Types (Action(..), State, _error, _projectName)
 import Servant.PureScript.Settings (SPSettings_)

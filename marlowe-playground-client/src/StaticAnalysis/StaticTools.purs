@@ -1,5 +1,6 @@
 module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
 
+import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Foldable (for_)
@@ -22,7 +23,6 @@ import Marlowe.Symbolic.Types.Response (Result(..))
 import MarloweEditor.Types (Action, AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, State, _analysisState)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, flip, identity, map, pure, unit, void, when, ($), (+), (-), (<$>), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import Types (WebData)

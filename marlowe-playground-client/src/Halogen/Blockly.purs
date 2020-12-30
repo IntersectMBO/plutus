@@ -1,5 +1,6 @@
 module Halogen.Blockly where
 
+import Prelude hiding (div)
 import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
@@ -16,16 +17,14 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (updateUnsavedChangesActionHandler, blocklyEvents)
-import Halogen.HTML (HTML, button, div, text)
-import Halogen.HTML.Events (onClick)
+import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, zero, ($), (<<<), (<>))
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
 import Text.Pretty (pretty)

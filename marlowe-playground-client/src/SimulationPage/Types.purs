@@ -217,7 +217,7 @@ type MarloweState
     , contract :: Maybe Contract
     , holes :: Holes
     -- NOTE: as part of the marlowe editor and simulator split this part of the
-    --       state wont be used, but it is leaved as it is because it may make sense
+    --       state wont be used, but it is left as it is because it may make sense
     --       to use it as part of task SCP-1642
     , editorErrors :: Array IMarker
     , editorWarnings :: Array IMarker

@@ -1,5 +1,6 @@
 module MainFrame.State (mkMainFrame) where
 
+import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
@@ -54,7 +55,6 @@ import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import NewProject.Types (Action(..), State, emptyState) as NewProject
-import Prelude (class Eq, class Functor, class Monoid, Unit, Void, bind, const, discard, flip, identity, map, mempty, not, otherwise, pure, show, unit, void, when, ($), (/=), (<$>), (<<<), (<>), (=<<), (==))
 import Prim.TypeError (class Warn, Text)
 import Projects.State (handleAction) as Projects
 import Projects.Types (Action(..), State, _projects, emptyState) as Projects
@@ -356,26 +356,20 @@ handleAction settings (SimulationAction action) = do
     -- TODO: reimplement once we have the simulator in blockly and marlowe
     ST.ViewAsBlockly -> pure unit
     ST.EditSource -> do
-      flow <- use _workflow
-      case flow of
-        (Just lang) -> selectView $ selectLanguageView lang
-        _ -> pure unit
+      mLang <- use _workflow
+      for_ mLang \lang -> selectView $ selectLanguageView lang
     _ -> pure unit
 
 handleAction settings (BlocklyEditorAction action) = case action of
   BL.SendToSimulator -> do
-    -- TODO: We used to block moving code to the simulation however due to the new UX there is no way to navigate this
-    -- I am leaving the old code here as we want to come up with a solution asap and it will involve using this same logic
-    -- The same occurs with Actus too
-    -- hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
-    -- if hasStarted then
-    --   void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
-    -- else do
     mCode <- query _blocklySlot unit $ H.request Blockly.GetCode
     for_ mCode \code -> do
       selectView Simulation
       void $ toSimulation $ Simulation.handleAction settings (ST.LoadContract code)
   BL.ViewAsMarlowe -> do
+    -- TODO: doing an effect that returns a maybe value and doing an action on the possible
+    -- result is a pattern that we have repeated a lot in this file. See if we could refactor
+    -- into something like this: https://github.com/input-output-hk/plutus/pull/2560#discussion_r549892291
     mCode <- query _blocklySlot unit $ H.request Blockly.GetCode
     for_ mCode \code -> do
       selectView MarloweEditor
@@ -689,7 +683,7 @@ handleGistAction settings PublishGist = do
               <<< set _loadGistResult (Right NotAsked)
               {- This marks the project as saved globally, it would normally be a replication
                of the inner unsaved state set below, but we n two places. Here to update the view -}
-              
+
               <<< set _hasUnsavedChanges false
           )
 
@@ -845,7 +839,7 @@ selectView view = do
     window <- Web.window
     Window.scroll 0 0 window
   case view of
-    HomePage -> pure unit
+    HomePage -> assign _workflow Nothing
     Simulation -> do
       Simulation.editorResize
       Simulation.editorSetTheme

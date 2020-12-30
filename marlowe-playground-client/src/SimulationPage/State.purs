@@ -6,7 +6,8 @@ module SimulationPage.State
   , getCurrentContract
   ) where
 
-import Control.Alternative (void, when, (<*>), (<|>))
+import Prelude hiding (div)
+import Control.Alternative ((<|>))
 import Control.Monad.Except (ExceptT, runExceptT, runExcept)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (delete, snoc)
@@ -15,7 +16,6 @@ import Data.BigInteger (BigInteger, fromString)
 import Data.Decimal (truncated, fromNumber)
 import Data.Decimal as Decimal
 import Data.Either (Either(..))
-import Data.EuclideanRing ((*))
 import Data.Lens (assign, modifying, over, set, to, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.NonEmptyList (_Head)
@@ -42,7 +42,6 @@ import Marlowe.Monaco as MM
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), inBounds)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, Void, bind, discard, flip, identity, mempty, pure, show, unit, zero, ($), (-), (<), (<$>), (<<<), (<>), (=<<), (==), (>=))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)

@@ -1,18 +1,18 @@
 module NewProject.View where
 
+import Prelude hiding (div)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (ClassName(..), ComponentHTML)
+import Halogen (ClassName(..), ComponentHTML, HalogenM)
 import Halogen.Classes (fontSemibold, modalContent, newProjectBlocklyIcon, newProjectHaskellIcon, newProjectJavascriptIcon, newProjectMarloweIcon, textBase, textSm)
 import Halogen.HTML (div, div_, h3, img, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (ChildSlots)
-import Modal.ViewHelpers (modalHeader)
+import Marlowe (SPParams_)
+import Modal.ViewHelpers (modalHeaderTitle)
 import NewProject.Types (Action(..), State, _error)
-import Prelude (const, map, ($), (<<<))
-import Projects.Types (Lang(..))
 
 render ::
   forall m.

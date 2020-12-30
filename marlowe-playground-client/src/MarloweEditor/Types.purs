@@ -43,7 +43,6 @@ data Action
   | InitMarloweProject String
   | MarkProjectAsSaved
   | SelectHole (Maybe String)
-  -- websocket
   | AnalyseContract
   | AnalyseReachabilityContract
   | Save
@@ -207,18 +206,14 @@ initialState =
   , editorWarnings: mempty
   }
 
--- Check if we could convert to a valid contract. Meaning one that has no errors and may have
--- warnings, but no holes.
-isValidContract :: State -> Boolean
-isValidContract state =
+contractHasHoles :: State -> Boolean
+contractHasHoles state =
   let
-    errors = state ^. _editorErrors
-
     warnings = state ^. _editorWarnings
 
     holes = filter (\warning -> contains (Pattern "hole") warning.message) warnings
   in
-    Array.null errors && Array.null holes
+    not $ Array.null holes
 
-isValidContractWithHoles :: State -> Boolean
-isValidContractWithHoles state = view (_editorErrors <<< to Array.null) state
+contractHasErrors :: State -> Boolean
+contractHasErrors state = not $ view (_editorErrors <<< to Array.null) state

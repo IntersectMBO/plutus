@@ -1,5 +1,6 @@
 module StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap) where
 
+import Prelude hiding (div)
 import Control.Monad.State as CMS
 import Data.List (List(..), any, catMaybes, fromFoldable, null)
 import Data.List.NonEmpty (fromList, head, tail, toList)
@@ -14,7 +15,6 @@ import Marlowe (SPParams_)
 import Marlowe.Semantics (Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import MarloweEditor.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, State)
-import Prelude (Unit, Void, discard, map, mempty, pure, ($), (&&), (/=), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 

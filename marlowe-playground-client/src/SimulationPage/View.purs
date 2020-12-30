@@ -1,10 +1,9 @@
 module SimulationPage.View where
 
-import Control.Alternative (map)
+import Prelude hiding (div)
 import Data.Array (concatMap, intercalate, reverse, sortWith)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
-import Data.HeytingAlgebra (not, (&&))
 import Data.Lens (to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
@@ -28,7 +27,6 @@ import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party(..), Payment(..), PubKey, Slot, SlotInterval(..), Token(..), TransactionInput(..), inBounds, timeouts)
 import Monaco (Editor)
 import Monaco as Monaco
-import Prelude (class Show, Unit, bind, const, discard, show, unit, ($), (<<<), (<>), (==), zero)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
 import SimulationPage.BottomPanel (bottomPanel)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId, ExecutionState(..), MarloweEvent(..), State, _SimulationRunning, _contract, _currentMarloweState, _executionState, _log, _marloweState, _possibleActions, _showBottomPanel, _showRightPanel, _slot, isContractValid, otherActionsParty)

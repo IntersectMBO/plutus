@@ -1,11 +1,9 @@
 module MarloweEditor.BottomPanel (bottomPanel) where
 
-import Control.Alternative (map)
+import Prelude hiding (div)
 import Data.Array (drop, head, length)
 import Data.Array as Array
-import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
-import Data.HeytingAlgebra (not)
 import Data.Lens (to, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
@@ -21,10 +19,9 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, isValidContract)
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, contractHasErrors)
 import Network.RemoteData (RemoteData(..), isLoading)
 import Pretty (showPrettyToken)
-import Prelude (bind, const, mempty, pure, show, ($), (&&), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Text.Parsing.StringParser.Basic (lines)
 
@@ -109,7 +106,7 @@ panelContents state StaticAnalysisView =
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
-  enabled' = not loading && not loadingReachability && isValidContract state
+  enabled' = not loading && not loadingReachability && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section
