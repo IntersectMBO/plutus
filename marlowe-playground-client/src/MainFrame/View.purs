@@ -200,6 +200,7 @@ menuBar state =
     BlocklyEditor -> buttons
     ActusBlocklyEditor -> buttons
     Simulation -> buttons
+    MarloweEditor -> buttons
     _ -> []
 
 marloweIcon :: forall p a. HTML p a
