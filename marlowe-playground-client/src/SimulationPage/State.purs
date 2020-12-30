@@ -44,8 +44,8 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
-import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showBottomPanel, _showRightPanel, _slot, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
+import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
 import Types (WebData)
@@ -73,10 +73,16 @@ handleAction settings (SetInitialSlot initialSlot) = do
 handleAction settings StartSimulation = do
   maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
   for_ maybeInitialSlot \initialSlot -> do
-    -- FIXME: there is currently bug with the UNDO button on the first step
     saveInitialState
+    -- Create an empty SimulationRunning in the initial slot
+    -- And then update the state in place.
+    -- TODO: This used to be done with `moveToSignificantSlot`, but it had a problem as it adds a new element in the
+    --       _marloweState, so the UNDO button was available just after starting the simulation, and when you pressed it
+    --       the Actions said: "No available actions". Now it works fine, but I don't like the fact that if you call
+    --       StartSimulation with a NEL of more than 1 element, you'd get weird behaviours. We should revisit the logic
+    --       on _oldContracts, ResetSimulation, etc.
     assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
-    moveToSignificantSlot initialSlot
+    modifying _marloweState (map (updatePossibleActions <<< updateStateP))
     mCurrContract <- use _currentContract
     case mCurrContract of
       Just currContract -> do
@@ -283,6 +289,8 @@ editorSetValue contents = void $ query _simulatorEditorSlot unit (Monaco.SetText
 editorGetValue :: forall state action msg m. HalogenM state action ChildSlots msg m (Maybe String)
 editorGetValue = query _simulatorEditorSlot unit (Monaco.GetText identity)
 
+-- QUESTION: What is the purpose of this function? Why do we need to store the contents of
+--           the editor as an _oldContract?
 saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Void m Unit
 saveInitialState = do
   oldContract <- editorGetValue
