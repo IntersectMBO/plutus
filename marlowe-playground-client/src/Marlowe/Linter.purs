@@ -355,10 +355,21 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 
   addMoney amount (Just prevVal) = Just (maybe Nothing (Just <<< (\prev -> prev + amount)) prevVal)
 
--- | We lintContract through a contract term collecting all warnings and holes etc so that we can display them in the editor
--- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
+-- Note on PR https://github.com/input-output-hk/plutus/pull/2560:
+--    Before PR 2560 which splitted the Simulation from the Marlowe Editor, the lint function was called on each step
+--    of the simulation with the state as a parameter. That way, we could take past actions into account. Once we
+--    split the two pages, we decided to only lint on the Marlowe Editor using the full contract, and for that reason
+--    we removed the state from the code.
+--    In the JIRA ticket SCP-1641 we captured the intent of doing a mid simulation analysis, as it could be one way
+--    to cope with the problem of the STM only retrieving the first error. If we bring back that functionality, we may
+--    want to add the state once again, and the Marlowe Editor should probably use the empty state to indicate no past
+--    actions have been made.
+--
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
--- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
+--        the final lint result. After debugging it's strange because they seem to exist in intermediate states.
+--
+-- | We lint through a contract term collecting all warnings and holes etc so that we can display them in the editor
+-- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
 lint :: List ContractPath -> Term Contract -> State
 lint unreachablePaths contract =
   let
