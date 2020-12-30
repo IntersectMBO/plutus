@@ -152,9 +152,11 @@ actionArgumentField ancestors _ arg@(Fix (FormHexF s)) =
     ]
 
 actionArgumentField ancestors isNested (Fix (FormTupleF subFieldA subFieldB)) =
-  row_
-    [ col_ [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
-    , col_ [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
+  div_
+    [ formGroup_
+        [ SetSubField 1 <$> actionArgumentField (Array.snoc ancestors "_1") true subFieldA ]
+    , formGroup_
+        [ SetSubField 2 <$> actionArgumentField (Array.snoc ancestors "_2") true subFieldB ]
     ]
 
 actionArgumentField ancestors isNested (Fix (FormArrayF schema subFields)) =
@@ -286,10 +288,9 @@ actionArgumentField ancestors isNested (Fix (FormSlotRangeF interval)) =
       ]
 
 actionArgumentField ancestors isNested (Fix (FormValueF value)) =
-  div [ nesting isNested ]
-    [ label [ for "value" ] [ text "Value" ]
-    , valueForm (SetField <<< SetValueField) value
-    ]
+  div
+    [ nesting isNested ]
+    [ valueForm (SetField <<< SetValueField) value ]
 
 actionArgumentField _ _ (Fix (FormMaybeF dataType child)) =
   div_
@@ -311,7 +312,7 @@ actionArgumentClass ancestors =
   ]
 
 validationFeedback :: forall p i. Array (WithPath ValidationError) -> HTML p i
-validationFeedback [] = validFeedback_ [ nbsp ]
+validationFeedback [] = validFeedback_ []
 
 validationFeedback errors = invalidFeedback_ (div_ <<< pure <<< text <<< showPathValue <$> errors)
 

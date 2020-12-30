@@ -132,6 +132,10 @@
         // otherwise flex-wrap is not necessarily triggered, and some inputs become unreadably small
         min-width: 6rem;
     }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
 }
 
 .wallet {
