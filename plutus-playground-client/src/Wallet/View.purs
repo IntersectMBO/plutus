@@ -17,7 +17,7 @@ import Icons (Icon(..), icon)
 import Ledger.Value (Value)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
-import Prelude (const, show, ($), (<>), (<$>), (<<<))
+import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import Types (HAction(..), WalletEvent(..), _simulatorWalletWallet)
@@ -30,10 +30,16 @@ walletsPane signatures initialValue simulatorWallets =
     [ class_ $ ClassName "wallets" ]
     [ h2_ [ text "Wallets" ]
     , p_ [ text "Add some initial wallets, then click one of your function calls inside the wallet to begin a chain of actions." ]
-    , Keyed.div
-        [ class_ $ ClassName "wallet-list" ]
-        (Array.snoc (mapWithIndex (walletPane signatures initialValue) simulatorWallets) addWalletPane)
+    , Keyed.div [ class_ $ ClassName "wallet-list" ] allWalletPanes
     ]
+  where
+  allWalletPanes =
+    if Array.length simulatorWalletPanes < 10 then
+      Array.snoc simulatorWalletPanes addWalletPane
+    else
+      simulatorWalletPanes
+
+  simulatorWalletPanes = mapWithIndex (walletPane signatures initialValue) simulatorWallets
 
 walletPane :: forall p. Signatures -> Value -> Int -> SimulatorWallet -> Tuple String (HTML p HAction)
 walletPane signatures initialValue walletIndex simulatorWallet@(SimulatorWallet { simulatorWalletWallet, simulatorWalletBalance }) =
