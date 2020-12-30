@@ -203,14 +203,13 @@ contractTermsGen = do
 riskAtT :: Gen RiskFactors
 riskAtT = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
 
-riskFactorsGen :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
-riskFactorsGen contractTerms = do
-    ct <- contractTerms
+riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGen ct = do
     let days = cashCalculationDay <$> genProjectedCashflows ct
     rf <- vectorOf (L.length days) riskAtT
     return $ M.fromList $ L.zip days rf
 
-riskFactorsGenRandomWalk :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalk :: ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGenRandomWalk contractTerms = do
     rfs <- M.toList <$> riskFactorsGen contractTerms
     let 

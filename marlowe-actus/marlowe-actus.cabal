@@ -153,6 +153,7 @@ executable marlowe-actus-test-kit
     other-modules:
       Language.Marlowe.ACTUS.MarloweCompat
       Language.Marlowe.ACTUS.Generator
+      Language.Marlowe.ACTUS.QCGenerator
       Language.Marlowe.ACTUS.Analysis
       Language.Marlowe.ACTUS.Definitions.BusinessEvents
       Language.Marlowe.ACTUS.Definitions.ContractTerms
@@ -206,7 +207,8 @@ executable marlowe-actus-test-kit
       servant >= 0.16,
       servant-client -any,
       http-client -any,
-      servant-client-core -any
+      servant-client-core -any,
+      QuickCheck
 
 test-suite marlowe-actus-test
     default-language: Haskell2010
