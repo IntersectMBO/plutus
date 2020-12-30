@@ -91,11 +91,6 @@ handleAction settings (HandleDropEvent event) = do
   liftEffect $ FileEvents.preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ editorSetValue contents
-  -- updateContractInState contents --FIXME
-  -- FIXME: check but I don't think this is needed after the split
-  -- setOraclePrice settings
-  -- pure unit is only here so the comment stays in place
-  pure unit
 
 handleAction _ (MoveToPosition lineNumber column) = do
   void $ query _marloweEditorPageSlot unit (Monaco.SetPosition { column, lineNumber } unit)
@@ -108,19 +103,9 @@ handleAction settings (LoadScript key) = do
         Left _ -> contents
     editorSetValue prettyContents
     liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
-    --FIXME
-    -- updateContractInState prettyContents
-    -- resetContract
-    -- setOraclePrice settings
-    -- pure unit is only here so the comment stays in place
-    pure unit
 
 handleAction settings (SetEditorText contents) = do
   editorSetValue contents
-  -- FIXME
-  -- updateContractInState contents
-  -- pure unit is only here so the comment stays in place
-  pure unit
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -151,9 +136,9 @@ handleAction settings AnalyseContract =
     $ runMaybeT do
         contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
-        -- FIXME: when editor and simulator were together the analyse contract could be made
-        --        at any step of the simulator. Now that they are separate, it can only be done
-        --        with initial state
+        -- when editor and simulator were together the analyse contract could be made
+        -- at any step of the simulator. Now that they are separate, it can only be done
+        -- with initial state
         let
           emptySemanticState = emptyState zero
         assign _analysisState (WarningAnalysis Loading)
@@ -167,9 +152,9 @@ handleAction settings AnalyseReachabilityContract =
     $ runMaybeT do
         contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
-        -- FIXME: when editor and simulator were together the analyse contract could be made
-        --        at any step of the simulator. Now that they are separate, it can only be done
-        --        with initial state
+        -- when editor and simulator were together the analyse contract could be made
+        -- at any step of the simulator. Now that they are separate, it can only be done
+        -- with initial state
         let
           emptySemanticState = emptyState zero
         newReachabilityAnalysisState <- lift $ startReachabilityAnalysis settings contract emptySemanticState

@@ -156,7 +156,6 @@ marloweEditor state = slot _simulatorEditorSlot unit component unit (const Nothi
 refLabel :: RefLabel
 refLabel = RefLabel "simulatorEditor"
 
--- FIXME while doing the refactor this settigns were colliding with the marlowe. Delete
 settings :: forall m. (Editor -> m Unit) -> Settings m
 settings setup =
   { languageExtensionPoint

@@ -62,7 +62,7 @@ bottomPanel state =
   where
   isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
 
-  -- FIXME: check how to reach this
+  -- QUESTION: what are runtimeWarnings and runtimeError? how can I reach that state?
   hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
 
   hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state

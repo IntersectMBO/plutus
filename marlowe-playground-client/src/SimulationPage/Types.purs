@@ -315,7 +315,7 @@ isContractValid state =
 
 data Action
   = Init
-  -- marlowe actions (FIXME to SimulationPage)
+  -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
   | MoveSlot Slot
