@@ -15,7 +15,7 @@ import Data.Tuple (Tuple(..), snd)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Halogen (RefLabel(..))
-import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
+import Halogen.Classes (aHorizontal, bold, btn, codeEditor, expanded, flex, fullHeight, group, justifyBetween, justifyCenter, noMargins, plusBtn, scroll, sidebarComposer, smallBtn, smallSpaceBottom, spaceBottom, spaceRight, spanText, textSecondaryColor, textXs, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, aside, b_, br_, button, div, div_, em_, h6, h6_, input, li, p, p_, section, slot, span, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick, onValueChange)
@@ -181,8 +181,7 @@ sidebar state =
     contents = case view (_marloweState <<< _Head <<< _executionState) state of
       SimulationNotStarted { initialSlot } -> [ startSimulationWidget initialSlot ]
       SimulationRunning _ ->
-        -- FIXME: change to smallSpaceBottom in the first widget after rebase
-        [ div [ class_ spaceBottom ] [ simulationStateWidget state ]
+        [ div [ class_ smallSpaceBottom ] [ simulationStateWidget state ]
         , div [ class_ spaceBottom ] [ actionWidget state ]
         , logWidget state
         ]

@@ -34,7 +34,7 @@ import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract, emptyState)
 import Marlowe.Symbolic.Types.Request as MSReq
-import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showBottomPanel)
+import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showBottomPanel, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -110,7 +110,7 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   editorResize
 
-handleAction _ (ShowErrorDetail val) =  {- FIXME assign _showErrorDetail val -} pure unit
+handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction _ (ChangeBottomPanelView view) = do
   assign _bottomPanelView view
