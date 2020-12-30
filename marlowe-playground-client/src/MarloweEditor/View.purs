@@ -4,14 +4,13 @@ import Prelude hiding (div)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Debug.Trace (spy)
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (codeEditor, group)
 import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, disabled, enabled, title)
+import Halogen.HTML.Properties (class_, classes, disabled, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import LocalStorage as LocalStorage
@@ -59,7 +58,7 @@ sendToSimulatorButton state =
     )
     [ text "Send To Simulator" ]
   where
-  disabled' = (spy "contract has errors" $ contractHasErrors state) || (spy "contract has holes" $ contractHasHoles state)
+  disabled' = contractHasErrors state || contractHasHoles state
 
   disabledTooltip =
     if disabled' then

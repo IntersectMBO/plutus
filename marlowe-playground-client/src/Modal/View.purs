@@ -11,13 +11,11 @@ import Effect.Aff.Class (class MonadAff)
 import GistButtons (authButton)
 import Halogen (ComponentHTML)
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), div, img, text)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, src)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal)
-import NewProject.State (render) as NewProject
-import Prelude (const, identity, ($), (<>))
-import Projects.State (render) as Projects
+import Halogen.HTML (ClassName(ClassName), div, text)
+import Halogen.HTML.Properties (classes)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal, hasGlobalLoading)
+import NewProject.View (render) as NewProject
+import Projects.View (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs
 

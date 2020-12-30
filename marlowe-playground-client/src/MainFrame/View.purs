@@ -21,7 +21,7 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
+import MainFrame.Types (Action(..), BlocklySubAction(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
@@ -140,6 +140,15 @@ render settings state =
 
   otherActions _ = []
 
+  globalLoadingOverlay =
+    if hasGlobalLoading state then
+      div [ classes [ ClassName "loading-overlay", text3xl, fontSemibold, textWhite ] ]
+        [ div [ class_ smallSpaceBottom ] [ text "Loading..." ]
+        , div_ [ icon Spinner ]
+        ]
+    else
+      text ""
+
 blocklyOtherActions ::
   forall p.
   Warn (Text "SCP-1647 The Send to simulator button should be disabled if there are holes in the contract. Do this once we refactor blockly as submodule (SCP-1646) as this view is far away from the BlocklyState") =>
@@ -156,17 +165,6 @@ blocklyOtherActions =
           [ text "Send To Simulator" ]
       ]
   ]
-
-  otherActions _ = []
-
-  globalLoadingOverlay =
-    if hasGlobalLoading state then
-      div [ classes [ ClassName "loading-overlay", text3xl, fontSemibold, textWhite ] ]
-        [ div [ class_ smallSpaceBottom ] [ text "Loading..." ]
-        , div_ [ icon Spinner ]
-        ]
-    else
-      text ""
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =

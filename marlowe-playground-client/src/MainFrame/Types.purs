@@ -4,7 +4,6 @@ import Prelude hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
-import Data.BooleanAlgebra (not)
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -30,7 +29,6 @@ import JavascriptEditor.Types as JS
 import Network.RemoteData (_Loading)
 import MarloweEditor.Types as ME
 import NewProject.Types as NewProject
-import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Projects.Types (Lang(..))
 import Projects.Types as Projects
 import Rename.Types as Rename

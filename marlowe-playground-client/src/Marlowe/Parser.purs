@@ -1,6 +1,5 @@
 module Marlowe.Parser where
 
-import Prelude hiding (div)
 import Control.Alternative ((<|>))
 import Control.Lazy (fix)
 import Data.Array (fromFoldable, many)
@@ -16,9 +15,11 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
+import Data.Unit (Unit, unit)
 import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
+import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
