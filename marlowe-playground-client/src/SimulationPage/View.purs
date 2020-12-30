@@ -488,7 +488,7 @@ inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
         , text " as "
         , strong_ [ renderPrettyParty party ]
         ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    , span_ [ text $ showSlotRange start end ]
     ]
 
 inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
@@ -501,13 +501,13 @@ inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) 
         , text " for choice with id "
         , strong_ [ text (show choiceName) ]
         ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    , span_ [ text $ showSlotRange start end ]
     ]
 
 inputToLine (SlotInterval start end) INotify =
   li [ classes [ ClassName "error-row" ] ]
     [ text "Notify"
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    , span_ [ text $ showSlotRange start end ]
     ]
 
 paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
@@ -524,8 +524,15 @@ paymentToLine (SlotInterval start end) party token money =
         , text " to participant "
         , strong_ [ renderPrettyParty party ]
         ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    , span_ [ text $ showSlotRange start end ]
     ]
+
+showSlotRange :: Slot -> Slot -> String
+showSlotRange start end =
+  if start == end then
+    show start
+  else
+    (show start) <> " - " <> (show end)
 
 unfoldAssets :: forall a. Assets -> (Token -> BigInteger -> a) -> Array a
 unfoldAssets (Assets mon) f =
