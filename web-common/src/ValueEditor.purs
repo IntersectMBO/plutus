@@ -38,8 +38,7 @@ currencyRow ::
   Int ->
   Tuple CurrencySymbol (AssocMap.Map TokenName BigInteger) ->
   Array (Tuple String (HTML p i))
-currencyRow handler currencyIndex (Tuple currencySymbol tokenBalances) =
-  mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst $ AssocMap.toTuples tokenBalances)
+currencyRow handler currencyIndex (Tuple currencySymbol tokenBalances) = mapWithIndex (balanceRow handler currencyIndex currencySymbol) (Array.sortWith fst $ AssocMap.toTuples tokenBalances)
 
 balanceRow ::
   forall p i.
