@@ -25,7 +25,7 @@ import Gists.Types (parseGistUrl) as Gists
 import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Analytics (handleActionWithAnalyticsTracking)
+import Halogen.Analytics (withAnalytics)
 import Halogen.Blockly (Message(..))
 import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
@@ -241,7 +241,7 @@ fullHandleAction ::
   HalogenM State Action ChildSlots Void m Unit
 fullHandleAction settings =
   withAccidentalNavigationGuard settings
-    $ handleActionWithAnalyticsTracking
+    $ withAnalytics
         ( handleAction settings
         )
 
@@ -252,7 +252,7 @@ actionWithAnalytics ::
   Action ->
   HalogenM State Action ChildSlots Void m Unit
 actionWithAnalytics settings =
-  handleActionWithAnalyticsTracking
+  withAnalytics
     ( handleAction settings
     )
 
