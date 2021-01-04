@@ -1,5 +1,6 @@
 { machines, stdOverlays, nixpkgsLocation, ... }: node: pkgs:
 {
+  nixpkgs.localSystem.system = "x86_64-linux";
   nixpkgs.overlays = stdOverlays;
   nix = {
     nixPath = [

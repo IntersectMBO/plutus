@@ -132,6 +132,9 @@ let
   # ghc web service
   web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 
+  # Nixops version after 1.7 release that is on nixpkgs 20.09
+  nixops = import sources.nixops;
+
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
     let
@@ -167,7 +170,7 @@ in
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios gen-hie;
   inherit purty purty-pre-commit purs spago;
   inherit fixPurty fixStylishHaskell updateMaterialized updateHie updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev web-ghc thorp;
+  inherit iohkNix set-git-rev web-ghc thorp nixops;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;

@@ -75,6 +75,18 @@
         "url": "https://github.com/siers/nix-gitignore/archive/0b788a5875163ec210cd6597cb3757fd59e73902.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "nixops": {
+        "branch": "master",
+        "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
+        "homepage": "https://nixos.org/nixops",
+        "owner": "NixOS",
+        "repo": "nixops",
+        "rev": "faed0635d24e93f38046af58fb7715327de28e39",
+        "sha256": "00dkxa1b9acj6hjd3l9dr2a2js3sf6b2ps1r93pzmhxrcl3kbphj",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixops/archive/faed0635d24e93f38046af58fb7715327de28e39.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixpkgs": {
         "branch": "nixos-20.09",
         "builtin": true,

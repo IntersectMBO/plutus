@@ -1,5 +1,5 @@
 {
-  mkInstance = { defaultMachine, machines, web-ghc, ... }:
+  mkInstance = { defaultMachine, machines, ... }:
     node:
     { config, pkgs, lib, ... }:
     let
@@ -56,26 +56,26 @@
         packages = [ serviceSystemctl ];
       };
 
-      systemd.services.web-ghc = {
-        wantedBy = [ ];
-        before = [ ];
-        enable = true;
-        path = [ "${web-ghc}" ];
+      # systemd.services.web-ghc = {
+      #   wantedBy = [ ];
+      #   before = [ ];
+      #   enable = true;
+      #   path = [ "${web-ghc}" ];
 
-        serviceConfig = {
-          TimeoutStartSec = "0";
-          Restart = "always";
-          DynamicUser = true;
-          ProtectKernelTunables = true;
-          ProtectControlGroups = true;
-          ProtectKernelModules = true;
-          PrivateDevices = true;
-          SystemCallArchitectures = "native";
-          CapabilityBoundingSet = "~CAP_SYS_ADMIN";
-          AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
-        };
+      #   serviceConfig = {
+      #     TimeoutStartSec = "0";
+      #     Restart = "always";
+      #     DynamicUser = true;
+      #     ProtectKernelTunables = true;
+      #     ProtectControlGroups = true;
+      #     ProtectKernelModules = true;
+      #     PrivateDevices = true;
+      #     SystemCallArchitectures = "native";
+      #     CapabilityBoundingSet = "~CAP_SYS_ADMIN";
+      #     AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
+      #   };
 
-        script = "web-ghc-server webserver -b 0.0.0.0 -p 80";
-      };
+      #   script = "web-ghc-server webserver -b 0.0.0.0 -p 80";
+      # };
     };
 }
