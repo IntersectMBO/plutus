@@ -58,4 +58,4 @@ main = do
   res <- runClientM (actus input) (mkClientEnv manager' (BaseUrl Http "localhost" 8081 ""))
   case res of
     Left err -> putStrLn $ "Error: " ++ show err
-    Right books -> print books
+    Right result -> print result
