@@ -10,6 +10,6 @@ withAnalytics ::
   MonadEffect m =>
   IsEvent action =>
   (action -> HalogenM state action slots message m a) -> action -> HalogenM state action slots message m a
-withAnalytics handleAction' action = do
+withAnalytics handler action = do
   liftEffect $ analyticsTracking action
-  handleAction' action
+  handler action
