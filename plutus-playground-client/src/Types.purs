@@ -1,8 +1,11 @@
 module Types where
 
 import Prelude
+import Analytics (class IsEvent, defaultEvent)
 import Auth (AuthStatus)
+import Chain.Types (Action(..))
 import Chain.Types as Chain
+import Clipboard as Clipboard
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
 import Data.BigInteger (BigInteger)
@@ -13,7 +16,7 @@ import Data.Lens (Iso', Lens', Traversal', _Right, iso)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
@@ -22,7 +25,7 @@ import Data.Traversable (traverse)
 import Editor.Types as Editor
 import Foreign.Generic (encodeJSON)
 import Gist (Gist)
-import Gists.Types (GistAction)
+import Gists.Types (GistAction(..))
 import Halogen as H
 import Halogen.Chartist as Chartist
 import Halogen.Monaco as Monaco
@@ -34,11 +37,11 @@ import Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
 import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
 import Schema (FormSchema)
-import Schema.Types (Expression, FormArgument, SimulationAction, formArgumentToJson, traverseFunctionSchema)
+import Schema.Types (ActionEvent(..), Expression, FormArgument, SimulationAction(..), formArgumentToJson, traverseFunctionSchema)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
-import ValueEditor (ValueEvent)
+import ValueEditor (ValueEvent(..))
 import Wallet.Emulator.Wallet (Wallet, _Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
@@ -169,6 +172,43 @@ instance showDragAndDropEventType :: Show DragAndDropEventType where
   show DragOver = "DragOver"
   show DragLeave = "DragLeave"
   show Drop = "Drop"
+
+-- | Here we decide which top-level queries to track as GA events, and
+-- how to classify them.
+instance actionIsEvent :: IsEvent HAction where
+  toEvent Init = Nothing
+  toEvent Mounted = Just $ defaultEvent "Mounted"
+  toEvent (EditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
+  toEvent (EditorAction action) = Just $ (defaultEvent "ConfigureEditor")
+  toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
+  toEvent (HandleBalancesChartMessage _) = Nothing
+  toEvent CheckAuthStatus = Nothing
+  toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
+  toEvent (GistAction (SetGistUrl _)) = Nothing
+  toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
+  toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing
+  toEvent ToggleDemoFilesMenu = Nothing
+  toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
+  toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
+  toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
+  toEvent (SetSimulationSlot _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
+  toEvent (RemoveSimulationSlot _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
+  toEvent (ModifyWallets AddWallet) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
+  toEvent (ModifyWallets (RemoveWallet _)) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
+  toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _))) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
+  toEvent (ActionDragAndDrop _ eventType _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
+  toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
+  toEvent (ChangeSimulation (PopulateAction _ _)) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (AddAction _))) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (AddWaitAction _))) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (RemoveAction _))) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (SetPayToWalletValue _ _))) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (SetPayToWalletRecipient _ _))) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (SetWaitTime _ _))) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
+  toEvent (ChangeSimulation (ModifyActions (SetWaitUntilTime _ _))) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
+  toEvent (ChainAction (FocusTx (Just _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
+  toEvent (ChainAction (FocusTx Nothing)) = Nothing
+  toEvent (ChainAction (ClipboardAction (Clipboard.CopyToClipboard _))) = Just $ (defaultEvent "ClipboardAction") { category = Just "CopyToClipboard" }
 
 ------------------------------------------------------------
 type ChildSlots
