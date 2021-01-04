@@ -41,15 +41,13 @@ newtype ContractCashFlows = ContractCashFlows {
     deriving stock (Show, Generic) 
     deriving FromJSON
 
-type MyApi = "actus" :> ReqBody '[JSON] ModelInput :> Post '[JSON] ContractCashFlows -- POST /books
+type MyApi = "actus" :> ReqBody '[JSON] ModelInput :> Post '[JSON] ContractCashFlows
 
 myApi :: Proxy MyApi
 myApi = Proxy
 
--- 'client' allows you to produce operations to query an API from a client.
 actus :: ModelInput -> ClientM ContractCashFlows
 actus = client myApi
-
 
 main :: IO ()
 main = do
