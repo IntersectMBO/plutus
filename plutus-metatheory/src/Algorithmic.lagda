@@ -128,14 +128,6 @@ skip' (skip p) = skip (skip' p)
 ∅≤C' : ∀ {Φ} → (Γ : Ctx Φ) → ∅ ≤C' Γ
 ∅≤C' Γ = ≤Cto≤C' (∅≤C Γ)
 
-sig2type⇒ : ∀{Φ} → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-sig2type⇒ []       C = C
-sig2type⇒ (A ∷ As) C = A ⇒ sig2type⇒ As C
-
-sig2type' : ∀{Φ Φ'} → Φ ≤C⋆' Φ' → List (Φ' ⊢Nf⋆ *) → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-sig2type' base     As C = sig2type⇒ As C
-sig2type' (skip p) As C = Π (sig2type' p As C)
-
 ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
 ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
 ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
@@ -248,16 +240,6 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
--- not all of the stuff below is needed I don't think
-
-_<C_ : ∀{Φ Φ'} → Ctx Φ → Ctx Φ' → Set
-Γ <C Γ' = (Σ (_ ⊢Nf⋆ *) λ A → (Γ , A) ≤C Γ') ⊎ (Σ Kind λ K → (Γ ,⋆ K) ≤C Γ') 
-
-<C2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
-<C2type base      C = C
-<C2type (skip⋆ p) C = <C2type p (Π C)
-<C2type (skip {A = A} p)  C = <C2type p (A ⇒ C)
 
 <C'2type : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → Φ' ⊢Nf⋆ * → Φ ⊢Nf⋆ *
 <C'2type base      C = C
