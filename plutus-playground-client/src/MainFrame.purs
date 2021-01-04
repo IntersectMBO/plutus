@@ -6,13 +6,12 @@ module MainFrame
 
 import Prelude
 import AjaxUtils (renderForeignErrors)
-import Analytics (Event, defaultEvent, trackEvent)
+import Analytics (analyticsTracking)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
-import Clipboard as Clipboard
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
@@ -42,7 +41,6 @@ import Data.Newtype (unwrap)
 import Data.String as String
 import Editor.State (initialState) as Editor
 import Editor.Types (Action(..), State) as Editor
-import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
@@ -62,7 +60,7 @@ import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (ContractCall, ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInitialValue)
+import Schema.Types (FormArgument, SimulationAction(..), mkInitialValue)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
@@ -70,7 +68,6 @@ import StaticData (mkContractDemos)
 import StaticData as StaticData
 import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _lastCompiledCode, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
-import ValueEditor (ValueEvent(..))
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
@@ -137,6 +134,7 @@ mkMainFrame = do
               }
         }
 
+-- TODO: use web-common withAnalytics function
 handleActionWithAnalyticsTracking ::
   forall m.
   MonadEffect m =>
@@ -146,82 +144,6 @@ handleActionWithAnalyticsTracking ::
 handleActionWithAnalyticsTracking action = do
   liftEffect $ analyticsTracking action
   runHalogenApp $ handleAction action
-
-analyticsTracking :: HAction -> Effect Unit
-analyticsTracking action = do
-  case toEvent action of
-    Nothing -> pure unit
-    Just event -> trackEvent event
-
--- | Here we decide which top-level queries to track as GA events, and
--- how to classify them.
-toEvent :: HAction -> Maybe Event
-toEvent Init = Nothing
-
-toEvent Mounted = Just $ defaultEvent "Mounted"
-
-toEvent (EditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
-
-toEvent (EditorAction action) = Just $ (defaultEvent "ConfigureEditor")
-
-toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
-
-toEvent (HandleBalancesChartMessage _) = Nothing
-
-toEvent CheckAuthStatus = Nothing
-
-toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
-
-toEvent (GistAction (SetGistUrl _)) = Nothing
-
-toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
-
-toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing
-
-toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
-
-toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
-
-toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
-
-toEvent (SetSimulationSlot _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
-
-toEvent (RemoveSimulationSlot _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-
-toEvent (ModifyWallets AddWallet) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-
-toEvent (ModifyWallets (RemoveWallet _)) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-
-toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _))) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
-
-toEvent (ActionDragAndDrop _ eventType _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
-
-toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
-
-toEvent (ChangeSimulation subAction) = toActionEvent subAction
-
-toEvent (ChainAction (FocusTx (Just _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
-
-toEvent (ChainAction (FocusTx Nothing)) = Nothing
-
-toEvent (ChainAction (ClipboardAction (Clipboard.CopyToClipboard _))) = Just $ (defaultEvent "ClipboardAction") { category = Just "CopyToClipboard" }
-
-toActionEvent :: SimulationAction -> Maybe Event
-toActionEvent (PopulateAction _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetPayToWalletValue _ _)) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetPayToWalletRecipient _ _)) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
 
 handleAction ::
   forall m.

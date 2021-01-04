@@ -27,7 +27,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (ClassName(..), Component, HalogenM, raise)
 import Halogen as H
-import Halogen.Analytics (handleActionWithAnalyticsTracking)
+import Halogen.Analytics (withAnalytics)
 import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, a, article, aside, b_, br_, button, div, h6, hr_, img, input, li, option, p, p_, section, select, small, small_, strong_, text, ul)
@@ -63,7 +63,7 @@ mkComponent =
     , render
     , eval:
         H.mkEval
-          { handleAction: handleActionWithAnalyticsTracking handleAction
+          { handleAction: withAnalytics handleAction
           , handleQuery
           , initialize: Just Init
           , receive: const Nothing
