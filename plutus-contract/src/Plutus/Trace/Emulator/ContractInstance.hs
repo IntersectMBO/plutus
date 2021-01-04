@@ -41,8 +41,6 @@ import           Control.Monad.Freer.State                     (State, evalState
 import           Data.Aeson                                    (object)
 import qualified Data.Aeson                                    as JSON
 import           Data.Foldable                                 (traverse_)
-import           Data.Sequence                                 (Seq)
-import qualified Data.Sequence                                 as Seq
 import qualified Data.Text                                     as T
 import           Language.Plutus.Contract                      (Contract (..), HasBlockchainActions)
 import           Language.Plutus.Contract.Resumable            (Request (..), Response (..))
@@ -51,13 +49,15 @@ import           Language.Plutus.Contract.Schema               (Event (..), Hand
 import           Language.Plutus.Contract.Trace                (handleBlockchainQueries)
 import           Language.Plutus.Contract.Trace.RequestHandler (RequestHandler (..), RequestHandlerLogMsg, tryHandler,
                                                                 wrapHandler)
-import           Language.Plutus.Contract.Types                (ResumableResult (..))
+import           Language.Plutus.Contract.Types                (ResumableResult (..), logs, requests, resumableResult)
 import           Plutus.Trace.Emulator.Types                   (ContractConstraints, ContractHandle (..),
                                                                 ContractInstanceLog (..), ContractInstanceMsg (..),
-                                                                ContractInstanceState (..), EmulatorAgentThreadEffs,
-                                                                EmulatorMessage (..), EmulatorRuntimeError (..),
-                                                                EmulatorThreads, addEventInstanceState,
-                                                                emptyInstanceState, instanceIdThreads)
+                                                                ContractInstanceState (..),
+                                                                ContractInstanceStateInternal (..),
+                                                                EmulatorAgentThreadEffs, EmulatorMessage (..),
+                                                                EmulatorRuntimeError (..), EmulatorThreads,
+                                                                addEventInstanceState, emptyInstanceState,
+                                                                instanceIdThreads, toInstanceState)
 import           Plutus.Trace.Scheduler                        (Priority (..), SysCall (..), SystemCall, ThreadId,
                                                                 mkSysCall, sleep)
 import qualified Wallet.API                                    as WAPI
@@ -73,7 +73,7 @@ import           Wallet.Types                                  (ContractInstance
 -- | Effects available to threads that run in the context of specific
 --   agents (ie wallets)
 type ContractInstanceThreadEffs s e effs =
-    State (ContractInstanceState s e ())
+    State (ContractInstanceStateInternal s e ())
     ': Reader ContractInstanceId
     ': ContractRuntimeEffect
     ': LogMsg ContractInstanceMsg
@@ -129,7 +129,7 @@ contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
         $ evalState (emptyInstanceState chContract)
         $ do
             logInfo Started
-            logNewMessages @s @e Seq.empty
+            logNewMessages @s @e
             logCurrentRequests @s @e
             msg <- mkSysCall @effs @EmulatorMessage Normal Suspend
             runInstance chContract msg
@@ -157,8 +157,8 @@ logStopped :: forall s e effs.
     )
     => ResumableResult e (Event s) (Handlers s) ()
     -> Eff effs ()
-logStopped ResumableResult{wcsFinalState} =
-    case wcsFinalState of
+logStopped ResumableResult{_finalState} =
+    case _finalState of
         Left e  -> logWarn $ StoppedWithError $ show e
         Right _ -> logInfo $ StoppedNoError
 
@@ -177,7 +177,7 @@ runInstance :: forall s e effs.
 runInstance contract event = do
     hks <- getHooks @s @e
     when (null hks) $
-        gets @(ContractInstanceState s e ()) instContractState >>= logStopped
+        gets @(ContractInstanceStateInternal s e ()) (view resumableResult . cisiSuspState) >>= logStopped
     unless (null hks) $ do
         case event of
             Just Freeze -> do
@@ -187,16 +187,16 @@ runInstance contract event = do
             Just (EndpointCall _ _ vl) -> do
                 logInfo $ ReceiveEndpointCall vl
                 e <- decodeEvent @s vl
-                _ <- respondToEvent @s @e contract e
+                _ <- respondToEvent @s @e e
                 sleep @effs Normal >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
-                state <- get @(ContractInstanceState s e ())
-                let stateJSON = JSON.toJSON state
+                state <- get @(ContractInstanceStateInternal s e ())
+                let stateJSON = JSON.toJSON $ toInstanceState state
                 logInfo $ SendingContractState sender
                 void $ mkSysCall @effs @EmulatorMessage Normal (Message sender $ ContractInstanceStateResponse stateJSON)
                 sleep @effs Normal >>= runInstance contract
             _ -> do
-                response <- respondToRequest @s @e contract handleBlockchainQueries
+                response <- respondToRequest @s @e handleBlockchainQueries
                 let prio =
                         maybe
                             -- If no events could be handled we go to sleep
@@ -228,23 +228,22 @@ decodeEvent vl =
                 throwError msg
             JSON.Success event' -> pure event'
 
-getHooks :: forall s e effs. Member (State (ContractInstanceState s e ())) effs => Eff effs [Request (Handlers s)]
-getHooks = State.unRequests . wcsRequests <$> gets @(ContractInstanceState s e ()) instContractState
+getHooks :: forall s e effs. Member (State (ContractInstanceStateInternal s e ())) effs => Eff effs [Request (Handlers s)]
+getHooks = gets @(ContractInstanceStateInternal s e ()) (State.unRequests . view requests . view resumableResult . cisiSuspState)
 
 -- | Add a 'Response' to the contract instance state
 addResponse
     :: forall s e effs.
-    ( Member (State (ContractInstanceState s e ())) effs
+    ( Member (State (ContractInstanceStateInternal s e ())) effs
     , Member (LogMsg ContractInstanceMsg) effs
     )
-    => Contract s e ()
-    -> Response (Event s)
+    => Response (Event s)
     -> Eff effs ()
-addResponse contract e = do
-    oldState <- get @(ContractInstanceState s e ())
-    let newState = addEventInstanceState contract e oldState
-    put newState
-    logNewMessages @s @e (wcsLogs $ instContractState oldState)
+addResponse e = do
+    oldState <- get @(ContractInstanceStateInternal s e ())
+    let newState = addEventInstanceState e oldState
+    traverse_ put newState
+    logNewMessages @s @e
 
 raiseWallet :: forall f effs.
     ( Member f EmulatedWalletEffects
@@ -272,7 +271,7 @@ type ContractInstanceRequests effs =
 -- | Respond to a specific event
 respondToEvent ::
     forall s e effs.
-    ( Member (State (ContractInstanceState s e ())) effs
+    ( Member (State (ContractInstanceStateInternal s e ())) effs
     , Member MultiAgentEffect effs
     , Member (Reader Wallet) effs
     , Member ContractRuntimeEffect effs
@@ -280,11 +279,10 @@ respondToEvent ::
     , Member (LogMsg ContractInstanceMsg) effs
     , ContractConstraints s
     )
-    => Contract s e ()
-    -> Event s
+    => Event s
     -> Eff effs (Maybe (Response (Event s)))
-respondToEvent contract e =
-    respondToRequest @s @e contract $ RequestHandler $ \h -> do
+respondToEvent e =
+    respondToRequest @s @e $ RequestHandler $ \h -> do
         guard $ handlerName h == eventName e
         pure e
 
@@ -292,7 +290,7 @@ respondToEvent contract e =
 --   and maybe respond to them. Returns the response that was provided to the
 --   contract, if any.
 respondToRequest :: forall s e effs.
-    ( Member (State (ContractInstanceState s e ())) effs
+    ( Member (State (ContractInstanceStateInternal s e ())) effs
     , Member MultiAgentEffect effs
     , Member (Reader Wallet) effs
     , Member ContractRuntimeEffect effs
@@ -300,11 +298,10 @@ respondToRequest :: forall s e effs.
     , Member (LogMsg ContractInstanceMsg) effs
     , ContractConstraints s
     )
-    => Contract s e ()
-    -> RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
+    => RequestHandler (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Handlers s) (Event s)
     -- ^ How to respond to the requests.
     ->  Eff effs (Maybe (Response (Event s)))
-respondToRequest contract f = do
+respondToRequest f = do
     hks <- getHooks @s @e
     ownWallet <- ask @Wallet
     let hdl :: (Eff (Reader ContractInstanceId ': ContractRuntimeEffect ': EmulatedWalletEffects) (Maybe (Response (Event s)))) = tryHandler (wrapHandler f) hks
@@ -323,7 +320,7 @@ respondToRequest contract f = do
                 $ subsume @ContractRuntimeEffect
                 $ subsume @(Reader ContractInstanceId) hdl'
     response <- response_
-    traverse_ (addResponse @s @e contract) response
+    traverse_ (addResponse @s @e) response
     logResponse @s @e response
     pure response
 
@@ -334,7 +331,7 @@ respondToRequest contract f = do
 logResponse ::  forall s e effs.
     ( ContractConstraints s
     , Member (LogMsg ContractInstanceMsg) effs
-    , Member (State (ContractInstanceState s e ())) effs
+    , Member (State (ContractInstanceStateInternal s e ())) effs
     )
     => Maybe (Response (Event s))
     -> Eff effs ()
@@ -346,7 +343,7 @@ logResponse = \case
 
 logCurrentRequests :: forall s e effs.
     ( ContractConstraints s
-    , Member (State (ContractInstanceState s e ())) effs
+    , Member (State (ContractInstanceStateInternal s e ())) effs
     , Member (LogMsg ContractInstanceMsg) effs
     )
     => Eff effs ()
@@ -358,12 +355,9 @@ logCurrentRequests = do
 --   instance and log them with the 'LogMsg' effect.
 logNewMessages :: forall s e effs.
     ( Member (LogMsg ContractInstanceMsg) effs
-    , Member (State (ContractInstanceState s e ())) effs
+    , Member (State (ContractInstanceStateInternal s e ())) effs
     )
-    => Seq (LogMessage JSON.Value) -- old messages
-    -> Eff effs ()
-logNewMessages oldMessages = do
-    newState <- get @(ContractInstanceState s e ())
-    let contractLogs = wcsLogs $ instContractState newState
-        newContractLogs = Seq.drop (Seq.length oldMessages) contractLogs
+    => Eff effs ()
+logNewMessages = do
+    newContractLogs <- gets @(ContractInstanceStateInternal s e ()) (view (resumableResult . logs) . cisiSuspState)
     traverse_ (send . LMessage . fmap ContractLog) newContractLogs
