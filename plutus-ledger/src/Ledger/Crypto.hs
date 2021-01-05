@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module Ledger.Crypto(
     PubKey(..)
     , PubKeyHash(..)
@@ -31,6 +32,7 @@ module Ledger.Crypto(
     ) where
 
 import           Codec.Serialise.Class      (Serialise)
+import           Control.DeepSeq            (NFData)
 import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
@@ -60,7 +62,7 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Newtype, IotsType, ToJSON, FromJSON)
+    deriving anyclass (Newtype, IotsType, ToJSON, FromJSON, NFData)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -75,7 +77,7 @@ instance FromJSONKey PubKey where
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType, NFData)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -108,7 +110,7 @@ instance FromHttpApiData PrivateKey where
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (IotsType)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, NFData)
     deriving (Show, Pretty) via LedgerBytes
 
 instance ToJSON Signature where

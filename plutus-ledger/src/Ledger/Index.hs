@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+
 -- | An index of unspent transaction outputs, and some functions for validating
 --   transactions using the index.
 module Ledger.Index(
@@ -31,6 +32,7 @@ import           Prelude                          hiding (lookup)
 
 
 import           Codec.Serialise                  (Serialise)
+import           Control.DeepSeq                  (NFData)
 import           Control.Lens                     (itraverse, view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
@@ -66,7 +68,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
     deriving stock (Show, Generic)
     deriving newtype (Eq, Semigroup, Monoid, Serialise)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON, NFData)
 
 -- | Create an index of all UTxOs on the chain.
 initialise :: Blockchain -> UtxoIndex
