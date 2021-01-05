@@ -422,7 +422,7 @@ writeCBOR outp cborMode prog = do
             DeBruijn -> serialiseDbProgramCBOR (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
+    StdOutput       -> BSL.putStr cbor
 
 ---------------- Serialise a program using Flat ----------------
 
@@ -442,7 +442,7 @@ writeFlat outp flatMode prog = do
             DeBruijn -> serialiseDbProgramFlat (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
-    StdOutput       -> BSL.putStr flatProg >> T.putStrLn ""  -- FIXME: no newline
+    StdOutput       -> BSL.putStr flatProg
 
 
 ---------------- Write an AST as PLC source ----------------
