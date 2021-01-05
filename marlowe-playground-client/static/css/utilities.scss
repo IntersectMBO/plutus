@@ -3,6 +3,8 @@
 @import './utilities/text-align.scss';
 @import './utilities/border-color.scss';
 @import './utilities/border-width.scss';
+@import './utilities/flex.scss';
+
 .outline {
   outline: 1px solid lime;
 }
@@ -43,10 +45,6 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-}
-
-.flex {
-  display: flex;
 }
 
 .flex-ten {
@@ -142,3 +140,6 @@
   transform: rotate(180deg);
 }
 
+.pointer {
+  cursor: pointer;
+}

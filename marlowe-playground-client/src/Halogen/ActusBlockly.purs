@@ -1,5 +1,6 @@
 module Halogen.ActusBlockly where
 
+import Prelude hiding (div)
 import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, blockToCode)
@@ -28,7 +29,6 @@ import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, void, ($), (<<<), (<>))
 
 foreign import sendContractToShiny ::
   String ->

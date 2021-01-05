@@ -13,7 +13,7 @@ import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Simulation.Types (WebData)
+import Types (WebData)
 import Text.Pretty (pretty)
 
 data Action
@@ -22,6 +22,8 @@ data Action
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
+  -- FIXME: I think we want to change this action to be called from the simulator
+  --        with the action "soon to be implemented" ViewAsBlockly
   | SendResultToBlockly
   | InitHaskellProject String
   | MarkProjectAsSaved

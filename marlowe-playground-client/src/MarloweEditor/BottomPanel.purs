@@ -1,37 +1,28 @@
-module Simulation.BottomPanel where
+module MarloweEditor.BottomPanel (bottomPanel) where
 
-import Control.Alternative (map)
-import Data.Array (concatMap, drop, head, length, reverse)
+import Prelude hiding (div)
+import Data.Array (drop, head, length)
 import Data.Array as Array
-import Data.BigInteger (BigInteger)
-import Data.Either (Either(..), either)
-import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
-import Data.HeytingAlgebra (not, (||))
-import Data.Lens (_Just, has, only, previewOn, to, (^.))
-import Data.Lens.NonEmptyList (_Head)
+import Data.Lens (to, (^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
-import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust, isNothing)
-import Data.Newtype (unwrap)
+import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
-import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
-import Marlowe.Semantics (Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, timeouts)
+import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, contractHasErrors)
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
-import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
+import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
-import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), MarloweEvent(..), MultiStageAnalysisData(..), State, _SimulationNotStarted, _SimulationRunning, _analysisState, _bottomPanelView, _contract, _editorErrors, _editorWarnings, _executionState, _initialSlot, _log, _marloweState, _showBottomPanel, _showErrorDetail, _slot, _state, _transactionError, _transactionWarnings, isContractValid)
 import Text.Parsing.StringParser.Basic (lines)
 
 bottomPanel :: forall p. State -> HTML p Action
@@ -58,30 +49,20 @@ bottomPanel state =
                             ]
                         , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
                             [ li
-                                [ classes ((if hasRuntimeWarnings || hasRuntimeError then [ ClassName "error-tab" ] else []) <> isActive CurrentStateView)
-                                , onClick $ const $ Just $ ChangeSimulationView CurrentStateView
-                                ]
-                                [ a_ [ text "Current State" ] ]
-                            , li
                                 [ classes ([] <> isActive StaticAnalysisView)
-                                , onClick $ const $ Just $ ChangeSimulationView StaticAnalysisView
+                                , onClick $ const $ Just $ ChangeBottomPanelView StaticAnalysisView
                                 ]
                                 [ a_ [ text "Static Analysis" ] ]
                             , li
                                 [ classes ([] <> isActive MarloweWarningsView)
-                                , onClick $ const $ Just $ ChangeSimulationView MarloweWarningsView
+                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweWarningsView
                                 ]
                                 [ a_ [ text $ "Warnings" <> if Array.null warnings then "" else " (" <> show (length warnings) <> ")" ] ]
                             , li
                                 [ classes ([] <> isActive MarloweErrorsView)
-                                , onClick $ const $ Just $ ChangeSimulationView MarloweErrorsView
+                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweErrorsView
                                 ]
                                 [ a_ [ text $ "Errors" <> if Array.null errors then "" else " (" <> show (length errors) <> ")" ] ]
-                            , li
-                                [ classes ([] <> isActive MarloweLogView)
-                                , onClick $ const $ Just $ ChangeSimulationView MarloweLogView
-                                ]
-                                [ a_ [ text $ "Logs" ] ]
                             ]
                         ]
                     ]
@@ -93,13 +74,9 @@ bottomPanel state =
   where
   isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
 
-  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+  warnings = state ^. _editorWarnings
 
-  errors = state ^. (_marloweState <<< _Head <<< _editorErrors)
-
-  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
-
-  hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
+  errors = state ^. _editorErrors
 
   showingBottomPanel = state ^. _showBottomPanel
 
@@ -114,195 +91,6 @@ isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
 isReachabilityLoading _ = false
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
-panelContents state CurrentStateView =
-  div [ class_ Classes.panelContents ]
-    [ div [ classes [ rTable, rTable4cols, ClassName "panel-table" ] ]
-        ( warningsRow <> errorRow
-            <> eitherRow "Current Slot" (slotText)
-            <> dataRow "Expiration Slot" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
-            <> tableRow
-                { title: "Accounts"
-                , emptyMessage: "No accounts have been used"
-                , columns: ("Participant" /\ "Token" /\ "Money")
-                , rowData: accountsData
-                }
-            <> tableRow
-                { title: "Choices"
-                , emptyMessage: "No Choices have been made"
-                , columns: ("Choice ID" /\ "Participant" /\ "Chosen Value")
-                , rowData: choicesData
-                }
-            <> tableRow
-                { title: "Let Bindings"
-                , emptyMessage: "No values have been bound"
-                , columns: ("Identifier" /\ "Value" /\ mempty)
-                , rowData: bindingsData
-                }
-        )
-    ]
-  where
-  contractMaxTime Nothing = "Closed"
-
-  contractMaxTime (Just contract) =
-    let
-      t = (_.maxTime <<< unwrap <<< timeouts) contract
-    in
-      if t == zero then "Closed" else show t
-
-  warnings = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings)
-
-  warningsRow =
-    if Array.null warnings then
-      []
-    else
-      (headerRow "Warnings" ("type" /\ "details" /\ mempty)) <> foldMap displayWarning' warnings
-
-  error = previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< _Just)
-
-  errorRow =
-    if isNothing error then
-      []
-    else
-      (headerRow "Errors" ("details" /\ mempty /\ mempty)) <> displayError error
-
-  slotText = case previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) of
-    Just initialSlot -> Right $ show initialSlot
-    Nothing -> case previewOn state (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _slot) of
-      Just slot -> Right $ show slot
-      Nothing -> Left "Slot number not defined"
-
-  displayError Nothing = []
-
-  displayError (Just err) =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ classes [ rTableCell, ClassName "Rtable-single-column-row" ] ] [ text $ show err ]
-    ]
-
-  accountsData =
-    let
-      (accounts :: Array (Tuple (Tuple Party Token) BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _accounts <<< to Map.toUnfoldable)
-
-      asTuple (Tuple (Tuple accountOwner tok) value) = renderPrettyParty accountOwner /\ renderPrettyToken tok /\ text (showPrettyMoney value)
-    in
-      map asTuple accounts
-
-  choicesData =
-    let
-      (choices :: Array (Tuple ChoiceId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _choices <<< to Map.toUnfoldable)
-
-      asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = text (show choiceName) /\ renderPrettyParty choiceOwner /\ text (showPrettyMoney value)
-    in
-      map asTuple choices
-
-  bindingsData =
-    let
-      (bindings :: Array (Tuple ValueId BigInteger)) = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _state <<< _boundValues <<< to Map.toUnfoldable)
-
-      asTuple (Tuple (ValueId valueId) value) = text (show valueId) /\ text (showPrettyMoney value) /\ text ""
-    in
-      map asTuple bindings
-
-  tableRow { title, emptyMessage, rowData: [] } = emptyRow title emptyMessage
-
-  tableRow { title, columns, rowData } = headerRow title columns <> foldMap (\dataTuple -> row dataTuple) rowData
-
-  headerRow title (a /\ b /\ c) =
-    [ div [ classes [ rTableCell, first, Classes.header ] ] [ text title ] ]
-      <> map (\x -> div [ classes [ rTableCell, rTableCell, Classes.header ] ] [ text x ]) [ a, b, c ]
-
-  row (a /\ b /\ c) =
-    [ div [ classes [ rTableCell, first ] ] [] ]
-      <> map (\x -> div [ class_ rTableCell ] [ x ]) [ a, b, c ]
-
-  emptyRow title message =
-    [ div [ classes [ rTableCell, first, Classes.header ] ]
-        [ text title ]
-    , div [ classes [ rTableCell, rTableEmptyRow, Classes.header ] ] [ text message ]
-    ]
-
-  dataRow title message =
-    [ div [ classes [ rTableCell, first, Classes.header ] ]
-        [ text title ]
-    , div [ classes [ rTableCell, rTableDataRow ] ] [ text message ]
-    ]
-
-  eitherRow title = either (emptyRow title) (dataRow title)
-
-  displayWarning' (TransactionNonPositiveDeposit party owner tok amount) =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositiveDeposit" ]
-    , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "Party "
-        , renderPrettyParty party
-        , text $ " is asked to deposit "
-            <> showPrettyMoney amount
-            <> " units of "
-        , renderPrettyToken tok
-        , text " into account of "
-        , renderPrettyParty owner
-        , text "."
-        ]
-    ]
-
-  displayWarning' (TransactionNonPositivePay owner payee tok amount) =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionNonPositivePay" ]
-    , div [ class_ (ClassName "RTable-4-cells") ]
-        ( [ text $ "The contract is supposed to make a payment of "
-              <> showPrettyMoney amount
-              <> " units of "
-          , renderPrettyToken tok
-          , text $ " from account of "
-              <> show owner
-              <> " to "
-          ]
-            <> renderPrettyPayee payee
-            <> [ text "." ]
-        )
-    ]
-
-  displayWarning' (TransactionPartialPay owner payee tok amount expected) =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionPartialPay" ]
-    , div [ class_ (ClassName "RTable-4-cells") ]
-        ( [ text $ "The contract is supposed to make a payment of "
-              <> showPrettyMoney expected
-              <> " units of "
-          , renderPrettyToken tok
-          , text " from account of "
-          , renderPrettyParty owner
-          , text $ " to "
-          ]
-            <> renderPrettyPayee payee
-            <> [ text $ "."
-                  <> " but there is only "
-                  <> showPrettyMoney amount
-                  <> "."
-              ]
-        )
-    ]
-
-  displayWarning' (TransactionShadowing valId oldVal newVal) =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionShadowing" ]
-    , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "The contract defined the value with id "
-            <> show valId
-            <> " before, it was assigned the value "
-            <> show oldVal
-            <> " and now it is being assigned the value "
-            <> show newVal
-            <> "."
-        ]
-    ]
-
-  displayWarning' TransactionAssertionFailed =
-    [ div [ classes [ rTableCell, first ] ] []
-    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionAssertionFailed" ]
-    , div [ class_ (ClassName "RTable-4-cells") ]
-        [ text $ "An assertion in the contract did not hold." ]
-    ]
-
 panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
@@ -318,7 +106,7 @@ panelContents state StaticAnalysisView =
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
-  enabled' = not loading && not loadingReachability && isContractValid state
+  enabled' = not loading && not loadingReachability && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section
@@ -326,7 +114,7 @@ panelContents state MarloweWarningsView =
     ]
     content
   where
-  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+  warnings = state ^. _editorWarnings
 
   content =
     if Array.null warnings then
@@ -355,7 +143,7 @@ panelContents state MarloweErrorsView =
     ]
     content
   where
-  errors = state ^. (_marloweState <<< _Head <<< _editorErrors <<< to (map formatError))
+  errors = state ^. (_editorErrors <<< to (map formatError))
 
   content =
     if Array.null errors then
@@ -395,22 +183,6 @@ panelContents state MarloweErrorsView =
           "Error" /\ unlines lines'
     in
       { message, startColumn, startLineNumber, firstLine, restLines }
-
-panelContents state MarloweLogView =
-  section
-    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
-    ]
-    content
-  where
-  inputLines = state ^. (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _log <<< to (concatMap logToLines))
-
-  content =
-    [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
-        [ div [] [ text "Action" ]
-        , div [] [ text "Slot" ]
-        ]
-    , ul [] (reverse inputLines)
-    ]
 
 analysisResultPane :: forall p. State -> HTML p Action
 analysisResultPane state =
@@ -569,22 +341,22 @@ displayInput :: forall p i. Input -> Array (HTML p i)
 displayInput (IDeposit owner party tok money) =
   [ b_ [ text "IDeposit" ]
   , text " - Party "
-  , b_ [ renderPrettyParty party ]
+  , b_ [ text $ show party ]
   , text " deposits "
-  , b_ [ text $ showPrettyMoney money ]
+  , b_ [ text $ show money ]
   , text " units of "
-  , b_ [ renderPrettyToken tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " into account of "
-  , b_ [ renderPrettyParty owner ]
+  , b_ [ text (show owner) ]
   , text "."
   ]
 
 displayInput (IChoice (ChoiceId choiceId party) chosenNum) =
   [ b_ [ text "IChoice" ]
   , text " - Party "
-  , b_ [ renderPrettyParty party ]
+  , b_ [ text $ show party ]
   , text " chooses number "
-  , b_ [ text $ showPrettyMoney chosenNum ]
+  , b_ [ text $ show chosenNum ]
   , text " for choice "
   , b_ [ text $ show choiceId ]
   , text "."
@@ -622,48 +394,56 @@ displayWarnings warnings =
 
 displayWarning :: forall p. TransactionWarning -> Array (HTML p Action)
 displayWarning (TransactionNonPositiveDeposit party owner tok amount) =
-  [ b_ [ text "Non-Positive Deposit" ]
+  [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "
-  , b_ [ renderPrettyParty party ]
+  , b_ [ text $ show party ]
   , text " is asked to deposit "
-  , b_ [ text $ showPrettyMoney amount ]
+  , b_ [ text $ show amount ]
   , text " units of "
-  , b_ [ renderPrettyToken tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " into account of "
-  , b_ [ renderPrettyParty owner ]
+  , b_ [ text (show owner) ]
   , text "."
   ]
 
 displayWarning (TransactionNonPositivePay owner payee tok amount) =
-  [ b_ [ text "Non-Positive Pay" ]
+  [ b_ [ text "TransactionNonPositivePay" ]
   , text " - The contract is supposed to make a payment of "
-  , b_ [ text $ showPrettyMoney amount ]
+  , b_ [ text $ show amount ]
   , text " units of "
-  , b_ [ renderPrettyToken tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " from account of "
-  , b_ [ renderPrettyParty owner ]
+  , b_ [ text (show owner) ]
   , text " to "
-  , b_ $ renderPrettyPayee payee
+  , b_
+      [ text case payee of
+          (Account owner2) -> ("account of " <> (show owner2))
+          (Party dest) -> ("party " <> (show dest))
+      ]
   , text "."
   ]
 
 displayWarning (TransactionPartialPay owner payee tok amount expected) =
-  [ b_ [ text "Partial Pay" ]
+  [ b_ [ text "TransactionPartialPay" ]
   , text " - The contract is supposed to make a payment of "
-  , b_ [ text $ showPrettyMoney expected ]
+  , b_ [ text $ show expected ]
   , text " units of "
-  , b_ [ renderPrettyToken tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " from account of "
-  , b_ [ renderPrettyParty owner ]
+  , b_ [ text (show owner) ]
   , text " to "
-  , b_ $ renderPrettyPayee payee
+  , b_
+      [ text case payee of
+          (Account owner2) -> ("account of " <> (show owner2))
+          (Party dest) -> ("party " <> (show dest))
+      ]
   , text " but there is only "
-  , b_ [ text $ showPrettyMoney amount ]
+  , b_ [ text $ show amount ]
   , text "."
   ]
 
 displayWarning (TransactionShadowing valId oldVal newVal) =
-  [ b_ [ text "Value Shadowing" ]
+  [ b_ [ text "TransactionShadowing" ]
   , text " - The contract defined the value with id "
   , b_ [ text (show valId) ]
   , text " before, it was assigned the value "
@@ -674,76 +454,6 @@ displayWarning (TransactionShadowing valId oldVal newVal) =
   ]
 
 displayWarning TransactionAssertionFailed =
-  [ b_ [ text "Assertion Failed" ]
+  [ b_ [ text "TransactionAssertionFailed" ]
   , text " - An assertion in the contract did not hold."
   ]
-
-logToLines :: forall p a. MarloweEvent -> Array (HTML p a)
-logToLines (InputEvent (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
-
-logToLines (OutputEvent interval payment) = paymentToLines interval payment
-
-inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
-inputToLine (SlotInterval start end) (IDeposit accountOwner party token money) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Deposit "
-        , strong_ [ text (showPrettyMoney money) ]
-        , text " units of "
-        , strong_ [ renderPrettyToken token ]
-        , text " into account of "
-        , strong_ [ renderPrettyParty accountOwner ]
-        , text " as "
-        , strong_ [ renderPrettyParty party ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "Participant "
-        , strong_ [ renderPrettyParty choiceOwner ]
-        , text " chooses the value "
-        , strong_ [ text (showPrettyMoney chosenNum) ]
-        , text " for choice with id "
-        , strong_ [ text (show choiceName) ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-inputToLine (SlotInterval start end) INotify =
-  li [ classes [ ClassName "error-row" ] ]
-    [ text "Notify"
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
-paymentToLines slotInterval (Payment party money) = unfoldAssets money (paymentToLine slotInterval party)
-
-paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> HTML p a
-paymentToLine (SlotInterval start end) party token money =
-  li [ classes [ ClassName "error-row" ] ]
-    [ span_
-        [ text "The contract pays "
-        , strong_ [ text (showPrettyMoney money) ]
-        , text " units of "
-        , strong_ [ renderPrettyToken token ]
-        , text " to participant "
-        , strong_ [ renderPrettyParty party ]
-        ]
-    , span_ [ text $ (show start) <> " - " <> (show end) ]
-    ]
-
-unfoldAssets :: forall a. Assets -> (Token -> BigInteger -> a) -> Array a
-unfoldAssets (Assets mon) f =
-  concatMap
-    ( \(Tuple currencySymbol tokenMap) ->
-        ( map
-            ( \(Tuple tokenName value) ->
-                f (Token currencySymbol tokenName) value
-            )
-            (Map.toUnfoldable tokenMap)
-        )
-    )
-    (Map.toUnfoldable mon)

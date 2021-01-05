@@ -1,5 +1,6 @@
 module SaveAs.State where
 
+import Prelude hiding (div)
 import Data.Lens (assign, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -12,7 +13,6 @@ import Icons (Icon(..), icon)
 import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import Network.RemoteData (RemoteData(..), isFailure, isLoading)
-import Prelude (Unit, Void, const, pure, unit, ($), (<<<), (==), (||))
 import Prim.TypeError (class Warn, Text)
 import SaveAs.Types (Action(..), State, _projectName, _status)
 import Servant.PureScript.Settings (SPSettings_)

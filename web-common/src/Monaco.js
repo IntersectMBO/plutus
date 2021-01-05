@@ -171,3 +171,7 @@ exports.completionItemKindOrd_ = function (lt, eq, gt, a, b) {
     return gt;
   }
 }
+
+exports.setReadOnly_ = function (editor, val) {
+  editor.updateOptions({ readOnly: val })
+}

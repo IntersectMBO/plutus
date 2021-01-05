@@ -271,6 +271,8 @@ foreign import enableVimBindings_ :: EffectFn1 Editor (Effect Unit)
 
 foreign import enableEmacsBindings_ :: EffectFn1 Editor (Effect Unit)
 
+foreign import setReadOnly_ :: EffectFn2 Editor Boolean Unit
+
 markerSeverity :: String -> MarkerSeverity
 markerSeverity = runFn1 markerSeverity_
 
@@ -370,3 +372,6 @@ enableVimBindings = runEffectFn1 enableVimBindings_
 
 enableEmacsBindings :: Editor -> Effect (Effect Unit)
 enableEmacsBindings = runEffectFn1 enableEmacsBindings_
+
+setReadOnly :: Editor -> Boolean -> Effect Unit
+setReadOnly = runEffectFn2 setReadOnly_
