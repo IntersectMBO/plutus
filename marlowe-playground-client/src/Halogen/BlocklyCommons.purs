@@ -2,11 +2,11 @@
 -- ActusBlocklyEditor and this module could be called solely Blockly
 module Halogen.BlocklyCommons where
 
+import Prelude hiding (div)
 import Blockly (addChangeListener, removeChangeListener)
 import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Types (BlocklyEvent, Workspace)
 import Blockly.Types as BT
-import Control.Applicative (when)
 import Data.Foldable (oneOf)
 import Data.Lens (Lens', assign)
 import Data.Lens.Record (prop)
@@ -16,7 +16,6 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, raise)
 import Halogen.Query.EventSource (EventSource)
 import Halogen.Query.EventSource as EventSource
-import Prelude (Unit, bind, discard, pure, unit, ($), (/=), (<$>))
 import Web.Event.EventTarget (eventListener)
 
 blocklyEvents ::

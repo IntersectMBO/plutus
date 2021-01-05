@@ -1,5 +1,6 @@
 module NewProject.View where
 
+import Prelude hiding (div)
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
@@ -11,7 +12,6 @@ import Halogen.HTML.Properties (class_, classes, src)
 import MainFrame.Types (ChildSlots)
 import Modal.ViewHelpers (modalHeader)
 import NewProject.Types (Action(..), State, _error)
-import Prelude (const, map, ($), (<<<))
 import Projects.Types (Lang(..))
 
 render ::

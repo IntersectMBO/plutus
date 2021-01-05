@@ -1,45 +1,35 @@
 -- A separate module for types that are shared between Simulation and Simulation.BottomPanel
-module Simulation.Types where
+module SimulationPage.Types where
 
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
 import Data.Array (mapMaybe)
-import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Getter', Lens', Prism', Traversal', lens, preview, prism, set, to, view)
+import Data.Lens (Getter', Lens', Prism', Traversal', lens, preview, prism, set, to)
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
-import Data.List (List)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
-import Data.Set (Set)
 import Data.Symbol (SProxy(..))
-import Data.Tuple.Nested (type (/\))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
-import Halogen.Monaco (KeyBindings(..))
-import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
 import Marlowe.Holes (Holes)
-import Marlowe.Semantics (AccountId, Assets, Bound, Case, ChoiceId, ChosenNum, Contract, Input, Observation, Party(..), Payee, Payment, Slot, SlotInterval, Timeout, Token, TransactionError, TransactionInput, TransactionWarning, Value, ValueId, aesonCompatibleOptions, emptyState)
+import Marlowe.Semantics (AccountId, Assets, Bound, ChoiceId, ChosenNum, Contract, Input, Party(..), Payment, Slot, SlotInterval, Token, TransactionError, TransactionInput, TransactionWarning, aesonCompatibleOptions, emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
-import Projects.Types (Lang(..))
-import Servant.PureScript.Ajax (AjaxError)
-import Text.Parsing.StringParser (Pos)
-import Web.HTML.Event.DragEvent (DragEvent)
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -224,9 +214,12 @@ simulationNotStarted = simulationNotStartedWithSlot zero
 type MarloweState
   = { executionState :: ExecutionState
     , contract :: Maybe Contract
+    , holes :: Holes
+    -- NOTE: as part of the marlowe editor and simulator split this part of the
+    --       state wont be used, but it is left as it is because it may make sense
+    --       to use it as part of task SCP-1642
     , editorErrors :: Array IMarker
     , editorWarnings :: Array IMarker
-    , holes :: Holes
     }
 
 _executionState :: forall s a. Lens' { executionState :: a | s } a
@@ -266,95 +259,15 @@ emptyMarloweStateWithSlot sn =
   , executionState: emptyExecutionStateWithSlot sn
   }
 
-type WebData
-  = RemoteData AjaxError
-
-data ContractPathStep
-  = PayContPath
-  | IfTruePath
-  | IfFalsePath
-  | WhenCasePath Int
-  | WhenTimeoutPath
-  | LetPath
-  | AssertPath
-
-derive instance eqContractPathStep :: Eq ContractPathStep
-
-derive instance ordContractPathStep :: Ord ContractPathStep
-
-derive instance genericContractPathStep :: Generic ContractPathStep _
-
-instance showContractPathStep :: Show ContractPathStep where
-  show = genericShow
-
-type ContractPath
-  = List ContractPathStep
-
-data ContractZipper
-  = PayZip AccountId Payee Token Value ContractZipper
-  | IfTrueZip Observation ContractZipper Contract
-  | IfFalseZip Observation Contract ContractZipper
-  | WhenCaseZip (List Case) S.Action ContractZipper (List Case) Timeout Contract -- First list is stored reversed for efficiency
-  | WhenTimeoutZip (Array Case) Timeout ContractZipper
-  | LetZip ValueId Value ContractZipper
-  | AssertZip Observation ContractZipper
-  | HeadZip
-
-type PrefixMap
-  = Map ContractPathStep (Set (NonEmptyList ContractPathStep))
-
-type RemainingSubProblemInfo
-  = List (ContractZipper /\ Contract)
-
-type AnalysisInProgressRecord
-  = { currPath :: ContractPath
-    , currContract :: Contract
-    , currChildren :: RemainingSubProblemInfo
-    , originalState :: S.State
-    , originalContract :: Contract
-    , subproblems :: RemainingSubProblemInfo
-    , numSubproblems :: Int
-    , numSolvedSubproblems :: Int
-    , counterExampleSubcontracts :: List ContractPath
-    }
-
-type AnalysisCounterExamplesRecord
-  = { originalState :: S.State
-    , originalContract :: Contract
-    , counterExampleSubcontracts :: NonEmptyList ContractPath
-    }
-
-data MultiStageAnalysisData
-  = AnalysisNotStarted
-  | AnalysisInProgress AnalysisInProgressRecord
-  | AnalyisisFailure String
-  | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
-  | AnalysisFinishedAndPassed
-
-data AnalysisState
-  = NoneAsked
-  | WarningAnalysis (WebData Result)
-  | ReachabilityAnalysis MultiStageAnalysisData
-
-type MultiStageAnalysisProblemDef
-  = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
-    , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
-    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
-    }
-
+--
 type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState
-    , activeDemo :: String
     , helpContext :: HelpContext
-    , editorKeybindings :: KeyBindings
     , showBottomPanel :: Boolean
-    , showErrorDetail :: Boolean
     , bottomPanelView :: BottomPanelView
-    , analysisState :: AnalysisState
-    , selectedHole :: Maybe String
+    -- QUESTION: What is the use of oldContract?
     , oldContract :: Maybe String
-    , source :: Lang
     , hasUnsavedChanges :: Boolean
     }
 
@@ -370,70 +283,31 @@ _currentMarloweState = _marloweState <<< _Head
 _currentContract :: Lens' State (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
 
-_activeDemo :: Lens' State String
-_activeDemo = prop (SProxy :: SProxy "activeDemo")
-
 _helpContext :: Lens' State HelpContext
 _helpContext = prop (SProxy :: SProxy "helpContext")
-
-_editorKeybindings :: Lens' State KeyBindings
-_editorKeybindings = prop (SProxy :: SProxy "editorKeybindings")
 
 _showBottomPanel :: Lens' State Boolean
 _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
-_showErrorDetail :: Lens' State Boolean
-_showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
-
 _bottomPanelView :: Lens' State BottomPanelView
 _bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
 
-_analysisState :: Lens' State AnalysisState
-_analysisState = prop (SProxy :: SProxy "analysisState")
-
-_selectedHole :: Lens' State (Maybe String)
-_selectedHole = prop (SProxy :: SProxy "selectedHole")
-
 _oldContract :: Lens' State (Maybe String)
 _oldContract = prop (SProxy :: SProxy "oldContract")
-
-_source :: Lens' State Lang
-_source = prop (SProxy :: SProxy "source")
 
 mkState :: State
 mkState =
   { showRightPanel: true
   , marloweState: NEL.singleton emptyMarloweState
-  , activeDemo: mempty
   , helpContext: MarloweHelp
-  , editorKeybindings: DefaultBindings
   , showBottomPanel: true
-  , showErrorDetail: false
   , bottomPanelView: CurrentStateView
-  , analysisState: NoneAsked
-  , selectedHole: Nothing
   , oldContract: Nothing
-  , source: Marlowe
   , hasUnsavedChanges: false
   }
 
-isContractValid :: State -> Boolean
-isContractValid state =
-  (view (_marloweState <<< _Head <<< _contract <<< to isJust) state)
-    && (view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state)
-
 data Action
   = Init
-  -- editor
-  | HandleEditorMessage Monaco.Message
-  | HandleDragEvent DragEvent
-  | HandleDropEvent DragEvent
-  | MoveToPosition Pos Pos
-  | SelectEditorKeyBindings KeyBindings
-  | LoadScript String
-  | SetEditorText String
-  | InitMarloweProject String
-  | MarkProjectAsSaved
   -- marlowe actions
   | SetInitialSlot Slot
   | StartSimulation
@@ -445,35 +319,20 @@ data Action
   | ResetContract
   | ResetSimulator
   | Undo
-  | SelectHole (Maybe String)
+  | LoadContract String
   -- simulation view
   | ChangeSimulationView BottomPanelView
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
-  | ShowErrorDetail Boolean
-  -- Editors
-  | SetBlocklyCode
-  | EditHaskell
-  | EditJavascript
-  | EditActus
-  -- websocket
-  | AnalyseContract
-  | AnalyseReachabilityContract
-  | Save
+  | ViewAsBlockly
+  | EditSource
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Simulation." <> s
 
 instance isEventAction :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
-  toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
-  toEvent (HandleDragEvent _) = Just $ defaultEvent "HandleDragEvent"
-  toEvent (HandleDropEvent _) = Just $ defaultEvent "HandleDropEvent"
-  toEvent (MoveToPosition _ _) = Just $ defaultEvent "MoveToPosition"
-  toEvent (SelectEditorKeyBindings _) = Just $ defaultEvent "SelectEditorKeyBindings"
-  toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
-  toEvent (SetEditorText _) = Just $ defaultEvent "SetEditorText"
   toEvent (SetInitialSlot _) = Just $ defaultEvent "SetInitialSlot"
   toEvent StartSimulation = Just $ defaultEvent "StartSimulation"
   toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
@@ -484,31 +343,19 @@ instance isEventAction :: IsEvent Action where
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
   toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
-  toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
+  toEvent (LoadContract _) = Just $ defaultEvent "LoadContract"
   toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
-  toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
-  toEvent EditHaskell = Just $ defaultEvent "EditHaskell"
-  toEvent EditJavascript = Just $ defaultEvent "EditJavascript"
-  toEvent EditActus = Just $ defaultEvent "EditActus"
-  toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
-  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
-  toEvent Save = Just $ defaultEvent "Save"
-  toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
-  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
+  toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
+  toEvent EditSource = Just $ defaultEvent "EditSource"
 
 data Query a
   = WebsocketResponse (RemoteData String Result) a
 
 data BottomPanelView
   = CurrentStateView
-  | StaticAnalysisView
-  | MarloweErrorsView
-  | MarloweWarningsView
-  | MarloweLogView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView
 

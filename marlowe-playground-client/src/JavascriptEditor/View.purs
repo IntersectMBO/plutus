@@ -1,5 +1,6 @@
 module JavascriptEditor.View where
 
+import Prelude hiding (div)
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
@@ -18,7 +19,6 @@ import JavascriptEditor.Types (Action(..), State, _compilationResult, _keybindin
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Prelude (bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Text.Pretty (pretty)
 
 render ::
@@ -54,6 +54,7 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _keybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))

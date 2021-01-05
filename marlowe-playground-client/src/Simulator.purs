@@ -1,6 +1,6 @@
-module Simulation.State where
+module Simulator where
 
-import Control.Bind
+import Prelude
 import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
@@ -23,8 +23,7 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
-import Prelude (class HeytingAlgebra, class Ord, Unit, add, append, map, max, mempty, min, one, otherwise, zero, (#), ($), (<<<), (<>), (==), (>), (>=))
-import Simulation.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
+import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -85,7 +84,7 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
     let
-      lintResult = lint Nil marloweState parsedContract
+      lintResult = lint Nil parsedContract
 
       mContract = fromTerm parsedContract
     in
@@ -220,13 +219,24 @@ stateToTxInput executionState =
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
 
-updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
+updateMarloweState ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  (MarloweState -> MarloweState) ->
+  m Unit
 updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
 
-updateContractInState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => String -> m Unit
+updateContractInState ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  String ->
+  m Unit
 updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
 
-applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
+applyTransactions ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  m Unit
 applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
 
 applyInput ::
@@ -251,7 +261,9 @@ moveToSlot ::
 moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set (_executionState <<< _SimulationRunning <<< _slot) slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
-hasHistory state = has (_marloweState <<< _Tail) state
+hasHistory state = case state ^. (_marloweState <<< _Tail) of
+  Nil -> false
+  Cons _ _ -> true
 
 evalObservation :: MarloweState -> Observation -> Boolean
 evalObservation state@{ executionState: SimulationRunning executionState } observation =

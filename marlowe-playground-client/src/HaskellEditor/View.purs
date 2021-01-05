@@ -46,7 +46,9 @@ otherActions state =
     [ editorOptions state
     , compileButton state
     , sendResultButton state "Send To Simulator" SendResultToSimulator
-    , sendResultButton state "Send To Blockly" SendResultToBlockly
+    -- FIXME: I think we want to change this action to be called from the simulator
+    --        with the action "soon to be implemented" ViewAsBlockly
+    -- , sendResultButton state "Send To Blockly" SendResultToBlockly
     ]
 
 editorOptions :: forall p. State -> HTML p Action
@@ -55,6 +57,7 @@ editorOptions state =
     [ select
         [ HTML.id_ "editor-options"
         , class_ (ClassName "dropdown-header")
+        , HTML.value $ show $ state ^. _haskellEditorKeybindings
         , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
         ]
         (map keybindingItem (upFromIncluding bottom))
@@ -75,6 +78,7 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
   where
   setup editor =
     liftEffect do
+      -- TODO we shouldn't access local storage from the view
       mContents <- LocalStorage.getItem StaticData.bufferLocalStorageKey
       let
         contents = fromMaybe HE.escrow mContents

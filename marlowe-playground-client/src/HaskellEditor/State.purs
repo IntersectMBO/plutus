@@ -27,7 +27,8 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (WebData, _result)
+import SimulationPage.Types (_result)
+import Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import Webghc.Server (CompileRequest(..))
 
@@ -69,6 +70,8 @@ handleAction _ (ShowBottomPanel val) = do
 
 handleAction _ SendResultToSimulator = pure unit
 
+-- FIXME: I think we want to change this action to be called from the simulator
+--        with the action "soon to be implemented" ViewAsBlockly
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
   case mContract of

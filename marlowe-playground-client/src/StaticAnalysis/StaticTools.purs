@@ -1,5 +1,6 @@
 module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
 
+import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Foldable (for_)
@@ -12,19 +13,19 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, query)
 import Halogen.Monaco as Monaco
-import MainFrame.Types (ChildSlots, _marloweEditorSlot)
+import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
+import MarloweEditor.Types (Action, AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, State, _analysisState)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Void, bind, discard, flip, identity, map, pure, unit, void, when, ($), (+), (-), (<$>), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (Action, AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, State, WebData, _analysisState)
+import Types (WebData)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -285,5 +286,5 @@ stepAnalysis problemDef settings isCounterExample rad =
       pure result
   where
   refreshEditor = do
-    mContent <- query _marloweEditorSlot unit (Monaco.GetText identity)
-    for_ mContent (\content -> void $ query _marloweEditorSlot unit $ Monaco.SetText content unit)
+    mContent <- query _simulatorEditorSlot unit (Monaco.GetText identity)
+    for_ mContent (\content -> void $ query _simulatorEditorSlot unit $ Monaco.SetText content unit)
