@@ -112,6 +112,7 @@ library
         aeson -any,
         base >=4.7 && <5,
         containers -any,
+        deepseq -any,
         lens -any,
         text -any,
         hashable -any,

@@ -76,6 +76,7 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        deepseq -any,
         template-haskell >=2.13.0.0,
         th-abstraction -any,
         prettyprinter -any,

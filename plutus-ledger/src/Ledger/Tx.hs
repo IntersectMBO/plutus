@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module Ledger.Tx(
     -- * Transactions
     Tx(..),
@@ -66,6 +67,7 @@ module Ledger.Tx(
 
 import qualified Codec.CBOR.Write          as Write
 import           Codec.Serialise.Class     (Serialise, encode)
+import           Control.DeepSeq           (NFData)
 import           Control.Lens
 import           Crypto.Hash               (Digest, SHA256, hash)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
@@ -135,7 +137,7 @@ data Tx = Tx {
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic, Typeable)
-      deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
+      deriving anyclass (ToJSON, FromJSON, Serialise, IotsType, NFData)
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
@@ -255,7 +257,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
+    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -277,7 +279,7 @@ data TxInType =
       ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
+    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType, NFData)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
@@ -285,7 +287,7 @@ data TxIn = TxIn {
     txInType :: !TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON)
+    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, NFData)
 
 instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
@@ -326,7 +328,7 @@ data TxOutType =
     PayToScript !DatumHash -- ^ A pay-to-script output with the given datum hash.
     | PayToPubKey -- ^ A pay-to-pubkey output.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType, NFData)
 
 instance PlutusTx.Eq TxOutType where
     PayToScript l == PayToScript r = l PlutusTx.== r
@@ -345,7 +347,7 @@ data TxOut = TxOut {
     txOutType    :: !TxOutType
     }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
+    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType, NFData)
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue} =

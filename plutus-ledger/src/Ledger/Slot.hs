@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -Wno-identities #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 -- | Slots and slot ranges.
 module Ledger.Slot(
       Slot(..)
@@ -20,6 +21,7 @@ module Ledger.Slot(
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
@@ -40,7 +42,7 @@ import           Ledger.Interval
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass ( FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType)
+    deriving anyclass ( FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType, NFData)
     deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''Slot

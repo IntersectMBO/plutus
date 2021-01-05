@@ -7,6 +7,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module Ledger.Address (
     Address (..),
     pubKeyAddress,
@@ -15,6 +16,7 @@ module Ledger.Address (
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc
@@ -31,7 +33,7 @@ import           Ledger.Scripts
 data Address = PubKeyAddress PubKeyHash
     | ScriptAddress ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType, Serialise, Hashable)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType, Serialise, Hashable, NFData)
 
 instance Pretty Address where
     pretty (PubKeyAddress pkh) = "PubKeyAddress:" <+> pretty pkh

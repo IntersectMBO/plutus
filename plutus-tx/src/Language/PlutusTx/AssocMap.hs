@@ -13,6 +13,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 -- | A map represented as an "association list" of key-value pairs.
 module Language.PlutusTx.AssocMap (
     Map
@@ -31,6 +32,7 @@ module Language.PlutusTx.AssocMap (
     , mapThese
     ) where
 
+import           Control.DeepSeq           (NFData)
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
@@ -44,7 +46,7 @@ import           Language.PlutusTx.These
 newtype Map k v = Map { unMap :: [(k, v)] }
     deriving (Show)
     deriving stock (Generic)
-    deriving newtype (Eq, Ord, IsData)
+    deriving newtype (Eq, Ord, IsData, NFData)
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
