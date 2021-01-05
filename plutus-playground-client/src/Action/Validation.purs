@@ -29,6 +29,3 @@ actionIsValid simulatorWallets simulatorAction = actionWalletsExist simulatorAct
   actionWalletsExist (CallEndpoint a@{ caller }) = walletExists caller
 
   actionWalletsExist (PayToWallet a@{ sender, recipient }) = walletExists sender && walletExists recipient
-
-actionsAreValid :: Array SimulatorWallet -> Array (ContractCall FormArgument) -> Boolean
-actionsAreValid = Array.all <<< actionIsValid
