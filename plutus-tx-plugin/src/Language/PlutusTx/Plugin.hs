@@ -334,7 +334,7 @@ runCompiler opts expr = do
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
-    let uplcP = UPLC.eraseProgram plcP
+    uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.eraseProgram plcP
     pure (spirP, uplcP)
 
   where

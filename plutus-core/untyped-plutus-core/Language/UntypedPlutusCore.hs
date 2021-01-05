@@ -8,9 +8,11 @@ import           Language.UntypedPlutusCore.Check.Uniques      as Uniques
 import           Language.UntypedPlutusCore.Parser             as Parser
 import           Language.UntypedPlutusCore.Rename             as Rename
 
+import           Language.PlutusCore.Name                      as Export
 import           Language.UntypedPlutusCore.Core               as Export
 import           Language.UntypedPlutusCore.Core.Instance.CBOR as Export
 import           Language.UntypedPlutusCore.Core.Instance.Flat as Export
+import           Language.UntypedPlutusCore.DeBruijn           as Export
 import           Language.UntypedPlutusCore.Size               as Export
 import           Language.UntypedPlutusCore.Subst              as Export
 -- Also has some functions

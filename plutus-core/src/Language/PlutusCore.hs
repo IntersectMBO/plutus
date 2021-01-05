@@ -52,6 +52,13 @@ module Language.PlutusCore
     , termAnn
     , typeAnn
     , mapFun
+    -- * DeBruijn representation
+    , DeBruijn (..)
+    , NamedDeBruijn (..)
+    , deBruijnProgram
+    , deBruijnTerm
+    , unDeBruijnProgram
+    , unDeBruijnTerm
     -- * Lexer
     , AlexPosn (..)
     -- * Formatting
@@ -75,8 +82,12 @@ module Language.PlutusCore
     -- * Errors
     , Error (..)
     , AsError (..)
+    , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
+    , AsUniqueError (..)
+    , FreeVariableError (..)
+    , AsFreeVariableError (..)
     -- * Base functors
     , TermF (..)
     , TypeF (..)
@@ -110,6 +121,7 @@ import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.CBOR                  ()
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Flat                  ()

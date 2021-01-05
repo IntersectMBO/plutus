@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module TestLib where
@@ -20,7 +21,6 @@ import           Control.Monad.Reader         as Reader
 
 import qualified Language.PlutusCore          as PLC
 import qualified Language.PlutusCore.Constant as PLC
-import qualified Language.PlutusCore.DeBruijn as PLC
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -101,12 +101,12 @@ ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> run
 goldenPlcFromPir :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
-                                withExceptT toException $ PLC.deBruijnProgram p)
+                                withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
 goldenPlcFromPirCatch :: ToTPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
-                                           withExceptT toException $ PLC.deBruijnProgram p)
+                                           withExceptT @_ @PLC.FreeVariableError toException $ PLC.deBruijnProgram p)
 
 goldenEvalPir :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])

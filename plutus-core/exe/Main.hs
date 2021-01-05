@@ -18,7 +18,6 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
 import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
@@ -318,7 +317,7 @@ typedDeBruijnNotSupportedError =
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
-  r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+  r <- PLC.runQuoteT $ runExceptT @UPLC.FreeVariableError (UPLC.deBruijnProgram prog)
   case r of
     Left e  -> hPutStrLn stderr (show e) >> exitFailure
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
@@ -330,7 +329,7 @@ toDeBruijn prog = do
 fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> hPutStrLn stderr (show e) >> exitFailure
       Right p -> return p
 
