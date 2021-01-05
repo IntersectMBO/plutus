@@ -108,10 +108,10 @@
         "homepage": "",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "ac3a4ca0d3419a56c344f6c4a7a01a30ed3f639f",
-        "sha256": "0nzr5ci675p2fa6l6yaaqxykn12nf5f13kf6jx0m861jsgw1j6hl",
+        "rev": "c7e3896e35ceea480a7484ec1709be7bdda8849d",
+        "sha256": "0xl9f6ydgk8gnn22f392p3zna0cishwj8id1vpy0p0s06wsbhfs5",
         "type": "tarball",
-        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/ac3a4ca0d3419a56c344f6c4a7a01a30ed3f639f.tar.gz",
+        "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/c7e3896e35ceea480a7484ec1709be7bdda8849d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "sphinxcontrib-haddock": {
