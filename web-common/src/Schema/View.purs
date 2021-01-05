@@ -1,4 +1,4 @@
-module Playground.Schema (actionArgumentForm) where
+module Schema.View (actionArgumentForm) where
 
 import Prelude hiding (div)
 import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, row_, textMuted, validFeedback_, wasValidated)
