@@ -17,6 +17,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
     -- * Scripts
@@ -237,7 +238,7 @@ instance BA.ByteArrayAccess Validator where
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: Data  }
   deriving stock (Generic, Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, NFData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
   deriving Pretty via Data
 
@@ -250,7 +251,7 @@ instance BA.ByteArrayAccess Datum where
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: Data }
   deriving stock (Generic, Show)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
+  deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, NFData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
 instance Pretty Redeemer where
@@ -284,7 +285,7 @@ newtype ValidatorHash =
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
-    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
+    deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
 instance IotsType ValidatorHash where
     iotsDefinition = iotsDefinition @LedgerBytes
@@ -294,7 +295,7 @@ newtype DatumHash =
     DatumHash Builtins.ByteString
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData, NFData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
 instance IotsType DatumHash where

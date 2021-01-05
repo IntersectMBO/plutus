@@ -12,9 +12,11 @@
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
+
 module Wallet.Emulator.Chain where
 
 import           Codec.Serialise           (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Control.Lens              hiding (index)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Log   (LogMsg, logDebug, logInfo)
@@ -55,7 +57,7 @@ data ChainState = ChainState {
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
     _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
     _currentSlot      :: Slot -- ^ The current slot number
-} deriving (Show, Generic, Serialise)
+} deriving (Show, Generic, Serialise, NFData)
 
 emptyChainState :: ChainState
 emptyChainState = ChainState [] [] mempty 0

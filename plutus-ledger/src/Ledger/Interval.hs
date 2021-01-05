@@ -11,6 +11,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+
 -- | A type for intervals and associated functions.
 module Ledger.Interval(
       Interval(..)
@@ -37,6 +38,7 @@ module Ledger.Interval(
     ) where
 
 import           Codec.Serialise.Class     (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Hashable             (Hashable)
 import           GHC.Generics              (Generic)
@@ -55,12 +57,12 @@ import           Language.PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType, NFData)
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType, NFData)
 
 -- | Whether a bound is inclusive or not.
 type Closure = Bool
@@ -68,12 +70,12 @@ type Closure = Bool
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType, NFData)
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType)
+    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, IotsType, NFData)
 
 PlutusTx.makeIsDataIndexed ''Extended [('NegInf,0),('Finite,1),('PosInf,2)]
 PlutusTx.makeIsData ''UpperBound
