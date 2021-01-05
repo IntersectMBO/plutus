@@ -55,8 +55,7 @@ handleAction _ (SetKeyBindings binding) = do
   assign _keyBindings binding
   liftEffect $ LocalStorage.setItem keybindingsLocalStorageKey (show binding)
 
-handleAction _ ToggleFeedbackPane = do
-  modifying _feedbackPaneMinimised not
+handleAction _ ToggleFeedbackPane = modifying _feedbackPaneMinimised not
 
 handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
 

@@ -199,13 +199,13 @@ type WebEvaluationResult
   = WebData (Either PlaygroundError EvaluationResult)
 
 -- this synonym is defined in playground-common/src/Playground/Types.hs
--- is this the best place to put it?
 type SimulatorAction
   = ContractCall FormArgument
 
 newtype State
   = State
-  { demoFilesMenuOpen :: Boolean
+  { demoFilesMenuVisible :: Boolean
+  , gistErrorPaneVisible :: Boolean
   , currentView :: View
   , contractDemos :: Array ContractDemo
   , currentDemoName :: Maybe String
@@ -218,14 +218,16 @@ newtype State
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
   , gistUrl :: Maybe String
-  , gistErrorPaneVisible :: Boolean
   , blockchainVisualisationState :: Chain.State
   }
 
 derive instance newtypeState :: Newtype State _
 
-_demoFilesMenuOpen :: Lens' State Boolean
-_demoFilesMenuOpen = _Newtype <<< prop (SProxy :: SProxy "demoFilesMenuOpen")
+_demoFilesMenuVisible :: Lens' State Boolean
+_demoFilesMenuVisible = _Newtype <<< prop (SProxy :: SProxy "demoFilesMenuVisible")
+
+_gistErrorPaneVisible :: Lens' State Boolean
+_gistErrorPaneVisible = _Newtype <<< prop (SProxy :: SProxy "gistErrorPaneVisible")
 
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
@@ -274,9 +276,6 @@ _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 
 _gistUrl :: Lens' State (Maybe String)
 _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
-
-_gistErrorPaneVisible :: Lens' State Boolean
-_gistErrorPaneVisible = _Newtype <<< prop (SProxy :: SProxy "gistErrorPaneVisible")
 
 _resultBlockchain :: Lens' EvaluationResult Blockchain
 _resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")

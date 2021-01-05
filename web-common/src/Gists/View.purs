@@ -64,15 +64,11 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
             , loadButton
             , publishButton
             ]
-        , case createGistResult of
-            Success gist -> gistPane gist
-            Failure err ->
-              if gistErrorPaneVisible then
-                AjaxErrorPaneAction <$> closeableAjaxErrorPane err
-              else
-                empty
-            Loading -> empty
-            NotAsked -> empty
+        , case createGistResult, gistErrorPaneVisible of
+            Success gist, _ -> gistPane gist
+            Failure err, true -> AjaxErrorPaneAction <$> closeableAjaxErrorPane err
+            Failure err, false -> empty
+            _, _ -> empty
         ]
   where
   gistIdInputId = "gist-id"

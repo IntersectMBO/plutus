@@ -16,8 +16,8 @@ import Matryoshka (Algebra, cata)
 import Playground.Types (ContractCall(..), _FunctionSchema)
 import Schema (FormArgumentF(..))
 
-class Validity a where
-  isValid :: a -> Boolean
+isValid :: forall a. Validation a => a -> Boolean
+isValid = Array.null <<< validate
 
 class Validation a where
   validate :: a -> Array (WithPath ValidationError)
@@ -115,9 +115,6 @@ instance formArgumentValidation :: Validation (Fix FormArgumentF) where
 
     algebra (FormUnsupportedF _) = [ noPath Unsupported ]
 
-instance formArgumentValidity :: Validity (Fix FormArgumentF) where
-  isValid argument = validate argument == []
-
 ------------------------------------------------------------
 instance simulatorActionValidation :: Validation (ContractCall (Fix FormArgumentF)) where
   validate (AddBlocks _) = []
@@ -133,6 +130,3 @@ _argument = prop (SProxy :: SProxy "argument")
 
 _argumentValues :: forall r a. Lens' { argumentValues :: a | r } a
 _argumentValues = prop (SProxy :: SProxy "argumentValues")
-
-instance simulatorActionValidity :: Validity (ContractCall (Fix FormArgumentF)) where
-  isValid simulatorAction = validate simulatorAction == []

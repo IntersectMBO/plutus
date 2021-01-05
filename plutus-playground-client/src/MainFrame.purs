@@ -70,7 +70,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuOpen, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
@@ -97,7 +97,8 @@ mkInitialState editorState = do
   contractDemos <- mapError (\e -> error $ "Could not load demo scripts. Parsing errors: " <> show e) mkContractDemos
   pure
     $ State
-        { demoFilesMenuOpen: false
+        { demoFilesMenuVisible: false
+        , gistErrorPaneVisible: true
         , currentView: Editor
         , editorState
         , contractDemos
@@ -110,7 +111,6 @@ mkInitialState editorState = do
         , authStatus: NotAsked
         , createGistResult: NotAsked
         , gistUrl: Nothing
-        , gistErrorPaneVisible: true
         , blockchainVisualisationState: Chain.initialState
         }
 
@@ -279,8 +279,7 @@ handleAction CheckAuthStatus = do
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 
-handleAction ToggleDemoFilesMenu = do
-  modifying _demoFilesMenuOpen not
+handleAction ToggleDemoFilesMenu = modifying _demoFilesMenuVisible not
 
 handleAction (ChangeView view) = do
   assign _currentView view
@@ -303,8 +302,8 @@ handleAction EvaluateActions =
           Success (Right _) -> do
             -- on successful evaluation, update last evaluated simulation, and reset and show transactions
             when (isSuccess result) do
-              (assign _lastEvaluatedSimulation simulation)
-              (assign _blockchainVisualisationState Chain.initialState)
+              assign _lastEvaluatedSimulation simulation
+              assign _blockchainVisualisationState Chain.initialState
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
           Success (Left _) -> do
@@ -323,7 +322,7 @@ handleAction (LoadScript key) = do
     Just (ContractDemo { contractDemoName, contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
       editorSetContents contractDemoEditorContents (Just 1)
       saveBuffer (unwrap contractDemoEditorContents)
-      assign _demoFilesMenuOpen false
+      assign _demoFilesMenuVisible false
       assign _currentView Editor
       assign _currentDemoName (Just contractDemoName)
       assign _simulations $ Cursor.fromArray contractDemoSimulations
@@ -413,9 +412,7 @@ handleAction CompileProgram = do
       -- If we got a successful result, update lastCompiledCode and switch tab.
       case newCompilationResult of
         Success (Left _) -> pure unit
-        _ -> do
-          -- next line commented out for now - I don't think we're doing this any more
-          -- replaceViewOnSuccess newCompilationResult Editor Simulations
+        _ ->
           when (isSuccess newCompilationResult) do
             assign (_editorState <<< _lastCompiledCode) (Just contents)
             assign (_editorState <<< _currentCodeIsCompiled) true
@@ -488,8 +485,8 @@ handleGistAction PublishGist = do
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
         when (isSuccess newResult) do
-          (assign _currentView Editor)
-          (assign _currentDemoName Nothing)
+          assign _currentView Editor
+          assign _currentDemoName Nothing
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 

@@ -76,7 +76,7 @@ documentationLinksPane =
     ]
 
 subHeader :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
-subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
+subHeader state@(State { demoFilesMenuVisible, contractDemos, currentDemoName }) =
   nav
     [ classes [ navbar, navbarExpand, justifyContentBetween, ClassName "sub-header" ] ]
     [ a
@@ -84,12 +84,12 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
         , onClick $ const $ Just $ ToggleDemoFilesMenu
         ]
         [ buttonIcon ]
-    , contractDemosPane demoFilesMenuOpen contractDemos currentDemoName
+    , contractDemosPane demoFilesMenuVisible contractDemos currentDemoName
     , GistAction <$> gistControls (unwrap state)
     ]
   where
   buttonClasses =
-    if demoFilesMenuOpen then
+    if demoFilesMenuVisible then
       [ btn, buttonClass, ClassName "open" ]
     else
       [ btn, buttonClass ]
@@ -97,7 +97,7 @@ subHeader state@(State { demoFilesMenuOpen, contractDemos, currentDemoName }) =
   buttonClass = ClassName "menu-button"
 
   buttonIcon =
-    if demoFilesMenuOpen then
+    if demoFilesMenuVisible then
       icon Close
     else
       icon Bars

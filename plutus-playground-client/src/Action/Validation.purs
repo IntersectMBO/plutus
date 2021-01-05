@@ -31,4 +31,4 @@ actionIsValid simulatorWallets simulatorAction = actionWalletsExist simulatorAct
   actionWalletsExist (PayToWallet a@{ sender, recipient }) = walletExists sender && walletExists recipient
 
 actionsAreValid :: Array SimulatorWallet -> Array (ContractCall FormArgument) -> Boolean
-actionsAreValid simulatorWallets simulatorActions = Array.all (actionIsValid simulatorWallets) simulatorActions
+actionsAreValid = Array.all <<< actionIsValid

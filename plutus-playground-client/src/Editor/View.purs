@@ -140,10 +140,10 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
       [ class_ btn
       , onClick $ const $ Just ToggleFeedbackPane
       ]
-      if feedbackPaneMinimised then
-        [ icon ArrowUp ]
-      else
-        [ icon ArrowDown ]
+      [ icon $ if feedbackPaneMinimised
+          then ArrowUp
+          else ArrowDown
+      ]
 
   errorList = case compilationResult of
     Success (Left error) -> listGroup_ (interpreterErrorPane error)

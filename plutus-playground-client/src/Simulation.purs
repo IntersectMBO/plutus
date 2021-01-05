@@ -7,7 +7,7 @@ module Simulation
   ) where
 
 import Action.View (actionsPane)
-import Action.Validation (actionsAreValid)
+import Action.Validation (actionIsValid)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alertDanger_, btn, empty, floatRight, nav, navItem, navLink)
 import Cursor (Cursor, current)
@@ -143,7 +143,7 @@ evaluateActionsButton simulationWallets simulationActions evaluationResult =
     ]
     [ btnText evaluationResult valid ]
   where
-  valid = actionsAreValid simulationWallets simulationActions
+  valid = (Array.all <<< actionIsValid) simulationWallets simulationActions
 
   btnText Loading _ = icon Spinner
 
