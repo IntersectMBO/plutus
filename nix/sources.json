@@ -6,10 +6,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "860a95cb9e1ebdf574cede2b4fcb0f66eac77242",
-        "sha256": "1ly3bm6i1viw6d64gi1zfiwdvjncm3963rj59320cr15na5bzjri",
+        "rev": "c8c32741bc09e2ac0a94d5140cf51fa5de809e24",
+        "sha256": "0rn938nbxqsd7lp7l8z1y7bhzaq29vbziq6hq9llb3yh9xs10lmf",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/860a95cb9e1ebdf574cede2b4fcb0f66eac77242.tar.gz",
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/c8c32741bc09e2ac0a94d5140cf51fa5de809e24.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hackage.nix": {
