@@ -117,6 +117,37 @@ rec {
       attrs
     // { meta.dimension.name = name; };
 
+  /*
+    Takes an attribute set and returns all the paths to derivations within it, i.e.
+    derivationPaths { a = { b = <drv>; }; c = <drv>; } == [ "a.b" "c" ]
+    This can be used with 'attrByPath' or the 'constitutents' of an aggregate Hydra job.
+  */
+  derivationPaths =
+    let
+      names = x: lib.filter (n: n != "recurseForDerivations" && n != "meta") (builtins.attrNames x);
+      go = nameSections: attrs:
+        builtins.concatMap
+          (n:
+            let
+              v = builtins.getAttr n attrs;
+              newNameSections = nameSections ++ [ n ];
+            in
+            if pkgs.lib.isDerivation v
+            then [ (builtins.concatStringsSep "." newNameSections) ]
+            else if builtins.isAttrs v
+            then go newNameSections v
+            else [ ]
+          )
+          (names attrs);
+    in
+    go [ ];
+
+  # Creates an aggregate job with the given name from every derivation in the attribute set.
+  derivationAggregate = name: attrs: pkgs.releaseTools.aggregate {
+    inherit name;
+    constituents = derivationPaths attrs;
+  };
+
   # A filter for removing packages that aren't supported on the current platform
   # according to 'meta.platforms'.
   platformFilterGeneric = pkgs: system:
