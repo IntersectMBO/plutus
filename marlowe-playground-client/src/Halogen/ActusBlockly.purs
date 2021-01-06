@@ -74,7 +74,6 @@ data Message
   = Initialized
   | CurrentTerms ContractFlavour String
   | CodeChange
-  | FinishLoading
 
 type DSL m a
   = HalogenM State Action () Message m a
@@ -207,7 +206,7 @@ handleAction RunAnalysis = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
-handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange FinishLoading event
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

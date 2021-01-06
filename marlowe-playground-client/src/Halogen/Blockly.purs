@@ -66,8 +66,7 @@ data Action
   | BlocklyEvent BT.BlocklyEvent
 
 data Message
-  = FinishLoading
-  | CodeChange
+  = CodeChange
 
 type DSL slots m a
   = HalogenM State Action slots Message m a
@@ -192,7 +191,7 @@ handleAction (Inject rootBlockName blockDefinitions) = do
 
 handleAction (SetData _) = pure unit
 
-handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange FinishLoading event
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

@@ -58,10 +58,9 @@ updateUnsavedChangesActionHandler ::
   forall m state action slots message.
   MonadAff m =>
   message ->
-  message ->
   BlocklyEvent ->
   HalogenM { useEvents :: Boolean | state } action slots message m Unit
-updateUnsavedChangesActionHandler codeChange finishLoading event = do
+updateUnsavedChangesActionHandler codeChange event = do
   useEvents <- use _useEvents
   case event of
     (BT.UI _) -> assign _useEvents true
@@ -69,7 +68,7 @@ updateUnsavedChangesActionHandler codeChange finishLoading event = do
     -- The move event only changes the unsaved status if the parent has changed (either by attaching or detaching
     -- one block into another)
     (BT.Move ev) -> when (useEvents && newParentId ev /= oldParentId ev) $ raise codeChange
-    (BT.FinishLoading _) -> raise finishLoading
+    (BT.FinishLoading _) -> pure unit
     -- The create event by itself does not modify the contract. It is modified once it's attached or detached
     -- from a parent, and that is covered by the Move event
     (BT.Create _) -> pure unit
