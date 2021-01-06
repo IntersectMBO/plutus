@@ -1,6 +1,5 @@
 module Editor.Types where
 
-import Data.Either (Either)
 import Data.Enum (enumFromTo)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -10,12 +9,10 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message) as Monaco
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
+import Language.Haskell.Interpreter (SourceCode)
 import LocalStorage (Key(..))
 import Monaco (IPosition)
-import Network.RemoteData (RemoteData)
 import Prelude (bottom, top, (<<<))
-import Servant.PureScript.Ajax (AjaxError)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 data Action
