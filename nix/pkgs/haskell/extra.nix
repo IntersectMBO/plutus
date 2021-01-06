@@ -89,7 +89,7 @@
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
     plan-sha256 =
-      # I don't know why this is platform-dependent!
+      # See https://github.com/input-output-hk/nix-tools/issues/97
       if stdenv.isLinux
       then "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd"
       else "1s3cn381945hrs1fchg6bbkcf3abi0miqzc30bgpbfj23a8lhj2q";
