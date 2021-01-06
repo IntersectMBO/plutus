@@ -285,11 +285,8 @@ _projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
 _showModal :: Lens' State (Maybe ModalView)
 _showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
 
-_hasUnsavedChanges' :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
-_hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
-
 _hasUnsavedChanges :: Lens' State Boolean
-_hasUnsavedChanges = _Newtype <<< _hasUnsavedChanges'
+_hasUnsavedChanges = _Newtype <<< prop (SProxy :: SProxy "hasUnsavedChanges")
 
 _workflow :: Lens' State (Maybe Lang)
 _workflow = _Newtype <<< prop (SProxy :: SProxy "workflow")

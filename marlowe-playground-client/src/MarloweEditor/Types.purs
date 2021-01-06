@@ -41,7 +41,6 @@ data Action
   | SendToSimulator
   | ViewAsBlockly
   | InitMarloweProject String
-  | MarkProjectAsSaved
   | SelectHole (Maybe String)
   | AnalyseContract
   | AnalyseReachabilityContract
@@ -64,7 +63,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"
   toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
-  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
@@ -160,7 +158,6 @@ type State
     , showBottomPanel :: Boolean
     , showErrorDetail :: Boolean
     , bottomPanelView :: BottomPanelView
-    , hasUnsavedChanges :: Boolean
     , selectedHole :: Maybe String
     -- This is pagination information that we need to provide to the haskell backend
     -- so that it can do the analysis in chunks
@@ -199,7 +196,6 @@ initialState =
   , showBottomPanel: false
   , showErrorDetail: false
   , bottomPanelView: StaticAnalysisView
-  , hasUnsavedChanges: false
   , selectedHole: Nothing
   , analysisState: NoneAsked
   , editorErrors: mempty

@@ -45,7 +45,6 @@ data Action
   --        Actually, in the JavaScript editor there isn't even a button to send to blockly.
   | SendResultToBlockly
   | InitJavascriptProject String
-  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Javascript." <> s
@@ -58,7 +57,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
-  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type DecorationIds
   = { topDecorationId :: String
@@ -76,7 +74,6 @@ type State
     , compilationResult :: CompilationState
     , showBottomPanel :: Boolean
     , decorationIds :: Maybe DecorationIds
-    , hasUnsavedChanges :: Boolean
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -97,5 +94,4 @@ initialState =
   , compilationResult: NotCompiled
   , showBottomPanel: true
   , decorationIds: Nothing
-  , hasUnsavedChanges: false
   }

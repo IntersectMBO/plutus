@@ -5,7 +5,7 @@
 --   function types
 module Blockly.Types where
 
-import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent)
+import Blockly.Events (ChangeEvent, CreateEvent, FinishLoadingEvent, MoveEvent, UIEvent)
 
 foreign import data Blockly :: Type
 
@@ -24,3 +24,4 @@ data BlocklyEvent
   | Create CreateEvent
   | Move MoveEvent
   | FinishLoading FinishLoadingEvent
+  | UI UIEvent

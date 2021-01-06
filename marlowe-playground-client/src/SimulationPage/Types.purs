@@ -268,7 +268,6 @@ type State
     , bottomPanelView :: BottomPanelView
     -- QUESTION: What is the use of oldContract?
     , oldContract :: Maybe String
-    , hasUnsavedChanges :: Boolean
     }
 
 _showRightPanel :: Lens' State Boolean
@@ -303,7 +302,6 @@ mkState =
   , showBottomPanel: true
   , bottomPanelView: CurrentStateView
   , oldContract: Nothing
-  , hasUnsavedChanges: false
   }
 
 data Action

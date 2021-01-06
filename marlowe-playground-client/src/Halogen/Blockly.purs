@@ -34,7 +34,7 @@ type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
-    , hasUnsavedChanges :: Boolean
+    , useEvents :: Boolean
     }
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -46,12 +46,11 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
--- We redefine this lens as importing the one from MainFrame causes a cyclic dependency
-_hasUnsavedChanges :: Lens' State Boolean
-_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
+_useEvents :: Lens' State Boolean
+_useEvents = prop (SProxy :: SProxy "useEvents")
 
 emptyState :: State
-emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, hasUnsavedChanges: false }
+emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, useEvents: false }
 
 data Query a
   = Resize a
@@ -60,8 +59,6 @@ data Query a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
   | GetCode (String -> a)
-  | HasUnsavedChanges (Boolean -> a)
-  | MarkProjectAsSaved a
 
 data Action
   = Inject String (Array BlockDefinition)
@@ -113,12 +110,13 @@ handleQuery (SetCode code next) = do
   mState <- use _blocklyState
   case mState of
     Nothing -> pure unit
-    Just bs -> do
+    Just blocklyState -> do
+      assign _useEvents false
       let
         contract = case Parser.parseContract code of
           Right c -> c
-          Left _ -> Hole bs.rootBlockName Proxy zero
-      pure $ ST.run (buildBlocks newBlock bs contract)
+          Left _ -> Hole blocklyState.rootBlockName Proxy zero
+      pure $ ST.run (buildBlocks newBlock blocklyState contract)
   assign _errorMessage Nothing
   pure $ Just next
 
@@ -161,17 +159,9 @@ handleQuery (GetCode next) = do
       pure Nothing
     Right contract -> do
       assign _errorMessage Nothing
-      pure $ Just $ next $ show $ pretty $ contract
+      pure $ Just $ next $ show $ pretty contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
-
-handleQuery (HasUnsavedChanges next) = do
-  val <- use _hasUnsavedChanges
-  pure $ Just $ next val
-
-handleQuery (MarkProjectAsSaved next) = do
-  assign _hasUnsavedChanges false
-  pure $ Just $ next
 
 handleAction ::
   forall m slots.
