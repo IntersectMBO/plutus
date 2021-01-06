@@ -17,7 +17,6 @@ import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Debug.Trace (trace)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -43,7 +42,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow)
 import MainFrame.Types (BlocklySubAction(..)) as BL
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -85,29 +84,28 @@ import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
 initialState :: State
 initialState =
-  State
-    { view: HomePage
-    , jsCompilationResult: NotCompiled
-    , showBottomPanel: true
-    , haskellState: HE.initialState
-    , javascriptState: JS.initialState
-    , marloweEditorState: ME.initialState
-    , simulationState: ST.mkState
-    , jsEditorKeybindings: DefaultBindings
-    , activeJSDemo: mempty
-    , projects: Projects.emptyState
-    , newProject: NewProject.emptyState
-    , rename: Rename.emptyState
-    , saveAs: SaveAs.emptyState
-    , authStatus: NotAsked
-    , gistId: Nothing
-    , createGistResult: NotAsked
-    , loadGistResult: Right NotAsked
-    , projectName: "Untitled Project"
-    , showModal: Nothing
-    , hasUnsavedChanges: false
-    , workflow: Nothing
-    }
+  { view: HomePage
+  , jsCompilationResult: NotCompiled
+  , showBottomPanel: true
+  , haskellState: HE.initialState
+  , javascriptState: JS.initialState
+  , marloweEditorState: ME.initialState
+  , simulationState: ST.mkState
+  , jsEditorKeybindings: DefaultBindings
+  , activeJSDemo: mempty
+  , projects: Projects.emptyState
+  , newProject: NewProject.emptyState
+  , rename: Rename.emptyState
+  , saveAs: SaveAs.emptyState
+  , authStatus: NotAsked
+  , gistId: Nothing
+  , createGistResult: NotAsked
+  , loadGistResult: Right NotAsked
+  , projectName: "Untitled Project"
+  , showModal: Nothing
+  , hasUnsavedChanges: false
+  , workflow: Nothing
+  }
 
 ------------------------------------------------------------
 mkMainFrame ::
@@ -327,7 +325,7 @@ handleAction s (MarloweEditorAction action) = do
         void $ query _blocklySlot unit (Blockly.SetCode source unit)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> trace "text changed" \_ -> assign _hasUnsavedChanges true
+    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
     (ME.InitMarloweProject _) -> assign _hasUnsavedChanges false
     _ -> pure unit
 
