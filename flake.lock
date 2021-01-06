@@ -20,11 +20,11 @@
         "utils": "utils_3"
       },
       "locked": {
-        "lastModified": 1607699614,
-        "narHash": "sha256-EcAKO+REM2FjlFhhF2D5qW0m2TTTDZqjkgXSZsjbWx4=",
+        "lastModified": 1609798050,
+        "narHash": "sha256-UDXZRWFU/8BhRylDdX5rXDEVmD+SYwqgOIOLVxI1yBE=",
         "owner": "input-output-hk",
         "repo": "bitte",
-        "rev": "1b91e11c716532635256a680330c8082862fd93e",
+        "rev": "14dfea788aaca5d68c352eb1224d07c055e51e55",
         "type": "github"
       },
       "original": {
@@ -158,11 +158,11 @@
     "ops-lib": {
       "flake": false,
       "locked": {
-        "lastModified": 1602203038,
-        "narHash": "sha256-SIKLst2fs7Rool+WPJTxUdOHxdr9HZt9rgGe8Y+/+uE=",
+        "lastModified": 1608174889,
+        "narHash": "sha256-3q2ncBD//scq9xy39AWqUw+hip44OEz4SWP93WkKJmY=",
         "owner": "input-output-hk",
         "repo": "ops-lib",
-        "rev": "1f8481bdc21cea9430b830c3fd1eeb057ad5c8ee",
+        "rev": "f5c44f7b38238a6cff47bc4c62c50212f045b630",
         "type": "github"
       },
       "original": {
