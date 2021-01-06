@@ -501,8 +501,8 @@ handleGistAction LoadGist =
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
         when (isSuccess aGist) do
-          (assign _currentView Editor)
-          (assign _currentDemoName Nothing)
+          assign _currentView Editor
+          assign _currentDemoName Nothing
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
         -- Load the source, if available.
