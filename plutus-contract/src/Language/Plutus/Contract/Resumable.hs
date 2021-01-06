@@ -250,8 +250,10 @@ handleResumable = interpret $ \case
 
 -- | Status of a suspended comptutation
 data SuspendedNonDet i o effs a =
-    AResult a -- | The computation is done
-    | AContinuation (NonDetCont i o effs a) -- | The computation is waiting for inputs
+    -- | The computation is done
+    AResult a
+     -- | The computation is waiting for inputs
+    | AContinuation (NonDetCont i o effs a)
 
 -- | Continuation of a suspended computation that is waiting for one of several possible responses.
 data NonDetCont i o effs a =
