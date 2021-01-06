@@ -419,6 +419,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
             <<< set _workflow (Just lang)
+            <<< set _hasUnsavedChanges true
         )
     Left error ->
       modify_
@@ -461,6 +462,7 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        <<< set _hasUnsavedChanges true
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -483,6 +485,12 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        {- 
+        it is possible that you could load a demo that is already in the editor so there would in theory
+        be no unsaved changes however this is tricky with blockly and I think it's fine to say that if
+        you load a new demo then you have unsaved changes
+        -}
+        
         <<< set _hasUnsavedChanges true
     )
   selectView $ selectLanguageView lang
