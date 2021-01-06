@@ -4,7 +4,8 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ lib
+{ stdenv
+, lib
 , haskell-nix
 , fetchFromGitHub
 , fetchFromGitLab
@@ -87,7 +88,11 @@
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd";
+    plan-sha256 =
+      # I don't know why this is platform-dependent!
+      if stdenv.isLinux
+      then "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd"
+      else "1s3cn381945hrs1fchg6bbkcf3abi0miqzc30bgpbfj23a8lhj2q";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
     }];

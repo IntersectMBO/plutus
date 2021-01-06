@@ -57,7 +57,7 @@ let
   muslPackages = muslProject.hsPkgs;
 
   extraPackages = import ./extra.nix {
-    inherit lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
+    inherit stdenv lib haskell-nix fetchFromGitHub fetchFromGitLab buildPackages;
     inherit index-state checkMaterialization compiler-nix-name;
   };
 
