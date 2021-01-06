@@ -66,6 +66,26 @@ pkgs/.stack
 .psc-ide-port
 .dir-locals.el
 
+# Frontend generated files (NPM/Yarn, Spago, generated PS, etc.)
+# N.B. officially we use NPM; ignoring Yarn files allows the local use of Yarn for those that want
+**/generated
+**/generated/
+**/generated-docs/
+**/node_modules/
+**/output/
+**/yarn-error.log
+**/yarn.lock
+**/.psci_modules/
+**/.psc-package/
+**/.psc-package2nix/
+**/.spago/
+**/.spago2nix/
+
+# Backend config files
+marlowe-playground-server/playground.yaml
+plutus-playground-server/playground.yaml
+plutus-scb/plutus-scb.yaml
+
 # Misc
 .history/
 .virtualenv
@@ -78,10 +98,8 @@ TAGS
 *.tfvars
 gh-pages
 .importify/
-marlowe-playground-server/playground.yaml
 .envrc
 *.org
-plutus-scb/plutus-scb.yaml
 *.db
 *.db-shm
 *.db-wal
