@@ -250,8 +250,14 @@ validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result whe
     idx    = Index.initialise [blck]
     result = Index.runValidation (Index.validateTransaction h tx) idx
 
--- | Split a value into max. n positive-valued parts such that the sum of the
---   parts equals the original value.
+{- | Split a value into max. n positive-valued parts such that the sum of the
+     parts equals the original value.
+
+     I noticed how for values of `mx` > 1000 the resulting lists are much smaller than
+     one would expect. I think this may be caused by the way we select the next value
+     for the split. It looks like the available funds get exhausted quite fast, which
+     makes the function return before generating anything close to `mx` values.
+-}
 splitVal :: (MonadGen m, Integral n) => Int -> n -> m [n]
 splitVal _  0     = pure []
 splitVal mx init' = go 0 0 [] where
