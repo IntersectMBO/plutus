@@ -5,7 +5,7 @@ module MainFrame
   ) where
 
 import Prelude
-import AjaxUtils (ajaxErrorRefLabel, renderForeignErrors, AjaxErrorPaneAction(CloseErrorPane))
+import AjaxUtils (AjaxErrorPaneAction(..), ajaxErrorRefLabel, renderForeignErrors)
 import Analytics (analyticsTracking)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
