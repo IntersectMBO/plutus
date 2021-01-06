@@ -77,6 +77,7 @@
         modules = [
           "Data/Row/Extras"
           "Data/Text/Extras"
+          "Data/UUID/Extras"
           "Language/Plutus/Contract"
           "Language/Plutus/Contract/Effects/AwaitSlot"
           "Language/Plutus/Contract/Effects/AwaitTxConfirmed"
