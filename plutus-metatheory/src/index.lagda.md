@@ -3,7 +3,24 @@ layout: page
 title: Table of Contents
 ---
 
-The Formalisation is split into several sections:
+The Formalisation is split into several sections.
+
+The main body of the formalisation involves a intrinsically typed
+implementation of Plutus Core (PLC). It contains types, normal types,
+builtins, terms indexed by ordinary types, and terms indexed by normal
+types. There is a reduction semantics, CK and CEK machines. There are
+proofs of various syntactic properties, a normalisation proof for the
+type level language, and a progress proof for the term level
+reduction semantics.
+
+There are two additional versions of the PLC language beyond the
+intrinsically typed treatment. There is an extrinsically typed but
+intrinsically scoped version which is used to represent terms prior
+to typechecking and also can be executed directly, and there is a
+untyped version of PLC which can also be executed directly.
+
+The final two pieces are a type checker which is guaranteed to be
+sound and an executable that is intended to be compiled into Haskell.
 
 1. [Types](#types)
 2. [Normalisation of types](#normal-types)
@@ -11,8 +28,8 @@ The Formalisation is split into several sections:
 4. [Declarative terms](#declarative-syntax)
 5. [Algorithmic terms](#algorithmic-syntax)
 6. [Well-scoped types and terms](#extrinsically-typed-syntax-aka-well-scoped-terms)
-7. [A typechecker](#type-checker)
-8. [Untyped terms](#untyped-terms)
+7. [Untyped terms](#untyped-terms)
+8. [A typechecker](#type-checker)
 9. [An executable](#executable)
 
 
