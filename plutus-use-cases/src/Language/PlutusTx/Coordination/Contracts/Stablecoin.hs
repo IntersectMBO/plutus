@@ -414,11 +414,11 @@ checkTransition theClient sc i@Input{inpConversionRate} = do
                     Just ((TypedScriptTxOut{tyTxOutData}, _), _) -> do
                         case checkValidState sc tyTxOutData obsValue of
                             Right _ -> logInfo @String "Current state OK"
-                            Left w  -> logWarn $ "Current state is invalid: " <> show w
+                            Left w  -> logInfo $ "Current state is invalid: " <> show w <> ". The transition may still be allowed."
                         case applyInput sc tyTxOutData i of
                             Just (_, newState) -> case checkValidState sc newState obsValue of
                                 Right _ -> logInfo @String "New state OK"
-                                Left w  -> logWarn $ "New state is invalid: " <> show w
+                                Left w  -> logWarn $ "New state is invalid: " <> show w <> ". The transition is not allowed."
                             Nothing -> logWarn @String "applyInput is Nothing (transition failed)"
                     Nothing -> logWarn @String "Unable to find current state."
             Left e -> logWarn $ "Unable to decode oracle value from datum: " <> show e

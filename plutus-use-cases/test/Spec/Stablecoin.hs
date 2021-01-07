@@ -98,7 +98,7 @@ tests = testGroup "Stablecoin"
             -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
             redeemStableCoins (SC 10) (Ratio.fromInteger 2) hdl
 
-    , let expectedLogMsg = "New state is invalid: MaxReserves {allowed = BC {unBC = (200 % 1)}, actual = BC {unBC = (201 % 1)}}" in
+    , let expectedLogMsg = "New state is invalid: MaxReserves {allowed = BC {unBC = (200 % 1)}, actual = BC {unBC = (201 % 1)}}. The transition is not allowed." in
       checkPredicate "Cannot exceed the maximum reserve ratio"
         (valueAtAddress stablecoinAddress (== (initialDeposit <> initialFee <> Ada.lovelaceValueOf 50))
         .&&. assertNoFailedTransactions
@@ -110,13 +110,16 @@ tests = testGroup "Stablecoin"
             mintStableCoins (SC 50) one hdl
 
             -- At this point we have:
-            -- Stablecoins: 50 (equiv. to 50 Lovelace on the 1:1 conversion rate)
+            -- Stablecoins: 50 (equiv. to 50 Lovelace on the 1:1 conversion
+            -- rate)
             -- Max. reserve ratio: 4:1
-            -- Reserves: 151 Lovelace (100 from minting reserve coins, 50 from minting stablecoins, 2 from fees)
-            -- Maximum reserves: 200 Lovelace (50 stablecoins * 4 (Lovelace / stablecoin))
+            -- Reserves: 151 Lovelace (100 from minting reserve coins, 50 from
+            -- minting stablecoins, 1 from fees)
+            -- Maximum reserves: 200 Lovelace (50 stablecoins * 4 (Lovelace /
+            -- stablecoin))
 
-            -- The next transition is not allowed as it would bring the reserve ratio
-            -- above the maximum
+            -- The next transition is not allowed as it would bring the reserve
+            -- ratio above the maximum.
             mintReserveCoins (RC 49) one hdl
 
 
