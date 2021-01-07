@@ -1,8 +1,10 @@
-# Everything file
+---
+layout: page
+title: Table of Contents
+---
+
 
 ```
-module Everything where
-
 -- Types
 
 import Type
