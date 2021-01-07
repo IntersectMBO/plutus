@@ -5,15 +5,15 @@ title: Table of Contents
 
 The Formalisation is split into several sections:
 
-1. Types
-2. Normalisation of types
-3. Builtin machinery
-4. Declarative terms
-5. Algorithmic terms
-6. Well-scoped types and terms
-7. A typechecker
-8. Untyped terms
-9. An executable
+1. [Types](#types)
+2. [Normalisation of types](#normal-types)
+3. [Builtin machinery](#builtins)
+4. [Declarative terms](#declarative-syntax)
+5. [Algorithmic terms](#algorithmic-syntax)
+6. [Well-scoped types and terms](#extrinsically-typed-syntax-aka-well-scoped-terms)
+7. [A typechecker](#type-checker)
+8. [Untyped terms](#untyped-terms)
+9. [An executable](#executable)
 
 
 ## Types
