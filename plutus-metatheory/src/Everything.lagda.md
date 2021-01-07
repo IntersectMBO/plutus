@@ -1,4 +1,6 @@
-\begin{code}
+# Everything file
+
+```
 module Everything where
 
 -- Types
@@ -79,5 +81,5 @@ import Scoped.CK
 
 import Check
 import Main
-\end{code}
+```
 

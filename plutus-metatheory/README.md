@@ -35,6 +35,8 @@ of Haskell libraries.
 - [X] Automated building under CI;
 - [X] Automated testing of evaluation under CI;
 - [X] Automated testing of typechecking under CI.
+- [X] Automatic geneneration of programs to test using NEAT
+- [ ] Published paper.
 
 ### Stage 3 (further metatheory)
 
@@ -44,47 +46,48 @@ of Haskell libraries.
 - [ ] Correspondence between extrinsic and intrinsic semantics;
 - [X] Soundness of typechecking;
 - [ ] Completeness of typechecking;
-- [ ] Intrinsic evaluation, compiled to Haskell.
+- [X] Intrinsic evaluation, compiled to Haskell.
+- [ ] Published paper.
 
 ## Installation
 
-The formalisation requires version 2.6 or higher of Agda, the latest
+
+### To typecheck the formalisation in Agda
+The formalisation requires version 2.6.1 or higher of Agda and the latest
 corresonnding version of the Agda standard library.
+
+### To compile to Haskell
 
 It also it contains a command line tool called `plc-agda` for
 executing plutus core programs. The command line tool is an Agda
 program that is compiled to Haskell, it uses Haskell libraries (such
 as bytestring) and also borrows the Plutus parser and pretty printer.
 
-The metatheory package is not currently included in the main plutus
-`cabal.project`. This is a workaround to enable building with `cabal
-v2-*`. Run it from the `plutus` repo root folder:
-
-```
-$ echo "packages: metatheory" > cabal.project.local
-```
-
 The `plc-agda` tool can be installed by running the following commands
 starting in the root folder of the `plutus` repository:
 
-
+With nix:
 ```
-$ cd metatheory
+$ nix-shell
+$ cabal v2-install plutus-metatheory
+```
+
+Without nix:
+```
+$ cd plutus-metatheory
 $ agda --compile --ghc-dont-call-ghc Main.lagda
 $ cd ..
-$ cabal v2-install metatheory
+$ cabal v2-install plutus-metatheory
 ```
 
-The `plc-agda` can to execute Plutus Core programs. It is intended to
+The `plc-agda` can execute Plutus Core programs. It is intended to
 be used for testing the `plc` command against. The tests can be
 executed by running the following command from the `plutus` root
 folder:
 
 ```
-$ cd metatheory
-$ agda --compile --ghc-dont-call-ghc Main.lagda
-$ cd ..
-$ cabal v2-test metatheory
+$ nix-shell
+$ cabal v2-test plutus-metatheory
 ```
 
 ## Features:
@@ -121,6 +124,8 @@ There are two versions of the CK machine:
 
 1. Intrinsically typed.
 2. Extrinsically typed.
+
+There is one version of the CEK machine.
 
 There is an evidence producing typechecker.
 

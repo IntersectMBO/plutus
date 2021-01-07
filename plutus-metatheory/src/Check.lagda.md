@@ -1,3 +1,8 @@
+---
+layout: page
+---
+## Type checker
+
 ```
 module Check where
 ```
