@@ -100,8 +100,8 @@ evaluationResultFold :: [Wallet] -> EmulatorEventFoldM effs EvaluationResult
 evaluationResultFold wallets =
     let pkh wallet = (pubKeyHash (walletPubKey wallet), wallet)
     in Playground.Types.EvaluationResult
-            <$> L.generalize Folds.blockchain
-            <*> L.generalize Folds.annotatedBlockchain
+            <$> L.generalize (reverse <$> Folds.blockchain)
+            <*> L.generalize (reverse <$> Folds.annotatedBlockchain)
             <*> L.generalize (reverse . filter isInteresting <$> Folds.emulatorLog)
             <*> renderInstanceTrace (walletInstanceTag <$> wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (funds wallets)
