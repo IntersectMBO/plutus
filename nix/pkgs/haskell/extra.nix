@@ -4,7 +4,8 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ lib
+{ stdenv
+, lib
 , haskell-nix
 , fetchFromGitHub
 , fetchFromGitLab
@@ -77,18 +78,21 @@
 (
   let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
-      name = "haskell-language-server";
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.7.1";
-      sha256 = "0gkzvjx4dgf53yicinqjshlj80gznx5khb62i7g3kqjr85iy0raa";
+      rev = "0.8.0";
+      sha256 = "0p6fqs07lajbi2g1wf4w3j5lvwknnk58n12vlg48cs4iz25gp588";
       fetchSubmodules = true;
     };
     inherit compiler-nix-name checkMaterialization;
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "0fps65f5dj1y8xr9478049j2541bkdjx0iw4ynknk9cnr512xcmk";
+    plan-sha256 =
+      # See https://github.com/input-output-hk/nix-tools/issues/97
+      if stdenv.isLinux
+      then "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd"
+      else "1s3cn381945hrs1fchg6bbkcf3abi0miqzc30bgpbfj23a8lhj2q";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
     }];
