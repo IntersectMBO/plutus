@@ -5,6 +5,7 @@ import Auth (_GithubUser, authStatusAuthRole)
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
+import GistButtons (authButton)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly

@@ -132,12 +132,14 @@ data HAction
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
+  -- Demo files menu.
+  | ToggleDemoFilesMenu
   -- Tabs.
   | ChangeView View
   -- Editor.
   | EditorAction Editor.Action
   | CompileProgram
-  -- Simulations
+  -- Simulations.
   | LoadScript String
   | AddSimulationSlot
   | SetSimulationSlot Int
@@ -185,6 +187,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (GistAction (SetGistUrl _)) = Nothing
   toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
   toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing
+  toEvent ToggleDemoFilesMenu = Nothing
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
@@ -219,7 +222,7 @@ _editorSlot = SProxy
 _balancesChartSlot :: SProxy "balancesChartSlot"
 _balancesChartSlot = SProxy
 
------------------------------------------------------------
+------------------------------------------------------------
 type ChainSlot
   = Array Tx
 
@@ -229,16 +232,28 @@ type Blockchain
 type WebData
   = RemoteData AjaxError
 
+type WebCompilationResult
+  = WebData (Either InterpreterError (InterpreterResult CompilationResult))
+
+type WebEvaluationResult
+  = WebData (Either PlaygroundError EvaluationResult)
+
+-- this synonym is defined in playground-common/src/Playground/Types.hs
+type SimulatorAction
+  = ContractCall FormArgument
+
 newtype State
   = State
-  { currentView :: View
+  { demoFilesMenuVisible :: Boolean
+  , gistErrorPaneVisible :: Boolean
+  , currentView :: View
   , contractDemos :: Array ContractDemo
+  , currentDemoName :: Maybe String
   , editorState :: Editor.State
-  , compilationResult :: WebData (Either InterpreterError (InterpreterResult CompilationResult))
-  , lastCompiledCode :: Maybe SourceCode
+  , compilationResult :: WebCompilationResult
   , simulations :: Cursor Simulation
   , actionDrag :: Maybe Int
-  , evaluationResult :: WebData (Either PlaygroundError EvaluationResult)
+  , evaluationResult :: WebEvaluationResult
   , lastEvaluatedSimulation :: Maybe Simulation
   , authStatus :: WebData AuthStatus
   , createGistResult :: WebData Gist
@@ -248,17 +263,23 @@ newtype State
 
 derive instance newtypeState :: Newtype State _
 
+_demoFilesMenuVisible :: Lens' State Boolean
+_demoFilesMenuVisible = _Newtype <<< prop (SProxy :: SProxy "demoFilesMenuVisible")
+
+_gistErrorPaneVisible :: Lens' State Boolean
+_gistErrorPaneVisible = _Newtype <<< prop (SProxy :: SProxy "gistErrorPaneVisible")
+
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _contractDemos :: Lens' State (Array ContractDemo)
 _contractDemos = _Newtype <<< prop (SProxy :: SProxy "contractDemos")
 
+_currentDemoName :: Lens' State (Maybe String)
+_currentDemoName = _Newtype <<< prop (SProxy :: SProxy "currentDemoName")
+
 _editorState :: Lens' State Editor.State
 _editorState = _Newtype <<< prop (SProxy :: SProxy "editorState")
-
-_lastCompiledCode :: Lens' State (Maybe SourceCode)
-_lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
 
 _simulations :: Lens' State (Cursor Simulation)
 _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")

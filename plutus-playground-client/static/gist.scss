@@ -1,0 +1,92 @@
+.gist-controls {
+    position: relative;
+    $label-width: 3.5rem;
+    $gist-id-input-width: 14rem;
+    $button-width: 5rem;
+    $button-margin: .5rem;
+    $arrow-width: 12px;
+
+    label {
+        width: $label-width;
+        color: $gray-text-color;
+    }
+
+    .form-control {
+        width: $gist-id-input-width;
+    }
+
+    .btn {
+        width: $button-width;
+        margin-left: $button-margin;
+
+        &.double-width {
+            width: ($button-width * 2) + $button-margin;
+        }
+    }
+
+    .gist-link,
+    .ajax-error {
+        position: absolute;
+        z-index: 10;
+        top: 44px;
+        left: $label-width;
+        width: $gist-id-input-width;
+        border: 1px solid $green;
+        border-radius: 4px;
+        background: lighten($green, 50%);
+        padding: .25em .5em;
+        color: $green;
+        font-size: .8125rem;
+
+        &::before,
+        &::after {
+          content: "";
+          position: absolute;
+          border-left: $arrow-width solid transparent;
+          border-right: $arrow-width solid transparent;
+          left: 10%;
+          margin-left: -$arrow-width;
+        }
+        
+        &::before {
+          border-bottom: $arrow-width solid $green;
+          top: -$arrow-width;
+        }
+        
+        &::after {
+          border-bottom: $arrow-width solid lighten($green, 50%);
+          top: -($arrow-width - 1px);
+          z-index: 11;
+        }
+    }
+
+    .ajax-error {
+        z-index: 20;
+        border-color: $red;
+        background: lighten($red, 50%);
+        color: $red;
+        width: $gist-id-input-width + ($button-margin + $button-width) * 2;
+
+        &::before {
+            border-bottom-color: $red;
+        }
+
+        &::after {
+            border-bottom-color: lighten($red, 50%);
+            z-index: 21;
+        }
+
+        .alert {
+            background: transparent;
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .btn {
+            width: 2em;
+            padding: .25em;
+            color: $red;
+        }
+    }
+}

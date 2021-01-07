@@ -16,6 +16,9 @@ import Matryoshka (Algebra, cata)
 import Playground.Types (ContractCall(..), _FunctionSchema)
 import Schema (FormArgumentF(..))
 
+isValid :: forall a. Validation a => a -> Boolean
+isValid = Array.null <<< validate
+
 class Validation a where
   validate :: a -> Array (WithPath ValidationError)
 
@@ -60,7 +63,7 @@ joinPath :: forall a. Array String -> WithPath a -> WithPath a
 joinPath ancestors (WithPath { path, value }) = WithPath { path: ancestors <> path, value }
 
 ------------------------------------------------------------
-instance validationFormArgument :: Validation (Fix FormArgumentF) where
+instance formArgumentValidation :: Validation (Fix FormArgumentF) where
   validate = cata algebra
     where
     algebra :: Algebra FormArgumentF (Array (WithPath ValidationError))

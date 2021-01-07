@@ -279,6 +279,9 @@ handleQuery (SetKeyBindings bindings next) =
     { deactivateBindings } <- get
     newDeactivateBindings <- liftEffect $ replaceKeyBindings bindings editor deactivateBindings
     modify_ (_ { deactivateBindings = newDeactivateBindings })
+    -- Changing keybindings can affect layout (by changing the status
+    -- line in Vim/Emacs modes, for instance).
+    liftEffect $ Monaco.layout editor
     pure next
 
 handleQuery (GetObjects f) = do

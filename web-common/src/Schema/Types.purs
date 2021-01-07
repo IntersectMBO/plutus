@@ -104,7 +104,9 @@ toArgument initialValue = ana algebra
 
   algebra FormSchemaInteger = FormIntegerF Nothing
 
-  algebra FormSchemaString = FormStringF Nothing
+  -- text inputs cannot distinguish between `Nothing` and `Just ""` -
+  -- use the latter as the default value, or validation behaves weirdly
+  algebra FormSchemaString = FormStringF (Just "")
 
   algebra FormSchemaHex = FormHexF Nothing
 
