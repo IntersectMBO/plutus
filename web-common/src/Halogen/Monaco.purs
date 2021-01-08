@@ -29,7 +29,7 @@ import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
 import Monaco as Monaco
-import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, when, ($), (==), (>>=))
+import Prelude hiding (div)
 
 data KeyBindings
   = DefaultBindings
@@ -199,7 +199,9 @@ handleQuery :: forall a input m. MonadEffect m => Query a -> HalogenM State Acti
 handleQuery (SetText text next) = do
   withEditor \editor -> do
     model <- liftEffect $ Monaco.getModel editor
-    liftEffect $ Monaco.setValue model text
+    -- We want to avoid setting the same value because it will cause https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.itextmodel.html#ondidchangecontent
+    -- to fire even though the content didn't change
+    when (text /= Monaco.getValue model) $ liftEffect $ Monaco.setValue model text
     pure next
 
 handleQuery (GetText f) = do

@@ -5,7 +5,7 @@ import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
@@ -15,7 +15,7 @@ import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.Lens.Index (ix)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -42,7 +42,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State(State), View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _hasUnsavedChanges', _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, currentLang)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow)
 import MainFrame.Types (BlocklySubAction(..)) as BL
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
@@ -84,29 +84,28 @@ import Web.UIEvent.KeyboardEvent.EventTypes (keyup)
 
 initialState :: State
 initialState =
-  State
-    { view: HomePage
-    , jsCompilationResult: NotCompiled
-    , showBottomPanel: true
-    , haskellState: HE.initialState
-    , javascriptState: JS.initialState
-    , marloweEditorState: ME.initialState
-    , simulationState: ST.mkState
-    , jsEditorKeybindings: DefaultBindings
-    , activeJSDemo: mempty
-    , projects: Projects.emptyState
-    , newProject: NewProject.emptyState
-    , rename: Rename.emptyState
-    , saveAs: SaveAs.emptyState
-    , authStatus: NotAsked
-    , gistId: Nothing
-    , createGistResult: NotAsked
-    , loadGistResult: Right NotAsked
-    , projectName: "Untitled Project"
-    , showModal: Nothing
-    , hasUnsavedChanges: false
-    , workflow: Nothing
-    }
+  { view: HomePage
+  , jsCompilationResult: NotCompiled
+  , showBottomPanel: true
+  , haskellState: HE.initialState
+  , javascriptState: JS.initialState
+  , marloweEditorState: ME.initialState
+  , simulationState: ST.mkState
+  , jsEditorKeybindings: DefaultBindings
+  , activeJSDemo: mempty
+  , projects: Projects.emptyState
+  , newProject: NewProject.emptyState
+  , rename: Rename.emptyState
+  , saveAs: SaveAs.emptyState
+  , authStatus: NotAsked
+  , gistId: Nothing
+  , createGistResult: NotAsked
+  , loadGistResult: Right NotAsked
+  , projectName: "Untitled Project"
+  , showModal: Nothing
+  , hasUnsavedChanges: false
+  , workflow: Nothing
+  }
 
 ------------------------------------------------------------
 mkMainFrame ::
@@ -309,10 +308,8 @@ handleAction s (HaskellAction action) = do
       sendToSimulation s contract
     HE.SendResultToBlockly -> do
       selectView BlocklyEditor
-    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
-    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> do
-      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-      assign _hasUnsavedChanges hasUnsavedChanges
+    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
+    (HE.InitHaskellProject _) -> assign _hasUnsavedChanges false
     _ -> pure unit
 
 handleAction s (MarloweEditorAction action) = do
@@ -328,10 +325,8 @@ handleAction s (MarloweEditorAction action) = do
         void $ query _blocklySlot unit (Blockly.SetCode source unit)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> do
-      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-      assign _hasUnsavedChanges hasUnsavedChanges
+    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
+    (ME.InitMarloweProject _) -> assign _hasUnsavedChanges false
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -344,10 +339,8 @@ handleAction s (JavascriptAction action) = do
       sendToSimulation s contract
     JS.SendResultToBlockly -> do
       selectView BlocklyEditor
-    -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
-    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> do
-      hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-      assign _hasUnsavedChanges hasUnsavedChanges
+    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
+    (JS.InitJavascriptProject _) -> assign _hasUnsavedChanges false
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -386,10 +379,7 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   pure unit
 
-handleAction settings (HandleBlocklyMessage _) = do
-  -- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
-  hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-  assign _hasUnsavedChanges hasUnsavedChanges
+handleAction settings (HandleBlocklyMessage Blockly.CodeChange) = assign _hasUnsavedChanges true
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
@@ -409,10 +399,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
--- Replicate the state of unsavedChanges from the submodule/subcomponent into the MainFrame state
-handleAction _ (HandleActusBlocklyMessage _) = do
-  hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
-  assign _hasUnsavedChanges hasUnsavedChanges
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = assign _hasUnsavedChanges true
 
 -- TODO: modify gist action type to take a gistid as a parameter
 -- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
@@ -430,6 +417,7 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
             <<< set _workflow (Just lang)
+            <<< set _hasUnsavedChanges true
         )
     Left error ->
       modify_
@@ -472,6 +460,7 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        <<< set _hasUnsavedChanges true
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -494,6 +483,13 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        {- 
+        it is possible that you could load a demo that is already in the editor so there would in theory
+        be no unsaved changes however this is tricky with blockly and I think it's fine to say that if
+        you load a new demo then you have unsaved changes
+        -}
+        
+        <<< set _hasUnsavedChanges true
     )
   selectView $ selectLanguageView lang
 
@@ -671,13 +667,6 @@ handleGistAction settings PublishGist = do
                 Just gistId -> runAjax $ flip runReaderT settings $ Server.patchApiGistsByGistId newGist gistId
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId) newResult
-        -- Mark all editors as saved
-        lift do
-          toHaskellEditor $ HaskellEditor.handleAction settings $ HE.MarkProjectAsSaved
-          toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.MarkProjectAsSaved
-          toMarloweEditor $ MarloweEditor.handleAction settings $ ME.MarkProjectAsSaved
-          void $ query _blocklySlot unit (Blockly.MarkProjectAsSaved unit)
-          void $ query _actusBlocklySlot unit (ActusBlockly.MarkProjectAsSaved unit)
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
@@ -761,24 +750,6 @@ loadGist settings gist = do
     )
 
 ------------------------------------------------------------
-queryCurrentEditorForUnsavedChanges ::
-  forall m.
-  MonadAff m =>
-  HalogenM State Action ChildSlots Void m Boolean
-queryCurrentEditorForUnsavedChanges =
-  maybe false identity
-    <$> runMaybeT do
-        state <- H.get
-        lang <- hoistMaybe $ currentLang state
-        MaybeT
-          $ case lang of
-              Marlowe -> Just <$> use (_simulationState <<< _hasUnsavedChanges')
-              Haskell -> Just <$> use (_haskellState <<< _hasUnsavedChanges')
-              Javascript -> Just <$> use (_javascriptState <<< _hasUnsavedChanges')
-              Blockly -> query _blocklySlot unit $ H.request Blockly.HasUnsavedChanges
-              Actus -> query _actusBlocklySlot unit $ H.request ActusBlockly.HasUnsavedChanges
-
-------------------------------------------------------------
 -- Handles the actions fired by the Confirm Unsaved Navigation modal
 handleConfirmUnsavedNavigationAction ::
   forall m.
@@ -814,7 +785,7 @@ withAccidentalNavigationGuard settings handleAction' action =
   if not actionIsGuarded then
     handleAction' action
   else do
-    hasUnsavedChanges <- queryCurrentEditorForUnsavedChanges
+    hasUnsavedChanges <- use _hasUnsavedChanges
     if hasUnsavedChanges then do
       fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
     else do

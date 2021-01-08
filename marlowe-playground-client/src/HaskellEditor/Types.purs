@@ -26,7 +26,6 @@ data Action
   --        with the action "soon to be implemented" ViewAsBlockly
   | SendResultToBlockly
   | InitHaskellProject String
-  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -39,13 +38,11 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
-  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
-    , hasUnsavedChanges :: Boolean
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -76,5 +73,4 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , showBottomPanel: true
-  , hasUnsavedChanges: false
   }

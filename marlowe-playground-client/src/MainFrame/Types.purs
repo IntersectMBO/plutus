@@ -8,10 +8,8 @@ import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', has, (^.))
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Demos.Types as Demos
 import Gist (Gist, GistId)
@@ -188,111 +186,99 @@ _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
 
 -----------------------------------------------------------
-newtype State
-  = State
-  { view :: View
-  , jsCompilationResult :: CompilationState
-  , jsEditorKeybindings :: KeyBindings
-  , activeJSDemo :: String
-  , showBottomPanel :: Boolean
-  -- TODO: rename to haskellEditorState
-  , haskellState :: HE.State
-  -- TODO: rename to javascriptEditorState
-  , javascriptState :: JS.State
-  , marloweEditorState :: ME.State
-  , simulationState :: Simulation.State
-  , projects :: Projects.State
-  , newProject :: NewProject.State
-  , rename :: Rename.State
-  , saveAs :: SaveAs.State
-  , authStatus :: WebData AuthStatus
-  , gistId :: Maybe GistId
-  , createGistResult :: WebData Gist
-  , loadGistResult :: Either String (WebData Gist)
-  , projectName :: String
-  , showModal :: Maybe ModalView
-  -- The source of truth for the unsaved change lives inside each editor
-  -- The only reason we store a copy of the state here is because of the render function
-  -- in the Mainframe view, which uses this derived state to show an unsaved indicator.
-  -- Inside the Mainframe view we can inspect the state of the submodules (Haskell/JS/Marlowe)
-  -- as their state is part of the MainFrame state, but we cannot inspect the state of the
-  -- child components Blockly and ActusBlockly as we need a Query.
-  , hasUnsavedChanges :: Boolean
-  -- The initial language selected when you create/load a project indicates the workflow a user might take
-  -- A user can start with a haskell/javascript example that eventually gets compiled into
-  -- marlowe/blockly and run in the simulator, or can create a marlowe/blockly contract directly,
-  -- which can be used interchangeably. This is used all across the site to know what are the posible
-  -- transitions.
-  , workflow :: Maybe Lang
-  }
-
-derive instance newtypeState :: Newtype State _
+type State
+  = { view :: View
+    , jsCompilationResult :: CompilationState
+    , jsEditorKeybindings :: KeyBindings
+    , activeJSDemo :: String
+    , showBottomPanel :: Boolean
+    -- TODO: rename to haskellEditorState
+    , haskellState :: HE.State
+    -- TODO: rename to javascriptEditorState
+    , javascriptState :: JS.State
+    , marloweEditorState :: ME.State
+    , simulationState :: Simulation.State
+    , projects :: Projects.State
+    , newProject :: NewProject.State
+    , rename :: Rename.State
+    , saveAs :: SaveAs.State
+    , authStatus :: WebData AuthStatus
+    , gistId :: Maybe GistId
+    , createGistResult :: WebData Gist
+    , loadGistResult :: Either String (WebData Gist)
+    , projectName :: String
+    , showModal :: Maybe ModalView
+    , hasUnsavedChanges :: Boolean
+    -- The initial language selected when you create/load a project indicates the workflow a user might take
+    -- A user can start with a haskell/javascript example that eventually gets compiled into
+    -- marlowe/blockly and run in the simulator, or can create a marlowe/blockly contract directly,
+    -- which can be used interchangeably. This is used all across the site to know what are the posible
+    -- transitions.
+    , workflow :: Maybe Lang
+    }
 
 _view :: Lens' State View
-_view = _Newtype <<< prop (SProxy :: SProxy "view")
+_view = prop (SProxy :: SProxy "view")
 
 _jsCompilationResult :: Lens' State CompilationState
-_jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
+_jsCompilationResult = prop (SProxy :: SProxy "jsCompilationResult")
 
 _jsEditorKeybindings :: Lens' State KeyBindings
-_jsEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "jsEditorKeybindings")
+_jsEditorKeybindings = prop (SProxy :: SProxy "jsEditorKeybindings")
 
 _activeJSDemo :: Lens' State String
-_activeJSDemo = _Newtype <<< prop (SProxy :: SProxy "activeJSDemo")
+_activeJSDemo = prop (SProxy :: SProxy "activeJSDemo")
 
 _showBottomPanel :: Lens' State Boolean
-_showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 _marloweEditorState :: Lens' State ME.State
-_marloweEditorState = _Newtype <<< prop (SProxy :: SProxy "marloweEditorState")
+_marloweEditorState = prop (SProxy :: SProxy "marloweEditorState")
 
 _haskellState :: Lens' State HE.State
-_haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
+_haskellState = prop (SProxy :: SProxy "haskellState")
 
 _javascriptState :: Lens' State JS.State
-_javascriptState = _Newtype <<< prop (SProxy :: SProxy "javascriptState")
+_javascriptState = prop (SProxy :: SProxy "javascriptState")
 
 _simulationState :: Lens' State Simulation.State
-_simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
+_simulationState = prop (SProxy :: SProxy "simulationState")
 
 _projects :: Lens' State Projects.State
-_projects = _Newtype <<< prop (SProxy :: SProxy "projects")
+_projects = prop (SProxy :: SProxy "projects")
 
 _newProject :: Lens' State NewProject.State
-_newProject = _Newtype <<< prop (SProxy :: SProxy "newProject")
+_newProject = prop (SProxy :: SProxy "newProject")
 
 _rename :: Lens' State Rename.State
-_rename = _Newtype <<< prop (SProxy :: SProxy "rename")
+_rename = prop (SProxy :: SProxy "rename")
 
 _saveAs :: Lens' State SaveAs.State
-_saveAs = _Newtype <<< prop (SProxy :: SProxy "saveAs")
+_saveAs = prop (SProxy :: SProxy "saveAs")
 
 _authStatus :: Lens' State (WebData AuthStatus)
-_authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
+_authStatus = prop (SProxy :: SProxy "authStatus")
 
 _gistId :: Lens' State (Maybe GistId)
-_gistId = _Newtype <<< prop (SProxy :: SProxy "gistId")
+_gistId = prop (SProxy :: SProxy "gistId")
 
 _createGistResult :: Lens' State (WebData Gist)
-_createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
+_createGistResult = prop (SProxy :: SProxy "createGistResult")
 
 _loadGistResult :: Lens' State (Either String (WebData Gist))
-_loadGistResult = _Newtype <<< prop (SProxy :: SProxy "loadGistResult")
+_loadGistResult = prop (SProxy :: SProxy "loadGistResult")
 
 _projectName :: Lens' State String
-_projectName = _Newtype <<< prop (SProxy :: SProxy "projectName")
+_projectName = prop (SProxy :: SProxy "projectName")
 
 _showModal :: Lens' State (Maybe ModalView)
-_showModal = _Newtype <<< prop (SProxy :: SProxy "showModal")
-
-_hasUnsavedChanges' :: forall r. Lens' { hasUnsavedChanges :: Boolean | r } Boolean
-_hasUnsavedChanges' = prop (SProxy :: SProxy "hasUnsavedChanges")
+_showModal = prop (SProxy :: SProxy "showModal")
 
 _hasUnsavedChanges :: Lens' State Boolean
-_hasUnsavedChanges = _Newtype <<< _hasUnsavedChanges'
+_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
 
 _workflow :: Lens' State (Maybe Lang)
-_workflow = _Newtype <<< prop (SProxy :: SProxy "workflow")
+_workflow = prop (SProxy :: SProxy "workflow")
 
 currentLang :: State -> Maybe Lang
 currentLang state = case state ^. _view of

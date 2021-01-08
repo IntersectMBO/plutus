@@ -25,7 +25,7 @@ import FileEvents as FileEvents
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _hasUnsavedChanges', _marloweEditorPageSlot)
+import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Holes (fromTerm)
@@ -57,10 +57,7 @@ handleAction _ (ChangeKeyBindings bindings) = do
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
-  modify_
-    ( set _selectedHole Nothing
-        <<< set _hasUnsavedChanges' true
-    )
+  assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   analysisState <- use _analysisState
   let
@@ -124,9 +121,6 @@ handleAction _ ViewAsBlockly = pure unit
 handleAction _ (InitMarloweProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
-  assign _hasUnsavedChanges' false
-
-handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 

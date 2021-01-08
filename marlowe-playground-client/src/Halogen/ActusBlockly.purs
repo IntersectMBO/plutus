@@ -39,7 +39,7 @@ type State
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , showShiny :: Boolean
-    , hasUnsavedChanges :: Boolean
+    , useEvents :: Boolean
     }
 
 _actusBlocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -51,10 +51,6 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
--- We redefine this lens as importing the one from MainFrame causes a cyclic dependency
-_hasUnsavedChanges :: Lens' State Boolean
-_hasUnsavedChanges = prop (SProxy :: SProxy "hasUnsavedChanges")
-
 _showShiny :: Lens' State Boolean
 _showShiny = prop (SProxy :: SProxy "showShiny")
 
@@ -63,8 +59,6 @@ data Query a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
-  | HasUnsavedChanges (Boolean -> a)
-  | MarkProjectAsSaved a
 
 data ContractFlavour
   = FS
@@ -80,7 +74,6 @@ data Message
   = Initialized
   | CurrentTerms ContractFlavour String
   | CodeChange
-  | FinishLoading
 
 type DSL m a
   = HalogenM State Action () Message m a
@@ -88,7 +81,14 @@ type DSL m a
 blockly :: forall m. MonadAff m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false, hasUnsavedChanges: false }
+    { initialState:
+        const
+          { actusBlocklyState: Nothing
+          , generator: Nothing
+          , errorMessage: Just "(Labs is an experimental feature)"
+          , showShiny: false
+          , useEvents: false
+          }
     , render
     , eval:
         H.mkEval
@@ -132,14 +132,6 @@ handleQuery (LoadWorkspace xml next) = do
           Blockly.loadWorkspace state.blockly workspaceRef xml
   assign _errorMessage Nothing
   pure $ Just next
-
-handleQuery (HasUnsavedChanges next) = do
-  val <- use _hasUnsavedChanges
-  pure $ Just $ next val
-
-handleQuery (MarkProjectAsSaved next) = do
-  assign _hasUnsavedChanges false
-  pure $ Just $ next
 
 handleAction :: forall m. MonadAff m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
@@ -214,7 +206,7 @@ handleAction RunAnalysis = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
-handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange FinishLoading event
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
