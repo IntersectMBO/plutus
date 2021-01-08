@@ -1,12 +1,15 @@
-{- | Plutus benchmarks based on some nofib examples. -}
+{-# LANGUAGE TypeApplications #-}
 
+{- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
 import           Criterion.Main
 
 import           Common
 
-import           Language.PlutusCore                               (Name (..))
+import           Control.Exception
+import           Control.Monad.Except
+import qualified Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Universe
 import           Language.UntypedPlutusCore
@@ -17,8 +20,10 @@ import qualified Plutus.Benchmark.Prime                            as Prime
 import qualified Plutus.Benchmark.Queens                           as Queens
 
 
-benchCek :: Term Name DefaultUni DefaultFun () -> Benchmarkable
-benchCek program = nf (unsafeEvaluateCek defBuiltinsRuntime) program
+benchCek :: Term NamedDeBruijn DefaultUni DefaultFun () -> Benchmarkable
+benchCek t = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ unDeBruijnTerm t of
+    Left e   -> throw e
+    Right t' -> nf (unsafeEvaluateCek defBuiltinsRuntime) t'
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchCek $ Clausify.mkClausifyTerm f

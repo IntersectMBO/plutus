@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 -- Set -O0 to make it a fairer fight
 {-# OPTIONS_GHC -O0 #-}
@@ -12,6 +13,7 @@ module Main (main) where
 import           Prelude                                               hiding (tail)
 
 import           Control.Lens.Indexed
+import           Control.Monad.Except
 import           Criterion.Main
 import           Crypto.Hash                                           hiding (Context)
 import qualified Data.ByteArray                                        as BA
@@ -29,9 +31,12 @@ import           LedgerBytes
 import           Wallet
 import           Wallet.Emulator.Types                                 (Wallet (..), walletPubKey)
 
+import qualified Language.PlutusCore                                   as PLC
+import qualified Language.PlutusCore.Evaluation.Result                 as PLC
 import qualified Language.PlutusTx                                     as PlutusTx
 import           Language.PlutusTx.Evaluation                          (unsafeEvaluateCek)
 import qualified Language.PlutusTx.Prelude                             as PlutusTx
+import qualified Language.UntypedPlutusCore                            as UPLC
 
 import           Opt
 import qualified Recursion                                             as Rec
@@ -39,6 +44,11 @@ import qualified Scott                                                 as Scott
 
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]
+
+runCek :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Bool
+runCek p = case runExcept @PLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnProgram p of
+    Left _   -> False
+    Right p' -> PLC.isEvaluationSuccess $ unsafeEvaluateCek p'
 
 -- | Execution of some interesting functions.
 functions :: Benchmark
@@ -69,14 +79,14 @@ hashB = bgroup "hash" (imap (\i d -> bench ("hash-" <> show i) $ nf hashit d) ha
 fibB :: Benchmark
 fibB = bgroup "fib" [
         bgroup "5" [
-            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
-            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
+            bench "plutus" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 5 ||])),
+            bench "plutus-opt" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 5 ||])),
             bench "native" $ nf fib 5,
             bench "combinator" $ nf fibRec 5
         ],
         bgroup "10" [
-            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
-            bench "plutusOpt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
+            bench "plutus" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fib 10 ||])),
+            bench "plutusOpt" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| fibOpt 10 ||])),
             bench "native" $ nf fib 10,
             bench "combinator" $ nf fibRec 10
         ]
@@ -97,16 +107,16 @@ fibB = bgroup "fib" [
 sumB :: Benchmark
 sumB = bgroup "sum" [
         bgroup "5" [
-            bench "plutus" $ nf unsafeEvaluateCek script5,
-            bench "plutus-opt" $ nf unsafeEvaluateCek script5Opt,
+            bench "plutus" $ nf runCek script5,
+            bench "plutus-opt" $ nf runCek script5Opt,
             bench "native" $ nf haskellNative 5,
             bench "scott" $ nf haskellScott 5,
             bench "combinator" $ nf haskellRec 5,
             bench "scott-combinator" $ nf haskellRecScott 5
         ],
         bgroup "20" [
-            bench "plutus" $ nf unsafeEvaluateCek script20,
-            bench "plutus-opt" $ nf unsafeEvaluateCek script20Opt,
+            bench "plutus" $ nf runCek script20,
+            bench "plutus-opt" $ nf runCek script20Opt,
             bench "native" $ nf haskellNative 20,
             bench "scott" $ nf haskellScott 20,
             bench "combinator" $ nf haskellRec 20,
@@ -156,16 +166,16 @@ sumB = bgroup "sum" [
 tailB :: Benchmark
 tailB = bgroup "tail" [
         bgroup "5" [
-            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
+            bench "plutus" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 5 ()),
             bench "scott" $ nf tailScott (Scott.replicate 5 ()),
             bench "combinator" $ nf tailRec (replicate 5 ()),
             bench "scott-combinator" $ nf tailRecScott (Scott.replicate 5 ())
         ],
         bgroup "20" [
-            bench "plutus" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
-            bench "plutus-opt" $ nf unsafeEvaluateCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tail [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
+            bench "plutus-opt" $ nf runCek (PlutusTx.getPlc $$(PlutusTx.compile [|| \() () () -> tailOpt [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()] ||])),
             bench "native" $ nf tail (replicate 20 ()),
             bench "scott" $ nf tailScott (Scott.replicate 20 ()),
             bench "combinator" $ nf tailRec (replicate 20 ()),

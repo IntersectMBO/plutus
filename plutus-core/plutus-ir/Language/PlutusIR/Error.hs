@@ -53,6 +53,8 @@ instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun
 instance AsTypeErrorExt (Error uni fun a) uni a where
     _TypeErrorExt = _PIRTypeError
 
+instance PLC.AsFreeVariableError (Error uni fun a) where
+    _FreeVariableError = _PLCError . PLC._FreeVariableError
 
 -- Pretty-printing
 ------------------

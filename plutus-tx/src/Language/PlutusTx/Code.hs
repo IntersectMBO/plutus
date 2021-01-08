@@ -35,8 +35,8 @@ import qualified Data.ByteString.Lazy             as BSL
 data CompiledCodeIn uni fun a =
     -- | Serialized UPLC code and possibly serialized PIR code.
     SerializedCode BS.ByteString (Maybe BS.ByteString)
-    -- | Deserialized UPLC program and possibly deserialized PIR program.
-    | DeserializedCode (UPLC.Program PLC.Name uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ()))
+    -- | Deserialized UPLC program, and possibly deserialized PIR program.
+    | DeserializedCode (UPLC.Program UPLC.NamedDeBruijn uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ()))
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
@@ -64,7 +64,7 @@ instance Exception ImpossibleDeserialisationFailure
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => CompiledCodeIn uni fun a -> UPLC.Program PLC.Name uni fun ()
+    => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
 getPlc wrapper = case wrapper of
     SerializedCode plc _ -> case unflat (BSL.fromStrict plc) of
         Left e  -> throw $ ImpossibleDeserialisationFailure e

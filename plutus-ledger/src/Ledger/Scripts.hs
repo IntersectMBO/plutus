@@ -54,35 +54,34 @@ module Ledger.Scripts(
     acceptingMonetaryPolicy
     ) where
 
-import qualified Prelude                             as Haskell
+import qualified Prelude                          as Haskell
 
-import           Codec.CBOR.Decoding                 (decodeBytes)
-import           Codec.Serialise                     (Serialise, decode, encode, serialise)
-import           Control.DeepSeq                     (NFData)
-import           Control.Monad.Except                (MonadError, runExceptT, throwError)
-import           Crypto.Hash                         (Digest, SHA256, hash)
-import           Data.Aeson                          (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import qualified Data.Aeson                          as JSON
-import qualified Data.Aeson.Extras                   as JSON
-import qualified Data.ByteArray                      as BA
-import qualified Data.ByteString.Lazy                as BSL
-import           Data.Hashable                       (Hashable)
+import           Codec.CBOR.Decoding              (decodeBytes)
+import           Codec.Serialise                  (Serialise, decode, encode, serialise)
+import           Control.DeepSeq                  (NFData)
+import           Control.Monad.Except             (MonadError, runExceptT, throwError)
+import           Crypto.Hash                      (Digest, SHA256, hash)
+import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import qualified Data.Aeson                       as JSON
+import qualified Data.Aeson.Extras                as JSON
+import qualified Data.ByteArray                   as BA
+import qualified Data.ByteString.Lazy             as BSL
+import           Data.Hashable                    (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           Flat                                (flat, unflat)
-import           GHC.Generics                        (Generic)
-import           IOTS                                (IotsType (iotsDefinition))
-import qualified Language.PlutusCore                 as PLC
-import           Language.PlutusTx                   (CompiledCode, IsData (..), compile, getPlc, makeLift)
-import           Language.PlutusTx.Builtins          as Builtins
-import           Language.PlutusTx.Evaluation        (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
-import           Language.PlutusTx.Lift              (liftCode)
+import           Flat                             (flat, unflat)
+import           GHC.Generics                     (Generic)
+import           IOTS                             (IotsType (iotsDefinition))
+import qualified Language.PlutusCore              as PLC
+import           Language.PlutusTx                (CompiledCode, IsData (..), compile, getPlc, makeLift)
+import           Language.PlutusTx.Builtins       as Builtins
+import           Language.PlutusTx.Evaluation     (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
+import           Language.PlutusTx.Lift           (liftCode)
 import           Language.PlutusTx.Prelude
-import qualified Language.UntypedPlutusCore          as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn as UPLC
-import           Ledger.Orphans                      ()
-import           LedgerBytes                         (LedgerBytes (..))
+import qualified Language.UntypedPlutusCore       as UPLC
+import           Ledger.Orphans                   ()
+import           LedgerBytes                      (LedgerBytes (..))
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
@@ -158,12 +157,10 @@ scriptSize (Script s) = UPLC.programSize s
 fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = fromPlc . getPlc
 
-fromPlc :: UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun () -> Script
-fromPlc (UPLC.Program a v t) = case UPLC.deBruijnTerm $ t of
-    Right t' ->
-        let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t'
-        in Script $ UPLC.Program a v nameless
-    Left _   -> Haskell.error "Debruijn failed"
+fromPlc :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Script
+fromPlc (UPLC.Program a v t) =
+    let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t
+    in Script $ UPLC.Program a v nameless
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
@@ -184,7 +181,7 @@ evaluateScript s = do
             let (UPLC.Program a v t) = unScript s
                 named = UPLC.termMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "" ix) t
             in UPLC.Program a v named
-    p <- case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+    p <- case PLC.runQuote $ runExceptT @PLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
         Right p -> return p
         Left e  -> throwError $ MalformedScript $ show e
     let (logOut, _tally, result) = evaluateCekTrace p

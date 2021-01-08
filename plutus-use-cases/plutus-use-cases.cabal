@@ -163,6 +163,7 @@ benchmark plutus-use-cases-bench
         plutus-core -any,
         lens -any,
         memory -any,
+        mtl -any,
         plutus-tx -any,
         plutus-use-cases -any,
         plutus-ledger -any,

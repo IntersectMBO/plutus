@@ -1,13 +1,14 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main where
 
 import           Prelude                                           ((<>))
 import qualified Prelude                                           as P
 
-import           Control.Monad
+import           Control.Exception
 import           Control.Monad                                     ()
-import           Control.Monad.Trans.Except                        (runExceptT)
+import           Control.Monad.Trans.Except
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Char                                         (isSpace)
 import           Options.Applicative                               as Opt hiding (action)
@@ -24,8 +25,7 @@ import qualified Language.PlutusCore.Pretty                        as PLC
 import           Language.PlutusCore.Universe
 import           Language.PlutusTx.Prelude                         as TxPrelude hiding (fmap, mappend, (<$), (<$>),
                                                                                  (<*>), (<>))
-import           Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
+import qualified Language.UntypedPlutusCore                        as UPLC
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
 import qualified Plutus.Benchmark.Clausify                         as Clausify
 import qualified Plutus.Benchmark.Knights                          as Knights
@@ -188,23 +188,25 @@ options = hsubparser
 
 ---------------- Evaluation ----------------
 
-evaluateWithCek :: Term Name DefaultUni DefaultFun () -> EvaluationResult (Term Name DefaultUni DefaultFun ())
+evaluateWithCek :: UPLC.Term Name DefaultUni DefaultFun () -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
 evaluateWithCek = unsafeEvaluateCek defBuiltinsRuntime
 
-toDeBruijn :: Program Name DefaultUni DefaultFun a -> IO (Program UPLC.DeBruijn DefaultUni DefaultFun a)
+toDeBruijn :: UPLC.Program Name DefaultUni DefaultFun a -> IO (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun a)
 toDeBruijn prog = do
-  r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+  let r = runExcept @UPLC.FreeVariableError $ PLC.runQuoteT (UPLC.deBruijnProgram prog)
   case r of
-    Left e  -> failWithMsg (show e)
+    Left e  -> throw e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 data CborMode = Named | DeBruijn
 
-writeCBOR :: CborMode -> Program Name DefaultUni DefaultFun () -> IO ()
+writeCBOR :: CborMode -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 writeCBOR cborMode prog =
     case cborMode of
-      Named    -> BSL.putStr $ serialiseOmittingUnits prog
-      DeBruijn -> toDeBruijn prog >>= BSL.putStr . serialiseOmittingUnits
+      Named    -> case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnProgram prog of
+          Left e  -> throw e
+          Right p -> BSL.putStr $ UPLC.serialiseOmittingUnits p
+      DeBruijn -> BSL.putStr $ UPLC.serialiseOmittingUnits $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) $ prog
 
 description :: String
 description = "This program provides operations on a number of Plutus programs "
@@ -223,7 +225,7 @@ knownProgs = map text ["clausify", "knights", "lastpiece", "prime", "primetest",
 footerInfo :: Doc
 footerInfo = text "Every command takes the name of a program and a (possbily empty) list of arguments."
            <> line <> line
-           <> (text "The available programs are: ")
+           <> text "The available programs are: "
            <> line
            <> indent 2 (vsep knownProgs)
            <> line <> line
@@ -238,8 +240,12 @@ main :: IO ()
 main = do
   execParser (info (helper <*> options) (fullDesc <> progDesc description <> footerDoc (Just footerInfo))) >>= \case
     RunPLC pa -> do
-        let program = getProgram pa
-            result = unsafeEvaluateCek defBuiltinsRuntime program
+        let
+            program :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+            program = getProgram pa
+            result = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm program of
+                Left e  -> throw e
+                Right p -> unsafeEvaluateCek defBuiltinsRuntime p
         print . PLC.prettyPlcClassicDebug $ result
     RunHaskell pa ->
         case pa of
@@ -254,7 +260,7 @@ main = do
                where unindent d = map (dropWhile isSpace) $ (lines . show $ d)
     DumpCBORnamed pa   -> writeCBOR Named $ getWrappedProgram pa
     DumpCBORdeBruijn pa-> writeCBOR DeBruijn $ getWrappedProgram pa
-    -- ^ Write the output to stdout and let the user deal with redirecting it.
+    -- Write the output to stdout and let the user deal with redirecting it.
     where getProgram =
               \case
                Clausify formula        -> Clausify.mkClausifyTerm formula
@@ -264,4 +270,4 @@ main = do
                Prime input             -> Prime.mkPrimalityBenchTerm input
                Primetest n             -> if n<0 then P.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
-          getWrappedProgram = Program () (Version () 1 0 0) . getProgram
+          getWrappedProgram = UPLC.Program () (UPLC.Version () 1 0 0) . getProgram
