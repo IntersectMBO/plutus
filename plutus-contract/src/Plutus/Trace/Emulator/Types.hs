@@ -215,6 +215,9 @@ instance Pretty ContractInstanceLog where
     pretty ContractInstanceLog{_cilMessage, _cilId, _cilTag} =
         hang 2 $ vsep [pretty _cilId <+> braces (pretty _cilTag) <> colon, pretty _cilMessage]
 
+-- | State of the contract instance, internal to the contract instance thread.
+--   It contains both the serialisable state of the contract instance and the
+--   non-serialisable continuations in 'SuspendedContract'.
 data ContractInstanceStateInternal s e a =
     ContractInstanceStateInternal
         { cisiSuspState       :: SuspendedContract e (Event s) (Handlers s) a
@@ -222,6 +225,9 @@ data ContractInstanceStateInternal s e a =
         , cisiHandlersHistory :: Seq [State.Request (Handlers s)]
         }
 
+-- | Extract the serialisable 'ContractInstanceState' from the
+--   'ContractInstanceStateInternal'. We need to do this when
+--   we want to send the instance state to another thread.
 toInstanceState :: ContractInstanceStateInternal s e a -> ContractInstanceState s e a
 toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult}, cisiEvents, cisiHandlersHistory} =
     ContractInstanceState

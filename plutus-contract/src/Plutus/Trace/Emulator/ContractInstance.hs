@@ -191,6 +191,10 @@ runInstance contract event = do
                 sleep @effs Normal >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
                 state <- get @(ContractInstanceStateInternal s e ())
+
+                -- TODO: Maybe we should send it as a 'Dynamic' instead of
+                -- JSON? It all stays in the same process, and it would save
+                -- us having to convert to 'Value' and back.
                 let stateJSON = JSON.toJSON $ toInstanceState state
                 logInfo $ SendingContractState sender
                 void $ mkSysCall @effs @EmulatorMessage Normal (Message sender $ ContractInstanceStateResponse stateJSON)
