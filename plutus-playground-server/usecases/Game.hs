@@ -149,6 +149,4 @@ endpoints = game
 
 mkSchemaDefinitions ''GameSchema
 
-myCurrency :: KnownCurrency
-myCurrency = KnownCurrency "b0b0" "MyCurrency" ( "USDToken" :| ["EURToken"])
-$(mkKnownCurrencies ['myCurrency])
+$(mkKnownCurrencies [])

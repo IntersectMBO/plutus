@@ -6,8 +6,8 @@ module CrowdfundingSimulations where
 
 import           Crowdfunding          (Contribution (Contribution), contribValue, registeredKnownCurrencies)
 import qualified Ledger.Ada            as Ada
-import           Playground.Types      (ContractCall (AddBlocks, AddBlocksUntil), Simulation (Simulation),
-                                        SimulatorAction, simulationActions, simulationName, simulationWallets)
+import           Playground.Types      (ContractCall (AddBlocksUntil), Simulation (Simulation), SimulatorAction,
+                                        simulationActions, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
 
@@ -30,8 +30,7 @@ simulations = [basicCrowdfunding]
                   , contribute wallet2 11
                   , contribute wallet3 10
                   , contribute wallet4 9
-                  , AddBlocks 1
-                  , AddBlocksUntil 40
+                  , AddBlocksUntil 41
                   ]
             }
 
