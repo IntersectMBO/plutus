@@ -326,12 +326,12 @@ handleAction CompileProgram = do
     Just contents -> do
       oldCompilationResult <- use _compilationResult
       assign _compilationResult Loading
-      assign (_editorState <<< _feedbackPaneMinimised) false
       newCompilationResult <- postContract contents
       assign _compilationResult newCompilationResult
       -- If we got a successful result, update lastCompiledCode and switch tab.
       case newCompilationResult of
-        Success (Left _) -> pure unit
+        Success (Left _) ->
+          assign (_editorState <<< _feedbackPaneMinimised) false
         _ ->
           when (isSuccess newCompilationResult) do
             assign (_editorState <<< _lastCompiledCode) (Just contents)

@@ -23,6 +23,9 @@ data Action
   | ScrollTo IPosition
   | SetKeyBindings KeyBindings
   | ToggleFeedbackPane
+  | SetFeedbackPaneDragStart (Maybe Int)
+  | SetFeedbackPaneDrag (Maybe Int)
+  | FixFeedbackPaneExtend
 
 ------------------------------------------------------------
 allKeyBindings :: Array KeyBindings
@@ -42,6 +45,9 @@ newtype State
   , feedbackPaneMinimised :: Boolean
   , lastCompiledCode :: Maybe SourceCode
   , currentCodeIsCompiled :: Boolean
+  , feedbackPaneDragStart :: Maybe Int
+  , feedbackPaneDrag :: Maybe Int
+  , feedbackPaneExtend :: Int
   }
 
 derive instance newtypeState :: Newtype State _
@@ -64,3 +70,12 @@ _lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
 
 _currentCodeIsCompiled :: Lens' State Boolean
 _currentCodeIsCompiled = _Newtype <<< prop (SProxy :: SProxy "currentCodeIsCompiled")
+
+_feedbackPaneDragStart :: Lens' State (Maybe Int)
+_feedbackPaneDragStart = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDragStart")
+
+_feedbackPaneDrag :: Lens' State (Maybe Int)
+_feedbackPaneDrag = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDrag")
+
+_feedbackPaneExtend :: Lens' State Int
+_feedbackPaneExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneExtend")

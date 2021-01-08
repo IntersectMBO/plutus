@@ -11,14 +11,14 @@ import Bootstrap (btn, card, cardHeader, cardHeader_, cardBody_, customSelect, e
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
-import Data.Maybe (Maybe(Just), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Editor.Types (Action(..), State(..), _warnings, allKeyBindings)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, text)
-import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
+import Halogen.HTML.Events (onClick, onDrag, onDragEnd, onDragOver, onDragStart, onDrop, onSelectedIndexChange)
+import Halogen.HTML.Properties (class_, classes, disabled, draggable, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), Warning, _InterpreterResult, _Warning)
@@ -97,12 +97,20 @@ editorPane initialContents bufferLocalStorageKey editorState@(State { keyBinding
     ]
 
 editorFeedback :: forall p. State -> WebCompilationResult -> HTML p Action
-editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised }) compilationResult =
+editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneExtend, feedbackPaneMinimised }) compilationResult =
   div
     [ class_ $ ClassName "editor-feedback-container" ]
     [ div
         [ classes feedbackPaneClasses ]
         [ div
+            [ class_ $ ClassName "editor-feedback-resize-bar"
+            , draggable true
+            , onDragStart $ \event -> Just $ SetFeedbackPaneDragStart Nothing
+            , onDrag $ \event -> Just $ SetFeedbackPaneDrag Nothing
+            , onDragEnd $ \_ -> Just $ FixFeedbackPaneExtend
+            ]
+            (if feedbackPaneMinimised then [] else [ nbsp ])
+        , div
             [ class_ $ ClassName "editor-feedback-header" ]
             [ p_ [ summaryText ]
             , case compilationResult of
@@ -118,11 +126,11 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
         ]
     ]
   where
-  feedbackPaneClasses =
-    if feedbackPaneMinimised then
-      [ ClassName "editor-feedback", ClassName "minimised" ]
-    else
-      [ ClassName "editor-feedback" ]
+  feedbackPaneClasses = case feedbackPaneMinimised, feedbackPaneExtend of
+    false, 0 -> [ ClassName "editor-feedback" ]
+    true, 0 -> [ ClassName "editor-feedback", ClassName "minimised" ]
+    false, size -> [ ClassName "editor-feedback", ClassName $ "expanded-" <> show size ]
+    true, size -> [ ClassName "editor-feedback", ClassName "minimised", ClassName $ "expanded-" <> show size ]
 
   summaryText = case compilationResult of
     NotAsked -> text "Not compiled"

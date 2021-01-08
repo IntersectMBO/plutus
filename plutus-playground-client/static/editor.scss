@@ -55,6 +55,7 @@
 
     $feedback-header-height: 19px;
     $feedback-body-height: 200px;
+    $feedback-grow-step: 10px;
     $feedback-padding: 1em;
 
     .editor-feedback-container {
@@ -72,6 +73,12 @@
         border: 1px solid $gray-border-color;
         font-family: $font-family-monospace;
 
+        @for $n from 1 through 10 {
+            &.expanded-#{$n} {
+                max-height: $feedback-header-height + $feedback-body-height + ($feedback-grow-step * $n);
+            }
+        }
+
         &.minimised {
             height: $feedback-header-height + 1px; // +1 for the border
             overflow: hidden;
@@ -79,6 +86,12 @@
 
         a, a:hover {
             text-decoration: underline;
+        }
+
+        .editor-feedback-resize-bar {
+            height: 4px;
+            background: $gray-border-color;
+            cursor: ns-resize;
         }
 
         .editor-feedback-header {
@@ -96,8 +109,9 @@
         }
 
         .editor-feedback-body {
-            max-height: $feedback-body-height;
+            height: 100%;
             overflow-y: auto;
+            background: lighten($red, 50%);
         }
 
         .card {
