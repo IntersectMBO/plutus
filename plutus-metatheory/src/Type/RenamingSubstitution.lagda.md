@@ -76,10 +76,10 @@ ext-id Z     = refl
 ext-id (S α) = refl
 ```
 
-This congruence lemma and analogous ones for exts⋆, ren, and
-subst⋆ avoids the use of extensionality when reasoning about equal
+This congruence lemma and analogous ones for `exts`, `ren`, and
+`sub` avoids the use of extensionality when reasoning about equal
 renamings/substitutions as we only need a pointwise version of
-equality. If we used the standard library's cong we would need to
+equality. If we used the standard library's `cong` we would need to
 postulate extensionality and our equality proofs wouldn't compute. I
 learnt this from Conor McBride.
 
@@ -237,7 +237,7 @@ Congruence lemma for `sub`
 ```
 sub-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
          → ∀{K}(A : Φ ⊢⋆ K)
-           -------------------------------
+           --------------------------------
          → sub σ A ≡ sub σ' A
 sub-cong p (` α)       = p α
 sub-cong p (Π A)       = cong Π (sub-cong (exts-cong p) A)
@@ -317,7 +317,7 @@ Fusion of two `exts`
 
 ```
 extscomp : ∀{J K}(α : Φ ,⋆ K ∋⋆ J)
-           ------------------------------------------------
+           ----------------------------------------------
          → exts (sub σ ∘ σ') α ≡ sub (exts σ) (exts σ' α)
 extscomp         Z     = refl
 extscomp {σ' = σ'} (S α) = trans (sym (ren-sub (σ' α))) (sub-ren (σ' α))

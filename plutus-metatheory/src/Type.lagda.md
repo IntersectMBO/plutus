@@ -138,4 +138,8 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
       → Φ ⊢⋆ *
 ```
 
-Let `A`, `B`, `C` range over types.
+Let `A`, `B`, `C` range over types:
+```
+variable
+  A A' B B' C C'  : Φ ⊢⋆ J
+```

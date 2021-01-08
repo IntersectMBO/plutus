@@ -53,8 +53,8 @@ used in the normalisation proof.
 ```
 import Type
 import Type.RenamingSubstitution
-import Type.Reduction
 import Type.Equality
+import Type.Reduction
 ```
 
 ## Normal Types
