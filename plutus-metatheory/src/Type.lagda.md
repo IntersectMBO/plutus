@@ -62,10 +62,10 @@ data Ctx⋆ : Set where
   _,⋆_ : Ctx⋆ → Kind → Ctx⋆
 ```
 
-Let `Φ`, `Ψ` range over type contexts:
+Let `Φ`, `Ψ`, `Θ` range over type contexts:
 ```
 variable
-  Φ Ψ : Ctx⋆
+  Φ Ψ Θ : Ctx⋆
 ```
 
 ## Type variables

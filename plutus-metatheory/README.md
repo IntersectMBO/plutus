@@ -94,40 +94,22 @@ $ cabal v2-test plutus-metatheory
 
 * The formalisation currently covers the full language of Plutus Core:
   System F omega with (deep) iso-recursive types, and builtin-types
-  for integers and bytestrings. Progress and preservation have been
-  shown to hold for the small-step operational semantics.
+  for integers and bytestrings, reduction, CK and CEK semantics and
+  type checking. Progress and preservation have been shown to hold for
+  the small-step operational semantics.
 
 * The Agda formalisation contains an executable `plc-agda` which makes
   use of the parser and pretty printer from `plutus-core` in
   conjunction with an interpreter written in Agda. It has the same
-  interface as `plc`.
+  interface as `plc`. It supports evaluation using various reduction
+  strategies and type checking.
 
-There are three versions of the reduction semantics:
+## Detailed Description
 
-1. The intrinsically typed semantics which is the most high-assurance
-and described in the paper "System F for Fun and Profit" which will be
-presented at the International Conference on the Mathematics of
-Program Construction in Porto, Portugal in Autum 2019.
+See the [table of contents](https://input-output-hk.github.io/plutus-metatheory/) for an explanation of the structure of the formalisation and links to the code.
 
-2. The extrinsically typed version which the `plc-agda` tool uses.
-
-3. The untyped version. The computational meaning of System F is given
-by the untyped semantics and this version allows us to check that this
-is the case. It also provides a check that other versions of the
-syntax and semantics match by seeing if they erase to the same untyped
-syntax/semantics.
-
-We have proved that the three versions of the syntax/reduction
-semantics match.
-
-There are two versions of the CK machine:
-
-1. Intrinsically typed.
-2. Extrinsically typed.
-
-There is one version of the CEK machine.
-
-There is an evidence producing typechecker.
+**The below information is deprecated and is in the process of being
+replaced by the table of contents document.**
 
 ## Structure of the intrinsically typed formalisation
 
