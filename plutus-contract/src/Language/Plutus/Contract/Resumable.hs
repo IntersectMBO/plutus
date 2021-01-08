@@ -18,9 +18,41 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
+{-
+This module defines the 'Resumable' effect and its handlers.
+
+@Resumable i o@ programs work like state machines. Their state type is
+'Requests' @o@ and their input type is 'Response' @i@. Note that the state
+contains multiple requests, but the input only has a single response.
+See note [Resumable state machine] for details.
+
+== Constructing resumable programs
+Resumable programs can be constructed using 'prompt' and 'select'. 'prompt'
+has one argument that describes the request.
+
+>>> (prompt "A") 'select' (prompt "B")
+
+makes two requests and returns the answer of the one that is responded to
+first. In the state machine analogy, the initial state of this program would
+be the set of the two requests @"A"@ and @"B"@.
+
+== Running resumable programs
+The 'Resumable' effect is handled in two stages, using 'handleResumable' and
+'handleNonDetPrompt' (see note [Running resumable programs] for a description
+of how it works). The types 'Requests' and 'Responses' store the requests
+made by, and responses given to, a resumable program.
+
+== 'Resumable' and non-determinism
+The kind of non-determinism used in 'Resumable' is different from the kind
+encoded in 'Control.Applicative.Alternative' in that it does not allow
+for backtracking (because it's not meant to encode "searching a problem
+space for a solution"). 'Resumable' programs do not have the ability to call
+'Control.Applicative.Alternative.empty' and therefore do not implement
+the 'Control.Applicative.Alternative' class.
+
+-}
 module Language.Plutus.Contract.Resumable(
     -- * The 'Resumable' effect
-    -- $resumable
     Resumable(..)
     , prompt
     , select
@@ -56,36 +88,26 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.State
 
--- $resumable
--- This module defines the 'Resumable' effect and its handlers. Programs that
--- use the 'Resumable' effect can non-deterministically ask for values from the
--- environment. Non-deterministically here means that we can issue multiple
--- prompts at the same time, each with its own continuation, and continue with
--- the one that is answered first while discarding the other ones.
---
--- == Constructing resumable programs
--- Resumable programs can be constructed using 'prompt' and 'select'. 'prompt'
--- has one argument that describes the request.
---
--- >>> (prompt "A") 'select' (prompt "B")
---
--- makes two requests and returns the answer of the one that is responded to
--- first.
---
--- == Running resumable programs
--- The 'Resumable' effect is handled in two stages, using 'handleResumable' and
--- 'handleNonDetPrompt' (see note [Running resumable programs] for a description
--- of how it works). The types 'Requests' and 'Responses' store the requests
--- made by, and responses given to, a resumable program.
---
--- == 'Resumable' and non-determinism
--- The kind of non-determinism used in 'Resumable' is different from the kind
--- encoded in 'Control.Applicative.Alternative' in that it does not allow
--- for backtracking (because it's not meant to encode "searching a problem
--- space for a solution"). 'Resumable' programs do not have the ability to call
--- 'Control.Applicative.Alternative.empty' and therefore do not implement
--- the 'Control.Applicative.Alternative' class.
+{- Note [Resumable state machine]
 
+@Resumable i o@ programs are like state machines with state 'Requests' @o@ and
+input 'Response' @i@. So instead of using the 'Resumable' effect we could also
+write
+
+@
+    data SM i o effs = SM { currentState :: Requests o, transition :: Response i -> Eff effs (Maybe (Either a (SM i o effs)))
+@
+
+using 'Maybe' to denote the failure state and 'Either a' for the final state of
+type @a@.
+
+And this is indeed almost exactly the definition 'MultiRequestContinuation'.
+
+We can transform an @Eff (Resumable i o ': effs)@ program into an
+@Eff effs (Maybe (MultiRequestContStatus i o effs a))@ using 'handleResumable'
+and 'suspendNonDet'.
+
+-}
 
 -- | A data type for representing non-deterministic prompts.
 data Resumable i o r where
@@ -338,7 +360,7 @@ suspendNonDet ::
     forall i o a effs.
     Eff (Yield o i ': ResumableEffs i o effs a) a
     -> Eff effs (Maybe (MultiRequestContStatus i o effs a))
-suspendNonDet e = runSuspInt (runC e >>= runStep) where
+suspendNonDet e = runSuspInt (runC e >>= runStep)
 
 insertResponse :: Response i -> Responses i -> Responses i
 insertResponse Response{rspRqID,rspItID,rspResponse} (Responses r) =
