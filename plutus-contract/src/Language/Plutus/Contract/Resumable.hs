@@ -30,16 +30,16 @@ module Language.Plutus.Contract.Resumable(
     , RequestID(..)
     , IterationID(..)
     , Requests(..)
-    , ResumableInterpreter
+    , ResumableEffs
     , Responses(..)
     , insertResponse
     , responses
     -- * Handling the 'Resumable' effect with continuations
     , handleResumable
     , suspendNonDet
-    , SuspendedNonDet(..)
-    , NonDetCont(..)
-    , SuspMap(..)
+    , MultiRequestContStatus(..)
+    , MultiRequestContinuation(..)
+    , ReqMap(..)
     ) where
 
 import           Control.Applicative
@@ -208,9 +208,9 @@ request that is made during the lifetime of the contract. The iteration ID is
 unique for each group of open requests that the contract produces.
 
 Of particular importance is the 'runStep' function, which deals with the
-'Status' values that we get from 'runC'. It uses the 'ResumableInterpreter' effects:
+'Status' values that we get from 'runC'. It uses the 'ResumableEffs' effects:
 
->>> type ResumableInterpreter i o effs = State IterationID ': NonDet ': State RequestID ': effs
+>>> type ResumableEffs i o effs = State IterationID ': NonDet ': State RequestID ': effs
 
 Note that the 'IterationID' state comes before 'NonDet', and the 'RequestID'
 state comes after 'NonDet'. This is done so that we increase the 'RequestID'
@@ -221,7 +221,7 @@ answered.
 
 -- Effects that are used to interpret the Yield/NonDet combination
 -- produced by 'handleResumable'.
-type ResumableInterpreter i o effs a =
+type ResumableEffs i o effs a =
     -- anything that comes before 'NonDet' can be backtracked.
 
     -- We put 'State IterationID' here to ensure that only
@@ -231,7 +231,7 @@ type ResumableInterpreter i o effs a =
      State IterationID
      ': NonDet
      ': State RequestID
-     ': State (SuspMap i o effs a)
+     ': State (ReqMap i o effs a)
      ': State (Requests o)
      ': effs
 
@@ -248,61 +248,87 @@ handleResumable = interpret $ \case
     RRequest o -> yield o id
     RSelect    -> send MPlus
 
--- | Status of a suspended comptutation
-data SuspendedNonDet i o effs a =
-    -- | The computation is done
+-- | Status of a suspended 'MultiRequestContinuation'.
+data MultiRequestContStatus i o effs a =
+    -- | Done
     AResult a
-     -- | The computation is waiting for inputs
-    | AContinuation (NonDetCont i o effs a)
+     -- | Waiting for inputs
+    | AContinuation (MultiRequestContinuation i o effs a)
 
--- | Continuation of a suspended computation that is waiting for one of several possible responses.
-data NonDetCont i o effs a =
-    NonDetCont
-        { ndcCont     :: Response i -> Eff effs (Maybe (SuspendedNonDet i o effs a))
-        , ndcRequests :: Requests o
+-- | A continuation that accepts a response to one of several requests.
+data MultiRequestContinuation i o effs a =
+    MultiRequestContinuation
+        { ndcCont     :: Response i -> Eff effs (Maybe (MultiRequestContStatus i o effs a)) -- ^ Continuation for the response
+        , ndcRequests :: Requests o -- ^ The list of all open requests.
         }
 
-newtype SuspMap i o effs a = SuspMap (Map (RequestID, IterationID) (i -> Eff (ResumableInterpreter i o effs a) a))
+-- | A map of requests to continuations. For each request, identified by
+--   a pair of 'RequestID' and 'IterationID', 'ReqMap' contains the
+--   continuation that takes the response to the request.
+newtype ReqMap i o effs a = ReqMap { unReqMap :: Map (RequestID, IterationID) (i -> Eff (ResumableEffs i o effs a) a) }
 
--- | Handle the 'ResumableInterpreter' effects, returning a new suspended
+insertRequest :: (RequestID, IterationID) -> (i -> Eff (ResumableEffs i o effs a) a) -> ReqMap i o effs a -> ReqMap i o effs a
+insertRequest k v = ReqMap . Map.insert k v . unReqMap
+
+-- | Handle the 'ResumableEffs' effects, returning a new suspended
 --   computation.
 runSuspInt ::
     forall i o a effs.
-    Eff (ResumableInterpreter i o effs a) a
-    -> Eff effs (Maybe (SuspendedNonDet i o effs a))
+    Eff (ResumableEffs i o effs a) a
+    -> Eff effs (Maybe (MultiRequestContStatus i o effs a))
 runSuspInt = go mempty where
     go currentIteration action = do
-        let suspMap = SuspMap Map.empty -- start with a fresh map in every step to make sure that the old continuations are discarded
-        result <- runState @(Requests o) mempty $ runState suspMap $ evalState (RequestID 0) $ makeChoiceA @Maybe $ evalState currentIteration action
+        let suspMap = ReqMap Map.empty -- start with a fresh map in every step to make sure that the old continuations are discarded
+
+        -- handle the @ResumableEffs@ effects to get the result or
+        -- the @ReqMap@ with continuations for the next response.
+        result <- runState @(Requests o) mempty
+                    $ runState suspMap
+                    $ evalState (RequestID 0)
+                    $ makeChoiceA @Maybe
+                    $ evalState currentIteration
+                    $ action
         case  result of
-            ((Nothing, SuspMap mp), rqs) ->
+            ((Nothing, ReqMap mp), rqs) ->
                 let k Response{rspRqID, rspItID, rspResponse} = do
                         case Map.lookup (rspRqID, rspItID) mp of
                             Nothing -> pure Nothing
                             Just k' -> go (succ currentIteration) (k' rspResponse)
-                in pure $ Just $ AContinuation $ NonDetCont { ndcCont = k, ndcRequests = rqs}
+                in pure $ Just $ AContinuation $ MultiRequestContinuation { ndcCont = k, ndcRequests = rqs}
             ((Just a, _), _) -> pure $ Just $ AResult a
 
 -- | Given the status of a suspended computation, either
 --   return the result or record the request and store
---   the continuation in the 'SuspMap'
+--   the continuation in the 'ReqMap'
 runStep ::
     forall i o a effs.
-    Status (ResumableInterpreter i o effs a) o i a
-    -> Eff (ResumableInterpreter i o effs a) a
+    Status (ResumableEffs i o effs a) o i a
+    -> Eff (ResumableEffs i o effs a) a
 runStep = \case
     Done a -> pure a
+
+    -- We have reached a point where we need more input.
     Continue o k -> do
 
-        -- nextRequestID' generates a pair of 'RequestID' and 'IterationID' for
-        -- the current request. It writes the value 'a', which describes the
-        -- request, to the 'Requests', alongside the two identifiers.
+        -- Store the request @o@ and get the keys identifying it
         (iid,nid) <- nextRequestID o
 
-        -- 'continue' is the continuation for a response to the current
-        -- request.
-        let continue v = clearRequests @o >> k v >>= runStep
-        modify @(SuspMap i o effs a) (\(SuspMap mp) -> SuspMap $ Map.insert (nid, iid) continue mp)
+        let onResponse i = do
+                -- when we get a response @i@, we
+
+                -- * clear the requests,
+                clearRequests @o
+
+                -- * Compute the next 'Status'
+                status :: Status (ResumableEffs i o effs a) o i a <- k i
+
+                -- * repeat
+                runStep status
+
+        modify @(ReqMap i o effs a) (insertRequest (nid, iid) onResponse)
+
+        -- Stop evaluating this branch. We can resume it later by running
+        -- the continuation associated with @(iid, nid)@ in the @ReqMap@.
         empty
 
 -- | Interpret 'Yield' as a prompt-type effect using 'NonDet' to
@@ -310,14 +336,18 @@ runStep = \case
 --   keep track of request IDs.
 suspendNonDet ::
     forall i o a effs.
-    Eff (Yield o i ': ResumableInterpreter i o effs a) a
-    -> Eff effs (Maybe (SuspendedNonDet i o effs a))
+    Eff (Yield o i ': ResumableEffs i o effs a) a
+    -> Eff effs (Maybe (MultiRequestContStatus i o effs a))
 suspendNonDet e = runSuspInt (runC e >>= runStep) where
 
 insertResponse :: Response i -> Responses i -> Responses i
 insertResponse Response{rspRqID,rspItID,rspResponse} (Responses r) =
     Responses $ Map.insert (rspItID, rspRqID) rspResponse r
 
+
+-- Generate a pair of 'RequestID' and 'IterationID' for
+-- the given request @o@. It writes the request, to the
+-- 'Requests' state alongside the two identifiers.
 nextRequestID ::
     ( Member (State (Requests o)) effs
     , Member (State IterationID) effs

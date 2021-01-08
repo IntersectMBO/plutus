@@ -108,7 +108,7 @@ handleContractEffs ::
   , Member (LogMsg Value) effs
   )
   => Eff (ContractEffs s e) a
-  -> Eff effs (Maybe (SuspendedNonDet (Event s) (Handlers s) effs a))
+  -> Eff effs (Maybe (MultiRequestContStatus (Event s) (Handlers s) effs a))
 handleContractEffs =
   suspendNonDet @(Event s) @(Handlers s) @a @effs
   . handleResumable @(Event s) @(Handlers s)
@@ -121,7 +121,7 @@ handleContractEffs =
         ': State IterationID
         ': NonDet
         ': State RequestID
-        ': State (SuspMap (Event s) (Handlers s) effs a)
+        ': State (ReqMap (Event s) (Handlers s) effs a)
         ': State (Requests (Handlers s))
         ': effs
         )
@@ -252,7 +252,7 @@ makeLenses ''ResumableResult
 data SuspendedContract e i o a =
   SuspendedContract
     { _resumableResult :: ResumableResult e i o a
-    , _continuations   :: Maybe (SuspendedNonDet i o (SuspendedContractEffects e i) a)
+    , _continuations   :: Maybe (MultiRequestContStatus i o (SuspendedContractEffects e i) a)
     , _checkpointKey   :: CheckpointKey
     }
 
@@ -279,7 +279,7 @@ runWithRecord action store events =
 
 mkResult ::
   forall s e a.
-  (((Either e (Maybe (SuspendedNonDet (Event s) (Handlers s) (SuspendedContractEffects e (Event s)) a)), CheckpointKey), CheckpointStore), Seq (LogMessage Value))
+  (((Either e (Maybe (MultiRequestContStatus (Event s) (Handlers s) (SuspendedContractEffects e (Event s)) a)), CheckpointKey), CheckpointStore), Seq (LogMessage Value))
   -> SuspendedContract e (Event s) (Handlers s) a
 mkResult (((initialRes, cpKey), cpStore), newLogs) =
   SuspendedContract
@@ -287,7 +287,7 @@ mkResult (((initialRes, cpKey), cpStore), newLogs) =
           ResumableResult
             { _responses = mempty
             , _requests =
-                let getRequests = \case { AContinuation (NonDetCont{ndcRequests}) -> Just ndcRequests; _ -> Nothing }
+                let getRequests = \case { AContinuation (MultiRequestContinuation{ndcRequests}) -> Just ndcRequests; _ -> Nothing }
                 in either mempty (fromMaybe mempty) $ fmap (>>= getRequests) initialRes
             , _finalState =
                 let getResult = \case { AResult a -> Just a; _ -> Nothing } in
@@ -327,12 +327,13 @@ suspend action =
       (mempty @CheckpointStore)
       (handleContractEffs @_ @_ @(SuspendedContractEffects e (Event s)) action)
 
+-- | Feed a 'Response' to a 'SuspendedContract'.
 runStep ::
   forall s e a.
   SuspendedContract e (Event s) (Handlers s) a
   -> Response (Event s)
   -> Maybe (SuspendedContract e (Event s) (Handlers s) a)
-runStep SuspendedContract{_continuations=Just (AContinuation NonDetCont{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore}} event =
+runStep SuspendedContract{_continuations=Just (AContinuation MultiRequestContinuation{ndcCont}), _checkpointKey, _resumableResult=ResumableResult{_responses, _checkpointStore}} event =
   Just
     $ set (resumableResult . responses) (insertResponse event _responses)
     $ mkResult

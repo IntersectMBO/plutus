@@ -18,9 +18,9 @@ import           Data.Maybe                         (isJust)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                   as HUnit
 
-import           Language.Plutus.Contract.Resumable (IterationID (..), Request (..), RequestID (..), Requests (..),
-                                                     Response (..), Responses (..), Resumable, SuspendedNonDet, prompt,
-                                                     select)
+import           Language.Plutus.Contract.Resumable (IterationID (..), MultiRequestContStatus, Request (..),
+                                                     RequestID (..), Requests (..), Response (..), Responses (..),
+                                                     Resumable, prompt, select)
 import qualified Language.Plutus.Contract.Resumable as S
 import           Language.Plutus.Contract.Util      (loopM)
 
@@ -33,14 +33,14 @@ runResumableTest events action =
     let r = run . evalState (mempty @(Responses i))
         initial = r $ S.suspendNonDet @i @o @a $ S.handleResumable $ raiseEnd action
         mkResp (itId, rqId) evt = Response{rspRqID = rqId, rspItID = itId, rspResponse=evt}
-        go :: Maybe (SuspendedNonDet i o '[State (Responses i)] a) -> Response i -> Maybe (SuspendedNonDet i o '[State (Responses i)] a)
-        go (Just (S.AContinuation S.NonDetCont{S.ndcRequests, S.ndcCont})) rsp = r (ndcCont rsp)
-        go _ _                                                                 = Nothing
+        go :: Maybe (MultiRequestContStatus i o '[State (Responses i)] a) -> Response i -> Maybe (MultiRequestContStatus i o '[State (Responses i)] a)
+        go (Just (S.AContinuation S.MultiRequestContinuation{S.ndcRequests, S.ndcCont})) rsp = r (ndcCont rsp)
+        go _ _                                                                               = Nothing
         result = foldl' go initial (S.responses events)
     in case result of
-        Nothing                                            -> (Nothing, mempty)
-        Just (S.AResult a)                                 -> (Just a, mempty)
-        Just (S.AContinuation S.NonDetCont{S.ndcRequests}) -> (Nothing, ndcRequests)
+        Nothing                                                          -> (Nothing, mempty)
+        Just (S.AResult a)                                               -> (Just a, mempty)
+        Just (S.AContinuation S.MultiRequestContinuation{S.ndcRequests}) -> (Nothing, ndcRequests)
 
 tests :: TestTree
 tests = testGroup "stateful contract"
