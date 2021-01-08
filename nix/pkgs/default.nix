@@ -133,7 +133,7 @@ let
   web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 
   # Nixops version after 1.7 release that is on nixpkgs 20.09
-  nixops = import sources.nixops;
+  nixops = (import sources.nixops).defaultPackage."${system}";
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =

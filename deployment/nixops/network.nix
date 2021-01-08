@@ -11,7 +11,7 @@ let
   nixops = { deployment.targetHost = "localhost"; };
 in
 {
-  inherit webGhcA webGhcB;
+  inherit webGhcA webGhcB nixops;
   network.description = "Plutus Playground";
   network.enableRollback = true;
 }
