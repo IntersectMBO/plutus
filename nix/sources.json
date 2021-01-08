@@ -77,6 +77,7 @@
     },
     "nixops": {
         "branch": "master",
+        "builtin": false,
         "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
         "homepage": "https://nixos.org/nixops",
         "owner": "NixOS",
