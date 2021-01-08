@@ -1,6 +1,11 @@
-\begin{code}
+---
+title: Type Reduction
+layout: page
+---
+
+```
 module Type.Reduction where
-\end{code}
+```
 
 Right now this file is not used in other things. We compute types via
 NBE. Instead, it acts as a warmup to understanding reduction of terms.
@@ -10,7 +15,7 @@ version does full normalisation.
 
 ## Imports
 
-\begin{code}
+```
 open import Type
 open import Type.RenamingSubstitution
 open import Builtin.Constant.Type
@@ -18,11 +23,11 @@ open import Builtin.Constant.Type
 open import Agda.Builtin.Nat
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-\end{code}
+```
 
 ## Values
 
-\begin{code}
+```
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π : ∀ {Φ K}
@@ -51,11 +56,11 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ T
     ----------------------------
     → Value⋆ (μ S T)
-\end{code}
+```
 
 ## Intrinsically Kind Preserving Type Reduction
 
-\begin{code}
+```
 infix 2 _—→⋆_
 infix 2 _—↠⋆_
 
@@ -97,9 +102,9 @@ data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → T —→⋆ T'
       ------------------------------
     → μ S T —→⋆ μ S T'
-\end{code}
+```
 
-\begin{code}
+```
 data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
 
   refl—↠⋆ : ∀{M}
@@ -111,9 +116,9 @@ data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
     → M —↠⋆ N
       ---------
     → L —↠⋆ N
-\end{code}
+```
 
-\begin{code}
+```
 data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
   step : ∀ {N : Γ ⊢⋆ K}
     → M —→⋆ N
@@ -123,9 +128,9 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
       Value⋆ M
       ----------
     → Progress⋆ M
-\end{code}
+```
 
-\begin{code}
+```
 progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` ())
 progress⋆ (μ M N) with progress⋆ M
@@ -146,9 +151,9 @@ progress⋆ (M · N)  with progress⋆ M
 ... | step p = step (ξ-·₂ VM p)
 progress⋆ (.(ƛ _) · N) | done (V-ƛ M) | done VN = step (β-ƛ VN)
 progress⋆ (con tcn) = done (V-con tcn)
-\end{code}
+```
 
-\begin{code}
+```
 open import Relation.Nullary
 open import Data.Product
 open import Data.Empty
@@ -175,4 +180,4 @@ det (ξ-μ₁ p) (ξ-μ₁ q) = cong (λ X → μ X _) (det p q)
 det (ξ-μ₁ p) (ξ-μ₂ w q) = ⊥-elim (notboth _ (w , _ , p))
 det (ξ-μ₂ v p) (ξ-μ₁ q) = ⊥-elim (notboth _ (v , _ , q))
 det (ξ-μ₂ v p) (ξ-μ₂ w q) = cong (μ _) (det p q)
-\end{code}
+```

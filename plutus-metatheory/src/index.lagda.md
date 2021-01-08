@@ -32,22 +32,23 @@ sound and an executable that is intended to be compiled into Haskell.
 8. [A typechecker](#type-checker)
 9. [An executable](#executable)
 
-
 ## Types
 
-The type level language is similar to simply typed lambda calculus
-with the addition of constants for forall, mu, and builtin
-contants. The `Type` module containts kinds, contexts and types. Types
-are intrinsically scoped and kinded and variables are represented
-using De Bruijn indices. Parallel renaming and substitution are
-implemented in the `Type.RenamingSubstitution` module and they are
-shown to be satisfy the functor and relative monad laws
-respectively. The `Type.Reduction` module contains a small step
-reduction algorithm for types. It is not used directly in the
-formalisation as computation on types is carried out using
-normalisation by evaluation instead. Equality of types is specified in
-the `Type.Equality` module. Equality serves as a specification of
-type compuation and is used in the normalisation proof.
+The type level language is similar to simply-typed lambda-calculus
+with the addition of constants for forall, μ, and builtin
+contants. The [`Type`](Type.html) module containts kinds, contexts and
+types. Types are intrinsically scoped and kinded and variables are
+represented using De Bruijn indices. Parallel renaming and
+substitution are implemented in the
+[`Type.RenamingSubstitution`](Type/RenamingSubstitution.html) module
+and they are shown to be satisfy the functor and relative monad laws
+respectively. The [`Type.Reduction`](Type/Reduction.html) module
+contains a small step reduction algorithm for types. It is not used
+directly in the formalisation as computation on types is carried out
+using normalisation by evaluation instead. Equality of types is
+specified in the [`Type.Equality`](Type/Equality.html)
+module. Equality serves as a specification of type compuation and is
+used in the normalisation proof.
 
 ```
 import Type

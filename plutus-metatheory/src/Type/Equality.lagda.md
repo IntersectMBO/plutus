@@ -1,23 +1,28 @@
-\begin{code}
+---
+title: Type Equality
+layout: page
+---
+
+```
 module Type.Equality where
-\end{code}
+```
 
 ## Fixity
 
-\begin{code}
+```
 infix  1 _≡β_
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Type
 open import Type.RenamingSubstitution
 open import Builtin.Constant.Type
 
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-\end{code}
+```
 
 ## Beta equality relation for types
 
@@ -30,7 +35,7 @@ constructors of type (except variables as this is subsumed by
 reflexivity). Finally, we have one computation rule: the beta-rule for
 application.
 
-\begin{code}
+```
 data _≡β_ {Φ} : ∀{J} → Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
 
   -- structural rules
@@ -90,18 +95,18 @@ data _≡β_ {Φ} : ∀{J} → Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
       ------------------------
     → ƛ B · A ≡β B [ A ]
     
-\end{code}
+```
 
 Let `p` and `q` range over proofs of type equality.
 
-\begin{code}
+```
 ≡2β : ∀{Φ K}{A A' : Φ ⊢⋆ K} → A ≡ A' → A ≡β A'
 ≡2β refl = refl≡β _
-\end{code}
+```
 
 ## Renaming for proofs of type equality
 
-\begin{code}
+```
 ren≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
   → (ρ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
   → A ≡β B
@@ -120,11 +125,11 @@ ren≡β ρ (β≡β B A)     = trans≡β
   (≡2β (trans (sym (subst-ren B))
               (trans (subst-cong (ren-subst-cons ρ A) B)
                      (ren-subst B))))
-\end{code}
+```
 
 ## Substitution for proofs of type equality
 
-\begin{code}
+```
 subst≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
   → A ≡β B
@@ -143,5 +148,5 @@ subst≡β σ (β≡β B A)     = trans≡β
   (≡2β (trans (trans (sym (subst-comp B))
                      (subst-cong (subst-subst-cons σ A) B))
               (subst-comp B)))
-\end{code}
+```
 
