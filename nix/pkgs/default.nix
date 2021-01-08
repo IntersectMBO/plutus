@@ -138,7 +138,6 @@ let
   # won't work in nix-shell. To get it to build on Hydra I think we will have to manually provide
   # flake-compat with niv.
   # nixops = (import sources.nixops).defaultPackage."${system}";
-  nixops = import sources.nixops;
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
@@ -175,7 +174,7 @@ in
   inherit haskell agdaPackages cabal-install stylish-haskell hlint haskell-language-server hie-bios gen-hie;
   inherit purty purty-pre-commit purs spago;
   inherit fixPurty fixStylishHaskell updateMaterialized updateHie updateMetadataSamples updateClientDeps;
-  inherit iohkNix set-git-rev web-ghc thorp nixops;
+  inherit iohkNix set-git-rev web-ghc thorp;
   inherit easyPS plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;

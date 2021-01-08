@@ -66,7 +66,6 @@ let
     hie-bios
     gen-hie
     hlint
-    nixops
     purs
     purty
     spago
