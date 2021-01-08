@@ -399,7 +399,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
-handleAction settings (HandleActusBlocklyMessage ActusBlockly.CodeChange) = assign _hasUnsavedChanges true
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = assign _hasUnsavedChanges true
 
 -- TODO: modify gist action type to take a gistid as a parameter
 -- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042

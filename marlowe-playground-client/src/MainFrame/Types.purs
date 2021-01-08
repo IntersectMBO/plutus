@@ -208,12 +208,6 @@ type State
     , loadGistResult :: Either String (WebData Gist)
     , projectName :: String
     , showModal :: Maybe ModalView
-    -- The source of truth for the unsaved change lives inside each editor
-    -- The only reason we store a copy of the state here is because of the render function
-    -- in the Mainframe view, which uses this derived state to show an unsaved indicator.
-    -- Inside the Mainframe view we can inspect the state of the submodules (Haskell/JS/Marlowe)
-    -- as their state is part of the MainFrame state, but we cannot inspect the state of the
-    -- child components Blockly and ActusBlockly as we need a Query.
     , hasUnsavedChanges :: Boolean
     -- The initial language selected when you create/load a project indicates the workflow a user might take
     -- A user can start with a haskell/javascript example that eventually gets compiled into
