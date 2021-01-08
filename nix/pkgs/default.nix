@@ -133,7 +133,12 @@ let
   web-ghc = pkgs.callPackage ./web-ghc { inherit set-git-rev haskell; };
 
   # Nixops version after 1.7 release that is on nixpkgs 20.09
-  nixops = (import sources.nixops).defaultPackage."${system}";
+  # latest nixops uses nix flakes but unfortunately the below command won't work in restricted mode
+  # for now I have commented it out and you can still build `nix-build -A plutus.nixops` however it
+  # won't work in nix-shell. To get it to build on Hydra I think we will have to manually provide
+  # flake-compat with niv.
+  # nixops = (import sources.nixops).defaultPackage."${system}";
+  nixops = import sources.nixops;
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
