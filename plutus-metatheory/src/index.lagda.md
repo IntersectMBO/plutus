@@ -35,8 +35,19 @@ sound and an executable that is intended to be compiled into Haskell.
 
 ## Types
 
-Type syntax, renaming and substitution, a reduction algorithm (not
-used) and a definition of type equality.
+The type level language is similar to simply typed lambda calculus
+with the addition of constants for forall, mu, and builtin
+contants. The `Type` module containts kinds, contexts and types. Types
+are intrinsically scoped and kinded and variables are represented
+using De Bruijn indices. Parallel renaming and substitution are
+implemented in the `Type.RenamingSubstitution` module and they are
+shown to be satisfy the functor and relative monad laws
+respectively. The `Type.Reduction` module contains a small step
+reduction algorithm for types. It is not used directly in the
+formalisation as computation on types is carried out using
+normalisation by evaluation instead. Equality of types is specified in
+the `Type.Equality` module. Equality serves as a specification of
+type compuation and is used in the normalisation proof.
 
 ```
 import Type
