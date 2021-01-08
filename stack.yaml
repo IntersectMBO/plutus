@@ -1,25 +1,26 @@
 resolver: nightly-2020-08-17
 
 packages:
+- deployment-server
+- doc
+- iots-export
+- marlowe
+- marlowe-actus
+- marlowe-playground-server
+- marlowe-symbolic
+- playground-common
+- plutus-benchmark
+- plutus-contract
 - plutus-core
+- plutus-ledger
+- plutus-ledger-api
+- plutus-metatheory
+- plutus-pab
+- plutus-playground-server
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases
-- plutus-benchmark
-- playground-common
-- marlowe
-- marlowe-playground-server
-- marlowe-actus
-- plutus-metatheory
-- plutus-ledger
-- plutus-playground-server
-- plutus-contract
-- plutus-pab
-- deployment-server
-- iots-export
-- marlowe-symbolic
 - prettyprinter-configurable
-- doc
 - web-ghc
 
 extra-deps:

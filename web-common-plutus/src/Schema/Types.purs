@@ -24,9 +24,9 @@ import Foreign (Foreign)
 import Foreign.Class (encode)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
-import Ledger.Slot (Slot)
-import Ledger.Value (CurrencySymbol(..), Value(..))
+import Plutus.V1.Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
+import Plutus.V1.Ledger.Slot (Slot)
+import Plutus.V1.Ledger.Value (CurrencySymbol(..), Value(..))
 import Matryoshka (Algebra, ana, cata)
 import Playground.Lenses (_recipient, _amount)
 import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..), _PayToWallet)

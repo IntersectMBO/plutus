@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Ledger.Crypto(
+module Plutus.V1.Ledger.Crypto(
     PubKey(..)
     , PubKeyHash(..)
     , pubKeyHash
@@ -48,21 +48,19 @@ import           Data.Hashable              (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
-import           IOTS                       (IotsType)
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Lift     (makeLift)
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger.Orphans             ()
-import           Ledger.TxId
-import           LedgerBytes                (LedgerBytes (..))
-import qualified LedgerBytes                as KB
-import           Servant.API                (FromHttpApiData (parseUrlPiece), ToHttpApiData (toUrlPiece))
+import           Plutus.V1.Ledger.Bytes     (LedgerBytes (..))
+import qualified Plutus.V1.Ledger.Bytes     as KB
+import           Plutus.V1.Ledger.Orphans   ()
+import           Plutus.V1.Ledger.TxId
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Newtype, IotsType, ToJSON, FromJSON, NFData)
+    deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -77,7 +75,7 @@ instance FromJSONKey PubKey where
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BS.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType, NFData)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
@@ -100,16 +98,9 @@ newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
 
 makeLift ''PrivateKey
 
-instance ToHttpApiData PrivateKey where
-    toUrlPiece = toUrlPiece . getPrivateKey
-
-instance FromHttpApiData PrivateKey where
-    parseUrlPiece a = PrivateKey <$> parseUrlPiece a
-
 -- | A message with a cryptographic signature.
 newtype Signature = Signature { getSignature :: Builtins.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, NFData)
     deriving (Show, Pretty) via LedgerBytes
 

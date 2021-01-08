@@ -14,7 +14,7 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Ledger.Value (Value)
+import Plutus.V1.Ledger.Value (Value)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
 import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))

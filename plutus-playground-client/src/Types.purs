@@ -30,10 +30,10 @@ import Halogen as H
 import Halogen.Chartist as Chartist
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
-import Ledger.Crypto (PubKey, PubKeyHash, _PubKey)
-import Ledger.Slot (Slot)
-import Ledger.Tx (Tx)
-import Ledger.Value (Value)
+import Plutus.V1.Ledger.Crypto (PubKey, PubKeyHash, _PubKey)
+import Plutus.V1.Ledger.Slot (Slot)
+import Plutus.V1.Ledger.Tx (Tx)
+import Plutus.V1.Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
 import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
 import Schema (FormSchema)

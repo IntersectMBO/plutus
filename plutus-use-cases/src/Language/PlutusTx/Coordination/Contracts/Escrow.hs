@@ -52,12 +52,12 @@ import           Ledger                            (Datum (..), DatumHash, PubKe
 import qualified Ledger
 import           Ledger.Constraints                (TxConstraints)
 import qualified Ledger.Constraints                as Constraints
+import           Ledger.Contexts                   (TxInfo (..), ValidatorCtx (..))
 import           Ledger.Interval                   (after, before, from)
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Tx                         as Tx
 import           Ledger.Typed.Scripts              (ScriptInstance)
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
 import           Ledger.Value                      (Value, geq, lt)
 
 import           Language.Plutus.Contract

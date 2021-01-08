@@ -26,7 +26,7 @@ import Halogen.HTML.Properties (class_, classes, disabled, id_, ref)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
-import Ledger.Value (Value)
+import Plutus.V1.Ledger.Value (Value)
 import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (PlaygroundError(..), Simulation(..), SimulatorWallet)
 import Prelude (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))

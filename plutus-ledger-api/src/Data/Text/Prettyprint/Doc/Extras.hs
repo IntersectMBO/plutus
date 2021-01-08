@@ -11,9 +11,9 @@ module Data.Text.Prettyprint.Doc.Extras(
 import           Data.Foldable             (Foldable (toList))
 import           Data.Proxy                (Proxy (..))
 import           Data.String               (IsString (..))
+import           Data.Tagged
 import           Data.Text.Prettyprint.Doc
 import           GHC.TypeLits              (KnownSymbol, symbolVal)
-import           IOTS                      (Tagged (Tagged))
 
 -- | Newtype wrapper for deriving 'Pretty' via a 'Show' instance
 newtype PrettyShow a = PrettyShow { unPrettyShow :: a }

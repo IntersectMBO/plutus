@@ -14,15 +14,15 @@ module Ledger.Constraints.OnChain where
 import           Language.PlutusTx                (IsData (..))
 import           Language.PlutusTx.Prelude
 
-import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints
-import           Ledger.Interval                  (contains)
-import           Ledger.Scripts                   (Datum (..))
-import           Ledger.Tx                        (TxOut (..))
-import           Ledger.Validation                (TxInInfo (..), TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                as V
-import           Ledger.Value                     (leq)
-import qualified Ledger.Value                     as Value
+import qualified Plutus.V1.Ledger.Address         as Address
+import           Plutus.V1.Ledger.Contexts        (TxInInfo (..), TxInfo (..), ValidatorCtx (..))
+import qualified Plutus.V1.Ledger.Contexts        as V
+import           Plutus.V1.Ledger.Interval        (contains)
+import           Plutus.V1.Ledger.Scripts         (Datum (..))
+import           Plutus.V1.Ledger.Tx              (TxOut (..))
+import           Plutus.V1.Ledger.Value           (leq)
+import qualified Plutus.V1.Ledger.Value           as Value
 
 {-# INLINABLE checkOwnInputConstraint #-}
 checkOwnInputConstraint :: ValidatorCtx -> InputConstraint a -> Bool

@@ -44,10 +44,10 @@ import           Hedgehog
 import qualified Hedgehog.Gen              as Gen
 import qualified Hedgehog.Range            as Range
 import qualified Language.PlutusTx.Prelude as P
-import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
-import qualified Ledger.Interval           as Interval
-import qualified Ledger.Value              as Value
+import qualified Plutus.V1.Ledger.Ada      as Ada
+import qualified Plutus.V1.Ledger.Interval as Interval
+import qualified Plutus.V1.Ledger.Value    as Value
 
 import           Ledger
 

@@ -25,6 +25,7 @@ module Language.PlutusCore.DeBruijn.Internal
     , getUnique
     , unNameDeBruijn
     , unNameTyDeBruijn
+    , fakeNameDeBruijn
     , nameToDeBruijn
     , tyNameToDeBruijn
     , deBruijnToName
@@ -196,6 +197,10 @@ unNameDeBruijn (NamedDeBruijn _ ix) = DeBruijn ix
 unNameTyDeBruijn
     :: NamedTyDeBruijn -> TyDeBruijn
 unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
+
+fakeNameDeBruijn
+    :: DeBruijn -> NamedDeBruijn
+fakeNameDeBruijn (DeBruijn ix) = NamedDeBruijn "" ix
 
 nameToDeBruijn
     :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)

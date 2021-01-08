@@ -21,8 +21,8 @@ import Halogen.HTML.Properties (IProp, InputType(..), checked, class_, classes, 
 import Halogen.HTML.Properties as HP
 import Icons (Icon(..), icon)
 import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
-import Ledger.Interval (Extended(..), Interval, _Interval)
-import Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Interval (Extended(..), Interval, _Interval)
+import Plutus.V1.Ledger.Slot (Slot(..))
 import Prim.TypeError (class Warn, Text)
 import Schema (FormArgumentF(..))
 import Schema.Types (FieldEvent(..), FormArgument, FormEvent(..))

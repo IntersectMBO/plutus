@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
-module LedgerBytes ( LedgerBytes (..)
+module Plutus.V1.Ledger.Bytes ( LedgerBytes (..)
                 , fromHex
                 , bytes
                 , fromBytes
@@ -22,7 +22,6 @@ import           Control.DeepSeq                  (NFData)
 import           Data.Aeson                       (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
-import           Data.Bifunctor                   (bimap)
 import qualified Data.ByteString                  as BS
 import           Data.ByteString.Internal         (c2w, w2c)
 import           Data.Either.Extras               (unsafeFromEither)
@@ -31,12 +30,10 @@ import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc.Extras (Pretty, PrettyShow (..))
 import           Data.Word                        (Word8)
 import           GHC.Generics                     (Generic)
-import           IOTS                             (IotsType (iotsDefinition))
 import qualified Language.PlutusTx                as PlutusTx
 import qualified Language.PlutusTx.Builtins       as Builtins
 import           Language.PlutusTx.Lift
 import qualified Language.PlutusTx.Prelude        as P
-import           Web.HttpApiData                  (FromHttpApiData (..), ToHttpApiData (..))
 
 fromHex :: BS.ByteString -> Either String LedgerBytes
 fromHex = fmap LedgerBytes . asBSLiteral
@@ -89,19 +86,10 @@ instance IsString LedgerBytes where
 instance Show LedgerBytes where
     show = Text.unpack . JSON.encodeByteString . bytes
 
-instance IotsType LedgerBytes where
-  iotsDefinition = iotsDefinition @String
-
 instance ToJSON LedgerBytes where
     toJSON = JSON.String . JSON.encodeByteString . bytes
 
 instance FromJSON LedgerBytes where
     parseJSON v = fromBytes <$> JSON.decodeByteString v
-
-instance ToHttpApiData LedgerBytes where
-    toUrlPiece = JSON.encodeByteString . bytes
-
-instance FromHttpApiData LedgerBytes where
-    parseUrlPiece = bimap Text.pack fromBytes . JSON.tryDecode
 
 makeLift ''LedgerBytes

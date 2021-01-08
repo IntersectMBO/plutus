@@ -29,9 +29,9 @@ module Ledger.Typed.Scripts(
 
 import           Language.PlutusTx
 
-import qualified Ledger.Address                  as Addr
-import           Ledger.Scripts                  hiding (monetaryPolicyHash)
-import qualified Ledger.Scripts
+import qualified Plutus.V1.Ledger.Address        as Addr
+import           Plutus.V1.Ledger.Scripts        hiding (monetaryPolicyHash)
+import qualified Plutus.V1.Ledger.Scripts        as Scripts
 
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           Data.Kind
@@ -40,7 +40,7 @@ import           Ledger.Typed.Scripts.Validators
 
 -- | A typed validator script with its 'ValidatorScript' and 'Address'.
 data ScriptInstance (a :: Type) =
-    Validator
+    ValidatorInstance
         { instanceScript  :: Validator
         , instanceHash    :: ValidatorHash
         , instanceMPSHash :: MonetaryPolicyHash
@@ -61,11 +61,11 @@ validator vc wrapper =
     let val = mkValidatorScript $ wrapper `applyCode` vc
         hsh = validatorHash val
         mps = forwardingMPS hsh
-    in Validator
+    in ValidatorInstance
         { instanceScript  = val
         , instanceHash    = hsh
         , instanceMPS     = mps
-        , instanceMPSHash = Ledger.Scripts.monetaryPolicyHash mps
+        , instanceMPSHash = Scripts.monetaryPolicyHash mps
         }
 
 -- | The script's 'ValidatorHash'
@@ -86,11 +86,11 @@ fromValidator vl =
     let vh = validatorHash vl
         mps = forwardingMPS vh
     in
-    Validator
+    ValidatorInstance
         { instanceScript  = vl
         , instanceHash    = vh
         , instanceMPS     = mps
-        , instanceMPSHash = Ledger.Scripts.monetaryPolicyHash mps
+        , instanceMPSHash = Scripts.monetaryPolicyHash mps
         }
 
 -- | The monetary policy that forwards all checks to the instance's

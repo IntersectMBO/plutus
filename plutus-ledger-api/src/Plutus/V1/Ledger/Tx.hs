@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Ledger.Tx(
+module Plutus.V1.Ledger.Tx(
     -- * Transactions
     Tx(..),
     inputs,
@@ -79,21 +79,20 @@ import qualified Data.Set                  as Set
 import           Data.Text.Prettyprint.Doc
 import           Data.Typeable
 import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Bool    as PlutusTx
 import qualified Language.PlutusTx.Eq      as PlutusTx
 import           Language.PlutusTx.Lattice
 
-import           Ledger.Address
-import           Ledger.Crypto
-import           Ledger.Orphans            ()
-import           Ledger.Scripts
-import           Ledger.Slot
-import           Ledger.TxId
-import           Ledger.Value
-import qualified Ledger.Value              as V
+import           Plutus.V1.Ledger.Address
+import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Orphans  ()
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Slot
+import           Plutus.V1.Ledger.TxId
+import           Plutus.V1.Ledger.Value
+import qualified Plutus.V1.Ledger.Value    as V
 
 {- Note [Serialisation and hashing]
 
@@ -137,7 +136,7 @@ data Tx = Tx {
     txData         :: Map DatumHash Datum
     -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic, Typeable)
-      deriving anyclass (ToJSON, FromJSON, Serialise, IotsType, NFData)
+      deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
 instance Pretty Tx where
     pretty t@Tx{txInputs, txOutputs, txForge, txFee, txValidRange, txSignatures, txForgeScripts, txData} =
@@ -257,7 +256,7 @@ data TxOutRef = TxOutRef {
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, FromJSONKey, NFData)
 
 instance Pretty TxOutRef where
     pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -279,7 +278,7 @@ data TxInType =
       ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 -- | A transaction input, consisting of a transaction output reference and an input type.
 data TxIn = TxIn {
@@ -287,7 +286,7 @@ data TxIn = TxIn {
     txInType :: !TxInType
     }
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, IotsType, ToJSON, FromJSON, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 instance Pretty TxIn where
     pretty TxIn{txInRef,txInType} =
@@ -328,7 +327,7 @@ data TxOutType =
     PayToScript !DatumHash -- ^ A pay-to-script output with the given datum hash.
     | PayToPubKey -- ^ A pay-to-pubkey output.
     deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, NFData)
 
 instance PlutusTx.Eq TxOutType where
     PayToScript l == PayToScript r = l PlutusTx.== r
@@ -347,7 +346,7 @@ data TxOut = TxOut {
     txOutType    :: !TxOutType
     }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType, NFData)
+    deriving anyclass (Serialise, ToJSON, FromJSON, NFData)
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue} =
@@ -400,7 +399,7 @@ isPayToScriptOut = isJust . txOutDatum
 -- the full data script that goes with the 'TxOut'.
 data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
     deriving stock (Show, Eq, Generic)
-    deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
+    deriving anyclass (Serialise, ToJSON, FromJSON)
 
 txOutTxDatum :: TxOutTx -> Maybe Datum
 txOutTxDatum (TxOutTx tx out) = txOutDatum out >>= lookupDatum tx

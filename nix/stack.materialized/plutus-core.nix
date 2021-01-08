@@ -162,6 +162,7 @@
           "Language/UntypedPlutusCore/Core/Instance/Eq"
           "Language/UntypedPlutusCore/Core/Instance/Pretty"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty/Default"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "Language/UntypedPlutusCore/Core/Instance/Recursive"

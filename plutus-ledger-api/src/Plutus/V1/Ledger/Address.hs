@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Ledger.Address (
+module Plutus.V1.Ledger.Address (
     Address (..),
     pubKeyAddress,
     scriptAddress,
@@ -21,19 +21,18 @@ import           Data.Aeson                (FromJSON, FromJSONKey (..), ToJSON, 
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Eq      as PlutusTx
 
-import           Ledger.Crypto
-import           Ledger.Orphans            ()
-import           Ledger.Scripts
+import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Orphans  ()
+import           Plutus.V1.Ledger.Scripts
 
 -- | A payment address using a hash as the id.
 data Address = PubKeyAddress PubKeyHash
     | ScriptAddress ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, IotsType, Serialise, Hashable, NFData)
+    deriving anyclass (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Serialise, Hashable, NFData)
 
 instance Pretty Address where
     pretty (PubKeyAddress pkh) = "PubKeyAddress:" <+> pretty pkh

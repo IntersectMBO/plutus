@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -Wno-identities #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Functions for working with 'Ada' in Template Haskell.
-module Ledger.Ada(
+module Plutus.V1.Ledger.Ada(
       Ada (..)
     , getAda
     , adaSymbol
@@ -32,15 +32,15 @@ import           Data.Fixed
 
 import           Codec.Serialise.Class            (Serialise)
 import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Tagged
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
-import           IOTS                             (IotsType)
 import qualified Language.PlutusTx                as PlutusTx
 import           Language.PlutusTx.Lift           (makeLift)
 import           Language.PlutusTx.Prelude        hiding (divide)
 import qualified Language.PlutusTx.Prelude        as P
-import           Ledger.Value                     (CurrencySymbol, TokenName, Value)
-import qualified Ledger.Value                     as TH
+import           Plutus.V1.Ledger.Value           (CurrencySymbol, TokenName, Value)
+import qualified Plutus.V1.Ledger.Value           as TH
 
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.
@@ -58,7 +58,7 @@ adaToken = TH.tokenName emptyByteString
 newtype Ada = Lovelace { getLovelace :: Integer }
     deriving (Enum)
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, IotsType)
+    deriving anyclass (ToJSON, FromJSON)
     deriving newtype (Eq, Ord, Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, MultiplicativeSemigroup, MultiplicativeMonoid, Integral, Real, Serialise, PlutusTx.IsData)
     deriving Pretty via (Tagged "Lovelace:" Integer)
 

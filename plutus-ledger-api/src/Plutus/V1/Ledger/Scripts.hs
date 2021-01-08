@@ -15,11 +15,9 @@
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | Functions for working with scripts on the ledger.
-module Ledger.Scripts(
+module Plutus.V1.Ledger.Scripts(
     -- * Scripts
     Script (..),
     scriptSize,
@@ -32,7 +30,7 @@ module Ledger.Scripts(
     applyMonetaryPolicyScript,
     -- * Script wrappers
     mkValidatorScript,
-    Validator,
+    Validator (..),
     unValidatorScript,
     Redeemer(..),
     Datum(..),
@@ -52,8 +50,6 @@ module Ledger.Scripts(
     -- * Example scripts
     unitRedeemer,
     unitDatum,
-    acceptingValidator,
-    acceptingMonetaryPolicy
     ) where
 
 import qualified Prelude                          as Haskell
@@ -72,22 +68,22 @@ import           Data.Hashable                    (Hashable)
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
-import           Flat                             (flat, unflat)
+import           Flat                             (Flat, flat, unflat)
 import           GHC.Generics                     (Generic)
-import           IOTS                             (IotsType (iotsDefinition))
 import qualified Language.PlutusCore              as PLC
-import           Language.PlutusTx                (CompiledCode, IsData (..), compile, getPlc, makeLift)
+import           Language.PlutusTx                (CompiledCode, IsData (..), getPlc, makeLift)
 import           Language.PlutusTx.Builtins       as Builtins
 import           Language.PlutusTx.Evaluation     (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           Language.PlutusTx.Lift           (liftCode)
 import           Language.PlutusTx.Prelude
 import qualified Language.UntypedPlutusCore       as UPLC
-import           Ledger.Orphans                   ()
-import           LedgerBytes                      (LedgerBytes (..))
+import           Plutus.V1.Ledger.Bytes           (LedgerBytes (..))
+import           Plutus.V1.Ledger.Orphans         ()
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
   deriving stock Generic
+  deriving newtype (Flat)
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -110,9 +106,6 @@ instance Serialise Script where
     case unflat bs of
       Left  err    -> fail (show err)
       Right script -> return $ Script script
-
-instance IotsType Script where
-  iotsDefinition = iotsDefinition @Haskell.String
 
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
@@ -225,7 +218,7 @@ unMonetaryPolicyScript = getMonetaryPolicy
 newtype Validator = Validator { getValidator :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
+  deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow Validator)
 
 instance Show Validator where
@@ -241,7 +234,7 @@ instance BA.ByteArrayAccess Validator where
 newtype Datum = Datum { getDatum :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData, NFData)
-  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving anyclass (ToJSON, FromJSON)
   deriving Pretty via Data
 
 instance BA.ByteArrayAccess Datum where
@@ -254,7 +247,7 @@ instance BA.ByteArrayAccess Datum where
 newtype Redeemer = Redeemer { getRedeemer :: Data }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, NFData)
-  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty Redeemer where
     pretty (Redeemer dat) = "Redeemer:" <+> pretty dat
@@ -269,7 +262,7 @@ instance BA.ByteArrayAccess Redeemer where
 newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
   deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
-  deriving anyclass (ToJSON, FromJSON, IotsType, NFData)
+  deriving anyclass (ToJSON, FromJSON, NFData)
   deriving Pretty via (PrettyShow MonetaryPolicy)
 
 instance Show MonetaryPolicy where
@@ -289,9 +282,6 @@ newtype ValidatorHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey, NFData)
 
-instance IotsType ValidatorHash where
-    iotsDefinition = iotsDefinition @LedgerBytes
-
 -- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
     DatumHash Builtins.ByteString
@@ -299,9 +289,6 @@ newtype DatumHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData, NFData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
-
-instance IotsType DatumHash where
-    iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype RedeemerHash =
@@ -311,9 +298,6 @@ newtype RedeemerHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
-instance IotsType RedeemerHash where
-    iotsDefinition = iotsDefinition @LedgerBytes
-
 -- | Script runtime representation of a @Digest SHA256@.
 newtype MonetaryPolicyHash =
     MonetaryPolicyHash Builtins.ByteString
@@ -321,9 +305,6 @@ newtype MonetaryPolicyHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
-
-instance IotsType MonetaryPolicyHash where
-    iotsDefinition = iotsDefinition @LedgerBytes
 
 datumHash :: Datum -> DatumHash
 datumHash = DatumHash . Builtins.sha2_256 . BA.convert
@@ -394,14 +375,6 @@ unitDatum = Datum $ toData ()
 -- | @()@ as a redeemer.
 unitRedeemer :: Redeemer
 unitRedeemer = Redeemer $ toData ()
-
--- | A validator that always succeeds.
-acceptingValidator :: Validator
-acceptingValidator = mkValidatorScript $$(compile [|| (\_ _ _ -> ()) ||])
-
--- | A monetary policy that always succeeds.
-acceptingMonetaryPolicy :: MonetaryPolicy
-acceptingMonetaryPolicy = mkMonetaryPolicyScript $$(compile [|| (\_ -> ()) ||])
 
 makeLift ''ValidatorHash
 
