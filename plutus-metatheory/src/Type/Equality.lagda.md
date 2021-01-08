@@ -122,31 +122,31 @@ ren≡β ρ (·≡β p q)     = ·≡β (ren≡β ρ p) (ren≡β ρ q)
 ren≡β ρ (μ≡β p q)     = μ≡β (ren≡β ρ p) (ren≡β ρ q)
 ren≡β ρ (β≡β B A)     = trans≡β
   (β≡β _ _)
-  (≡2β (trans (sym (subst-ren B))
-              (trans (subst-cong (ren-subst-cons ρ A) B)
-                     (ren-subst B))))
+  (≡2β (trans (sym (sub-ren B))
+              (trans (sub-cong (ren-sub-cons ρ A) B)
+                     (ren-sub B))))
 ```
 
 ## Substitution for proofs of type equality
 
 ```
-subst≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
+sub≡β : ∀{Φ Ψ J}{A B : Φ ⊢⋆ J}
  → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
   → A ≡β B
     ----------------------------
-  → subst σ A ≡β subst σ B
-subst≡β σ (refl≡β A)    = refl≡β (subst σ A)
-subst≡β σ (sym≡β p)     = sym≡β (subst≡β σ p)
-subst≡β σ (trans≡β p q) = trans≡β (subst≡β σ p) (subst≡β σ q) 
-subst≡β σ (⇒≡β p q)     = ⇒≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (Π≡β p)       = Π≡β (subst≡β (exts σ) p)
-subst≡β σ (ƛ≡β p)       = ƛ≡β (subst≡β (exts σ) p)
-subst≡β σ (·≡β p q)     = ·≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (μ≡β p q)     = μ≡β (subst≡β σ p) (subst≡β σ q)
-subst≡β σ (β≡β B A)     = trans≡β
+  → sub σ A ≡β sub σ B
+sub≡β σ (refl≡β A)    = refl≡β (sub σ A)
+sub≡β σ (sym≡β p)     = sym≡β (sub≡β σ p)
+sub≡β σ (trans≡β p q) = trans≡β (sub≡β σ p) (sub≡β σ q) 
+sub≡β σ (⇒≡β p q)     = ⇒≡β (sub≡β σ p) (sub≡β σ q)
+sub≡β σ (Π≡β p)       = Π≡β (sub≡β (exts σ) p)
+sub≡β σ (ƛ≡β p)       = ƛ≡β (sub≡β (exts σ) p)
+sub≡β σ (·≡β p q)     = ·≡β (sub≡β σ p) (sub≡β σ q)
+sub≡β σ (μ≡β p q)     = μ≡β (sub≡β σ p) (sub≡β σ q)
+sub≡β σ (β≡β B A)     = trans≡β
   (β≡β _ _)
-  (≡2β (trans (trans (sym (subst-comp B))
-                     (subst-cong (subst-subst-cons σ A) B))
-              (subst-comp B)))
+  (≡2β (trans (trans (sym (sub-comp B))
+                     (sub-cong (sub-sub-cons σ A) B))
+              (sub-comp B)))
 ```
 

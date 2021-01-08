@@ -140,10 +140,10 @@ isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
 isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
 
 itype : ∀{Φ} → Builtin → Φ ⊢⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in subst (λ()) (isig2type Φ Γ C) 
+itype b = let Φ ,, Γ ,, C = ISIG b in sub (λ()) (isig2type Φ Γ C) 
 
 postulate itype-ren : ∀{Φ Ψ} b (ρ : Ren Φ Ψ) → itype b ≡ ren ρ (itype b)
-postulate itype-subst : ∀{Φ Ψ} b (ρ : Sub Φ Ψ) → itype b ≡ subst ρ (itype b)
+postulate itype-sub : ∀{Φ Ψ} b (ρ : Sub Φ Ψ) → itype b ≡ sub ρ (itype b)
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 

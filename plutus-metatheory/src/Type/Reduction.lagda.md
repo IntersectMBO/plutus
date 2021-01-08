@@ -28,7 +28,7 @@ open import Relation.Binary.PropositionalEquality
 ## Values
 
 ```
-data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
+data Value⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
   V-Π : ∀ {Φ K}
     → (N : Φ ,⋆ K ⊢⋆ *)
