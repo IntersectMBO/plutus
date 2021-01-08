@@ -73,8 +73,6 @@ import Type.BetaNBE.Stability
 import Type.BetaNBE.RenamingSubstitution
 ```
 
-
-
 ## Builtins
 
 Builtins extend the core System F-omega-mu calculus with primitive

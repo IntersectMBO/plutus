@@ -7,8 +7,9 @@ layout: page
 module Type.Reduction where
 ```
 
-Right now this file is not used in other things. We compute types via
-NBE. Instead, it acts as a warmup to understanding reduction of terms.
+Right now this file is not used in other things. In the rest of the
+formalisation we compute types via NBE. Instead, it acts as a warmup
+to understanding reduction of types, progress, etc.
 
 This version of reduction does not compute under binders. The NBE
 version does full normalisation.
@@ -19,152 +20,159 @@ version does full normalisation.
 open import Type
 open import Type.RenamingSubstitution
 open import Builtin.Constant.Type
+open import Relation.Nullary
+open import Data.Product
+open import Data.Empty
 
 open import Agda.Builtin.Nat
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 ```
 
 ## Values
 
+Values, types in the empty context that cannot reduce any furter,
+presented as a predicate. We don't reduce under either lambda or pi
+binders here.
+
 ```
-data Value⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set where
+data Value⋆ : ∅ ⊢⋆ J → Set where
 
-  V-Π : ∀ {Φ K}
-    → (N : Φ ,⋆ K ⊢⋆ *)
-      ----------------------------
-    → Value⋆ (Π N)
+  V-Π : (N : ∅ ,⋆ K ⊢⋆ *)
+        -----------------
+      → Value⋆ (Π N)
 
-  _V-⇒_ : ∀ {Φ} {S : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
-    → Value⋆ S
-    → Value⋆ T
-      -----------------------------------
-    → Value⋆ (S ⇒ T)
+  _V-⇒_ : Value⋆ A
+        → Value⋆ B
+          --------------
+        → Value⋆ (A ⇒ B)
 
-  V-ƛ : ∀ {Φ K J}
-    → (N : Φ ,⋆ K ⊢⋆ J)
-      -----------------------------
-    → Value⋆ (ƛ N)
+  V-ƛ : (N : ∅ ,⋆ K ⊢⋆ J)
+        -----------------
+      → Value⋆ (ƛ N)
 
-  V-con : ∀{Φ}
-    → (tcn : TyCon)
-      ------------------
-    → Value⋆ {Γ = Φ} (con tcn)
+  V-con : (tcn : TyCon)
+          ----------------
+        → Value⋆ (con tcn)
 
-  V-μ : ∀ {Φ K}{S}{T : Φ ⊢⋆ K}
-    → Value⋆ S
-    → Value⋆ T
-    ----------------------------
-    → Value⋆ (μ S T)
+  V-μ : Value⋆ A
+      → Value⋆ B
+        --------------
+      → Value⋆ (μ A B)
 ```
 
-## Intrinsically Kind Preserving Type Reduction
+## Reduction
+
+Reduction is intrinsically kind preserving. This doesn't require proof.
 
 ```
 infix 2 _—→⋆_
 infix 2 _—↠⋆_
 
-data _—→⋆_ : ∀ {Γ J} → (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
-  ξ-⇒₁ : ∀ {Φ} {S S' : Φ ⊢⋆ *} {T : Φ ⊢⋆ *}
-    → S —→⋆ S'
-      -----------------------------------
-    → S ⇒ T —→⋆ S' ⇒ T
+data _—→⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+  ξ-⇒₁ : A —→⋆ A'
+         -----------------
+       → A ⇒ B —→⋆ A' ⇒ B
 
-  ξ-⇒₂ : ∀ {Φ} {S : Φ ⊢⋆ *} {T T' : Φ ⊢⋆ *}
-    → Value⋆ S
-    → T —→⋆ T'
-      -----------------------------------
-    → S ⇒ T —→⋆ S ⇒ T'
-
-  ξ-·₁ : ∀ {Γ K J} {L L′ : Γ ⊢⋆ K ⇒ J} {M : Γ ⊢⋆ K}
-    → L —→⋆ L′
+  ξ-⇒₂ : Value⋆ A
+    → B —→⋆ B'
       -----------------
-    → L · M —→⋆ L′ · M
+    → A ⇒ B —→⋆ A ⇒ B'
 
-  ξ-·₂ : ∀ {Γ K J} {V : Γ ⊢⋆ K ⇒ J} {M M′ : Γ ⊢⋆ K}
-    → Value⋆ V
-    → M —→⋆ M′
-      --------------
-    → V · M —→⋆ V · M′
+  ξ-·₁ : A —→⋆ A'
+         ----------------
+       → A · B —→⋆ A' · B
 
-  β-ƛ : ∀ {Γ K J} {N : Γ ,⋆ K ⊢⋆ J} {W : Γ ⊢⋆ K}
-    → Value⋆ W
-      -------------------
-    → ƛ N · W —→⋆ N [ W ]
+  ξ-·₂ : Value⋆ A
+       → B —→⋆ B'
+         ----------------
+       → A · B —→⋆ A · B'
 
-  ξ-μ₁ : ∀ {Φ K} {S S'} {T : Φ ⊢⋆ K}
-    → S —→⋆ S'
-      ------------------------------
-    → μ S T —→⋆ μ S' T
+  β-ƛ : Value⋆ B
+        -------------------
+      → ƛ A · B —→⋆ A [ B ]
 
-  ξ-μ₂ : ∀ {Φ K} {S} {T T' : Φ ⊢⋆ K}
-    → Value⋆ S
-    → T —→⋆ T'
-      ------------------------------
-    → μ S T —→⋆ μ S T'
+  ξ-μ₁ : A —→⋆ A'
+         ----------------
+       → μ A B —→⋆ μ A' B
+
+  ξ-μ₂ : Value⋆ A
+       → B —→⋆ B'
+         ----------------
+       → μ A B —→⋆ μ A B'
 ```
 
-```
-data _—↠⋆_ {J Γ} :  (Γ ⊢⋆ J) → (Γ ⊢⋆ J) → Set where
-
-  refl—↠⋆ : ∀{M}
-      --------
-    → M —↠⋆ M
-
-  trans—↠⋆ : {L : Γ ⊢⋆ J} {M N : Γ ⊢⋆ J}
-    → L —→⋆ M
-    → M —↠⋆ N
-      ---------
-    → L —↠⋆ N
-```
+## Reflexive transitie closure of reduction
 
 ```
-data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
-  step : ∀ {N : Γ ⊢⋆ K}
-    → M —→⋆ N
-      -------------
-    → Progress⋆ M
-  done :
-      Value⋆ M
-      ----------
-    → Progress⋆ M
+data _—↠⋆_ : (∅ ⊢⋆ J) → (∅ ⊢⋆ J) → Set where
+
+  refl—↠⋆ : --------
+             A —↠⋆ A
+
+  trans—↠⋆ : A —→⋆ B
+           → B —↠⋆ C
+             -------
+           → A —↠⋆ C
 ```
 
+## Progress
+
+An enumeration of possible outcomes of progress: a step or we hit a value.
+
 ```
-progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
+data Progress⋆ (A : ∅ ⊢⋆ K) : Set where
+  step : A —→⋆ B
+         -----------
+       → Progress⋆ A
+  done : Value⋆ A
+         -----------
+       → Progress⋆ A
+```
+
+The progress proof. For any type in the empty context we can make
+progres. Note that ther is no case for variables as there are no
+variables in the empty context.
+
+```
+progress⋆ : (A : ∅ ⊢⋆ K) → Progress⋆ A
 progress⋆ (` ())
-progress⋆ (μ M N) with progress⋆ M
+progress⋆ (μ A B) with progress⋆ A
 ... | step p  = step (ξ-μ₁ p)
-... | done VM with progress⋆ N
-... | step p  = step (ξ-μ₂ VM p)
-... | done VN = done (V-μ VM VN)
-progress⋆ (Π M)   = done (V-Π M)
-progress⋆ (M ⇒ N) with progress⋆ M
+... | done VA with progress⋆ B
+... | step p  = step (ξ-μ₂ VA p)
+... | done VB = done (V-μ VA VB)
+progress⋆ (Π A) = done (V-Π A)
+progress⋆ (A ⇒ B) with progress⋆ A
 ... | step p = step (ξ-⇒₁ p)
-... | done VM with progress⋆ N
-... | step q  = step (ξ-⇒₂ VM q)
-... | done VN = done (VM V-⇒ VN)
-progress⋆ (ƛ M)   = done (V-ƛ M)
-progress⋆ (M · N)  with progress⋆ M
+... | done VA with progress⋆ B
+... | step q  = step (ξ-⇒₂ VA q)
+... | done VB = done (VA V-⇒ VB)
+progress⋆ (ƛ A) = done (V-ƛ A)
+progress⋆ (A · B) with progress⋆ A
 ... | step p = step (ξ-·₁ p)
-... | done VM with progress⋆ N
-... | step p = step (ξ-·₂ VM p)
-progress⋆ (.(ƛ _) · N) | done (V-ƛ M) | done VN = step (β-ƛ VN)
+... | done VA with progress⋆ B
+... | step p = step (ξ-·₂ VA p)
+progress⋆ (.(ƛ _) · B) | done (V-ƛ A) | done VB = step (β-ƛ VB)
 progress⋆ (con tcn) = done (V-con tcn)
 ```
 
-```
-open import Relation.Nullary
-open import Data.Product
-open import Data.Empty
+## Determinism of Reduction:
 
-notboth : ∀{Φ K}(A : Φ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (Φ ⊢⋆ K) (A —→⋆_)))
+A type is a value or it can make a step, but not both:
+
+```
+notboth : (A : ∅ ⊢⋆ K) → ¬ (Value⋆ A × (Σ (∅ ⊢⋆ K) (A —→⋆_)))
 notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₁ p)   = notboth _ (V , _ , p)
 notboth .(_ ⇒ _) ((V V-⇒ W) , .(_ ⇒ _) , ξ-⇒₂ _ p) = notboth _ (W , _ , p)
 notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₁ p)   = notboth _ (V , _ , p)
 notboth .(μ _ _) (V-μ V W   , .(μ _ _)  , ξ-μ₂ _ p) = notboth _ (W , _ , p)
+```
 
-det : ∀{Φ K}{A A' A'' : Φ ⊢⋆ K}(p : A —→⋆ A')(q : A —→⋆ A'') → A' ≡ A''
+Reduction is deterministic. There is only one possible reduction step
+a type can make.
+
+```
+det : (p : A —→⋆ B)(q : A —→⋆ B') → B ≡ B'
 det (ξ-⇒₁ p) (ξ-⇒₁ q) = cong (_⇒ _) (det p q)
 det (ξ-⇒₁ p) (ξ-⇒₂ w q) = ⊥-elim (notboth _ (w , _ , p))
 det (ξ-⇒₂ v p) (ξ-⇒₁ q) = ⊥-elim (notboth _ (v , _ , q))
