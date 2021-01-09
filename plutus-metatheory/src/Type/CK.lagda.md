@@ -1,61 +1,89 @@
+---
+title: CK machine for types
+layout: page
+---
+
 ```
 module Type.CK where
+```
 
+## Imports
+
+```
 open import Type
 open import Type.RenamingSubstitution
 open import Type.Reduction hiding (step)
 
 open import Data.Product
+```
 
--- a CK machine for types
+## Frames
 
-data Frame : (K : Kind)(H : Kind) → Set where
-  -·_     : ∀{K J} → ∅ ⊢⋆ K → Frame J (K ⇒ J)
-  _·-     : ∀{K J}{A : ∅ ⊢⋆ K ⇒ J} → Value⋆ A → Frame J K
+```
+data Frame : Kind → Kind → Set where
+  -·_     : ∅ ⊢⋆ K → Frame J (K ⇒ J)
+  _·-     : {A : ∅ ⊢⋆ K ⇒ J} → Value⋆ A → Frame J K
   -⇒_     : ∅ ⊢⋆ * → Frame * *
   _⇒-     : {A : ∅ ⊢⋆ *} → Value⋆ A → Frame * *
-data Stack (K : Kind) : (H : Kind) → Set where
+  μ-_     : (B : ∅ ⊢⋆ K) → Frame * ((K ⇒ *) ⇒ K ⇒ *)
+  μ_-     : {A : ∅ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Value⋆ A → Frame * K
+```
+
+## Stack
+
+```
+data Stack (K : Kind) : Kind → Set where
   ε   : Stack K K
-  _,_ : ∀{H1 H2}
-    → Stack K H1
-    → Frame H1 H2 → Stack K H2
+  _,_ : Stack K J → Frame J I → Stack K I
+```
 
-data State (K : Kind) : (H : Kind) → Set where
-  _▻_ : {H : Kind} → Stack K H → ∅ ⊢⋆ H → State K H
-  _◅_ : {H : Kind} → Stack K H → {A : ∅ ⊢⋆ H} → Value⋆ A
-    → State K H 
-  □  : {A : ∅ ⊢⋆ K} →  Value⋆ A → State K K
-  -- ◆   : ∀ (J : Kind) →  State K J -- impossible in the typed language
+## State
 
-step : ∀{K H} → State K H → Σ Kind λ H' → State K H'
-step (s ▻ Π A)                               = _ , s ◅ V-Π A
-step (s ▻ (A ⇒ B))                           = _ , (s , -⇒ B) ▻ A
-step (s ▻ ƛ A)                               = _ , s ◅ V-ƛ A
-step (s ▻ (A · B))                           = _ , (s , -· B) ▻ A
-step (s ▻ μ1)                                = _ , s ◅ N- N-μ1
-step (s ▻ con c)                             = _ , s ◅ V-con c
-step (ε ◅ V)                                 = _ , □ V
-step ((s , (-· B)) ◅ V)                      = _ , (s , V ·-) ▻ B
-step (_◅_ (s , (V-ƛ A ·-)) {A = B}  W)       = _ , s ▻ (A [ B ])
-step ((s , (N- N ·-)) ◅ W)                   = _ , s ◅ N- (N-· N W)
-step ((s , (-⇒ B)) ◅ V)                      = _ , (s , V ⇒-) ▻ B
-step ((s , (V ⇒-)) ◅ W)                      = _ , s ◅ (V V-⇒ W)
-step (□ V)                                   = _ , □ V
+```
+data State (K : Kind) : Kind → Set where
+  _▻_ : Stack K J → ∅ ⊢⋆ J → State K J
+  _◅_ : Stack K J → {A : ∅ ⊢⋆ J} → Value⋆ A → State K J
+  □   : {A : ∅ ⊢⋆ K} →  Value⋆ A → State K K
+  -- ◆ : ∀ (J : Kind) →  State K J -- impossible in the type language
+```
 
---closing/unwinding things
+## The machine
 
-closeFrame : ∀{K H} → Frame K H → ∅ ⊢⋆ H → ∅ ⊢⋆ K
-closeFrame (-· B)          A = A · B
-closeFrame (_·- {A = A} V) B = A · B
-closeFrame (-⇒ B)          A = A ⇒ B
-closeFrame (_⇒- {A = A} V) B = A ⇒ B
+```
+step : State K J → ∃ λ J' → State K J'
+step (s ▻ Π A)                      = -, s ◅ V-Π A
+step (s ▻ (A ⇒ B))                  = -, (s , -⇒ B) ▻ A
+step (s ▻ ƛ A)                      = -, s ◅ V-ƛ A
+step (s ▻ (A · B))                  = -, (s , -· B) ▻ A
+step (s ▻ μ A B)                    = -, (s , μ- B) ▻ A
+step (s ▻ con c)                    = -, s ◅ V-con c
+step (ε ◅ V)                        = -, □ V
+step ((s , (-· B)) ◅ V)             = -, (s , V ·-) ▻ B
+step (_◅_ (s , (V-ƛ A ·-)) B)       = -, s ▻ (A [ discharge B ])
+step ((s , (-⇒ B)) ◅ V)             = -, (s , V ⇒-) ▻ B
+step ((s , (V ⇒-)) ◅ W)             = -, s ◅ (V V-⇒ W)
+step ((s , μ- B) ◅ A)               = -, (s , μ A -) ▻ B
+step ((s , μ A -) ◅ B)              = -, s ◅ V-μ A B
+step (□ V)                          = -, □ V
+```
 
-closeStack : ∀{K H} → Stack K H → ∅ ⊢⋆ H → ∅ ⊢⋆ K
-closeStack ε           A = A
+## Closing Frames and Unwinding Stacks
+
+```
+closeFrame : Frame K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
+closeFrame (-· B)  A = A · B
+closeFrame (_·- A) B = discharge A · B
+closeFrame (-⇒ B)  A = A ⇒ B
+closeFrame (_⇒- A) B = discharge A ⇒ B
+closeFrame (μ_- A) B = μ (discharge A) B
+closeFrame (μ- B)  A = μ A B
+
+closeStack : Stack K J → ∅ ⊢⋆ J → ∅ ⊢⋆ K
+closeStack ε       A = A
 closeStack (s , f) A = closeStack s (closeFrame f A)
 
-closeState : ∀{K H} → State K H → ∅ ⊢⋆ K
-closeState (s ▻ A)           = closeStack s A
-closeState (_◅_ s {A = A} V) = closeStack s A
-closeState (□ {A = A} V)         = A
+closeState : State K J → ∅ ⊢⋆ K
+closeState (s ▻ A)   = closeStack s A
+closeState (_◅_ s A) = closeStack s (discharge A)
+closeState (□ A)     = discharge A
 ```

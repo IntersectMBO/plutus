@@ -60,6 +60,13 @@ data Value⋆ : ∅ ⊢⋆ J → Set where
       → Value⋆ (μ A B)
 ```
 
+Converting a value back into a term:
+
+```
+discharge : {A : ∅ ⊢⋆ K} → Value⋆ A → ∅ ⊢⋆ K
+discharge {A = A} V = A
+```
+
 ## Reduction
 
 Reduction is intrinsically kind preserving. This doesn't require proof.

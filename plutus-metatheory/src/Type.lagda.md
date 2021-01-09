@@ -45,10 +45,10 @@ data Kind : Set where
 {-# COMPILE GHC Kind = data ScKind (ScKiStar | ScKiFun) #-}
 ```
 
-Let `J`, `K` range over kinds:
+Let `I`, `J`, `K` range over kinds:
 ```
 variable
-  J K : Kind
+  I J K : Kind
 ```
 
 ## Type contexts
