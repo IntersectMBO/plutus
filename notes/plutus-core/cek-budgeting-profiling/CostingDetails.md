@@ -139,7 +139,7 @@ All times are in milliseconds.
 
 * B. Refactored to separate the updates to `_exBudgetStateBudget` and
      `_exBudgetStateTally` (this is where we get a memory leak in `Counting`
-     mode, but that doesn't happen in `Restricting` mode.
+     mode, but that doesn't happen in `Restricting` mode).
 
 * C. Refactored so that `spendBudget` only contains the code relevant
      to `Restricting` mode and doesn't have to consult the `mode` parameter.
