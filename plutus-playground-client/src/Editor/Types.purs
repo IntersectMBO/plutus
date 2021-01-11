@@ -24,8 +24,8 @@ data Action
   | SetKeyBindings KeyBindings
   | ToggleFeedbackPane
   | SetFeedbackPaneDragStart (Maybe Int)
-  | SetFeedbackPaneDrag (Maybe Int)
-  | FixFeedbackPaneExtend
+  | ClearFeedbackPaneDragStart
+  | FixFeedbackPaneExtend Int
 
 ------------------------------------------------------------
 allKeyBindings :: Array KeyBindings
@@ -46,8 +46,8 @@ newtype State
   , lastCompiledCode :: Maybe SourceCode
   , currentCodeIsCompiled :: Boolean
   , feedbackPaneDragStart :: Maybe Int
-  , feedbackPaneDrag :: Maybe Int
   , feedbackPaneExtend :: Int
+  , feedbackPanePreviousExtend :: Int
   }
 
 derive instance newtypeState :: Newtype State _
@@ -74,8 +74,8 @@ _currentCodeIsCompiled = _Newtype <<< prop (SProxy :: SProxy "currentCodeIsCompi
 _feedbackPaneDragStart :: Lens' State (Maybe Int)
 _feedbackPaneDragStart = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDragStart")
 
-_feedbackPaneDrag :: Lens' State (Maybe Int)
-_feedbackPaneDrag = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDrag")
-
 _feedbackPaneExtend :: Lens' State Int
 _feedbackPaneExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneExtend")
+
+_feedbackPanePreviousExtend :: Lens' State Int
+_feedbackPanePreviousExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPanePreviousExtend")

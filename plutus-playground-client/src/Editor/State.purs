@@ -3,7 +3,8 @@ module Editor.State where
 import Control.Alternative ((<|>))
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Editor.Types (State(State), Action(..), keybindingsLocalStorageKey, readKeyBindings, _currentCodeIsCompiled, _feedbackPaneDragStart, _feedbackPaneDrag, _feedbackPaneExtend, _feedbackPaneMinimised, _keyBindings, _lastCompiledCode)
+import Data.Ord (clamp)
+import Editor.Types (State(State), Action(..), keybindingsLocalStorageKey, readKeyBindings, _currentCodeIsCompiled, _feedbackPaneDragStart, _feedbackPaneExtend, _feedbackPaneMinimised, _feedbackPanePreviousExtend, _keyBindings, _lastCompiledCode)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import FileEvents (preventDefault, readFileFromDragEvent)
@@ -14,7 +15,7 @@ import Language.Haskell.Interpreter (SourceCode(SourceCode))
 import LocalStorage (Key)
 import LocalStorage as LocalStorage
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
-import Prelude (Unit, bind, discard, not, pure, show, unit, void, (/), (-), ($), (<$>), (==))
+import Prelude (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
 import Types (ChildSlots, _editorSlot)
 
 initialState :: forall m. MonadEffect m => m State
@@ -28,8 +29,8 @@ initialState =
           , lastCompiledCode: Nothing
           , currentCodeIsCompiled: false
           , feedbackPaneDragStart: Nothing
-          , feedbackPaneDrag: Nothing
           , feedbackPaneExtend: 0
+          , feedbackPanePreviousExtend: 0
           }
 
 handleAction ::
@@ -75,14 +76,18 @@ handleAction bufferLocalStorageKey (HandleDropEvent event) = do
 
 handleAction _ (SetFeedbackPaneDragStart feedbackPaneDragStart) = assign _feedbackPaneDragStart feedbackPaneDragStart
 
-handleAction _ (SetFeedbackPaneDrag feedbackPaneDrag) = assign _feedbackPaneDrag feedbackPaneDrag
-
-handleAction _ FixFeedbackPaneExtend = do
-  feedbackPaneDragStart <- use _feedbackPaneDragStart
-  feedbackPaneDrag <- use _feedbackPaneDrag
-  assign _feedbackPaneExtend 6
+handleAction _ ClearFeedbackPaneDragStart = do
+  feedbackPaneExtend <- use _feedbackPaneExtend
   assign _feedbackPaneDragStart Nothing
-  assign _feedbackPaneDrag Nothing
+  assign _feedbackPanePreviousExtend feedbackPaneExtend
+
+handleAction _ (FixFeedbackPaneExtend mouseY) = do
+  feedbackPaneDragStart <- use _feedbackPaneDragStart
+  feedbackPanePreviousExtend <- use _feedbackPanePreviousExtend
+  case feedbackPaneDragStart of
+    Nothing -> pure unit
+    Just startMouseY ->
+      assign _feedbackPaneExtend $ clamp 0 100 (startMouseY - mouseY + feedbackPanePreviousExtend)
 
 ------------------------------------------------------------
 loadKeyBindings :: forall m. MonadEffect m => m KeyBindings
