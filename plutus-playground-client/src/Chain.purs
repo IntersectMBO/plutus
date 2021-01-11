@@ -27,11 +27,11 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Language.PlutusTx.AssocMap as AssocMap
-import Plutus.Trace.Emulator.Types (ContractInstanceLog(..))
+import Plutus.Trace.Emulator.Types (ContractInstanceLog(..), _ContractInstanceTag)
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
-import Playground.Lenses (_tokenName)
+import Playground.Lenses (_tokenName, _contractInstanceTag)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
 import Types (ChildSlots, HAction(..), View(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
@@ -132,7 +132,7 @@ emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
 
 emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
   div_
-    [ text $ show _cilMessage <> ": " <> show _cilMessage ]
+    [ text $ (view _contractInstanceTag _cilTag) <> ": " <> show _cilMessage ]
 
 -- TODO: Figure out which of the remaining log messages we want to display.
 -- (Note that most of the remaining log messages aren't produced at the
