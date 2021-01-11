@@ -87,6 +87,8 @@ escrowParams =
         ]
     }
 
+-- | Wallets 1 and 2 pay into an escrow contract, wallet 3
+--   cashes out.
 redeemTrace :: Trace.EmulatorTrace ()
 redeemTrace = do
     let con = void $ selectEither (payEp  @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams)
@@ -100,6 +102,7 @@ redeemTrace = do
     Trace.callEndpoint @"redeem-escrow" hdl3 ()
     void $ Trace.waitNSlots 1
 
+-- | Wallets 1-3 pay into an escrow contract, wallet 1 redeems.
 redeem2Trace :: Trace.EmulatorTrace ()
 redeem2Trace = do
     let con = (void $ both (payEp @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams))
@@ -113,6 +116,8 @@ redeem2Trace = do
     Trace.callEndpoint @"redeem-escrow" hdl1 ()
     void $ Trace.waitNSlots 1
 
+-- | Wallet 1 pays into an escrow contract and gets a refund when the
+--   amount isn't claimed.
 refundTrace :: Trace.EmulatorTrace ()
 refundTrace = do
     let con = void $ payEp  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams

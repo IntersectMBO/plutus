@@ -143,6 +143,8 @@ test-suite plutus-use-cases-test
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
 
+-- runs emulator traces from plutus-use-cases-tests and
+-- writes all applied validator scripts to a folder
 executable plutus-use-cases-scripts
     main-is: Main.hs
     hs-source-dirs:

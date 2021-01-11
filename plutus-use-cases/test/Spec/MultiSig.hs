@@ -33,6 +33,8 @@ tests = testGroup "multisig"
     , Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
     ]
 
+-- | Lock some funds, then attempt to unlock them with a transaction
+--   that doesn't have the required number of signatures
 failingTrace :: EmulatorTrace ()
 failingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract
@@ -42,6 +44,8 @@ failingTrace = do
     Trace.callEndpoint @"unlock" hdl (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
     void $ Trace.waitNSlots 1
 
+-- | Lock some funds, then unlock them with a transaction that has the
+--   three required signatures.
 succeedingTrace :: EmulatorTrace ()
 succeedingTrace = do
     hdl <- Trace.activateContractWallet w1 theContract

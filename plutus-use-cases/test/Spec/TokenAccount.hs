@@ -87,6 +87,9 @@ theToken = Accounts.accountToken account
 assertAccountBalance :: Account -> (Value -> Bool) -> TracePredicate
 assertAccountBalance acc = valueAtAddress (Accounts.address acc)
 
+-- | Create a new token account for wallet 1, pay 100 lovelace to the token
+--   account contract, transfer the token to wallet 2, then use the token
+--   to take out the funds.
 tokenAccountTrace :: Trace.EmulatorTrace ()
 tokenAccountTrace = do
     hdl <- Trace.activateContractWallet w1 contract

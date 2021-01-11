@@ -141,6 +141,8 @@ redeemStableCoins sc rate hdl = do
             }
     void $ Trace.waitNSlots 2
 
+-- | Mint 100 reserve coins, mint 50 stablecoins, then redeem ten of
+--   them at a higher exchange rate
 stablecoinTrace :: EmulatorTrace ()
 stablecoinTrace = do
     hdl <- initialise
@@ -149,6 +151,9 @@ stablecoinTrace = do
     -- redeem 10 stablecoins at an exchange rate of 2 Ada : 1 USD (so we get 20 lovelace from the bank)
     redeemStableCoins (SC 10) (Ratio.fromInteger 2) hdl
 
+-- | Mint 100 reserve coins, mint 50 stablecoins, then attempt to mint
+--   another 49 reserve coins. This fails because the max. reserve ratio
+--   would be exceeded.
 maxReservesExceededTrace :: EmulatorTrace ()
 maxReservesExceededTrace = do
     hdl <- initialise

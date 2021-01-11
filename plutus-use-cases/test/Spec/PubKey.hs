@@ -41,6 +41,9 @@ tests = testGroup "pubkey"
       pubKeyTrace
   ]
 
+-- | Use 'pubKeyContract' to create a script output that works like a
+--   public key output, requiring only the right signature on the spending
+--   transaction. Then spend the script output.
 pubKeyTrace :: Trace.EmulatorTrace ()
 pubKeyTrace = do
     _ <- Trace.activateContractWallet w1 theContract

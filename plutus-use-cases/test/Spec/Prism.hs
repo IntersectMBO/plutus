@@ -67,6 +67,7 @@ tests = testGroup "PRISM"
         prismTrace
     ]
 
+-- | 'mirror' issues a KYC token to 'user', who then uses it in an STO transaction
 prismTrace :: Trace.EmulatorTrace ()
 prismTrace = do
     uhandle <- Trace.activateContractWallet user contract

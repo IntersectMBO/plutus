@@ -13,6 +13,8 @@ import qualified Plutus.Trace.Emulator                             as Trace
 
 import           Test.Tasty
 
+-- | Runs 'Language.PlutusTx.Coordination.Contracts.Currency.forgeContract' for
+--   a sample currency.
 currencyTrace :: Trace.EmulatorTrace ()
 currencyTrace = do
     _ <- Trace.activateContractWallet w1 (void theContract)

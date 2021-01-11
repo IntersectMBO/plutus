@@ -64,6 +64,9 @@ w2 = EM.Wallet 2
 w3 :: EM.Wallet
 w3 = EM.Wallet 3
 
+-- | Wallet 1 locks some funds, transfers the token to wallet 2
+--   which then makes a correct guess and locks the remaining
+--   funds with a new secret
 successTrace :: EmulatorTrace ()
 successTrace = do
     hdl <- Trace.activateContractWallet w1 G.contract
@@ -75,6 +78,8 @@ successTrace = do
     Trace.callEndpoint @"guess" hdl2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     void $ Trace.waitNSlots 1
 
+-- | Run 'successTrace', then wallet 2 transfers the token to wallet 3, which
+--   makes another correct guess
 successTrace2 :: EmulatorTrace ()
 successTrace2 = do
     successTrace
@@ -84,6 +89,9 @@ successTrace2 = do
     Trace.callEndpoint @"guess" hdl3 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
     void $ Trace.waitNSlots 1
 
+
+-- | Wallet 1 locks some funds, transfers the token to wallet 2
+--   which then makes a wrong guess
 failTrace :: EmulatorTrace ()
 failTrace = do
     hdl <- Trace.activateContractWallet w1 G.contract

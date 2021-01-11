@@ -58,6 +58,7 @@ writeScripts fp = do
         , ("multisig-failure", MultiSig.failingTrace)
         , ("multisig-sm", MultiSigStateMachine.lockProposeSignPay 3 2)
         , ("ping-pong", PingPong.pingPongTrace)
+        , ("ping-pong_2", PingPong.twoPartiesTrace)
         , ("prism", Prism.prismTrace)
         , ("pubkey", PubKey.pubKeyTrace)
         , ("stablecoin_1", Stablecoin.stablecoinTrace)

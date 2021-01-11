@@ -23,4 +23,6 @@ The following contracts are implemented:
 * `TokenAccount`: Plutus implementation of an account that can be unlocked with a token
 * `Vesting`: A simple vesting scheme. Money is locked by a contract and may only be retrieved after some time has passed.
 
-The test suite includes unit tests for all contracts
+The test suite includes unit tests for all contracts.
+
+There is also an executable `plutus-use-cases-scripts` writes out the applied validator scripts from all test cases in `plutus-use-cases` to a folder.

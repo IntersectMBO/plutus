@@ -161,11 +161,13 @@ oracleKeys =
     let wllt = Wallet 10 in
         (walletPrivKey wllt, walletPubKey wllt)
 
+-- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 increaseMargin hdl = do
     Trace.callEndpoint @"increase-margin" hdl (Ada.lovelaceValueOf 100, Long)
     void $ Trace.waitNSlots 2
 
+-- | Call 'settleEarly' with a high spot price (11240 lovelace)
 settleEarly :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 settleEarly hdl = do
     let
