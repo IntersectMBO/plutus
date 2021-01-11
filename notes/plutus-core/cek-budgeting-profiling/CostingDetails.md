@@ -214,8 +214,9 @@ queens5x5/fc          |    5450    |   2364     |  1954
 
 The results for the validation benchmarks above show that apparently small
 changes in the costing code can make quite a large difference to the execution
-times, taking all of our sample validations well under the 20ms budget that's
-been mentioned in the past (at least on my machine).
+times.  In column C all of our sample validations are comfortably under the 20ms
+budget that's been mentioned in the past (at least on my machine), and some of
+the nofib examples are approaching a 3x speedup.
 
 Here are some suggestions about how to speed things up even more:
 
@@ -227,8 +228,8 @@ Here are some suggestions about how to speed things up even more:
   we can only have one instance per type.  Could we (a) provide two methods,
   one for each mode, or (b) dispense with the `SpendBudget` class altogether
   and pass an accounting function as a parameter to the machine?  The latter would
-  avoid overhead due to calling typeclass methods (see [CekProfiling.md](./CekProfiling.md),
-  so might be better).
+  avoid overhead due to calling typeclass methods (see [CekProfiling.md](./CekProfiling.md)),
+  so might be better.
 * In `Restricting` mode, decrement the cost at every step and fail it if goes
   below zero.  It's conceivable that it'd be cheaper to check whether an Integer
   is negative rather than compare two (possibly large) Integers.
