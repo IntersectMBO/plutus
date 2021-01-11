@@ -60,7 +60,8 @@ data Value⋆ : ∅ ⊢⋆ J → Set where
       → Value⋆ (μ A B)
 ```
 
-Converting a value back into a term:
+Converting a value back into a term. For this representation of values
+this is trivial:
 
 ```
 discharge : {A : ∅ ⊢⋆ K} → Value⋆ A → ∅ ⊢⋆ K
