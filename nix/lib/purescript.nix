@@ -19,6 +19,8 @@
 , webCommon
   # node_modules to use
 , nodeModules
+  # control execution of unit tests
+, checkPhase
 }:
 let
   # Cleans the source based on the patterns in ./.gitignore and the additionalIgnores
@@ -26,7 +28,7 @@ let
 
 in
 stdenv.mkDerivation {
-  inherit name;
+  inherit name checkPhase;
   src = cleanSrcs;
   buildInputs = [ nodeModules easyPS.purs easyPS.spago easyPS.psc-package ];
   buildPhase = ''
@@ -37,9 +39,10 @@ stdenv.mkDerivation {
     ln -s ${webCommon} ../web-common
 
     sh ${spagoPackages.installSpagoStyle}
-    sh ${spagoPackages.buildSpagoStyle}
+    sh ${spagoPackages.buildSpagoStyle} src/**/*.purs test/**/*.purs generated/**/*.purs ../web-common/**/*.purs
     ${nodejs}/bin/npm run webpack
   '';
+  doCheck = true;
   installPhase = ''
     mv dist $out
   '';
