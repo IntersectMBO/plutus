@@ -45,14 +45,13 @@ let
     cacert
     ghcid
     niv
-    nixops
     nixpkgs-fmt
     nodejs
     pass
     shellcheck
     sqlite-interactive
     stack
-    terraform_0_12
+    terraform
     yubikey-manager
     z3
     zlib
