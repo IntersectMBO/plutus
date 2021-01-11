@@ -16,7 +16,7 @@ simulations :: [Simulation]
 simulations = [vestRetrieve]
   where
     wallet1 = Wallet {getWallet = 1}
-    wallet1 = Wallet {getWallet = 2}
+    wallet2 = Wallet {getWallet = 2}
     simulationWallets =
         simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2]
     vestRetrieve =
