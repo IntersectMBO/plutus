@@ -6,6 +6,9 @@ While trying to fix a memory leak in the CEK machine, it transpired that
 budgeting was taking up a surprisingly large proportion of the CEK execution
 time.  This document investigates what's going on.
 
+[Update: see [CostingDetails.md](./CostingDetails.md) for some experiments
+trying to work out what's going on wrt costing].
+
 ### Budgeting strategy
 
 The (untyped) CEK machine in

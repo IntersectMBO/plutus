@@ -35,7 +35,7 @@ class (ExBudgetBuiltin fun exBudgetCat, ToExMemory term) =>
 This contains a single method `spendBudget`, which is called during execution.
 The intention is that `spendBudget` accumulates costs in an `ExBudgetState`
 object in the monad `m`. In `Counting` mode execution costs (possibly
-partitioned so that costs of pariticular operations are collected separately)
+partitioned so that costs of particular operations are collected separately)
 are accumulated to find the total cost of executing a program, and in
 `Restricting` mode the program is supplied with an initial budget limit, and
 execution is terminated if the limit is exceeded at any point during execution.
@@ -75,7 +75,7 @@ per-operation costs with the costs of the current operation, and the line
 operation to the total consumed so far (and returns the updated result for
 further use).  Both fields are updated irrespective of
 whether we're in `Counting` mode or `Restricting` mode, which may explain why
-the figures in [CekProfiling.md](./CekProfiling.md) don't show much diference
+the figures in [CekProfiling.md](./CekProfiling.md) don't show much difference
 between execution times for the two modes.  To attempt to remedy this, it seems
 sensible to refactor `spendBudget` so that it's only updating the field relevant
 to the current mode:
@@ -115,7 +115,7 @@ eliminates the leak again, but it's not clear to me why.  Possibly `modifying`
 is accumulating costs lazily and updating `_exBudgetStateBudget` prevents this
 for some reason, but I don't understand why that would be the case.
 
-### Further exepriments
+### Further experiments
 
 I updated the code so that `spendBudget` just operated in `Counting` mode all
 the time and didn't have to branch on `mode` every time, and this again produced
@@ -131,7 +131,9 @@ slowed things down a bit).
 Here's a table of figures for the benchmarks with various refactorings as mentioned
 above.  All benchmarks were run in `Restricting` mode (with a large initial limit
 (`ExRestrictingBudget (ExBudget 10000000000 10000000000)`)
-to make sure that the programs all ran to completion).  All times are in millsiseconds.
+to make sure that the programs all ran to completion).
+
+All times are in milliseconds.
 
 * A. Original code
 
@@ -220,17 +222,17 @@ Here are some suggestions about how to speed things up even more:
 * Remove the lens operations and make everything explicit: this may make it
   easier to see what's going on and help avoid memory leaks.
 * Try to make `Restricting` mode and `Counting` mode completely separate
-  so that we don't haveto examine the mode every time we want to spend
+  so that we don't have to examine the mode every time we want to spend
   some of the budget.  Using a typeclass makes this a bit difficult because
   we can only have one instance per type.  Could we (a) provide two methods,
   one for each mode, or (b) dispense with the `SpendBudget` class altogether
-  and pass an accounting function as a paramter to the machine?  The latter would
+  and pass an accounting function as a parameter to the machine?  The latter would
   avoid overhead due to calling typeclass methods (see [CekProfiling.md](./CekProfiling.md),
   so might be better).
 * In `Restricting` mode, decrement the cost at every step and fail it if goes
-  below zero.  It's conceviable that it'd be cheaper to check whether an Integer
+  below zero.  It's conceivable that it'd be cheaper to check whether an Integer
   is negative rather than compare two (possibly large) Integers.
-* Maybe don't use a monoid to acucmulate costs in `Restricting` mode.  Michael
-  has suggested using `STRef`s to acuumulate costs, but I haven't tried that yet
-  bcause it'd require some monadic re-plumbing.
+* Maybe don't use a monoid to accumulate costs in `Restricting` mode.  Michael
+  has suggested using `STRef`s to accumulate costs, but I haven't tried that yet
+  because it'd require some monadic re-plumbing.
 
