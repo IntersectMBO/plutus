@@ -75,7 +75,7 @@ runGenRandomTx =
         Eff.sendM $
           liftIO $ do
             gen <- MWC.createSystemRandom
-            generateTx gen chainState
+            generateTx gen (view EM.index chainState)
 
 {- | This function will generate a random transaction, given a `GenIO` and a
      `ChainState`.
@@ -93,9 +93,8 @@ runGenRandomTx =
      implementation. Please make sure to read it's documentation if you want to split
      the value into more than 10 outputs.
 -}
-generateTx :: GenIO -> ChainState -> IO Tx
-generateTx gen cs = do
-  let UtxoIndex utxo = view EM.index cs
+generateTx :: GenIO -> UtxoIndex -> IO Tx
+generateTx gen (UtxoIndex utxo) = do
   (sourcePrivKey, sourcePubKey) <- pickNEL gen keyPairs
   (_, targetPubKey) <- pickNEL gen keyPairs
   let sourceAddress = Address.pubKeyAddress sourcePubKey

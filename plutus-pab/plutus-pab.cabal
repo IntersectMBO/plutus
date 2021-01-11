@@ -374,3 +374,31 @@ executable prism-unlock-exchange
         plutus-pab,
         plutus-use-cases -any,
         plutus-contract -any
+
+executable tx-inject
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: tx-inject
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        plutus-pab,
+        containers -any,
+        clock -any,
+        deepseq -any,
+        http-client -any,
+        http-conduit -any,
+        lens -any,
+        mwc-random -any,
+        optparse-applicative -any,
+        plutus-contract -any,
+        plutus-ledger -any,
+        plutus-tx -any,
+        pretty-simple -any,
+        rate-limit -any,
+        servant-client -any,
+        signal -any,
+        stm -any,
+        text -any,
+        time-units -any,
+        yaml -any
