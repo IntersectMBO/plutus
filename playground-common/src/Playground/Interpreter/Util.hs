@@ -102,7 +102,7 @@ evaluationResultFold wallets =
     in Playground.Types.EvaluationResult
             <$> L.generalize (reverse <$> Folds.blockchain)
             <*> L.generalize (reverse <$> Folds.annotatedBlockchain)
-            <*> L.generalize (reverse . filter isInteresting <$> Folds.emulatorLog)
+            <*> L.generalize (filter isInteresting <$> Folds.emulatorLog)
             <*> renderInstanceTrace (walletInstanceTag <$> wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (funds wallets)
             <*> pure (fmap pkh wallets)
