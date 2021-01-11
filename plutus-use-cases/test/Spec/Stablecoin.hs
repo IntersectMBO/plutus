@@ -106,7 +106,7 @@ tests = testGroup "Stablecoin"
         maxReservesExceededTrace
 
     ]
-        
+
 initialise :: Trace.EmulatorTrace (ContractHandle StablecoinSchema StablecoinError)
 initialise = do
     hdl <- Trace.activateContractWallet user Stablecoin.contract
