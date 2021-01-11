@@ -247,5 +247,3 @@ Here are some suggestions about how to speed things up even more:
 * Maybe don't use a monoid to accumulate costs in `Restricting` mode.  Michael
   has suggested using `STRef`s to accumulate costs, but I haven't tried that yet
   because it'd require some monadic re-plumbing.
-* Try to work out exactly what's causing the memory leak mentioned above so that
-  we can be careful to avoid it in future.
