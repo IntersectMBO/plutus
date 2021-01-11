@@ -134,9 +134,9 @@ pubKeys Evaluation {..} = pubKeyHash . walletPubKey . simulatorWalletWallet <$> 
 
 data EvaluationResult =
     EvaluationResult
-        { resultBlockchain  :: [[Tx]]
-        , resultRollup      :: [[AnnotatedTx]]
-        , emulatorLog       :: [EmulatorEvent]
+        { resultBlockchain  :: [[Tx]] -- ^ The blockchain, newest blocks first
+        , resultRollup      :: [[AnnotatedTx]] -- ^ Annotated blockchain, newest blocks first
+        , emulatorLog       :: [EmulatorEvent] -- ^ The emulator log, newest events first
         , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
         , walletKeys        :: [(PubKeyHash, Wallet)]
