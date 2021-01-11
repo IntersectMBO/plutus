@@ -2,3 +2,4 @@ nix/stack.materialized/*.nix
 nix/sources.nix
 **/spago-packages.nix
 **/packages.nix
+dist-newstyle/**/*.nix
