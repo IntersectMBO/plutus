@@ -115,6 +115,17 @@ eliminates the leak again, but it's not clear to me why.  Possibly `modifying`
 is accumulating costs lazily and updating `_exBudgetStateBudget` prevents this
 for some reason, but I don't understand why that would be the case.
 
+**Update**: thanks to some detective work from @effectfullly, it turns out that
+[`modifying`](https://hackage.haskell.org/package/lens-4.19.2/docs/Control-Lens-Combinators.html#v:modifying)
+uses the lazy function
+[`Control.Modad.State.Lazy.modify`](https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-State-Lazy.html#v:modify).
+We think that what's happening is that because of this, when `modifying` is used on its own,
+budget tallies are indeed building up as large unevaluated thunks.  However,
+`StrictData` is turned on in `ExMemory` (to prevent a space leak that was happening
+earlier), and this means that when `<%=` is used to update the budget state,
+it forces the (deep) evaluation of the entire `ExBudget` record, which forces the
+thunks produced by `modifying`, causing the memory leak to vanish.
+
 ### Further experiments
 
 I updated the code so that `spendBudget` just operated in `Counting` mode all
