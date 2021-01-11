@@ -338,13 +338,13 @@ runStep = \case
         let onResponse i = do
                 -- when we get a response @i@, we
 
-                -- * clear the requests,
+                -- clear the requests,
                 clearRequests @o
 
-                -- * Compute the next 'Status'
+                -- compute the next 'Status'
                 status :: Status (ResumableEffs i o effs a) o i a <- k i
 
-                -- * repeat
+                -- repeat
                 runStep status
 
         modify @(ReqMap i o effs a) (insertRequest (nid, iid) onResponse)
