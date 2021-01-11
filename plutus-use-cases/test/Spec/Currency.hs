@@ -14,8 +14,10 @@ import qualified Plutus.Trace.Emulator                             as Trace
 import           Test.Tasty
 
 currencyTrace :: Trace.EmulatorTrace ()
-currencyTrace =
-    void $ Trace.activateContractWallet w1 (void theContract) >> Trace.nextSlot
+currencyTrace = do
+    _ <- Trace.activateContractWallet w1 (void theContract)
+    _ <- Trace.nextSlot
+    void $ Trace.nextSlot
 
 tests :: TestTree
 tests = testGroup "currency"
@@ -26,7 +28,7 @@ tests = testGroup "currency"
 
     , checkPredicate
         "script size is reasonable"
-        (assertDone theContract (Trace.walletInstanceTag w1) ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
+        (assertDone theContract (Trace.walletInstanceTag w1) ((30000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
         currencyTrace
 
     ]
