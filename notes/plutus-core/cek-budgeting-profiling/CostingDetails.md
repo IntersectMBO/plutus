@@ -133,8 +133,6 @@ above.  All benchmarks were run in `Restricting` mode (with a large initial limi
 (`ExRestrictingBudget (ExBudget 10000000000 10000000000)`)
 to make sure that the programs all ran to completion).
 
-All times are in milliseconds.
-
 * A. Original code
 
 * B. Refactored to separate the updates to `_exBudgetStateBudget` and
@@ -144,8 +142,10 @@ All times are in milliseconds.
 * C. Refactored so that `spendBudget` only contains the code relevant
      to `Restricting` mode and doesn't have to consult the `mode` parameter.
 
+All times are in milliseconds.
 
-##### Validation
+
+#### Validation
 
 Benchmark             |     A      |     B      |    C    
 ----------------------|-----------:|-----------:|--------:
@@ -179,7 +179,7 @@ marlowe/trustfund/2   |    16.35   |   11.86    |  10.98
 marlowe/zerocoupon/1  |    22.17   |   14.83    |  13.33
 marlowe/zerocoupon/2  |    15.06   |   11.10    |  10.33
 
-##### Nofib
+#### Nofib
 
 Benchmark             |     A      |     B      |    C    
 ----------------------|-----------:|-----------:|--------:
