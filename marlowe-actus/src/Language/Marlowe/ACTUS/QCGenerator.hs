@@ -209,8 +209,8 @@ riskFactorsGen ct = do
     rf <- vectorOf (L.length days) riskAtT
     return $ M.fromList $ L.zip days rf
 
-riskFactorsGenRandomWalk :: ContractTerms -> Gen (M.Map Day RiskFactors)
-riskFactorsGenRandomWalk contractTerms = do
+riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalkGen contractTerms = do
     rfs <- riskFactorsGen contractTerms
     let 
         (riskFactorsDates, riskFactorsValues) = unzip $ M.toList riskFactors
@@ -219,7 +219,7 @@ riskFactorsGenRandomWalk contractTerms = do
         walk rf st = 
             let fluctuate' extractor = fluctuate (extractor rf) (extractor st)
             in RiskFactors (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
-            
+
     riskAtT <- riskAtTGen
     path <- L.scanl walk riskAtT riskFactorsValues
     return $ M.fromList $ L.zip riskFactorsDates path
