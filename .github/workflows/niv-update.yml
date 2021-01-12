@@ -11,7 +11,7 @@ jobs:
     steps:
       # notice there is no checkout step
       - name: niv-updater-action
-        uses: knl/niv-updater-action@v7
+        uses: knl/niv-updater-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
