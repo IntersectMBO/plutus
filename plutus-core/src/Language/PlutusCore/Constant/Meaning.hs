@@ -1,6 +1,7 @@
 -- GHC doesn't like the definition of 'toDynamicBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
+{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -168,9 +169,16 @@ inference-friendly manner:
 2. the @a -> res@ dependency allows us not to compute @res@ using a type family like with @args@
 3. the @args res -> a@ dependency allows us not to mention @a@ in the type of 'knownMonotype'
 
+Polymorphic built-in functions are handled via automatic specialization of all Haskell type
+variables as types representing PLC type variables, as long as each Haskell variable appears as a
+direct argument to @(->)@ (both possible positions are fine) and not buried somewhere inside
+(i.e. automatic derivation can handle neither @f a@, @ListRep a@, nor @f Int@. Nor is @a -> b@
+allowed to the left of an @(->)@). We'll call functions having such types "simply-polymorphic".
+See the docs of 'EnumerateFromTo' for details.
+
 The end result is that the user only has to specify the type of the denotation of a built-in
 function and the 'TypeScheme' of the built-in function will be derived automatically. And in the
-monomorphic case no types need to be specified at all.
+monomorphic and simply-polymorphic cases no types need to be specified at all.
 -}
 
 type family GetArgs a :: [GHC.Type] where
@@ -241,37 +249,63 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds t
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) term args res a where
     knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ \_ -> knownPolytype (Proxy @binds)
 
--- Does not type check without the SAKS (even with kind-annotated @x@ and @y@).
+-- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
+
+-- | Check if two values of different kinds are in fact the same value (with the same kind).
+-- A heterogeneous version of @Type.Equality.(==)@.
 type (===) :: forall a b. a -> b -> Bool
 type family x === y where
     x === x = 'True
     x === y = 'False
 
-class (x === y) ~ can => CanUnify can (x :: a) (y :: b)
-instance {-# INCOHERENT #-} (x ~~ y, can ~ 'True) => CanUnify can (x :: a) (y :: b)
-instance (x === y) ~ 'False => CanUnify 'False (x :: a) (y :: b)
+type TryUnify :: forall a b. Bool -> a -> b -> GHC.Constraint
+class same ~ (x === y) => TryUnify same x y
+instance (x === y) ~ 'False => TryUnify 'False x y
+instance {-# INCOHERENT #-} (x ~~ y, same ~ 'True) => TryUnify same x y
 
+-- | Unify two values unless they're obviously distinct (in which case do nothing).
+-- Allows us to detect and specialize type variables, since a type variable is not obviously
+-- distinct from anything else and so the INCOHERENT instance of 'TryUnify' gets triggered and the
+-- variable gets unified with whatever we want it to.
+type (~?~) :: forall a b. a -> b -> GHC.Constraint
+type x ~?~ y = TryUnify (x === y) x y
+
+-- | Get the element at an @i@th position in a list.
 type Lookup :: forall a. Nat -> [a] -> a
 type family Lookup n xs where
     Lookup 0 (x ': xs) = x
     Lookup n (_ ': xs) = Lookup (n - 1) xs
 
-type GetName i = Lookup i '["a", "b", "c", "d", "e"]
+-- | Get the name at the @i@th position in the list of default names. We could use @a_0@, @a_1@,
+-- @a_2@ etc instead, but @a@, @b@, @c@ etc are nicer.
+type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
 
-type EnumerateFromToArg :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-class EnumerateFromToArg i j term a | i term a -> j
+-- | Try to specialize @a@ as a type representing a Plutus type variable.
+-- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
+-- specialization is successful or not).
+type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+class TrySpecializeAsVar i j term a | i term a -> j
 instance
     ( var ~ Opaque term (TyVarRep ('TyNameRep (GetName i) i))
-    , (a === var) ~ can
-    , CanUnify can a var
-    , j ~ If can (i + 1) i
-    ) => EnumerateFromToArg i j term a
+    -- Try to unify @a@ with a freshly created @var@.
+    , a ~?~ var
+    -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
+    -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
+    , j ~ If (a == var) (i + 1) i
+    ) => TrySpecializeAsVar i j term a
 
+-- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
+-- for a detailed elaboration on how this works.
+-- | Specialize each Haskell type variable in @a@ as a type representing a Plutus Core type variable
+-- by deconstucting @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
+-- right) and trying to specialize every argument type as a PLC type variable
+-- (via 'TrySpecializeAsVar') until no deconstuction is possible, at which point we've got a result
+-- type which we also try to specialize as a type representing a PLC type variable.
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
-instance {-# OVERLAPPABLE #-} EnumerateFromToArg i j term a => EnumerateFromTo i j term a
-instance {-# OVERLAPPING #-}
-    ( EnumerateFromToArg i j term a
+instance {-# INCOHERENT #-} TrySpecializeAsVar i j term a => EnumerateFromTo i j term a
+instance
+    ( TrySpecializeAsVar i j term a
     , EnumerateFromTo j k term b
     ) => EnumerateFromTo i k term (a -> b)
 
