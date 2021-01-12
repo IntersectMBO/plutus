@@ -4,8 +4,7 @@ module Language.Marlowe.ACTUS.Model.STF.StateTransition where
 
 import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState,
-                                                                         ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
+import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractState, ContractStatePoly (ContractStatePoly, fac, feac, ipac, ipcb, ipnr, isc, nsc, nt, prf, prnxt, sd, tmd))
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM),

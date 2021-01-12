@@ -9,8 +9,7 @@ import qualified Data.Map                                          as M
 import           Data.Time
 import           Data.Time.Clock.POSIX                             (posixSecondsToUTCTime)
 import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( RiskFactors(..) )
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
@@ -213,11 +212,11 @@ riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
 riskFactorsGenRandomWalkGen contractTerms = do
     rfs <- riskFactorsGen contractTerms
     riskAtT <- riskAtTGen
-    let 
+    let
         (riskFactorsDates, riskFactorsValues) = unzip $ M.toList rfs
 
         fluctuate state fluctiation = state + (fluctiation - 50) / 100
-        walk rf st = 
+        walk rf st =
             let fluctuate' extractor = fluctuate (extractor rf) (extractor st)
             in RiskFactors (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
         path = L.scanl walk riskAtT riskFactorsValues
