@@ -278,10 +278,10 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ThreadId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Response A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Priority)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StopReason)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptValidationEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     ]

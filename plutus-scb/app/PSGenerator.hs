@@ -30,7 +30,7 @@ import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
-import           Language.Plutus.Contract.Resumable                (Request, RequestID, Response, Responses)
+import           Language.Plutus.Contract.Resumable                (Responses)
 import           Language.Plutus.Contract.State                    (ContractRequest, State)
 import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
@@ -48,8 +48,7 @@ import           Plutus.SCB.Effects.ContractTest                   (TestContract
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest, csContract)
 import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceState,
-                                                                    ContractResponse, IterationID,
-                                                                    PartiallyDecodedResponse)
+                                                                    ContractResponse, PartiallyDecodedResponse)
 import           Plutus.SCB.Events.Node                            (NodeEvent)
 import           Plutus.SCB.Events.User                            (UserEvent)
 import           Plutus.SCB.Events.Wallet                          (WalletEvent)
@@ -121,7 +120,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractSCBRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
@@ -138,9 +136,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Response A))
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
