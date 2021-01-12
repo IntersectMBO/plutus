@@ -291,7 +291,8 @@ instance
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
-    , j ~ If (a == var) (i + 1) i
+    -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
+    , j ~ If (a === var) (i + 1) i
     ) => TrySpecializeAsVar i j term a
 
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
