@@ -143,6 +143,67 @@ test-suite plutus-use-cases-test
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
 
+-- runs emulator traces from plutus-use-cases-tests and
+-- writes all applied validator scripts to a folder
+executable plutus-use-cases-scripts
+    main-is: Main.hs
+    hs-source-dirs:
+        scripts
+        test
+    default-language: Haskell2010
+    other-modules:
+        Spec.Crowdfunding
+        Spec.Currency
+        Spec.ErrorHandling
+        Spec.Escrow
+        Spec.Future
+        Spec.Game
+        Spec.GameStateMachine
+        Spec.Lib
+        Spec.MultiSig
+        Spec.MultiSigStateMachine
+        Spec.PingPong
+        Spec.PubKey
+        Spec.Prism
+        Spec.Rollup
+        Spec.RPC
+        Spec.Stablecoin
+        Spec.TokenAccount
+        Spec.Vesting
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities -rtsopts
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    build-depends:
+        base >= 4.9 && <5,
+        aeson -any,
+        bytestring -any,
+        containers -any,
+        hedgehog -any,
+        prettyprinter -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-hedgehog >=0.2.0.0,
+        tasty-golden -any,
+        text -any,
+        lens -any,
+        mtl -any,
+        row-types -any,
+        freer-simple -any,
+        foldl -any,
+        streaming -any,
+        filepath -any,
+        serialise -any,
+        plutus-core -any,
+        plutus-tx -any,
+        plutus-contract -any,
+        plutus-ledger -any,
+        plutus-use-cases -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
 benchmark plutus-use-cases-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs

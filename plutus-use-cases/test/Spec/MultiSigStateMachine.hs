@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
-module Spec.MultiSigStateMachine(tests) where
+module Spec.MultiSigStateMachine(tests, lockProposeSignPay) where
 
 import           Data.Foldable                                                 (traverse_)
 import           Test.Tasty                                                    (TestTree, testGroup)
@@ -52,8 +52,7 @@ tests =
         (assertNotDone (MS.contract  @MS.MultiSigError params) (Trace.walletInstanceTag w2) "contract should proceed after invalid transition"
         .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10))
-        -- (lockProposeSignPay 3 2 >> callEndpoint @"propose-payment" w2 payment >> handleBlockchainEvents w2)
-        (lockProposeSignPay 3 3) -- FIXME
+        (lockProposeSignPay 3 3)
 
     , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 51000)

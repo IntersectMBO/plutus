@@ -145,8 +145,8 @@ txnUpdateUtxo = property $ do
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidate _ i1
-                , Chain.TxnValidationFail _ txi (Index.TxOutRefNotFound _)
+                , Chain.TxnValidate _ i1 _
+                , Chain.TxnValidationFail _ txi (Index.TxOutRefNotFound _) _
                 , Chain.SlotAdd _
                 ] -> i1 == txn && txi == txn
             _ -> False
@@ -168,7 +168,7 @@ invalidTrace = property $ do
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ txn (Index.ValueNotPreserved _ _)
+                , Chain.TxnValidationFail _ txn (Index.ValueNotPreserved _ _) _
                 , Chain.SlotAdd _
                 ] -> txn == invalidTxn
             _ -> False
@@ -205,7 +205,7 @@ invalidScript = property $ do
                 , Chain.SlotAdd _
                 , Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ txn (ScriptFailure (EvaluationError ["I always fail everything"]))
+                , Chain.TxnValidationFail _ txn (ScriptFailure (EvaluationError ["I always fail everything"])) _
                 , Chain.SlotAdd _
                 ] -> txn == invalidTxn
             _ -> False

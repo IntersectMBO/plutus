@@ -248,7 +248,7 @@ validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
     h      = 1
     idx    = Index.initialise [blck]
-    result = Index.runValidation (Index.validateTransaction h tx) idx
+    result = fst $ Index.runValidation (Index.validateTransaction h tx) idx
 
 {- | Split a value into max. n positive-valued parts such that the sum of the
      parts equals the original value.

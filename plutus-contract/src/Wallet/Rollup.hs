@@ -105,7 +105,7 @@ getAnnotatedTransactions = groupBy (equating (slotIndex . sequenceId)) . reverse
 handleChainEvent :: RollupState -> ChainEvent -> RollupState
 handleChainEvent s = \case
     SlotAdd _ -> s & over currentSequenceId (set txIndexL 0 . over slotIndexL succ)
-    TxnValidate _ tx ->
+    TxnValidate _ tx _ ->
         let (tx', newState) = runState (annotateTransaction (s ^. currentSequenceId) tx) (s ^. rollup)
         in s & over currentSequenceId (over txIndexL succ)
              & over annotatedTransactions ((:) tx')

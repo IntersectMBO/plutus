@@ -9,7 +9,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-module Spec.Future(tests, theFuture) where
+module Spec.Future(tests, theFuture, increaseMarginTrace, settleEarlyTrace, payOutTrace) where
 
 import           Control.Monad                                   (void)
 import           Test.Tasty
@@ -49,31 +49,17 @@ tests =
     , checkPredicate "can increase margin"
         (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 1936))
         .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 2410)))
-        $ do
-            _ <- initContract
-            hdl2 <- joinFuture
-            _ <- Trace.waitNSlots 20
-            increaseMargin hdl2
-            _ <- Trace.waitUntilSlot 100
-            payOut hdl2
+        increaseMarginTrace
 
     , checkPredicate "can settle early"
         (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 0))
         .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 4246)))
-        $ do
-            _ <- initContract
-            hdl2 <- joinFuture
-            _ <- Trace.waitNSlots 20
-            settleEarly hdl2
+        settleEarlyTrace
 
      , checkPredicate "can pay out"
         (assertAccountBalance (ftoShort F.testAccounts) (== (Ada.lovelaceValueOf 1936))
         .&&. assertAccountBalance (ftoLong F.testAccounts) (== (Ada.lovelaceValueOf 2310)))
-        $ do
-            _ <- initContract
-            hdl2 <- joinFuture
-            _ <- Trace.waitUntilSlot 100
-            payOut hdl2
+        payOutTrace
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
@@ -106,6 +92,29 @@ theFuture = Future {
     ftPriceOracle   = snd oracleKeys,
     ftMarginPenalty = penalty
     }
+
+increaseMarginTrace :: EmulatorTrace ()
+increaseMarginTrace = do
+    _ <- initContract
+    hdl2 <- joinFuture
+    _ <- Trace.waitNSlots 20
+    increaseMargin hdl2
+    _ <- Trace.waitUntilSlot 100
+    payOut hdl2
+
+settleEarlyTrace :: EmulatorTrace ()
+settleEarlyTrace = do
+    _ <- initContract
+    hdl2 <- joinFuture
+    _ <- Trace.waitNSlots 20
+    settleEarly hdl2
+
+payOutTrace :: EmulatorTrace ()
+payOutTrace = do
+    _ <- initContract
+    hdl2 <- joinFuture
+    _ <- Trace.waitUntilSlot 100
+    payOut hdl2
 
 -- | After this trace, the initial margin of wallet 1, and the two tokens,
 --   are locked by the contract.
@@ -152,11 +161,13 @@ oracleKeys =
     let wllt = Wallet 10 in
         (walletPrivKey wllt, walletPubKey wllt)
 
+-- | Increase the margin of the 'Long' role by 100 lovelace
 increaseMargin :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 increaseMargin hdl = do
     Trace.callEndpoint @"increase-margin" hdl (Ada.lovelaceValueOf 100, Long)
     void $ Trace.waitNSlots 2
 
+-- | Call 'settleEarly' with a high spot price (11240 lovelace)
 settleEarly :: ContractHandle FutureSchema FutureError -> EmulatorTrace ()
 settleEarly hdl = do
     let
