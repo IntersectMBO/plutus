@@ -330,8 +330,7 @@ handleAction CompileProgram = do
       assign _compilationResult newCompilationResult
       -- If we got a successful result, update lastCompiledCode and switch tab.
       case newCompilationResult of
-        Success (Left _) ->
-          assign (_editorState <<< _feedbackPaneMinimised) false
+        Success (Left _) -> assign (_editorState <<< _feedbackPaneMinimised) false
         _ ->
           when (isSuccess newCompilationResult) do
             assign (_editorState <<< _lastCompiledCode) (Just contents)

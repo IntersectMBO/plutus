@@ -86,8 +86,7 @@ handleAction _ (FixFeedbackPaneExtend mouseY) = do
   feedbackPanePreviousExtend <- use _feedbackPanePreviousExtend
   case feedbackPaneDragStart of
     Nothing -> pure unit
-    Just startMouseY ->
-      assign _feedbackPaneExtend $ clamp 0 100 (startMouseY - mouseY + feedbackPanePreviousExtend)
+    Just startMouseY -> assign _feedbackPaneExtend $ clamp 0 100 (startMouseY - mouseY + feedbackPanePreviousExtend)
 
 ------------------------------------------------------------
 loadKeyBindings :: forall m. MonadEffect m => m KeyBindings
