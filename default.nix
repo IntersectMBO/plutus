@@ -70,10 +70,10 @@ rec {
     inherit (haskell.muslProject) ghcWithPackages;
   };
 
-  plutus-scb = pkgs.callPackage ./plutus-scb-client {
+  plutus-scb = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-scb-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules;
     inherit set-git-rev haskell webCommon;
-  };
+  });
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix;
