@@ -82,10 +82,10 @@
         "homepage": "https://nixos.org/nixops",
         "owner": "NixOS",
         "repo": "nixops",
-        "rev": "faed0635d24e93f38046af58fb7715327de28e39",
-        "sha256": "00dkxa1b9acj6hjd3l9dr2a2js3sf6b2ps1r93pzmhxrcl3kbphj",
+        "rev": "ed2868fbc0b5924fcd4a60a8bd32a14fa196381b",
+        "sha256": "14av9x7i3fvnzmx711x180dkjngx99g1l65wr7b5784fslzbcv5r",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixops/archive/faed0635d24e93f38046af58fb7715327de28e39.tar.gz",
+        "url": "https://github.com/NixOS/nixops/archive/ed2868fbc0b5924fcd4a60a8bd32a14fa196381b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
