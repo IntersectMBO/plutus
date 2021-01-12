@@ -5,7 +5,7 @@
 Following on from [CekProfiling.md](./CekProfiling.md), this takes a closer look at
 how cost accounting affects execution costs.
 
-`Language.PlutusCore.Evaluation.Machine.ExMemory` defines the following types for
+`Language.PlutusCore.Evaluation.Machine.ExBudgeting` defines the following types for
 budgeting:
 
 ```
@@ -39,6 +39,13 @@ partitioned so that costs of particular operations are collected separately)
 are accumulated to find the total cost of executing a program, and in
 `Restricting` mode the program is supplied with an initial budget limit, and
 execution is terminated if the limit is exceeded at any point during execution.
+
+The `StrictData` option is turned on in `ExBudgeting.hs` to avoid a memory leak
+that occurred in an earlier version of the code, where costs were being
+accumulated lazily; in fact making just the `ExBudget` and `ExBudgetState` types
+strict was sufficient to remove the leak, but `StrictData` seemed simpler and
+unlikely to cause any trouble.
+
 
 The CEK machine (`Language.UntypedPlutusCore.Evaluation.Machine.Cek`) declares the following
 types
@@ -119,12 +126,17 @@ for some reason, but I don't understand why that would be the case.
 [`modifying`](https://hackage.haskell.org/package/lens-4.19.2/docs/Control-Lens-Combinators.html#v:modifying)
 uses the lazy function
 [`Control.Modad.State.Lazy.modify`](https://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-State-Lazy.html#v:modify).
-We think that what's happening is that because of this, when `modifying` is used on its own,
-budget tallies are indeed building up as large unevaluated thunks.  However,
-`StrictData` is turned on in `ExMemory` (to prevent a space leak that was happening
-earlier), and this means that when `<%=` is used to update the budget state,
-it forces the (deep) evaluation of the entire `ExBudget` record, which forces the
-thunks produced by `modifying`, causing the memory leak to vanish.
+Because of this, `modifying` accumulates costs as chains of unevaluated thunks,
+and if these are never forced then we get a leak.  When we use `<%=`, it forces
+its first argument (because `_exBudgetStateBudget` is a field of a record of
+type `ExBudgetState`, which is strict because of the `StrictData` pragma
+mentioned earlier).  This causes any thunks associated with the previous value
+to be forced; however, the second argument of `<%=` and both arguments of
+`modifying` are created as thunks, and are not forced until the next time
+`spendBudget` is appplied.  Thus the code aboves leaks a small amount of memory
+every time the method is applied, but it is reclaimed the next time round
+and the major leak disappears.  There's some discussion of the underlying
+issue [here](https://github.com/ekmett/lens/issues/863).
 
 ### Further experiments
 
