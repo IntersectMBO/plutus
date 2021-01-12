@@ -115,8 +115,8 @@ postulate
   parseTy : ByteString → Either ParseError TypeN
   showTerm : RawTm → String
   deBruijnify : ProgramN → Either FreeVariableError Program
-  deBruijnifyTm : TermN → Maybe Term
-  deBruijnifyTy : TypeN → Maybe Type
+  deBruijnifyTm : TermN → Either FreeVariableError Term
+  deBruijnifyTy : TypeN → Either FreeVariableError Type
 
 {-# FOREIGN GHC import Language.PlutusCore.Name #-}
 {-# FOREIGN GHC import Language.PlutusCore.Lexer #-}
@@ -136,8 +136,8 @@ postulate
 {-# COMPILE GHC parseTm = first (() <$) . runQuote. runExceptT . parseTerm  #-}
 {-# COMPILE GHC parseTy = first (() <$) . runQuote . runExceptT . parseType  #-}
 {-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
-{-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm . (() <$) #-}
-{-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy . (() <$) #-}
+{-# COMPILE GHC deBruijnifyTm = second (() <$) . runExcept . deBruijnTerm #-}
+{-# COMPILE GHC deBruijnifyTy = second (() <$) . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
 {-# COMPILE GHC ProgramN = type Language.PlutusCore.Program TyName Name DefaultUni DefaultFun Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Program = type Language.PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
@@ -289,7 +289,7 @@ junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | just plc1'' | just plc2'' = decRTm (convTm plc1'') (convTm plc2'')
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
 alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaTm plc1 plc2 | _ | _ = Bool.false
 
@@ -298,7 +298,7 @@ alphaTm plc1 plc2 | _ | _ = Bool.false
 blah : ByteString → ByteString → String
 blah plc1 plc2 with parseTm plc1 | parseTm plc2
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
-blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' | just plc1'' | just plc2'' = rawPrinter (convTm plc1'') ++ " || " ++ rawPrinter (convTm plc2'')
+blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = rawPrinter (convTm plc1'') ++ " || " ++ rawPrinter (convTm plc2'')
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = "deBruijnifying failed"
 blah plc1 plc2 | _ | _ = "parsing failed"
 
@@ -308,15 +308,15 @@ printTy : ByteString → String
 printTy b with parseTy b
 ... | inj₁ _ = "parseTy error"
 ... | inj₂ A  with deBruijnifyTy A
-... | nothing = "deBruinjifyTy error"
-... | just A' = rawTyPrinter (convTy A')
+... | inj₁ _ = "deBruinjifyTy error"
+... | inj₂ A' = rawTyPrinter (convTy A')
 
 {-# COMPILE GHC printTy as printTy #-}
 
 alphaTy : ByteString → ByteString → Bool
 alphaTy plc1 plc2 with parseTy plc1 | parseTy plc2
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTy plc1' | deBruijnifyTy plc2'
-alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | just plc1'' | just plc2'' = decRTy (convTy plc1'') (convTy plc2'')
+alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTy (convTy plc1'') (convTy plc2'')
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaTy plc1 plc2 | _ | _ = Bool.false
 

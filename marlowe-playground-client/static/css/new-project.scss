@@ -42,9 +42,8 @@
   }
 }
 
-// This class is not used for the new project dialog any more
-// but it is being used by the Save as and Rename modal.
-// TODO: Move to more appropiate location
+// This class is only being used by the Rename modal.
+// TODO: Delete with the issue SCP-1579
 .project-name-input {
   font-weight: normal;
   font-size: 1.912em;

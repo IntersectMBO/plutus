@@ -7,6 +7,7 @@
 module Cardano.Node.Types where
 
 import           Control.Lens                   (Iso', iso, makeLenses, view)
+import           Control.Monad.Freer.Log        (LogMessage)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
@@ -48,7 +49,7 @@ data MockServerConfig =
 data AppState =
     AppState
         { _chainState    :: ChainState
-        , _eventHistory  :: [ChainEvent]
+        , _eventHistory  :: [LogMessage ChainEvent]
         , _followerState :: NodeFollowerState
         }
     deriving (Show)

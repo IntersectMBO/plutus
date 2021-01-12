@@ -4,7 +4,8 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ lib
+{ stdenv
+, lib
 , haskell-nix
 , fetchFromGitHub
 , fetchFromGitLab
@@ -77,24 +78,21 @@
 (
   let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
-      name = "haskell-language-server";
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.6.0";
-      sha256 = "027fq6752024wzzq9izsilm5lkq9gmpxf82rixbimbijw0yk4pwj";
+      rev = "0.8.0";
+      sha256 = "0p6fqs07lajbi2g1wf4w3j5lvwknnk58n12vlg48cs4iz25gp588";
       fetchSubmodules = true;
     };
-    sha256map = {
-      "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
-      "https://github.com/bubba/hie-bios.git"."cec139a1c3da1632d9a59271acc70156413017e7" = "1iqk55jga4naghmh8zak9q7ssxawk820vw8932dhympb767dfkha";
-    };
-    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
-    # in recent haskell.nix, delete the index-state passing when we update.
-    inherit compiler-nix-name index-state checkMaterialization;
+    inherit compiler-nix-name checkMaterialization;
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "0g3v4zxhzv2hyd1n5iqw6ldc01j5hai557vcl4likfq7nssymla3";
+    plan-sha256 =
+      # See https://github.com/input-output-hk/nix-tools/issues/97
+      if stdenv.isLinux
+      then "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd"
+      else "1s3cn381945hrs1fchg6bbkcf3abi0miqzc30bgpbfj23a8lhj2q";
     modules = [{
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
     }];

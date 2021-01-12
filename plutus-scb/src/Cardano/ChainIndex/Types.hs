@@ -7,6 +7,7 @@
 module Cardano.ChainIndex.Types where
 
 import           Control.Lens               (makeLenses)
+import           Control.Monad.Freer.Log    (LogMessage)
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Sequence              (Seq)
 import           GHC.Generics               (Generic)
@@ -18,7 +19,7 @@ import           Wallet.Emulator.ChainIndex (ChainIndexEvent, ChainIndexState)
 data AppState =
     AppState
         { _indexState      :: ChainIndexState
-        , _indexEvents     :: Seq ChainIndexEvent
+        , _indexEvents     :: Seq (LogMessage ChainIndexEvent)
         , _indexFollowerID :: Maybe FollowerID
         } deriving (Eq, Show)
 

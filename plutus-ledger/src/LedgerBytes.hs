@@ -18,6 +18,7 @@ module LedgerBytes ( LedgerBytes (..)
                 ) where
 
 import           Codec.Serialise
+import           Control.DeepSeq                  (NFData)
 import           Data.Aeson                       (FromJSON (..), ToJSON (..))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
@@ -73,7 +74,7 @@ fromHex = fmap LedgerBytes . asBSLiteral
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: Builtins.ByteString } -- TODO: use strict bytestring
     deriving stock (Eq, Ord, Generic)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.IsData)
-    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey)
+    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BS.ByteString

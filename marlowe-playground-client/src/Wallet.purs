@@ -1,5 +1,6 @@
 module Wallet where
 
+import Prelude hiding (div)
 import Control.Alt ((<|>))
 import Control.Monad.State (class MonadState)
 import Data.Array (concatMap, delete, drop, fold, foldMap, snoc)
@@ -27,7 +28,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (ClassName(..), Component, HalogenM, raise)
 import Halogen as H
-import Halogen.Analytics (handleActionWithAnalyticsTracking)
+import Halogen.Analytics (withAnalytics)
 import Halogen.Classes (aHorizontal, active, bold, closeDrawerIcon, expanded, first, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, rTable, rTable4cols, rTableCell, rTableDataRow, rTableEmptyRow, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (HTML, a, article, aside, b_, br_, button, div, h6, hr_, img, input, li, option, p, p_, section, select, small, small_, strong_, text, ul)
@@ -41,10 +42,9 @@ import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
-import Prelude (class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
-import Simulation.State (updateContractInStateP, updatePossibleActions, updateStateP)
-import Simulation.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
+import Simulator (updateContractInStateP, updatePossibleActions, updateStateP)
+import SimulationPage.Types (ActionInput(..), ActionInputId, MarloweState, _SimulationRunning, _contract, _currentMarloweState, _marloweState, _executionState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweStateWithSlot, mapPartiesActionInput)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import WalletSimulation.Types (Action(..), ChildSlots, LoadedContract, Message(..), Query(..), State, View(..), Wallet(..), _addInputError, _assetChanges, _assets, _contracts, _currentLoadedMarloweState, _helpContext, _initialized, _loadContractError, _loadedMarloweState, _name, _openWallet, _parties, _runningContracts, _showRightPanel, _started, _tokens, _view, _walletContracts, _walletLoadedContract, _wallets, mkState)
@@ -63,7 +63,7 @@ mkComponent =
     , render
     , eval:
         H.mkEval
-          { handleAction: handleActionWithAnalyticsTracking handleAction
+          { handleAction: withAnalytics handleAction
           , handleQuery
           , initialize: Just Init
           , receive: const Nothing
@@ -952,13 +952,13 @@ marloweActionInput isEnabled f current =
 renderDeposit :: forall p a. AccountId -> S.Party -> Token -> BigInteger -> Array (HTML p a)
 renderDeposit accountOwner party tok money =
   [ spanText "Deposit "
-  , b_ [ spanText (show money) ]
+  , b_ [ spanText (showPrettyMoney money) ]
   , spanText " units of "
-  , b_ [ spanText (show tok) ]
-  , spanText " into Account "
-  , b_ [ spanText (show accountOwner) ]
+  , b_ [ renderPrettyToken tok ]
+  , spanText " into account of "
+  , b_ [ renderPrettyParty accountOwner ]
   , spanText " as "
-  , b_ [ spanText (show party) ]
+  , b_ [ renderPrettyParty party ]
   ]
 
 transactionComposer ::

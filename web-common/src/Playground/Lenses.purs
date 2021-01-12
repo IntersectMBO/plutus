@@ -40,6 +40,9 @@ _schema = prop (SProxy :: SProxy "schema")
 _txConfirmed :: forall s r a. Newtype s { unTxConfirmed :: a | r } => Lens' s a
 _txConfirmed = _Newtype <<< prop (SProxy :: SProxy "unTxConfirmed")
 
+_contractInstanceTag :: forall s r a. Newtype s { unContractInstanceTag :: a | r } => Lens' s a
+_contractInstanceTag = _Newtype <<< prop (SProxy :: SProxy "unContractInstanceTag")
+
 _txId :: Lens' TxId String
 _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 

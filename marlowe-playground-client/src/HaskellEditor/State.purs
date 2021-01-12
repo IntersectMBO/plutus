@@ -10,24 +10,25 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
-import Data.Lens (assign, set, use, view)
+import Data.Lens (assign, use, view)
 import Data.Maybe (Maybe(..))
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, liftEffect, modify_, query)
+import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _hasUnsavedChanges', _haskellEditorSlot)
+import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation.Types (WebData, _result)
+import SimulationPage.Types (_result)
+import Types (WebData)
 import StaticData (bufferLocalStorageKey)
 import Webghc.Server (CompileRequest(..))
 
@@ -39,10 +40,7 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
-  modify_
-    ( set _compilationResult NotAsked
-        <<< set _hasUnsavedChanges' true
-    )
+  assign _compilationResult NotAsked
 
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
@@ -69,6 +67,8 @@ handleAction _ (ShowBottomPanel val) = do
 
 handleAction _ SendResultToSimulator = pure unit
 
+-- FIXME: I think we want to change this action to be called from the simulator
+--        with the action "soon to be implemented" ViewAsBlockly
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
   case mContract of
@@ -81,9 +81,6 @@ handleAction _ SendResultToBlockly = do
 handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
-  assign _hasUnsavedChanges' false
-
-handleAction _ MarkProjectAsSaved = assign _hasUnsavedChanges' false
 
 runAjax ::
   forall m a.

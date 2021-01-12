@@ -49,12 +49,12 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
-import Simulation.Types (ContractPath, ContractPathStep(..), PrefixMap)
+import MarloweEditor.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
@@ -355,22 +355,27 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 
   addMoney amount (Just prevVal) = Just (maybe Nothing (Just <<< (\prev -> prev + amount)) prevVal)
 
--- | We lintContract through a contract term collecting all warnings and holes etc so that we can display them in the editor
--- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
+-- Note on PR https://github.com/input-output-hk/plutus/pull/2560:
+--    Before PR 2560 which splitted the Simulation from the Marlowe Editor, the lint function was called on each step
+--    of the simulation with the state as a parameter. That way, we could take past actions into account. Once we
+--    split the two pages, we decided to only lint on the Marlowe Editor using the full contract, and for that reason
+--    we removed the state from the code.
+--    In the JIRA ticket SCP-1641 we captured the intent of doing a mid simulation analysis, as it could be one way
+--    to cope with the problem of the STM only retrieving the first error. If we bring back that functionality, we may
+--    want to add the state once again, and the Marlowe Editor should probably use the empty state to indicate no past
+--    actions have been made.
+--
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
--- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
-lint :: List ContractPath -> Semantics.State -> Term Contract -> State
-lint unreachablePaths contractState contract = state
-  where
-  choices = contractState ^. (_choices <<< to Map.keys)
-
-  bindings = contractState ^. (_boundValues <<< to Map.keys)
-
-  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
-
-  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) (emptyEnvironment unreachablePaths)
-
-  state = CMS.execState (lintContract env contract) mempty
+--        the final lint result. After debugging it's strange because they seem to exist in intermediate states.
+--
+-- | We lint through a contract term collecting all warnings and holes etc so that we can display them in the editor
+-- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
+lint :: List ContractPath -> Term Contract -> State
+lint unreachablePaths contract =
+  let
+    env = (emptyEnvironment unreachablePaths)
+  in
+    CMS.execState (lintContract env contract) mempty
 
 lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
@@ -807,18 +812,16 @@ suggestions original stripParens contractString range { contract } =
       Nothing -> hush $ parseContract contractString
       c -> c
     let
-      (Holes holes) = view _holes ((lint Nil (emptyState zero)) parsedContract)
+      (Holes holes) = view _holes ((lint Nil) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
     { head } <- Array.uncons $ Set.toUnfoldable v
     pure $ holeSuggestions original stripParens range head
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker
-markers :: List ContractPath -> Semantics.State -> String -> Tuple (Array IMarkerData) AdditionalContext
-markers unreachablePaths contractState contract = do
-  let
-    parsedContract = parseContract contract
-  case (lint unreachablePaths contractState <$> parsedContract) of
+markers :: List ContractPath -> Either ContractParseError (Term Contract) -> Tuple (Array IMarkerData) AdditionalContext
+markers unreachablePaths parsedContract = do
+  case (lint unreachablePaths <$> parsedContract) of
     Left EmptyInput -> (Tuple [] { warnings: mempty, contract: Nothing })
     Left e@(ContractParseError { message, row, column, token }) ->
       let

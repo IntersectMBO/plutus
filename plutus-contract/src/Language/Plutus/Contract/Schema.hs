@@ -14,7 +14,9 @@
 {-# OPTIONS_GHC -fno-warn-unticked-promoted-constructors #-}
 module Language.Plutus.Contract.Schema(
       Handlers(..)
+    , handlerName
     , Event(..)
+    , eventName
     , initialise
     , Input
     , Output
@@ -52,6 +54,9 @@ In practice the schema is a type of the 'Data.Row.Row' kind.
 
 newtype Event s = Event { unEvent :: Var (Input s) }
 
+eventName :: Forall (Input s) Unconstrained1 => Event s -> String
+eventName (Event v) = fst $ Variants.eraseWithLabels @Unconstrained1 (const ()) v
+
 deriving newtype instance Forall (Input s) Show => Show (Event s)
 deriving newtype instance Forall (Input s) Eq => Eq (Event s)
 
@@ -65,6 +70,9 @@ deriving via JsonVar (Input s) instance (AllUniqueLabels (Input s), Forall (Inpu
 deriving via JsonVar (Input s) instance (Forall (Input s) ToJSON) => ToJSON (Event s)
 
 newtype Handlers s = Handlers { unHandlers :: Var (Output s) }
+
+handlerName :: Forall (Output s) Unconstrained1 => Handlers s -> String
+handlerName (Handlers v) = fst $ Variants.eraseWithLabels @Unconstrained1 (const ()) v
 
 deriving via (JsonVar (Output s)) instance Forall (Output s) ToJSON => ToJSON (Handlers s)
 deriving via (JsonVar (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)

@@ -3,7 +3,9 @@ evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to
 run to completion. -}
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module Main where
 
@@ -13,7 +15,9 @@ import           Plutus.Benchmark.Prime                            (Result (Comp
 import qualified Plutus.Benchmark.Prime                            as Prime
 import qualified Plutus.Benchmark.Queens                           as Queens
 
-import           Language.PlutusCore                               (Name (..))
+import           Control.Exception
+import           Control.Monad.Except
+import qualified Language.PlutusCore                               as PLC
 import           Language.PlutusCore.Builtins
 import           Language.PlutusCore.Universe                      (DefaultUni)
 import qualified Language.PlutusTx                                 as Tx
@@ -23,24 +27,28 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-
 ---------------- Evaluation ----------------
 
-type Term = UPLC.Term Name DefaultUni DefaultFun ()
+type Term = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Term' = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 
-runCek :: Term -> EvaluationResult Term
-runCek = UPLC.unsafeEvaluateCek defBuiltinsRuntime
+runCek :: Term -> EvaluationResult Term'
+runCek t = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
+    Left e   -> throw e
+    Right t' -> UPLC.unsafeEvaluateCek defBuiltinsRuntime t'
 
 termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
 termOfHaskellValue v =
     case Tx.getPlc $ Tx.liftCode v of
       UPLC.Program _ _ term -> term
 
-runCekWithErrMsg :: Term -> String -> IO Term
+runCekWithErrMsg :: Term -> String -> IO Term'
 runCekWithErrMsg term errMsg =
-    case UPLC.unsafeEvaluateCek defBuiltinsRuntime term of
-      EvaluationFailure        -> assertFailure errMsg
-      EvaluationSuccess result -> pure result
+    case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
+        Left e -> assertFailure (show e)
+        Right t -> case UPLC.unsafeEvaluateCek defBuiltinsRuntime t of
+          EvaluationFailure        -> assertFailure errMsg
+          EvaluationSuccess result -> pure result
 
 
 {- | Evaluate a PLC term using the CEK machine and compare it with an expected

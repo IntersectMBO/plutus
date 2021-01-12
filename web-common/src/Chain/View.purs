@@ -28,7 +28,7 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.String.Extra (abbreviate)
 import Data.Tuple.Nested ((/\))
-import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, li_, small_, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_, ul_)
+import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, li_, p_, small_, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, colSpan, rowSpan)
 import Language.PlutusTx.AssocMap as AssocMap
@@ -57,15 +57,13 @@ chainView namingFn state annotatedBlockchain =
         )
     ]
     [ h2_
-        [ text "Blockchain"
-        ]
-    , div_
-        [ small_ [ text "Click a transaction for details" ] ]
+        [ text "Blockchain" ]
+    , p_
+        [ text "Click a transaction for details" ]
     , div
         [ classes [ row, ClassName "blocks" ] ]
         (chainSlotView state <$> Array.reverse (unwrap annotatedBlockchain))
-    , div [ class_ $ ClassName "detail" ]
-        [ detailView namingFn state annotatedBlockchain ]
+    , detailView namingFn state annotatedBlockchain
     ]
 
 slotClass :: ClassName
@@ -96,7 +94,7 @@ blockView state annotatedTx@(AnnotatedTx { txId, sequenceId }) =
     [ classes ([ card, clickable, ClassName "transaction" ] <> if isActive then [ active ] else [])
     , onClickFocusTx txId
     ]
-    [ entryCardHeader sequenceId ]
+    [ entryCardHeader sequenceId false ]
   where
   isActive = has (_chainFocus <<< _Just <<< filtered (eq txId)) state
 
@@ -109,8 +107,10 @@ detailView _ state@{ chainFocus: Nothing } _ = empty
 
 transactionDetailView :: forall p. NamingFn -> AnnotatedBlockchain -> AnnotatedTx -> HTML p Action
 transactionDetailView namingFn annotatedBlockchain annotatedTx =
-  div_
-    [ row_
+  div
+    [ class_ $ ClassName "detail" ]
+    [ div
+        [ classes [ row, ClassName "transaction" ] ]
         [ col3_
             [ h2_ [ text "Inputs" ]
             , div_ (dereferencedInputView namingFn annotatedBlockchain <$> (view _dereferencedInputs annotatedTx))
@@ -118,7 +118,7 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
         , col6_
             [ h2_ [ text "Transaction" ]
             , div [ classes [ card, active ] ]
-                [ entryCardHeader (view _sequenceId annotatedTx)
+                [ entryCardHeader (view _sequenceId annotatedTx) true
                 , cardBody_
                     [ div
                         [ class_ textTruncate ]
@@ -161,12 +161,13 @@ transactionDetailView namingFn annotatedBlockchain annotatedTx =
         (view _balances annotatedTx)
     ]
 
-entryCardHeader :: forall i p. SequenceId -> HTML p i
-entryCardHeader sequenceId =
+entryCardHeader :: forall i p. SequenceId -> Boolean -> HTML p i
+entryCardHeader sequenceId withTriangle =
   cardHeader_
-    [ triangleRight
-    , sequenceIdView sequenceId
-    ]
+    if withTriangle then
+      [ triangleRight, sequenceIdView sequenceId ]
+    else
+      [ sequenceIdView sequenceId ]
 
 entryClass :: ClassName
 entryClass = ClassName "entry"
@@ -198,7 +199,8 @@ forgeView txForge =
 
 balancesTable :: forall p. NamingFn -> SequenceId -> Map BeneficialOwner Value -> HTML p Action
 balancesTable namingFn sequenceId balances =
-  div []
+  div
+    [ class_ $ ClassName "balances" ]
     [ h2_
         [ text "Balances Carried Forward"
         , nbsp
@@ -291,11 +293,11 @@ sequenceIdView (SequenceId { slotIndex, txIndex }) =
   span_
     [ span_ [ text "Slot" ]
     , nbsp
-    , span_ [ text $ "#" <> show slotIndex ]
+    , span_ [ text $ show slotIndex ]
     , span_ [ text ", " ]
     , span_ [ text "Tx" ]
     , nbsp
-    , span_ [ text $ "#" <> show txIndex ]
+    , span_ [ text $ show txIndex ]
     ]
 
 txIdView :: forall p. TxId -> HTML p Action

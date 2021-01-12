@@ -48,6 +48,7 @@ library
         Language.PlutusTx.IsData
         Language.PlutusTx.IsData.Class
         Language.PlutusTx.Eq
+        Language.PlutusTx.Either
         Language.PlutusTx.Functor
         Language.PlutusTx.Lattice
         Language.PlutusTx.List
@@ -76,6 +77,7 @@ library
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
+        deepseq -any,
         template-haskell >=2.13.0.0,
         th-abstraction -any,
         prettyprinter -any,

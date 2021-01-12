@@ -33,9 +33,7 @@ import           Servant.Client                  (BaseUrl (baseUrlPort))
 import qualified Wallet.API                      as WAPI
 import           Wallet.Effects                  (SigningProcessEffect)
 import qualified Wallet.Effects                  as WE
-import           Wallet.Emulator.SigningProcess  (SigningProcess)
-import qualified Wallet.Emulator.SigningProcess  as SP
-import           Wallet.Emulator.Wallet          (Wallet)
+import           Wallet.Emulator.Wallet          (SigningProcess, Wallet, defaultSigningProcess, handleSigningProcess)
 
 import           Cardano.SigningProcess.API      (API)
 import           Plutus.SCB.Utils                (tshow)
@@ -65,7 +63,7 @@ app stateVar =
 
 main :: MonadIO m => SigningProcessConfig -> Availability -> m ()
 main SigningProcessConfig{spWallet, spBaseUrl} availability = runStdoutLoggingT $ do
-    stateVar <- liftIO $ newMVar (SP.defaultSigningProcess spWallet)
+    stateVar <- liftIO $ newMVar (defaultSigningProcess spWallet)
     let spPort = baseUrlPort spBaseUrl
     let warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings & Warp.setPort spPort & Warp.setBeforeMainLoop (available availability)
@@ -82,7 +80,7 @@ processSigningProcessEffects ::
     -> m a
 processSigningProcessEffects procVar eff = do
     process <- liftIO $ takeMVar procVar
-    let e = run $ Eff.runError $ Eff.runState process $ SP.handleSigningProcess eff
+    let e = run $ Eff.runError $ Eff.runState process $ handleSigningProcess eff
     case e of
         Left err -> do
             liftIO $ putMVar procVar process

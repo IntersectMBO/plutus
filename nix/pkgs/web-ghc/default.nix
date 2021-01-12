@@ -2,7 +2,7 @@
 let
   web-ghc-server = set-git-rev haskell.packages.web-ghc.components.exes.web-ghc-server;
 
-  runtimeGhc = haskell.packages.ghcWithPackages (ps: [
+  runtimeGhc = haskell.project.ghcWithPackages (ps: [
     ps.playground-common
     ps.plutus-playground-server
     ps.plutus-use-cases

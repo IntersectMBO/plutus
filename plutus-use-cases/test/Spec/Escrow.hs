@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
-module Spec.Escrow where
+module Spec.Escrow(tests, redeemTrace, redeem2Trace, refundTrace) where
 
 import           Control.Monad                                   (void)
 
@@ -12,41 +12,33 @@ import qualified Ledger.Typed.Scripts                            as Scripts
 import qualified Spec.Lib                                        as Lib
 
 import           Language.PlutusTx.Coordination.Contracts.Escrow
-import           Language.PlutusTx.Lattice
+import qualified Plutus.Trace.Emulator                           as Trace
 
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                as HUnit
 
 tests :: TestTree
 tests = testGroup "escrow"
-    [ checkPredicate @EscrowSchema @EscrowError "can pay"
-        (void $ payEp escrowParams)
-        (assertDone w1 (const True) "escrow pay not done" /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
-        (callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents w1 >> addBlocks 1)
-
-    , checkPredicate @EscrowSchema @EscrowError "can redeem"
-        (void $ selectEither (payEp escrowParams) (redeemEp escrowParams))
-        ( assertDone w3 (const True) "escrow redeem not done"
-          /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
-          /\ walletFundsChange w2  (Ada.lovelaceValueOf 10)
-          /\ walletFundsChange w3 mempty
+    [ let con = void $ payEp @EscrowSchema @EscrowError escrowParams in
+      checkPredicate "can pay"
+        ( assertDone con (Trace.walletInstanceTag w1) (const True) "escrow pay not done"
+        .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         )
-        ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
-        >> callEndpoint @"pay-escrow" w2 (Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents w1
-        >> handleBlockchainEvents w2
-        >> addBlocks 1
-        >> callEndpoint @"redeem-escrow" w3 ()
-        >> handleBlockchainEvents w3
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> handleBlockchainEvents w2
-        >> handleBlockchainEvents w3
-        )
+        $ do
+          hdl <- Trace.activateContractWallet w1 con
+          Trace.callEndpoint @"pay-escrow" hdl (Ada.lovelaceValueOf 10)
+          void $ Trace.waitNSlots 1
 
-    , checkPredicate @EscrowSchema @EscrowError "can redeem even if more money than required has been paid in"
-          (both (payEp escrowParams) (redeemEp escrowParams))
+    , let con = void $ selectEither (payEp  @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams) in
+      checkPredicate "can redeem"
+        ( assertDone con (Trace.walletInstanceTag w3) (const True) "escrow redeem not done"
+          .&&. walletFundsChange w1 (Ada.lovelaceValueOf (-10))
+          .&&. walletFundsChange w2  (Ada.lovelaceValueOf 10)
+          .&&. walletFundsChange w3 mempty
+        )
+        redeemTrace
+
+    , checkPredicate "can redeem even if more money than required has been paid in"
 
           -- in this test case we pay in a total of 40 lovelace (10 more than required), for
           -- the same contract as before, requiring 10 lovelace to go to wallet 1 and 20 to
@@ -64,38 +56,18 @@ tests = testGroup "escrow"
           ( walletFundsChange w1 (Ada.lovelaceValueOf 0)
 
           -- Wallet 2 pays 10 and receives 20, as per the contract.
-            /\ walletFundsChange w2 (Ada.lovelaceValueOf 10)
+            .&&. walletFundsChange w2 (Ada.lovelaceValueOf 10)
 
           -- Wallet 3 pays 10 and doesn't receive anything.
-            /\ walletFundsChange w3 (Ada.lovelaceValueOf (-10))
+            .&&. walletFundsChange w3 (Ada.lovelaceValueOf (-10))
           )
+          redeem2Trace
 
-          ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
-          >> callEndpoint @"pay-escrow" w2 (Ada.lovelaceValueOf 10)
-          >> callEndpoint @"pay-escrow" w3 (Ada.lovelaceValueOf 10)
-          >> handleBlockchainEvents w1
-          >> handleBlockchainEvents w2
-          >> handleBlockchainEvents w3
-          >> addBlocks 1
-          >> callEndpoint @"redeem-escrow" w1 ()
-          >> handleBlockchainEvents w1
-          >> addBlocks 1
-          >> handleBlockchainEvents w1
-          >> handleBlockchainEvents w3
-          >> handleBlockchainEvents w2)
-
-    , checkPredicate @EscrowSchema @EscrowError "can refund"
-        (payEp escrowParams >> refundEp escrowParams)
+    , let con = void $ payEp  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams in
+      checkPredicate "can refund"
         ( walletFundsChange w1 mempty
-          /\ assertDone w1 (const True) "refund should succeed")
-        ( callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 20)
-        >> handleBlockchainEvents w1
-        >> addBlocks 200
-        >> callEndpoint @"refund-escrow" w1 ()
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        )
+          .&&. assertDone con (Trace.walletInstanceTag w1) (const True) "refund should succeed")
+        refundTrace
 
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
     ]
@@ -108,9 +80,49 @@ w3 = Wallet 3
 escrowParams :: EscrowParams d
 escrowParams =
   EscrowParams
-    { escrowDeadline = 200
+    { escrowDeadline = 100
     , escrowTargets  =
         [ payToPubKeyTarget (pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
         , payToPubKeyTarget (pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 20)
         ]
     }
+
+-- | Wallets 1 and 2 pay into an escrow contract, wallet 3
+--   cashes out.
+redeemTrace :: Trace.EmulatorTrace ()
+redeemTrace = do
+    let con = void $ selectEither (payEp  @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams)
+    hdl1 <- Trace.activateContractWallet w1 con
+    hdl2 <- Trace.activateContractWallet w2 con
+    hdl3 <- Trace.activateContractWallet w3 con
+
+    Trace.callEndpoint @"pay-escrow" hdl1 (Ada.lovelaceValueOf 20)
+    Trace.callEndpoint @"pay-escrow" hdl2 (Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 1
+    Trace.callEndpoint @"redeem-escrow" hdl3 ()
+    void $ Trace.waitNSlots 1
+
+-- | Wallets 1-3 pay into an escrow contract, wallet 1 redeems.
+redeem2Trace :: Trace.EmulatorTrace ()
+redeem2Trace = do
+    let con = (void $ both (payEp @EscrowSchema @EscrowError escrowParams) (redeemEp escrowParams))
+    hdl1 <- Trace.activateContractWallet w1 con
+    hdl2 <- Trace.activateContractWallet w2 con
+    hdl3 <- Trace.activateContractWallet w3 con
+    Trace.callEndpoint @"pay-escrow" hdl1 (Ada.lovelaceValueOf 20)
+    Trace.callEndpoint @"pay-escrow" hdl2 (Ada.lovelaceValueOf 10)
+    Trace.callEndpoint @"pay-escrow" hdl3 (Ada.lovelaceValueOf 10)
+    _ <- Trace.waitNSlots 1
+    Trace.callEndpoint @"redeem-escrow" hdl1 ()
+    void $ Trace.waitNSlots 1
+
+-- | Wallet 1 pays into an escrow contract and gets a refund when the
+--   amount isn't claimed.
+refundTrace :: Trace.EmulatorTrace ()
+refundTrace = do
+    let con = void $ payEp  @EscrowSchema @EscrowError escrowParams >> refundEp escrowParams
+    hdl1 <- Trace.activateContractWallet w1 con
+    Trace.callEndpoint @"pay-escrow" hdl1 (Ada.lovelaceValueOf 20)
+    _ <- Trace.waitNSlots 100
+    Trace.callEndpoint @"refund-escrow" hdl1 ()
+    void $ Trace.waitNSlots 1

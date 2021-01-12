@@ -99,7 +99,7 @@ benchmark nofib
     nofib/bench
   other-modules:
     Common
-    Paths_plutus_benchmark  
+    Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -109,6 +109,7 @@ benchmark nofib
     , containers -any
     , criterion -any
     , filepath -any
+    , mtl -any
 
 benchmark nofib-hs
   import: lang
@@ -118,7 +119,7 @@ benchmark nofib-hs
     nofib/bench
   other-modules:
     Common
-    Paths_plutus_benchmark  
+    Paths_plutus_benchmark
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark
@@ -165,6 +166,7 @@ test-suite plutus-benchmark-nofib-tests
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
+      , mtl -any
 
 benchmark flat
   import: lang

@@ -15,6 +15,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+
 -- | Functions for working with 'Value'.
 module Ledger.Value(
     -- ** Currency symbols
@@ -45,6 +46,7 @@ module Ledger.Value(
 import qualified Prelude                          as Haskell
 
 import           Codec.Serialise.Class            (Serialise)
+import           Control.DeepSeq                  (NFData)
 import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Extras                as JSON
@@ -71,7 +73,7 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteStrin
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
-    deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  IotsType)
+    deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  IotsType, NFData)
 
 instance ToJSON CurrencySymbol where
   toJSON currencySymbol =
@@ -111,7 +113,7 @@ newtype TokenName = TokenName { unTokenName :: Builtins.ByteString }
     deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.IsData)
-    deriving anyclass (Hashable,  IotsType)
+    deriving anyclass (Hashable, IotsType, NFData)
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
@@ -163,7 +165,7 @@ tokenName = TokenName
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable, IotsType)
+    deriving anyclass (ToJSON, FromJSON, Hashable, IotsType, NFData)
     deriving newtype (Serialise, PlutusTx.IsData)
     deriving Pretty via (PrettyShow Value)
 

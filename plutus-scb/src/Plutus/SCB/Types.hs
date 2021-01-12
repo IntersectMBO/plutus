@@ -26,7 +26,7 @@ import           Data.Text                      (Text)
 import           Data.Text.Prettyprint.Doc      (Pretty, pretty, viaShow, (<+>))
 import           Data.Time.Units                (Second)
 import           Data.UUID                      (UUID)
-import qualified Data.UUID                      as UUID
+import qualified Data.UUID.Extras               as UUID
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract.Trace (EndpointError (..))
 import           Language.Plutus.Contract.Types (ContractError)
@@ -131,10 +131,13 @@ data Source
     deriving (Show, Eq)
 
 toUUID :: Source -> UUID
-toUUID ContractEventSource = UUID.fromWords 0 0 0 1
-toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
-toUUID UserEventSource     = UUID.fromWords 0 0 0 3
-toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
+toUUID source =
+    UUID.sequenceIdToMockUUID $
+    case source of
+        ContractEventSource -> 1
+        WalletEventSource   -> 2
+        UserEventSource     -> 3
+        NodeEventSource     -> 4
 
 data ChainOverview =
     ChainOverview

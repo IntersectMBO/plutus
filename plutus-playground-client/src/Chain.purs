@@ -1,10 +1,6 @@
-module Chain
-  ( balancesChartOptions
-  , evaluationPane
-  , extractAmount
-  ) where
+module Chain (evaluationPane, extractAmount) where
 
-import Bootstrap (empty, nbsp)
+import Bootstrap (btn, nbsp)
 import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
@@ -26,16 +22,19 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML (ClassName(ClassName), HTML, button, br_, code_, div, div_, h2_, h3_, p_, pre_, slot, text)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes)
+import Icons (Icon(..), icon)
 import Language.PlutusTx.AssocMap as AssocMap
+import Plutus.Trace.Emulator.Types (ContractInstanceLog(..), _ContractInstanceTag)
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
-import Playground.Lenses (_tokenName)
+import Playground.Lenses (_tokenName, _contractInstanceTag)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
-import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
+import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
+import Types (ChildSlots, HAction(..), View(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
@@ -43,30 +42,23 @@ import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
-evaluationPane ::
-  forall m.
-  MonadAff m =>
-  State ->
-  EvaluationResult ->
-  ComponentHTML HAction ChildSlots m
+evaluationPane :: forall m. MonadAff m => State -> EvaluationResult -> ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
-  div_
-    [ ChainAction <$> chainView namingFn state (wrap resultRollup)
-    , br_
-    , div_
-        [ h2_ [ text "Logs" ]
-        , case emulatorLog of
-            [] -> empty
-            logs ->
-              div
-                [ class_ $ ClassName "logs" ]
-                ((emulatorEventPane <<< eveEvent) <$> Array.reverse logs)
-        , h2_ [ text "Trace" ]
-        , code_ [ pre_ [ text emulatorTrace ] ]
+  div
+    [ class_ $ ClassName "transactions" ]
+    [ div
+        [ class_ $ ClassName "transactions-header" ]
+        [ h2_ [ text "Transactions" ]
+        , button
+            [ classes [ btn ]
+            , onClick $ const $ Just $ ChangeView Simulations
+            ]
+            [ icon Close ]
         ]
-    , br_
-    , div_
-        [ h2_ [ text "Final Balances" ]
+    , ChainAction <$> chainView namingFn state (wrap resultRollup)
+    , div
+        [ class_ $ ClassName "final-balances" ]
+        [ h3_ [ text "Final Balances" ]
         , slot
             _balancesChartSlot
             unit
@@ -74,9 +66,21 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
             (balancesToChartistData fundsDistribution)
             (Just <<< HandleBalancesChartMessage)
         ]
+    , div
+        [ class_ $ ClassName "logs" ]
+        [ h3_ [ text "Logs" ]
+        , case emulatorLog of
+            [] -> p_ [ text "No logs to display." ]
+            logs -> pre_ ((emulatorEventPane <<< eveEvent) <$> logs)
+        ]
+    , div
+        [ class_ $ ClassName "trace" ]
+        [ h3_ [ text "Trace" ]
+        , code_ [ pre_ [ text emulatorTrace ] ]
+        ]
     ]
   where
-  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet #" <> show n)) (AssocMap.Map walletKeys)
+  namingFn pubKeyHash = preview (ix pubKeyHash <<< _walletId <<< to (\n -> "Wallet " <> show n)) (AssocMap.Map walletKeys)
 
 eveEvent :: forall a. MultiAgent.EmulatorTimeEvent a -> a
 eveEvent (MultiAgent.EmulatorTimeEvent { _eteEvent }) = _eteEvent
@@ -98,7 +102,7 @@ emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
+emulatorEventPane (ChainEvent (TxnValidate (TxId txId) _ _)) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
@@ -106,7 +110,7 @@ emulatorEventPane (NotificationEvent notificationEvent) =
   div_
     [ text $ "Notification event: " <> show notificationEvent ]
 
-emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
+emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) _ error _)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_
@@ -116,19 +120,29 @@ emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
 
 emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
-    [ text $ "Add slot #" <> show slot.getSlot ]
+    [ text $ "Add slot " <> show slot.getSlot ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
+    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> logMessageText ]
 
 emulatorEventPane (WalletEvent (Wallet walletId) logMessage) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> show logMessage ]
+    [ text $ "Message from wallet " <> show walletId.getWallet <> ": " <> show logMessage ]
+
+emulatorEventPane (InstanceEvent (ContractInstanceLog { _cilMessage, _cilTag })) =
+  div_
+    [ text $ (view _contractInstanceTag _cilTag) <> ": " <> show _cilMessage ]
+
+-- TODO: Figure out which of the remaining log messages we want to display.
+-- (Note that most of the remaining log messages aren't produced at the
+-- default "info" log level, so we're unlikely to see them here in the frontend
+-- anyway).
+emulatorEventPane _ = div [] []
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String
-formatWalletId wallet = "Wallet #" <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
+formatWalletId wallet = "Wallet " <> show (view (_simulatorWalletWallet <<< _walletId) wallet)
 
 extractAmount :: Tuple CurrencySymbol TokenName -> SimulatorWallet -> Maybe BigInteger
 extractAmount (Tuple currencySymbol tokenName) =

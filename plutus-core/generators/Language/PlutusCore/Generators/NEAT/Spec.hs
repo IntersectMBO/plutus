@@ -27,7 +27,6 @@ module Language.PlutusCore.Generators.NEAT.Spec
   ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Common

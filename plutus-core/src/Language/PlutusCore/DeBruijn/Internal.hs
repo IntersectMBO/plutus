@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 -- | Support for using de Bruijn indices for term and type names.
 module Language.PlutusCore.DeBruijn.Internal
     ( Index (..)
@@ -12,6 +13,7 @@ module Language.PlutusCore.DeBruijn.Internal
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
+    , AsFreeVariableError (..)
     , Level (..)
     , Levels (..)
     , ixToLevel
@@ -35,11 +37,13 @@ import           Language.PlutusCore.Quote
 
 import           Control.Exception
 import           Control.Lens               hiding (Index, Level, index, ix)
+import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 
 import qualified Data.Bimap                 as BM
 import qualified Data.Text                  as T
+import           Data.Text.Prettyprint.Doc
 import           Data.Typeable
 
 import           Numeric.Natural
@@ -50,7 +54,7 @@ import           GHC.Generics
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural
     deriving stock Generic
-    deriving newtype (Show, Num, Eq, Ord)
+    deriving newtype (Show, Num, Eq, Ord, Pretty)
     deriving anyclass NFData
 
 -- | A term name as a de Bruijn index.
@@ -59,7 +63,7 @@ data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
     deriving anyclass NFData
 
 -- | A term name as a de Bruijn index, without the name string.
-data DeBruijn = DeBruijn { dbnIndex :: Index }
+newtype DeBruijn = DeBruijn { dbnIndex :: Index }
     deriving (Show, Generic)
     deriving anyclass NFData
 
@@ -161,24 +165,29 @@ withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 data FreeVariableError
     = FreeUnique Unique
     | FreeIndex Index
-    deriving (Show, Typeable, Eq, Ord)
+    deriving (Show, Typeable, Eq, Ord, Generic, NFData)
 instance Exception FreeVariableError
 
+instance Pretty FreeVariableError where
+    pretty (FreeUnique u) = "Free unique:" <+> pretty u
+    pretty (FreeIndex i)  = "Free index:" <+> pretty i
+makeClassyPrisms ''FreeVariableError
+
 -- | Get the 'Index' corresponding to a given 'Unique'.
-getIndex :: (MonadReader Levels m, MonadError FreeVariableError m) => Unique -> m Index
+getIndex :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Unique -> m Index
 getIndex u = do
     Levels current ls <- ask
     case BM.lookup u ls of
         Just ix -> pure $ levelToIndex current ix
-        Nothing -> throwError $ FreeUnique u
+        Nothing -> throwing _FreeVariableError $ FreeUnique u
 
 -- | Get the 'Unique' corresponding to a given 'Index'.
-getUnique :: (MonadReader Levels m, MonadError FreeVariableError m) => Index -> m Unique
+getUnique :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Index -> m Unique
 getUnique ix = do
     Levels current ls <- ask
     case BM.lookupR (ixToLevel current ix) ls of
         Just u  -> pure u
-        Nothing -> throwError $ FreeIndex ix
+        Nothing -> throwing _FreeVariableError $ FreeIndex ix
 
 unNameDeBruijn
     :: NamedDeBruijn -> DeBruijn
@@ -189,21 +198,21 @@ unNameTyDeBruijn
 unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 
 nameToDeBruijn
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => Name -> m NamedDeBruijn
 nameToDeBruijn (Name str u) = NamedDeBruijn str <$> getIndex u
 
 tyNameToDeBruijn
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => TyName -> m NamedTyDeBruijn
 tyNameToDeBruijn (TyName n) = NamedTyDeBruijn <$> nameToDeBruijn n
 
 deBruijnToName
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => NamedDeBruijn -> m Name
 deBruijnToName (NamedDeBruijn str ix) = Name str <$> getUnique ix
 
 deBruijnToTyName
-    :: (MonadReader Levels m, MonadError FreeVariableError m)
+    :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)
     => NamedTyDeBruijn -> m TyName
 deBruijnToTyName (NamedTyDeBruijn n) = TyName <$> deBruijnToName n

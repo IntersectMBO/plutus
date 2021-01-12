@@ -13,7 +13,7 @@ import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, _InterpreterResult)
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Simulation.Types (WebData)
+import Types (WebData)
 import Text.Pretty (pretty)
 
 data Action
@@ -22,9 +22,10 @@ data Action
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
+  -- FIXME: I think we want to change this action to be called from the simulator
+  --        with the action "soon to be implemented" ViewAsBlockly
   | SendResultToBlockly
   | InitHaskellProject String
-  | MarkProjectAsSaved
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -37,13 +38,11 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
-  toEvent MarkProjectAsSaved = Just $ defaultEvent "MarkProjectAsSaved"
 
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
     , showBottomPanel :: Boolean
-    , hasUnsavedChanges :: Boolean
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -74,5 +73,4 @@ initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
   , showBottomPanel: true
-  , hasUnsavedChanges: false
   }

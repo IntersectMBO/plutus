@@ -339,7 +339,6 @@ inferType {Φ} Γ (con c) = do
 inferType Γ (error A) = do
   A ← isStar (inferKind _ A)
   return (A ,, error A)
-inferType Γ (builtin bn p As ts) = inferTypeBuiltin bn As ts
 inferType Γ (ibuiltin b) = inj₂ (itype b ,, ibuiltin b)
 inferType Γ (wrap A B L) = do
   K ,, A ← isPat (inferKind _ A)

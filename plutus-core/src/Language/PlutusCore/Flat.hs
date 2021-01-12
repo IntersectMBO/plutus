@@ -299,6 +299,14 @@ instance Flat DeBruijn where
     encode (DeBruijn i) = encode i
     decode = DeBruijn <$> decode
 
+instance Flat NamedDeBruijn where
+    encode (NamedDeBruijn txt index) = encode txt <> encode index
+    decode = NamedDeBruijn <$> decode <*> decode
+
 instance Flat TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
+
+instance Flat NamedTyDeBruijn where
+    encode (NamedTyDeBruijn n) = encode n
+    decode = NamedTyDeBruijn <$> decode

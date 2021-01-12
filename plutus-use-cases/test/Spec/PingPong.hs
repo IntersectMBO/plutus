@@ -1,15 +1,16 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
-module Spec.PingPong(tests) where
+module Spec.PingPong(tests, pingPongTrace, twoPartiesTrace) where
 
+import           Control.Monad                                     (void)
 import           Data.Maybe                                        (isNothing)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
 
 import           Language.Plutus.Contract.StateMachine             (OnChainState)
 import           Language.PlutusTx.Coordination.Contracts.PingPong (Input, PingPongError, PingPongSchema, PingPongState)
 import qualified Language.PlutusTx.Coordination.Contracts.PingPong as PingPong
+import qualified Plutus.Trace.Emulator                             as Trace
 
 import           Test.Tasty
 
@@ -37,36 +38,33 @@ w2 = Wallet 2
 tests :: TestTree
 tests = testGroup "pingpong"
     [ checkPredicate "activate endpoints"
-        theContract
-        (endpointAvailable @"pong" w1)
-        (callEndpoint @"initialise" w1 ()
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"pong" w1 ()
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"ping" w1 ()
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        )
+        (endpointAvailable @"pong" theContract (Trace.walletInstanceTag w1))
+        pingPongTrace
+
     , checkPredicate "Stop the contract"
-        twoParties
-        (assertDone w1 isNothing ""
-        /\ assertDone w2 isNothing ""
+        (assertDone twoParties (Trace.walletInstanceTag w1) isNothing "W1"
+        .&&. assertDone twoParties (Trace.walletInstanceTag w2) isNothing "W2"
         )
-        (callEndpoint @"initialise" w1 ()
-        >> handleBlockchainEvents w1
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> callEndpoint @"stop" w2 ()
-        >> handleBlockchainEvents w2
-        >> addBlocks 1
-        >> handleBlockchainEvents w1
-        >> handleBlockchainEvents w2
-        )
-
-
+        twoPartiesTrace
     ]
+
+-- | Initialse, then call the ping and pong endpoints.
+pingPongTrace :: Trace.EmulatorTrace ()
+pingPongTrace = do
+    hdl <- Trace.activateContractWallet w1 theContract
+    Trace.callEndpoint @"initialise" hdl ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"pong" hdl ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"ping" hdl ()
+    void $ Trace.waitNSlots 2
+
+-- | Call 'initialise' on wallet 1, then call 'stop' in wallet 2.
+twoPartiesTrace :: Trace.EmulatorTrace ()
+twoPartiesTrace = do
+    hdl1 <- Trace.activateContractWallet w1 (void twoParties)
+    hdl2 <- Trace.activateContractWallet w2 (void twoParties)
+    Trace.callEndpoint @"initialise" hdl1 ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"stop" hdl2 ()
+    void $ Trace.waitNSlots 2

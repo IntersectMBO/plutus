@@ -5,14 +5,13 @@ module MainFrame
   ) where
 
 import Prelude
-import AjaxUtils (renderForeignErrors)
-import Analytics (Event, defaultEvent, trackEvent)
+import AjaxUtils (AjaxErrorPaneAction(..), ajaxErrorRefLabel, renderForeignErrors)
+import Analytics (analyticsTracking)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
-import Clipboard as Clipboard
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
@@ -41,8 +40,8 @@ import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
 import Data.String as String
 import Editor.State (initialState) as Editor
+import Editor.Types (_currentCodeIsCompiled, _feedbackPaneMinimised, _lastCompiledCode)
 import Editor.Types (Action(..), State) as Editor
-import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
@@ -57,20 +56,20 @@ import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
 import Ledger.Value (Value)
 import Monaco (IMarkerData, markerSeverity)
-import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
+import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (ContractCall, ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInitialValue)
+import Schema.Types (FormArgument, SimulationAction(..), mkInitialValue)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
+import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _lastCompiledCode, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
-import ValueEditor (ValueEvent(..))
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
@@ -95,11 +94,13 @@ mkInitialState editorState = do
   contractDemos <- mapError (\e -> error $ "Could not load demo scripts. Parsing errors: " <> show e) mkContractDemos
   pure
     $ State
-        { currentView: Editor
+        { demoFilesMenuVisible: false
+        , gistErrorPaneVisible: true
+        , currentView: Editor
         , editorState
         , contractDemos
+        , currentDemoName: Nothing
         , compilationResult: NotAsked
-        , lastCompiledCode: Nothing
         , simulations: Cursor.empty
         , actionDrag: Nothing
         , evaluationResult: NotAsked
@@ -137,6 +138,7 @@ mkMainFrame = do
               }
         }
 
+-- TODO: use web-common withAnalytics function
 handleActionWithAnalyticsTracking ::
   forall m.
   MonadEffect m =>
@@ -146,82 +148,6 @@ handleActionWithAnalyticsTracking ::
 handleActionWithAnalyticsTracking action = do
   liftEffect $ analyticsTracking action
   runHalogenApp $ handleAction action
-
-analyticsTracking :: HAction -> Effect Unit
-analyticsTracking action = do
-  case toEvent action of
-    Nothing -> pure unit
-    Just event -> trackEvent event
-
--- | Here we decide which top-level queries to track as GA events, and
--- how to classify them.
-toEvent :: HAction -> Maybe Event
-toEvent Init = Nothing
-
-toEvent Mounted = Just $ defaultEvent "Mounted"
-
-toEvent (EditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
-
-toEvent (EditorAction action) = Just $ (defaultEvent "ConfigureEditor")
-
-toEvent CompileProgram = Just $ defaultEvent "CompileProgram"
-
-toEvent (HandleBalancesChartMessage _) = Nothing
-
-toEvent CheckAuthStatus = Nothing
-
-toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { category = Just "Gist" }
-
-toEvent (GistAction (SetGistUrl _)) = Nothing
-
-toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
-
-toEvent (GistAction (AjaxErrorPaneAction _)) = Nothing
-
-toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
-
-toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
-
-toEvent AddSimulationSlot = Just $ (defaultEvent "AddSimulationSlot") { category = Just "Simulation" }
-
-toEvent (SetSimulationSlot _) = Just $ (defaultEvent "SetSimulationSlot") { category = Just "Simulation" }
-
-toEvent (RemoveSimulationSlot _) = Just $ (defaultEvent "RemoveSimulationSlot") { category = Just "Simulation" }
-
-toEvent (ModifyWallets AddWallet) = Just $ (defaultEvent "AddWallet") { category = Just "Wallet" }
-
-toEvent (ModifyWallets (RemoveWallet _)) = Just $ (defaultEvent "RemoveWallet") { category = Just "Wallet" }
-
-toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _))) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
-
-toEvent (ActionDragAndDrop _ eventType _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
-
-toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
-
-toEvent (ChangeSimulation subAction) = toActionEvent subAction
-
-toEvent (ChainAction (FocusTx (Just _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
-
-toEvent (ChainAction (FocusTx Nothing)) = Nothing
-
-toEvent (ChainAction (ClipboardAction (Clipboard.CopyToClipboard _))) = Just $ (defaultEvent "ClipboardAction") { category = Just "CopyToClipboard" }
-
-toActionEvent :: SimulationAction -> Maybe Event
-toActionEvent (PopulateAction _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetPayToWalletValue _ _)) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetPayToWalletRecipient _ _)) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
-
-toActionEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
 
 handleAction ::
   forall m.
@@ -273,6 +199,8 @@ handleAction CheckAuthStatus = do
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 
+handleAction ToggleDemoFilesMenu = modifying _demoFilesMenuVisible not
+
 handleAction (ChangeView view) = do
   assign _currentView view
   when (view == Editor) resizeEditor
@@ -290,46 +218,85 @@ handleAction EvaluateActions =
         assign _evaluationResult Loading
         result <- lift $ postEvaluation evaluation
         assign _evaluationResult result
-        -- If we got a successful result, update last evaluated simulation and switch tab.
         case result of
-          Success (Left _) -> pure unit
-          _ -> do
-            updateSimulationOnSuccess result simulation
+          Success (Right _) -> do
+            -- on successful evaluation, update last evaluated simulation, and reset and show transactions
+            when (isSuccess result) do
+              assign _lastEvaluatedSimulation simulation
+              assign _blockchainVisualisationState Chain.initialState
             replaceViewOnSuccess result Simulations Transactions
+            lift $ scrollIntoView simulatorTitleRefLabel
+          Success (Left _) -> do
+            -- on failed evaluation, scroll the error pane into view
+            lift $ scrollIntoView simulationsErrorRefLabel
+          Failure _ -> do
+            -- on failed response, scroll the ajax error pane into view
+            lift $ scrollIntoView ajaxErrorRefLabel
+          _ -> pure unit
         pure unit
 
 handleAction (LoadScript key) = do
   contractDemos <- use _contractDemos
   case StaticData.lookup key contractDemos of
     Nothing -> pure unit
-    Just (ContractDemo { contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
+    Just (ContractDemo { contractDemoName, contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
       editorSetContents contractDemoEditorContents (Just 1)
       saveBuffer (unwrap contractDemoEditorContents)
+      assign _demoFilesMenuVisible false
       assign _currentView Editor
+      assign _currentDemoName (Just contractDemoName)
       assign _simulations $ Cursor.fromArray contractDemoSimulations
+      assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
+      assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
       assign _evaluationResult NotAsked
+      assign _createGistResult NotAsked
 
+-- Note: the following three cases involve some temporary fudges that should become
+-- unnecessary when we remodel and have one evaluationResult per simulation. In
+-- particular: we prevent simulation changes while the evaluationResult is Loading,
+-- and switch to the simulations view (from transactions) following any change
 handleAction AddSimulationSlot = do
-  knownCurrencies <- getKnownCurrencies
-  mSignatures <- peruse (_successfulCompilationResult <<< _functionSchema)
-  case mSignatures of
-    Just signatures ->
-      modifying _simulations
-        ( \simulations ->
-            let
-              count = Cursor.length simulations
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      knownCurrencies <- getKnownCurrencies
+      mSignatures <- peruse (_successfulCompilationResult <<< _functionSchema)
+      case mSignatures of
+        Just signatures ->
+          modifying _simulations
+            ( \simulations ->
+                let
+                  count = Cursor.length simulations
 
-              simulationName = "Simulation #" <> show (count + 1)
-            in
-              Cursor.snoc simulations
-                (mkSimulation knownCurrencies simulationName)
-        )
-    Nothing -> pure unit
+                  simulationName = "Simulation " <> show (count + 1)
+                in
+                  Cursor.snoc simulations
+                    (mkSimulation knownCurrencies simulationName)
+            )
+        Nothing -> pure unit
+      assign _currentView Simulations
 
-handleAction (SetSimulationSlot index) = modifying _simulations (Cursor.setIndex index)
+handleAction (SetSimulationSlot index) = do
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      modifying _simulations (Cursor.setIndex index)
+      assign _currentView Simulations
 
-handleAction (RemoveSimulationSlot index) = modifying _simulations (Cursor.deleteAt index)
+handleAction (RemoveSimulationSlot index) = do
+  evaluationResult <- use _evaluationResult
+  case evaluationResult of
+    Loading -> pure unit
+    _ -> do
+      simulations <- use _simulations
+      if (Cursor.getIndex simulations) == index then
+        assign _currentView Simulations
+      else
+        pure unit
+      modifying _simulations (Cursor.deleteAt index)
 
 handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
@@ -359,14 +326,16 @@ handleAction CompileProgram = do
     Just contents -> do
       oldCompilationResult <- use _compilationResult
       assign _compilationResult Loading
+      assign (_editorState <<< _feedbackPaneMinimised) false
       newCompilationResult <- postContract contents
       assign _compilationResult newCompilationResult
-      -- If we got a successful result, update last compiled code and switch tab.
+      -- If we got a successful result, update lastCompiledCode and switch tab.
       case newCompilationResult of
         Success (Left _) -> pure unit
-        _ -> do
-          updateCodeOnSuccess newCompilationResult mContents
-          replaceViewOnSuccess newCompilationResult Editor Simulations
+        _ ->
+          when (isSuccess newCompilationResult) do
+            assign (_editorState <<< _lastCompiledCode) (Just contents)
+            assign (_editorState <<< _currentCodeIsCompiled) true
       -- Update the error display.
       editorSetAnnotations
         $ case newCompilationResult of
@@ -435,6 +404,9 @@ handleGistAction PublishGist = do
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
+        when (isSuccess newResult) do
+          assign _currentView Editor
+          assign _currentDemoName Nothing
 
 handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
 
@@ -445,8 +417,12 @@ handleGistAction LoadGist =
         eGistId <- except $ Gists.parseGistUrl mGistId
         --
         assign _createGistResult Loading
+        assign _gistErrorPaneVisible true
         aGist <- lift $ getGistByGistId eGistId
         assign _createGistResult aGist
+        when (isSuccess aGist) do
+          assign _currentView Editor
+          assign _currentDemoName Nothing
         gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
         --
         -- Load the source, if available.
@@ -470,8 +446,7 @@ handleGistAction LoadGist =
 
   toEither x NotAsked = x
 
--- other gist actions are irrelevant (but one will soon be needed for the refresh...)
-handleGistAction _ = pure unit
+handleGistAction (AjaxErrorPaneAction CloseErrorPane) = assign _gistErrorPaneVisible false
 
 handleActionWalletEvent :: (BigInteger -> SimulatorWallet) -> WalletEvent -> Array SimulatorWallet -> Array SimulatorWallet
 handleActionWalletEvent mkWallet AddWallet wallets =
@@ -489,16 +464,6 @@ handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
     (ix walletIndex <<< _simulatorWalletBalance)
     (Schema.handleValueEvent action)
     wallets
-
-updateSimulationOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> Maybe Simulation -> m Unit
-updateSimulationOnSuccess result simulation = do
-  when (isSuccess result)
-    (assign _lastEvaluatedSimulation simulation)
-
-updateCodeOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> Maybe SourceCode -> m Unit
-updateCodeOnSuccess result code = do
-  when (isSuccess result)
-    (assign _lastCompiledCode code)
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do

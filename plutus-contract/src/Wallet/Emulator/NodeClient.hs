@@ -14,17 +14,17 @@
 {-# LANGUAGE TypeOperators         #-}
 module Wallet.Emulator.NodeClient where
 
-import           Control.Lens               hiding (index)
+import           Control.Lens              hiding (index)
 import           Control.Monad.Freer
+import           Control.Monad.Freer.Log   (LogMsg, logInfo)
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH
-import           Control.Monad.Freer.Writer
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
-import           GHC.Generics               (Generic)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc hiding (annotate)
+import           GHC.Generics              (Generic)
 import           Ledger
-import qualified Ledger.AddressMap          as AM
-import           Wallet.Effects             (NodeClientEffect (..))
+import qualified Ledger.AddressMap         as AM
+import           Wallet.Effects            (NodeClientEffect (..))
 import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
@@ -47,16 +47,14 @@ emptyNodeClientState = NodeClientState (Slot 0) mempty
 
 makeLenses ''NodeClientState
 
-data ChainClientNotification =
-    BlockValidated Block
-    | SlotChanged Slot
+data ChainClientNotification = BlockValidated Block | SlotChanged Slot
     deriving (Show, Eq)
 
 data NodeClientControlEffect r where
     ClientNotify :: ChainClientNotification -> NodeClientControlEffect ()
 makeEffect ''NodeClientControlEffect
 
-type NodeClientEffs = '[ChainEffect, State NodeClientState, Writer [NodeClientEvent]]
+type NodeClientEffs = '[ChainEffect, State NodeClientState, LogMsg NodeClientEvent]
 
 handleNodeControl
     :: (Members NodeClientEffs effs)
@@ -70,6 +68,6 @@ handleNodeClient
     :: (Members NodeClientEffs effs)
     => Eff (NodeClientEffect ': effs) ~> Eff effs
 handleNodeClient = interpret $ \case
-    PublishTx tx  -> queueTx tx >> tell [TxSubmit (txId tx)]
+    PublishTx tx  -> queueTx tx >> logInfo (TxSubmit (txId tx))
     GetClientSlot -> gets _clientSlot
 
