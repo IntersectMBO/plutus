@@ -173,7 +173,8 @@ Polymorphic built-in functions are handled via automatic specialization of all H
 variables as types representing PLC type variables, as long as each Haskell variable appears as a
 direct argument to @(->)@ (both possible positions are fine) and not buried somewhere inside
 (i.e. automatic derivation can handle neither @f a@, @ListRep a@, nor @f Int@. Nor is @a -> b@
-allowed to the left of an @(->)@). We'll call functions having such types "simply-polymorphic".
+allowed to the left of an @(->)@. Where all lower-case names are Haskell type variables).
+We'll call functions having such types "simply-polymorphic".
 See the docs of 'EnumerateFromTo' for details.
 
 The end result is that the user only has to specify the type of the denotation of a built-in
@@ -282,7 +283,7 @@ type GetName i = Lookup i '["a", "b", "c", "d", "e", "f", "g", "h"]
 
 -- | Try to specialize @a@ as a type representing a Plutus type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
--- specialization is successful or not).
+-- specialization attempt is successful or not).
 type TrySpecializeAsVar :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class TrySpecializeAsVar i j term a | i term a -> j
 instance
@@ -298,9 +299,9 @@ instance
 -- See https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part2-enumerate-type-vars
 -- for a detailed elaboration on how this works.
 -- | Specialize each Haskell type variable in @a@ as a type representing a Plutus Core type variable
--- by deconstucting @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
+-- by deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
 -- right) and trying to specialize every argument type as a PLC type variable
--- (via 'TrySpecializeAsVar') until no deconstuction is possible, at which point we've got a result
+-- (via 'TrySpecializeAsVar') until no deconstruction is possible, at which point we've got a result
 -- type which we also try to specialize as a type representing a PLC type variable.
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
