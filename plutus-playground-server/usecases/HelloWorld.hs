@@ -1,3 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+
 module HelloWorld where
 
 -- TRIM TO HERE
@@ -10,6 +14,7 @@ import           Playground.Contract
 hello :: Contract BlockchainActions T.Text ()
 hello = logInfo @String "Hello, world"
 
+endpoints :: Contract BlockchainActions T.Text ()
 endpoints = hello
 
 mkSchemaDefinitions ''BlockchainActions

@@ -4,7 +4,7 @@
 
 module HelloWorldSimulations where
 
-import qualified Ledger.Ada            as Ada
+import           HelloWorld            (registeredKnownCurrencies)
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), simulationActions,
                                         simulationName, simulationWallets)
 import           SimulationUtils       (simulatorWallet)

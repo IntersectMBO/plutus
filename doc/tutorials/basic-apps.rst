@@ -19,8 +19,7 @@ A simple contract is one that prints a log message and then exits.
    :start-after: BLOCK1
    :end-before: BLOCK2
 
-.. When `running this app in the Plutus playground <plutus-playground>` we get the following log:
-.. TODO: Insert log
+When `running this app in the Plutus playground <plutus-playground>` we get the following log:
 
 We can ask the user for input at any time while the app is running.
 To achieve this we first need to tell the compiler about the type of data that we expect the user to provide.
