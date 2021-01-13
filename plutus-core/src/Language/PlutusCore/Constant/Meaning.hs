@@ -160,7 +160,7 @@ with 'ToBinds' results in the following list of bindings:
 
 Higher-kinded type variables are fully supported.
 
-The implementation of the 'KnownMonotype' and 'KnownPolytype' classes are structured in an
+The implementations of the 'KnownMonotype' and 'KnownPolytype' classes are structured in an
 inference-friendly manner:
 
 1. we compute @args@ using a type family ('GetArgs') in order to dispatch on the list of
@@ -171,11 +171,10 @@ inference-friendly manner:
 
 Polymorphic built-in functions are handled via automatic specialization of all Haskell type
 variables as types representing PLC type variables, as long as each Haskell variable appears as a
-direct argument to @(->)@ (both possible positions are fine) and not buried somewhere inside
-(i.e. automatic derivation can handle neither @f a@, @ListRep a@, nor @f Int@. Nor is @a -> b@
-allowed to the left of an @(->)@. Where all lower-case names are Haskell type variables).
-We'll call functions having such types "simply-polymorphic".
-See the docs of 'EnumerateFromTo' for details.
+left argument to @(->)@ and is not buried somewhere inside (i.e. automatic derivation can handle
+neither @f a@, @ListRep a@, nor @f Int@. Nor is @a -> b@ allowed to the left of an @(->)@.
+Where all lower-case names are Haskell type variables). We'll call functions having such types
+"simply-polymorphic". See the docs of 'EnumerateFromTo' for details.
 
 The end result is that the user only has to specify the type of the denotation of a built-in
 function and the 'TypeScheme' of the built-in function will be derived automatically. And in the
@@ -302,11 +301,17 @@ instance
 -- by deconstructing @a@ into an applied @(->)@ (we don't recurse to the left of @(->)@, only to the
 -- right) and trying to specialize every argument type as a PLC type variable
 -- (via 'TrySpecializeAsVar') until no deconstruction is possible, at which point we've got a result
--- type which we also try to specialize as a type representing a PLC type variable.
+-- which we don't try to specialize, because that would require an incoherent instance and
+-- introducing one makes code that otherwise type checks perfectly throw errors due to a bug in GHC,
+-- see https://github.com/input-output-hk/plutus/pull/2521#issuecomment-759522445
+-- In practice this means that if the result is a type variable, then this type variable has to
+-- be mentioned as an argument type for inference to work. I.e. @absurd :: Void -> a@ does not get
+-- inferred, since @a@ is only mentioned as the result type and not as an argument type.
+-- But that's a fairly rear use case and we can always provide a type signature manually.
 type EnumerateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
 class EnumerateFromTo i j term a | i term a -> j
-instance {-# INCOHERENT #-} TrySpecializeAsVar i j term a => EnumerateFromTo i j term a
-instance
+instance {-# OVERLAPPABLE #-} i ~ j => EnumerateFromTo i j term a
+instance {-# OVERLAPPING #-}
     ( TrySpecializeAsVar i j term a
     , EnumerateFromTo j k term b
     ) => EnumerateFromTo i k term (a -> b)

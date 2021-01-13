@@ -25,6 +25,7 @@ import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc                                  hiding (error)
 import           Language.PlutusCore.Pretty
@@ -39,6 +40,7 @@ import           Data.Either
 import qualified Data.Kind                                                  as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
+import           Data.Void
 import           GHC.Generics
 import           GHC.Ix
 import           Hedgehog                                                   hiding (Opaque, Size, Var)
@@ -108,6 +110,7 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    | Absurd
     deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
     deriving ExMemoryUsage via (GenericExMemoryUsage ExtensionFun)
 
@@ -132,6 +135,15 @@ data ListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 type instance ToBinds (ListRep a) = ToBinds a
+
+instance KnownTypeAst uni Void where
+    toTypeAst _ = runQuote $ do
+        a <- freshTyName "a"
+        pure $ TyForall () a (Type ()) $ TyVar () a
+instance KnownType term Void where
+    makeKnown = absurd
+    readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
+type instance ToBinds Void = '[]
 
 instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni ExtensionFun where
     type DynamicPart uni ExtensionFun = ()
@@ -165,6 +177,12 @@ instance (GShow uni, GEq uni, uni `Includes` Integer) => ToBuiltinMeaning uni Ex
                    , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
                    )
                 => afa -> afa)
+            mempty
+    toBuiltinMeaning Absurd =
+        toStaticBuiltinMeaning
+            (absurd
+                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
+                => Void -> a)
             mempty
 
 -- | Check that 'Factorial' from the above computes to the same thing as
@@ -299,6 +317,16 @@ test_IdRank2 =
         tyAct @?= tyExp
         typecheckEvaluateCek defBuiltinsRuntimeExt term @?= Right (EvaluationSuccess res)
 
+-- | Test that the type of PLC @Absurd@ is inferred correctly.
+test_Absurd :: TestTree
+test_Absurd =
+    testCase "Absurd" $ do
+        let tyAct = typeOfBuiltinFunction @DefaultUni Absurd
+            tyExp = let a = TyName . Name "a" $ Unique 0
+                        tyForallA = TyForall () a (Type ())
+                    in tyForallA . TyFun () (tyForallA $ TyVar () a) $ TyVar () a
+        tyAct @?= tyExp
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -308,4 +336,5 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
+        , test_Absurd
         ]
