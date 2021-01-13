@@ -260,7 +260,7 @@ contractDemos =
     [ mkContractDemo
         "Hello, world"
         Usecases.helloWorld
-        HelloWorldSimulation.simulations
+        HelloWorldSimulations.simulations
         HelloWorld.schemas
         HelloWorld.registeredKnownCurrencies
     , mkContractDemo
