@@ -18,13 +18,10 @@ simulations = [basicGame, badGuess]
     wallet1 = Wallet {getWallet = 1}
     wallet2 = Wallet {getWallet = 2}
     wallet3 = Wallet {getWallet = 3}
-    simulationWallets =
-        simulatorWallet registeredKnownCurrencies 100 <$>
-        [wallet1, wallet2, wallet3]
     basicGame =
         Simulation
             { simulationName = "Basic Game"
-            , simulationWallets
+            , simulationWallets = simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2]
             , simulationActions =
                   [ lock wallet1 "Plutus" 50
                   , AddBlocks 1
@@ -35,7 +32,7 @@ simulations = [basicGame, badGuess]
     badGuess =
         Simulation
             { simulationName = "One Bad Guess"
-            , simulationWallets
+            , simulationWallets = simulatorWallet registeredKnownCurrencies 100 <$> [wallet1, wallet2, wallet3]
             , simulationActions =
                   [ lock wallet1 "Plutus" 50
                   , AddBlocks 1
