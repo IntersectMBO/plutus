@@ -169,6 +169,8 @@ executable plutus-playground-server
         ErrorHandlingSimulations
         Game
         GameSimulations
+        HelloWorld
+        HelloWorldSimulations
         SimulationUtils
         Starter
         StarterSimulations
