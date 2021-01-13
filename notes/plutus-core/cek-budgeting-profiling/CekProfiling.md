@@ -305,11 +305,10 @@ Quite a lot of time seems to be spent looking up names in environments and
 inserting new names (about 80% for crowdfunding, 60% for zerocoupon, 25% for
 primetest).  Using de Bruijn levels could help with this: we already know that
 de Bruijn _indices_ help to reduce script sizes, and presumably the same would
-apply for levels.  However, if we can compute directly with de Bruijn levels it
-might be possible to look things up more rapidly: since we know in advance how
-deep recursion will be I think we could pre-allocate an array of mutable
-variables to store the terms referred to by the levels, and this would allow
-constant-time retrieval and update.
+apply for levels.  However, it seems plausible that we could compute directly
+with de Bruijn levels (avoiding the re-indexing costs associated with de Bruijn
+indices), and this would avoid having to translate back to the named form on the
+chain: we should think about this a bit more carefully.
 
 Another thing to optimise would be execution of built-in functions, although
 this doesn't seem to occur very often in the validation examples.  In the
