@@ -12,7 +12,7 @@ contract = When
         (Deposit
             (Role "party")
             (Role "party")
-            (Token "" "")
+            (Token "ada" "ada")
             (Constant 1000)
         )
         (When
@@ -49,7 +49,7 @@ contract = When
                                 (Pay
                                     (Role "party")
                                     (Party (Role "counterparty"))
-                                    (Token "" "")
+                                    (Token "ada" "ada")
                                     (Constant 1000)
                                     Close
                                 )
@@ -57,7 +57,7 @@ contract = When
                             (Pay
                                 (Role "party")
                                 (Party (Role "counterparty"))
-                                (Token "" "")
+                                (Token "ada" "ada")
                                 (Constant 100)
                                 Close
                             )
