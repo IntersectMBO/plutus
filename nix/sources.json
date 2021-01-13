@@ -56,10 +56,10 @@
         "homepage": "",
         "owner": "fzakaria",
         "repo": "mvn2nix",
-        "rev": "a495380cb9e172993b3a04928e1cf127840ef729",
-        "sha256": "1chvvqnl4yp52d9d38pdify9vya4kwhlwa73j4v9cmjasxd0w6qr",
+        "rev": "3af3a7e02bce9cccc77c582a589d742e4fb8540e",
+        "sha256": "0v5jv129a8wg7hgpcjgkvi8kadmh4x8gm9vacb35jlwyvhf00kal",
         "type": "tarball",
-        "url": "https://github.com/fzakaria/mvn2nix/archive/a495380cb9e172993b3a04928e1cf127840ef729.tar.gz",
+        "url": "https://github.com/fzakaria/mvn2nix/archive/3af3a7e02bce9cccc77c582a589d742e4fb8540e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nix-gitignore": {
