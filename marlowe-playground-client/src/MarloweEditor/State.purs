@@ -20,8 +20,6 @@ import Data.String as String
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
-import FileEvents (readFileFromDragEvent)
-import FileEvents as FileEvents
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
@@ -45,6 +43,7 @@ import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
 import Types (WebData)
+import Web.Event.Extra (preventDefault, readFileFromDragEvent)
 
 handleAction ::
   forall m.
@@ -81,10 +80,10 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
     Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
     _ -> pure unit
 
-handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
+handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
 
 handleAction settings (HandleDropEvent event) = do
-  liftEffect $ FileEvents.preventDefault event
+  liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ editorSetValue contents
 
