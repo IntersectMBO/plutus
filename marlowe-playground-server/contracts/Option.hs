@@ -12,7 +12,7 @@ contract = When
         (Deposit
             (Role "party")
             (Role "party")
-            (Token "ada" "ada")
+            (Token "" "ada")
             (Constant 1000)
         )
         (When
@@ -20,7 +20,7 @@ contract = When
                 (Deposit
                     (Role "counterparty")
                     (Role "counterparty")
-                    (Token "tethered" "bitcoin")
+                    (Token "" "bitcoin")
                     (Constant 1)
                 )
                 (When
@@ -44,12 +44,12 @@ contract = When
                             (Pay
                                 (Role "counterparty")
                                 (Party (Role "party"))
-                                (Token "tethered" "bitcoin")
+                                (Token "" "bitcoin")
                                 (Constant 1)
                                 (Pay
                                     (Role "party")
                                     (Party (Role "counterparty"))
-                                    (Token "ada" "ada")
+                                    (Token "" "ada")
                                     (Constant 1000)
                                     Close
                                 )
@@ -57,7 +57,7 @@ contract = When
                             (Pay
                                 (Role "party")
                                 (Party (Role "counterparty"))
-                                (Token "ada" "ada")
+                                (Token "" "ada")
                                 (Constant 100)
                                 Close
                             )
