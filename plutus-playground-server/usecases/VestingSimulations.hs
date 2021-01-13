@@ -7,7 +7,7 @@ module VestingSimulations where
 import           Ledger.Ada            (lovelaceValueOf)
 import           Ledger.Value          (Value)
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), SimulatorAction,
-                                        simulationActions, simulationName, simulationWallets)
+                                        simulationActions, simulationIndex, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Vesting               (registeredKnownCurrencies)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
@@ -22,6 +22,7 @@ simulations = [vestRetrieve]
     vestRetrieve =
         Simulation
             { simulationName = "Vest/Retrieve"
+            , simulationIndex = 1
             , simulationWallets
             , simulationActions =
                   [ vestFunds wallet2

@@ -8,7 +8,7 @@ import           Game                  (GuessParams (GuessParams), LockParams (L
                                         registeredKnownCurrencies, secretWord)
 import qualified Ledger.Ada            as Ada
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), SimulatorAction,
-                                        simulationActions, simulationName, simulationWallets)
+                                        simulationActions, simulationIndex, simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
 
@@ -24,6 +24,7 @@ simulations = [basicGame, badGuess]
     basicGame =
         Simulation
             { simulationName = "Basic Game"
+            , simulationIndex = 1
             , simulationWallets
             , simulationActions =
                   [ lock wallet1 "Plutus" 50
@@ -35,6 +36,7 @@ simulations = [basicGame, badGuess]
     badGuess =
         Simulation
             { simulationName = "One Bad Guess"
+            , simulationIndex = 2
             , simulationWallets
             , simulationActions =
                   [ lock wallet1 "Plutus" 50

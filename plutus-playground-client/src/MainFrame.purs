@@ -68,7 +68,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationIndex, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
@@ -82,9 +82,10 @@ mkSimulatorWallet currencies walletId =
     }
 
 mkSimulation :: Array KnownCurrency -> String -> Simulation
-mkSimulation simulationCurrencies simulationName =
+mkSimulation simulationCurrencies simulationIndex =
   Simulation
-    { simulationName
+    { simulationName: "Simulation " <> show simulationIndex
+    , simulationIndex
     , simulationActions: []
     , simulationWallets: mkSimulatorWallet simulationCurrencies <<< BigInteger.fromInt <$> 1 .. 2
     }
@@ -268,12 +269,12 @@ handleAction AddSimulationSlot = do
           modifying _simulations
             ( \simulations ->
                 let
-                  count = Cursor.length simulations
+                  maxSimulationIndex = fromMaybe 0 $ maximumOf (traversed <<< _simulationIndex) simulations
 
-                  simulationName = "Simulation " <> show (count + 1)
+                  simulationIndex = maxSimulationIndex + 1
                 in
                   Cursor.snoc simulations
-                    (mkSimulation knownCurrencies simulationName)
+                    (mkSimulation knownCurrencies simulationIndex)
             )
         Nothing -> pure unit
       assign _currentView Simulations
@@ -362,7 +363,7 @@ handleAction CompileProgram = do
         )
         ( assign _simulations
             $ case newCurrencies of
-                Just currencies -> Cursor.singleton $ mkSimulation currencies "Simulation 1"
+                Just currencies -> Cursor.singleton $ mkSimulation currencies 1
                 Nothing -> Cursor.empty
         )
       pure unit

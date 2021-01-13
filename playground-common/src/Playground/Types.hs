@@ -113,6 +113,7 @@ type Expression = ContractCall JSON.Value
 data Simulation =
     Simulation
         { simulationName    :: String
+        , simulationIndex   :: Int
         , simulationActions :: [SimulatorAction]
         , simulationWallets :: [SimulatorWallet]
         }
