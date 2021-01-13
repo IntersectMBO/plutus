@@ -68,7 +68,7 @@ The "Hello, World" simulation only results in a single transaction.
 This is the initial transaction that distributes some funds to the simulated agents.
 We can click the box that says "Slot 0, Tx 0" to examine the transaction.
 Now there are two new sections visible.
-The first of the new sections show the inputs and outputs of the selected transaction, and some other details.
+The first of the new sections shows the inputs and outputs of the selected transaction, and some other details.
 The second of the new sections has a table with the balances of each address *after* the selected transaction.
 We can see that wallet 1 and wallet 2 each have ten lovelace.
 
