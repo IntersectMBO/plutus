@@ -39,6 +39,8 @@ import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
+import qualified HelloWorld
+import qualified HelloWorldSimulation
 import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
@@ -256,6 +258,12 @@ generate outputDir = do
 contractDemos :: [ContractDemo]
 contractDemos =
     [ mkContractDemo
+        "Hello, world"
+        Usecases.helloWorld
+        HelloWorldSimulation.simulations
+        HelloWorld.schemas
+        HelloWorld.registeredKnownCurrencies
+    , mkContractDemo
           "Starter"
           Usecases.starter
           StarterSimulations.simulations

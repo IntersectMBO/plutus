@@ -24,7 +24,7 @@ A simple contract is one that prints a log message and then exits.
 
 We can ask the user for input at any time while the app is running.
 To achieve this we first need to tell the compiler about the type of data that we expect the user to provide.
-This is what the contract's :term:`schema` does: It describes all :term.`endpoints <endpoint>` that the contract may use.
+This is what the contract's :term:`schema` does: It describes all :term.`endpoints <endpoint>` that the contract can use.
 The schema is defined as a Haskell type.
 We can build a schema using the ``Endpoint`` type family to construct individual endpoint types, and the ``.\/`` operator to combine them.
 
