@@ -115,6 +115,8 @@ library plutus-playground-usecases
         ErrorHandlingSimulations
         Game
         GameSimulations
+        HelloWorld
+        HelloWorldSimulations
         SimulationUtils
         Starter
         StarterSimulations

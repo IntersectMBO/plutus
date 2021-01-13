@@ -14,6 +14,8 @@ We can write Plutus Apps in the code editor and test them in the simulator.
 The Plutus Playground includes a number of sample apps.
 In this tutorial we are going to run through two of the sample apps.
 
+.. _playground-compiling-hello-world:
+
 Running the "Hello, World" app
 ------------------------------
 
