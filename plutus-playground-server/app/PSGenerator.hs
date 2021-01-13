@@ -40,7 +40,7 @@ import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
 import qualified HelloWorld
-import qualified HelloWorldSimulation
+import qualified HelloWorldSimulations
 import qualified Interpreter                                as Webghc
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
