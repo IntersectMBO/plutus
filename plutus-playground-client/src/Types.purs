@@ -320,9 +320,6 @@ _createGistResult = _Newtype <<< prop (SProxy :: SProxy "createGistResult")
 _gistUrl :: Lens' State (Maybe String)
 _gistUrl = _Newtype <<< prop (SProxy :: SProxy "gistUrl")
 
-_resultBlockchain :: Lens' EvaluationResult Blockchain
-_resultBlockchain = _Newtype <<< prop (SProxy :: SProxy "resultBlockchain")
-
 _walletKeys :: Lens' EvaluationResult (Array (JsonTuple PubKeyHash Wallet))
 _walletKeys = _Newtype <<< prop (SProxy :: SProxy "walletKeys")
 

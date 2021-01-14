@@ -323,7 +323,6 @@ data Action
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
-  | ViewAsBlockly
   | EditSource
 
 defaultEvent :: String -> Event
@@ -346,7 +345,6 @@ instance isEventAction :: IsEvent Action where
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent EditSource = Just $ defaultEvent "EditSource"
 
 data Query a

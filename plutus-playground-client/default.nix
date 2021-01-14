@@ -37,6 +37,12 @@ let
     inherit webCommon nodeModules;
     src = ./.;
     name = "plutus-playground-client";
+    # ideally we would just use `npm run test` but
+    # this executes `spago` which *always* attempts to download
+    # remote files (which obviously fails in sandboxed builds)
+    checkPhase = ''
+      node -e 'require("./output/Test.Main").main()'
+    '';
     psSrc = generated-purescript;
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };

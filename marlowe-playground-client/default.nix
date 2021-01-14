@@ -39,6 +39,7 @@ let
   client = buildPursPackage {
     inherit webCommon nodeModules;
     src = ./.;
+    checkPhase = "npm run test";
     name = "marlowe-playground-client";
     psSrc = generated-purescript;
     packages = pkgs.callPackage ./packages.nix { };

@@ -216,9 +216,8 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             ((>) @BS.ByteString)
             (runCostingFunTwoArguments . paramGtByteString)
     toBuiltinMeaning IfThenElse =
-        toStaticBuiltinMeaning
-            ((\b x y -> if b then x else y)
-                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0)) => Bool -> a -> a -> a)
+       toStaticBuiltinMeaning
+            (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
     toBuiltinMeaning CharToString =
         toStaticBuiltinMeaning

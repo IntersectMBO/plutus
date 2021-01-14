@@ -1,0 +1,878 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="710" onload="init(evt)" viewBox="0 0 1200 710" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs >
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	var details, searchbtn, matchedtxt, svg;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+	}
+
+	// mouse-over for info
+	function s(node) {		// show
+		info = g_to_text(node);
+		details.nodeValue = "Function: " + info;
+	}
+	function c() {			// clear
+		details.nodeValue = ' ';
+	}
+
+	// ctrl-F for search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+	})
+
+	// functions
+	function find_child(parent, name, attr) {
+		var children = parent.childNodes;
+		for (var i=0; i<children.length;i++) {
+			if (children[i].tagName == name)
+				return (attr != undefined) ? children[i].attributes[attr].value : children[i];
+		}
+		return;
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_"+attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_"+attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_"+attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes["width"].value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes["x"].value = parseFloat(r.attributes["x"].value) +3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2*12*0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		// Fit in full text width
+		if (/^ *$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+			return;
+
+		for (var x=txt.length-2; x>0; x--) {
+			if (t.getSubStringLength(0, x+2) <= w) {
+				t.textContent = txt.substring(0,x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes["x"] != undefined) {
+				orig_save(e, "x");
+				e.attributes["x"].value = (parseFloat(e.attributes["x"].value) - x - 10) * ratio + 10;
+				if(e.tagName == "text") e.attributes["x"].value = find_child(e.parentNode, "rect", "x") + 3;
+			}
+			if (e.attributes["width"] != undefined) {
+				orig_save(e, "width");
+				e.attributes["width"].value = parseFloat(e.attributes["width"].value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_child(c[i], x-10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes["x"] != undefined) {
+				orig_save(e, "x");
+				e.attributes["x"].value = 10;
+			}
+			if (e.attributes["width"] != undefined) {
+				orig_save(e, "width");
+				e.attributes["width"].value = parseInt(svg.width.baseVal.value) - (10*2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr["width"].value);
+		var xmin = parseFloat(attr["x"].value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr["y"].value);
+		var ratio = (svg.width.baseVal.value - 2*10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		var unzoombtn = document.getElementById("unzoom");
+		unzoombtn.style["opacity"] = "1.0";
+
+		var el = document.getElementsByTagName("g");
+		for(var i=0;i<el.length;i++){
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a["x"].value);
+			var ew = parseFloat(a["width"].value);
+			// Is it an ancestor
+			if (0 == 0) {
+				var upstack = parseFloat(a["y"].value) > ymin;
+			} else {
+				var upstack = parseFloat(a["y"].value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.style["opacity"] = "0.5";
+					zoom_parent(e);
+					e.onclick = function(e){unzoom(); zoom(this);};
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.style["display"] = "none";
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.style["display"] = "none";
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					e.onclick = function(e){zoom(this);};
+					update_text(e);
+				}
+			}
+		}
+	}
+	function unzoom() {
+		var unzoombtn = document.getElementById("unzoom");
+		unzoombtn.style["opacity"] = "0.0";
+
+		var el = document.getElementsByTagName("g");
+		for(i=0;i<el.length;i++) {
+			el[i].style["display"] = "block";
+			el[i].style["opacity"] = "1";
+			zoom_reset(el[i]);
+			update_text(el[i]);
+		}
+	}
+
+	// search
+	function reset_search() {
+		var el = document.getElementsByTagName("rect");
+		for (var i=0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)", "");
+			if (term != null) {
+				search(term)
+			}
+		} else {
+			reset_search();
+			searching = 0;
+			searchbtn.style["opacity"] = "0.1";
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.style["opacity"] = "0.0";
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		var re = new RegExp(term);
+		var el = document.getElementsByTagName("g");
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			if (e.attributes["class"].value != "func_g")
+				continue;
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (rect == null) {
+				// the rect might be wrapped in an anchor
+				// if nameattr href is being used
+				if (rect = find_child(e, "a")) {
+				    rect = find_child(r, "rect");
+				}
+			}
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes["width"].value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes["x"].value);
+				orig_save(rect, "fill");
+				rect.attributes["fill"].value =
+				    "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+
+		searchbtn.style["opacity"] = "1.0";
+		searchbtn.firstChild.nodeValue = "Reset Search"
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.style["opacity"] = "1.0";
+		pct = 100 * count / maxwidth;
+		if (pct == 100)
+			pct = "100"
+		else
+			pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+	function searchover(e) {
+		searchbtn.style["opacity"] = "1.0";
+	}
+	function searchout(e) {
+		if (searching) {
+			searchbtn.style["opacity"] = "1.0";
+		} else {
+			searchbtn.style["opacity"] = "0.1";
+		}
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="710.0" fill="url(#background)"  />
+<text text-anchor="middle" x="600.00" y="24" font-size="17" font-family="Verdana" fill="rgb(0,0,0)"  >crowdfunding/1: Counting mode</text>
+<text text-anchor="" x="10.00" y="693" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="details" > </text>
+<text text-anchor="" x="10.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="unzoom" onclick="unzoom()" style="opacity:0.0;cursor:pointer" >Reset Zoom</text>
+<text text-anchor="" x="1090.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="search" onmouseover="searchover()" onmouseout="searchout()" onclick="search_prompt()" style="opacity:0.1;cursor:pointer" >Search</text>
+<text text-anchor="" x="1090.00" y="693" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="matched" > </text>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.&gt;&gt;=.\.\ (93 samples, 9.20%)</title><rect x="54.4" y="389" width="108.5" height="15.0" fill="rgb(235,160,12)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\ (19 samples, 1.88%)</title><rect x="140.7" y="277" width="22.2" height="15.0" fill="rgb(246,63,32)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.&lt;&gt; (75 samples, 7.42%)</title><rect x="1102.5" y="453" width="87.5" height="15.0" fill="rgb(214,84,42)" rx="2" ry="2" />
+<text text-anchor="" x="1105.46" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semig..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="162.9" y="517" width="22.2" height="15.0" fill="rgb(215,153,2)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="527.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.Serialise.deserialiseIncremental (93 samples, 9.20%)</title><rect x="54.4" y="517" width="108.5" height="15.0" fill="rgb(219,121,27)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="527.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.Seriali..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="245" width="22.2" height="15.0" fill="rgb(205,211,54)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.deserialiseRestoringUnitsOrFail (112 samples, 11.08%)</title><rect x="54.4" y="565" width="130.7" height="15.0" fill="rgb(252,54,33)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="575.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.Untyped..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure (19 samples, 1.88%)</title><rect x="162.9" y="357" width="22.2" height="15.0" fill="rgb(227,60,49)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.returnCek (76 samples, 7.52%)</title><rect x="447.7" y="485" width="88.7" height="15.0" fill="rgb(234,126,49)" rx="2" ry="2" />
+<text text-anchor="" x="450.69" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.U..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.&lt;&gt; (204 samples, 20.18%)</title><rect x="864.4" y="421" width="238.1" height="15.0" fill="rgb(242,96,41)" rx="2" ry="2" />
+<text text-anchor="" x="867.36" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.&lt;&gt;</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.go_slow (56 samples, 5.54%)</title><rect x="97.5" y="373" width="65.4" height="15.0" fill="rgb(218,64,33)" rx="2" ry="2" />
+<text text-anchor="" x="100.54" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (297 samples, 29.38%)</title><rect x="755.8" y="469" width="346.7" height="15.0" fill="rgb(229,86,1)" rx="2" ry="2" />
+<text text-anchor="" x="758.82" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Profunctor.Unsafe.#.</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap.\ (19 samples, 1.88%)</title><rect x="162.9" y="405" width="22.2" height="15.0" fill="rgb(252,117,5)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyBuiltin.dischargeError (19 samples, 1.88%)</title><rect x="469.9" y="437" width="22.1" height="15.0" fill="rgb(248,47,36)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.loadASTfromCBOR (19 samples, 1.88%)</title><rect x="10.0" y="597" width="22.2" height="15.0" fill="rgb(238,140,17)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="607.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >M..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (19 samples, 1.88%)</title><rect x="733.6" y="309" width="22.2" height="15.0" fill="rgb(238,58,36)" rx="2" ry="2" />
+<text text-anchor="" x="736.64" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\ (19 samples, 1.88%)</title><rect x="162.9" y="485" width="22.2" height="15.0" fill="rgb(228,65,32)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt; (19 samples, 1.88%)</title><rect x="140.7" y="101" width="22.2" height="15.0" fill="rgb(240,156,22)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.main (992 samples, 98.12%)</title><rect x="32.2" y="629" width="1157.8" height="15.0" fill="rgb(213,179,15)" rx="2" ry="2" />
+<text text-anchor="" x="35.18" y="639.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.main</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\ (19 samples, 1.88%)</title><rect x="10.0" y="501" width="22.2" height="15.0" fill="rgb(237,158,30)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.insertByName (19 samples, 1.88%)</title><rect x="492.0" y="437" width="22.2" height="15.0" fill="rgb(234,88,7)" rx="2" ry="2" />
+<text text-anchor="" x="495.04" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\.\.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="37" width="22.2" height="15.0" fill="rgb(231,186,9)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="47.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\ (19 samples, 1.88%)</title><rect x="162.9" y="469" width="22.2" height="15.0" fill="rgb(239,217,5)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (131 samples, 12.96%)</title><rect x="602.9" y="373" width="152.9" height="15.0" fill="rgb(216,8,11)" rx="2" ry="2" />
+<text text-anchor="" x="605.92" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable.Gener..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\.\ (19 samples, 1.88%)</title><rect x="162.9" y="453" width="22.2" height="15.0" fill="rgb(220,151,4)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt; (19 samples, 1.88%)</title><rect x="162.9" y="309" width="22.2" height="15.0" fill="rgb(232,47,20)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.Strict.singleton (19 samples, 1.88%)</title><rect x="469.9" y="341" width="22.1" height="15.0" fill="rgb(245,22,22)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.Serialise.deserialiseOrFail (93 samples, 9.20%)</title><rect x="54.4" y="549" width="108.5" height="15.0" fill="rgb(249,55,8)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="559.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.Seriali..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="69" width="22.2" height="15.0" fill="rgb(246,174,52)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="79.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;= (19 samples, 1.88%)</title><rect x="162.9" y="501" width="22.2" height="15.0" fill="rgb(244,123,14)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCek (692 samples, 68.45%)</title><rect x="382.3" y="533" width="807.7" height="15.0" fill="rgb(239,77,1)" rx="2" ry="2" />
+<text text-anchor="" x="385.32" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.go_fast (56 samples, 5.54%)</title><rect x="97.5" y="357" width="65.4" height="15.0" fill="rgb(240,144,49)" rx="2" ry="2" />
+<text text-anchor="" x="100.54" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.deserialiseRestoringUnitsOrFail (19 samples, 1.88%)</title><rect x="10.0" y="581" width="22.2" height="15.0" fill="rgb(226,70,22)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="591.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>all (1,011 samples, 100%)</title><rect x="10.0" y="661" width="1180.0" height="15.0" fill="rgb(254,79,20)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="671.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\.\ (19 samples, 1.88%)</title><rect x="162.9" y="277" width="22.2" height="15.0" fill="rgb(252,200,32)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (94 samples, 9.30%)</title><rect x="646.1" y="357" width="109.7" height="15.0" fill="rgb(209,91,20)" rx="2" ry="2" />
+<text text-anchor="" x="649.10" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap.\ (19 samples, 1.88%)</title><rect x="140.7" y="197" width="22.2" height="15.0" fill="rgb(247,75,29)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (131 samples, 12.96%)</title><rect x="602.9" y="405" width="152.9" height="15.0" fill="rgb(252,116,27)" rx="2" ry="2" />
+<text text-anchor="" x="605.92" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable.Class..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.unsafeEvaluateCek (805 samples, 79.62%)</title><rect x="250.4" y="581" width="939.6" height="15.0" fill="rgb(223,127,33)" rx="2" ry="2" />
+<text text-anchor="" x="253.44" y="591.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.unsafeEvaluateCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\ (19 samples, 1.88%)</title><rect x="10.0" y="485" width="22.2" height="15.0" fill="rgb(247,194,2)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (38 samples, 3.76%)</title><rect x="711.5" y="341" width="44.3" height="15.0" fill="rgb(254,137,53)" rx="2" ry="2" />
+<text text-anchor="" x="714.46" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.computeCek (692 samples, 68.45%)</title><rect x="382.3" y="501" width="807.7" height="15.0" fill="rgb(215,90,2)" rx="2" ry="2" />
+<text text-anchor="" x="385.32" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.computeCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.getBinaryInput (19 samples, 1.88%)</title><rect x="185.1" y="565" width="22.2" height="15.0" fill="rgb(209,206,22)" rx="2" ry="2" />
+<text text-anchor="" x="188.07" y="575.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >M..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure.\.\ (19 samples, 1.88%)</title><rect x="162.9" y="325" width="22.2" height="15.0" fill="rgb(205,213,20)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekCounting (805 samples, 79.62%)</title><rect x="250.4" y="549" width="939.6" height="15.0" fill="rgb(249,41,44)" rx="2" ry="2" />
+<text text-anchor="" x="253.44" y="559.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekCounting</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode.go (19 samples, 1.88%)</title><rect x="140.7" y="229" width="22.2" height="15.0" fill="rgb(246,110,46)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (204 samples, 20.18%)</title><rect x="864.4" y="389" width="238.1" height="15.0" fill="rgb(239,73,44)" rx="2" ry="2" />
+<text text-anchor="" x="867.36" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend'</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.lift.\ (93 samples, 9.20%)</title><rect x="54.4" y="405" width="108.5" height="15.0" fill="rgb(247,45,48)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;= (19 samples, 1.88%)</title><rect x="140.7" y="293" width="22.2" height="15.0" fill="rgb(236,198,41)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.getProgram (19 samples, 1.88%)</title><rect x="10.0" y="613" width="22.2" height="15.0" fill="rgb(213,149,38)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="623.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >M..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="117" width="22.2" height="15.0" fill="rgb(246,102,35)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.memoryUsage (75 samples, 7.42%)</title><rect x="272.6" y="533" width="87.5" height="15.0" fill="rgb(248,108,24)" rx="2" ry="2" />
+<text text-anchor="" x="275.61" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.hash (19 samples, 1.88%)</title><rect x="469.9" y="309" width="22.1" height="15.0" fill="rgb(222,27,36)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="261" width="22.2" height="15.0" fill="rgb(220,105,17)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (19 samples, 1.88%)</title><rect x="469.9" y="261" width="22.1" height="15.0" fill="rgb(216,1,26)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend (204 samples, 20.18%)</title><rect x="864.4" y="405" width="238.1" height="15.0" fill="rgb(221,68,54)" rx="2" ry="2" />
+<text text-anchor="" x="867.36" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.go_slow (37 samples, 3.66%)</title><rect x="54.4" y="357" width="43.1" height="15.0" fill="rgb(221,169,29)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Code..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget (560 samples, 55.39%)</title><rect x="536.4" y="485" width="653.6" height="15.0" fill="rgb(219,102,49)" rx="2" ry="2" />
+<text text-anchor="" x="539.39" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="53" width="22.2" height="15.0" fill="rgb(224,52,20)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="63.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="140.7" y="325" width="22.2" height="15.0" fill="rgb(250,68,37)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed.go (19 samples, 1.88%)</title><rect x="469.9" y="373" width="22.1" height="15.0" fill="rgb(237,135,46)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.CAF:lvl411_rsua (19 samples, 1.88%)</title><rect x="10.0" y="629" width="22.2" height="15.0" fill="rgb(210,54,25)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="639.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >M..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Monoidal.&lt;&gt; (185 samples, 18.30%)</title><rect x="886.5" y="357" width="216.0" height="15.0" fill="rgb(240,82,2)" rx="2" ry="2" />
+<text text-anchor="" x="889.54" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Monoidal.&lt;&gt;</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="140.7" y="341" width="22.2" height="15.0" fill="rgb(240,217,52)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.Strict.singleton (169 samples, 16.72%)</title><rect x="558.6" y="469" width="197.2" height="15.0" fill="rgb(226,228,9)" rx="2" ry="2" />
+<text text-anchor="" x="561.57" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Internal.Str..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.CBOR.decode (19 samples, 1.88%)</title><rect x="162.9" y="373" width="22.2" height="15.0" fill="rgb(223,6,18)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure.\ (19 samples, 1.88%)</title><rect x="162.9" y="341" width="22.2" height="15.0" fill="rgb(254,176,19)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>MAIN.MAIN (1,011 samples, 100.00%)</title><rect x="10.0" y="645" width="1180.0" height="15.0" fill="rgb(213,4,48)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="655.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >MAIN.MAIN</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.go_fast (37 samples, 3.66%)</title><rect x="54.4" y="341" width="43.1" height="15.0" fill="rgb(241,15,10)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Code..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure (19 samples, 1.88%)</title><rect x="140.7" y="149" width="22.2" height="15.0" fill="rgb(225,80,7)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode.go (19 samples, 1.88%)</title><rect x="10.0" y="453" width="22.2" height="15.0" fill="rgb(206,7,25)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.runIncrementalDecoder (93 samples, 9.20%)</title><rect x="54.4" y="485" width="108.5" height="15.0" fill="rgb(207,71,17)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;=.\.\.\ (19 samples, 1.88%)</title><rect x="10.0" y="469" width="22.2" height="15.0" fill="rgb(220,71,38)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.singleton (19 samples, 1.88%)</title><rect x="469.9" y="325" width="22.1" height="15.0" fill="rgb(247,181,28)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (37 samples, 3.66%)</title><rect x="1146.8" y="405" width="43.2" height="15.0" fill="rgb(213,127,22)" rx="2" ry="2" />
+<text text-anchor="" x="1149.82" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.getProgram (131 samples, 12.96%)</title><rect x="54.4" y="597" width="152.9" height="15.0" fill="rgb(251,200,9)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="607.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.getProgram</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\ (19 samples, 1.88%)</title><rect x="140.7" y="85" width="22.2" height="15.0" fill="rgb(206,181,47)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="95.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="10.0" y="533" width="22.2" height="15.0" fill="rgb(247,152,40)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.singleton (169 samples, 16.72%)</title><rect x="558.6" y="453" width="197.2" height="15.0" fill="rgb(244,104,7)" rx="2" ry="2" />
+<text text-anchor="" x="561.57" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Internal.sin..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget (19 samples, 1.88%)</title><rect x="469.9" y="357" width="22.1" height="15.0" fill="rgb(225,118,27)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Type.memoryUsage (19 samples, 1.88%)</title><rect x="360.1" y="533" width="22.2" height="15.0" fill="rgb(223,173,26)" rx="2" ry="2" />
+<text text-anchor="" x="363.15" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.Serialise.deserialiseOrFail.supplyAllInput (93 samples, 9.20%)</title><rect x="54.4" y="533" width="108.5" height="15.0" fill="rgb(239,166,32)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.Seriali..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="162.9" y="549" width="22.2" height="15.0" fill="rgb(217,188,26)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="559.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.extendEnv (19 samples, 1.88%)</title><rect x="492.0" y="453" width="22.2" height="15.0" fill="rgb(218,26,26)" rx="2" ry="2" />
+<text text-anchor="" x="495.04" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.gmemoryUsage (75 samples, 7.42%)</title><rect x="272.6" y="517" width="87.5" height="15.0" fill="rgb(223,78,27)" rx="2" ry="2" />
+<text text-anchor="" x="275.61" y="527.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyEvaluate (57 samples, 5.64%)</title><rect x="447.7" y="469" width="66.5" height="15.0" fill="rgb(245,221,40)" rx="2" ry="2" />
+<text text-anchor="" x="450.69" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Languag..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="162.9" y="533" width="22.2" height="15.0" fill="rgb(213,162,43)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="543.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.&gt;&gt;= (93 samples, 9.20%)</title><rect x="54.4" y="453" width="108.5" height="15.0" fill="rgb(251,18,35)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.runEval (992 samples, 98.12%)</title><rect x="32.2" y="613" width="1157.8" height="15.0" fill="rgb(231,11,16)" rx="2" ry="2" />
+<text text-anchor="" x="35.18" y="623.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.runEval</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.memoryUsage (37 samples, 3.66%)</title><rect x="317.0" y="453" width="43.1" height="15.0" fill="rgb(238,191,22)" rx="2" ry="2" />
+<text text-anchor="" x="319.96" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (223 samples, 22.06%)</title><rect x="842.2" y="437" width="260.3" height="15.0" fill="rgb(234,125,15)" rx="2" ry="2" />
+<text text-anchor="" x="845.19" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.PlutusCore.Evaluation.Mac..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.hash (150 samples, 14.84%)</title><rect x="580.7" y="437" width="175.1" height="15.0" fill="rgb(212,186,1)" rx="2" ry="2" />
+<text text-anchor="" x="583.74" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Internal...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (75 samples, 7.42%)</title><rect x="1102.5" y="469" width="87.5" height="15.0" fill="rgb(252,60,4)" rx="2" ry="2" />
+<text text-anchor="" x="1105.46" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&lt;&gt; (37 samples, 3.66%)</title><rect x="1146.8" y="389" width="43.2" height="15.0" fill="rgb(245,183,28)" rx="2" ry="2" />
+<text text-anchor="" x="1149.82" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyBuiltin (19 samples, 1.88%)</title><rect x="469.9" y="453" width="22.1" height="15.0" fill="rgb(219,185,33)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="140.7" y="309" width="22.2" height="15.0" fill="rgb(206,42,43)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend (56 samples, 5.54%)</title><rect x="1124.6" y="437" width="65.4" height="15.0" fill="rgb(217,111,6)" rx="2" ry="2" />
+<text text-anchor="" x="1127.64" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Se..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.deserialiseIncremental (93 samples, 9.20%)</title><rect x="54.4" y="501" width="108.5" height="15.0" fill="rgb(252,166,45)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (19 samples, 1.88%)</title><rect x="469.9" y="293" width="22.1" height="15.0" fill="rgb(211,116,35)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="10.0" y="565" width="22.2" height="15.0" fill="rgb(211,150,38)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="575.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hash (131 samples, 12.96%)</title><rect x="602.9" y="421" width="152.9" height="15.0" fill="rgb(216,163,0)" rx="2" ry="2" />
+<text text-anchor="" x="605.92" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable.Class..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap (19 samples, 1.88%)</title><rect x="140.7" y="213" width="22.2" height="15.0" fill="rgb(237,52,8)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.runDecodeAction (93 samples, 9.20%)</title><rect x="54.4" y="469" width="108.5" height="15.0" fill="rgb(213,190,54)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.CBOR.decode (19 samples, 1.88%)</title><rect x="140.7" y="165" width="22.2" height="15.0" fill="rgb(240,131,49)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekM (692 samples, 68.45%)</title><rect x="382.3" y="517" width="807.7" height="15.0" fill="rgb(225,54,48)" rx="2" ry="2" />
+<text text-anchor="" x="385.32" y="527.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekM</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap (19 samples, 1.88%)</title><rect x="162.9" y="421" width="22.2" height="15.0" fill="rgb(250,169,22)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap.\.\ (19 samples, 1.88%)</title><rect x="162.9" y="389" width="22.2" height="15.0" fill="rgb(244,0,14)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.runEval.body (37 samples, 3.66%)</title><rect x="207.3" y="597" width="43.1" height="15.0" fill="rgb(246,37,18)" rx="2" ry="2" />
+<text text-anchor="" x="210.25" y="607.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (297 samples, 29.38%)</title><rect x="755.8" y="453" width="346.7" height="15.0" fill="rgb(216,89,2)" rx="2" ry="2" />
+<text text-anchor="" x="758.82" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Profunctor.Unsafe.#..\</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&gt;&gt;= (19 samples, 1.88%)</title><rect x="10.0" y="517" width="22.2" height="15.0" fill="rgb(223,28,37)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="527.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.fmap.\.\ (19 samples, 1.88%)</title><rect x="140.7" y="181" width="22.2" height="15.0" fill="rgb(214,225,53)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Monad.Morph.hoist.\ (19 samples, 1.88%)</title><rect x="469.9" y="405" width="22.1" height="15.0" fill="rgb(217,7,49)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (19 samples, 1.88%)</title><rect x="689.3" y="341" width="22.2" height="15.0" fill="rgb(207,203,21)" rx="2" ry="2" />
+<text text-anchor="" x="692.29" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.insertByUnique (19 samples, 1.88%)</title><rect x="492.0" y="421" width="22.2" height="15.0" fill="rgb(224,135,26)" rx="2" ry="2" />
+<text text-anchor="" x="495.04" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.lift (93 samples, 9.20%)</title><rect x="54.4" y="421" width="108.5" height="15.0" fill="rgb(229,3,53)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.runEval.evaluate (805 samples, 79.62%)</title><rect x="250.4" y="597" width="939.6" height="15.0" fill="rgb(247,110,36)" rx="2" ry="2" />
+<text text-anchor="" x="253.44" y="607.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.runEval.evaluate</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.go_slow.\ (37 samples, 3.66%)</title><rect x="54.4" y="373" width="43.1" height="15.0" fill="rgb(220,68,23)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Code..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (131 samples, 12.96%)</title><rect x="602.9" y="389" width="152.9" height="15.0" fill="rgb(230,53,41)" rx="2" ry="2" />
+<text text-anchor="" x="605.92" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable.Gener..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Type.&lt;$ (37 samples, 3.66%)</title><rect x="207.3" y="581" width="43.1" height="15.0" fill="rgb(248,155,18)" rx="2" ry="2" />
+<text text-anchor="" x="210.25" y="591.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.&lt;*&gt;.\ (19 samples, 1.88%)</title><rect x="162.9" y="293" width="22.2" height="15.0" fill="rgb(246,9,42)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.loadASTfromCBOR (131 samples, 12.96%)</title><rect x="54.4" y="581" width="152.9" height="15.0" fill="rgb(215,80,42)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="591.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.loadASTfromCBOR</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode (19 samples, 1.88%)</title><rect x="10.0" y="549" width="22.2" height="15.0" fill="rgb(214,190,31)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="559.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Read.&gt;&gt;=.\ (93 samples, 9.20%)</title><rect x="54.4" y="437" width="108.5" height="15.0" fill="rgb(210,62,51)" rx="2" ry="2" />
+<text text-anchor="" x="57.35" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Codec.CBOR.Re..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.gmemoryUsage' (75 samples, 7.42%)</title><rect x="272.6" y="501" width="87.5" height="15.0" fill="rgb(235,88,46)" rx="2" ry="2" />
+<text text-anchor="" x="275.61" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Monad.Morph.hoist (19 samples, 1.88%)</title><rect x="469.9" y="421" width="22.1" height="15.0" fill="rgb(213,86,44)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.forceEvaluate (19 samples, 1.88%)</title><rect x="514.2" y="469" width="22.2" height="15.0" fill="rgb(205,127,31)" rx="2" ry="2" />
+<text text-anchor="" x="517.21" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (19 samples, 1.88%)</title><rect x="469.9" y="277" width="22.1" height="15.0" fill="rgb(210,91,4)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.gmemoryUsage' (75 samples, 7.42%)</title><rect x="272.6" y="485" width="87.5" height="15.0" fill="rgb(214,216,12)" rx="2" ry="2" />
+<text text-anchor="" x="275.61" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.memoryUsage (56 samples, 5.54%)</title><rect x="294.8" y="469" width="65.3" height="15.0" fill="rgb(248,214,38)" rx="2" ry="2" />
+<text text-anchor="" x="297.79" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Languag..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.evaluateCek (805 samples, 79.62%)</title><rect x="250.4" y="565" width="939.6" height="15.0" fill="rgb(212,50,47)" rx="2" ry="2" />
+<text text-anchor="" x="253.44" y="575.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.evaluateCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed (19 samples, 1.88%)</title><rect x="469.9" y="389" width="22.1" height="15.0" fill="rgb(231,186,32)" rx="2" ry="2" />
+<text text-anchor="" x="472.86" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (38 samples, 3.76%)</title><rect x="711.5" y="325" width="44.3" height="15.0" fill="rgb(237,199,46)" rx="2" ry="2" />
+<text text-anchor="" x="714.46" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (204 samples, 20.18%)</title><rect x="864.4" y="373" width="238.1" height="15.0" fill="rgb(208,4,42)" rx="2" ry="2" />
+<text text-anchor="" x="867.36" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend'</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Codec.CBOR.Decoding.pure.\ (19 samples, 1.88%)</title><rect x="140.7" y="133" width="22.2" height="15.0" fill="rgb(247,38,17)" rx="2" ry="2" />
+<text text-anchor="" x="143.72" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Core.Instance.CBOR.decode.go (19 samples, 1.88%)</title><rect x="162.9" y="437" width="22.2" height="15.0" fill="rgb(207,193,54)" rx="2" ry="2" />
+<text text-anchor="" x="165.90" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+</svg>

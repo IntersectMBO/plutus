@@ -2,18 +2,17 @@ module MainFrame.View where
 
 import Prelude hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
+import BlocklyEditor.View as BlocklyEditor
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import GistButtons (authButton)
 import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Blockly (blockly)
 import Halogen.Classes (aHorizontal, active, flex, fontSemibold, fullHeight, fullWidth, group, hide, noMargins, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textWhite, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, div_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -22,14 +21,12 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), BlocklySubAction(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Blockly as MB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import Prim.TypeError (class Warn, Text)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.View as Simulation
 import Wallet as Wallet
@@ -64,11 +61,7 @@ render settings state =
               , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.render state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
-              , tabContents BlocklyEditor
-                  [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
-                  , MB.toolbox
-                  , MB.workspaceBlocks
-                  ]
+              , tabContents BlocklyEditor [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.render state ]
               , tabContents ActusBlocklyEditor
                   [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
                   , AMB.toolbox
@@ -137,7 +130,7 @@ render settings state =
 
   otherActions MarloweEditor = [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.otherActions state ]
 
-  otherActions BlocklyEditor = blocklyOtherActions
+  otherActions BlocklyEditor = [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.otherActions state ]
 
   otherActions _ = []
 
@@ -149,23 +142,6 @@ render settings state =
         ]
     else
       text ""
-
-blocklyOtherActions ::
-  forall p.
-  Warn (Text "SCP-1647 The Send to simulator button should be disabled if there are holes in the contract. Do this once we refactor blockly as submodule (SCP-1646) as this view is far away from the BlocklyState") =>
-  Array (HTML p Action)
-blocklyOtherActions =
-  [ div [ classes [ group ] ]
-      [ button
-          [ onClick $ const $ Just $ BlocklyEditorAction $ ViewAsMarlowe
-          ]
-          [ text "View as Marlowe" ]
-      , button
-          [ onClick $ const $ Just $ BlocklyEditorAction $ SendToSimulator
-          ]
-          [ text "Send To Simulator" ]
-      ]
-  ]
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =

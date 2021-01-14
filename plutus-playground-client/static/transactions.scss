@@ -4,8 +4,8 @@ $chart-tooltip: $gray-900;
 $chart-title: $gray-900;
 $chart-label: $gray-900;
 $chart-grid-stroke: $gray-500;
-@import '../../web-common/static/chartist.scss';
-@import '../../web-common/static/chain.scss';
+@import '../web-common/static/chartist.scss';
+@import '../web-common/static/chain.scss';
 
 .transactions {
     border: 1px solid $gray-border-color;
