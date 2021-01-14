@@ -7,10 +7,9 @@ Please view the instructions for building the server [here](../plutus-playground
 ## Client
 
 ```sh
-# First generate the purescript bridge files
-$(nix-build -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator ./plutus-playground-client/generated
-# Now we will build and run the client on localhost
 cd plutus-playground-client
+# Generate the purescript bridge files
+plutus-playground-generate-purs
 # Download javascript dependencies
 npm install
 # Install purescript depdendencies
