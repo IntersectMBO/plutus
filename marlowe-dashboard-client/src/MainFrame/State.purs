@@ -1,7 +1,7 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Data.Lens (assign, use)
+import Data.Lens (modifying, use)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, raise)
@@ -39,7 +39,7 @@ handleQuery ::
   HalogenM State Action ChildSlots Msg m (Maybe a)
 handleQuery (ReceiveWebSocketMessage msg next) = do
   current <- use _on
-  assign _on (not current)
+  modifying _on not
   pure $ Just next
 
 handleAction ::

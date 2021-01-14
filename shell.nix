@@ -45,6 +45,7 @@ let
     awscli
     cacert
     ghcid
+    morph
     niv
     nixpkgs-fmt
     nodejs
@@ -93,6 +94,10 @@ haskell.project.shellFor {
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
+
+  # we use the working projects root in a deployment hack, 
+  # you will normally be here to start the shell but this allows you to move around
+  PLUTUS_ROOT = toString ./.;
 
   shellHook = ''
     ${pre-commit-check.shellHook}

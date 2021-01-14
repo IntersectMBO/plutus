@@ -8,14 +8,15 @@ module Main
   )
 where
 
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Control.Monad.Logger   (MonadLogger, logInfoN, runStderrLoggingT)
-import qualified Data.Text              as Text
-import           Git                    (gitRev)
-import           Options.Applicative    (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                         disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                         option, prefs, progDesc, short, showDefault, showHelpOnEmpty, showHelpOnError,
-                                         str, subparser, value)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
+import qualified Data.Text                as Text
+import           Git                      (gitRev)
+import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
+import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                           disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
+                                           option, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                           showHelpOnError, str, strOption, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -27,7 +28,11 @@ import qualified Webserver
 -- line. The answer is for flags that rarely change, putting them in a
 -- config file makes development easier.
 data Command
-  = Webserver {_port :: !Int}
+  = Webserver
+      { _host   :: !HostPreference,
+        _port   :: !Int,
+        _static :: !FilePath
+      }
   | PSGenerator {_outputDir :: !FilePath}
   deriving (Show, Eq)
 
@@ -56,6 +61,12 @@ webserverCommandParser :: Mod CommandFields Command
 webserverCommandParser =
   command "webserver" $
     flip info fullDesc $ do
+      _host <-
+        strOption
+          ( short 'b' <> long "bind" <> help "Webserver bind address"
+              <> showDefault
+              <> value "127.0.0.1"
+          )
       _port <-
         option
           auto
@@ -63,10 +74,18 @@ webserverCommandParser =
               <> showDefault
               <> value 8080
           )
+      _static <-
+        strOption
+          ( short 's' <> long "static-path" <> help "Location of static files to serve"
+              <> showDefault
+              <> value "."
+          )
       pure Webserver {..}
 
 runCommand :: (MonadIO m, MonadLogger m) => Command -> m ()
-runCommand Webserver {..}   = liftIO $ Webserver.run _port
+runCommand Webserver {..} = liftIO $ Webserver.run _static settings
+  where
+    settings = setHost _host . setPort _port $ defaultSettings
 runCommand PSGenerator {..} = liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()

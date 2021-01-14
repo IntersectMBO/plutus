@@ -77,11 +77,15 @@ let
       ln -s ${./terraform}/* "$tmp_dir"
 
       # in case we have some tfvars around in ./terraform
-      rm "$tmp_dir/*.tfvars" || true
+      rm $tmp_dir/*.tfvars || true
 
       ln -s ${terraform-locals env}/* "$tmp_dir"
       ln -s ${terraform-vars env region}/* "$tmp_dir"
       cd "$tmp_dir"
+
+      echo "set output directory"
+      mkdir -p "$tmp_dir/nixops"
+      export TF_VAR_nixops_root="$tmp_dir/nixops"
 
       echo "read secrets"
       TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
@@ -110,6 +114,15 @@ let
       echo "deploy api"
       ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$marlowe_api_id" --stage-name ${env}
       ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$plutus_api_id" --stage-name ${env}
+
+      echo "json files created in $tmp_dir/nixops"
+
+      # This is a nasty way to make deployment with morph easier. Once you have run this script you will have the correct
+      # information in the morph directory for morph to deploy to the EC2 instances
+      if [[ ! -z "$PLUTUS_ROOT" ]]; then
+        echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
+        cp $tmp_dir/nixops/machines.json $PLUTUS_ROOT/deployment/morph/
+      fi
     '';
 
   deploy = env: region:
@@ -131,7 +144,7 @@ let
       ln -s ${./terraform}/* "$tmp_dir"
 
       # in case we have some tfvars around in ./terraform
-      rm "$tmp_dir/*.tfvars" || true
+      rm $tmp_dir/*.tfvars || true
 
       ln -s ${terraform-locals env}/* "$tmp_dir"
       ln -s ${terraform-vars env region}/* "$tmp_dir"
@@ -166,5 +179,7 @@ let
     wyohack = mkEnv "wyohack" "us-west-2";
     testing = mkEnv "testing" "eu-west-3";
   };
+
+  configTest = import ./morph/test.nix;
 in
-envs // { inherit getCreds static; }
+envs // { inherit getCreds static configTest; }

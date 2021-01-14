@@ -20,10 +20,22 @@ locals {
     dns  = "webghc-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
   }
 
+  marloweDashA = {
+    name = "marloweDashA"
+    ip   = "${element(concat(aws_instance.marlowe_dash_a.*.private_ip, list("")), 0)}"
+    dns  = "marlowe-dash-a.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
+  marloweDashB = {
+    name = "marloweDashB"
+    ip   = "${element(concat(aws_instance.marlowe_dash_b.*.private_ip, list("")), 0)}"
+    dns  = "marlowe-dash-b.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+  }
+
   nixops = {
-    name = "nixops"
-    ip   = "${element(concat(aws_instance.nixops.*.private_ip, list("")), 0)}"
-    dns  = "nixops.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
+    name        = "nixops"
+    ip          = "${element(concat(aws_instance.nixops.*.private_ip, list("")), 0)}"
+    dns         = "nixops.${element(concat(aws_route53_zone.plutus_private_zone.*.name, list("")), 0)}"
     externalDns = "${local.monitoring_domain_name}"
   }
 
@@ -34,17 +46,19 @@ locals {
   }
 
   machines = {
-    webghcA       = "${local.webghcA}"
-    webghcB       = "${local.webghcB}"
-    nixops         = "${local.nixops}"
+    webghcA           = "${local.webghcA}"
+    webghcB           = "${local.webghcB}"
+    marloweDashA      = "${local.marloweDashA}"
+    marloweDashB      = "${local.marloweDashB}"
+    nixops            = "${local.nixops}"
     playgroundSshKeys = "${data.template_file.playground_ssh_keys.*.rendered}"
-    rootSshKeys = "${data.template_file.nixops_ssh_keys.*.rendered}"
-    awsRegion      = "${var.aws_region}"
-    environment    = "${var.env}"
-    project        = "${var.project}"
-    tld            = "${var.plutus_tld}"
-    plutusTld     = "${var.plutus_tld}"
-    marloweTld     = "${var.marlowe_tld}"
+    rootSshKeys       = "${data.template_file.nixops_ssh_keys.*.rendered}"
+    awsRegion         = "${var.aws_region}"
+    environment       = "${var.env}"
+    project           = "${var.project}"
+    tld               = "${var.plutus_tld}"
+    plutusTld         = "${var.plutus_tld}"
+    marloweTld        = "${var.marlowe_tld}"
   }
 
   bastionMachines = {

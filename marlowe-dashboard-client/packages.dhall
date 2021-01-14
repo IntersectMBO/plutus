@@ -139,7 +139,7 @@ let additions =
             , "foreign-generic"
             ]
           , repo = "https://github.com/shmish111/purescript-servant-support"
-          , version = "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
+          , version = "1805f896560751c48a04d3e29f9c109df850d8d3"
           }
       , concurrent-queues =
           { dependencies = [ "aff", "avar" ]
