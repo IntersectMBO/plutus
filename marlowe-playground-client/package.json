@@ -7,7 +7,7 @@
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development --host 0.0.0.0 --display verbose",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "spago build",
-    "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/**/*.purs'",
+    "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' './web-common/**/*.purs'",
     "test": "NODE_OPTIONS=\"--max-old-space-size=8192\" webpack --config webpack.test.config.js --mode=development && node --max-old-space-size=8192 dist/test.js",
     "docs": "spago docs",
     "repl": "spago repl"

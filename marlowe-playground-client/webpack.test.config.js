@@ -40,7 +40,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs',
+                                './web-common/**/*.purs',
                                 'test/**/*.purs'
                             ],
                         }
@@ -56,7 +56,7 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules'
+            'node_modules', path.resolve(__dirname, './node_modules')
         ],
         alias: {
             grammar: path.resolve(__dirname, './grammar.ne'),
