@@ -16,9 +16,6 @@ import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
 import MainFrame.Types (Query(..))
 import Marlowe (SPParams_(SPParams_))
-import Router as Router
-import Routing.Duplex as Routing
-import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 
 ajaxSettings :: SPSettings_ SPParams_
@@ -40,9 +37,6 @@ main = do
   runHalogenAff do
     body <- awaitBody
     driver <- runUI mainFrame unit body
-    void $ liftEffect
-      $ matchesWith (Routing.parse Router.route) \old new -> do
-          when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit
