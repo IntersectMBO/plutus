@@ -363,6 +363,7 @@ cradle:
     - path: "marlowe-actus/test"
       component: "marlowe-actus:test:marlowe-actus-test"
 
+    # Marlowe Playground
     - path: "marlowe-playground-server/src"
       component: "lib:marlowe-playground-server"
 
@@ -438,6 +439,24 @@ cradle:
     - path: "marlowe-playground-server/test"
       component: "marlowe-playground-server:test:marlowe-playground-server-test"
 
+    # Marlowe Dashboard
+    - path: "marlowe-dashboard-server/src"
+      component: "lib:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/Main.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/Webserver.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/app/PSGenerator.hs"
+      component: "marlowe-dashboard-server:exe:marlowe-dashboard-server"
+
+    - path: "marlowe-dashboard-server/test"
+      component: "marlowe-dashboard-server:test:marlowe-dashboard-server-test"
+
+
+    # Marlowe Symbolic
     - path: "marlowe-symbolic/src"
       component: "lib:marlowe-symbolic"
 

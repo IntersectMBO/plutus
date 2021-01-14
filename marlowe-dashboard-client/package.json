@@ -1,0 +1,33 @@
+{
+  "name": "marlowe-playground-client",
+  "version": "1.0.0",
+  "scripts": {
+    "webpack": "NODE_OPTIONS=\"--max-old-space-size=8192\" DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
+    "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
+    "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development --host 0.0.0.0 --display verbose",
+    "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
+    "purs:compile": "spago build",
+    "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/**/*.purs'",
+    "test": "NODE_OPTIONS=\"--max-old-space-size=8192\" webpack --config webpack.test.config.js --mode=development && node --max-old-space-size=8192 dist/test.js",
+    "docs": "spago docs",
+    "repl": "spago repl"
+  },
+  "dependencies": {},
+  "resolutions": {},
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "css-loader": "^1.0.0",
+    "file-loader": "^2.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.12.0",
+    "purs-loader": "^3.6.0",
+    "raw-loader": "^4.0.1",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10",
+    "webpack-node-externals": "^1.7.2"
+  }
+}

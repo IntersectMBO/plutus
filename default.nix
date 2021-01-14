@@ -60,6 +60,13 @@ rec {
     }) client server-invoker generated-purescript generate-purescript;
   };
 
+  marlowe-dashboard = pkgs.recurseIntoAttrs rec {
+    inherit (pkgs.callPackage ./marlowe-dashboard-client {
+      inherit (plutus.lib) buildPursPackage buildNodeModules;
+      inherit set-git-rev haskell webCommon;
+    }) client server-invoker generated-purescript;
+  };
+
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {
     inherit (haskell.muslProject) ghcWithPackages;
   };
