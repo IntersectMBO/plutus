@@ -20,7 +20,6 @@ import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Debug.Trace (spy)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
@@ -657,14 +656,24 @@ handleGistAction settings PublishGist = do
     -- playground is a meta-data file that we currently just use as a tag to check if a gist is a marlowe playground gist
     playground = "{}"
   workflow <- use _workflow
-  marlowe <- if workflow /= Just Marlowe then pure Nothing else pruneEmpty <$> MarloweEditor.editorGetValue
-  blockly <- if workflow /= Just Blockly then pure Nothing else pruneEmpty <$> BlocklyEditor.editorGetValue
-  haskell <- if workflow /= Just Haskell then pure Nothing else pruneEmpty <$> HaskellEditor.editorGetValue
-  javascript <- if workflow /= Just Javascript then pure Nothing else pruneEmpty <$> (toJavascriptEditor JavascriptEditor.editorGetValue)
-  actus <- if workflow /= Just Actus then pure Nothing else pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
+  files <- case workflow of
+    Just Marlowe -> do
+      marlowe <- pruneEmpty <$> MarloweEditor.editorGetValue
+      pure $ mempty { marlowe }
+    Just Blockly -> do
+      blockly <- pruneEmpty <$> BlocklyEditor.editorGetValue
+      pure $ mempty { blockly }
+    Just Haskell -> do
+      haskell <- pruneEmpty <$> HaskellEditor.editorGetValue
+      pure $ mempty { haskell }
+    Just Javascript -> do
+      javascript <- pruneEmpty <$> toJavascriptEditor JavascriptEditor.editorGetValue
+      pure $ mempty { javascript }
+    Just Actus -> do
+      actus <- pruneEmpty <$> query _actusBlocklySlot unit (H.request ActusBlockly.GetWorkspace)
+      pure $ mempty { actus }
+    Nothing -> mempty
   let
-    files = { playground, marlowe, haskell, javascript, actus, blockly }
-
     newGist = mkNewGist description files
   void
     $ runMaybeT do
