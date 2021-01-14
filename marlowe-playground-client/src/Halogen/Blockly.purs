@@ -27,7 +27,6 @@ import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
-import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
 type State
@@ -73,9 +72,7 @@ type DSL slots m a
 
 blockly ::
   forall m.
-  Warn (Text "SCP-1646 Separate this file into BlocklyEditor.Types BlocklyEditor.View and BlocklyEditor.State") =>
-  MonadAff
-    m =>
+  MonadAff m =>
   String ->
   Array BlockDefinition ->
   Component HTML Query Unit Message m
@@ -112,7 +109,7 @@ handleQuery (SetCode code next) = do
     Just blocklyState -> do
       assign _useEvents false
       let
-        contract = case Parser.parseContract code of
+        contract = case Parser.parseContract (Text.stripParens code) of
           Right c -> c
           Left _ -> Hole blocklyState.rootBlockName Proxy zero
       pure $ ST.run (buildBlocks newBlock blocklyState contract)
@@ -141,7 +138,7 @@ handleQuery (LoadWorkspace xml next) = do
   pure $ Just next
 
 handleQuery (GetCode next) = do
-  res <-
+  eCode <-
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
@@ -150,15 +147,14 @@ handleQuery (GetCode next) = do
 
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap unexpected $ blockToCode block generator
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
-  case res of
+      except <<< lmap unexpected $ blockToCode block generator
+  case eCode of
     Left e -> do
       assign _errorMessage $ Just e
       pure Nothing
-    Right contract -> do
+    Right code -> do
       assign _errorMessage Nothing
-      pure $ Just $ next $ show $ pretty contract
+      pure <<< Just <<< next $ code
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
@@ -196,7 +192,7 @@ handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: forall p. State -> HTML p Action
+render :: forall r p action. { errorMessage :: Maybe String | r } -> HTML p action
 render state =
   div []
     [ div

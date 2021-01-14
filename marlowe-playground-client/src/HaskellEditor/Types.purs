@@ -22,9 +22,6 @@ data Action
   | HandleEditorMessage Monaco.Message
   | ShowBottomPanel Boolean
   | SendResultToSimulator
-  -- FIXME: I think we want to change this action to be called from the simulator
-  --        with the action "soon to be implemented" ViewAsBlockly
-  | SendResultToBlockly
   | InitHaskellProject String
 
 defaultEvent :: String -> Event
@@ -36,7 +33,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
-  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
 
 type State

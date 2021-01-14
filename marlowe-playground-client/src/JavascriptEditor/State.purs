@@ -118,15 +118,6 @@ handleAction _ (ShowBottomPanel val) = do
 
 handleAction _ SendResultToSimulator = pure unit
 
-handleAction _ SendResultToBlockly = do
-  mContract <- use _compilationResult
-  case mContract of
-    CompiledSuccessfully result -> do
-      let
-        source = view (_result <<< to show) result
-      void $ query _blocklySlot unit (Blockly.SetCode source unit)
-    _ -> pure unit
-
 handleAction _ (InitJavascriptProject prunedContent) = do
   editorSetValue prunedContent
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent

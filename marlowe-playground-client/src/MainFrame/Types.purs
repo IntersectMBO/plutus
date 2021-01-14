@@ -3,6 +3,7 @@ module MainFrame.Types where
 import Prelude hiding (div)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Auth (AuthStatus)
+import BlocklyEditor.Types as BE
 import ConfirmUnsavedNavigation.Types as ConfirmUnsavedNavigation
 import Data.Either (Either)
 import Data.Generic.Rep (class Generic)
@@ -24,8 +25,8 @@ import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import JavascriptEditor.Types (CompilationState)
 import JavascriptEditor.Types as JS
-import Network.RemoteData (_Loading)
 import MarloweEditor.Types as ME
+import Network.RemoteData (_Loading)
 import NewProject.Types as NewProject
 import Projects.Types (Lang(..))
 import Projects.Types as Projects
@@ -70,14 +71,13 @@ data Action
   | HandleKey H.SubscriptionId KeyboardEvent
   | HaskellAction HE.Action
   | SimulationAction Simulation.Action
-  | BlocklyEditorAction BlocklySubAction
+  | BlocklyEditorAction BE.Action
   | MarloweEditorAction ME.Action
   | JavascriptAction JS.Action
   | ShowBottomPanel Boolean
   | ChangeView View
   | ConfirmUnsavedNavigationAction Action ConfirmUnsavedNavigation.Action
   -- blockly
-  | HandleBlocklyMessage Blockly.Message
   | HandleActusBlocklyMessage AB.Message
   -- Wallet Actions
   | HandleWalletMessage Wallet.Message
@@ -106,7 +106,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (MarloweEditorAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
-  toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
   toEvent (ProjectsAction action) = toEvent action
@@ -121,17 +120,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent CloseModal = Just $ defaultEvent "CloseModal"
   toEvent (ChangeProjectName _) = Just $ defaultEvent "ChangeProjectName"
   toEvent (OpenLoginPopup _) = Just $ defaultEvent "OpenLoginPopup"
-
--- TODO: When we change Blockly into a submodule (SCP-1646) this is going to be part of the actions it provides
---       at the moment I put this to refactor "SendBlocklyToSimulator" into SendToSimulator and to
---       add another action
-data BlocklySubAction
-  = SendToSimulator
-  | ViewAsMarlowe
-
-instance blocklyActionIsEvent :: IsEvent BlocklySubAction where
-  toEvent SendToSimulator = Just $ (defaultEvent "SendToSimulator") { category = Just "Blockly" }
-  toEvent ViewAsMarlowe = Just $ (defaultEvent "ViewAsMarlowe") { category = Just "Blockly" }
 
 data View
   = HomePage
@@ -197,6 +185,7 @@ type State
     -- TODO: rename to javascriptEditorState
     , javascriptState :: JS.State
     , marloweEditorState :: ME.State
+    , blocklyEditorState :: BE.State
     , simulationState :: Simulation.State
     , projects :: Projects.State
     , newProject :: NewProject.State
@@ -234,6 +223,9 @@ _showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 _marloweEditorState :: Lens' State ME.State
 _marloweEditorState = prop (SProxy :: SProxy "marloweEditorState")
+
+_blocklyEditorState :: Lens' State BE.State
+_blocklyEditorState = prop (SProxy :: SProxy "blocklyEditorState")
 
 _haskellState :: Lens' State HE.State
 _haskellState = prop (SProxy :: SProxy "haskellState")
