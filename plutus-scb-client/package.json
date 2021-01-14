@@ -7,7 +7,7 @@
         "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
         "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
         "purs:compile": "spago build",
-        "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/**/*.purs'",
+        "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' 'web-common/**/*.purs'",
         "test": "spago --no-psa test",
         "test:watch": "spago test --no-psa --watch",
         "docs": "spago docs",

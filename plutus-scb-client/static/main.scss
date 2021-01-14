@@ -13,8 +13,8 @@ $nav-link-hover: $white;
 $nav-link-border-radius: 3px;
 $clipboard-button-color: $white;
 
-@import '../../web-common/static/common.scss';
-@import '../../web-common/static/chain.scss';
+@import '../web-common/static/common.scss';
+@import '../web-common/static/chain.scss';
 @include chain (
     $balances-table-background-color: $gray-800,
     $balances-table-border-color: $gray-700,

@@ -36,10 +36,10 @@ stdenv.mkDerivation {
     shopt -s globstar
     ln -s ${nodeModules}/node_modules node_modules
     ln -s ${psSrc} generated
-    ln -s ${webCommon} ../web-common
+    ln -sf ${webCommon} web-common
 
     sh ${spagoPackages.installSpagoStyle}
-    sh ${spagoPackages.buildSpagoStyle} src/**/*.purs test/**/*.purs generated/**/*.purs ../web-common/**/*.purs
+    sh ${spagoPackages.buildSpagoStyle} src/**/*.purs test/**/*.purs generated/**/*.purs web-common/**/*.purs
     ${nodejs}/bin/npm run webpack
   '';
   doCheck = true;
