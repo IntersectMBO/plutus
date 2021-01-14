@@ -57,6 +57,32 @@ let
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
+  plutus-playground-generate-purs = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
+    rm -rf ./generated
+    ${plutus-playground.server-invoker}/bin/plutus-playground psgenerator generated
+  '';
+  plutus-playground-server = pkgs.writeShellScriptBin "plutus-playground-server" ''
+    ${plutus-playground.server-invoker}/bin/plutus-playground webserver
+  '';
+  marlowe-playground-generate-purs = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
+    rm -rf ./generated
+    ${marlowe-playground.server-invoker}/bin/marlowe-playground psgenerator generated
+  '';
+  marlowe-playground-server = pkgs.writeShellScriptBin "marlowe-playground-server" ''
+    ${marlowe-playground.server-invoker}/bin/marlowe-playground webserver
+  '';
+  plutus-scb-generate-purs = pkgs.writeShellScriptBin "plutus-scb-generate-purs" ''
+    rm -rf ./generated
+    cp ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
+    ${plutus-scb.server-invoker}/bin/plutus-scb psgenerator generated
+  '';
+  plutus-scb-server = pkgs.writeShellScriptBin "plutus-scb-server" ''
+    rm -rf ./generated
+    cp ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
+    ${plutus-scb.server-invoker}/bin/plutus-scb webserver
+  '';
+
+
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
     cabal-install
@@ -66,6 +92,12 @@ let
     hie-bios
     gen-hie
     hlint
+    marlowe-playground-generate-purs
+    marlowe-playground-server
+    plutus-scb-generate-purs
+    plutus-scb-server
+    plutus-playground-generate-purs
+    plutus-playground-server
     purs
     purty
     spago
