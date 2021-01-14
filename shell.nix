@@ -62,6 +62,8 @@ let
     ${plutus-playground.server-invoker}/bin/plutus-playground psgenerator generated
   '';
   plutus-playground-server = pkgs.writeShellScriptBin "plutus-playground-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
     ${plutus-playground.server-invoker}/bin/plutus-playground webserver
   '';
   marlowe-playground-generate-purs = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
@@ -69,6 +71,7 @@ let
     ${marlowe-playground.server-invoker}/bin/marlowe-playground psgenerator generated
   '';
   marlowe-playground-server = pkgs.writeShellScriptBin "marlowe-playground-server" ''
+    export FRONTEND_URL=https://localhost:8009
     ${marlowe-playground.server-invoker}/bin/marlowe-playground webserver
   '';
   plutus-scb-generate-purs = pkgs.writeShellScriptBin "plutus-scb-generate-purs" ''
@@ -77,6 +80,8 @@ let
     ${plutus-scb.server-invoker}/bin/plutus-scb psgenerator generated
   '';
   plutus-scb-server = pkgs.writeShellScriptBin "plutus-scb-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
     rm -rf ./generated
     cp ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
     ${plutus-scb.server-invoker}/bin/plutus-scb webserver

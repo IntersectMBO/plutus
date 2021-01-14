@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "webpack": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
-    "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
+    "prewebpack:server": "npm run purs:compile",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "spago build",
+    "prepurs:compile": "npm install && plutus-playground-generate-purs",
     "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' 'web-common/**/*.purs'",
     "test": "spago --no-psa test",
     "test:watch": "spago test --no-psa --watch",
