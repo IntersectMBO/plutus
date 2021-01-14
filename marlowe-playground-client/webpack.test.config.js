@@ -40,7 +40,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                './web-common/**/*.purs',
+                                'web-common/**/*.purs',
                                 'test/**/*.purs'
                             ],
                         }
