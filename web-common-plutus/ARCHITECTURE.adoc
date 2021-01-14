@@ -1,0 +1,3 @@
+=== `web-common-plutus`
+
+This contains frontend code that is shared between plutus frontend projects.

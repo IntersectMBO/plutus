@@ -38,6 +38,8 @@ rec {
     plutus-pay-to-wallet;
 
   webCommon = pkgs.callPackage ./web-common { };
+  webCommonPlutus = pkgs.callPackage ./web-common-plutus { };
+  webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
