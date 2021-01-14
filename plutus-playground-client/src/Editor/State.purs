@@ -17,6 +17,7 @@ import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
 import Prelude (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
 import Types (ChildSlots, _editorSlot)
 import Web.Event.Extra (preventDefault, readFileFromDragEvent)
+import Web.UIEvent.MouseEvent (pageY)
 
 initialState :: forall m. MonadEffect m => m State
 initialState =
@@ -74,7 +75,9 @@ handleAction bufferLocalStorageKey (HandleDropEvent event) = do
   void $ query _editorSlot unit $ tell $ Monaco.SetPosition { column: 1, lineNumber: 1 }
   saveBuffer bufferLocalStorageKey contents
 
-handleAction _ (SetFeedbackPaneDragStart feedbackPaneDragStart) = assign _feedbackPaneDragStart feedbackPaneDragStart
+handleAction _ (SetFeedbackPaneDragStart event) = do
+  liftEffect $ preventDefault event
+  assign _feedbackPaneDragStart $ Just $ pageY event
 
 handleAction _ ClearFeedbackPaneDragStart = do
   feedbackPaneExtend <- use _feedbackPaneExtend

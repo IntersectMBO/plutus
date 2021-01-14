@@ -85,7 +85,7 @@ editorPane initialContents bufferLocalStorageKey editorState@(State { keyBinding
     [ class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
     , onDrop $ Just <<< HandleDropEvent
-    -- This is not the natural place to have these handlers. But see note [1] below.
+    -- This is not the natural place to have these listeners. But see note [1] below.
     , onMouseMove feedbackPaneResizeMouseMoveHandler
     , onMouseUp feedbackPaneResizeMouseUpHandler
     ]
@@ -104,7 +104,7 @@ editorFeedback :: forall p. State -> WebCompilationResult -> HTML p Action
 editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneExtend, feedbackPaneMinimised }) compilationResult =
   div
     [ class_ $ ClassName "editor-feedback-container"
-    -- This is also not the natural place to have these handlers. But see note [1] below.
+    -- This is also not the natural place to have these listeners. But see note [1] below.
     , onMouseMove feedbackPaneResizeMouseMoveHandler
     , onMouseUp feedbackPaneResizeMouseUpHandler
     ]
@@ -112,7 +112,7 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneExtend, f
         [ classes feedbackPaneClasses ]
         [ div
             [ class_ $ ClassName "editor-feedback-resize-bar"
-            , onMouseDown $ \event -> Just $ SetFeedbackPaneDragStart $ Just $ pageY event
+            , onMouseDown $ \event -> Just $ SetFeedbackPaneDragStart event
             -- Note [1]: This is the natural place to have these listeners. But because the mouse
             -- can - and probably will - move faster than this resize bar, they also need to be on
             -- the editor pane (to catch when the mouse moves up faster), and on the feedback

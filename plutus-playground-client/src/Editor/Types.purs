@@ -14,6 +14,7 @@ import LocalStorage (Key(..))
 import Monaco (IPosition)
 import Prelude (bottom, top, (<<<))
 import Web.HTML.Event.DragEvent (DragEvent)
+import Web.UIEvent.MouseEvent (MouseEvent)
 
 data Action
   = Init
@@ -23,7 +24,7 @@ data Action
   | ScrollTo IPosition
   | SetKeyBindings KeyBindings
   | ToggleFeedbackPane
-  | SetFeedbackPaneDragStart (Maybe Int)
+  | SetFeedbackPaneDragStart MouseEvent
   | ClearFeedbackPaneDragStart
   | FixFeedbackPaneExtend Int
 

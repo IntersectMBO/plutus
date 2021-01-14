@@ -81,6 +81,10 @@
         &.minimised {
             height: $feedback-header-height + 1px; // +1 for the border
             overflow: hidden;
+
+            .editor-feedback-resize-bar {
+                height: 0;
+            }
         }
 
         a, a:hover {
