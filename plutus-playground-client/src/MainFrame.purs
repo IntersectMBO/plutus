@@ -81,7 +81,7 @@ mkSimulatorWallet currencies walletId =
     , simulatorWalletBalance: mkInitialValue currencies (BigInteger.fromInt 10)
     }
 
-mkSimulation :: Array KnownCurrency -> String -> Simulation
+mkSimulation :: Array KnownCurrency -> Int -> Simulation
 mkSimulation simulationCurrencies simulationIndex =
   Simulation
     { simulationName: "Simulation " <> show simulationIndex
