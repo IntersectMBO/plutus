@@ -1,8 +1,8 @@
-\begin{code}
+```
 open import Builtin.Constant.Type
-\end{code}
+```
 
-\begin{code}
+```
 module Builtin.Constant.Term
   (Ctx⋆ Kind : Set)
   (* : Kind)
@@ -10,15 +10,17 @@ module Builtin.Constant.Term
   (con : ∀{φ} → TyCon → φ ⊢⋆ *)
   where
 
+open import Builtin
+
 open import Data.Integer
 open import Data.String
 open import Data.Char
 open import Data.Bool
-\end{code}
+```
 
 ## Term Constants
 
-\begin{code}
+```
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
   integer    :
       (i : ℤ)
@@ -36,4 +38,4 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
       (c : Char)
     → TermCon (con char)
   unit       : TermCon (con unit)
-\end{code}
+```

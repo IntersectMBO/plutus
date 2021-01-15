@@ -71,7 +71,7 @@ import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
   as NSig
-open import Builtin
+open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 

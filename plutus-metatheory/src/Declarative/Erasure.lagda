@@ -13,7 +13,7 @@ open import Untyped.RenamingSubstitution as U
 \begin{code}
 open import Type
 open import Declarative
-open import Builtin
+open import Builtin hiding (length)
 open import Utils
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con

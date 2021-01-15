@@ -1,4 +1,15 @@
-\begin{code}
+---
+title: Builtin Operations Signatures
+layout: page
+---
+
+This module gives a parameterised implementation of signatures of
+builtin operations. It was used in an earlier version of builtins. It
+is not used at the moment. Using it for interleaved builtins would
+require even more parameters. It is not yet clear if this would be a
+win.
+
+```
 open import Builtin.Constant.Type
 open import Data.Nat
 
@@ -14,19 +25,19 @@ module Builtin.Signature
   (` : ∀ {Φ J} → Φ ∋⋆ J → Φ ⊢⋆ J)
   (con : ∀{φ} → TyCon → φ ⊢⋆ *)
   where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 
 open import Data.List
 open import Data.Product renaming (_,_ to _,,_)
 
 open import Builtin
-\end{code}
+```
 
-\begin{code}
+```
 
 Sig : Ctx⋆ → Set
 Sig Δ = List (Δ ⊢⋆ *) × Δ ⊢⋆ *
@@ -163,5 +174,4 @@ SIG trace =
   con string ∷ []
   ,,
   con unit
-
-\end{code}
+```

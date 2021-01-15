@@ -12,7 +12,7 @@ open import Type.BetaNBE.Completeness
 open import Type
 open import Type.BetaNBE.RenamingSubstitution
 open import Function hiding (_∋_)
-open import Builtin
+open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con as DS

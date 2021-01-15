@@ -6,8 +6,7 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
-open import Builtin.Constant.Type hiding (length)
-
+open import Builtin.Constant.Type using (_>?_)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step)
