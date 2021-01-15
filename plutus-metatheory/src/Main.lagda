@@ -20,7 +20,7 @@ open import Data.Vec hiding (_>>=_;_++_)
 open import Data.List hiding (_++_)
 
 open import Type
-open import Builtin
+open import Builtin hiding (ByteString)
 open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
@@ -62,13 +62,14 @@ instance
 -- Bytestring stuff
 
 postulate
+  ByteString : Set
   getContents : IO ByteString
   readFile : String → IO ByteString
 
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
----{-# COMPILE GHC ByteString = type BS.ByteString #-}
-{-# COMPILE GHC readFile = \ s -> BS.readFile (T.unpack s) #-}
-{-# COMPILE GHC getContents = BS.getContents #-}
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC ByteString = type BSL.ByteString #-}
+{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
+{-# COMPILE GHC getContents = BSL.getContents #-}
 
 -- System.Exit stuff
 

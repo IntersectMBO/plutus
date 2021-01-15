@@ -54,24 +54,26 @@ module Builtins where
 
 ### Scott Numerals
 
-From http://lucacardelli.name/Papers/Notes/scott2.pdf
+From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
 
-M = μ X . G X
-G X = ∀ R. R → (X → R) → R)
-μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
-N = G M
-in  : N → M
-out : M → N
+```
+{-
+    M = μ X . G X
+    G X = ∀ R. R → (X → R) → R)
+    μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
+    N = G M
+    in  : N → M
+    out : M → N
+    
+    0    = Λ R . λ x : R . λ y : M → R . x
+         : N
+    succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
+         : N → N
+    case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+         : N → ∀ R . R → (N → R) → R
+-}
 
-0    = Λ R . λ x : R . λ y : M → R . x
-     : N
-succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
-     : N → N
-case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
-     : N → ∀ R . R → (N → R) → R
-
-
--- v version with evaluation contexts
+```
 
 ```
 {-
@@ -138,7 +140,8 @@ module ScottE where
 -}
 ```
 
-
+```
+{-
 eval (gas 10000000) Scott.Four
 
 (done
@@ -179,7 +182,8 @@ eval (gas 10000000) Scott.Two
          wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
          (Λ (ƛ (ƛ (` (S Z)))))))))))))
  .Term.Reduction.Value.V-Λ_)
-
+-}
+```
 
 
 ```
@@ -215,7 +219,6 @@ module Scott1 where
   TwoPlusTwo = (Plus · Two) · Two
 ```
 
-
 ### Church Numerals
 
 ```
@@ -246,6 +249,8 @@ module Church where
 --open Church public
 ```
 
+```
+{-
 -- Church "4"
 eval (gas 100000000) Four
 (done
@@ -338,3 +343,5 @@ eval (gas 10000000) (Two ·⋆ N · Two · Succ)
        · (` (S Z)))
       · (` Z))))))
  V-Λ_)
+-}
+```
