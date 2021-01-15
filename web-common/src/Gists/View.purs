@@ -118,7 +118,7 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
         , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
-        [ text "Republish" ]
+        [ text "Save" ]
     Loading ->
       -- make the button extra wide in this case, because there's no load button
       button
@@ -133,7 +133,7 @@ gistControls { authStatus, createGistResult, gistErrorPaneVisible, gistUrl } =
         , classes [ btn, btnSmall, btnSecondary ]
         , onClick $ const $ Just PublishGist
         ]
-        [ text "Publish" ]
+        [ text "Save" ]
 
   loadButton = case createGistResult of
     -- no load button in this case; publish button should be twice the size
