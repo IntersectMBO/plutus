@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules }:
 let
   server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
 
@@ -16,16 +16,20 @@ let
 
   client =
     buildPursPackage {
-      inherit webCommon nodeModules;
+      inherit pkgs nodeModules;
       src = ./.;
       name = "plutus-scb-client";
+      extraSrcs = {
+        web-common = webCommon;
+        web-common-plutus = webCommonPlutus;
+        generated = generated-purescript;
+      };
       # ideally we would just use `npm run test` but
       # this executes `spago` which *always* attempts to download
       # remote files (which obviously fails in sandboxed builds)
       checkPhase = ''
         node -e 'require("./output/Test.Main").main()'
       '';
-      psSrc = generated-purescript;
       packages = pkgs.callPackage ./packages.nix { };
       spagoPackages = pkgs.callPackage ./spago-packages.nix { };
     };

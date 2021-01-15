@@ -74,7 +74,7 @@ rec {
 
   plutus-scb = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-scb-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules;
-    inherit set-git-rev haskell webCommon;
+    inherit set-git-rev haskell webCommon webCommonPlutus;
   });
 
   tests = import ./nix/tests/default.nix {
