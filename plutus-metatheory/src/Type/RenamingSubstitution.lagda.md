@@ -377,6 +377,17 @@ ren-μ ρ⋆ A B = cong
   (trans (sym (ren-comp A)) (ren-comp A))
 ```
 
+A useful lemma for fixing up the types when renaming a type application
+
+
+```
+ren-Π : ∀(A : Φ ⊢⋆ K)(B : Φ ,⋆ K ⊢⋆ J)(ρ : Ren Φ Ψ)
+      → ren (ext ρ) B [ ren ρ A ] ≡ ren ρ (B [ A ])
+ren-Π A B ρ =
+  trans (sym (sub-ren B)) (trans (sub-cong (ren-sub-cons ρ A) B) (ren-sub B))
+
+```
+
 A useful lemma for fixing up the types when substituting into a `wrap`
 or `unwrap`
 
@@ -391,4 +402,13 @@ sub-μ : (σ⋆ : Sub Φ Ψ)
 sub-μ σ⋆ A B = cong
   (λ X → sub σ⋆ A · ƛ (μ X (` Z)) · sub σ⋆ B)
   (trans (sym (sub-ren A)) (ren-sub A))
+```
+
+A useful lemma when substituting into a type application
+
+```
+sub-Π : ∀(A : Φ ⊢⋆ K)(B : Φ ,⋆ K ⊢⋆ J)(σ : Sub Φ Ψ)
+      → sub (exts σ) B [ sub σ A ] ≡ sub σ (B [ A ])
+sub-Π A B σ =
+  trans (sym (sub-comp B)) (trans (sub-cong (sub-sub-cons σ A) B) (sub-comp B))
 ```

@@ -33,7 +33,7 @@ open import Data.List hiding ([_]; length; take; drop)
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
 open import Data.Sum
-open import Function hiding (_∋_)
+open import Function hiding (_∋_;typeOf)
 import Data.Bool as Bool
 open import Data.String
 ```
@@ -225,4 +225,23 @@ conv⊢ : Γ ≡ Δ
       → Γ ⊢ A
       → Δ ⊢ B
 conv⊢ refl refl t = t
+```
+
+getting the type of a term, a var, and the pieces of πs and μs
+
+```
+typeOf : ∀{Γ : Ctx Φ} → Γ ⊢ A → Φ ⊢⋆ *
+typeOf {A = A} _ = A
+
+typeOf∋ : ∀{Γ : Ctx Φ} → Γ ∋ A → Φ ⊢⋆ *
+typeOf∋ {A = A} _ = A
+
+piBody : {A : Φ ,⋆ K ⊢⋆ *} → Γ ⊢ Π A → Φ ,⋆ K ⊢⋆ *
+piBody {A = A} _ = A
+
+muPat : {A : Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *} → Γ ⊢ μ A B → Φ ⊢⋆ (K ⇒ *) ⇒ K ⇒ *
+muPat {A = A} _ = A
+
+muArg : {B : Φ ⊢⋆ K} → Γ ⊢ μ A B → Φ ⊢⋆ K
+muArg {B = B} _ = B
 ```

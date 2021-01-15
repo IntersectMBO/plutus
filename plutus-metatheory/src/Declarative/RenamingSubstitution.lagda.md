@@ -34,8 +34,8 @@ variable in context `Δ`. It is indexed by a type renaming which does
 the same thing for type variables.
 
 ```
-Ren : ∀ {Φ Ψ}(Γ : Ctx Φ)(Δ : Ctx Ψ) → ⋆.Ren Φ Ψ → Set
-Ren {Φ} Γ Δ ρ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ∋ ⋆.ren ρ A
+Ren : ∀ Γ Δ → ⋆.Ren Φ Ψ → Set
+Ren Γ Δ ρ = ∀{A} → Γ ∋ A → Δ ∋ ⋆.ren ρ A
 ```
 
 Extending a renaming to work on longer context extended by an
@@ -43,12 +43,11 @@ additional variable - used when going under a binder. It maps the new
 variable `Z` to `Z` and shift everything else along.
 
 ```
-ext : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ⋆.Ren Φ Ψ)
-  → Ren Γ Δ ρ⋆
-  → {B : Φ ⊢⋆ *}
-    ----------------------------------
-  → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
+ext : (ρ⋆ : ⋆.Ren Φ Ψ)
+    → Ren Γ Δ ρ⋆
+    → ∀{B}
+      -------------------------------
+    → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
 ext _ ρ Z     = Z 
 ext _ ρ (S x) = S (ρ x)
 ```
@@ -59,13 +58,12 @@ actually change any term variables, it is a case of managing the type
 information.
 
 ```
-ext⋆ : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ⋆.Ren Φ Ψ)
-  → Ren Γ Δ ρ⋆
-  →  ∀ {K}
-    --------------------------------
-  → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
-ext⋆ ρ⋆ ρ (T x) = conv∋
+ext⋆ : (ρ⋆ : ⋆.Ren Φ Ψ)
+     → Ren Γ Δ ρ⋆
+     → ∀ {K}
+       --------------------------------
+     → Ren (Γ ,⋆ K) (Δ ,⋆ K) (⋆.ext ρ⋆)
+ext⋆ _ ρ (T x) = conv∋
   refl
   (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
   (T (ρ x))
@@ -74,49 +72,34 @@ ext⋆ ρ⋆ ρ (T x) = conv∋
 Renaming a term constant
 
 ```
-renTermCon : ∀ {Φ Ψ}
-  → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
-    -----------------------------------------------------
-  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
-renTermCon ρ⋆ (integer i)    = integer i
-renTermCon ρ⋆ (bytestring b) = bytestring b
-renTermCon ρ⋆ (string s)     = string s
-renTermCon ρ⋆ (bool b)       = bool b
-renTermCon ρ⋆ (char c)       = char c
-renTermCon ρ⋆ unit           = unit
+renTermCon : (ρ⋆ : ⋆.Ren Φ Ψ)
+             ------------------------------------------
+           → (∀{A} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
+renTermCon _ (integer i)    = integer i
+renTermCon _ (bytestring b) = bytestring b
+renTermCon _ (string s)     = string s
+renTermCon _ (bool b)       = bool b
+renTermCon _ (char c)       = char c
+renTermCon _ unit           = unit
 
 ```
 
 Renaming for terms
 
 ```
-ren : ∀ {Φ Ψ Γ Δ}
-  → (ρ⋆ : ⋆.Ren Φ Ψ)
-  → Ren Γ Δ ρ⋆
-    ------------------------
-  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.ren ρ⋆ A)
-ren _ ρ (` x)    = ` (ρ x)
-ren _ ρ (ƛ N)    = ƛ (ren _ (ext _ ρ) N)
-ren _ ρ (L · M)  = ren _ ρ L · ren _ ρ M 
-ren _ ρ (Λ N)    = Λ (ren _ (ext⋆ _ ρ) N )
-ren {Δ = Δ} ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
-  refl
-  (trans (sym (⋆.sub-ren B))
-         (trans (⋆.sub-cong (⋆.ren-sub-cons ρ⋆ A) B)
-                (⋆.ren-sub B)))
-  (_·⋆_ (ren _ ρ t) (⋆.ren ρ⋆ A))
-ren _ ρ (wrap A B t) = wrap
-  _
-  _
-  (conv⊢
-    refl
-    (⋆.ren-μ _ A B)
-    (ren _ ρ t))
-ren _ ρ (unwrap t) = conv⊢
-  refl
-  (sym (⋆.ren-μ _ _ _))
-  (unwrap (ren _ ρ t))
-ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
+ren : (ρ⋆ : ⋆.Ren Φ Ψ)
+    → Ren Γ Δ ρ⋆
+      -------------------------------
+    → (∀{A} → Γ ⊢ A → Δ ⊢ ⋆.ren ρ⋆ A)
+ren _ ρ (` x) = ` (ρ x)
+ren _ ρ (ƛ L) = ƛ (ren _ (ext _ ρ) L)
+ren _ ρ (L · M) = ren _ ρ L · ren _ ρ M 
+ren _ ρ (Λ L) = Λ (ren _ (ext⋆ _ ρ) L)
+ren ρ⋆ ρ (L ·⋆ A) =
+  conv⊢ refl (⋆.ren-Π A (piBody L) ρ⋆) (ren _ ρ L ·⋆ ⋆.ren ρ⋆ A)
+ren _ ρ (wrap A B L) = wrap _ _ (conv⊢ refl (⋆.ren-μ _ A B) (ren _ ρ L))
+ren _ ρ (unwrap L) = conv⊢ refl (sym (⋆.ren-μ _ _ _)) (unwrap (ren _ ρ L))
+ren _ ρ (conv p L) = conv (ren≡β _ p) (ren _ ρ L)
 ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
 ren ρ⋆ _ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
 ren _ _ (error A) = error (⋆.ren _ A)
@@ -125,21 +108,19 @@ ren _ _ (error A) = error (⋆.ren _ A)
 Weakening a term by an additional type variable
 
 ```
-weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
-  → Γ ⊢ A
-    ---------
-  → Γ , B ⊢ A
-weaken {Γ = Γ}{A}{B} x = conv⊢
+weaken : Γ ⊢ A
+         ---------
+       → Γ , B ⊢ A
+weaken x = conv⊢
   refl
-  (⋆.ren-id A)
-  (ren _ (λ y → conv∋ refl (sym (⋆.ren-id _)) (S y)) x)
+  (⋆.ren-id _)
+  (ren _ (conv∋ refl (sym (⋆.ren-id _)) ∘ S) x)
 ```
 
 ```
-weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
-  → Γ ⊢ A
-    -------------------
-  → Γ ,⋆ K ⊢ ⋆.weaken A
+weaken⋆ : Γ ⊢ A
+          -------------------
+        → Γ ,⋆ K ⊢ ⋆.weaken A
 weaken⋆ x = ren _ T x
 ```
 
@@ -149,21 +130,19 @@ A substitution maps term variables to terms. It is indexed by a type
 substitution.
 
 ```
-Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
-Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ A
+Sub : ∀ Γ Δ → ⋆.Sub Φ Ψ → Set
+Sub Γ Δ σ = ∀{A} → Γ ∋ A → Δ ⊢ ⋆.sub σ A
 ```
 
-Extend a substitution by an additional term variable. Used for going under binders.
+Extend a substitution by an additional term variable. Used for going
+under binders.
 
 ```
-exts : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → ({A :  Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
-    ---------------------------------------------------
-  → ({A B : Φ ⊢⋆ *}
-     → Γ , B ∋ A
-     -------------------------------
-     → Δ , ⋆.sub σ⋆ B ⊢ ⋆.sub σ⋆ A)
+exts : (σ⋆ : ⋆.Sub Φ Ψ)
+     → Sub Γ Δ σ⋆
+     → ∀ {B}
+       -------------------------------
+     → Sub (Γ , B) (Δ , ⋆.sub σ⋆ B) σ⋆
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
 ```
@@ -172,15 +151,12 @@ Extend a substitution by an additional type variable. Used for going
 under type binders.
 
 ```
-exts⋆ : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
-    ---------------------------------------------------
-  → (∀ {K}{A : Φ ,⋆ K ⊢⋆ *}
-     → Γ ,⋆ K ∋ A 
-       -------------------------------
-     → Δ ,⋆ K ⊢ ⋆.sub (⋆.exts σ⋆) A )
-exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) = conv⊢
+exts⋆ : (σ⋆ : ⋆.Sub Φ Ψ)
+      → Sub Γ Δ σ⋆
+      → ∀{K}
+        ---------------------------------
+      → Sub (Γ ,⋆ K) (Δ ,⋆ K) (⋆.exts σ⋆) 
+exts⋆ _ σ (T {A = A} x) = conv⊢
   refl
   (trans (sym (⋆.ren-sub A)) (⋆.sub-ren A))
   (weaken⋆ (σ x))
@@ -189,10 +165,9 @@ exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) = conv⊢
 Substitution for term constants
 
 ```
-subTermCon : ∀ {Φ Ψ}
-  → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
-    ------------------------
-  → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.sub σ⋆ A ))
+subTermCon : (σ⋆ : ⋆.Sub Φ Ψ)
+             -------------------------------------------
+           → ∀ {A} → TermCon A → TermCon (⋆.sub σ⋆ A )
 subTermCon _ (integer i)    = integer i
 subTermCon _ (bytestring b) = bytestring b
 subTermCon _ (string s)     = string s
@@ -205,29 +180,23 @@ subTermCon _ unit           = unit
 Substitution for terms
 
 ```
-sub : ∀ {Φ Ψ Γ Δ}
-  → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
-  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
-    ---------------------------------------------------
-  → ({A : Φ ⊢⋆ *} → Γ ⊢ A → Δ ⊢ ⋆.sub σ⋆ A)
-sub _ σ (` k)                       = σ k
-sub _ σ (ƛ N)                       = ƛ (sub _ (exts _ σ) N)
-sub _ σ (L · M)                     = sub _ σ L · sub _ σ M
-sub _ σ (Λ N)                       = Λ (sub _ (exts⋆ _ σ) N)
-sub {Δ = Δ} σ⋆ σ (_·⋆_ {B = B} L A) = conv⊢
-  refl
-  (trans (sym (⋆.sub-comp B))
-         (trans (⋆.sub-cong (⋆.sub-sub-cons σ⋆ A) B)
-                (⋆.sub-comp B)))
-  (_·⋆_ (sub σ⋆ σ L) (⋆.sub σ⋆ A))
-sub _ σ (wrap A B t)                =
-  wrap _ _ (conv⊢ refl (⋆.sub-μ _ A B) (sub _ σ t))
-sub σ⋆ σ (unwrap {A = A}{B} t)                  =
- conv⊢ refl (sym (⋆.sub-μ σ⋆ A B)) (unwrap (sub σ⋆ σ t))
-sub _ σ (conv p t)                  = conv (sub≡β _ p) (sub _ σ t)
-sub σ⋆ σ (con cn)                   = con (subTermCon σ⋆ cn)
-sub σ⋆ _ (ibuiltin b) = conv⊢ refl (itype-sub b σ⋆) (ibuiltin b)
-sub _ σ (error A) = error (⋆.sub _ A)
+sub : (σ⋆ : ⋆.Sub Φ Ψ)
+    → Sub Γ Δ σ⋆
+      -----------------------------
+    → ∀{A} → Γ ⊢ A → Δ ⊢ ⋆.sub σ⋆ A
+sub _  σ (` k)        = σ k
+sub _  σ (ƛ L)        = ƛ (sub _ (exts _ σ) L)
+sub _  σ (L · M)      = sub _ σ L · sub _ σ M
+sub _  σ (Λ L)        = Λ (sub _ (exts⋆ _ σ) L)
+sub σ⋆ σ (L ·⋆ A)     =
+  conv⊢ refl (⋆.sub-Π A (piBody L) σ⋆) (sub σ⋆ σ L ·⋆ ⋆.sub σ⋆ A)
+sub _  σ (wrap A B L) = wrap _ _ (conv⊢ refl (⋆.sub-μ _ A B) (sub _ σ L))
+sub _  σ (unwrap L)   =
+  conv⊢ refl (sym (⋆.sub-μ _ (muPat L) (muArg L))) (unwrap (sub _ σ L))
+sub _  σ (conv p L)   = conv (sub≡β _ p) (sub _ σ L)
+sub σ⋆ _ (con cn)     = con (subTermCon σ⋆ cn)
+sub _  _ (ibuiltin b) = conv⊢ refl (itype-sub b _) (ibuiltin b)
+sub _  _ (error A)    = error (⋆.sub _ A)
 ```
 
 Extending a substitution by a term. Substitutions are implemented as
@@ -235,49 +204,44 @@ functions but they could also be implemented as lists. This operation
 corresponds to cons (`_∷_`) for backwards lists.
 
 ```
-subcons : ∀{Φ Ψ Γ Δ} →
-  (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢⋆ K)
-  → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
-  → {A : Φ ⊢⋆ *}
-  → (t : Δ ⊢ ⋆.sub σ⋆ A)
-    ---------------------
-  → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.sub σ⋆ B)
-subcons _ σ t Z     = t
-subcons _ σ t (S x) = σ x
+subcons : (σ⋆ : ⋆.Sub Φ Ψ)
+        → (Sub Γ Δ σ⋆)
+        → ∀{A}
+        → Δ ⊢ ⋆.sub σ⋆ A
+          ----------------
+        → Sub (Γ , A) Δ σ⋆
+subcons _ σ L Z     = L
+subcons _ σ L (S x) = σ x
 ```
 
 Substitute a single variable in a term. Used to specify the beta-rule
 for appliction in reduction.
 
 ```
-_[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
-        → Γ , B ⊢ A
-        → Γ ⊢ B 
-          ---------
-        → Γ ⊢ A
-_[_]  {Γ = Γ}{A}{B} t s = conv⊢
+_[_] : Γ , A ⊢ B
+     → Γ ⊢ A
+       ---------
+     → Γ ⊢ B
+L [ M ] = conv⊢
   refl
-  (⋆.sub-id A)
+  (⋆.sub-id (typeOf L))
   (sub
     _
-    (subcons ` (λ x → ` (conv∋ refl (sym (⋆.sub-id _)) x))
-    (conv⊢ refl (sym (⋆.sub-id B)) s)) t)
+    (subcons ` (` ∘ conv∋ refl (sym (⋆.sub-id _)))
+    (conv⊢ refl (sym (⋆.sub-id (typeOf M))) M)) L)
 ```
 
 Substitute a single type variable in a term. Used to specify the
 beta-rule for type instantiation in reduction.
 
 ```
-_[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
-        → Γ ,⋆ K ⊢ B
-        → (A : Φ ⊢⋆ K)
-          ---------
-        → Γ ⊢ B ⋆.[ A ]
-_[_]⋆ {J}{Γ = Γ}{K}{B} t A = sub
+_[_]⋆ : Γ ,⋆ K ⊢ B
+      → (A : Φ ⊢⋆ K)
+        -------------
+      → Γ ⊢ B ⋆.[ A ]
+L [ A ]⋆ = sub
   _
-  (λ {(T {A = A'} x) → conv⊢
-    refl
-    (trans (sym (⋆.sub-id A')) (⋆.sub-ren A'))
-    (` x)})
-  t
+  (λ {(T x) →
+        conv⊢ refl (trans (sym (⋆.sub-id _)) (⋆.sub-ren (typeOf∋ x))) (` x)})
+  L
 ```
