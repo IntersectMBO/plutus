@@ -34,7 +34,7 @@ let
   };
 
   client = buildPursPackage {
-    inherit nodeModules;
+    inherit pkgs nodeModules;
     src = ./.;
     name = "plutus-playground-client";
     # ideally we would just use `npm run test` but
@@ -43,7 +43,11 @@ let
     checkPhase = ''
       node -e 'require("./output/Test.Main").main()'
     '';
-    extraSrcs = { inherit webCommon; generated = generated-purescript; };
+    extraSrcs = {
+      web-common = webCommon;
+      web-common-plutus = webCommonPlutus;
+      generated = generated-purescript;
+    };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };

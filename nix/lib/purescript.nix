@@ -33,9 +33,9 @@ stdenv.mkDerivation {
   src = cleanSrcs;
   buildInputs = [ nodeModules easyPS.purs easyPS.spago easyPS.psc-package ];
   buildPhase = ''
-    set -x
     export HOME=$NIX_BUILD_TOP
     shopt -s globstar
+    ln -s ${nodeModules}/node_modules node_modules
     ${addExtraSrcs}
     ls generated
     sh ${spagoPackages.installSpagoStyle}

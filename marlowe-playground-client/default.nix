@@ -41,7 +41,11 @@ let
     src = ./.;
     checkPhase = "npm run test";
     name = "marlowe-playground-client";
-    extraSrcs = { web-common = webCommon; generated = generated-purescript; };
+    extraSrcs = {
+      web-common = webCommon;
+      web-common-marlowe = webCommonMarlowe;
+      generated = generated-purescript;
+    };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
