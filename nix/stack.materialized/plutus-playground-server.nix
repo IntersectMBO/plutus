@@ -200,6 +200,8 @@
             "ErrorHandlingSimulations"
             "Game"
             "GameSimulations"
+            "HelloWorld"
+            "HelloWorldSimulations"
             "SimulationUtils"
             "Starter"
             "StarterSimulations"
