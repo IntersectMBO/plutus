@@ -1,6 +1,7 @@
 module Editor.State where
 
 import Control.Alternative ((<|>))
+import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Ord (clamp)
@@ -87,9 +88,13 @@ handleAction _ ClearFeedbackPaneDragStart = do
 handleAction _ (FixFeedbackPaneExtend mouseY) = do
   feedbackPaneDragStart <- use _feedbackPaneDragStart
   feedbackPanePreviousExtend <- use _feedbackPanePreviousExtend
-  case feedbackPaneDragStart of
-    Nothing -> pure unit
-    Just startMouseY -> assign _feedbackPaneExtend $ clamp 0 100 (startMouseY - mouseY + feedbackPanePreviousExtend)
+  for_ feedbackPaneDragStart
+    $ \startMouseY ->
+        assign _feedbackPaneExtend
+          $ clamp 0 100
+          $ startMouseY
+          - mouseY
+          + feedbackPanePreviousExtend
 
 ------------------------------------------------------------
 loadKeyBindings :: forall m. MonadEffect m => m KeyBindings

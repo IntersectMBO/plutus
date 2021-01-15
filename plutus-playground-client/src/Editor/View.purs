@@ -137,11 +137,13 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneExtend, f
         ]
     ]
   where
-  feedbackPaneClasses = case feedbackPaneMinimised, feedbackPaneExtend of
-    false, 0 -> [ ClassName "editor-feedback" ]
-    true, 0 -> [ ClassName "editor-feedback", ClassName "minimised" ]
-    false, size -> [ ClassName "editor-feedback", ClassName $ "expanded-" <> show size ]
-    true, size -> [ ClassName "editor-feedback", ClassName "minimised", ClassName $ "expanded-" <> show size ]
+  feedbackPaneClasses =
+    [ ClassName "editor-feedback" ]
+      <> case feedbackPaneMinimised, feedbackPaneExtend of
+          false, 0 -> []
+          true, 0 -> [ ClassName "minimised" ]
+          false, size -> [ ClassName $ "expanded-" <> show size ]
+          true, size -> [ ClassName "minimised", ClassName $ "expanded-" <> show size ]
 
   summaryText = case compilationResult of
     NotAsked -> text "Not compiled"
