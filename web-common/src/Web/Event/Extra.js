@@ -1,12 +1,6 @@
 /*global FileReader, exports*/
 'use strict';
 
-exports.preventDefault = function(e) {
-    return function() {
-        e.preventDefault();
-    };
-};
-
 exports._readFileFromDragEvent = function(onLoad, onError, e) {
     var i, item, files, file, reader;
 

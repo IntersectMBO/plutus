@@ -1,0 +1,1026 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="550" onload="init(evt)" viewBox="0 0 1200 550" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs >
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	.func_g:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	var details, searchbtn, matchedtxt, svg;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+	}
+
+	// mouse-over for info
+	function s(node) {		// show
+		info = g_to_text(node);
+		details.nodeValue = "Function: " + info;
+	}
+	function c() {			// clear
+		details.nodeValue = ' ';
+	}
+
+	// ctrl-F for search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+	})
+
+	// functions
+	function find_child(parent, name, attr) {
+		var children = parent.childNodes;
+		for (var i=0; i<children.length;i++) {
+			if (children[i].tagName == name)
+				return (attr != undefined) ? children[i].attributes[attr].value : children[i];
+		}
+		return;
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_"+attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_"+attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_"+attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes["width"].value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes["x"].value = parseFloat(r.attributes["x"].value) +3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2*12*0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		// Fit in full text width
+		if (/^ *$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+			return;
+
+		for (var x=txt.length-2; x>0; x--) {
+			if (t.getSubStringLength(0, x+2) <= w) {
+				t.textContent = txt.substring(0,x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes["x"] != undefined) {
+				orig_save(e, "x");
+				e.attributes["x"].value = (parseFloat(e.attributes["x"].value) - x - 10) * ratio + 10;
+				if(e.tagName == "text") e.attributes["x"].value = find_child(e.parentNode, "rect", "x") + 3;
+			}
+			if (e.attributes["width"] != undefined) {
+				orig_save(e, "width");
+				e.attributes["width"].value = parseFloat(e.attributes["width"].value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_child(c[i], x-10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes["x"] != undefined) {
+				orig_save(e, "x");
+				e.attributes["x"].value = 10;
+			}
+			if (e.attributes["width"] != undefined) {
+				orig_save(e, "width");
+				e.attributes["width"].value = parseInt(svg.width.baseVal.value) - (10*2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for(var i=0, c=e.childNodes; i<c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr["width"].value);
+		var xmin = parseFloat(attr["x"].value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr["y"].value);
+		var ratio = (svg.width.baseVal.value - 2*10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		var unzoombtn = document.getElementById("unzoom");
+		unzoombtn.style["opacity"] = "1.0";
+
+		var el = document.getElementsByTagName("g");
+		for(var i=0;i<el.length;i++){
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a["x"].value);
+			var ew = parseFloat(a["width"].value);
+			// Is it an ancestor
+			if (0 == 0) {
+				var upstack = parseFloat(a["y"].value) > ymin;
+			} else {
+				var upstack = parseFloat(a["y"].value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.style["opacity"] = "0.5";
+					zoom_parent(e);
+					e.onclick = function(e){unzoom(); zoom(this);};
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.style["display"] = "none";
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.style["display"] = "none";
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					e.onclick = function(e){zoom(this);};
+					update_text(e);
+				}
+			}
+		}
+	}
+	function unzoom() {
+		var unzoombtn = document.getElementById("unzoom");
+		unzoombtn.style["opacity"] = "0.0";
+
+		var el = document.getElementsByTagName("g");
+		for(i=0;i<el.length;i++) {
+			el[i].style["display"] = "block";
+			el[i].style["opacity"] = "1";
+			zoom_reset(el[i]);
+			update_text(el[i]);
+		}
+	}
+
+	// search
+	function reset_search() {
+		var el = document.getElementsByTagName("rect");
+		for (var i=0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)", "");
+			if (term != null) {
+				search(term)
+			}
+		} else {
+			reset_search();
+			searching = 0;
+			searchbtn.style["opacity"] = "0.1";
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.style["opacity"] = "0.0";
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		var re = new RegExp(term);
+		var el = document.getElementsByTagName("g");
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			if (e.attributes["class"].value != "func_g")
+				continue;
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (rect == null) {
+				// the rect might be wrapped in an anchor
+				// if nameattr href is being used
+				if (rect = find_child(e, "a")) {
+				    rect = find_child(r, "rect");
+				}
+			}
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes["width"].value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes["x"].value);
+				orig_save(rect, "fill");
+				rect.attributes["fill"].value =
+				    "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+
+		searchbtn.style["opacity"] = "1.0";
+		searchbtn.firstChild.nodeValue = "Reset Search"
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.style["opacity"] = "1.0";
+		pct = 100 * count / maxwidth;
+		if (pct == 100)
+			pct = "100"
+		else
+			pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+	function searchover(e) {
+		searchbtn.style["opacity"] = "1.0";
+	}
+	function searchout(e) {
+		if (searching) {
+			searchbtn.style["opacity"] = "1.0";
+		} else {
+			searchbtn.style["opacity"] = "0.1";
+		}
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="550.0" fill="url(#background)"  />
+<text text-anchor="middle" x="600.00" y="24" font-size="17" font-family="Verdana" fill="rgb(0,0,0)"  >primetest/20digits: Restricting mode</text>
+<text text-anchor="" x="10.00" y="533" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="details" > </text>
+<text text-anchor="" x="10.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="unzoom" onclick="unzoom()" style="opacity:0.0;cursor:pointer" >Reset Zoom</text>
+<text text-anchor="" x="1090.00" y="24" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="search" onmouseover="searchover()" onmouseout="searchout()" onclick="search_prompt()" style="opacity:0.1;cursor:pointer" >Search</text>
+<text text-anchor="" x="1090.00" y="533" font-size="12" font-family="Verdana" fill="rgb(0,0,0)" id="matched" > </text>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>MAIN.MAIN (998 samples, 99.80%)</title><rect x="10.0" y="485" width="1177.6" height="15.0" fill="rgb(246,113,48)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >MAIN.MAIN</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.makeKnown (3 samples, 0.30%)</title><rect x="249.5" y="165" width="3.6" height="15.0" fill="rgb(247,213,46)" rx="2" ry="2" />
+<text text-anchor="" x="252.54" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (4 samples, 0.40%)</title><rect x="388.8" y="165" width="4.7" height="15.0" fill="rgb(205,30,25)" rx="2" ry="2" />
+<text text-anchor="" x="391.78" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (59 samples, 5.90%)</title><rect x="620.1" y="197" width="69.6" height="15.0" fill="rgb(248,101,53)" rx="2" ry="2" />
+<text text-anchor="" x="623.06" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Ha..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.computeCek (960 samples, 96.00%)</title><rect x="54.8" y="341" width="1132.8" height="15.0" fill="rgb(220,204,3)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.computeCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (2 samples, 0.20%)</title><rect x="482.0" y="197" width="2.4" height="15.0" fill="rgb(205,128,9)" rx="2" ry="2" />
+<text text-anchor="" x="485.00" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.defaultHashWithSalt (2 samples, 0.20%)</title><rect x="362.8" y="85" width="2.4" height="15.0" fill="rgb(249,112,30)" rx="2" ry="2" />
+<text text-anchor="" x="365.82" y="95.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (12 samples, 1.20%)</title><rect x="656.6" y="165" width="14.2" height="15.0" fill="rgb(236,100,52)" rx="2" ry="2" />
+<text text-anchor="" x="659.64" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyEvaluate.args' (4 samples, 0.40%)</title><rect x="446.6" y="293" width="4.7" height="15.0" fill="rgb(237,162,31)" rx="2" ry="2" />
+<text text-anchor="" x="449.60" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (24 samples, 2.40%)</title><rect x="360.5" y="117" width="28.3" height="15.0" fill="rgb(245,223,17)" rx="2" ry="2" />
+<text text-anchor="" x="363.46" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hash (3 samples, 0.30%)</title><rect x="686.1" y="117" width="3.6" height="15.0" fill="rgb(221,170,26)" rx="2" ry="2" />
+<text text-anchor="" x="689.14" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&gt; (10 samples, 1.00%)</title><rect x="1153.4" y="293" width="11.8" height="15.0" fill="rgb(248,93,4)" rx="2" ry="2" />
+<text text-anchor="" x="1156.42" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (207 samples, 20.70%)</title><rect x="753.4" y="213" width="244.3" height="15.0" fill="rgb(251,83,25)" rx="2" ry="2" />
+<text text-anchor="" x="756.40" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend'</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.toBuiltinsRuntime (38 samples, 3.80%)</title><rect x="10.0" y="405" width="44.8" height="15.0" fill="rgb(239,105,3)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.singleton (6 samples, 0.60%)</title><rect x="477.3" y="261" width="7.1" height="15.0" fill="rgb(228,9,25)" rx="2" ry="2" />
+<text text-anchor="" x="480.28" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.toBuiltinsRuntime (11 samples, 1.10%)</title><rect x="179.9" y="229" width="13.0" height="15.0" fill="rgb(234,72,51)" rx="2" ry="2" />
+<text text-anchor="" x="182.92" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.toExMemory (1 samples, 0.10%)</title><rect x="287.3" y="181" width="1.2" height="15.0" fill="rgb(226,142,11)" rx="2" ry="2" />
+<text text-anchor="" x="290.30" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (12 samples, 1.20%)</title><rect x="374.6" y="85" width="14.2" height="15.0" fill="rgb(210,52,50)" rx="2" ry="2" />
+<text text-anchor="" x="377.62" y="95.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (2 samples, 0.20%)</title><rect x="342.8" y="69" width="2.3" height="15.0" fill="rgb(247,43,29)" rx="2" ry="2" />
+<text text-anchor="" x="345.76" y="79.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Monad.Morph.hoist (193 samples, 19.30%)</title><rect x="200.0" y="261" width="227.7" height="15.0" fill="rgb(252,12,13)" rx="2" ry="2" />
+<text text-anchor="" x="202.98" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Control.Monad.Morph.hoist</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.defaultHashWithSalt (10 samples, 1.00%)</title><rect x="659.0" y="149" width="11.8" height="15.0" fill="rgb(220,183,2)" rx="2" ry="2" />
+<text text-anchor="" x="662.00" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.nonZeroArg (9 samples, 0.90%)</title><rect x="272.0" y="133" width="10.6" height="15.0" fill="rgb(219,24,36)" rx="2" ry="2" />
+<text text-anchor="" x="274.96" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (9 samples, 0.90%)</title><rect x="1175.8" y="293" width="10.7" height="15.0" fill="rgb(245,12,19)" rx="2" ry="2" />
+<text text-anchor="" x="1178.84" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hash (3 samples, 0.30%)</title><rect x="480.8" y="229" width="3.6" height="15.0" fill="rgb(239,194,22)" rx="2" ry="2" />
+<text text-anchor="" x="483.82" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>UNKNOWN (2 samples, 0.20%)</title><rect x="1187.6" y="485" width="2.4" height="15.0" fill="rgb(254,144,47)" rx="2" ry="2" />
+<text text-anchor="" x="1190.64" y="495.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (4 samples, 0.40%)</title><rect x="340.4" y="85" width="4.7" height="15.0" fill="rgb(231,136,54)" rx="2" ry="2" />
+<text text-anchor="" x="343.40" y="95.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.combine (2 samples, 0.20%)</title><rect x="668.4" y="133" width="2.4" height="15.0" fill="rgb(249,113,1)" rx="2" ry="2" />
+<text text-anchor="" x="671.44" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend (227 samples, 22.70%)</title><rect x="729.8" y="245" width="267.9" height="15.0" fill="rgb(251,75,13)" rx="2" ry="2" />
+<text text-anchor="" x="732.80" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (220 samples, 22.00%)</title><rect x="738.1" y="229" width="259.6" height="15.0" fill="rgb(234,190,21)" rx="2" ry="2" />
+<text text-anchor="" x="741.06" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.gmappend'</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (11 samples, 1.10%)</title><rect x="111.5" y="277" width="13.0" height="15.0" fill="rgb(220,14,43)" rx="2" ry="2" />
+<text text-anchor="" x="114.48" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.Strict.singleton (6 samples, 0.60%)</title><rect x="477.3" y="277" width="7.1" height="15.0" fill="rgb(244,38,44)" rx="2" ry="2" />
+<text text-anchor="" x="480.28" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.== (3 samples, 0.30%)</title><rect x="984.7" y="181" width="3.5" height="15.0" fill="rgb(245,195,26)" rx="2" ry="2" />
+<text text-anchor="" x="987.68" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget (8 samples, 0.80%)</title><rect x="474.9" y="293" width="9.5" height="15.0" fill="rgb(244,127,47)" rx="2" ry="2" />
+<text text-anchor="" x="477.92" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (4 samples, 0.40%)</title><rect x="388.8" y="181" width="4.7" height="15.0" fill="rgb(250,9,46)" rx="2" ry="2" />
+<text text-anchor="" x="391.78" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.makeKnown (14 samples, 1.40%)</title><rect x="19.4" y="389" width="16.6" height="15.0" fill="rgb(224,59,25)" rx="2" ry="2" />
+<text text-anchor="" x="22.44" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (3 samples, 0.30%)</title><rect x="480.8" y="213" width="3.6" height="15.0" fill="rgb(222,189,4)" rx="2" ry="2" />
+<text text-anchor="" x="483.82" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hash (6 samples, 0.60%)</title><rect x="338.0" y="133" width="7.1" height="15.0" fill="rgb(239,186,5)" rx="2" ry="2" />
+<text text-anchor="" x="341.04" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Lens.At.ix (7 samples, 0.70%)</title><rect x="1178.2" y="261" width="8.3" height="15.0" fill="rgb(220,143,36)" rx="2" ry="2" />
+<text text-anchor="" x="1181.20" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.unique.g (2 samples, 0.20%)</title><rect x="472.6" y="245" width="2.3" height="15.0" fill="rgb(254,65,16)" rx="2" ry="2" />
+<text text-anchor="" x="475.56" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.singleton (113 samples, 11.30%)</title><rect x="556.3" y="293" width="133.4" height="15.0" fill="rgb(216,6,3)" rx="2" ry="2" />
+<text text-anchor="" x="559.34" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Int..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.unsafeEvaluateCek (960 samples, 96.00%)</title><rect x="54.8" y="421" width="1132.8" height="15.0" fill="rgb(232,177,12)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.unsafeEvaluateCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.cekEnvRuntime (1 samples, 0.10%)</title><rect x="445.4" y="261" width="1.2" height="15.0" fill="rgb(243,19,49)" rx="2" ry="2" />
+<text text-anchor="" x="448.42" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.inRange (1 samples, 0.10%)</title><rect x="444.2" y="197" width="1.2" height="15.0" fill="rgb(239,85,54)" rx="2" ry="2" />
+<text text-anchor="" x="447.24" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.nameUnique (1 samples, 0.10%)</title><rect x="473.7" y="229" width="1.2" height="15.0" fill="rgb(245,81,16)" rx="2" ry="2" />
+<text text-anchor="" x="476.74" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (25 samples, 2.50%)</title><rect x="1016.5" y="261" width="29.5" height="15.0" fill="rgb(225,151,40)" rx="2" ry="2" />
+<text text-anchor="" x="1019.54" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Da..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.combine (2 samples, 0.20%)</title><rect x="683.8" y="117" width="2.3" height="15.0" fill="rgb(254,30,41)" rx="2" ry="2" />
+<text text-anchor="" x="686.78" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.defBuiltinsRuntime (11 samples, 1.10%)</title><rect x="179.9" y="245" width="13.0" height="15.0" fill="rgb(252,7,6)" rx="2" ry="2" />
+<text text-anchor="" x="182.92" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>PlutusPrelude.asksM (16 samples, 1.60%)</title><rect x="427.7" y="277" width="18.9" height="15.0" fill="rgb(224,212,54)" rx="2" ry="2" />
+<text text-anchor="" x="430.72" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.runEval.evaluate (998 samples, 99.80%)</title><rect x="10.0" y="437" width="1177.6" height="15.0" fill="rgb(240,62,41)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="447.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.runEval.evaluate</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.defaultHashWithSalt (9 samples, 0.90%)</title><rect x="679.1" y="133" width="10.6" height="15.0" fill="rgb(221,20,51)" rx="2" ry="2" />
+<text text-anchor="" x="682.06" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed.go.exF' (5 samples, 0.50%)</title><rect x="192.9" y="245" width="5.9" height="15.0" fill="rgb(209,168,22)" rx="2" ry="2" />
+<text text-anchor="" x="195.90" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (11 samples, 1.10%)</title><rect x="111.5" y="293" width="13.0" height="15.0" fill="rgb(215,172,32)" rx="2" ry="2" />
+<text text-anchor="" x="114.48" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (5 samples, 0.50%)</title><rect x="382.9" y="53" width="5.9" height="15.0" fill="rgb(225,51,43)" rx="2" ry="2" />
+<text text-anchor="" x="385.88" y="63.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (261 samples, 26.10%)</title><rect x="689.7" y="309" width="308.0" height="15.0" fill="rgb(247,11,16)" rx="2" ry="2" />
+<text text-anchor="" x="692.68" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Profunctor.Unsafe.#.</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Lens.At.ix (6 samples, 0.60%)</title><rect x="438.3" y="213" width="7.1" height="15.0" fill="rgb(206,27,41)" rx="2" ry="2" />
+<text text-anchor="" x="441.34" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (8 samples, 0.80%)</title><rect x="436.0" y="245" width="9.4" height="15.0" fill="rgb(248,222,40)" rx="2" ry="2" />
+<text text-anchor="" x="438.98" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekM (960 samples, 96.00%)</title><rect x="54.8" y="357" width="1132.8" height="15.0" fill="rgb(218,66,33)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekM</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (8 samples, 0.80%)</title><rect x="1177.0" y="277" width="9.5" height="15.0" fill="rgb(214,0,41)" rx="2" ry="2" />
+<text text-anchor="" x="1180.02" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (8 samples, 0.80%)</title><rect x="456.0" y="245" width="9.5" height="15.0" fill="rgb(214,34,48)" rx="2" ry="2" />
+<text text-anchor="" x="459.04" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.lookupVarName (24 samples, 2.40%)</title><rect x="104.4" y="325" width="28.3" height="15.0" fill="rgb(238,115,5)" rx="2" ry="2" />
+<text text-anchor="" x="107.40" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >La..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend (37 samples, 3.70%)</title><rect x="1002.4" y="277" width="43.6" height="15.0" fill="rgb(227,181,20)" rx="2" ry="2" />
+<text text-anchor="" x="1005.38" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (93 samples, 9.30%)</title><rect x="579.9" y="245" width="109.8" height="15.0" fill="rgb(208,119,53)" rx="2" ry="2" />
+<text text-anchor="" x="582.94" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.exceedsBudget (15 samples, 1.50%)</title><rect x="407.7" y="181" width="17.7" height="15.0" fill="rgb(208,55,38)" rx="2" ry="2" />
+<text text-anchor="" x="410.66" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.toBuiltinRuntime (15 samples, 1.50%)</title><rect x="37.1" y="373" width="17.7" height="15.0" fill="rgb(223,152,1)" rx="2" ry="2" />
+<text text-anchor="" x="40.14" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed.go (190 samples, 19.00%)</title><rect x="203.5" y="213" width="224.2" height="15.0" fill="rgb(239,206,26)" rx="2" ry="2" />
+<text text-anchor="" x="206.52" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.PlutusCore.Constant...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (234 samples, 23.40%)</title><rect x="721.5" y="277" width="276.2" height="15.0" fill="rgb(254,116,31)" rx="2" ry="2" />
+<text text-anchor="" x="724.54" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.PlutusCore.Evaluation.Machin..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCek (960 samples, 96.00%)</title><rect x="54.8" y="373" width="1132.8" height="15.0" fill="rgb(237,27,20)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget (576 samples, 57.60%)</title><rect x="485.5" y="325" width="679.7" height="15.0" fill="rgb(253,185,39)" rx="2" ry="2" />
+<text text-anchor="" x="488.54" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.&lt;&gt; (39 samples, 3.90%)</title><rect x="1000.0" y="293" width="46.0" height="15.0" fill="rgb(245,106,24)" rx="2" ry="2" />
+<text text-anchor="" x="1003.02" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (6 samples, 0.60%)</title><rect x="338.0" y="117" width="7.1" height="15.0" fill="rgb(216,177,30)" rx="2" ry="2" />
+<text text-anchor="" x="341.04" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (15 samples, 1.50%)</title><rect x="1028.3" y="245" width="17.7" height="15.0" fill="rgb(248,66,15)" rx="2" ry="2" />
+<text text-anchor="" x="1031.34" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>PlutusPrelude.tabulateArray (15 samples, 1.50%)</title><rect x="37.1" y="389" width="17.7" height="15.0" fill="rgb(216,87,9)" rx="2" ry="2" />
+<text text-anchor="" x="40.14" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.toExMemory (1 samples, 0.10%)</title><rect x="197.6" y="229" width="1.2" height="15.0" fill="rgb(235,31,53)" rx="2" ry="2" />
+<text text-anchor="" x="200.62" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (32 samples, 3.20%)</title><rect x="1115.7" y="277" width="37.7" height="15.0" fill="rgb(236,220,41)" rx="2" ry="2" />
+<text text-anchor="" x="1118.66" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Dat..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.inRange (1 samples, 0.10%)</title><rect x="1185.3" y="245" width="1.2" height="15.0" fill="rgb(214,210,15)" rx="2" ry="2" />
+<text text-anchor="" x="1188.28" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (4 samples, 0.40%)</title><rect x="340.4" y="101" width="4.7" height="15.0" fill="rgb(217,168,4)" rx="2" ry="2" />
+<text text-anchor="" x="343.40" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Universe.Default.geq (1 samples, 0.10%)</title><rect x="191.7" y="181" width="1.2" height="15.0" fill="rgb(243,111,39)" rx="2" ry="2" />
+<text text-anchor="" x="194.72" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>all (1,000 samples, 100%)</title><rect x="10.0" y="501" width="1180.0" height="15.0" fill="rgb(227,164,22)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="511.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.nameUnique (2 samples, 0.20%)</title><rect x="122.1" y="229" width="2.4" height="15.0" fill="rgb(247,84,29)" rx="2" ry="2" />
+<text text-anchor="" x="125.10" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.defBuiltinsRuntime (38 samples, 3.80%)</title><rect x="10.0" y="421" width="44.8" height="15.0" fill="rgb(233,9,0)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="431.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyBuiltin (243 samples, 24.30%)</title><rect x="159.9" y="293" width="286.7" height="15.0" fill="rgb(229,57,41)" rx="2" ry="2" />
+<text text-anchor="" x="162.86" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (1 samples, 0.10%)</title><rect x="483.2" y="181" width="1.2" height="15.0" fill="rgb(248,19,13)" rx="2" ry="2" />
+<text text-anchor="" x="486.18" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (8 samples, 0.80%)</title><rect x="644.8" y="181" width="9.5" height="15.0" fill="rgb(227,177,41)" rx="2" ry="2" />
+<text text-anchor="" x="647.84" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.&lt;&gt; (231 samples, 23.10%)</title><rect x="725.1" y="261" width="272.6" height="15.0" fill="rgb(221,222,24)" rx="2" ry="2" />
+<text text-anchor="" x="728.08" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Semigroup.Generic.&lt;&gt;</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hash (96 samples, 9.60%)</title><rect x="576.4" y="261" width="113.3" height="15.0" fill="rgb(220,198,46)" rx="2" ry="2" />
+<text text-anchor="" x="579.40" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashable..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed (191 samples, 19.10%)</title><rect x="202.3" y="229" width="225.4" height="15.0" fill="rgb(244,0,48)" rx="2" ry="2" />
+<text text-anchor="" x="205.34" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.PlutusCore.Constant...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.unliftConstant (9 samples, 0.90%)</title><rect x="182.3" y="197" width="10.6" height="15.0" fill="rgb(225,86,11)" rx="2" ry="2" />
+<text text-anchor="" x="185.28" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.&lt;&gt; (11 samples, 1.10%)</title><rect x="394.7" y="165" width="13.0" height="15.0" fill="rgb(218,39,3)" rx="2" ry="2" />
+<text text-anchor="" x="397.68" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.spendBudget (118 samples, 11.80%)</title><rect x="288.5" y="197" width="139.2" height="15.0" fill="rgb(224,56,42)" rx="2" ry="2" />
+<text text-anchor="" x="291.48" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedP..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekCounting (960 samples, 96.00%)</title><rect x="54.8" y="389" width="1132.8" height="15.0" fill="rgb(242,32,32)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.runCekCounting</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.unique (9 samples, 0.90%)</title><rect x="113.8" y="261" width="10.7" height="15.0" fill="rgb(252,190,34)" rx="2" ry="2" />
+<text text-anchor="" x="116.84" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyEvaluate (291 samples, 29.10%)</title><rect x="141.0" y="309" width="343.4" height="15.0" fill="rgb(253,102,41)" rx="2" ry="2" />
+<text text-anchor="" x="143.98" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.readKnown (10 samples, 1.00%)</title><rect x="253.1" y="165" width="11.8" height="15.0" fill="rgb(235,115,53)" rx="2" ry="2" />
+<text text-anchor="" x="256.08" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.lookupBuiltin (13 samples, 1.30%)</title><rect x="430.1" y="261" width="15.3" height="15.0" fill="rgb(240,199,15)" rx="2" ry="2" />
+<text text-anchor="" x="433.08" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (16 samples, 1.60%)</title><rect x="670.8" y="165" width="18.9" height="15.0" fill="rgb(224,101,42)" rx="2" ry="2" />
+<text text-anchor="" x="673.80" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend (10 samples, 1.00%)</title><rect x="395.9" y="149" width="11.8" height="15.0" fill="rgb(232,69,39)" rx="2" ry="2" />
+<text text-anchor="" x="398.86" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (5 samples, 0.50%)</title><rect x="401.8" y="117" width="5.9" height="15.0" fill="rgb(233,144,8)" rx="2" ry="2" />
+<text text-anchor="" x="404.76" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (6 samples, 0.60%)</title><rect x="417.1" y="149" width="7.1" height="15.0" fill="rgb(236,164,48)" rx="2" ry="2" />
+<text text-anchor="" x="420.10" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (11 samples, 1.10%)</title><rect x="676.7" y="149" width="13.0" height="15.0" fill="rgb(205,134,44)" rx="2" ry="2" />
+<text text-anchor="" x="679.70" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&gt; (1 samples, 0.10%)</title><rect x="424.2" y="165" width="1.2" height="15.0" fill="rgb(220,130,8)" rx="2" ry="2" />
+<text text-anchor="" x="427.18" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.lookupUnique (7 samples, 0.70%)</title><rect x="124.5" y="293" width="8.2" height="15.0" fill="rgb(244,217,50)" rx="2" ry="2" />
+<text text-anchor="" x="127.46" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.sparseIndex (2 samples, 0.20%)</title><rect x="980.0" y="181" width="2.3" height="15.0" fill="rgb(218,78,36)" rx="2" ry="2" />
+<text text-anchor="" x="982.96" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (7 samples, 0.70%)</title><rect x="415.9" y="165" width="8.3" height="15.0" fill="rgb(230,162,9)" rx="2" ry="2" />
+<text text-anchor="" x="418.92" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.lookupBuiltin (15 samples, 1.50%)</title><rect x="1168.8" y="309" width="17.7" height="15.0" fill="rgb(223,99,31)" rx="2" ry="2" />
+<text text-anchor="" x="1171.76" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Monoidal.&lt;&gt; (187 samples, 18.70%)</title><rect x="767.6" y="197" width="220.6" height="15.0" fill="rgb(232,1,8)" rx="2" ry="2" />
+<text text-anchor="" x="770.56" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Monoidal.&lt;&gt;</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum.sizeL (1 samples, 0.10%)</title><rect x="387.6" y="37" width="1.2" height="15.0" fill="rgb(220,140,22)" rx="2" ry="2" />
+<text text-anchor="" x="390.60" y="47.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (257 samples, 25.70%)</title><rect x="694.4" y="293" width="303.3" height="15.0" fill="rgb(248,129,30)" rx="2" ry="2" />
+<text text-anchor="" x="697.40" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Profunctor.Unsafe.#..\</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.insertByUnique (5 samples, 0.50%)</title><rect x="465.5" y="261" width="5.9" height="15.0" fill="rgb(238,49,3)" rx="2" ry="2" />
+<text text-anchor="" x="468.48" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.applyBuiltin.dischargeError (194 samples, 19.40%)</title><rect x="198.8" y="277" width="228.9" height="15.0" fill="rgb(238,187,35)" rx="2" ry="2" />
+<text text-anchor="" x="201.80" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Eva..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed.go.exF' (5 samples, 0.50%)</title><rect x="282.6" y="197" width="5.9" height="15.0" fill="rgb(228,126,11)" rx="2" ry="2" />
+<text text-anchor="" x="285.58" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (41 samples, 4.10%)</title><rect x="997.7" y="309" width="48.3" height="15.0" fill="rgb(253,137,11)" rx="2" ry="2" />
+<text text-anchor="" x="1000.66" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Lang..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Control.Monad.Morph.hoist.\ (193 samples, 19.30%)</title><rect x="200.0" y="245" width="227.7" height="15.0" fill="rgb(233,153,29)" rx="2" ry="2" />
+<text text-anchor="" x="202.98" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Control.Monad.Morph.hoist.\</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (71 samples, 7.10%)</title><rect x="605.9" y="213" width="83.8" height="15.0" fill="rgb(233,92,53)" rx="2" ry="2" />
+<text text-anchor="" x="608.90" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hash..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (2 samples, 0.20%)</title><rect x="362.8" y="101" width="2.4" height="15.0" fill="rgb(242,163,17)" rx="2" ry="2" />
+<text text-anchor="" x="365.82" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (2 samples, 0.20%)</title><rect x="982.3" y="181" width="2.4" height="15.0" fill="rgb(208,202,38)" rx="2" ry="2" />
+<text text-anchor="" x="985.32" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.forceEvaluate (1 samples, 0.10%)</title><rect x="484.4" y="309" width="1.1" height="15.0" fill="rgb(210,214,6)" rx="2" ry="2" />
+<text text-anchor="" x="487.36" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.defBuiltinsRuntime (28 samples, 2.80%)</title><rect x="249.5" y="197" width="33.1" height="15.0" fill="rgb(230,149,31)" rx="2" ry="2" />
+<text text-anchor="" x="252.54" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >La..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.singleton (48 samples, 4.80%)</title><rect x="332.1" y="165" width="56.7" height="15.0" fill="rgb(213,59,46)" rx="2" ry="2" />
+<text text-anchor="" x="335.14" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.unliftConstant (8 samples, 0.80%)</title><rect x="255.4" y="149" width="9.5" height="15.0" fill="rgb(237,131,42)" rx="2" ry="2" />
+<text text-anchor="" x="258.44" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&lt;&gt; (2 samples, 0.20%)</title><rect x="405.3" y="101" width="2.4" height="15.0" fill="rgb(229,103,11)" rx="2" ry="2" />
+<text text-anchor="" x="408.30" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed.go (24 samples, 2.40%)</title><rect x="170.5" y="261" width="28.3" height="15.0" fill="rgb(234,110,32)" rx="2" ry="2" />
+<text text-anchor="" x="173.48" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.toBuiltinsRuntime (28 samples, 2.80%)</title><rect x="249.5" y="181" width="33.1" height="15.0" fill="rgb(240,41,4)" rx="2" ry="2" />
+<text text-anchor="" x="252.54" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >La..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&lt;&gt; (8 samples, 0.80%)</title><rect x="988.2" y="197" width="9.5" height="15.0" fill="rgb(216,54,17)" rx="2" ry="2" />
+<text text-anchor="" x="991.22" y="207.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (8 samples, 0.80%)</title><rect x="456.0" y="261" width="9.5" height="15.0" fill="rgb(230,185,33)" rx="2" ry="2" />
+<text text-anchor="" x="459.04" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.runTwoArgumentModel (11 samples, 1.10%)</title><rect x="41.9" y="341" width="12.9" height="15.0" fill="rgb(222,11,5)" rx="2" ry="2" />
+<text text-anchor="" x="44.86" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (20 samples, 2.00%)</title><rect x="365.2" y="101" width="23.6" height="15.0" fill="rgb(233,54,15)" rx="2" ry="2" />
+<text text-anchor="" x="368.18" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >D..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.unique (8 samples, 0.80%)</title><rect x="456.0" y="229" width="9.5" height="15.0" fill="rgb(231,27,2)" rx="2" ry="2" />
+<text text-anchor="" x="459.04" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.readKnown (1 samples, 0.10%)</title><rect x="36.0" y="389" width="1.1" height="15.0" fill="rgb(212,191,32)" rx="2" ry="2" />
+<text text-anchor="" x="38.96" y="399.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum.sizeL (2 samples, 0.20%)</title><rect x="654.3" y="181" width="2.3" height="15.0" fill="rgb(247,91,45)" rx="2" ry="2" />
+<text text-anchor="" x="657.28" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.extendEnv (20 samples, 2.00%)</title><rect x="451.3" y="293" width="23.6" height="15.0" fill="rgb(229,17,27)" rx="2" ry="2" />
+<text text-anchor="" x="454.32" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Meaning.toBuiltinRuntime (15 samples, 1.50%)</title><rect x="264.9" y="149" width="17.7" height="15.0" fill="rgb(216,206,36)" rx="2" ry="2" />
+<text text-anchor="" x="267.88" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.hash (105 samples, 10.50%)</title><rect x="565.8" y="277" width="123.9" height="15.0" fill="rgb(237,83,42)" rx="2" ry="2" />
+<text text-anchor="" x="568.78" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.In..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.unique.g (3 samples, 0.30%)</title><rect x="120.9" y="245" width="3.6" height="15.0" fill="rgb(212,64,11)" rx="2" ry="2" />
+<text text-anchor="" x="123.92" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.main (998 samples, 99.80%)</title><rect x="10.0" y="469" width="1177.6" height="15.0" fill="rgb(233,129,24)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="479.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.main</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (7 samples, 0.70%)</title><rect x="380.5" y="69" width="8.3" height="15.0" fill="rgb(207,139,21)" rx="2" ry="2" />
+<text text-anchor="" x="383.52" y="79.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.runCostingFunTwoArguments (12 samples, 1.20%)</title><rect x="40.7" y="357" width="14.1" height="15.0" fill="rgb(230,96,22)" rx="2" ry="2" />
+<text text-anchor="" x="43.68" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Universe.Default.bring (3 samples, 0.30%)</title><rect x="32.4" y="341" width="3.6" height="15.0" fill="rgb(207,177,44)" rx="2" ry="2" />
+<text text-anchor="" x="35.42" y="351.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.hashWithSalt (5 samples, 0.50%)</title><rect x="354.6" y="117" width="5.9" height="15.0" fill="rgb(205,14,14)" rx="2" ry="2" />
+<text text-anchor="" x="357.56" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.fromConstant (4 samples, 0.40%)</title><rect x="31.2" y="373" width="4.8" height="15.0" fill="rgb(210,202,51)" rx="2" ry="2" />
+<text text-anchor="" x="34.24" y="383.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.memoryUsage (4 samples, 0.40%)</title><rect x="31.2" y="357" width="4.8" height="15.0" fill="rgb(216,171,32)" rx="2" ry="2" />
+<text text-anchor="" x="34.24" y="367.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.insertByName (20 samples, 2.00%)</title><rect x="451.3" y="277" width="23.6" height="15.0" fill="rgb(242,218,10)" rx="2" ry="2" />
+<text text-anchor="" x="454.32" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Main.runEval (998 samples, 99.80%)</title><rect x="10.0" y="453" width="1177.6" height="15.0" fill="rgb(236,138,21)" rx="2" ry="2" />
+<text text-anchor="" x="13.00" y="463.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Main.runEval</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.returnCek (299 samples, 29.90%)</title><rect x="132.7" y="325" width="352.8" height="15.0" fill="rgb(232,27,53)" rx="2" ry="2" />
+<text text-anchor="" x="135.72" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.C..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.== (2 samples, 0.20%)</title><rect x="425.4" y="181" width="2.3" height="15.0" fill="rgb(224,24,4)" rx="2" ry="2" />
+<text text-anchor="" x="428.36" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Apply.applyTypeSchemed (25 samples, 2.50%)</title><rect x="169.3" y="277" width="29.5" height="15.0" fill="rgb(254,60,5)" rx="2" ry="2" />
+<text text-anchor="" x="172.30" y="287.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >La..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.&lt;&gt; (12 samples, 1.20%)</title><rect x="393.5" y="181" width="14.2" height="15.0" fill="rgb(212,192,46)" rx="2" ry="2" />
+<text text-anchor="" x="396.50" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (35 samples, 3.50%)</title><rect x="347.5" y="133" width="41.3" height="15.0" fill="rgb(252,142,11)" rx="2" ry="2" />
+<text text-anchor="" x="350.48" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Dat..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.combine (1 samples, 0.10%)</title><rect x="364.0" y="69" width="1.2" height="15.0" fill="rgb(210,203,2)" rx="2" ry="2" />
+<text text-anchor="" x="367.00" y="79.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.lookupName (22 samples, 2.20%)</title><rect x="106.8" y="309" width="25.9" height="15.0" fill="rgb(215,40,4)" rx="2" ry="2" />
+<text text-anchor="" x="109.76" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >L..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.Strict.singleton (118 samples, 11.80%)</title><rect x="550.4" y="309" width="139.3" height="15.0" fill="rgb(222,39,5)" rx="2" ry="2" />
+<text text-anchor="" x="553.44" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.HashMap.Inte..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (2 samples, 0.20%)</title><rect x="345.1" y="133" width="2.4" height="15.0" fill="rgb(248,70,4)" rx="2" ry="2" />
+<text text-anchor="" x="348.12" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.defaultHashWithSalt (4 samples, 0.40%)</title><rect x="355.7" y="101" width="4.8" height="15.0" fill="rgb(248,181,7)" rx="2" ry="2" />
+<text text-anchor="" x="358.74" y="111.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>PlutusPrelude.tabulateArray (15 samples, 1.50%)</title><rect x="264.9" y="165" width="17.7" height="15.0" fill="rgb(216,107,53)" rx="2" ry="2" />
+<text text-anchor="" x="267.88" y="175.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.cekEnvRuntime (1 samples, 0.10%)</title><rect x="1186.5" y="309" width="1.1" height="15.0" fill="rgb(242,133,1)" rx="2" ry="2" />
+<text text-anchor="" x="1189.46" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#. (40 samples, 4.00%)</title><rect x="1106.2" y="293" width="47.2" height="15.0" fill="rgb(226,206,15)" rx="2" ry="2" />
+<text text-anchor="" x="1109.22" y="303.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.hash (46 samples, 4.60%)</title><rect x="334.5" y="149" width="54.3" height="15.0" fill="rgb(230,210,50)" rx="2" ry="2" />
+<text text-anchor="" x="337.50" y="159.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data...</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Class.combine (2 samples, 0.20%)</title><rect x="358.1" y="85" width="2.4" height="15.0" fill="rgb(250,123,8)" rx="2" ry="2" />
+<text text-anchor="" x="361.10" y="95.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.hash (6 samples, 0.60%)</title><rect x="477.3" y="245" width="7.1" height="15.0" fill="rgb(246,31,16)" rx="2" ry="2" />
+<text text-anchor="" x="480.28" y="255.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExBudgeting.exceedsBudget (101 samples, 10.10%)</title><rect x="1046.0" y="309" width="119.2" height="15.0" fill="rgb(218,165,31)" rx="2" ry="2" />
+<text text-anchor="" x="1049.04" y="319.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.Plutu..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (80 samples, 8.00%)</title><rect x="595.3" y="229" width="94.4" height="15.0" fill="rgb(211,65,17)" rx="2" ry="2" />
+<text text-anchor="" x="598.28" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.Hashab..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Constant.Typed.readKnown (11 samples, 1.10%)</title><rect x="179.9" y="213" width="13.0" height="15.0" fill="rgb(222,52,18)" rx="2" ry="2" />
+<text text-anchor="" x="182.92" y="223.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Name.unique (3 samples, 0.30%)</title><rect x="471.4" y="261" width="3.5" height="15.0" fill="rgb(232,6,47)" rx="2" ry="2" />
+<text text-anchor="" x="474.38" y="271.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Builtins.toBuiltinMeaning (7 samples, 0.70%)</title><rect x="274.3" y="117" width="8.3" height="15.0" fill="rgb(230,218,38)" rx="2" ry="2" />
+<text text-anchor="" x="277.32" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Profunctor.Unsafe.#..\ (7 samples, 0.70%)</title><rect x="437.2" y="229" width="8.2" height="15.0" fill="rgb(216,93,14)" rx="2" ry="2" />
+<text text-anchor="" x="440.16" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.UntypedPlutusCore.Evaluation.Machine.Cek.evaluateCek (960 samples, 96.00%)</title><rect x="54.8" y="405" width="1132.8" height="15.0" fill="rgb(251,70,45)" rx="2" ry="2" />
+<text text-anchor="" x="57.84" y="415.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Language.UntypedPlutusCore.Evaluation.Machine.Cek.evaluateCek</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.HashMap.Internal.Strict.singleton (49 samples, 4.90%)</title><rect x="331.0" y="181" width="57.8" height="15.0" fill="rgb(236,162,27)" rx="2" ry="2" />
+<text text-anchor="" x="333.96" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Data.H..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.&lt;&gt; (7 samples, 0.70%)</title><rect x="1037.8" y="229" width="8.2" height="15.0" fill="rgb(250,226,34)" rx="2" ry="2" />
+<text text-anchor="" x="1040.78" y="239.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Semigroup.Generic.gmappend' (7 samples, 0.70%)</title><rect x="399.4" y="133" width="8.3" height="15.0" fill="rgb(248,110,16)" rx="2" ry="2" />
+<text text-anchor="" x="402.40" y="143.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.hashSum (28 samples, 2.80%)</title><rect x="656.6" y="181" width="33.1" height="15.0" fill="rgb(205,35,40)" rx="2" ry="2" />
+<text text-anchor="" x="659.64" y="191.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >Da..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>PlutusPrelude.asksM (19 samples, 1.90%)</title><rect x="1165.2" y="325" width="22.4" height="15.0" fill="rgb(210,125,3)" rx="2" ry="2" />
+<text text-anchor="" x="1168.22" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  >P..</text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Language.PlutusCore.Evaluation.Machine.ExMemory.memoryUsage (2 samples, 0.20%)</title><rect x="33.6" y="325" width="2.4" height="15.0" fill="rgb(250,224,22)" rx="2" ry="2" />
+<text text-anchor="" x="36.60" y="335.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+<g class="func_g" onmouseover="s(this)" onmouseout="c()" onclick="zoom(this)">
+<title>Data.Hashable.Generic.Instances.ghashWithSalt (1 samples, 0.10%)</title><rect x="346.3" y="117" width="1.2" height="15.0" fill="rgb(241,228,43)" rx="2" ry="2" />
+<text text-anchor="" x="349.30" y="127.5" font-size="12" font-family="Verdana" fill="rgb(0,0,0)"  ></text>
+</g>
+</svg>

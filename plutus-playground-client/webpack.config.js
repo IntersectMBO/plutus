@@ -58,7 +58,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs'
+                                'web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),
@@ -101,7 +101,10 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules'
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            'node_modules', path.resolve(__dirname, './node_modules')
         ],
         alias: {
             static: path.resolve(__dirname, './static'),
@@ -119,7 +122,7 @@ module.exports = {
 
     plugins: [
         new HtmlWebpackPlugin({
-            template: '../web-common/static/index.html',
+            template: 'web-common/static/index.html',
             favicon: 'static/favicon.ico',
             title: 'Plutus Playground',
             productName: 'plutus',

@@ -6,7 +6,6 @@ import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
-import FileEvents (preventDefault, readFileFromDragEvent)
 import Halogen (HalogenM, liftEffect, query, tell)
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
@@ -16,6 +15,7 @@ import LocalStorage as LocalStorage
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
 import Prelude (Unit, bind, discard, not, pure, show, unit, void, ($), (<$>), (==))
 import Types (ChildSlots, _editorSlot)
+import Web.Event.Extra (preventDefault, readFileFromDragEvent)
 
 initialState :: forall m. MonadEffect m => m State
 initialState =

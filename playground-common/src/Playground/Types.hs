@@ -26,7 +26,7 @@ import           GHC.Generics                                    (Generic)
 import           Language.Haskell.Interpreter                    (CompilationError, SourceCode)
 import qualified Language.Haskell.Interpreter                    as HI
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
-import           Ledger                                          (PubKeyHash, Tx, fromSymbol, pubKeyHash)
+import           Ledger                                          (PubKeyHash, fromSymbol, pubKeyHash)
 import qualified Ledger.Ada                                      as Ada
 import           Ledger.Scripts                                  (ValidatorHash)
 import           Ledger.Slot                                     (Slot)
@@ -135,8 +135,7 @@ pubKeys Evaluation {..} = pubKeyHash . walletPubKey . simulatorWalletWallet <$> 
 
 data EvaluationResult =
     EvaluationResult
-        { resultBlockchain  :: [[Tx]] -- ^ The blockchain, newest blocks first
-        , resultRollup      :: [[AnnotatedTx]] -- ^ Annotated blockchain, newest blocks first
+        { resultRollup      :: [[AnnotatedTx]] -- ^ Annotated blockchain, newest blocks first
         , emulatorLog       :: [EmulatorEvent] -- ^ The emulator log, newest events first
         , emulatorTrace     :: Text
         , fundsDistribution :: [SimulatorWallet]
