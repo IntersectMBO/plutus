@@ -1,5 +1,11 @@
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
 
+import           Data.Aeson.Types (ToJSON)
+import           GHC.Generics     (Generic)
 
 data EventType =
     AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
@@ -10,4 +16,6 @@ data RiskFactors = RiskFactors
     , o_rf_RRMO :: Double
     , o_rf_SCMO :: Double
     , pp_payoff :: Double
-    } deriving (Show)
+    }
+    deriving stock (Generic)
+    deriving (Show, ToJSON)

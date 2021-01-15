@@ -9,7 +9,7 @@ import qualified Data.Map                                          as M
 import           Data.Time
 import           Data.Time.Clock.POSIX                             (posixSecondsToUTCTime)
 import           Language.Marlowe.ACTUS.Analysis                   (genProjectedCashflows)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.Schedule
 import           Test.QuickCheck
@@ -199,10 +199,25 @@ contractTermsGen = do
     }
 
 
-riskFactorsGen :: Gen ContractTerms -> Gen (M.Map Day RiskFactors)
-riskFactorsGen contractTerms = do
-    ct <- contractTerms
-    let days = cashCalculationDay <$> genProjectedCashflows ct --TODO should be all days between start and end
-        riskAtT = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
-    rf <- vectorOf (L.length days) riskAtT
+riskAtTGen :: Gen RiskFactors
+riskAtTGen = RiskFactors <$> percentage <*> percentage <*> percentage <*> smallamount
+
+riskFactorsGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGen ct = do
+    let days = cashCalculationDay <$> genProjectedCashflows ct
+    rf <- vectorOf (L.length days) riskAtTGen
     return $ M.fromList $ L.zip days rf
+
+riskFactorsGenRandomWalkGen :: ContractTerms -> Gen (M.Map Day RiskFactors)
+riskFactorsGenRandomWalkGen contractTerms = do
+    rfs <- riskFactorsGen contractTerms
+    riskAtT <- riskAtTGen
+    let
+        (riskFactorsDates, riskFactorsValues) = unzip $ M.toList rfs
+
+        fluctuate state fluctiation = state + (fluctiation - 50) / 100
+        walk rf st =
+            let fluctuate' extractor = fluctuate (extractor rf) (extractor st)
+            in RiskFactors (fluctuate' o_rf_CURS) (fluctuate' o_rf_RRMO) (fluctuate' o_rf_SCMO) (fluctuate' pp_payoff)
+        path = L.scanl walk riskAtT riskFactorsValues
+    return $ M.fromList $ L.zip riskFactorsDates path
