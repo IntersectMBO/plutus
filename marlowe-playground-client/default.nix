@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
@@ -37,11 +37,11 @@ let
   };
 
   client = buildPursPackage {
-    inherit webCommon nodeModules;
+    inherit pkgs nodeModules;
     src = ./.;
     checkPhase = "npm run test";
     name = "marlowe-playground-client";
-    psSrc = generated-purescript;
+    extraSrcs = { web-common = webCommon; generated = generated-purescript; };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };

@@ -47,7 +47,7 @@ rec {
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon;
+      inherit set-git-rev haskell webCommon webCommonPlutus;
     }) client server-invoker generated-purescript;
   };
 
@@ -56,7 +56,7 @@ rec {
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon;
+      inherit set-git-rev haskell webCommon webCommonMarlowe;
     }) client server-invoker generated-purescript;
   };
 
