@@ -1,14 +1,21 @@
-\begin{code}
+---
+title: (Declarative) Term Renaming and Substitution 
+layout: page
+---
+
+```
 module Declarative.RenamingSubstitution where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
 open import Data.Unit
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.List
 
 open import Type
 import Type.RenamingSubstitution as ⋆
@@ -17,16 +24,25 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative
-\end{code}
+```
 
 
 ## Renaming
-\begin{code}
+
+A term renaming maps every term variables in a context `Γ` to a
+variable in context `Δ`. It is indexed by a type renaming which does
+the same thing for type variables.
+
+```
 Ren : ∀ {Φ Ψ}(Γ : Ctx Φ)(Δ : Ctx Ψ) → ⋆.Ren Φ Ψ → Set
 Ren {Φ} Γ Δ ρ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ∋ ⋆.ren ρ A
-\end{code}
+```
 
-\begin{code}
+Extending a renaming to work on longer context extended by an
+additional variable - used when going under a binder. It maps the new
+variable `Z` to `Z` and shift everything else along.
+
+```
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
@@ -35,9 +51,14 @@ ext : ∀ {Φ Ψ Γ Δ}
   → Ren (Γ , B) (Δ , ⋆.ren ρ⋆ B) ρ⋆
 ext _ ρ Z     = Z 
 ext _ ρ (S x) = S (ρ x)
-\end{code}
+```
 
-\begin{code}
+Extending a renaming to work on a context extended by one additional
+type variable - used when going under a type binder. This doesn't
+actually change any term variables, it is a case of managing the type
+information.
+
+```
 ext⋆ : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
@@ -48,9 +69,11 @@ ext⋆ ρ⋆ ρ (T x) = conv∋
   refl
   (trans (sym (⋆.ren-comp _)) (⋆.ren-comp _))
   (T (ρ x))
-\end{code}
+```
 
-\begin{code}
+Renaming a term constant
+
+```
 renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ∋⋆ J)
     -----------------------------------------------------
@@ -62,11 +85,11 @@ renTermCon ρ⋆ (bool b)       = bool b
 renTermCon ρ⋆ (char c)       = char c
 renTermCon ρ⋆ unit           = unit
 
-\end{code}
+```
 
-\begin{code}
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List
+Renaming for terms
+
+```
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → Ren Γ Δ ρ⋆
@@ -97,9 +120,11 @@ ren _ ρ (conv p t) = conv (ren≡β _ p) (ren _ ρ t)
 ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
 ren ρ⋆ _ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
 ren _ _ (error A) = error (⋆.ren _ A)
-\end{code}
+```
 
-\begin{code}
+Weakening a term by an additional type variable
+
+```
 weaken : ∀ {Φ Γ}{A B : Φ ⊢⋆ *}
   → Γ ⊢ A
     ---------
@@ -108,23 +133,29 @@ weaken {Γ = Γ}{A}{B} x = conv⊢
   refl
   (⋆.ren-id A)
   (ren _ (λ y → conv∋ refl (sym (⋆.ren-id _)) (S y)) x)
-\end{code}
+```
 
-\begin{code}
+```
 weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢⋆ *}{K}
   → Γ ⊢ A
     -------------------
   → Γ ,⋆ K ⊢ ⋆.weaken A
 weaken⋆ x = ren _ T x
-\end{code}
+```
 
 ## Substitution
-\begin{code}
+
+A substitution maps term variables to terms. It is indexed by a type
+substitution.
+
+```
 Sub : ∀ {Φ}{Ψ} Γ Δ → ⋆.Sub Φ Ψ → Set
 Sub {Φ} Γ Δ σ = {A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ A
-\end{code}
+```
 
-\begin{code}
+Extend a substitution by an additional term variable. Used for going under binders.
+
+```
 exts : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
   → ({A :  Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
@@ -135,9 +166,12 @@ exts : ∀ {Φ Ψ Γ Δ}
      → Δ , ⋆.sub σ⋆ B ⊢ ⋆.sub σ⋆ A)
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S x) = weaken (σ x)
-\end{code}
+```
 
-\begin{code}
+Extend a substitution by an additional type variable. Used for going
+under type binders.
+
+```
 exts⋆ : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
   → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
@@ -150,9 +184,11 @@ exts⋆ {Δ = Δ} _ σ {K}(T {A = A} x) = conv⊢
   refl
   (trans (sym (⋆.ren-sub A)) (⋆.sub-ren A))
   (weaken⋆ (σ x))
-\end{code}
+```
 
-\begin{code}
+Substitution for term constants
+
+```
 subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢⋆ J)
     ------------------------
@@ -164,10 +200,11 @@ subTermCon _ (bool b)       = bool b
 subTermCon _ (char c)       = char c
 subTermCon _ unit           = unit
 
-\end{code}
+```
 
+Substitution for terms
 
-\begin{code}
+```
 sub : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : ∀ {K} → Φ ∋⋆ K → Ψ ⊢⋆ K)
   → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
@@ -191,9 +228,13 @@ sub _ σ (conv p t)                  = conv (sub≡β _ p) (sub _ σ t)
 sub σ⋆ σ (con cn)                   = con (subTermCon σ⋆ cn)
 sub σ⋆ _ (ibuiltin b) = conv⊢ refl (itype-sub b σ⋆) (ibuiltin b)
 sub _ σ (error A) = error (⋆.sub _ A)
-\end{code}
+```
 
-\begin{code}
+Extending a substitution by a term. Substitutions are implemented as
+functions but they could also be implemented as lists. This operation
+corresponds to cons (`_∷_`) for backwards lists.
+
+```
 subcons : ∀{Φ Ψ Γ Δ} →
   (σ⋆ : ∀{K} → Φ  ∋⋆ K → Ψ ⊢⋆ K)
   → ({A : Φ ⊢⋆ *} → Γ ∋ A → Δ ⊢ ⋆.sub σ⋆ A)
@@ -203,9 +244,12 @@ subcons : ∀{Φ Ψ Γ Δ} →
   → ({B : Φ ⊢⋆ *} → Γ , A ∋ B → Δ ⊢ ⋆.sub σ⋆ B)
 subcons _ σ t Z     = t
 subcons _ σ t (S x) = σ x
-\end{code}
+```
 
-\begin{code}
+Substitute a single variable in a term. Used to specify the beta-rule
+for appliction in reduction.
+
+```
 _[_] : ∀ {Φ Γ} {A B : Φ ⊢⋆ *}
         → Γ , B ⊢ A
         → Γ ⊢ B 
@@ -218,9 +262,12 @@ _[_]  {Γ = Γ}{A}{B} t s = conv⊢
     _
     (subcons ` (λ x → ` (conv∋ refl (sym (⋆.sub-id _)) x))
     (conv⊢ refl (sym (⋆.sub-id B)) s)) t)
-\end{code}
+```
 
-\begin{code}
+Substitute a single type variable in a term. Used to specify the
+beta-rule for type instantiation in reduction.
+
+```
 _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢⋆ *}
         → Γ ,⋆ K ⊢ B
         → (A : Φ ⊢⋆ K)
@@ -233,4 +280,4 @@ _[_]⋆ {J}{Γ = Γ}{K}{B} t A = sub
     (trans (sym (⋆.sub-id A')) (⋆.sub-ren A'))
     (` x)})
   t
-\end{code}
+```
