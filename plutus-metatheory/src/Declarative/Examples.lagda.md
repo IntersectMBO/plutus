@@ -1,10 +1,18 @@
-\begin{code}
+---
+title: Declarative Term Examples
+layout: page
+---
+
+This file contains some examples of plutus core terms such as Church
+and Scott numerals and their respective addition operations.
+
+```
 module Declarative.Examples where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
@@ -25,11 +33,11 @@ open import Data.Nat
 open import Data.Unit
 
 import Declarative.Examples.StdLib.ChurchNat
-\end{code}
+```
 
 ## Examples
 
-\begin{code}
+```
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
@@ -41,7 +49,7 @@ module Builtins where
 
   builtininc2 : ∅ ⊢ con integer
   builtininc2 = inc · con2
-\end{code}
+```
 
 
 ### Scott Numerals
@@ -65,7 +73,7 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 
 -- v version with evaluation contexts
 
-\begin{code}
+```
 {-
 module ScottE where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
@@ -128,7 +136,7 @@ module ScottE where
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
 -}
-\end{code}
+```
 
 
 eval (gas 10000000) Scott.Four
@@ -174,7 +182,7 @@ eval (gas 10000000) Scott.Two
 
 
 
-\begin{code}
+```
 module Scott1 where
   open import Declarative.Examples.StdLib.Nat
   
@@ -205,12 +213,12 @@ module Scott1 where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-\end{code}
+```
 
 
 ### Church Numerals
 
-\begin{code}
+```
 module Church where
   open Declarative.Examples.StdLib.ChurchNat
   
@@ -236,7 +244,7 @@ module Church where
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
 
 --open Church public
-\end{code}
+```
 
 -- Church "4"
 eval (gas 100000000) Four

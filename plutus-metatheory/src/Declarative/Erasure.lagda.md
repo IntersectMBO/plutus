@@ -1,16 +1,21 @@
-\begin{code}
-module Declarative.Erasure where
-\end{code}
+---
+title: Erasure of (Declarative) terms
+layout: page
+---
 
-\begin{code}
+```
+module Declarative.Erasure where
+```
+
+```
 open import Declarative
 open import Declarative.RenamingSubstitution as D
 open import Type.RenamingSubstitution as T
 open import Untyped
 open import Untyped.RenamingSubstitution as U
-\end{code}
+```
 
-\begin{code}
+```
 open import Type
 open import Declarative
 open import Builtin hiding (length)
@@ -119,4 +124,4 @@ backVar (Γ , A) zero    = Z
 backVar (Γ , A) (suc i) = S (backVar Γ i)
 
 erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
-\end{code}
+```
