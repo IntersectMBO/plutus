@@ -159,10 +159,10 @@ isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
 isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
 
 itype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in substNf (λ()) (isig2type Φ Γ C) 
+itype b = let Φ ,, Γ ,, C = ISIG b in subNf (λ()) (isig2type Φ Γ C) 
 
 postulate itype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → itype b ≡ renNf ρ (itype b)
-postulate itype-subst : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ substNf ρ (itype b)
+postulate itype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → itype b ≡ subNf ρ (itype b)
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
@@ -255,21 +255,21 @@ Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
   (A : ∅ ⊢Nf⋆ K)(C : Φ ⊢Nf⋆ *)(σ : SubNf Φ' ∅)
   → (Π
        (eval
-        (⋆.subst (⋆.exts (⋆.exts (λ x → embNf (σ x))))
+        (⋆.sub (⋆.exts (⋆.exts (λ x → embNf (σ x))))
          (embNf (<C'2type p C)))
         (exte (exte (idEnv ∅))))
        [ A ]Nf)
-      ≡ substNf (substNf-cons σ A) (Π (<C'2type p C))
-Πlem p A C σ = sym (substNf-cons-[]Nf (Π (<C'2type p C)))
+      ≡ subNf (subNf-cons σ A) (Π (<C'2type p C))
+Πlem p A C σ = sym (subNf-cons-[]Nf (Π (<C'2type p C)))
 
 ⇒lem : ∀{K}{A : ∅ ⊢Nf⋆ K}{Φ Φ'}{Δ : Ctx Φ'}{Γ : Ctx Φ}{B : Φ' ,⋆ K ⊢Nf⋆ *}
        (p : ((Δ ,⋆ K) , B) ≤C' Γ)(σ : SubNf Φ' ∅)(C : Φ ⊢Nf⋆ *)
-  → ((eval (⋆.subst (⋆.exts (λ x → embNf (σ x))) (embNf B))
+  → ((eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf B))
         (exte (idEnv ∅))
         ⇒
-        eval (⋆.subst (⋆.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
+        eval (⋆.sub (⋆.exts (λ x → embNf (σ x))) (embNf (<C'2type p C)))
         (exte (idEnv ∅)))
        [ A ]Nf)
-      ≡ substNf (substNf-cons σ A) (B ⇒ <C'2type p C)
-⇒lem {B = B} p σ C = sym (substNf-cons-[]Nf (B ⇒ <C'2type p C)) 
+      ≡ subNf (subNf-cons σ A) (B ⇒ <C'2type p C)
+⇒lem {B = B} p σ C = sym (subNf-cons-[]Nf (B ⇒ <C'2type p C)) 
 \end{code}

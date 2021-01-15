@@ -1,19 +1,24 @@
-\begin{code}
-module Declarative.Erasure where
-\end{code}
+---
+title: Erasure of (Declarative) terms
+layout: page
+---
 
-\begin{code}
+```
+module Declarative.Erasure where
+```
+
+```
 open import Declarative
 open import Declarative.RenamingSubstitution as D
 open import Type.RenamingSubstitution as T
 open import Untyped
 open import Untyped.RenamingSubstitution as U
-\end{code}
+```
 
-\begin{code}
+```
 open import Type
 open import Declarative
-open import Builtin
+open import Builtin hiding (length)
 open import Utils
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
@@ -90,30 +95,6 @@ eraseTel⋆ Γ (Δ ,⋆ K) = eraseTel⋆ Γ Δ :< con unit
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Nat.Properties
-≤C⋆2≤ : ∀{Ψ Ψ'} → Ψ ≤C⋆ Ψ' → len⋆ Ψ ≤ len⋆ Ψ'
-≤C⋆2≤ base = ≤-refl
-≤C⋆2≤ (skip p) = ≤′⇒≤ (≤′-step (≤⇒≤′ (≤C⋆2≤ p)))
-
-≤C2≤ : ∀{Ψ Ψ'}{Γ : Ctx Ψ}{Γ' : Ctx Ψ'} → Γ ≤C Γ' → len Γ ≤ len Γ'
-≤C2≤ base = ≤-refl
-≤C2≤ (skip p) = ≤′⇒≤ (≤′-step (≤⇒≤′ (≤C2≤ p)))
-≤C2≤ (skip⋆ p) = ≤C2≤ p
-
-≤L2≤ : {A : Set}{as as' : List A} → as ≤L as' → length as ≤ length as'
-≤L2≤ base = ≤-refl
-≤L2≤ (skip p) = ≤′⇒≤ (≤′-step (≤⇒≤′ (≤L2≤ p)))
-
-lem1' : ∀ Ψ Ψ' As As' →
-      ((Ψ' ≤C⋆ Ψ) × As' ≡ [])
-      ⊎
-      Σ (Ψ' ≡ Ψ)
-      (λ p →
-         As' ≤L
-         Relation.Binary.PropositionalEquality.subst (λ Φ₁ → List (Φ₁ ⊢⋆ *))
-         (sym p) As)
-      → len⋆ Ψ' + length As' ≤‴ len⋆ Ψ + length As
-lem1' Ψ Ψ' As As' (inj₁ (p ,, refl)) = ≤″⇒≤‴ (≤⇒≤″ (+-mono-≤ (≤C⋆2≤ p) z≤n))
-lem1' Ψ Ψ' As As' (inj₂ (refl ,, q)) = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ (len⋆ Ψ) (≤L2≤ q)))
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
@@ -143,4 +124,4 @@ backVar (Γ , A) zero    = Z
 backVar (Γ , A) (suc i) = S (backVar Γ i)
 
 erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
-\end{code}
+```

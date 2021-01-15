@@ -20,10 +20,7 @@ open import Data.Vec hiding (_>>=_;_++_)
 open import Data.List hiding (_++_)
 
 open import Type
-open import Builtin
-open import Builtin.Constant.Type hiding (ByteString)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
-open import Builtin.Signature
+open import Builtin hiding (ByteString)
 open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE

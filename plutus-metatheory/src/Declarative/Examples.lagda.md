@@ -1,10 +1,18 @@
-\begin{code}
+---
+title: Declarative Term Examples
+layout: page
+---
+
+This file contains some examples of plutus core terms such as Church
+and Scott numerals and their respective addition operations.
+
+```
 module Declarative.Examples where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
@@ -25,11 +33,11 @@ open import Data.Nat
 open import Data.Unit
 
 import Declarative.Examples.StdLib.ChurchNat
-\end{code}
+```
 
 ## Examples
 
-\begin{code}
+```
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
@@ -41,31 +49,33 @@ module Builtins where
 
   builtininc2 : ∅ ⊢ con integer
   builtininc2 = inc · con2
-\end{code}
+```
 
 
 ### Scott Numerals
 
-From http://lucacardelli.name/Papers/Notes/scott2.pdf
+From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
 
-M = μ X . G X
-G X = ∀ R. R → (X → R) → R)
-μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
-N = G M
-in  : N → M
-out : M → N
+```
+{-
+    M = μ X . G X
+    G X = ∀ R. R → (X → R) → R)
+    μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
+    N = G M
+    in  : N → M
+    out : M → N
+    
+    0    = Λ R . λ x : R . λ y : M → R . x
+         : N
+    succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
+         : N → N
+    case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+         : N → ∀ R . R → (N → R) → R
+-}
 
-0    = Λ R . λ x : R . λ y : M → R . x
-     : N
-succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
-     : N → N
-case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
-     : N → ∀ R . R → (N → R) → R
+```
 
-
--- v version with evaluation contexts
-
-\begin{code}
+```
 {-
 module ScottE where
   G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
@@ -128,9 +138,10 @@ module ScottE where
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
 -}
-\end{code}
+```
 
-
+```
+{-
 eval (gas 10000000) Scott.Four
 
 (done
@@ -171,10 +182,11 @@ eval (gas 10000000) Scott.Two
          wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
          (Λ (ƛ (ƛ (` (S Z)))))))))))))
  .Term.Reduction.Value.V-Λ_)
+-}
+```
 
 
-
-\begin{code}
+```
 module Scott1 where
   open import Declarative.Examples.StdLib.Nat
   
@@ -205,12 +217,11 @@ module Scott1 where
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
-\end{code}
-
+```
 
 ### Church Numerals
 
-\begin{code}
+```
 module Church where
   open Declarative.Examples.StdLib.ChurchNat
   
@@ -236,8 +247,10 @@ module Church where
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
 
 --open Church public
-\end{code}
+```
 
+```
+{-
 -- Church "4"
 eval (gas 100000000) Four
 (done
@@ -330,3 +343,5 @@ eval (gas 10000000) (Two ·⋆ N · Two · Succ)
        · (` (S Z)))
       · (` Z))))))
  V-Λ_)
+-}
+```
