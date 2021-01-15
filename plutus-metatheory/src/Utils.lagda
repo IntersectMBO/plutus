@@ -6,6 +6,8 @@ open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Nat
 open import Data.Nat.Properties
+open import Relation.Binary
+import Data.Integer as I
 open import Data.Vec hiding (map;_>>=_;_++_)
 open import Data.List hiding (map)
 open import Data.Sum
@@ -58,6 +60,12 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
+
+_I>?_ : Decidable I._>_
+i I>? j = j I.<? i
+
+_I≥?_ : Decidable I._≥_
+i I≥? j = j I.≤? i
 
 z≤‴n : ∀ {n} → zero  ≤‴ n
 z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)

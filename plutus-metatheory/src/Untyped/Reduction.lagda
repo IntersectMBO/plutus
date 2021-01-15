@@ -6,7 +6,6 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
-open import Builtin.Constant.Type using (_>?_)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero;_<‴_;_≤‴_;≤‴-refl;≤‴-step)
@@ -166,9 +165,9 @@ BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) 
 BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
   decIf (i ≤? j) plc_true plc_false
 BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.>? j) plc_true plc_false
+  decIf (i I>? j) plc_true plc_false
 BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i Builtin.Constant.Type.≥? j) plc_true plc_false
+  decIf (i I≥? j) plc_true plc_false
 BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
   decIf (i ≟ j) plc_true plc_false
 BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =

@@ -32,17 +32,6 @@ open import Function
 open import Utils
 ```
 
-# Some integer operations missing from the standard library
-
-
-```
-_>?_ : Decidable _>_
-i >? j = j <? i
-
-_≥?_ : Decidable _≥_
-i ≥? j = j ≤? i
-```
-
 ## Type constants
 
 We have six base types referred to as type constants:

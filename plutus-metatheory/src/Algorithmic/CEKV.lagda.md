@@ -170,12 +170,12 @@ BUILTIN
   lessThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
   decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN greaterThanInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i Builtin.Constant.Type.>? i')
+  decIf (i I>? i')
         (inj₁ (V-con (bool true)))
         (inj₁ (V-con (bool false)))
 BUILTIN
   greaterThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
-  decIf (i ≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+  decIf (i I≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN equalsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
   decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
 BUILTIN concatenate σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
@@ -288,9 +288,9 @@ IBUILTIN lessThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
 IBUILTIN lessThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (decIf (i ≤? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN greaterThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  inj₁ (decIf (i Builtin.Constant.Type.>? j) (V-con (bool true)) (V-con (bool false)))
+  inj₁ (decIf (i I>? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN greaterThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
-  inj₁ (decIf (i Builtin.Constant.Type.≥? j) (V-con (bool true)) (V-con (bool false)))
+  inj₁ (decIf (i I≥? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN equalsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (decIf (i ≟ j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN concatenate σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) =
