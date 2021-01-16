@@ -7,7 +7,7 @@ module ErrorHandlingSimulations where
 
 import           Data.Text             (Text)
 import           ErrorHandling         (registeredKnownCurrencies)
-import           Playground.Types      (Simulation (Simulation), SimulatorAction, simulationActions, simulationIndex,
+import           Playground.Types      (Simulation (Simulation), SimulatorAction, simulationActions, simulationId,
                                         simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
@@ -22,7 +22,7 @@ simulations = [throwCatch]
     throwCatch =
         Simulation
             { simulationName = "Throw/Catch"
-            , simulationIndex = 1
+            , simulationId = 1
             , simulationWallets
             , simulationActions = [throwError wallet1, catchError wallet2]
             }

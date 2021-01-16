@@ -68,7 +68,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationIndex, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
 import Validation (_argumentValues, _argument)
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
@@ -82,10 +82,10 @@ mkSimulatorWallet currencies walletId =
     }
 
 mkSimulation :: Array KnownCurrency -> Int -> Simulation
-mkSimulation simulationCurrencies simulationIndex =
+mkSimulation simulationCurrencies simulationId =
   Simulation
-    { simulationName: "Simulation " <> show simulationIndex
-    , simulationIndex
+    { simulationName: "Simulation " <> show simulationId
+    , simulationId
     , simulationActions: []
     , simulationWallets: mkSimulatorWallet simulationCurrencies <<< BigInteger.fromInt <$> 1 .. 2
     }
@@ -269,12 +269,12 @@ handleAction AddSimulationSlot = do
           modifying _simulations
             ( \simulations ->
                 let
-                  maxSimulationIndex = fromMaybe 0 $ maximumOf (traversed <<< _simulationIndex) simulations
+                  maxsimulationId = fromMaybe 0 $ maximumOf (traversed <<< _simulationId) simulations
 
-                  simulationIndex = maxSimulationIndex + 1
+                  simulationId = maxsimulationId + 1
                 in
                   Cursor.snoc simulations
-                    (mkSimulation knownCurrencies simulationIndex)
+                    (mkSimulation knownCurrencies simulationId)
             )
         Nothing -> pure unit
       assign _currentView Simulations
