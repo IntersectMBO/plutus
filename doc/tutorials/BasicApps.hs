@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -16,7 +17,9 @@ module BasicApps where
 -- BLOCK0
 
 import           Control.Monad             (void)
+import           Data.Aeson                (FromJSON, ToJSON)
 import qualified Data.Text                 as T
+import           GHC.Generics              (Generic)
 import           Language.Plutus.Contract
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
@@ -109,15 +112,15 @@ lockFunds s@SplitData{amount} = do
 -- BLOCK8
 
 unlockFunds :: SplitData -> Contract SplitSchema T.Text ()
-unlockFunds s@SplitData{recipient1, recipient2, amount} = do
+unlockFunds SplitData{recipient1, recipient2, amount} = do
     let contractAddress = (Ledger.scriptAddress (Scripts.validatorScript splitInstance))
-    unspentOutputs <- utxoAt contractAddress
+    utxos <- utxoAt contractAddress
     let half = Ada.divide amount 2
         tx =
-            collectFromScript unspentOutputs ()
-            <> mustPayToPubKey recipient1 half
-            <> mustPayToPubKey recipient2 (amount - half)
-    void $ submitTxConstraintsSpending starterInstance unspentOutputs tx
+            collectFromScript utxos ()
+            <> Constraints.mustPayToPubKey recipient1 (Ada.toValue half)
+            <> Constraints.mustPayToPubKey recipient2 (Ada.toValue $ amount - half)
+    void $ submitTxConstraintsSpending splitInstance utxos tx
 
 -- BLOCK9
 

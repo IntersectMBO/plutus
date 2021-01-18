@@ -63,7 +63,8 @@ executable doc-doctests
       playground-common -any,
       prettyprinter -any,
       containers -any,
-      text -any
+      text -any,
+      aeson -any
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any
