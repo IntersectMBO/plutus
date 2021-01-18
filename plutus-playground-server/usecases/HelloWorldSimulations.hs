@@ -21,6 +21,7 @@ simulations = [helloWorld]
     helloWorld =
         Simulation
             { simulationName = "Hello, world"
+            , simulationId = 1
             , simulationWallets
             , simulationActions = [ AddBlocks 1 ]
             }
