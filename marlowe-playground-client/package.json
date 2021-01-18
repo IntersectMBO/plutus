@@ -31,10 +31,10 @@
   "resolutions": {},
   "license": "Apache-2.0",
   "devDependencies": {
-    "bindings": "^1.5.0",
     "css-loader": "^1.0.0",
     "file-loader": "^2.0.0",
     "html-webpack-plugin": "^3.2.0",
+    "libxmljs": "github:znerol/libxmljs#0517e063347ea2532c9fdf38dc47878c628bf0ae",
     "monaco-editor-webpack-plugin": "^1.9.0",
     "nearley-webpack-loader": "github:shmish111/nearley-webpack-loader#939360f9d1bafa9019b6ff8739495c6c9101c4a1",
     "node-sass": "^4.12.0",
