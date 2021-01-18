@@ -11,13 +11,13 @@ import Bootstrap (btn, card, cardHeader, cardHeader_, cardBody_, customSelect, e
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
-import Data.Maybe (Maybe(Just), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Editor.State (initEditor)
 import Editor.Types (Action(..), State(..), _warnings, allKeyBindings)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, text)
-import Halogen.HTML.Events (onClick, onDragOver, onDrop, onSelectedIndexChange)
+import Halogen.HTML.Events (onClick, onDragOver, onDrop, onMouseDown, onMouseMove, onMouseUp, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, id_, selected, value)
 import Halogen.Monaco (KeyBindings(..), monacoComponent)
 import Icons (Icon(..), icon)
@@ -27,6 +27,7 @@ import LocalStorage (Key)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
 import Types (ChildSlots, _editorSlot, HAction(..), View(..), WebCompilationResult)
+import Web.UIEvent.MouseEvent (MouseEvent, pageY)
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action
 editorPreferencesSelect active =
@@ -84,6 +85,9 @@ editorPane initialContents bufferLocalStorageKey editorState@(State { keyBinding
     [ class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
     , onDrop $ Just <<< HandleDropEvent
+    -- This is not the natural place to have these listeners. But see note [1] below.
+    , onMouseMove feedbackPaneResizeMouseMoveHandler
+    , onMouseUp feedbackPaneResizeMouseUpHandler
     ]
     [ slot
         _editorSlot
@@ -97,12 +101,27 @@ editorPane initialContents bufferLocalStorageKey editorState@(State { keyBinding
     ]
 
 editorFeedback :: forall p. State -> WebCompilationResult -> HTML p Action
-editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised }) compilationResult =
+editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneExtend, feedbackPaneMinimised }) compilationResult =
   div
-    [ class_ $ ClassName "editor-feedback-container" ]
+    [ class_ $ ClassName "editor-feedback-container"
+    -- This is also not the natural place to have these listeners. But see note [1] below.
+    , onMouseMove feedbackPaneResizeMouseMoveHandler
+    , onMouseUp feedbackPaneResizeMouseUpHandler
+    ]
     [ div
         [ classes feedbackPaneClasses ]
         [ div
+            [ class_ $ ClassName "editor-feedback-resize-bar"
+            , onMouseDown $ \event -> Just $ SetFeedbackPaneDragStart event
+            -- Note [1]: This is the natural place to have these listeners. But because the mouse
+            -- can - and probably will - move faster than this resize bar, they also need to be on
+            -- the editor pane (to catch when the mouse moves up faster), and on the feedback
+            -- container (to catch when the mouse moves down faster).
+            , onMouseMove feedbackPaneResizeMouseMoveHandler
+            , onMouseUp feedbackPaneResizeMouseUpHandler
+            ]
+            (if feedbackPaneMinimised then [] else [ nbsp ])
+        , div
             [ class_ $ ClassName "editor-feedback-header" ]
             [ p_ [ summaryText ]
             , case compilationResult of
@@ -119,10 +138,12 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
     ]
   where
   feedbackPaneClasses =
-    if feedbackPaneMinimised then
-      [ ClassName "editor-feedback", ClassName "minimised" ]
-    else
-      [ ClassName "editor-feedback" ]
+    [ ClassName "editor-feedback" ]
+      <> case feedbackPaneMinimised, feedbackPaneExtend of
+          false, 0 -> []
+          true, 0 -> [ ClassName "minimised" ]
+          false, size -> [ ClassName $ "expanded-" <> show size ]
+          true, size -> [ ClassName "minimised", ClassName $ "expanded-" <> show size ]
 
   summaryText = case compilationResult of
     NotAsked -> text "Not compiled"
@@ -162,6 +183,12 @@ editorFeedback editorState@(State { currentCodeIsCompiled, feedbackPaneMinimised
               <<< to compilationWarningsPane
           )
           compilationResult
+
+feedbackPaneResizeMouseMoveHandler :: MouseEvent -> Maybe Action
+feedbackPaneResizeMouseMoveHandler event = Just $ FixFeedbackPaneExtend $ pageY event
+
+feedbackPaneResizeMouseUpHandler :: MouseEvent -> Maybe Action
+feedbackPaneResizeMouseUpHandler event = Just $ ClearFeedbackPaneDragStart
 
 interpreterErrorPane :: forall p. InterpreterError -> Array (HTML p Action)
 interpreterErrorPane (TimeoutError error) = [ listGroupItem_ [ div_ [ text error ] ] ]

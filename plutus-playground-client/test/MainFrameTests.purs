@@ -157,6 +157,9 @@ execMockApp world queries = do
           , feedbackPaneMinimised: false
           , lastCompiledCode: Nothing
           , currentCodeIsCompiled: false
+          , feedbackPaneDragStart: Nothing
+          , feedbackPaneExtend: 0
+          , feedbackPanePreviousExtend: 0
           }
       )
   RWSResult state result writer <-

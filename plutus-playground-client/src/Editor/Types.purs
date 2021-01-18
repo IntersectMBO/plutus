@@ -14,6 +14,7 @@ import LocalStorage (Key(..))
 import Monaco (IPosition)
 import Prelude (bottom, top, (<<<))
 import Web.HTML.Event.DragEvent (DragEvent)
+import Web.UIEvent.MouseEvent (MouseEvent)
 
 data Action
   = Init
@@ -23,6 +24,9 @@ data Action
   | ScrollTo IPosition
   | SetKeyBindings KeyBindings
   | ToggleFeedbackPane
+  | SetFeedbackPaneDragStart MouseEvent
+  | ClearFeedbackPaneDragStart
+  | FixFeedbackPaneExtend Int
 
 ------------------------------------------------------------
 allKeyBindings :: Array KeyBindings
@@ -42,6 +46,9 @@ newtype State
   , feedbackPaneMinimised :: Boolean
   , lastCompiledCode :: Maybe SourceCode
   , currentCodeIsCompiled :: Boolean
+  , feedbackPaneDragStart :: Maybe Int
+  , feedbackPaneExtend :: Int
+  , feedbackPanePreviousExtend :: Int
   }
 
 derive instance newtypeState :: Newtype State _
@@ -64,3 +71,12 @@ _lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
 
 _currentCodeIsCompiled :: Lens' State Boolean
 _currentCodeIsCompiled = _Newtype <<< prop (SProxy :: SProxy "currentCodeIsCompiled")
+
+_feedbackPaneDragStart :: Lens' State (Maybe Int)
+_feedbackPaneDragStart = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDragStart")
+
+_feedbackPaneExtend :: Lens' State Int
+_feedbackPaneExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneExtend")
+
+_feedbackPanePreviousExtend :: Lens' State Int
+_feedbackPanePreviousExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPanePreviousExtend")

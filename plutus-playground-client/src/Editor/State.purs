@@ -1,9 +1,11 @@
 module Editor.State where
 
-import Editor.Types
 import Control.Alternative ((<|>))
+import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Ord (clamp)
+import Editor.Types (State(State), Action(..), keybindingsLocalStorageKey, readKeyBindings, _currentCodeIsCompiled, _feedbackPaneDragStart, _feedbackPaneExtend, _feedbackPaneMinimised, _feedbackPanePreviousExtend, _keyBindings, _lastCompiledCode)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, liftEffect, query, tell)
@@ -13,9 +15,10 @@ import Language.Haskell.Interpreter (SourceCode(SourceCode))
 import LocalStorage (Key)
 import LocalStorage as LocalStorage
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
-import Prelude (Unit, bind, discard, not, pure, show, unit, void, ($), (<$>), (==))
+import Prelude (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
 import Types (ChildSlots, _editorSlot)
 import Web.Event.Extra (preventDefault, readFileFromDragEvent)
+import Web.UIEvent.MouseEvent (pageY)
 
 initialState :: forall m. MonadEffect m => m State
 initialState =
@@ -24,9 +27,12 @@ initialState =
     pure
       $ State
           { keyBindings
-          , feedbackPaneMinimised: false
+          , feedbackPaneMinimised: true
           , lastCompiledCode: Nothing
           , currentCodeIsCompiled: false
+          , feedbackPaneDragStart: Nothing
+          , feedbackPaneExtend: 0
+          , feedbackPanePreviousExtend: 0
           }
 
 handleAction ::
@@ -69,6 +75,26 @@ handleAction bufferLocalStorageKey (HandleDropEvent event) = do
   void $ query _editorSlot unit $ tell $ Monaco.SetText contents
   void $ query _editorSlot unit $ tell $ Monaco.SetPosition { column: 1, lineNumber: 1 }
   saveBuffer bufferLocalStorageKey contents
+
+handleAction _ (SetFeedbackPaneDragStart event) = do
+  liftEffect $ preventDefault event
+  assign _feedbackPaneDragStart $ Just $ pageY event
+
+handleAction _ ClearFeedbackPaneDragStart = do
+  feedbackPaneExtend <- use _feedbackPaneExtend
+  assign _feedbackPaneDragStart Nothing
+  assign _feedbackPanePreviousExtend feedbackPaneExtend
+
+handleAction _ (FixFeedbackPaneExtend mouseY) = do
+  feedbackPaneDragStart <- use _feedbackPaneDragStart
+  feedbackPanePreviousExtend <- use _feedbackPanePreviousExtend
+  for_ feedbackPaneDragStart
+    $ \startMouseY ->
+        assign _feedbackPaneExtend
+          $ clamp 0 100
+          $ startMouseY
+          - mouseY
+          + feedbackPanePreviousExtend
 
 ------------------------------------------------------------
 loadKeyBindings :: forall m. MonadEffect m => m KeyBindings
