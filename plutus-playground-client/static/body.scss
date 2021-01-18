@@ -32,6 +32,7 @@
         }
 
         &.simulator {
+            background: $gray-100;
             border: 1px solid $gray-border-color;
         }
     }
