@@ -111,8 +111,8 @@ type SimulatorAction = ContractCall (Fix FormArgumentF)
 type Expression = ContractCall JSON.Value
 
 -- | The example simulations have meaningful (hard-coded) names, but, for any simulation the
--- user creates in the playground, simulationName = "Simulation " <> show simulationId;
--- the simulationId is simply present to ensure every simulation has a unique name.
+-- user creates in the playground, simulationName = "Simulation " <> show simulationId; the
+-- simulationId is simply present to ensure every simulation is created with a unique name.
 data Simulation =
     Simulation
         { simulationName    :: String
