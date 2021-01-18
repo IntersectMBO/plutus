@@ -63,6 +63,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
+                                'web-common-plutus/**/*.purs',
                                 'web-common/**/*.purs'
                             ],
                             psc: null,

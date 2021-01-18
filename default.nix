@@ -38,6 +38,8 @@ rec {
     plutus-pay-to-wallet;
 
   webCommon = pkgs.callPackage ./web-common { };
+  webCommonPlutus = pkgs.callPackage ./web-common-plutus { };
+  webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
@@ -45,7 +47,7 @@ rec {
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon;
+      inherit set-git-rev haskell webCommon webCommonPlutus;
     }) client server-invoker generated-purescript;
   };
 
@@ -54,7 +56,7 @@ rec {
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon;
+      inherit set-git-rev haskell webCommon webCommonMarlowe;
     }) client server-invoker generated-purescript;
   };
 
@@ -72,7 +74,7 @@ rec {
 
   plutus-scb = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-scb-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules;
-    inherit set-git-rev haskell webCommon;
+    inherit set-git-rev haskell webCommon webCommonPlutus;
   });
 
   tests = import ./nix/tests/default.nix {

@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -34,7 +34,7 @@ let
   };
 
   client = buildPursPackage {
-    inherit webCommon nodeModules;
+    inherit pkgs nodeModules;
     src = ./.;
     name = "plutus-playground-client";
     # ideally we would just use `npm run test` but
@@ -43,7 +43,11 @@ let
     checkPhase = ''
       node -e 'require("./output/Test.Main").main()'
     '';
-    psSrc = generated-purescript;
+    extraSrcs = {
+      web-common = webCommon;
+      web-common-plutus = webCommonPlutus;
+      generated = generated-purescript;
+    };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
