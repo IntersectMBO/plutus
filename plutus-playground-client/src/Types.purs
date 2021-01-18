@@ -287,6 +287,9 @@ _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 _actionDrag :: Lens' State (Maybe Int)
 _actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
 
+_simulationId :: Lens' Simulation Int
+_simulationId = _Newtype <<< prop (SProxy :: SProxy "simulationId")
+
 _simulationActions :: Lens' Simulation (Array (ContractCall FormArgument))
 _simulationActions = _Newtype <<< prop (SProxy :: SProxy "simulationActions")
 

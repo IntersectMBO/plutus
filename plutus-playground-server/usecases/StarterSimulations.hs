@@ -7,7 +7,8 @@ module StarterSimulations where
 import           Ledger.Ada            (lovelaceValueOf)
 import           Ledger.Value          (Value)
 import           Playground.Types      (ContractCall (AddBlocks, PayToWallet), Simulation (Simulation), SimulatorAction,
-                                        amount, recipient, sender, simulationActions, simulationName, simulationWallets)
+                                        amount, recipient, sender, simulationActions, simulationId, simulationName,
+                                        simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Starter               (registeredKnownCurrencies)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
@@ -22,6 +23,7 @@ simulations = [publishRedeem, payToWallet]
     publishRedeem =
         Simulation
             { simulationName = "Publish/Redeem"
+            , simulationId = 1
             , simulationWallets
             , simulationActions =
                   [ publish wallet1 (12345, lovelaceValueOf 20)
@@ -33,6 +35,7 @@ simulations = [publishRedeem, payToWallet]
     payToWallet =
         Simulation
             { simulationName = "Pay To Wallet"
+            , simulationId = 2
             , simulationWallets
             , simulationActions =
                   [ PayToWallet
