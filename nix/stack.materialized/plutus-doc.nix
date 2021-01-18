@@ -41,15 +41,23 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           build-tools = [
             (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
             (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
             ];
           buildable = true;
-          modules = [ "PlutusTx" "BasicValidators" "BasicPolicies" ];
+          modules = [
+            "PlutusTx"
+            "BasicValidators"
+            "BasicPolicies"
+            "BasicApps"
+            ];
           hsSourceDirs = [ "tutorials" ];
           mainPath = ([
             "Main.hs"

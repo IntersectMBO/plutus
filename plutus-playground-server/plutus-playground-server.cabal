@@ -42,6 +42,8 @@ library
         ErrorHandlingSimulations
         Game
         GameSimulations
+        HelloWorld
+        HelloWorldSimulations
         SimulationUtils
         Starter
         StarterSimulations
@@ -113,6 +115,8 @@ library plutus-playground-usecases
         ErrorHandlingSimulations
         Game
         GameSimulations
+        HelloWorld
+        HelloWorldSimulations
         SimulationUtils
         Starter
         StarterSimulations
@@ -165,6 +169,8 @@ executable plutus-playground-server
         ErrorHandlingSimulations
         Game
         GameSimulations
+        HelloWorld
+        HelloWorldSimulations
         SimulationUtils
         Starter
         StarterSimulations
