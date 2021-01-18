@@ -6,7 +6,7 @@ module HelloWorldSimulations where
 
 import           HelloWorld            (registeredKnownCurrencies)
 import           Playground.Types      (ContractCall (AddBlocks), Simulation (Simulation), simulationActions,
-                                        simulationName, simulationWallets)
+                                        simulationId, simulationName, simulationWallets)
 import           SimulationUtils       (simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
 
