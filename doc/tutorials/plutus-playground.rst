@@ -28,17 +28,19 @@ In fact, the app itself only consists of a single line, and a type annotation:
     :start-after: BLOCK1
     :end-before: BLOCK2
 
-Compiling the app
-^^^^^^^^^^^^^^^^^
-
-To compile the app, click the "Compile" button.
-The feedback line at the bottom of the code editor changes to "Compiling...".
-When the app has been compiled without errors, the feedback message changes to "Compilation successful", and the "Simulate" button is active.
-
 Running the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that the app has been compiled, we can run it in the simulated environment. 
+The builtin examples are already compiled, so we can click "Simulate" right away.
+
+.. note::
+
+  If an app has not been compiled yet, the "Simulate" button is deactivated.
+  To compile the app, click the "Compile" button.
+  The feedback line at the bottom of the code editor changes to "Compiling...".
+  When the app has been compiled without errors, the feedback message changes to "Compilation successful", and the "Simulate" button is active.
+
 Click the "Simulate" button.
 The code editor disappears and the simulator opens.
 
@@ -101,7 +103,7 @@ Now click "Pay to Wallet" on wallet 3. In the "Actions" section there are now tw
 
 In the "Pay to Wallet" action, enter the number 2 into the "Recipient" field.
 This means that wallet 2 is the recipient of the payment (the payer is wallet 3).
-Change the amount to five lovelace.
+Change the amount to 5 lovelace.
 
 Now we need to make sure our simulation runs long enough for the payment to appear on the blockchain.
 The simulation ends after the last action in the action sequence.
@@ -110,7 +112,7 @@ Another "Wait" action is added to the end of the list.
 
 .. figure:: images/playground-payment.png
 
-  Action sequence for a payment of two lovelace from wallet 3 to wallet 2.
+  Action sequence for a payment of 5 lovelace from wallet 3 to wallet 2.
 
 Now click "Evaluate".
 The results pane opens and we can see that the blockchain has two transactions.

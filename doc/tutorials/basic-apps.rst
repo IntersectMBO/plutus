@@ -43,7 +43,7 @@ Defining the validator script
 -----------------------------
 
 The validator script is the on-chain part of our Plutus app.
-The job of the validator is to look individual transactions in isolation and decide whether they are valid.
+The job of the validator is to look at individual transactions in isolation and decide whether they are valid.
 Plutus validators have the following type signature:
 
 .. code-block:: haskell
@@ -132,7 +132,7 @@ Using the constraints library that comes with the Plutus SDK we specify a transa
 
    tx = Constraints.mustPayToTheScript s (Ada.toValue amount)
 
-After calling ``submitTxConstraints`` in the next line, the Plutus app runtime to examine the transaction constraints ``tx`` and builds a transaction that fulfills them.
+After calling ``submitTxConstraints`` in the next line, the Plutus app runtime examines the transaction constraints ``tx`` and builds a transaction that fulfills them.
 The runtime then sends the transaction to the wallet, which adds enough to cover the required funds (in this case, the ada amount specified in ``amount``).
 
 Unlocking the funds
