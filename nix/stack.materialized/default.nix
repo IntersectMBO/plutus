@@ -68,6 +68,7 @@
         plutus-benchmark = ./plutus-benchmark.nix;
         plutus-contract = ./plutus-contract.nix;
         plutus-core = ./plutus-core.nix;
+        plutus-errors = ./plutus-errors.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-ledger-api = ./plutus-ledger-api.nix;
         plutus-metatheory = ./plutus-metatheory.nix;

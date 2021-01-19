@@ -573,6 +573,18 @@ cradle:
     - path: "plutus-core/cost-model-creation"
       component: "plutus-core:test:plutus-core-test-cost-model"
 
+    - path: "plutus-errors/src"
+      component: "lib:plutus-errors"
+
+    - path: "plutus-errors/exe-next/Main.hs"
+      component: "plutus-errors:exe:plutus-errors-next"
+
+    - path: "plutus-errors/exe-bootstrap/Main.hs"
+      component: "plutus-errors:exe:plutus-errors-bootstrap"
+
+    - path: "plutus-errors/exe-bootstrap/Errors/TH/Bootstrap.hs"
+      component: "plutus-errors:exe:plutus-errors-bootstrap"
+
     - path: "plutus-ledger/src"
       component: "lib:plutus-ledger"
 
