@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Temporary code that'll make it easy for us to generate arbitrary events.
@@ -19,13 +20,13 @@ import qualified Language.PlutusTx.AssocMap                        as AssocMap
 import           Ledger                                            (ValidatorHash (ValidatorHash))
 import qualified Ledger
 import           Ledger.Address                                    (Address (..))
+import           Ledger.Bytes                                      (LedgerBytes)
+import qualified Ledger.Bytes                                      as LedgerBytes
 import           Ledger.Crypto                                     (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                                   (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                                       (Slot)
 import           Ledger.Tx                                         (TxIn, TxInType, TxOutRef, TxOutType)
 import           Ledger.TxId                                       (TxId)
-import           LedgerBytes                                       (LedgerBytes)
-import qualified LedgerBytes
 import           Plutus.PAB.Events.Contract
 import           Test.QuickCheck                                   (Gen, oneof)
 import           Test.QuickCheck.Arbitrary.Generic                 (Arbitrary, arbitrary, genericArbitrary,
@@ -34,11 +35,19 @@ import           Test.QuickCheck.Instances                         ()
 import           Wallet                                            (WalletAPIError)
 import           Wallet.Effects                                    (AddressChangeRequest (..))
 
+-- | A validator that always succeeds.
+acceptingValidator :: Ledger.Validator
+acceptingValidator = Ledger.mkValidatorScript $$(PlutusTx.compile [|| (\_ _ _ -> ()) ||])
+
+-- | A monetary policy that always succeeds.
+acceptingMonetaryPolicy :: Ledger.MonetaryPolicy
+acceptingMonetaryPolicy = Ledger.mkMonetaryPolicyScript $$(PlutusTx.compile [|| (\_ -> ()) ||])
+
 instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
 
 instance Arbitrary Ledger.MonetaryPolicy where
-    arbitrary = pure Ledger.acceptingMonetaryPolicy
+    arbitrary = pure acceptingMonetaryPolicy
 
 instance Arbitrary WalletAPIError where
     arbitrary = genericArbitrary
@@ -116,7 +125,7 @@ instance Arbitrary Ledger.Redeemer where
     shrink = genericShrink
 
 instance Arbitrary Ledger.Validator where
-    arbitrary = pure Ledger.acceptingValidator
+    arbitrary = pure acceptingValidator
 
 instance Arbitrary Ledger.TokenName where
     arbitrary = genericArbitrary

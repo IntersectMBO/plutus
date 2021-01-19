@@ -16,7 +16,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Ledger.Validation
+module Plutus.V1.Ledger.Contexts
     (
     -- * Pending transactions and related types
       TxInfo(..)
@@ -60,17 +60,17 @@ import           Language.PlutusTx
 import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
 
-import           Ledger.Ada                 (Ada)
-import qualified Ledger.Ada                 as Ada
-import           Ledger.Address             (Address (..), scriptHashAddress)
-import           Ledger.Crypto              (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
-import           Ledger.Scripts
-import           Ledger.Slot                (SlotRange)
-import           Ledger.Tx                  (TxOut (..), TxOutRef (..), TxOutType (..))
-import           Ledger.TxId
-import           Ledger.Value               (CurrencySymbol (..), Value)
-import qualified Ledger.Value               as Value
-import           LedgerBytes                (LedgerBytes (..))
+import           Plutus.V1.Ledger.Ada       (Ada)
+import qualified Plutus.V1.Ledger.Ada       as Ada
+import           Plutus.V1.Ledger.Address   (Address (..), scriptHashAddress)
+import           Plutus.V1.Ledger.Bytes     (LedgerBytes (..))
+import           Plutus.V1.Ledger.Crypto    (PubKey (..), PubKeyHash (..), Signature (..), pubKeyHash)
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Slot      (SlotRange)
+import           Plutus.V1.Ledger.Tx        (TxOut (..), TxOutRef (..), TxOutType (..))
+import           Plutus.V1.Ledger.TxId
+import           Plutus.V1.Ledger.Value     (CurrencySymbol (..), Value)
+import qualified Plutus.V1.Ledger.Value     as Value
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

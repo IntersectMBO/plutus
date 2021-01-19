@@ -128,6 +128,9 @@ instance Bifunctor ErrorWithCause where
 instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
     _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
 
+instance (Pretty err, Pretty term) => Pretty (ErrorWithCause err term) where
+    pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
+
 type EvaluationException user internal =
     ErrorWithCause (EvaluationError user internal)
 

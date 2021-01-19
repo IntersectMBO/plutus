@@ -24,8 +24,8 @@ import Data.UUID as UUID
 import Foreign (MultipleErrors)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
-import Ledger.Tx (Tx)
-import Ledger.TxId (TxId)
+import Plutus.V1.Ledger.Tx (Tx)
+import Plutus.V1.Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream

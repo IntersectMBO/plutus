@@ -15,7 +15,7 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChange, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Properties (InputType(..), checked, class_, classes, draggable, for, id_, name, placeholder, required, type_, value)
 import Icons (Icon(..), icon)
-import Ledger.Slot (Slot)
+import Plutus.V1.Ledger.Slot (Slot)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), SimulatorWallet, _FunctionSchema)
 import Prelude (const, map, show, ($), (+), (<$>), (<<<), (<>), (==))

@@ -20,6 +20,7 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     , unNameDeBruijn
     , unNameTyDeBruijn
+    , fakeNameDeBruijn
     ) where
 
 import           Language.PlutusCore.DeBruijn.Internal

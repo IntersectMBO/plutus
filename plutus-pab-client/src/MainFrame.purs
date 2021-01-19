@@ -36,9 +36,9 @@ import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
-import Ledger.Ada (Ada(..))
+import Plutus.V1.Ledger.Ada (Ada(..))
+import Plutus.V1.Ledger.Value (Value)
 import Ledger.Extra (adaToValue)
-import Ledger.Value (Value)
 import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData

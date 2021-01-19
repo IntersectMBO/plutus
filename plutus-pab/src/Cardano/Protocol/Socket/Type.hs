@@ -33,7 +33,7 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmiss
 import           Ouroboros.Network.Util.ShowProxy
 
 import           Ledger                                             (Block, Tx (..), TxId (..))
-import           LedgerBytes                                        (LedgerBytes (..))
+import           Ledger.Bytes                                       (LedgerBytes (..))
 
 -- | Tip of the block chain type (used by node protocols).
 type Tip = Block

@@ -163,6 +163,7 @@ let
           #plutus-metatheory.package.ghcOptions = "-Werror";
           plutus-contract.package.ghcOptions = "-Werror";
           plutus-ledger.package.ghcOptions = "-Werror";
+          plutus-ledger-api.package.ghcOptions = "-Werror";
           plutus-playground-server.package.ghcOptions = "-Werror";
           plutus-pab.package.ghcOptions = "-Werror";
           plutus-tx.package.ghcOptions = "-Werror";

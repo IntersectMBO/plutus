@@ -38,10 +38,10 @@ import qualified Data.Text                         as Text
 import           Data.Text.Encoding                (encodeUtf8)
 import           Data.Text.Prettyprint.Doc         (Pretty, pretty, viaShow, (<+>))
 import           GHC.Generics                      (Generic)
+import           Ledger.Bytes                      (LedgerBytes)
+import qualified Ledger.Bytes                      as LedgerBytes
 import           Ledger.Crypto                     (PubKey (PubKey), PubKeyHash, Signature (Signature), getPubKey,
                                                     getPubKeyHash, getSignature)
-import           LedgerBytes                       (LedgerBytes)
-import qualified LedgerBytes
 import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Instances              ()
 import           Servant.API                       (FromHttpApiData, ToHttpApiData)

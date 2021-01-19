@@ -18,7 +18,7 @@ import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Language.Haskell.Interpreter (CompilationError, InterpreterResult)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
+import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (CompilationResult, EvaluationResult, KnownCurrency(..))
 import Test.QuickCheck (arbitrary, withHelp)
 import Test.QuickCheck.Gen (Gen, chooseInt, vectorOf)

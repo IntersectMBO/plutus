@@ -178,25 +178,25 @@ languageBridge = dataBridge <|> assocMapBridge
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 validatorHashBridge :: BridgePart
 validatorHashBridge = do
     typeName ^== "ValidatorHash"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 mpsHashBridge :: BridgePart
 mpsHashBridge = do
     typeName ^== "MonetaryPolicyHash"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 ledgerBytesBridge :: BridgePart
 ledgerBytesBridge = do
     typeName ^== "LedgerBytes"
-    typeModule ^== "LedgerBytes"
+    typeModule ^== "Plutus.V1.Ledger.Bytes"
     pure psString
 
 ledgerBridge :: BridgePart

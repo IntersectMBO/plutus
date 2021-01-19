@@ -6,7 +6,7 @@ import Clipboard as Clipboard
 import Control.Monad.State.Trans (class MonadState)
 import Data.Lens (assign, preview, use)
 import Data.Maybe (Maybe, fromMaybe)
-import Ledger.TxId (TxId)
+import Plutus.V1.Ledger.TxId (TxId)
 import Prelude (Ordering(..), Unit, bind, compare, discard, pure, ($), (<<<), (<>))
 import Wallet.Rollup.Types (SequenceId(..))
 

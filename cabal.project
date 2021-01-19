@@ -1,25 +1,26 @@
 -- Bump this if you need newer packages
 index-state: 2020-11-10T00:00:00Z
 
-packages: plutus-core
+packages: deployment-server
+          doc
+          iots-export
           marlowe
-          plutus-ledger
-          plutus-tx
-          plutus-tx-plugin
-          plutus-use-cases
-          plutus-playground-server
-          plutus-pab
-          plutus-benchmark
-          playground-common
           marlowe-actus
           marlowe-playground-server
           marlowe-symbolic
+          playground-common
+          plutus-benchmark
           plutus-contract
-          deployment-server
-          iots-export
+          plutus-core
+          plutus-ledger
+          plutus-ledger-api
           plutus-metatheory
+          plutus-pab
+          plutus-playground-server
+          plutus-tx
+          plutus-tx-plugin
+          plutus-use-cases
           prettyprinter-configurable
-          doc
           web-ghc
 
 -- We never, ever, want this.

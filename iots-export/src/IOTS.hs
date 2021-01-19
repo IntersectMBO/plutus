@@ -30,6 +30,7 @@ import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Sequence                (Seq, (|>))
 import           Data.Set                     (Set)
 import qualified Data.Set                     as Set
+import           Data.Tagged                  (Tagged (Tagged))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           Data.Tree                    (Forest, Tree (Node), rootLabel)
@@ -186,17 +187,6 @@ data HList (ts :: [Type]) where
   HNil :: HList '[]
   HCons :: t -> HList ts -> HList (t ': ts)
   deriving (Typeable)
-
-------------------------------------------------------------
--- | Tag a given type with a phantom.
---
--- Useful in our case for attaching symbols to functions.
---
--- (We could take this from the <http://hackage.haskell.org/package/tagged tagged> package, but I really don't
--- think it's worth it for the sake of one newtype.)
-newtype Tagged a b =
-  Tagged b
-  deriving (Show, Eq, Ord)
 
 ------------------------------------------------------------
 -- | Something that we can export to an IOTS definition. In general this is:

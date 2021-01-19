@@ -40,8 +40,8 @@ import           Data.Proxy                      (Proxy (Proxy))
 import           Data.Set                        (Set)
 import qualified Data.Set                        as Set
 import           Data.Text.Encoding              (encodeUtf8)
+import           Ledger.Bytes                    (LedgerBytes)
 import           Ledger.Crypto                   (PrivateKey, PubKey, getPubKey, pubKeyHash, sign)
-import           LedgerBytes                     (LedgerBytes)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.PAB.App                  (App)
 import           Plutus.PAB.PABLogMsg            (ContractExeLogMsg (StartingMetadataServer))

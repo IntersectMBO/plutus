@@ -24,6 +24,9 @@ cradle:
     - path: "doc/tutorials/BasicPolicies.hs"
       component: "plutus-doc:exe:doc-doctests"
 
+    - path: "doc/tutorials/BasicApps.hs"
+      component: "plutus-doc:exe:doc-doctests"
+
     - path: "iots-export/src"
       component: "iots-export:lib"
 
@@ -194,6 +197,168 @@ cradle:
 
     - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Ops.hs"
       component: "marlowe-actus:exe:marlowe-shiny"
+
+    - path: "marlowe-actus/testkit/Main.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Main.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/MarloweCompat.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Generator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/QCGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Analysis.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Definitions/BusinessEvents.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Definitions/ContractTerms.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Definitions/ContractState.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Definitions/Schedule.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/POF/PayoffModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/POF/Payoff.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/POF/PayoffFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/STF/StateTransitionModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/STF/StateTransition.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/STF/StateTransitionFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/INIT/StateInitialization.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/Utility/DateShift.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/Utility/YearFraction.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/testkit/Language/Marlowe/ACTUS/Ops.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/MarloweCompat.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Generator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/QCGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Analysis.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/BusinessEvents.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/ContractTerms.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/ContractState.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Definitions/Schedule.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/PayoffModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/Payoff.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/POF/PayoffFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransitionModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransition.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/STF/StateTransitionFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitialization.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/DateShift.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/YearFraction.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
+
+    - path: "marlowe-actus/src/Language/Marlowe/ACTUS/Ops.hs"
+      component: "marlowe-actus:exe:marlowe-actus-test-kit"
 
     - path: "marlowe-actus/test"
       component: "marlowe-actus:test:marlowe-actus-test"
@@ -414,6 +579,9 @@ cradle:
     - path: "plutus-ledger/test"
       component: "plutus-ledger:test:plutus-ledger-test"
 
+    - path: "plutus-ledger-api/src"
+      component: "plutus-ledger-api:lib"
+
     - path: "plutus-metatheory/src"
       component: "plutus-metatheory:lib"
 
@@ -428,6 +596,42 @@ cradle:
 
     - path: "plutus-metatheory/test"
       component: "plutus-metatheory:test:test3"
+
+    - path: "plutus-pab/src"
+      component: "plutus-pab:lib"
+
+    - path: "plutus-pab/app/Main.hs"
+      component: "plutus-pab:exe:plutus-pab"
+
+    - path: "plutus-pab/app/PSGenerator.hs"
+      component: "plutus-pab:exe:plutus-pab"
+
+    - path: "plutus-pab/game-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-game"
+
+    - path: "plutus-pab/currency-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-currency"
+
+    - path: "plutus-pab/atomic-swap-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-atomic-swap"
+
+    - path: "plutus-pab/pay-to-wallet-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-pay-to-wallet"
+
+    - path: "plutus-pab/test"
+      component: "plutus-pab:test:plutus-pab-test"
+
+    - path: "plutus-pab/prism/credential-manager/Main.hs"
+      component: "plutus-pab:exe:prism-credential-manager"
+
+    - path: "plutus-pab/prism/mirror/Main.hs"
+      component: "plutus-pab:exe:prism-mirror"
+
+    - path: "plutus-pab/prism/unlock-sto/Main.hs"
+      component: "plutus-pab:exe:prism-unlock-sto"
+
+    - path: "plutus-pab/prism/unlock-exchange/Main.hs"
+      component: "plutus-pab:exe:prism-unlock-exchange"
 
     - path: "plutus-playground-server/src"
       component: "plutus-playground-server:lib"
@@ -469,6 +673,12 @@ cradle:
       component: "plutus-playground-server:exe:plutus-playground-server"
 
     - path: "plutus-playground-server/app/GameSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/HelloWorld.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/app/HelloWorldSimulations.hs"
       component: "plutus-playground-server:exe:plutus-playground-server"
 
     - path: "plutus-playground-server/app/SimulationUtils.hs"
@@ -513,6 +723,12 @@ cradle:
     - path: "plutus-playground-server/usecases/GameSimulations.hs"
       component: "plutus-playground-server:exe:plutus-playground-server"
 
+    - path: "plutus-playground-server/usecases/HelloWorld.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
+    - path: "plutus-playground-server/usecases/HelloWorldSimulations.hs"
+      component: "plutus-playground-server:exe:plutus-playground-server"
+
     - path: "plutus-playground-server/usecases/SimulationUtils.hs"
       component: "plutus-playground-server:exe:plutus-playground-server"
 
@@ -531,48 +747,6 @@ cradle:
     - path: "plutus-playground-server/test"
       component: "plutus-playground-server:test:plutus-playground-server-test"
 
-    - path: "plutus-pab/src"
-      component: "plutus-pab:lib"
-
-    - path: "plutus-pab/app/Main.hs"
-      component: "plutus-pab:exe:plutus-pab"
-
-    - path: "plutus-pab/app/PSGenerator.hs"
-      component: "plutus-pab:exe:plutus-pab"
-
-    - path: "plutus-pab/game-contract/Main.hs"
-      component: "plutus-pab:exe:plutus-game"
-
-    - path: "plutus-pab/game-contract/default-language:.hs"
-      component: "plutus-pab:exe:plutus-game"
-
-    - path: "plutus-pab/game-contract/Haskell2010.hs"
-      component: "plutus-pab:exe:plutus-game"
-
-    - path: "plutus-pab/currency-contract/Main.hs"
-      component: "plutus-pab:exe:plutus-currency"
-
-    - path: "plutus-pab/atomic-swap-contract/Main.hs"
-      component: "plutus-pab:exe:plutus-atomic-swap"
-
-    - path: "plutus-pab/pay-to-wallet-contract/Main.hs"
-      component: "plutus-pab:exe:plutus-pay-to-wallet"
-
-    - path: "plutus-pab/test"
-      component: "plutus-pab:test:plutus-pab-test"
-
-    - path: "plutus-pab/prism/credential-manager/Main.hs"
-      component: "plutus-pab:exe:prism-credential-manager"
-
-    - path: "plutus-pab/prism/mirror/Main.hs"
-      component: "plutus-pab:exe:prism-mirror"
-
-    - path: "plutus-pab/prism/unlock-sto/Main.hs"
-      component: "plutus-pab:exe:prism-unlock-sto"
-
-    - path: "plutus-pab/prism/unlock-exchange/Main.hs"
-      component: "plutus-pab:exe:prism-unlock-exchange"
-
     - path: "plutus-tx/src"
       component: "plutus-tx:lib"
 
@@ -590,6 +764,120 @@ cradle:
 
     - path: "plutus-use-cases/test"
       component: "plutus-use-cases:test:plutus-use-cases-test"
+
+    - path: "plutus-use-cases/scripts/Main.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Main.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Crowdfunding.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Currency.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/ErrorHandling.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Escrow.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Future.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Game.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/GameStateMachine.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Lib.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/MultiSig.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/MultiSigStateMachine.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/PingPong.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/PubKey.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Prism.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Rollup.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/RPC.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Stablecoin.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/TokenAccount.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/scripts/Spec/Vesting.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Crowdfunding.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Currency.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/ErrorHandling.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Escrow.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Future.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Game.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/GameStateMachine.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Lib.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/MultiSig.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/MultiSigStateMachine.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/PingPong.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/PubKey.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Prism.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Rollup.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/RPC.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Stablecoin.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/TokenAccount.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
+
+    - path: "plutus-use-cases/test/Spec/Vesting.hs"
+      component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
     - path: "plutus-use-cases/bench/Bench.hs"
       component: "plutus-use-cases:bench:plutus-use-cases-bench"

@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -fno-strictness   #-}
 
 -- | The type of transaction IDs
-module Ledger.TxId(
+module Plutus.V1.Ledger.TxId(
     TxId (..)
     ) where
 
@@ -16,16 +16,15 @@ import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSO
 import qualified Data.ByteString           as BS
 import           Data.Text.Prettyprint.Doc (Pretty)
 import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 import qualified Language.PlutusTx         as PlutusTx
 import qualified Language.PlutusTx.Prelude as PlutusTx
-import           Ledger.Orphans            ()
-import           LedgerBytes               (LedgerBytes (..))
+import           Plutus.V1.Ledger.Bytes    (LedgerBytes (..))
+import           Plutus.V1.Ledger.Orphans  ()
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: BS.ByteString }
     deriving (Eq, Ord, Generic)
-    deriving anyclass (ToJSON, ToJSONKey, FromJSON, FromJSONKey, IotsType, NFData)
+    deriving anyclass (ToJSON, ToJSONKey, FromJSON, FromJSONKey, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
     deriving (Show, Pretty) via LedgerBytes
 

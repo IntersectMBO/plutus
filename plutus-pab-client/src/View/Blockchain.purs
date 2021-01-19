@@ -8,7 +8,7 @@ import Data.Array as Array
 import Data.Map as Map
 import Data.Newtype (wrap)
 import Halogen.HTML (HTML, h2_, text)
-import Ledger.Crypto (PubKeyHash(..))
+import Plutus.V1.Ledger.Crypto (PubKeyHash(..))
 import Plutus.PAB.Webserver.Types (ChainReport(..))
 import Prelude (bind)
 import Types (propertyName)

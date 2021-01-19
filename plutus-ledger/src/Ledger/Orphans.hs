@@ -1,52 +1,89 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Ledger.Orphans where
 
-import           Codec.Serialise.Class      (Serialise, decode, encode)
-import           Crypto.Hash                (Digest, SHA256, digestFromByteString)
-import           Data.Aeson                 (FromJSON (parseJSON), ToJSON (toJSON))
-import qualified Data.Aeson                 as JSON
+import           Crypto.Hash                (Digest, SHA256)
 import qualified Data.Aeson.Extras          as JSON
-import qualified Data.ByteArray             as BA
-import qualified Data.ByteString            as BSS
+import           Data.Bifunctor             (bimap)
+import           Data.ByteString
+import qualified Data.Text                  as Text
+import           Data.Typeable
 import           IOTS                       (IotsType (iotsDefinition))
-import           Language.PlutusTx          (Data)
 import qualified Language.PlutusTx.AssocMap as Map
-import qualified Language.PlutusTx.Prelude  as P
-import           Type.Reflection            (Typeable)
+import           Language.PlutusTx.Data
+import           Plutus.V1.Ledger.Ada
+import           Plutus.V1.Ledger.Address
+import           Plutus.V1.Ledger.Bytes
+import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Interval
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Slot
+import           Plutus.V1.Ledger.Tx
+import           Plutus.V1.Ledger.TxId
+import           Plutus.V1.Ledger.Value
+import           Web.HttpApiData            (FromHttpApiData (..), ToHttpApiData (..))
 
+deriving anyclass instance IotsType Address
+deriving anyclass instance IotsType Slot
+deriving anyclass instance IotsType Tx
+deriving anyclass instance IotsType TxOutRef
+deriving anyclass instance IotsType TxInType
+deriving anyclass instance IotsType TxIn
+deriving anyclass instance IotsType TxOutType
+deriving anyclass instance IotsType TxOut
+deriving anyclass instance IotsType TxOutTx
+deriving anyclass instance IotsType TxId
 
-{- Note [Serialising Digests from Crypto.Hash]
-This is more complicated than you might expect.  If you say
-`encode = encode . BA.unpack` then the contents of the digest are
-unpacked into a `Word8` list with 32 entries.  However, when cborg
-serialises a list, every element in the output is preceded by a type
-tag (in this case, 24), and this means that the serialised version is
-about 64 bytes long, twice the length of the original data.  Packing
-the `Word8` list into a `ByteString` first fixes this because cborg
-just serialises it as a sequence of contiguous bytes. -}
+deriving anyclass instance IotsType Ada
+deriving anyclass instance IotsType CurrencySymbol
+deriving anyclass instance IotsType TokenName
+deriving anyclass instance IotsType Value
 
-instance Serialise (Digest SHA256) where
-    encode = encode . BSS.pack . BA.unpack
-    decode = do
-      d :: BSS.ByteString <- decode
-      let bs :: BA.Bytes = BA.pack . BSS.unpack $ d
-      case digestFromByteString bs of
-        Nothing -> fail $ "Couldn't decode SHA256 Digest: " ++ show d
-        Just v  -> pure v
+deriving anyclass instance IotsType PubKey
+deriving anyclass instance IotsType PubKeyHash
+deriving anyclass instance IotsType Signature
 
-instance ToJSON (Digest SHA256) where
-    toJSON = JSON.String . JSON.encodeSerialise
+instance ToHttpApiData PrivateKey where
+    toUrlPiece = toUrlPiece . getPrivateKey
 
-instance FromJSON (Digest SHA256) where
-    parseJSON = JSON.decodeSerialise
+instance FromHttpApiData PrivateKey where
+    parseUrlPiece a = PrivateKey <$> parseUrlPiece a
+
+deriving anyclass instance (Typeable a, IotsType a) => IotsType (Interval a)
+deriving anyclass instance (Typeable a, IotsType a) => IotsType (Extended a)
+deriving anyclass instance (Typeable a, IotsType a) => IotsType (UpperBound a)
+deriving anyclass instance (Typeable a, IotsType a) => IotsType (LowerBound a)
+
+instance IotsType LedgerBytes where
+  iotsDefinition = iotsDefinition @String
+instance ToHttpApiData LedgerBytes where
+    toUrlPiece = JSON.encodeByteString . bytes
+instance FromHttpApiData LedgerBytes where
+    parseUrlPiece = bimap Text.pack fromBytes . JSON.tryDecode
+
+instance IotsType Script where
+  iotsDefinition = iotsDefinition @String
+deriving anyclass instance IotsType Validator
+instance IotsType ValidatorHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+deriving anyclass instance IotsType Redeemer
+instance IotsType RedeemerHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+deriving anyclass instance IotsType Datum
+instance IotsType DatumHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
+deriving anyclass instance IotsType MonetaryPolicy
+instance IotsType MonetaryPolicyHash where
+    iotsDefinition = iotsDefinition @LedgerBytes
 
 instance IotsType (Digest SHA256) where
   iotsDefinition = iotsDefinition @String
 
-instance IotsType P.ByteString where
+instance IotsType ByteString where
   iotsDefinition = iotsDefinition @String
 
 instance IotsType Data where
@@ -54,9 +91,3 @@ instance IotsType Data where
 
 instance (Typeable k, Typeable v, IotsType k, IotsType v) =>
          IotsType (Map.Map k v)
-
-instance ToJSON BSS.ByteString where
-    toJSON = JSON.String . JSON.encodeByteString
-
-instance FromJSON BSS.ByteString where
-    parseJSON v = JSON.decodeByteString v

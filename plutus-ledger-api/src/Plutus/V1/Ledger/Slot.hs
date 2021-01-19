@@ -14,7 +14,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | Slots and slot ranges.
-module Ledger.Slot(
+module Plutus.V1.Ledger.Slot(
       Slot(..)
     , SlotRange
     , width
@@ -26,7 +26,6 @@ import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSO
 import           Data.Hashable             (Hashable)
 import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 import qualified Prelude                   as Haskell
 
 
@@ -34,7 +33,7 @@ import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 
-import           Ledger.Interval
+import           Plutus.V1.Ledger.Interval
 
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
 
@@ -42,7 +41,7 @@ import           Ledger.Interval
 -- slots pass at a constant rate.
 newtype Slot = Slot { getSlot :: Integer }
     deriving stock (Haskell.Eq, Haskell.Ord, Show, Generic)
-    deriving anyclass ( FromJSON, FromJSONKey, ToJSON, ToJSONKey, IotsType, NFData)
+    deriving anyclass (FromJSON, FromJSONKey, ToJSON, ToJSONKey, NFData)
     deriving newtype (Haskell.Num, AdditiveSemigroup, AdditiveMonoid, AdditiveGroup, Enum, Eq, Ord, Real, Integral, Serialise, Hashable, PlutusTx.IsData)
 
 makeLift ''Slot

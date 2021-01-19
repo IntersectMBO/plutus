@@ -33,11 +33,11 @@ import           GHC.Generics              (Generic)
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 import           Ledger.Ada                (Ada (..), fromValue)
+import           Ledger.Contexts           (PolicyCtx (..))
+import qualified Ledger.Contexts           as Validation
 import           Ledger.Crypto             (PubKeyHash)
 import           Ledger.Scripts            (MonetaryPolicy, mkMonetaryPolicyScript, monetaryPolicyHash)
 import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (PolicyCtx (..))
-import qualified Ledger.Validation         as Validation
 import           Ledger.Value              (TokenName, Value)
 import qualified Ledger.Value              as Value
 import qualified Prelude                   as Haskell
