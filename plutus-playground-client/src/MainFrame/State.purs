@@ -73,7 +73,7 @@ import Simulator.View (simulatorTitleRefLabel, simulationsErrorRefLabel)
 import StaticData (mkContractDemos, lookupContractDemo)
 import Validation (_argumentValues, _argument)
 import Wallet.Emulator.Wallet (Wallet(Wallet))
-import Wallets.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
+import Wallet.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Web.HTML.Event.DataTransfer as DataTransfer
 
 mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet

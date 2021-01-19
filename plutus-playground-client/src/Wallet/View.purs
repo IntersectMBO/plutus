@@ -1,4 +1,4 @@
-module Wallets.View
+module Wallet.View
   ( walletsPane
   , walletIdPane
   ) where
@@ -23,7 +23,7 @@ import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Wallet (Wallet(..))
-import Wallets.Lenses (_simulatorWalletWallet)
+import Wallet.Lenses (_simulatorWalletWallet)
 
 walletsPane :: forall p. Signatures -> Value -> Array SimulatorWallet -> HTML p HAction
 walletsPane signatures initialValue simulatorWallets =

@@ -1,4 +1,4 @@
-module Wallets.Lenses
+module Wallet.Lenses
   ( _simulatorWalletWallet
   , _simulatorWalletBalance
   , _walletId

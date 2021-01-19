@@ -45,7 +45,7 @@ import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
 import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
-import Wallets.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
+import Wallet.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 
 evaluationPane :: forall m. MonadAff m => State -> EvaluationResult -> ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
