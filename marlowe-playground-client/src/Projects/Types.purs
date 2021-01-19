@@ -10,6 +10,8 @@ import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Gist (Gist, GistId)
 import Network.RemoteData (RemoteData(..), _Loading)
+import Foreign.Class (class Decode, class Encode)
+import Foreign.Generic.EnumEncoding (defaultGenericEnumOptions, genericDecodeEnum, genericEncodeEnum)
 
 -----------------------------------------------------------
 data Lang
@@ -22,6 +24,12 @@ data Lang
 derive instance eqLang :: Eq Lang
 
 derive instance genericLang :: Generic Lang _
+
+instance encodeLang :: Encode Lang where
+  encode value = genericEncodeEnum defaultGenericEnumOptions value
+
+instance decodeLang :: Decode Lang where
+  decode value = genericDecodeEnum defaultGenericEnumOptions value
 
 -----------------------------------------------------------
 instance showLang :: Show Lang where

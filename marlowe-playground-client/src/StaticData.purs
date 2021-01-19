@@ -8,6 +8,7 @@ module StaticData
   , marloweContract
   , marloweContracts
   , gistIdLocalStorageKey
+  , sessionStorageKey
   ) where
 
 import Data.Map (Map)
@@ -85,3 +86,6 @@ simulatorBufferLocalStorageKey = LocalStorage.Key "SimulationBuffer"
 gistIdLocalStorageKey ::
   LocalStorage.Key
 gistIdLocalStorageKey = LocalStorage.Key "GistId"
+
+sessionStorageKey :: LocalStorage.Key
+sessionStorageKey = LocalStorage.Key "MarlowePlaygroundSession"

@@ -37,6 +37,9 @@ import SimulationPage.Types as Simulation
 import Types (WebData)
 import WalletSimulation.Types as Wallet
 import Web.UIEvent.KeyboardEvent (KeyboardEvent)
+import Foreign.Class (class Decode, class Encode)
+import Foreign.Generic (defaultOptions, genericDecode, genericEncode)
+import Data.Newtype (class Newtype)
 
 data ModalView
   = NewProject
@@ -310,3 +313,42 @@ _value = prop (SProxy :: SProxy "value")
 
 isActiveTab :: State -> View -> Array ClassName
 isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
+
+-----------------------------------------------------------
+newtype Session
+  = Session
+  { projectName :: String
+  , gistId :: Maybe GistId
+  , workflow :: Maybe Lang
+  }
+
+derive instance newtypeSession :: Newtype Session _
+
+derive instance eqSession :: Eq Session
+
+derive instance genericSession :: Generic Session _
+
+instance encodeSession :: Encode Session where
+  encode value = genericEncode defaultOptions value
+
+instance decodeSession :: Decode Session where
+  decode value = genericDecode defaultOptions value
+
+stateToSession :: State -> Session
+stateToSession { projectName
+, gistId
+, workflow
+} =
+  Session
+    { projectName
+    , gistId
+    , workflow
+    }
+
+sessionToState :: Session -> State -> State
+sessionToState (Session sessionData) defaultState =
+  defaultState
+    { projectName = sessionData.projectName
+    , gistId = sessionData.gistId
+    , workflow = sessionData.workflow
+    }

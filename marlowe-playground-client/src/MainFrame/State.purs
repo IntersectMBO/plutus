@@ -6,13 +6,13 @@ import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
-import Control.Monad.Except (ExceptT(..), lift, runExceptT)
+import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), hush, note)
 import Data.Foldable (fold, for_)
 import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
@@ -23,6 +23,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
@@ -45,7 +46,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -71,6 +72,7 @@ import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import SessionStorage as SessionStorage
 import SimulationPage.State as Simulation
 import SimulationPage.Types as ST
 import StaticData (gistIdLocalStorageKey)
@@ -261,6 +263,7 @@ fullHandleAction ::
   HalogenM State Action ChildSlots Void m Unit
 fullHandleAction settings =
   withAccidentalNavigationGuard settings
+    $ withSessionStorage
     $ withAnalytics
         ( handleAction settings
         )
@@ -296,6 +299,12 @@ handleAction settings Init = do
     eventListenerEventSource keyup (toEventTarget document) (map (HandleKey sid) <<< KE.fromEvent)
   toSimulation $ Simulation.handleAction settings ST.Init
   checkAuthStatus settings
+  -- Load session data if available
+  void
+    $ runMaybeT do
+        sessionJSON <- MaybeT $ liftEffect $ SessionStorage.getItem StaticData.sessionStorageKey
+        session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
+        H.modify_ (sessionToState session)
 
 handleAction settings (HandleKey sid ev)
   | KE.key ev == "Escape" = assign _showModal Nothing
@@ -491,7 +500,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
-        {- 
+        {-
         it is possible that you could load a demo that is already in the editor so there would in theory
         be no unsaved changes however this is tricky with blockly and I think it's fine to say that if
         you load a new demo then you have unsaved changes
@@ -844,3 +853,19 @@ selectView view = do
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> do
       void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+
+------------------------------------------------------------
+withSessionStorage ::
+  forall m.
+  MonadAff m =>
+  (Action -> HalogenM State Action ChildSlots Void m Unit) ->
+  Action ->
+  HalogenM State Action ChildSlots Void m Unit
+withSessionStorage handleAction' action = do
+  preSession <- H.gets stateToSession
+  handleAction' action
+  postSession <- H.gets stateToSession
+  when (preSession /= postSession)
+    $ liftEffect
+    $ SessionStorage.setItem StaticData.sessionStorageKey
+    $ encodeJSON postSession
