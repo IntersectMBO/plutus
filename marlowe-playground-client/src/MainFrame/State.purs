@@ -233,8 +233,8 @@ handleRoute ::
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
 handleRoute settings { gistId: (Just gistId), subroute } = do
-  actionWithAnalytics settings (GistAction (SetGistUrl (unwrap gistId)))
-  actionWithAnalytics settings (GistAction LoadGist)
+  handleActionWithoutNavigationGuard settings (GistAction (SetGistUrl (unwrap gistId)))
+  handleActionWithoutNavigationGuard settings (GistAction LoadGist)
   handleSubRoute settings subroute
 
 handleRoute settings { subroute } = handleSubRoute settings subroute
@@ -268,20 +268,21 @@ fullHandleAction settings =
         ( handleAction settings
         )
 
-actionWithAnalytics ::
+handleActionWithoutNavigationGuard ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-actionWithAnalytics settings =
-  withAnalytics
-    ( handleAction settings
-    )
+handleActionWithoutNavigationGuard settings =
+  withSessionStorage
+    $ withAnalytics
+        ( handleAction settings
+        )
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
--- defined above (actionWithAnalytics or fullHandleAction)
+-- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
 -- TODO: Refactor the settings to come from a MonadAsk environment
 handleAction ::
   forall m.
@@ -788,7 +789,7 @@ handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
   fullHandleAction settings CloseModal
   case modalAction of
     ConfirmUnsavedNavigation.Cancel -> pure unit
-    ConfirmUnsavedNavigation.DontSaveProject -> actionWithAnalytics settings intendedAction
+    ConfirmUnsavedNavigation.DontSaveProject -> handleActionWithoutNavigationGuard settings intendedAction
     ConfirmUnsavedNavigation.SaveProject -> do
       state <- H.get
       -- TODO: This was taken from the view, from the gistModal helper. I think we should
