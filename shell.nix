@@ -57,20 +57,6 @@ let
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
-  plutus-playground-generate-purs = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
-    rm -rf ./generated
-    ${plutus-playground.server-invoker}/bin/plutus-playground psgenerator generated
-  '';
-  marlowe-playground-generate-purs = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
-    rm -rf ./generated
-    ${marlowe-playground.server-invoker}/bin/marlowe-playground psgenerator generated
-  '';
-  plutus-pab-generate-purs = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
-    rm -rf ./generated
-    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
-    ${plutus-pab.server-invoker}/bin/plutus-pab psgenerator generated
-  '';
-
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
     cabal-install
@@ -80,9 +66,6 @@ let
     hie-bios
     gen-hie
     hlint
-    marlowe-playground-generate-purs
-    plutus-pab-generate-purs
-    plutus-playground-generate-purs
     purs
     purty
     spago
@@ -113,4 +96,9 @@ haskell.project.shellFor {
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
+
+  # The shell should never depend on any of our Haskell packages, which can
+  # sometimes happen by accident. In practice, everything depends transitively
+  # on 'plutus-core', so this does the job.
+  disallowedRequisites = [ haskell.packages.plutus-core.components.library ];
 }

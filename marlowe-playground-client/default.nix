@@ -26,6 +26,12 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScript "marlowe-playground-generate-purescript" ''
+    rm -rf ./generated
+    ${server-invoker}/bin/marlowe-playground-server psgenerator generated
+  '';
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -55,5 +61,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript;
 }
