@@ -138,6 +138,35 @@ data TermConstantG = TmIntegerG Integer
 
 deriveEnumerable ''TermConstantG
 
+data TermBuiltinG = AddIntegerG
+                  | SubtractIntegerG
+                  | MultiplyIntegerG
+                  | DivideIntegerG
+                  | QuotientIntegerG
+                  | RemainderIntegerG
+                  | ModIntegerG
+                  | LessThanIntegerG
+                  | LessThanEqIntegerG
+                  | GreaterThanIntegerG
+                  | GreaterThanEqIntegerG
+                  | EqIntegerG
+                  | ConcatenateG
+                  | TakeByteStringG
+                  | DropByteStringG
+                  | SHA2G
+                  | SHA3G
+                  | VerifySignatureG
+                  | EqByteStringG
+                  | LtByteStringG
+                  | GtByteStringG
+                  | IfThenElseG
+                  | CharToStringG
+                  | AppendG
+                  | TraceG
+                  deriving (Show, Eq)
+
+deriveEnumerable ''TermBuiltinG
+
 data TermG tyname name
     = VarG
       name
@@ -156,6 +185,7 @@ data TermG tyname name
       (Kind ())
     | ConstantG TermConstantG
     -- ErrorG could also take a kind k but it should always be * (Type ())
+    | BuiltinG  TermBuiltinG
     | ErrorG (TypeG tyname)
     deriving (Typeable, Eq, Show)
 
@@ -239,6 +269,32 @@ convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
 convertTermConstant (TmIntegerG i) = Some $ ValueOf DefaultUniInteger i
 convertTermConstant (TmStringG s)  = Some $ ValueOf DefaultUniString s
 
+convertBuiltin :: TermBuiltinG -> DefaultFun
+convertBuiltin AddIntegerG           = AddInteger
+convertBuiltin SubtractIntegerG      = SubtractInteger
+convertBuiltin MultiplyIntegerG      = MultiplyInteger
+convertBuiltin DivideIntegerG        = DivideInteger
+convertBuiltin QuotientIntegerG      = QuotientInteger
+convertBuiltin RemainderIntegerG     = RemainderInteger
+convertBuiltin ModIntegerG           = ModInteger
+convertBuiltin LessThanIntegerG      = LessThanInteger
+convertBuiltin LessThanEqIntegerG    = LessThanEqInteger
+convertBuiltin GreaterThanIntegerG   = GreaterThanInteger
+convertBuiltin GreaterThanEqIntegerG = GreaterThanEqInteger
+convertBuiltin EqIntegerG            = EqInteger
+convertBuiltin ConcatenateG          = Concatenate
+convertBuiltin TakeByteStringG       = TakeByteString
+convertBuiltin DropByteStringG       = DropByteString
+convertBuiltin SHA2G                 = SHA2
+convertBuiltin SHA3G                 = SHA3
+convertBuiltin VerifySignatureG      = VerifySignature
+convertBuiltin EqByteStringG         = EqByteString
+convertBuiltin LtByteStringG         = LtByteString
+convertBuiltin GtByteStringG         = GtByteString
+convertBuiltin IfThenElseG           = IfThenElse
+convertBuiltin CharToStringG         = CharToString
+convertBuiltin AppendG               = Append
+convertBuiltin TraceG                = Trace
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
@@ -246,7 +302,7 @@ convertTerm
   -> NameState name     -- ^ Name environment with fresh name stream
   -> TypeG tyname       -- ^ Type of term below
   -> TermG tyname name  -- ^ Term to convert
-  -> m (Term TyName Name DefaultUni fun ())
+  -> m (Term TyName Name DefaultUni DefaultFun ())
 convertTerm _tns ns _ty (VarG i) =
   return (Var () (nameOf ns i))
 convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
@@ -262,6 +318,7 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
+convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () (convertBuiltin b)
 convertTerm tns _ns _ (ErrorG tyG) = Error () <$> convertType tns (Type ()) tyG
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
@@ -272,7 +329,7 @@ convertClosedTerm
   -> Stream.Stream Text.Text
   -> ClosedTypeG
   -> ClosedTermG
-  -> m (Term TyName Name DefaultUni fun ())
+  -> m (Term TyName Name DefaultUni DefaultFun ())
 convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
 
