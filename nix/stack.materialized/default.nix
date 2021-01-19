@@ -70,7 +70,7 @@
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
         plutus-contract = ./plutus-contract.nix;
-        plutus-scb = ./plutus-scb.nix;
+        plutus-pab = ./plutus-pab.nix;
         deployment-server = ./deployment-server.nix;
         iots-export = ./iots-export.nix;
         marlowe-symbolic = ./marlowe-symbolic.nix;

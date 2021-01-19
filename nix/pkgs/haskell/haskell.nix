@@ -164,7 +164,7 @@ let
           plutus-contract.package.ghcOptions = "-Werror";
           plutus-ledger.package.ghcOptions = "-Werror";
           plutus-playground-server.package.ghcOptions = "-Werror";
-          plutus-scb.package.ghcOptions = "-Werror";
+          plutus-pab.package.ghcOptions = "-Werror";
           plutus-tx.package.ghcOptions = "-Werror";
           plutus-tx-plugin.package.ghcOptions = "-Werror";
           plutus-doc.package.ghcOptions = "-Werror";

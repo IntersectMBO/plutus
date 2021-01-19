@@ -31,7 +31,7 @@ rec {
   inherit (plutus) web-ghc;
   inherit (plutus.lib) buildNodeModules;
 
-  inherit (haskell.packages.plutus-scb.components.exes)
+  inherit (haskell.packages.plutus-pab.components.exes)
     plutus-game
     plutus-currency
     plutus-atomic-swap
@@ -72,7 +72,7 @@ rec {
     inherit (haskell.muslProject) ghcWithPackages;
   };
 
-  plutus-scb = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-scb-client {
+  plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules;
     inherit set-git-rev haskell webCommon webCommonPlutus;
   });
