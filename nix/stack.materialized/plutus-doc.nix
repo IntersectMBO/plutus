@@ -57,6 +57,7 @@
             "BasicValidators"
             "BasicPolicies"
             "BasicApps"
+            "HelloWorldApp"
             ];
           hsSourceDirs = [ "tutorials" ];
           mainPath = ([
