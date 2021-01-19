@@ -44,6 +44,7 @@ import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
+--import qualified Data.ByteString as B
 
 newtype Neutral a = Neutral
   { unNeutral :: a
@@ -130,6 +131,13 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 
 -- ** Enumerating terms
 
+data TermConstantG = TmIntegerG Integer
+--                   | TmByteStringG B.ByteString
+                   | TmStringG String
+                   deriving (Show, Eq)
+
+deriveEnumerable ''TermConstantG
+
 data TermG tyname name
     = VarG
       name
@@ -146,6 +154,9 @@ data TermG tyname name
       (TypeG (S tyname))
       (TypeG tyname)
       (Kind ())
+    | ConstantG TermConstantG
+    -- ErrorG could also take a kind k but it should always be * (Type ())
+    | ErrorG (TypeG tyname)
     deriving (Typeable, Eq, Show)
 
 deriveBifunctor ''TermG
@@ -223,6 +234,12 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 --       that this function is only called on a well-typed
 --       term. Violating this would point to an error in the
 --       generator/checker.
+convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
+--convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
+convertTermConstant (TmIntegerG i) = Some $ ValueOf DefaultUniInteger i
+convertTermConstant (TmStringG s)  = Some $ ValueOf DefaultUniString s
+
+
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
   => TyNameState tyname -- ^ Type name environment with fresh name stream
@@ -243,6 +260,9 @@ convertTerm tns ns (TyForallG k ty) (TyAbsG tm) = do
   TyAbs () (tynameOf tns' FZ) k <$> convertTerm tns' ns ty tm
 convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
+convertTerm _tns _ns _ (ConstantG c) =
+  return $ Constant () (convertTermConstant c)
+convertTerm tns _ns _ (ErrorG tyG) = Error () <$> convertType tns (Type ()) tyG
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
 -- |Convert generated closed terms to Plutus terms.
