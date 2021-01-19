@@ -31,16 +31,24 @@ in
 stdenv.mkDerivation {
   inherit name checkPhase;
   src = cleanSrcs;
-  buildInputs = [ nodeModules easyPS.purs easyPS.spago easyPS.psc-package ];
+  buildInputs = [
+    nodejs
+    nodeModules
+    easyPS.purs
+    easyPS.spago
+    easyPS.psc-package
+    spagoPackages.installSpagoStyle
+    spagoPackages.buildSpagoStyle
+  ];
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
     shopt -s globstar
     ln -s ${nodeModules}/node_modules node_modules
     ${addExtraSrcs}
-    ls generated
-    sh ${spagoPackages.installSpagoStyle}
-    sh ${spagoPackages.buildSpagoStyle} src/**/*.purs test/**/*.purs ${extraPSPaths}
-    ${nodejs}/bin/npm run webpack
+
+    install-spago-style
+    build-spago-style src/**/*.purs test/**/*.purs ${extraPSPaths}
+    npm run webpack
   '';
   doCheck = true;
   installPhase = ''
