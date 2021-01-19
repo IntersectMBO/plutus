@@ -9,7 +9,7 @@ import Data.Map as Map
 import Data.Newtype (wrap)
 import Halogen.HTML (HTML, h2_, text)
 import Ledger.Crypto (PubKeyHash(..))
-import Plutus.SCB.Webserver.Types (ChainReport(..))
+import Plutus.PAB.Webserver.Types (ChainReport(..))
 import Prelude (bind)
 import Types (propertyName)
 

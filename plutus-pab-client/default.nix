@@ -9,9 +9,9 @@ let
   '';
 
   # For dev usage
-  generate-purescript = pkgs.writeShellScript "plutus-scb-generate-purescript" ''
+  generate-purescript = pkgs.writeShellScript "plutus-pab-generate-purescript" ''
     rm -rf ./generated
-    ${server-invoker}/bin/plutus-scb psgenerator generated
+    ${server-invoker}/bin/plutus-pab psgenerator generated
   '';
 
   nodeModules = buildNodeModules {

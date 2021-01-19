@@ -30,10 +30,10 @@ import Network.RemoteData (RemoteData)
 import Network.StreamData (StreamData)
 import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
-import Plutus.SCB.Events (ChainEvent)
-import Plutus.SCB.Events.Contract (ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
-import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
+import Plutus.PAB.Events (ChainEvent)
+import Plutus.PAB.Events.Contract (ContractInstanceState, ContractPABRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
+import Plutus.PAB.Types (ContractExe)
+import Plutus.PAB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -166,7 +166,7 @@ _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefin
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
 
-_csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractSCBRequest)
+_csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractPABRequest)
 _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
 _csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
@@ -178,7 +178,7 @@ _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 _activeEndpoint :: Lens' ActiveEndpoint EndpointDescription
 _activeEndpoint = _Newtype <<< prop (SProxy :: SProxy "aeDescription")
 
-_contractActiveEndpoints :: Traversal' (PartiallyDecodedResponse ContractSCBRequest) EndpointDescription
+_contractActiveEndpoints :: Traversal' (PartiallyDecodedResponse ContractPABRequest) EndpointDescription
 _contractActiveEndpoints =
   _hooks
     <<< traversed

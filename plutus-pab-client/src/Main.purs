@@ -9,7 +9,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import MainFrame (initialMainFrame)
-import Plutus.SCB.Webserver.Types (StreamToClient, StreamToServer)
+import Plutus.PAB.Webserver.Types (StreamToClient, StreamToServer)
 import Types (HAction(..), Query(..), Output(..))
 import WebSocket.Support (WebSocketManager, mkWebSocketManager)
 import WebSocket.Support as WS

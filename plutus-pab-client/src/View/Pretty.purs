@@ -14,12 +14,12 @@ import Language.Plutus.Contract.Resumable (Response(..))
 import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import Ledger.Tx (Tx(..))
 import Playground.Lenses (_aeDescription, _endpointValue, _getEndpointDescription, _txConfirmed, _txId)
-import Plutus.SCB.Events (ChainEvent(..))
-import Plutus.SCB.Events.Contract (ContractEvent(..), ContractInstanceState(..), ContractResponse(..), ContractSCBRequest(..))
-import Plutus.SCB.Events.Node (NodeEvent(..))
-import Plutus.SCB.Events.User (UserEvent(..))
-import Plutus.SCB.Events.Wallet (WalletEvent(..))
-import Plutus.SCB.Types (ContractExe(..))
+import Plutus.PAB.Events (ChainEvent(..))
+import Plutus.PAB.Events.Contract (ContractEvent(..), ContractInstanceState(..), ContractResponse(..), ContractPABRequest(..))
+import Plutus.PAB.Events.Node (NodeEvent(..))
+import Plutus.PAB.Events.User (UserEvent(..))
+import Plutus.PAB.Events.Wallet (WalletEvent(..))
+import Plutus.PAB.Types (ContractExe(..))
 import Wallet.Types (EndpointDescription)
 import Types (_contractActiveEndpoints, _contractInstanceIdString)
 
@@ -159,7 +159,7 @@ instance prettyContractResponse :: Pretty ContractResponse where
       , text $ show notificationResponse
       ]
 
-instance prettyContractSCBRequest :: Pretty ContractSCBRequest where
+instance prettyContractPABRequest :: Pretty ContractPABRequest where
   pretty (AwaitSlotRequest slot) =
     span_
       [ text "AwaitSlotRequest:"

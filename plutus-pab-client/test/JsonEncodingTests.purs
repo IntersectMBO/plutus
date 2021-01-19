@@ -3,8 +3,8 @@ module JsonEncodingTests
   ) where
 
 import Prelude
-import Plutus.SCB.Effects.ContractTest (TestContracts)
-import Plutus.SCB.Webserver.Types (FullReport, ContractSignatureResponse)
+import Plutus.PAB.Effects.ContractTest (TestContracts)
+import Plutus.PAB.Webserver.Types (FullReport, ContractSignatureResponse)
 import Test.Unit (TestSuite, suite, test)
 import TestUtils (assertDecodesTo)
 import Type.Proxy (Proxy(..))

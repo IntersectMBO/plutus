@@ -23,7 +23,7 @@ import MainFrame (handleQuery, handleAction)
 import MainFrame as MainFrame
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..))
-import Plutus.SCB.Webserver (SPParams_(..))
+import Plutus.PAB.Webserver (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Test.QuickCheck ((<?>))
 import Test.Unit (TestSuite, suite, test)
