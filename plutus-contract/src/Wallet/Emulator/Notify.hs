@@ -40,7 +40,7 @@ makeEffect ''EmulatorContractNotifyEffect
 
 {- Note [Emulator contract instances]
 
-In the emulator, unlike the SCB, there is no distinction between agents (called
+In the emulator, unlike the PAB, there is no distinction between agents (called
 wallets) and instances. Every emulated agent runs one instance of
 the same contract. We don't have any 'ContractInstanceId' values in
 the emulator either. The 'Notify' effect however uses contract instance IDs to

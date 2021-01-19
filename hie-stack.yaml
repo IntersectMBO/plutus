@@ -531,47 +531,47 @@ cradle:
     - path: "plutus-playground-server/test"
       component: "plutus-playground-server:test:plutus-playground-server-test"
 
-    - path: "plutus-scb/src"
-      component: "plutus-scb:lib"
+    - path: "plutus-pab/src"
+      component: "plutus-pab:lib"
 
-    - path: "plutus-scb/app/Main.hs"
-      component: "plutus-scb:exe:plutus-scb"
+    - path: "plutus-pab/app/Main.hs"
+      component: "plutus-pab:exe:plutus-pab"
 
-    - path: "plutus-scb/app/PSGenerator.hs"
-      component: "plutus-scb:exe:plutus-scb"
+    - path: "plutus-pab/app/PSGenerator.hs"
+      component: "plutus-pab:exe:plutus-pab"
 
-    - path: "plutus-scb/game-contract/Main.hs"
-      component: "plutus-scb:exe:plutus-game"
+    - path: "plutus-pab/game-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-game"
 
-    - path: "plutus-scb/game-contract/default-language:.hs"
-      component: "plutus-scb:exe:plutus-game"
+    - path: "plutus-pab/game-contract/default-language:.hs"
+      component: "plutus-pab:exe:plutus-game"
 
-    - path: "plutus-scb/game-contract/Haskell2010.hs"
-      component: "plutus-scb:exe:plutus-game"
+    - path: "plutus-pab/game-contract/Haskell2010.hs"
+      component: "plutus-pab:exe:plutus-game"
 
-    - path: "plutus-scb/currency-contract/Main.hs"
-      component: "plutus-scb:exe:plutus-currency"
+    - path: "plutus-pab/currency-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-currency"
 
-    - path: "plutus-scb/atomic-swap-contract/Main.hs"
-      component: "plutus-scb:exe:plutus-atomic-swap"
+    - path: "plutus-pab/atomic-swap-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-atomic-swap"
 
-    - path: "plutus-scb/pay-to-wallet-contract/Main.hs"
-      component: "plutus-scb:exe:plutus-pay-to-wallet"
+    - path: "plutus-pab/pay-to-wallet-contract/Main.hs"
+      component: "plutus-pab:exe:plutus-pay-to-wallet"
 
-    - path: "plutus-scb/test"
-      component: "plutus-scb:test:plutus-scb-test"
+    - path: "plutus-pab/test"
+      component: "plutus-pab:test:plutus-pab-test"
 
-    - path: "plutus-scb/prism/credential-manager/Main.hs"
-      component: "plutus-scb:exe:prism-credential-manager"
+    - path: "plutus-pab/prism/credential-manager/Main.hs"
+      component: "plutus-pab:exe:prism-credential-manager"
 
-    - path: "plutus-scb/prism/mirror/Main.hs"
-      component: "plutus-scb:exe:prism-mirror"
+    - path: "plutus-pab/prism/mirror/Main.hs"
+      component: "plutus-pab:exe:prism-mirror"
 
-    - path: "plutus-scb/prism/unlock-sto/Main.hs"
-      component: "plutus-scb:exe:prism-unlock-sto"
+    - path: "plutus-pab/prism/unlock-sto/Main.hs"
+      component: "plutus-pab:exe:prism-unlock-sto"
 
-    - path: "plutus-scb/prism/unlock-exchange/Main.hs"
-      component: "plutus-scb:exe:prism-unlock-exchange"
+    - path: "plutus-pab/prism/unlock-exchange/Main.hs"
+      component: "plutus-pab:exe:prism-unlock-exchange"
 
     - path: "plutus-tx/src"
       component: "plutus-tx:lib"

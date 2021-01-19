@@ -14,7 +14,7 @@ packages:
 - plutus-ledger
 - plutus-playground-server
 - plutus-contract
-- plutus-scb
+- plutus-pab
 - deployment-server
 - iots-export
 - marlowe-symbolic

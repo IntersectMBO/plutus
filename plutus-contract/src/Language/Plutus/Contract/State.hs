@@ -33,7 +33,7 @@ import           Language.Plutus.Contract.Types
 -- Types for initialising and running instances of 'Contract's. The types and
 -- functions in this module are convenient wrappers around types and functions
 -- from 'Language.Plutus.Contract.Types', exposing an interface that is suitable
--- for consumption by the SCB. In particular this means that
+-- for consumption by the PAB. In particular this means that
 -- 'insertAndUpdateContract' has a single argument, and its argument & return
 -- types can be serialised to JSON easily.
 --
