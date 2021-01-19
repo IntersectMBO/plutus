@@ -186,6 +186,8 @@ data TermG tyname name
     | ConstantG TermConstantG
     -- ErrorG could also take a kind k but it should always be * (Type ())
     | BuiltinG  TermBuiltinG
+    | WrapG (TermG tyname name)
+    | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
     | ErrorG (TypeG tyname)
     deriving (Typeable, Eq, Show)
 
@@ -319,7 +321,13 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
 convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () (convertBuiltin b)
-convertTerm tns _ns _ (ErrorG tyG) = Error () <$> convertType tns (Type ()) tyG
+convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns ty' tm
+  where
+  k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+  -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
+  ty' = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+convertTerm tns ns _ (UnWrapG ty1 k ty2 tm) = Unwrap () <$> convertTerm tns ns (TyIFixG ty1 k ty2) tm
+convertTerm tns _ns _ (ErrorG ty) = Error () <$> convertType tns (Type ()) ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
 -- |Convert generated closed terms to Plutus terms.
@@ -496,6 +504,8 @@ extTySub :: TySub n m -> TySub (S n) (S m)
 extTySub _ FZ     = TyVarG FZ
 extTySub s (FS i) = FS <$> s i
 
+weakenTy :: TypeG m -> TypeG (S m)
+weakenTy ty = applyTySub (TyVarG . FS) ty
 
 -- |Simultaneous substitution of type variables.
 applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m
