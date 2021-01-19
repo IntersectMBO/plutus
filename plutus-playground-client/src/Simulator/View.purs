@@ -6,8 +6,8 @@ module Simulator.View
   , simulationsErrorRefLabel
   ) where
 
-import Actions.View (actionsPane)
-import Actions.Validation (actionIsValid)
+import Action.View (actionsPane)
+import Action.Validation (actionIsValid)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alertDanger_, btn, empty, floatRight, nav, navItem, navLink)
 import Cursor (Cursor, current)

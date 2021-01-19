@@ -1,4 +1,4 @@
-module Actions.Validation (actionIsValid) where
+module Action.Validation (actionIsValid) where
 
 import Data.Array as Array
 import Data.Lens (view)

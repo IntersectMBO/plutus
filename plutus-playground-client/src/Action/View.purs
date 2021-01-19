@@ -1,7 +1,7 @@
-module Actions.View (actionsPane) where
+module Action.View (actionsPane) where
 
-import Actions.Validation (actionIsValid)
-import Actions.Lenses (_InSlot)
+import Action.Validation (actionIsValid)
+import Action.Lenses (_InSlot)
 import Bootstrap (btn, card, cardBody_, col, colFormLabel, col_, formCheck, formCheckInline, formCheckInput, formCheckLabel, formControl, formGroup_, formRow_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array

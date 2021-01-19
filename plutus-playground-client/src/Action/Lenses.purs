@@ -1,4 +1,4 @@
-module Actions.Lenses
+module Action.Lenses
   ( _caller
   , _blocks
   , _InSlot
