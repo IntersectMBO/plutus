@@ -10,7 +10,7 @@
   {
     flags = { defer-plugin-errors = false; };
     package = {
-      specVersion = "2.0";
+      specVersion = "2.2";
       identifier = { name = "marlowe"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -68,6 +68,21 @@
           ];
         hsSourceDirs = [ "src" ];
         };
+      exes = {
+        "marlowe-app" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          buildable = true;
+          hsSourceDirs = [ "app" ];
+          mainPath = ([
+            "Main.hs"
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "") ++ (pkgs.lib).optional (flags.defer-plugin-errors) "";
+          };
+        };
       tests = {
         "marlowe-test" = {
           depends = [
@@ -93,7 +108,7 @@
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
-            ];
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
             "Spec/Marlowe/Common"
