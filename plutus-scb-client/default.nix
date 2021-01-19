@@ -8,6 +8,12 @@ let
     ${server-invoker}/bin/plutus-scb psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScript "plutus-scb-generate-purescript" ''
+    rm -rf ./generated
+    ${server-invoker}/bin/plutus-scb psgenerator generated
+  '';
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -38,5 +44,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript;
+  inherit client demo-scripts server-invoker generated-purescript generate-purescript;
 }

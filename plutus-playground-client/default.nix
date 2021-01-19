@@ -27,6 +27,12 @@ let
     ${server-invoker}/bin/plutus-playground psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScript "plutus-playground-generate-purescript" ''
+    rm -rf ./generated
+    ${server-invoker}/bin/plutus-playground psgenerator generated
+  '';
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -53,5 +59,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript;
 }
