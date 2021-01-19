@@ -1,4 +1,4 @@
-module Simulation
+module Simulator.View
   ( simulatorTitle
   , simulationsPane
   , simulationsNav
@@ -6,8 +6,8 @@ module Simulation
   , simulationsErrorRefLabel
   ) where
 
-import Action.View (actionsPane)
-import Action.Validation (actionIsValid)
+import Actions.View (actionsPane)
+import Actions.Validation (actionIsValid)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alertDanger_, btn, empty, floatRight, nav, navItem, navLink)
 import Cursor (Cursor, current)
@@ -28,10 +28,11 @@ import Language.Haskell.Interpreter (CompilationError(..))
 import Language.Haskell.Interpreter as PI
 import Plutus.V1.Ledger.Value (Value)
 import Network.RemoteData (RemoteData(..), _Success)
+import MainFrame.Lenses (_functionSchema, _result)
+import MainFrame.Types (HAction(..), View(..), SimulatorAction, WebCompilationResult, WebEvaluationResult)
 import Playground.Types (PlaygroundError(..), Simulation(..), SimulatorWallet)
 import Prelude (const, map, not, pure, show, (#), ($), (/=), (<$>), (<<<), (<>), (==), (>))
-import Types (HAction(..), View(..), SimulatorAction, WebCompilationResult, WebEvaluationResult, _functionSchema, _result)
-import Wallet.View (walletsPane)
+import Wallets.View (walletsPane)
 import Web.Event.Event (Event)
 
 simulatorTitle :: forall p. HTML p HAction

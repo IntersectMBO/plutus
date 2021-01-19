@@ -1,13 +1,13 @@
-module Action.Validation (actionIsValid) where
+module Actions.Validation (actionIsValid) where
 
 import Data.Array as Array
 import Data.Lens (view)
 import Playground.Types (ContractCall(..), SimulatorWallet)
 import Prelude ((==), (&&), (<<<))
 import Schema.Types (FormArgument)
-import Types (_simulatorWalletWallet, _walletId)
 import Validation (isValid)
 import Wallet.Emulator.Wallet (Wallet)
+import Wallets.Lenses (_simulatorWalletWallet, _walletId)
 
 actionIsValid :: Array SimulatorWallet -> ContractCall FormArgument -> Boolean
 actionIsValid simulatorWallets simulatorAction = actionWalletsExist simulatorAction && isValid simulatorAction

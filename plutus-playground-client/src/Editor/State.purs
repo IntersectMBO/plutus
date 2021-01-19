@@ -1,22 +1,29 @@
-module Editor.State where
+module Editor.State
+  ( initialState
+  , handleAction
+  , saveBuffer
+  , initEditor
+  ) where
 
 import Control.Alternative ((<|>))
 import Data.Foldable (for_)
 import Data.Lens (assign, modifying, use)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Ord (clamp)
-import Editor.Types (State(State), Action(..), keybindingsLocalStorageKey, readKeyBindings, _currentCodeIsCompiled, _feedbackPaneDragStart, _feedbackPaneExtend, _feedbackPaneMinimised, _feedbackPanePreviousExtend, _keyBindings, _lastCompiledCode)
+import Editor.Lenses (_currentCodeIsCompiled, _feedbackPaneDragStart, _feedbackPaneExtend, _feedbackPaneMinimised, _feedbackPanePreviousExtend, _keyBindings, _lastCompiledCode)
+import Editor.Types (State(State), Action(..), readKeyBindings)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, liftEffect, query, tell)
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Language.Haskell.Interpreter (SourceCode(SourceCode))
-import LocalStorage (Key)
-import LocalStorage as LocalStorage
+import LocalStorage (Key, getItem, setItem)
+import MainFrame.Lenses (_editorSlot)
+import MainFrame.Types (ChildSlots)
 import Monaco (Editor, getModel, layout, focus, setPosition, setValue) as Monaco
 import Prelude (Unit, bind, discard, not, pure, show, unit, void, (+), (-), ($), (<$>), (==))
-import Types (ChildSlots, _editorSlot)
+import StaticData (keybindingsLocalStorageKey)
 import Web.Event.Extra (preventDefault, readFileFromDragEvent)
 import Web.UIEvent.MouseEvent (pageY)
 
@@ -59,7 +66,7 @@ handleAction _ (SetKeyBindings binding) = do
   void $ query _editorSlot unit $ tell $ Monaco.Focus
   void $ query _editorSlot unit $ tell $ Monaco.Resize
   assign _keyBindings binding
-  liftEffect $ LocalStorage.setItem keybindingsLocalStorageKey (show binding)
+  liftEffect $ setItem keybindingsLocalStorageKey (show binding)
 
 handleAction _ ToggleFeedbackPane = modifying _feedbackPaneMinimised not
 
@@ -98,10 +105,10 @@ handleAction _ (FixFeedbackPaneExtend mouseY) = do
 
 ------------------------------------------------------------
 loadKeyBindings :: forall m. MonadEffect m => m KeyBindings
-loadKeyBindings = maybe DefaultBindings readKeyBindings <$> liftEffect (LocalStorage.getItem keybindingsLocalStorageKey)
+loadKeyBindings = maybe DefaultBindings readKeyBindings <$> liftEffect (getItem keybindingsLocalStorageKey)
 
 saveBuffer :: forall m. MonadEffect m => Key -> String -> m Unit
-saveBuffer bufferLocalStorageKey text = liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+saveBuffer bufferLocalStorageKey text = liftEffect $ setItem bufferLocalStorageKey text
 
 initEditor ::
   forall m.
@@ -113,7 +120,7 @@ initEditor ::
   m Unit
 initEditor initialContents bufferLocalStorageKey state@(State { keyBindings }) editor =
   liftEffect do
-    savedContents <- LocalStorage.getItem bufferLocalStorageKey
+    savedContents <- getItem bufferLocalStorageKey
     let
       contents = fromMaybe "" (savedContents <|> initialContents)
     model <- Monaco.getModel editor

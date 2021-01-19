@@ -1,10 +1,9 @@
-module MainFrame
+module MainFrame.State
   ( mkMainFrame
   , handleAction
   , mkInitialState
   ) where
 
-import Prelude
 import AjaxUtils (AjaxErrorPaneAction(..), ajaxErrorRefLabel, renderForeignErrors)
 import Analytics (analyticsTracking)
 import Animation (class MonadAnimate, animate)
@@ -38,14 +37,16 @@ import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
 import Data.Newtype (unwrap)
+import Data.RawJson (RawJson(..))
 import Data.String as String
+import Data.Traversable (traverse)
 import Editor.State (initialState) as Editor
-import Editor.Types (_currentCodeIsCompiled, _feedbackPaneMinimised, _lastCompiledCode)
+import Editor.Lenses (_currentCodeIsCompiled, _feedbackPaneMinimised, _lastCompiledCode)
 import Editor.Types (Action(..), State) as Editor
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (Error, error)
-import Foreign.Generic (decodeJSON)
+import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (_GistId, gistId)
 import Gists.Types (GistAction(..))
 import Gists.Types as Gists
@@ -54,24 +55,25 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import Plutus.V1.Ledger.Value (Value)
+import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, getKnownCurrencies)
+import MainFrame.MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
+import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData)
+import MainFrame.View (render)
 import Monaco (IMarkerData, markerSeverity)
-import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
-import Playground.Types (ContractCall, ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
-import Schema.Types (FormArgument, SimulationAction(..), mkInitialValue)
-import Schema.Types as Schema
+import Playground.Types (ContractCall(..), ContractDemo(..), Evaluation(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
+import Plutus.V1.Ledger.Value (Value)
+import Prelude (class Applicative, Unit, Void, add, const, bind, discard, flip, identity, join, not, mempty, one, pure, show, unit, unless, void, when, zero, (+), ($), (&&), (==), (<>), (<$>), (<*>), (>>=), (<<<))
+import Schema.Types (Expression, FormArgument, SimulationAction(..), formArgumentToJson, handleActionEvent, handleFormEvent, handleValueEvent, mkInitialValue, traverseFunctionSchema)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Simulation (simulatorTitleRefLabel, simulationsErrorRefLabel)
-import StaticData (mkContractDemos)
-import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Simulator.View (simulatorTitleRefLabel, simulationsErrorRefLabel)
+import StaticData (mkContractDemos, lookupContractDemo)
 import Validation (_argumentValues, _argument)
-import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
+import Wallets.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Web.HTML.Event.DataTransfer as DataTransfer
 
 mkSimulatorWallet :: Array KnownCurrency -> BigInteger -> SimulatorWallet
@@ -128,7 +130,7 @@ mkMainFrame = do
   pure $ hoist (flip runReaderT ajaxSettings)
     $ H.mkComponent
         { initialState: const initialState
-        , render: View.render
+        , render
         , eval:
             H.mkEval
               { handleAction: handleActionWithAnalyticsTracking
@@ -238,7 +240,7 @@ handleAction EvaluateActions =
 
 handleAction (LoadScript key) = do
   contractDemos <- use _contractDemos
-  case StaticData.lookup key contractDemos of
+  case lookupContractDemo key contractDemos of
     Nothing -> pure unit
     Just (ContractDemo { contractDemoName, contractDemoEditorContents, contractDemoSimulations, contractDemoContext }) -> do
       editorSetContents contractDemoEditorContents (Just 1)
@@ -372,7 +374,7 @@ handleSimulationAction ::
   SimulationAction ->
   Array (ContractCall FormArgument) ->
   Array (ContractCall FormArgument)
-handleSimulationAction _ (ModifyActions actionEvent) = Schema.handleActionEvent actionEvent
+handleSimulationAction _ (ModifyActions actionEvent) = handleActionEvent actionEvent
 
 handleSimulationAction initialValue (PopulateAction n event) = do
   over
@@ -382,7 +384,7 @@ handleSimulationAction initialValue (PopulateAction n event) = do
         <<< _FunctionSchema
         <<< _argument
     )
-    $ Schema.handleFormEvent initialValue event
+    $ handleFormEvent initialValue event
 
 _details :: forall a. Traversal' (WebData (Either InterpreterError (InterpreterResult a))) a
 _details = _Success <<< _Right <<< _InterpreterResult <<< _result
@@ -462,7 +464,7 @@ handleActionWalletEvent _ (RemoveWallet index) wallets = fromMaybe wallets $ Arr
 handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
   over
     (ix walletIndex <<< _simulatorWalletBalance)
-    (Schema.handleValueEvent action)
+    (handleValueEvent action)
     wallets
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
@@ -472,6 +474,37 @@ replaceViewOnSuccess result source target = do
     (assign _currentView target)
 
 ------------------------------------------------------------
+toEvaluation :: SourceCode -> Simulation -> Maybe Evaluation
+toEvaluation sourceCode (Simulation { simulationActions, simulationWallets }) = do
+  program <- RawJson <<< encodeJSON <$> traverse toExpression simulationActions
+  pure
+    $ Evaluation
+        { wallets: simulationWallets
+        , program
+        , sourceCode
+        }
+
+toExpression :: ContractCall FormArgument -> Maybe Expression
+toExpression = traverseContractCall encodeForm
+  where
+  encodeForm :: FormArgument -> Maybe RawJson
+  encodeForm argument = (RawJson <<< encodeJSON) <$> formArgumentToJson argument
+
+traverseContractCall ::
+  forall m b a.
+  Applicative m =>
+  (a -> m b) ->
+  ContractCall a -> m (ContractCall b)
+traverseContractCall _ (AddBlocks addBlocks) = pure $ AddBlocks addBlocks
+
+traverseContractCall _ (AddBlocksUntil addBlocksUntil) = pure $ AddBlocksUntil addBlocksUntil
+
+traverseContractCall _ (PayToWallet payToWallet) = pure $ PayToWallet payToWallet
+
+traverseContractCall f (CallEndpoint { caller, argumentValues: oldArgumentValues }) = rewrap <$> traverseFunctionSchema f oldArgumentValues
+  where
+  rewrap newArgumentValues = CallEndpoint { caller, argumentValues: newArgumentValues }
+
 toAnnotations :: InterpreterError -> Array IMarkerData
 toAnnotations (TimeoutError _) = []
 

@@ -1,45 +1,20 @@
-module Editor.Types where
+module Editor.Types
+  ( State(..)
+  , Action(..)
+  , allKeyBindings
+  , readKeyBindings
+  ) where
 
 import Data.Enum (enumFromTo)
-import Data.Lens (Lens')
-import Data.Lens.Iso.Newtype (_Newtype)
-import Data.Lens.Record (prop)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
-import Data.Symbol (SProxy(..))
-import Halogen.Monaco (KeyBindings(..))
-import Halogen.Monaco (Message) as Monaco
+import Halogen.Monaco (KeyBindings(..), Message)
 import Language.Haskell.Interpreter (SourceCode)
-import LocalStorage (Key(..))
 import Monaco (IPosition)
-import Prelude (bottom, top, (<<<))
+import Prelude (bottom, top)
 import Web.HTML.Event.DragEvent (DragEvent)
 import Web.UIEvent.MouseEvent (MouseEvent)
 
-data Action
-  = Init
-  | HandleEditorMessage Monaco.Message
-  | HandleDragEvent DragEvent
-  | HandleDropEvent DragEvent
-  | ScrollTo IPosition
-  | SetKeyBindings KeyBindings
-  | ToggleFeedbackPane
-  | SetFeedbackPaneDragStart MouseEvent
-  | ClearFeedbackPaneDragStart
-  | FixFeedbackPaneExtend Int
-
-------------------------------------------------------------
-allKeyBindings :: Array KeyBindings
-allKeyBindings = enumFromTo bottom top
-
-readKeyBindings :: String -> KeyBindings
-readKeyBindings "Emacs" = Emacs
-
-readKeyBindings "Vim" = Vim
-
-readKeyBindings _ = DefaultBindings
-
-------------------------------------------------------------
 newtype State
   = State
   { keyBindings :: KeyBindings
@@ -53,30 +28,24 @@ newtype State
 
 derive instance newtypeState :: Newtype State _
 
-------------------------------------------------------------
-keybindingsLocalStorageKey :: Key
-keybindingsLocalStorageKey = Key "EditorPreferences.KeyBindings"
+data Action
+  = Init
+  | HandleEditorMessage Message
+  | HandleDragEvent DragEvent
+  | HandleDropEvent DragEvent
+  | ScrollTo IPosition
+  | SetKeyBindings KeyBindings
+  | ToggleFeedbackPane
+  | SetFeedbackPaneDragStart MouseEvent
+  | ClearFeedbackPaneDragStart
+  | FixFeedbackPaneExtend Int
 
-_warnings :: forall s a. Lens' { warnings :: a | s } a
-_warnings = prop (SProxy :: SProxy "warnings")
+allKeyBindings :: Array KeyBindings
+allKeyBindings = enumFromTo bottom top
 
-_keyBindings :: Lens' State KeyBindings
-_keyBindings = _Newtype <<< prop (SProxy :: SProxy "keyBindings")
+readKeyBindings :: String -> KeyBindings
+readKeyBindings "Emacs" = Emacs
 
-_feedbackPaneMinimised :: Lens' State Boolean
-_feedbackPaneMinimised = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneMinimised")
+readKeyBindings "Vim" = Vim
 
-_lastCompiledCode :: Lens' State (Maybe SourceCode)
-_lastCompiledCode = _Newtype <<< prop (SProxy :: SProxy "lastCompiledCode")
-
-_currentCodeIsCompiled :: Lens' State Boolean
-_currentCodeIsCompiled = _Newtype <<< prop (SProxy :: SProxy "currentCodeIsCompiled")
-
-_feedbackPaneDragStart :: Lens' State (Maybe Int)
-_feedbackPaneDragStart = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneDragStart")
-
-_feedbackPaneExtend :: Lens' State Int
-_feedbackPaneExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPaneExtend")
-
-_feedbackPanePreviousExtend :: Lens' State Int
-_feedbackPanePreviousExtend = _Newtype <<< prop (SProxy :: SProxy "feedbackPanePreviousExtend")
+readKeyBindings _ = DefaultBindings
