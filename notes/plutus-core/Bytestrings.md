@@ -50,6 +50,10 @@ compiled into PLCs' `string` type.  Many standard string operations can be
 compiled into PLC code acting on Scott strings, but support for builtin strings
 in PlutusTx is limited.
 
+**Update:** in the PR comments it's been suggested that we should
+  switch to [`Data.Text`](https://hackage.haskell.org/package/text-1.2.4.1/docs/Data-Text.html) as the underlying type for character strings
+  and do away with Scott strings altogether.  This might be sensible, but it could need quite a lot of work in the Plutus compiler.
+
 ### Bytestrings in Haskell
 
 Plutus Core bytestrings are implemented using Haskell's (strict) `ByteString`
