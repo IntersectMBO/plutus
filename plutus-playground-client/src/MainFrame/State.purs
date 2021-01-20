@@ -52,7 +52,6 @@ import Gists.Types (GistAction(..))
 import Gists.Types as Gists
 import Halogen (Component, hoist)
 import Halogen as H
-import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
@@ -231,7 +230,7 @@ handleAction EvaluateActions =
               -- preselect the first transaction (if any)
               mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
               txId <- peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
-              lift $ mapSubmodule _blockchainVisualisationState ChainAction $ Chain.handleAction (FocusTx txId) mAnnotatedBlockchain
+              lift $ zoomStateT _blockchainVisualisationState $ Chain.handleAction (FocusTx txId) mAnnotatedBlockchain
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
           Success (Left _) -> do
