@@ -32,10 +32,7 @@ module.exports = {
             "/api": {
                 target: 'http://localhost:8080'
             },
-            "/runghc": {
-                target: 'http://localhost:8080'
-            },
-            "/marlowe-analysis": {
+            "/ws": {
                 target: 'http://localhost:8080'
             }
         }

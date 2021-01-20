@@ -14,11 +14,13 @@ data Msg
 
 data Action
   = Init
+  | ClickedButton
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
+  toEvent ClickedButton = Just $ defaultEvent "ClickedButton"
 
 type ChildSlots
   = (
