@@ -9,4 +9,4 @@ foreign import forDeps :: Effect Unit
 main :: Effect Unit
 main =
   runTest do
-    []
+    pure unit

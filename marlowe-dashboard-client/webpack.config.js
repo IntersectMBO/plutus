@@ -1,6 +1,5 @@
 'use strict';
 
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -16,7 +15,7 @@ const plugins =
             });
         }
     ]
-;
+    ;
 
 // source map adds 20Mb to the output!
 const devtool = isWebpackDevServer ? 'eval-source-map' : false;
@@ -71,7 +70,8 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs'
+                                'web-common-marlowe/**/*.purs',
+                                'web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),
@@ -131,10 +131,6 @@ module.exports = {
             title: 'Marlowe Dashboard',
             productName: 'marlowe-dashboard',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
-        }),
-        new MonacoWebpackPlugin({
-            // note that you have to include typescript if you want javascript to work!
-            languages: ['javascript', 'typescript'],
         })
     ].concat(plugins)
 };
