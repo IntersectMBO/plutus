@@ -795,6 +795,8 @@ setUnsavedChangesForLanguage lang value = do
   when (workflow == Just lang)
     $ assign _hasUnsavedChanges value
 
+-- This is a HOF intented to be used on top of handleAction. It prevents the user from accidentally doing an Action that
+-- would result in losing the progress.
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>
@@ -806,14 +808,19 @@ withAccidentalNavigationGuard settings handleAction' action = do
   currentView <- use _view
   hasUnsavedChanges <- use _hasUnsavedChanges
   if viewIsGuarded currentView && actionIsGuarded && hasUnsavedChanges then
+    -- If the action would result in the user losing the work, we present a
+    -- modal to confirm, cancel or save the work and we preserve the intended action
+    -- to be executed after.
     fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
   else
     handleAction' action
   where
+  -- Which pages needs to be guarded.
   viewIsGuarded = case _ of
     HomePage -> false
     _ -> true
 
+  -- What actions would result in losing the work.
   actionIsGuarded = case action of
     (ChangeView HomePage) -> true
     (ChangeView ActusBlocklyEditor) -> true
