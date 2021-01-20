@@ -325,8 +325,8 @@ handleAction s (HaskellAction action) = do
       let
         contract = fold mContract
       sendToSimulation s contract
-    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (HE.InitHaskellProject _) -> assign _hasUnsavedChanges false
+    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Haskell true
+    (HE.InitHaskellProject _) -> setUnsavedChangesForLanguage Haskell false
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -337,8 +337,8 @@ handleAction s (JavascriptAction action) = do
       let
         contract = fold mContract
       sendToSimulation s contract
-    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (JS.InitJavascriptProject _) -> assign _hasUnsavedChanges false
+    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Javascript true
+    (JS.InitJavascriptProject _) -> setUnsavedChangesForLanguage Javascript false
     _ -> pure unit
 
 handleAction s (MarloweEditorAction action) = do
@@ -354,8 +354,8 @@ handleAction s (MarloweEditorAction action) = do
         void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject source)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (ME.InitMarloweProject _) -> assign _hasUnsavedChanges false
+    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Marlowe true
+    (ME.InitMarloweProject _) -> setUnsavedChangesForLanguage Marlowe false
     _ -> pure unit
 
 handleAction settings (BlocklyEditorAction action) = do
@@ -375,7 +375,7 @@ handleAction settings (BlocklyEditorAction action) = do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
         toMarloweEditor $ MarloweEditor.handleAction settings $ ME.InitMarloweProject code
-    (BE.HandleBlocklyMessage Blockly.CodeChange) -> assign _hasUnsavedChanges true
+    (BE.HandleBlocklyMessage Blockly.CodeChange) -> setUnsavedChangesForLanguage Blockly true
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -414,7 +414,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
-handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = assign _hasUnsavedChanges true
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = setUnsavedChangesForLanguage Actus true
 
 -- TODO: modify gist action type to take a gistid as a parameter
 -- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
@@ -432,7 +432,6 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
             <<< set _workflow (Just lang)
-            <<< set _hasUnsavedChanges true
         )
     Left error ->
       modify_
@@ -478,7 +477,6 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
-        <<< set _hasUnsavedChanges true
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -501,13 +499,6 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
-        {-
-        it is possible that you could load a demo that is already in the editor so there would in theory
-        be no unsaved changes however this is tricky with blockly and I think it's fine to say that if
-        you load a new demo then you have unsaved changes
-        -}
-        
-        <<< set _hasUnsavedChanges true
     )
   selectView $ selectLanguageView lang
 
@@ -699,9 +690,6 @@ handleGistAction settings PublishGist = do
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
-              {- This marks the project as saved globally, it would normally be a replication
-               of the inner unsaved state set below, but we n two places. Here to update the view -}
-              
               <<< set _hasUnsavedChanges false
           )
 
@@ -801,6 +789,14 @@ handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
       else
         fullHandleAction settings $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
 
+setUnsavedChangesForLanguage :: forall m. Lang -> Boolean -> HalogenM State Action ChildSlots Void m Unit
+setUnsavedChangesForLanguage lang value = do
+  workflow <- use _workflow
+  when (workflow == Just lang)
+    $ assign _hasUnsavedChanges value
+
+-- This is a HOF intented to be used on top of handleAction. It prevents the user from accidentally doing an Action that
+-- would result in losing the progress.
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>
@@ -808,18 +804,26 @@ withAccidentalNavigationGuard ::
   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-withAccidentalNavigationGuard settings handleAction' action =
-  if not actionIsGuarded then
+withAccidentalNavigationGuard settings handleAction' action = do
+  currentView <- use _view
+  hasUnsavedChanges <- use _hasUnsavedChanges
+  if viewIsGuarded currentView && actionIsGuarded && hasUnsavedChanges then
+    -- If the action would result in the user losing the work, we present a
+    -- modal to confirm, cancel or save the work and we preserve the intended action
+    -- to be executed after.
+    fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
+  else
     handleAction' action
-  else do
-    hasUnsavedChanges <- use _hasUnsavedChanges
-    if hasUnsavedChanges then do
-      fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
-    else do
-      handleAction' action
   where
+  -- Which pages needs to be guarded.
+  viewIsGuarded = case _ of
+    HomePage -> false
+    _ -> true
+
+  -- What actions would result in losing the work.
   actionIsGuarded = case action of
-    (ChangeView _) -> true
+    (ChangeView HomePage) -> true
+    (ChangeView ActusBlocklyEditor) -> true
     (NewProjectAction (NewProject.CreateProject _)) -> true
     (ProjectsAction (Projects.LoadProject _ _)) -> true
     (DemosAction (Demos.LoadDemo _ _)) -> true
@@ -837,7 +841,7 @@ selectView view = do
     window <- Web.window
     Window.scroll 0 0 window
   case view of
-    HomePage -> assign _workflow Nothing
+    HomePage -> modify_ (set _workflow Nothing <<< set _hasUnsavedChanges false)
     Simulation -> do
       Simulation.editorResize
       Simulation.editorSetTheme
