@@ -28,8 +28,9 @@ postProcessSchedule ct s =
     let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
 
         priority (event, _) = 1
-        regroup = L.groupBy (\((_, l), (_, r)) -> calculationDay l == calculationDay r)
-        overwrite = L.head . sortOn priority <$> regroup
+        simillarity (_, l) (_, r) = calculationDay l == calculationDay r
+        regroup = L.groupBy simillarity
+        overwrite = map (L.head . sortOn priority) . regroup
     in (overwrite . trim) s
 
 
