@@ -240,6 +240,8 @@ analysisResultPane state =
             err = case description of
               DecodingError e -> "Decoding error: " <> e
               ConnectionError e -> "Connection error: " <> e
+              NotFound -> "Data not found."
+              ResponseError status body -> "Response error: " <> show status <> " " <> body
               ResponseFormatError e -> "Response Format error: " <> e
           in
             explanation

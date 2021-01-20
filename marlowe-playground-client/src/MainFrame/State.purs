@@ -629,6 +629,10 @@ showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at positi
 
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
 
+showErrorDescription NotFound = "NotFound"
+
+showErrorDescription (ResponseError status body) = "ResponseError: " <> show status <> " " <> body
+
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 
 showErrorDescription (ConnectionError err) = "ConnectionError: " <> err

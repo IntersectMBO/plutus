@@ -65,11 +65,13 @@ import           Network.HTTP.Client.Conduit (getUri)
 import           Network.HTTP.Conduit        (Request, parseRequest, responseBody, responseStatus, setQueryString)
 import           Network.HTTP.Simple         (addRequestHeader)
 import           Network.HTTP.Types          (hAccept, statusIsSuccessful)
+import           Network.HTTP.Types.Status   (status404)
 import           Servant                     (Get, Header, Headers, JSON, NoContent (NoContent), QueryParam,
                                               ServerError, ServerT, StdMethod (GET), ToHttpApiData, Verb, addHeader,
-                                              err401, err500, errBody, throwError, (:<|>) ((:<|>)), (:>))
+                                              err401, err404, err500, errBody, throwError, (:<|>) ((:<|>)), (:>))
 import           Servant.API.BrowserHeader   (BrowserHeader)
-import           Servant.Client              (BaseUrl, ClientM, mkClientEnv, parseBaseUrl, runClientM)
+import           Servant.Client              (BaseUrl, ClientError (FailureResponse), ClientM, mkClientEnv,
+                                              parseBaseUrl, responseStatusCode, runClientM)
 import           Web.Cookie                  (SetCookie, defaultSetCookie, parseCookies, setCookieExpires,
                                               setCookieHttpOnly, setCookieMaxAge, setCookieName, setCookiePath,
                                               setCookieSecure, setCookieValue)
@@ -416,6 +418,9 @@ withGithubToken cookieHeader action = do
             logDebugN "Making github request with token."
             response <- liftIO $ flip runClientM clientEnv $ action token
             case response of
+                Left (FailureResponse _ failureResponse)
+                    | responseStatusCode failureResponse == status404 ->
+                        throwError err404
                 Left err -> do
                     logErrorN $
                         "Failed to read github endpoint: " <> showText err
