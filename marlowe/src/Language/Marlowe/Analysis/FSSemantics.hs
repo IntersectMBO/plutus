@@ -430,11 +430,11 @@ isValidAndFailsWhen oa hasErr (Case (Choice choId bnds) cont:rest)
                then ensureBounds otherConcVal bnds .|| previousMatch otherSymInput pmSymState
                else previousMatch otherSymInput pmSymState
              _ -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
-                                      newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
                <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
      return (ite (newCond .&& sNot clashResult)
                  (ensureBounds concVal bnds .&& newTrace)
                  contTrace)
@@ -449,11 +449,11 @@ isValidAndFailsWhen oa hasErr (Case (Notify obs) cont:rest)
            case otherSymInput of
              SymNotify -> pmObsRes .|| previousMatch otherSymInput pmSymState
              _         -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
-                                      newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
                <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
      return (ite (newCond .&& obsRes .&& sNot clashResult) newTrace contTrace)
 
 --------------------------------------------------
