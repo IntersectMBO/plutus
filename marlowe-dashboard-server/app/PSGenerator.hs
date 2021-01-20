@@ -41,7 +41,6 @@ myBridge :: BridgePart
 myBridge =
   PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge
     <|> PSGenerator.Common.languageBridge
-    <|> PSGenerator.Common.ledgerBridge
     <|> PSGenerator.Common.servantBridge
     <|> PSGenerator.Common.miscBridge
     <|> doubleBridge

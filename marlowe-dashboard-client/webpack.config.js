@@ -128,8 +128,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './static/index.html',
             favicon: 'static/favicon.ico',
-            title: 'Marlowe Playground',
-            productName: 'marlowe-playground',
+            title: 'Marlowe Dashboard',
+            productName: 'marlowe-dashboard',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
         }),
         new MonacoWebpackPlugin({

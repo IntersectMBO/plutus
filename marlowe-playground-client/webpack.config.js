@@ -71,7 +71,9 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                'web-common/**/*.purs'
+                                'web-common/**/*.purs',
+                                'web-common-marlowe/**/*.purs',
+                                'web-common-playground/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),

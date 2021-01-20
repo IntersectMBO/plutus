@@ -1,5 +1,5 @@
 {
-  "name": "marlowe-playground-client",
+  "name": "marlowe-dashboard-client",
   "version": "1.0.0",
   "scripts": {
     "webpack": "NODE_OPTIONS=\"--max-old-space-size=8192\" DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",

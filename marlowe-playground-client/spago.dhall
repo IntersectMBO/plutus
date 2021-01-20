@@ -39,5 +39,6 @@ You can edit this file as you like.
   , "generated/**/*.purs"
   , "web-common/**/*.purs"
   , "web-common-marlowe/**/*.purs"
+  , "web-common-playground/**/*.purs"
   ]
 }

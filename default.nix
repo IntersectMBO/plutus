@@ -40,6 +40,7 @@ rec {
   webCommon = pkgs.callPackage ./web-common { };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { };
   webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { };
+  webCommonPlayground = pkgs.callPackage ./web-common-playground { };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
@@ -47,7 +48,7 @@ rec {
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon webCommonPlutus;
+      inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
     }) client server-invoker generated-purescript generate-purescript;
   };
 
@@ -56,7 +57,7 @@ rec {
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon webCommonMarlowe;
+      inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
     }) client server-invoker generated-purescript generate-purescript;
   };
 
@@ -64,7 +65,7 @@ rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
       inherit set-git-rev haskell webCommon;
-    }) client server-invoker generated-purescript;
+    }) client server-invoker generated-purescript generate-purescript;
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {

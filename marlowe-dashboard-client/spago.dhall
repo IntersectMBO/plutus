@@ -2,7 +2,7 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name = "marlowe-playground-client"
+{ name = "marlowe-dashboard-client"
 , dependencies =
   [ "aff-promise"
   , "avar"
@@ -11,6 +11,7 @@ You can edit this file as you like.
   , "debug"
   , "effect"
   , "halogen"
+  , "node-fs"
   , "prelude"
   , "psci-support"
   , "remotedata"
