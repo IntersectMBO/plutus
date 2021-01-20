@@ -52,7 +52,7 @@ test_machines :: TestTree
 test_machines =
     testGroup "machines"
         [ testMachine "CEK"  $ evaluateCek  defBuiltinsRuntime
-        , testMachine "HOAS" $ evaluateHoas
+        , testMachine "HOAS" $ evaluateHoas defBuiltinsRuntime
         ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested

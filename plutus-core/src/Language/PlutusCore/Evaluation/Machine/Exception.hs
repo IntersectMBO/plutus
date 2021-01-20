@@ -124,7 +124,7 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
 data ErrorWithCause err term = ErrorWithCause
     { _ewcError :: err
     , _ewcCause :: Maybe term
-    } deriving (Eq, Functor)
+    } deriving (Eq, Functor, Foldable, Traversable)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
