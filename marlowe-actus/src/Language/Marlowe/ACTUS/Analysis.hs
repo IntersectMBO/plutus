@@ -23,6 +23,10 @@ import           Prelude                                               hiding (F
 genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 
+postProcessSchedule :: [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
+postProcessSchedule = id
+
+
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
 sampleCashflows riskFactors terms =
     let
@@ -33,7 +37,8 @@ sampleCashflows riskFactors terms =
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = preserveDate e <$> getSchedule e
         events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
-
+        events' = postProcessSchedule events
+        
         applyStateTransition (st, ev, date) (ev', date') =
             (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
         calculatePayoff (st, ev, date) =
@@ -44,7 +49,7 @@ sampleCashflows riskFactors terms =
             , AD
             , ShiftedDay analysisDate analysisDate
             )
-        states  = L.tail $ L.scanl applyStateTransition initialState events
+        states  = L.tail $ L.scanl applyStateTransition initialState events'
         payoffs = calculatePayoff <$> states
 
         genCashflow ((_, ev, d), pff) = CashFlow
