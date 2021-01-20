@@ -132,6 +132,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
       pure compilationResult
   resizeEditor = pure unit
   resizeBalancesChart = pure unit
+  scrollIntoView _ = pure unit
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
   tailRecM step a = do
@@ -153,6 +154,12 @@ execMockApp world queries = do
     mkInitialState
       ( Editor.State
           { keyBindings: Editor.DefaultBindings
+          , feedbackPaneMinimised: false
+          , lastCompiledCode: Nothing
+          , currentCodeIsCompiled: false
+          , feedbackPaneDragStart: Nothing
+          , feedbackPaneExtend: 0
+          , feedbackPanePreviousExtend: 0
           }
       )
   RWSResult state result writer <-

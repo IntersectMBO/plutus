@@ -37,10 +37,10 @@ import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
+import           Ledger.Contexts                       (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts                       as Validation
 import qualified Ledger.Interval                       as Interval
 import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Validation                     (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                     as Validation
 import           Ledger.Value                          (Value)
 import qualified Ledger.Value                          as Value
 

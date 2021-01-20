@@ -11,8 +11,6 @@ open import Data.Vec
 open import Data.String using (String) renaming (_++_ to _+++_)
 open import Data.Char
 
-open import Builtin.Constant.Type hiding (length)
-  -- perhaps the postulates should be elsewhere
 open import Builtin
 \end{code}
 

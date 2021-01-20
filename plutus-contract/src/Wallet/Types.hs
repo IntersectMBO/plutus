@@ -42,9 +42,8 @@ import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc           (Pretty (..), colon, hang, viaShow, vsep, (<+>))
 import           Data.Text.Prettyprint.Doc.Extras    (PrettyShow (..), Tagged (..))
 import           Data.UUID                           (UUID)
-import qualified Data.UUID                           as UUID
+import qualified Data.UUID.Extras                    as UUID
 import qualified Data.UUID.V4                        as UUID
-import           Data.Word                           (Word32)
 import           GHC.Generics                        (Generic)
 import qualified Language.Haskell.TH.Syntax          as TH
 
@@ -131,9 +130,7 @@ newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
 
 -- | A pure list of all 'ContractInstanceId' values. To be used in testing.
 contractInstanceIDs :: [ContractInstanceId]
-contractInstanceIDs =
-    let ws :: [Word32] = enumFromTo minBound maxBound in
-    fmap ContractInstanceId (UUID.fromWords <$> ws <*> ws <*> ws <*> ws)
+contractInstanceIDs = ContractInstanceId <$> UUID.mockUUIDs
 
 randomID :: IO ContractInstanceId
 randomID = ContractInstanceId <$> UUID.nextRandom

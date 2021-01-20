@@ -1,6 +1,8 @@
 module AjaxUtils
   ( AjaxErrorPaneAction(..)
   , ajaxErrorPane
+  , closeableAjaxErrorPane
+  , ajaxErrorRefLabel
   , renderForeignErrors
   , defaultJsonOptions
   ) where
@@ -11,9 +13,10 @@ import Data.Foldable (intercalate)
 import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
+import Halogen (RefLabel(RefLabel))
 import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, text)
-import Halogen.HTML.Properties (class_, classes)
 import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (class_, classes, ref)
 import Icons (Icon(..), icon)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 
@@ -23,7 +26,9 @@ data AjaxErrorPaneAction
 ajaxErrorPane :: forall p i. AjaxError -> HTML p i
 ajaxErrorPane error =
   div
-    [ class_ ajaxErrorClass ]
+    [ class_ ajaxErrorClass
+    , ref ajaxErrorRefLabel
+    ]
     [ alertDanger_
         [ showAjaxError error
         , br_
@@ -46,6 +51,9 @@ closeableAjaxErrorPane error =
         , helpText
         ]
     ]
+
+ajaxErrorRefLabel :: RefLabel
+ajaxErrorRefLabel = RefLabel "ajax-error"
 
 ajaxErrorClass :: ClassName
 ajaxErrorClass = ClassName "ajax-error"

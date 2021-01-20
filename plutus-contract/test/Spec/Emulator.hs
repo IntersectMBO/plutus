@@ -40,13 +40,13 @@ import qualified Language.PlutusTx.Numeric     as P
 import qualified Language.PlutusTx.Prelude     as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                    as Ada
+import           Ledger.Bytes                  as LedgerBytes
 import           Ledger.Generators             (Mockchain (Mockchain))
 import qualified Ledger.Generators             as Gen
 import qualified Ledger.Index                  as Index
 import           Ledger.Typed.Scripts          (wrapValidator)
 import           Ledger.Value                  (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                  as Value
-import           LedgerBytes                   as LedgerBytes
 import           Plutus.Trace                  (EmulatorTrace)
 import qualified Plutus.Trace                  as Trace
 import           Test.Tasty
@@ -145,8 +145,8 @@ txnUpdateUtxo = property $ do
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidate _ i1
-                , Chain.TxnValidationFail _ txi (Index.TxOutRefNotFound _)
+                , Chain.TxnValidate _ i1 _
+                , Chain.TxnValidationFail _ txi (Index.TxOutRefNotFound _) _
                 , Chain.SlotAdd _
                 ] -> i1 == txn && txi == txn
             _ -> False
@@ -168,7 +168,7 @@ invalidTrace = property $ do
         pred = \case
             [ Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ txn (Index.ValueNotPreserved _ _)
+                , Chain.TxnValidationFail _ txn (Index.ValueNotPreserved _ _) _
                 , Chain.SlotAdd _
                 ] -> txn == invalidTxn
             _ -> False
@@ -205,7 +205,7 @@ invalidScript = property $ do
                 , Chain.SlotAdd _
                 , Chain.TxnValidate{}
                 , Chain.SlotAdd _
-                , Chain.TxnValidationFail _ txn (ScriptFailure (EvaluationError ["I always fail everything"]))
+                , Chain.TxnValidationFail _ txn (ScriptFailure (EvaluationError ["I always fail everything"])) _
                 , Chain.SlotAdd _
                 ] -> txn == invalidTxn
             _ -> False

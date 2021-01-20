@@ -24,16 +24,16 @@ import           Data.Text.Prettyprint.Doc  hiding ((<>))
 import           GHC.Generics               (Generic)
 
 import qualified Language.PlutusTx          as PlutusTx
+import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Language.PlutusTx.Prelude
 
-import qualified Language.PlutusTx.AssocMap as AssocMap
-import           Ledger.Crypto              (PubKeyHash)
-import qualified Ledger.Interval            as I
-import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
-import           Ledger.Slot                (SlotRange)
-import           Ledger.Tx                  (TxOutRef)
-import           Ledger.Value               (TokenName, Value, isZero)
-import qualified Ledger.Value               as Value
+import           Plutus.V1.Ledger.Crypto    (PubKeyHash)
+import qualified Plutus.V1.Ledger.Interval  as I
+import           Plutus.V1.Ledger.Scripts   (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
+import           Plutus.V1.Ledger.Slot      (SlotRange)
+import           Plutus.V1.Ledger.Tx        (TxOutRef)
+import           Plutus.V1.Ledger.Value     (TokenName, Value, isZero)
+import qualified Plutus.V1.Ledger.Value     as Value
 
 import qualified Prelude                    as Haskell
 

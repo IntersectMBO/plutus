@@ -1,0 +1,206 @@
+// chart.scss variables
+$chart-bg: $gray-100;
+$chart-tooltip: $gray-900;
+$chart-title: $gray-900;
+$chart-label: $gray-900;
+$chart-grid-stroke: $gray-500;
+@import '../web-common/static/chartist.scss';
+@import '../web-common/static/chain.scss';
+
+.transactions {
+    border: 1px solid $gray-border-color;
+    box-shadow: $box-shadow;
+    padding: 1rem;
+
+    .transactions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: .5rem;
+        border-bottom: 1px solid #d0cfcf;
+        margin-bottom: 1rem;
+
+        h2 {
+            margin-bottom: 0;
+        }
+    }
+
+    .chain,
+    .final-balances,
+    .logs {
+        margin-bottom: 1rem;
+    }
+
+    @include chain (
+        $balances-table-background-color: $gray-background-color,
+        $balances-table-border-color: $gray-border-color,
+    
+        $entry-border-width: 2px,
+        $entry-border-color: $gray-border-color,
+        $entry-active-border-color: $blue,
+        $entry-inner-border-color: transparent,
+        $entry-separator-color: $gray-border-color,
+        $entry-footer-background-color: $gray-background-color,
+        $entry-arrow-width: 15px,
+        $entry-arrow-color: $blue,
+    
+        $entry-color: $white,
+        $entry-detail-color-fee: $pink,
+        $entry-detail-color-not-found: $red,
+        $entry-detail-color-forge: $cyan,
+        $entry-detail-color-wallet: $green,
+        $entry-detail-color-script: $yellow,
+    );
+    
+    .chain {
+        h2 {
+            // temporary: make h2 look like h3
+            // (rather than change the view in web-common)
+            @extend .h3;
+        }
+
+        p {
+            font-size: $font-size-sm;
+        }
+
+        .blocks,
+        .detail {
+            margin-bottom: 1rem;
+        }
+
+        .transaction {
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            margin-bottom: .5rem;
+            border-radius: 0;
+
+            .card-header:first-child {
+                border-radius: 0;
+            }
+
+            &.clickable {
+                cursor: pointer;
+
+                &:hover {
+                    border-color: $blue;
+                }
+            }
+        }
+
+        .balances-table {
+            thead {
+                background-color: $gray-200;
+                border-bottom: none;
+            }
+        }
+    }
+
+    //.final-balances {}
+
+    .logs,
+    .trace {
+        code pre {
+            // bootstrap's code and pre styles both shrink font size: don't shrink it twice
+            font-size: inherit;
+        }
+
+        pre {
+            border: solid 1px $gray-border-color;
+            border-radius: 4px;
+            background-color: white;
+            padding: 1rem;
+            white-space: pre-wrap;
+            // Extra indentation for all but the first line of a paragraph.
+            padding-left: 2.25rem;
+            text-indent: -1rem;
+
+            .info {
+                font-weight: bold;
+
+                &:before {
+                    content: "==== ";
+                }
+                &:after {
+                    content: " ====";
+                }
+            }
+
+            .error {
+                color: $red;
+            }
+        }
+    }
+
+    .trace {
+        pre {
+            margin-bottom: 0;
+        }
+    }
+}
+
+
+/*
+// this doesn't seem to be doing anything
+
+table.balance-map {
+    overflow: hidden;
+    border: 2px solid $gray-700;
+
+    thead {
+        h3 {
+            font-size: 0.6rem;
+        }
+    }
+
+    tbody {
+        tr:hover {
+            background-color: $gray-800;
+
+            .balance-remainder::after {
+                content: "";
+                position: absolute;
+                background-color: $gray-800;
+                bottom: 0;
+                left: -10%;
+                height: 10000px;
+                width: 120%;
+                z-index: -1;
+            }
+        }
+    }
+
+    .forge {
+        .balance {
+            border-color: lighten($green, 20%);
+            background-color: $green;
+        }
+    }
+
+    .balance {
+        position: relative;
+        border: solid 1px $gray-300;
+        background-color: $gray-200;
+        padding: 3px 8px;
+        min-width: 5rem;
+
+        &.balance-remainder {
+            background: url(tx-arrows.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border: none;
+        }
+
+        &.balance-no-currencies {
+            background-color: transparent;
+            border: none;
+        }
+
+        & div:first-child {
+            border-top: none;
+        }
+    }
+}
+*/

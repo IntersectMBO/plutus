@@ -52,20 +52,20 @@
           ];
         buildable = true;
         modules = [
-          "Language/PlutusTx/PLCTypes"
-          "Language/PlutusTx/PIRTypes"
-          "Language/PlutusTx/Compiler/Error"
           "Language/PlutusTx/Compiler/Binders"
           "Language/PlutusTx/Compiler/Builtins"
-          "Language/PlutusTx/Compiler/Laziness"
           "Language/PlutusTx/Compiler/Expr"
-          "Language/PlutusTx/Compiler/Names"
           "Language/PlutusTx/Compiler/Kind"
+          "Language/PlutusTx/Compiler/Laziness"
+          "Language/PlutusTx/Compiler/Names"
           "Language/PlutusTx/Compiler/Primitives"
           "Language/PlutusTx/Compiler/Type"
           "Language/PlutusTx/Compiler/Types"
           "Language/PlutusTx/Compiler/Utils"
+          "Language/PlutusTx/PIRTypes"
+          "Language/PlutusTx/PLCTypes"
           "Language/PlutusTx/Plugin"
+          "Language/PlutusTx/Compiler/Error"
           ];
         hsSourceDirs = [ "src" ];
         };

@@ -61,11 +61,11 @@ import           Ledger                            (PubKeyHash, Slot, Validator,
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Constraints                as Constraints
+import           Ledger.Contexts                   as V
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Scripts                    as Scripts
 import           Ledger.Slot                       (SlotRange)
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 as V
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import           Plutus.Trace.Emulator             (ContractHandle, EmulatorTrace)

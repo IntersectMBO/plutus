@@ -52,7 +52,7 @@ in
     name = "plutus-development";
     contents =
       let runtimeGhc =
-        haskell.packages.ghcWithPackages (ps: [
+        haskell.project.ghcWithPackages (ps: [
           ps.plutus-core
           ps.plutus-ledger
           ps.plutus-tx

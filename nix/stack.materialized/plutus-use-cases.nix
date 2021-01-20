@@ -81,6 +81,61 @@
           ];
         hsSourceDirs = [ "src" ];
         };
+      exes = {
+        "plutus-use-cases-scripts" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."foldl" or (errorHandler.buildDepError "foldl"))
+            (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          buildable = true;
+          modules = [
+            "Spec/Crowdfunding"
+            "Spec/Currency"
+            "Spec/ErrorHandling"
+            "Spec/Escrow"
+            "Spec/Future"
+            "Spec/Game"
+            "Spec/GameStateMachine"
+            "Spec/Lib"
+            "Spec/MultiSig"
+            "Spec/MultiSigStateMachine"
+            "Spec/PingPong"
+            "Spec/PubKey"
+            "Spec/Prism"
+            "Spec/Rollup"
+            "Spec/RPC"
+            "Spec/Stablecoin"
+            "Spec/TokenAccount"
+            "Spec/Vesting"
+            ];
+          hsSourceDirs = [ "scripts" "test" ];
+          mainPath = [
+            "Main.hs"
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
+          };
+        };
       tests = {
         "plutus-use-cases-test" = {
           depends = [
@@ -141,6 +196,7 @@
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))

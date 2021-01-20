@@ -46,36 +46,37 @@ library
     hs-source-dirs: src
     default-language: Haskell2010
     exposed-modules:
-        Data.Aeson.Extras
-        Data.Either.Extras
-        Data.Text.Prettyprint.Doc.Extras
         Ledger
-        Ledger.Ada
-        Ledger.Address
         Ledger.AddressMap
         Ledger.Blockchain
         Ledger.Constraints
         Ledger.Constraints.OffChain
         Ledger.Constraints.OnChain
         Ledger.Constraints.TxConstraints
-        Ledger.Crypto
         Ledger.Generators
         Ledger.Oracle
         Ledger.Orphans
-        Ledger.Slot
-        Ledger.Scripts
-        Ledger.Tx
-        Ledger.TxId
-        Ledger.Validation
         Ledger.Index
-        Ledger.Interval
-        Ledger.Value
-        LedgerBytes
         Ledger.Tokens
         Ledger.Typed.Scripts
         Ledger.Typed.Scripts.Validators
         Ledger.Typed.Tx
         Ledger.Typed.TypeUtils
+    reexported-modules:
+        Data.Aeson.Extras,
+        Data.Either.Extras,
+        Data.Text.Prettyprint.Doc.Extras,
+        Plutus.V1.Ledger.Address as Ledger.Address,
+        Plutus.V1.Ledger.Ada as Ledger.Ada,
+        Plutus.V1.Ledger.Bytes as Ledger.Bytes,
+        Plutus.V1.Ledger.Contexts as Ledger.Contexts,
+        Plutus.V1.Ledger.Crypto as Ledger.Crypto,
+        Plutus.V1.Ledger.Interval as Ledger.Interval,
+        Plutus.V1.Ledger.Scripts as Ledger.Scripts,
+        Plutus.V1.Ledger.Slot as Ledger.Slot,
+        Plutus.V1.Ledger.Tx as Ledger.Tx,
+        Plutus.V1.Ledger.TxId as Ledger.TxId,
+        Plutus.V1.Ledger.Value as Ledger.Value
     build-depends:
         base >=4.9 && <5,
         aeson -any,
@@ -89,6 +90,7 @@ library
         hedgehog -any,
         iots-export -any,
         plutus-core -any,
+        plutus-ledger-api -any,
         memory -any,
         mtl -any,
         natural-transformation -any,
@@ -108,6 +110,7 @@ library
         http-api-data -any,
         cardano-crypto -any,
         deepseq -any,
+        cryptonite >=0.25,
         freer-simple -any
 
     ghc-options: -fprint-potential-instances

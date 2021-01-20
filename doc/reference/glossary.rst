@@ -4,6 +4,9 @@ Glossary
 ========
 
 .. glossary::
+    active endpoint
+      An endpoint that is active on a contract application instance. Indicates that the contract application instance is waiting for input. The set of active endpoints is part of the state of the contract application instance and changes over time.
+
     address
       The address of an UTXO says where the output is "going". The address
       stipulates the conditions for unlocking the output. This can be a
@@ -40,6 +43,9 @@ Glossary
 
     datum
       The data field on script outputs in the Extended UTXO model.
+
+    endpoint
+      A potential request made by a contract application for user input. Every endpoint has a name and a type.
 
     Extended UTXO Model
       The ledger model which the Plutus Platform relies on.
@@ -152,6 +158,9 @@ Glossary
     redeemer
       The argument to the validator script which is provided by the
       transaction which spends a script output.
+
+    schema
+      The set of all endpoints of a contract application.
 
     script
       A generic term for an executable program used in the ledger. In the

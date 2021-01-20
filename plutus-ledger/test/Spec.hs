@@ -33,15 +33,15 @@ import qualified Language.PlutusTx.Builtins   as Builtins
 import qualified Language.PlutusTx.Prelude    as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                   as Ada
+import           Ledger.Bytes                 as Bytes
+import qualified Ledger.Contexts              as Validation
 import qualified Ledger.Crypto                as Crypto
 import qualified Ledger.Generators            as Gen
 import qualified Ledger.Index                 as Index
 import qualified Ledger.Interval              as Interval
 import qualified Ledger.Scripts               as Scripts
-import qualified Ledger.Validation            as Validation
 import           Ledger.Value                 (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                 as Value
-import           LedgerBytes
 import           Test.Tasty
 import           Test.Tasty.HUnit             (testCase)
 import qualified Test.Tasty.HUnit             as HUnit
@@ -177,7 +177,7 @@ jsonRoundTrip gen = property $ do
 ledgerBytesShowFromHexProp :: Property
 ledgerBytesShowFromHexProp = property $ do
     bts <- forAll $ LedgerBytes <$> Gen.genSizedByteString 32
-    let result = LedgerBytes.fromHex $ fromString $ show bts
+    let result = Bytes.fromHex $ fromString $ show bts
 
     Hedgehog.assert $ result == Right bts
 

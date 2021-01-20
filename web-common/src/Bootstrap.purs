@@ -19,6 +19,12 @@ container = ClassName "container"
 container_ :: forall p i. Array (HTML p i) -> HTML p i
 container_ = div [ class_ container ]
 
+containerFluid :: ClassName
+containerFluid = ClassName "container-fluid"
+
+containerFluid_ :: forall p i. Array (HTML p i) -> HTML p i
+containerFluid_ = div [ class_ containerFluid ]
+
 noGutters :: ClassName
 noGutters = ClassName "no-gutters"
 
@@ -322,6 +328,12 @@ displayFlex = ClassName "d-flex"
 alignItemsCenter :: ClassName
 alignItemsCenter = ClassName "align-items-center"
 
+mlAuto :: ClassName
+mlAuto = ClassName "ml-auto"
+
+mrAuto :: ClassName
+mrAuto = ClassName "mr-auto"
+
 clearfix :: ClassName
 clearfix = ClassName "clearfix"
 
@@ -468,6 +480,24 @@ disabled = ClassName "disabled"
 
 nav :: ClassName
 nav = ClassName "nav"
+
+navbar :: ClassName
+navbar = ClassName "navbar"
+
+navbarBrand :: ClassName
+navbarBrand = ClassName "navbar-brand"
+
+navbarText :: ClassName
+navbarText = ClassName "navbar-text"
+
+navbarNav :: ClassName
+navbarNav = ClassName "navbar-nav"
+
+navbarExpand :: ClassName
+navbarExpand = ClassName "navbar-expand"
+
+navbarExpandSmall :: ClassName
+navbarExpandSmall = ClassName "navbar-expand-sm"
 
 navPills_ :: forall p i. Array (HTML p i) -> HTML p i
 navPills_ = ul [ classes [ nav, ClassName "nav-pills" ] ]

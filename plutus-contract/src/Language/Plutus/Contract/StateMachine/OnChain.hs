@@ -34,8 +34,8 @@ import           Ledger.Constraints
 import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
 import           Ledger                           (Address, Value)
+import           Ledger.Contexts                  (TxInInfo (..), ValidatorCtx (..), findOwnInput)
 import           Ledger.Typed.Scripts
-import           Ledger.Validation                (TxInInfo (..), ValidatorCtx (..), findOwnInput)
 import           Ledger.Value                     (isZero)
 import qualified Prelude                          as Haskell
 

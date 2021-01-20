@@ -105,7 +105,7 @@ data PrismError =
 
 -- | A wrapper around the four prism contracts. This is just a workaround
 --   for the emulator, where we can only ever run a single 'Contract'. In
---   the SCB we could simply start all four contracts (credentialManager,
+--   the PAB we could simply start all four contracts (credentialManager,
 --   mirror, subscribeSTO, subscribeExchange) separately.
 contract ::
     Contract PrismSchema PrismError ()

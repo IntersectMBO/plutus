@@ -1,3 +1,5 @@
+/*eslint-env node*/
+/*global global*/
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'chartist/dist/chartist.min.css';
 import 'chartist/dist/chartist.min.js';
@@ -10,7 +12,8 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 global.monaco = monaco;
 import { EmacsExtension } from 'monaco-emacs';
 global.EmacsExtension = EmacsExtension;
-import { initVimMode } from 'monaco-vim';
+import { initVimMode, VimMode } from 'monaco-vim';
+global.VimMode = VimMode;
 global.initVimMode = initVimMode;
 global.monacoExtraTypeScriptLibs = [];
 

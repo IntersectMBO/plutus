@@ -16,20 +16,20 @@ module Language.PlutusTx.Compiler.Error (
     , throwPlain
     , pruneContext) where
 
-import qualified Language.PlutusIR.Compiler        as PIR
+import qualified Language.PlutusIR.Compiler as PIR
 
-import qualified Language.Haskell.TH               as TH
-import qualified Language.PlutusCore               as PLC
-import qualified Language.PlutusCore.Check.Uniques as PLC
-import qualified Language.PlutusCore.Pretty        as PLC
-import qualified Language.PlutusIR                 as PIR
+import qualified Language.Haskell.TH        as TH
+import qualified Language.PlutusCore        as PLC
+import qualified Language.PlutusCore.Pretty as PLC
+import qualified Language.PlutusIR          as PIR
 
 import           Control.Lens
 import           Control.Monad.Except
 
-import qualified Data.Text                         as T
-import qualified Data.Text.Prettyprint.Doc         as PP
+import qualified Data.Text                  as T
+import qualified Data.Text.Prettyprint.Doc  as PP
 import           Data.Typeable
+import           ErrorCode
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
 -- the priority of the context when displaying it. Lower numbers are more prioritised.
@@ -38,6 +38,10 @@ data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
 makeClassyPrisms ''WithContext
 
 type CompileError uni fun = WithContext T.Text (Error uni fun ())
+
+instance HasErrorCode (CompileError _a _b) where
+    errorCode (NoContext e)        = errorCode e
+    errorCode (WithContextC _ _ w) = errorCode w
 
 withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
@@ -73,6 +77,15 @@ data Error uni fun a = PLCError (PLC.Error uni fun a)
                  | CoreNameLookupError TH.Name
                  deriving Typeable
 makeClassyPrisms ''Error
+
+instance HasErrorCode (Error _a _b _c) where
+      errorCode CompilationError {}    = ErrorCode 41
+      errorCode UnsupportedError {}    = ErrorCode 42
+      errorCode FreeVariableError {}   = ErrorCode 43
+      errorCode InvalidMarkerError {}  = ErrorCode 49
+      errorCode CoreNameLookupError {} = ErrorCode 50
+      errorCode (PLCError e)           = errorCode e
+      errorCode (PIRError e)           = errorCode e
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where

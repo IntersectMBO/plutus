@@ -18,7 +18,6 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 

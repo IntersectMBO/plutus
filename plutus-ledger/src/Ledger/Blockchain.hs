@@ -18,16 +18,16 @@ module Ledger.Blockchain (
     validValuesTx
     ) where
 
-import           Control.Monad  (join)
-import           Data.List      (find)
-import           Data.Map       (Map)
-import qualified Data.Map       as Map
+import           Control.Monad            (join)
+import           Data.List                (find)
+import           Data.Map                 (Map)
+import qualified Data.Map                 as Map
 
-import           Ledger.Crypto
-import           Ledger.Scripts
-import           Ledger.Tx
-import           Ledger.TxId
-import           Ledger.Value   (Value)
+import           Plutus.V1.Ledger.Crypto
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Tx
+import           Plutus.V1.Ledger.TxId
+import           Plutus.V1.Ledger.Value   (Value)
 
 -- | A block on the blockchain. This is just a list of transactions which
 -- successfully validate following on from the chain so far.

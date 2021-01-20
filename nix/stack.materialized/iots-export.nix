@@ -50,6 +50,7 @@
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
+          (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           ];
         buildable = true;
         modules = [ "IOTS/Leijen" "IOTS/Tree" "IOTS" ];

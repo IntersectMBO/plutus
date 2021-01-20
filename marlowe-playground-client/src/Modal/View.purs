@@ -2,6 +2,7 @@ module Modal.View
   ( modal
   ) where
 
+import Prelude hiding (div)
 import ConfirmUnsavedNavigation.View (render) as ConfirmUnsavedNavigation
 import Data.Lens ((^.))
 import Data.Maybe (Maybe(..))
@@ -14,7 +15,6 @@ import Halogen.HTML (ClassName(ClassName), div, text)
 import Halogen.HTML.Properties (classes)
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, _newProject, _projects, _rename, _saveAs, _showModal, hasGlobalLoading)
 import NewProject.View (render) as NewProject
-import Prelude (identity)
 import Projects.View (render) as Projects
 import Rename.State (render) as Rename
 import SaveAs.State (render) as SaveAs

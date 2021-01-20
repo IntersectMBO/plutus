@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
-module Spec.PingPong(tests) where
+module Spec.PingPong(tests, pingPongTrace, twoPartiesTrace) where
 
 import           Control.Monad                                     (void)
 import           Data.Maybe                                        (isNothing)
@@ -39,24 +39,32 @@ tests :: TestTree
 tests = testGroup "pingpong"
     [ checkPredicate "activate endpoints"
         (endpointAvailable @"pong" theContract (Trace.walletInstanceTag w1))
-        $ do
-            hdl <- Trace.activateContractWallet w1 theContract
-            Trace.callEndpoint @"initialise" hdl ()
-            _ <- Trace.waitNSlots 2
-            Trace.callEndpoint @"pong" hdl ()
-            _ <- Trace.waitNSlots 2
-            Trace.callEndpoint @"ping" hdl ()
-            void $ Trace.waitNSlots 2
+        pingPongTrace
+
     , checkPredicate "Stop the contract"
         (assertDone twoParties (Trace.walletInstanceTag w1) isNothing "W1"
         .&&. assertDone twoParties (Trace.walletInstanceTag w2) isNothing "W2"
         )
-        $ do
-            hdl1 <- Trace.activateContractWallet w1 (void twoParties)
-            hdl2 <- Trace.activateContractWallet w2 (void twoParties)
-            Trace.callEndpoint @"initialise" hdl1 ()
-            _ <- Trace.waitNSlots 2
-            Trace.callEndpoint @"stop" hdl2 ()
-            void $ Trace.waitNSlots 2
-
+        twoPartiesTrace
     ]
+
+-- | Initialse, then call the ping and pong endpoints.
+pingPongTrace :: Trace.EmulatorTrace ()
+pingPongTrace = do
+    hdl <- Trace.activateContractWallet w1 theContract
+    Trace.callEndpoint @"initialise" hdl ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"pong" hdl ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"ping" hdl ()
+    void $ Trace.waitNSlots 2
+
+-- | Call 'initialise' on wallet 1, then call 'stop' in wallet 2.
+twoPartiesTrace :: Trace.EmulatorTrace ()
+twoPartiesTrace = do
+    hdl1 <- Trace.activateContractWallet w1 (void twoParties)
+    hdl2 <- Trace.activateContractWallet w2 (void twoParties)
+    Trace.callEndpoint @"initialise" hdl1 ()
+    _ <- Trace.waitNSlots 2
+    Trace.callEndpoint @"stop" hdl2 ()
+    void $ Trace.waitNSlots 2

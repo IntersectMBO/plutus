@@ -5,6 +5,7 @@
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -14,6 +15,7 @@ module Playground.Interpreter.Util
     ) where
 
 import qualified Control.Foldl                                   as L
+import           Control.Lens                                    (Traversal', preview)
 import           Control.Monad                                   (void)
 import           Control.Monad.Freer                             (run)
 import           Control.Monad.Freer.Error                       (Error, runError, throwError)
@@ -25,6 +27,7 @@ import qualified Data.ByteString.Lazy.Char8                      as BSL
 import           Data.Foldable                                   (traverse_)
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
+import           Data.Maybe                                      (isJust)
 import           Data.Text                                       (Text)
 
 import qualified Data.Text.Encoding                              as Text
@@ -44,7 +47,8 @@ import           Playground.Types                                (ContractCall (
                                                                   sender, simulatorWalletWallet)
 import qualified Playground.Types
 import           Plutus.Trace                                    (ContractConstraints, ContractInstanceTag)
-import           Plutus.Trace.Emulator.Types                     (EmulatorRuntimeError (JSONDecodingError))
+import           Plutus.Trace.Emulator.Types                     (EmulatorRuntimeError (JSONDecodingError),
+                                                                  _ContractLog, _ReceiveEndpointCall, cilMessage)
 import           Plutus.Trace.Playground                         (PlaygroundTrace, runPlaygroundStream,
                                                                   walletInstanceTag)
 import qualified Plutus.Trace.Playground
@@ -52,8 +56,10 @@ import qualified Plutus.Trace.Playground                         as Trace
 import           Streaming.Prelude                               (fst')
 import           Wallet.Emulator.Folds                           (EmulatorEventFoldM)
 import qualified Wallet.Emulator.Folds                           as Folds
+import           Wallet.Emulator.MultiAgent                      (EmulatorEvent, chainEvent, eteEvent, instanceEvent)
 import           Wallet.Emulator.Stream                          (foldEmulatorStreamM)
 import           Wallet.Emulator.Types                           (Wallet, walletPubKey)
+
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
@@ -81,13 +87,21 @@ renderInstanceTrace =
     . sequenceA
     . fmap Folds.instanceLog
 
+-- Events that are of interest to users of the Playground
+isInteresting :: EmulatorEvent -> Bool
+isInteresting x =
+    let matches :: Traversal' s a -> s -> Bool
+        matches p = isJust . preview p in
+    matches (eteEvent . chainEvent) x
+    || matches (eteEvent . instanceEvent . cilMessage . _ReceiveEndpointCall) x
+    || matches (eteEvent . instanceEvent . cilMessage . _ContractLog) x
+
 evaluationResultFold :: [Wallet] -> EmulatorEventFoldM effs EvaluationResult
 evaluationResultFold wallets =
     let pkh wallet = (pubKeyHash (walletPubKey wallet), wallet)
     in Playground.Types.EvaluationResult
-            <$> L.generalize Folds.blockchain
-            <*> L.generalize Folds.annotatedBlockchain
-            <*> L.generalize Folds.emulatorLog
+            <$> L.generalize (reverse <$> Folds.annotatedBlockchain)
+            <*> L.generalize (filter isInteresting <$> Folds.emulatorLog)
             <*> renderInstanceTrace (walletInstanceTag <$> wallets)
             <*> fmap (fmap (uncurry SimulatorWallet) . Map.toList) (funds wallets)
             <*> pure (fmap pkh wallets)

@@ -25,7 +25,7 @@ import           Ledger                                    (Address, Datum, Datu
                                                             TxOut, TxOutRef, TxOutTx, TxOutType, UtxoIndex, Validator)
 import           Ledger.Ada                                (Ada)
 import           Ledger.Constraints.OffChain               (MkTxError)
-import           Ledger.Index                              (ValidationError)
+import           Ledger.Index                              (ScriptType, ScriptValidationEvent, ValidationError)
 import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
@@ -178,25 +178,25 @@ languageBridge = dataBridge <|> assocMapBridge
 scriptBridge :: BridgePart
 scriptBridge = do
     typeName ^== "Script"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 validatorHashBridge :: BridgePart
 validatorHashBridge = do
     typeName ^== "ValidatorHash"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 mpsHashBridge :: BridgePart
 mpsHashBridge = do
     typeName ^== "MonetaryPolicyHash"
-    typeModule ^== "Ledger.Scripts"
+    typeModule ^== "Plutus.V1.Ledger.Scripts"
     pure psString
 
 ledgerBytesBridge :: BridgePart
 ledgerBytesBridge = do
     typeName ^== "LedgerBytes"
-    typeModule ^== "LedgerBytes"
+    typeModule ^== "Plutus.V1.Ledger.Bytes"
     pure psString
 
 ledgerBridge :: BridgePart
@@ -250,7 +250,7 @@ ledgerTypes =
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
-    , (genericShow <*> mkSumType) (Proxy @ScriptError)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
@@ -278,10 +278,12 @@ ledgerTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ThreadId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Response A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @Priority)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StopReason)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptValidationEvent)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ScriptType)
     ]
 
 walletTypes :: [SumType 'Haskell]

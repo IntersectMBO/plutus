@@ -22,6 +22,7 @@ import           Flat.Decoder                     (DecodeException)
 
 import qualified Data.ByteString                  as BS
 import qualified Data.ByteString.Lazy             as BSL
+import           ErrorCode
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
@@ -35,8 +36,8 @@ import qualified Data.ByteString.Lazy             as BSL
 data CompiledCodeIn uni fun a =
     -- | Serialized UPLC code and possibly serialized PIR code.
     SerializedCode BS.ByteString (Maybe BS.ByteString)
-    -- | Deserialized UPLC program and possibly deserialized PIR program.
-    | DeserializedCode (UPLC.Program PLC.Name uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ()))
+    -- | Deserialized UPLC program, and possibly deserialized PIR program.
+    | DeserializedCode (UPLC.Program UPLC.NamedDeBruijn uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ()))
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
@@ -61,10 +62,13 @@ instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
 
+instance HasErrorCode ImpossibleDeserialisationFailure where
+      errorCode ImpossibleDeserialisationFailure {} = ErrorCode 40
+
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => CompiledCodeIn uni fun a -> UPLC.Program PLC.Name uni fun ()
+    => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
 getPlc wrapper = case wrapper of
     SerializedCode plc _ -> case unflat (BSL.fromStrict plc) of
         Left e  -> throw $ ImpossibleDeserialisationFailure e

@@ -1,0 +1,155 @@
+.editor {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    .editor-controls {
+        display: flex;
+        justify-content: space-between;
+        padding: .5rem 0;
+
+        .key-bindings {
+            display: flex;
+            align-items: baseline;
+
+            label {
+                margin-right: 1rem;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+        }
+
+        .editor-buttons {
+            button {
+                width: 7em;
+
+                &:not(:first-child) {
+                    margin-left: 1rem;
+                }
+            }
+        }
+    }
+
+    .code-editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid $gray-border-color;
+
+        .monaco-editor-container {
+            min-height: 400px;
+            flex: 1;
+        }
+
+        #statusline {
+            background-color: $gray-lighter-background-color;
+            border-top: 1px solid $gray-border-color;
+            padding: 0 .5em;
+            margin-bottom: 0;
+    
+            &.hidden {
+                display: none;
+            }
+        }
+    }
+
+    $feedback-header-height: 19px;
+    $feedback-body-height: 200px;
+    $feedback-padding: 1em;
+
+    .editor-feedback-container {
+        height: $feedback-header-height;
+    }
+
+    .editor-feedback {
+        position: absolute;
+        bottom: 0;
+        max-height: $feedback-header-height + $feedback-body-height;
+        width: 100%;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid $gray-border-color;
+        font-family: $font-family-monospace;
+
+        @for $n from 1 through 100 {
+            &.expanded-#{$n} {
+                max-height: $feedback-header-height + $feedback-body-height + $n;
+            }
+        }
+
+        &.minimised {
+            height: $feedback-header-height + 1px; // +1 for the border
+            overflow: hidden;
+
+            .editor-feedback-resize-bar {
+                height: 0;
+            }
+        }
+
+        a, a:hover {
+            text-decoration: underline;
+        }
+
+        .editor-feedback-resize-bar {
+            height: 4px;
+            background: $gray-border-color;
+            cursor: ns-resize;
+        }
+
+        .editor-feedback-header {
+            height: $feedback-header-height;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: $gray-background-color;
+
+            p {
+                margin: 0;
+                padding: 0 $feedback-padding;
+            }
+
+        }
+
+        .editor-feedback-body {
+            height: 100%;
+            overflow-y: auto;
+            background: lighten($red, 50%);
+        }
+
+        .card {
+            border: 0;
+            border-radius: 0;
+        }
+
+        .card-header:first-child {
+            border-radius: 0;
+        }
+
+        .raw-error,
+        .compilation-error {
+            .card-header {
+                background: $red;
+                color: $white;
+                padding: 0 $feedback-padding;
+            }
+
+            .card-body {
+                background: lighten($red, 50%);
+            }
+        }
+
+        .card-body {
+            padding: ($feedback-padding / 2) $feedback-padding;
+
+            code,
+            pre {
+                font-size: inherit; // don't overshrink the text
+            }
+
+            pre {
+                margin: 0;
+            }
+        }
+    }
+}

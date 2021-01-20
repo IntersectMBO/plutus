@@ -44,10 +44,10 @@ import           Hedgehog
 import qualified Hedgehog.Gen              as Gen
 import qualified Hedgehog.Range            as Range
 import qualified Language.PlutusTx.Prelude as P
-import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
-import qualified Ledger.Interval           as Interval
-import qualified Ledger.Value              as Value
+import qualified Plutus.V1.Ledger.Ada      as Ada
+import qualified Plutus.V1.Ledger.Interval as Interval
+import qualified Plutus.V1.Ledger.Value    as Value
 
 import           Ledger
 
@@ -248,10 +248,16 @@ validateMockchain :: Mockchain -> Tx -> Maybe Index.ValidationError
 validateMockchain (Mockchain blck _) tx = either Just (const Nothing) result where
     h      = 1
     idx    = Index.initialise [blck]
-    result = Index.runValidation (Index.validateTransaction h tx) idx
+    result = fst $ Index.runValidation (Index.validateTransaction h tx) idx
 
--- | Split a value into max. n positive-valued parts such that the sum of the
---   parts equals the original value.
+{- | Split a value into max. n positive-valued parts such that the sum of the
+     parts equals the original value.
+
+     I noticed how for values of `mx` > 1000 the resulting lists are much smaller than
+     one would expect. I think this may be caused by the way we select the next value
+     for the split. It looks like the available funds get exhausted quite fast, which
+     makes the function return before generating anything close to `mx` values.
+-}
 splitVal :: (MonadGen m, Integral n) => Int -> n -> m [n]
 splitVal _  0     = pure []
 splitVal mx init' = go 0 0 [] where

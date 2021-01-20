@@ -34,7 +34,7 @@ open import Type.BetaNormal.Equality
 
 lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *) →
        nf (Π B) ≡ Π (nf B)
-lemΠ B = cong Π (sym (substNf-lemma' B))
+lemΠ B = cong Π (sym (subNf-lemma' B))
 
 open import Type.BetaNBE.Soundness
 
@@ -59,19 +59,19 @@ open import Type.BetaNBE.Stability
 lem[] : ∀{Γ K}(A : Γ ⊢⋆ K)(B : Γ ,⋆ K ⊢⋆ *) →
   (nf B [ nf A ]Nf) ≡ nf (B [ A ])
 lem[] A B = trans
-  (subst-eval (embNf (nf B)) idCR (embNf ∘ substNf-cons (ne ∘ `) (nf A)))
+  (sub-eval (embNf (nf B)) idCR (embNf ∘ subNf-cons (ne ∘ `) (nf A)))
   (trans
     (fund
       (λ {Z → symCR (fund idCR (soundness A)) ; (S α) → idCR _})
       (sym≡β (soundness B)))
-    (sym (subst-eval B idCR (subst-cons ` A))))
+    (sym (sub-eval B idCR (sub-cons ` A))))
 
 import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
   as SSig
 import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
   as NSig
-open import Builtin
+open import Builtin hiding (length)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
@@ -118,23 +118,23 @@ lemσ : ∀{Γ Δ Δ'}
   → (C' : Δ' ⊢Nf⋆ *)
   → (q : Δ' ≡ Δ)
   → nf C ≡ substEq (_⊢Nf⋆ *) q C' →
-  substNf
+  subNf
       (λ {J} α →
          nf
           (σ (substEq (_∋⋆ J) q α)))
       C'
       ≡
-      nf (subst σ C)
+      nf (sub σ C)
 lemσ σ C _ refl q = trans
-  (substNf-cong' (nf ∘ σ) (sym q))
+  (subNf-cong' (nf ∘ σ) (sym q))
   (trans
     (trans
-      (subst-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
+      (sub-eval (embNf (nf C)) idCR (embNf ∘ nf ∘ σ))
       (fund (λ α → fund idCR (sym≡β (soundness (σ α)))) (sym≡β (soundness C))))
-    (sym (subst-eval C idCR σ)))
+    (sym (sub-eval C idCR σ)))
     
 -- this should be a lemma in NBE/RenSubst
--- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
+-- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
 nfTypeSIG≡₂ : (bn : Builtin) →
   nf (proj₂ (proj₂ (SSig.SIG bn))) ≡
@@ -242,7 +242,7 @@ nfType (Syn.` α) = Norm.` (nfTyVar α)
 nfType (Syn.ƛ t) = Norm.ƛ (nfType t)
 nfType (t Syn.· u) = nfType t Norm.· nfType u
 nfType (Syn.Λ {B = B} t) =
-  Norm.Λ (Norm.conv⊢ refl (substNf-lemma' B) (nfType t))
+  Norm.Λ (Norm.conv⊢ refl (subNf-lemma' B) (nfType t))
 nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
   refl
   (lem[] A B)
@@ -256,7 +256,7 @@ nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   (sym (stability-μ A B))
   (Norm.unwrap (nfType t))
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
-nfType {Γ} (Syn.con {tcn = tcn} t) = Norm.con (nfTypeTC t)
+nfType (Syn.con t) = Norm.con (nfTypeTC t)
 nfType (Syn.ibuiltin b) = Norm.conv⊢ refl (itype-lem b) (Norm.ibuiltin b)
 nfType (Syn.error A) = Norm.error (nf A)
 

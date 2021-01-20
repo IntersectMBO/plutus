@@ -5,6 +5,7 @@ module Blockly.Events
   , ChangeEvent
   , FinishLoadingEvent
   , MoveEvent
+  , UIEvent
   , newParentId
   , oldParentId
   , oldInputName
@@ -33,6 +34,13 @@ foreign import data ChangeEvent :: Type
 instance hasEventChangeEvent :: HasEvent ChangeEvent where
   fromEvent :: Event -> Maybe ChangeEvent
   fromEvent = readBlocklyEventType "change"
+
+------------------------------------------------------------
+foreign import data UIEvent :: Type
+
+instance hasEventUIEvent :: HasEvent UIEvent where
+  fromEvent :: Event -> Maybe UIEvent
+  fromEvent = readBlocklyEventType "ui"
 
 ------------------------------------------------------------
 foreign import data FinishLoadingEvent :: Type

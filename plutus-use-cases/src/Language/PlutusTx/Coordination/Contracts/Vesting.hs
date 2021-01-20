@@ -40,13 +40,13 @@ import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Semigroup (..), fold)
 import           Ledger                            (Address, PubKeyHash (..), Slot (..), Validator)
 import           Ledger.Constraints                (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
+import           Ledger.Contexts                   (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts                   as Validation
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Slot                       as Slot
 import qualified Ledger.Tx                         as Tx
 import           Ledger.Typed.Scripts              (ScriptType (..))
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                 as Validation
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import qualified Prelude                           as Haskell

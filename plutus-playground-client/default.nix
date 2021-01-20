@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -27,6 +27,12 @@ let
     ${server-invoker}/bin/plutus-playground psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScript "plutus-playground-generate-purescript" ''
+    rm -rf ./generated
+    ${server-invoker}/bin/plutus-playground psgenerator generated
+  '';
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -34,14 +40,24 @@ let
   };
 
   client = buildPursPackage {
-    inherit webCommon nodeModules;
+    inherit pkgs nodeModules;
     src = ./.;
     name = "plutus-playground-client";
-    psSrc = generated-purescript;
+    # ideally we would just use `npm run test` but
+    # this executes `spago` which *always* attempts to download
+    # remote files (which obviously fails in sandboxed builds)
+    checkPhase = ''
+      node -e 'require("./output/Test.Main").main()'
+    '';
+    extraSrcs = {
+      web-common = webCommon;
+      web-common-plutus = webCommonPlutus;
+      generated = generated-purescript;
+    };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript;
 }

@@ -11,10 +11,9 @@ Check the [backend documentation](../marlowe-playground-server/README.md) for mo
 
 Now we will build and run the front end:
 ```bash
-# First generate the purescript bridge files
-$(nix-build -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator ./marlowe-playground-client/generated
-# Now we will build and run the client on localhost
 cd marlowe-playground-client
+# Generate the purescript bridge files
+$(nix-build ../default.nix -A marlowe-playground.generate-purescript)
 # Download javascript dependencies
 npm install
 # Install purescript depdendencies

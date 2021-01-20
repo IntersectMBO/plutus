@@ -18,7 +18,6 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
 import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
@@ -318,7 +317,7 @@ typedDeBruijnNotSupportedError =
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
-  r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+  r <- PLC.runQuoteT $ runExceptT @UPLC.FreeVariableError (UPLC.deBruijnProgram prog)
   case r of
     Left e  -> hPutStrLn stderr (show e) >> exitFailure
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
@@ -330,7 +329,7 @@ toDeBruijn prog = do
 fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> hPutStrLn stderr (show e) >> exitFailure
       Right p -> return p
 
@@ -422,7 +421,7 @@ writeCBOR outp cborMode prog = do
             DeBruijn -> serialiseDbProgramCBOR (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
+    StdOutput       -> BSL.putStr cbor
 
 ---------------- Serialise a program using Flat ----------------
 
@@ -442,7 +441,7 @@ writeFlat outp flatMode prog = do
             DeBruijn -> serialiseDbProgramFlat (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
-    StdOutput       -> BSL.putStr flatProg >> T.putStrLn ""  -- FIXME: no newline
+    StdOutput       -> BSL.putStr flatProg
 
 
 ---------------- Write an AST as PLC source ----------------
@@ -616,7 +615,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
                   CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
-        -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- performGC >> getCPUTime
         case evaluate body of
