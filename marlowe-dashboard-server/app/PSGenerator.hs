@@ -26,10 +26,12 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
                                                              typeName, writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.PSTypes         (psNumber, psString)
+import           Language.PureScript.Bridge.SumType         (equal, genericShow, mkSumType)
 import qualified PSGenerator.Common
 import           Servant.PureScript                         (HasBridge, Settings, _generateSubscriberAPI, apiModuleName,
                                                              defaultBridge, defaultSettings, languageBridge,
                                                              writeAPIModuleWithSettings)
+import           WebSocket                                  (StreamToClient, StreamToServer)
 
 doubleBridge :: BridgePart
 doubleBridge = typeName ^== "Double" >> return psNumber
@@ -57,7 +59,9 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
-  []
+  [ (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer),
+    (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
+  ]
 
 mySettings :: Settings
 mySettings =

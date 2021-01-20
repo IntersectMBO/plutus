@@ -14,8 +14,12 @@ import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame.State (mkMainFrame)
+import MainFrame.Types (Action(..), Msg(..), Query(..))
 import Marlowe (SPParams_(SPParams_))
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
+import WebSocket (StreamToClient, StreamToServer)
+import WebSocket.Support (WebSocketManager, mkWebSocketManager)
+import WebSocket.Support as WS
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -35,8 +39,18 @@ main = do
     mainFrame = mkMainFrame
   runHalogenAff do
     body <- awaitBody
-    driver <- runUI mainFrame unit body
-    forkAff $ runProcess watchLocalStorageProcess
+    driver <- runUI mainFrame Init body
+    void $ forkAff $ runProcess watchLocalStorageProcess
+    wsManager :: WebSocketManager StreamToClient StreamToServer <- mkWebSocketManager
+    void
+      $ forkAff
+      $ WS.runWebSocketManager (WS.URI "/ws") (\msg -> void $ driver.query $ ReceiveWebSocketMessage msg unit) wsManager
+    driver.subscribe
+      $ consumer
+      $ case _ of
+          (SendWebSocketMessage msg) -> do
+            WS.managerWriteOutbound wsManager $ WS.SendMessage msg
+            pure Nothing
 
 watchLocalStorageProcess :: Process Aff Unit
 watchLocalStorageProcess = connect LocalStorage.listen watchLocalStorage

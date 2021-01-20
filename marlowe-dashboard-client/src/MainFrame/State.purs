@@ -6,7 +6,7 @@ import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM)
 import Halogen as H
 import Halogen.HTML (HTML)
-import MainFrame.Types (Action(..), State, ChildSlots, Query)
+import MainFrame.Types (Action(..), ChildSlots, Msg, Query, State)
 import MainFrame.View (render)
 
 initialState :: State
@@ -16,7 +16,7 @@ initialState = {}
 mkMainFrame ::
   forall m.
   MonadAff m =>
-  Component HTML Query Unit Void m
+  Component HTML Query Action Msg m
 mkMainFrame =
   H.mkComponent
     { initialState: const initialState
@@ -35,5 +35,5 @@ handleAction ::
   forall m.
   MonadAff m =>
   Action ->
-  HalogenM State Action ChildSlots Void m Unit
+  HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = pure unit
