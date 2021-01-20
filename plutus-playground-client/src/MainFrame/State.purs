@@ -18,7 +18,7 @@ import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT,
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, runReaderT)
-import Control.Monad.State.Class (class MonadState)
+import Control.Monad.State.Class (class MonadState, gets)
 import Control.Monad.State.Extra (zoomStateT)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
@@ -32,7 +32,7 @@ import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
 import Data.Lens (Traversal', _Right, assign, modifying, over, to, traversed, use, view)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Fold (maximumOf, preview)
+import Data.Lens.Fold (maximumOf, lastOf, preview)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
@@ -229,7 +229,7 @@ handleAction EvaluateActions =
               assign _blockchainVisualisationState Chain.initialState
               -- preselect the first transaction (if any)
               mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
-              txId <- peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
+              txId <- (gets <<< lastOf) (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
               lift $ zoomStateT _blockchainVisualisationState $ Chain.handleAction (FocusTx txId) mAnnotatedBlockchain
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
