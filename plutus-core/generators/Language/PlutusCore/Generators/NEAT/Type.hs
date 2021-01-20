@@ -38,13 +38,13 @@ module Language.PlutusCore.Generators.NEAT.Type
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor.TH
+import           Data.ByteString                            (ByteString, pack)
 import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
 import qualified Data.Stream                                as Stream
 import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
---import qualified Data.ByteString as B
 
 newtype Neutral a = Neutral
   { unNeutral :: a
@@ -59,6 +59,7 @@ data TypeBuiltinG
   = TyByteStringG
   | TyIntegerG
   | TyStringG
+  | TyBoolG
   deriving (Typeable, Eq, Show)
 
 deriveEnumerable ''TypeBuiltinG
@@ -131,9 +132,14 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 
 -- ** Enumerating terms
 
+-- Word8 is enumerable so we get an enumerable instance via pack
+instance Enumerable ByteString where
+  enumerate = share $ fmap pack access
+
 data TermConstantG = TmIntegerG Integer
---                   | TmByteStringG B.ByteString
+                   | TmByteStringG ByteString
                    | TmStringG String
+                   | TmBoolG Bool
                    deriving (Show, Eq)
 
 deriveEnumerable ''TermConstantG
@@ -204,6 +210,8 @@ convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
 convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
 convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
+convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
+
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -267,9 +275,10 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 --       term. Violating this would point to an error in the
 --       generator/checker.
 convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
---convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
-convertTermConstant (TmIntegerG i) = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmStringG s)  = Some $ ValueOf DefaultUniString s
+convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
+convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
+convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
+convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 
 convertBuiltin :: TermBuiltinG -> DefaultFun
 convertBuiltin AddIntegerG           = AddInteger
