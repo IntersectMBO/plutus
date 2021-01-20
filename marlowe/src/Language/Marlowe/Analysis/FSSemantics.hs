@@ -435,8 +435,8 @@ isValidAndFailsWhen oa hasErr (Case (Choice choId bnds) cont:rest)
                                        hasErr (Just symInput) timeout sState pos cont
      contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
                                       newPreviousMatch sState (pos + 1)
-     return (ite (newCond .&& sNot clashResult)
-                 (ensureBounds concVal bnds .&& newTrace)
+     return (ite (newCond .&& sNot clashResult .&& ensureBounds concVal bnds)
+                 newTrace
                  contTrace)
 isValidAndFailsWhen oa hasErr (Case (Notify obs) cont:rest)
                     timeout timCont previousMatch sState pos =
