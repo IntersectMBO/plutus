@@ -37,13 +37,20 @@ render :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
 render state@(State { contractDemos, currentView, editorState, compilationResult, simulations, evaluationResult, blockchainVisualisationState }) =
   div
     [ class_ $ ClassName "frame" ]
-    [ mainHeader
+    [ releaseBanner
+    , mainHeader
     , subHeader state
     , editorMain contractDemos currentView editorState compilationResult
     , simulationsMain state
     , transactionsMain currentView simulations evaluationResult blockchainVisualisationState
     , mainFooter
     ]
+
+releaseBanner :: forall p. HTML p HAction
+releaseBanner =
+  div
+    [ class_ $ ClassName "release-banner" ]
+    [ text "Plutus Refresh - Updated 22nd January 2021" ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
@@ -263,7 +270,9 @@ mainFooter =
         ]
     , div
         [ classes [ navbarNav, mlAuto ] ]
-        [ makeNavItem $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus" ]
+        [ makeNavItem $ text "GitHub" /\ "https://github.com/input-output-hk/plutus"
+        , makeNavItem $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus"
+        ]
     ]
 
 makeNavItem :: forall p i. HTML p i /\ String -> HTML p i
