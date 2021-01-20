@@ -11,14 +11,15 @@ import Data.Maybe (Maybe(..))
 import Data.String.CodeUnits (drop, fromCharArray, singleton, take)
 import Data.String.CodeUnits as String
 import Text.Parsing.StringParser (ParseError, Parser(..), Pos)
-import Text.Parsing.StringParser.CodeUnits (anyDigit, char, satisfy, skipSpaces)
-import Text.Parsing.StringParser.Combinators (between)
+import Text.Parsing.StringParser.CodeUnits (anyDigit, char, string, satisfy, skipSpaces)
+import Text.Parsing.StringParser.Combinators (between, option)
 
 integral :: Parser String
 integral = do
-  firstChar <- anyDigit <|> char '-'
-  digits <- many anyDigit
-  pure $ fromCharArray (firstChar : digits)
+  sign <- option "" (string "-")
+  firstChar <- anyDigit
+  digits <- many (many (char '_') *> anyDigit)
+  pure $ sign <> fromCharArray (firstChar : digits)
 
 parens :: forall a. Parser a -> Parser a
 parens p =
