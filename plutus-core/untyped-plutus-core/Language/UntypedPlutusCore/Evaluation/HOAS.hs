@@ -4,7 +4,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 
-module Language.UntypedPlutusCore.HOAS where
+module Language.UntypedPlutusCore.Evaluation.HOAS where
 
 import           Language.UntypedPlutusCore.Core
 

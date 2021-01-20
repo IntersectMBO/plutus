@@ -9,8 +9,8 @@ module Evaluation.Machines
     ) where
 
 import           Language.UntypedPlutusCore
+import           Language.UntypedPlutusCore.Evaluation.HOAS
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek
-import           Language.UntypedPlutusCore.HOAS
 
 import qualified Language.PlutusCore                               as Plc
 import           Language.PlutusCore.Builtins

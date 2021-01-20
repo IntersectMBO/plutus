@@ -251,6 +251,7 @@
           "Language/PlutusIR/TypeCheck"
           "Language/UntypedPlutusCore"
           "Language/UntypedPlutusCore/DeBruijn"
+          "Language/UntypedPlutusCore/Evaluation/HOAS"
           "Language/UntypedPlutusCore/Evaluation/Machine/Cek"
           "Language/UntypedPlutusCore/Parser"
           "Language/UntypedPlutusCore/Rename"
