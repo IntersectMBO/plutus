@@ -2,7 +2,7 @@
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
 import qualified Data.List                                             as L (scanl, tail, zip, dropWhile, groupBy, head)
-import qualified Data.Map                                              as M (fromList)
+import qualified Data.Map                                              as M (fromList, lookup)
 import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
 import           Data.Time                                             (Day, fromGregorian)
@@ -28,6 +28,7 @@ postProcessSchedule :: ContractTerms -> [(EventType, ShiftedDay)] -> [(EventType
 postProcessSchedule ct s = 
     let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
         prioritised = [AD, IED, PR, PI, PRF, PY, FP, PRD, TD, IP, IPCI, IPCB, RR, PP, CE, MD, RRF, SC, STD, DV, XD, MR]
+        priority :: (EventType, ShiftedDay) -> Integer
         priority (event, _) = fromJust $ M.lookup event $ M.fromList (zip prioritised [1..])
         simillarity (_, l) (_, r) = calculationDay l == calculationDay r
         regroup = L.groupBy simillarity
