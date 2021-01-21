@@ -17,7 +17,7 @@ type Prog = Language.PlutusCore.Program TyName Name DefaultUni DefaultFun Langua
 
 
 
-convCon :: Some (ValueOf DefaultUni) -> Maybe (Exp String)
+convCon :: Some (ValueOf DefaultUni) -> Maybe Exp
 convCon (Some (ValueOf DefaultUniInteger i)) | i >= 0 = Just $ Val (fromInteger i)
 convCon _ = Nothing
 
@@ -33,7 +33,7 @@ convTm _ = Nothing
 parseProg :: BSL.ByteString -> Either (ParseError ()) Prog
 parseProg = first (() <$) . runQuote . runExceptT . parseProgram
 
-parse :: BSL.ByteString -> Maybe (Exp String)
+parse :: BSL.ByteString -> Maybe Exp
 parse b = case parseProg b of
   Left _  -> Nothing
   Right p -> conv p

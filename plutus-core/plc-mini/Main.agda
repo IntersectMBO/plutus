@@ -20,12 +20,12 @@ postulate
 
   ByteString : Set
   getContents : IO ByteString
-  parse : ByteString → Maybe (Exp String)
+  parse : ByteString → Maybe Exp
 
 main : IO ⊤
 main = getContents >>= \b -> maybe
   (putStrLn "parse error")
-  (λ e → putStrLn (show e) >> putStrLn (show (eval (λ _ → 0) e)))
+  (λ e → putStrLn (show e) >> putStrLn (show (eval e)))
   (parse b)
 
 {-# COMPILE AGDA2HS main #-}

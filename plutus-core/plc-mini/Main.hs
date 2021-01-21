@@ -14,7 +14,6 @@ main
       \ b ->
         maybe (putStrLn "parse error")
           (\ e ->
-             putStrLn (showsPrec 0 e "") >>
-               putStrLn (showsPrec 0 (eval (\ _ -> 0) e) ""))
+             putStrLn (showsPrec 0 e "") >> putStrLn (showsPrec 0 (eval e) ""))
           (parse b)
 

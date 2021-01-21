@@ -2,13 +2,11 @@ module Lang where
 
 import           Numeric.Natural (Natural)
 
-data Exp a = Val Natural
-           | Var a
-           | Add (Exp a) (Exp a)
-               deriving Show
+data Exp = Val Natural
+         | Add Exp Exp
+             deriving Show
 
-eval :: (a -> Natural) -> Exp a -> Natural
-eval η (Var x)     = η x
-eval η (Val n)     = n
-eval η (Add e1 e2) = eval η e1 + eval η e2
+eval :: Exp -> Natural
+eval (Val n)     = n
+eval (Add e1 e2) = eval e1 + eval e2
 
