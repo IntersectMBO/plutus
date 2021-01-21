@@ -36,8 +36,7 @@ render ::
 render state =
   div_
     [ section [ class_ (ClassName "code-panel") ]
-        -- FIXME: revisit why codeEditor requires to know if the bottom panel is being shown.
-        [ div [ classes (codeEditor $ state ^. (_bottomPanelState <<< _showBottomPanel)) ]
+        [ div [ classes [ codeEditor ] ]
             [ marloweEditor state ]
         ]
     , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state

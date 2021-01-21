@@ -238,10 +238,8 @@ spanText s = span [] [ text s ]
 sidebarComposer :: ClassName
 sidebarComposer = ClassName "sidebar-composer"
 
-codeEditor :: Boolean -> Array ClassName
-codeEditor true = [ ClassName "code-editor" ]
-
-codeEditor false = [ ClassName "code-editor", ClassName "expanded" ]
+codeEditor :: ClassName
+codeEditor = ClassName "code-editor"
 
 haskellEditor :: Boolean -> Array ClassName
 haskellEditor true = [ ClassName "code-panel", ClassName "haskell-editor" ]

@@ -34,7 +34,7 @@ render ::
 render state =
   div_
     [ section [ class_ (ClassName "code-panel") ]
-        [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
+        [ div [ classes [ codeEditor ] ]
             [ haskellEditor state ]
         ]
     , bottomPanel state

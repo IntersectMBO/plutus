@@ -5,6 +5,8 @@ module JavascriptEditor.State
   ) where
 
 import Prelude hiding (div)
+import BottomPanel.State as BottomPanel
+import BottomPanel.Types as BottomPanel
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
@@ -19,10 +21,11 @@ import Effect.Class (class MonadEffect)
 import Examples.JS.Contracts as JSE
 import Halogen (Component, HalogenM, gets, liftEffect, query)
 import Halogen.Blockly as Blockly
+import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
-import JavascriptEditor.Types (Action(..), CompilationState(..), State, _compilationResult, _decorationIds, _keybindings, _showBottomPanel)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings)
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
@@ -34,6 +37,13 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
+
+toBottomPanel ::
+  forall m a.
+  Functor m =>
+  HalogenM (BottomPanel.State BottomPanelView) (BottomPanel.Action BottomPanelView Action) ChildSlots Void m a ->
+  HalogenM State Action ChildSlots Void m a
+toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 
 checkDecorationPosition :: Int -> Maybe IRange -> Maybe IRange -> Boolean
 checkDecorationPosition numLines (Just { endLineNumber }) (Just { startLineNumber }) = (endLineNumber == decorationHeaderLines) && (startLineNumber == numLines - decorationFooterLines + 1)
@@ -109,11 +119,15 @@ handleAction settings Compile = do
             Left err -> pure $ CompilationError err
             Right result -> pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
-  assign _showBottomPanel true
+  case compilationResult of
+    (CompilationError _) -> handleAction settings $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+    _ -> pure unit
   editorResize
 
-handleAction _ (ShowBottomPanel val) = do
-  assign _showBottomPanel val
+handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+
+handleAction _ (BottomPanelAction action) = do
+  toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
 handleAction _ SendResultToSimulator = pure unit

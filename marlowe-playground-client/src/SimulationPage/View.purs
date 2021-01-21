@@ -44,8 +44,7 @@ render ::
 render state =
   div [ classes [ fullHeight, scroll, ClassName "simulation-panel" ] ]
     [ section [ class_ (ClassName "code-panel") ]
-        -- FIXME: revisit why codeEditor requires to know if the bottom panel is being shown.
-        [ div [ classes (codeEditor $ state ^. (_bottomPanelState <<< _showBottomPanel)) ]
+        [ div [ classes [ codeEditor ] ]
             [ marloweEditor state ]
         , sidebar state
         ]
