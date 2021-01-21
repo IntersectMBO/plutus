@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Analysis(sampleCashflows, genProjectedCashflows, genZeroRiskAssertions) where
 
-import qualified Data.List                                             as L (scanl, tail, zip, dropWhile, groupBy, head)
+import qualified Data.List                                             as L (dropWhile, groupBy, head, scanl, tail, zip)
 import qualified Data.Map                                              as M (fromList, lookup)
 import           Data.Maybe                                            (fromJust, fromMaybe)
 import           Data.Sort                                             (sortOn)
@@ -25,7 +25,7 @@ genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 
 postProcessSchedule :: ContractTerms -> [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
-postProcessSchedule ct s = 
+postProcessSchedule ct s =
     let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
         prioritised = [AD, IED, PR, PI, PRF, PY, FP, PRD, TD, IP, IPCI, IPCB, RR, PP, CE, MD, RRF, SC, STD, DV, XD, MR]
         priority :: (EventType, ShiftedDay) -> Integer
@@ -47,7 +47,7 @@ sampleCashflows riskFactors terms =
         scheduleEvent e = preserveDate e <$> getSchedule e
         events = sortOn (paymentDay . snd) $ concatMap scheduleEvent eventTypes
         events' = postProcessSchedule terms events
-        
+
         applyStateTransition (st, ev, date) (ev', date') =
             (stateTransition ev (riskFactors $ calculationDay date) terms st (calculationDay date), ev', date')
         calculatePayoff (st, ev, date) =
