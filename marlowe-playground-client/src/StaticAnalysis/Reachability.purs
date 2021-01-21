@@ -39,7 +39,7 @@ reachabilityAnalysisDef =
   , expandSubproblemImpl: expandSubproblem
   , isValidSubproblemImpl: isValidSubproblem
   , shouldExamineChildren: identity
-  , isProblemConterExample: identity
+  , isProblemCounterExample: identity
   }
 
 startReachabilityAnalysis ::

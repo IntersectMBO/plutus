@@ -143,7 +143,7 @@ type MultiStageAnalysisProblemDef
     , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
     , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
     , shouldExamineChildren :: Boolean -> Boolean
-    , isProblemConterExample :: Boolean -> Boolean
+    , isProblemCounterExample :: Boolean -> Boolean
     }
 
 data BottomPanelView

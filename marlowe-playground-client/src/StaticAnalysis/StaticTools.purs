@@ -240,7 +240,7 @@ stepSubproblem problemDef isCounterExample ( rad@{ currPath: oldPath
   where
   willExamineChildren = problemDef.shouldExamineChildren isCounterExample
 
-  isProblemCounterExample = problemDef.isProblemConterExample isCounterExample
+  isProblemCounterExample = problemDef.isProblemCounterExample isCounterExample
 
   newN = n + 1
 

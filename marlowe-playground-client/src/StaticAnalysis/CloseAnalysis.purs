@@ -63,7 +63,7 @@ closeAnalysisAnalysisDef =
   , expandSubproblemImpl: expandSubproblem
   , isValidSubproblemImpl: isValidSubproblem
   , shouldExamineChildren: const true
-  , isProblemConterExample: not
+  , isProblemCounterExample: not
   }
 
 startCloseAnalysis ::
