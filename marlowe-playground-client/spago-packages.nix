@@ -1039,11 +1039,11 @@ let
 
     "servant-support" = pkgs.stdenv.mkDerivation {
         name = "servant-support";
-        version = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
+        version = "1805f896560751c48a04d3e29f9c109df850d8d3";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-servant-support";
-          rev = "c03a68d5dbc60e516b7c531250ccb40db5bb2658";
-          sha256 = "1c6y84y0b8mxgjgnvv6cpx3j205xbkgzjydn05fxl15knnxs2g4f";
+          rev = "1805f896560751c48a04d3e29f9c109df850d8d3";
+          sha256 = "1n8a0j5rwgkanvwp47f78gn5qacs06siii2f5x5fr4rw15q6a9ma";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

@@ -141,7 +141,7 @@ let additions =
           , repo =
               "https://github.com/shmish111/purescript-servant-support"
           , version =
-              "v10.0.0"
+              "1805f896560751c48a04d3e29f9c109df850d8d3"
           }
       , foreign-generic =
               upstream.foreign-generic
