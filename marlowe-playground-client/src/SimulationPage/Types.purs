@@ -4,6 +4,7 @@ module SimulationPage.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import BottomPanel.Types as BottomPanel
 import Data.Array (mapMaybe)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
@@ -262,10 +263,9 @@ emptyMarloweStateWithSlot sn =
 --
 type State
   = { showRightPanel :: Boolean
+    , bottomPanelState :: BottomPanel.State BottomPanelView
     , marloweState :: NonEmptyList MarloweState
     , helpContext :: HelpContext
-    , showBottomPanel :: Boolean
-    , bottomPanelView :: BottomPanelView
     -- QUESTION: What is the use of oldContract?
     , oldContract :: Maybe String
     }
@@ -285,11 +285,8 @@ _currentContract = _currentMarloweState <<< _contract
 _helpContext :: Lens' State HelpContext
 _helpContext = prop (SProxy :: SProxy "helpContext")
 
-_showBottomPanel :: Lens' State Boolean
-_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
-
-_bottomPanelView :: Lens' State BottomPanelView
-_bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
+_bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
+_bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
 _oldContract :: Lens' State (Maybe String)
 _oldContract = prop (SProxy :: SProxy "oldContract")
@@ -299,8 +296,7 @@ mkState =
   { showRightPanel: true
   , marloweState: NEL.singleton emptyMarloweState
   , helpContext: MarloweHelp
-  , showBottomPanel: true
-  , bottomPanelView: CurrentStateView
+  , bottomPanelState: BottomPanel.initialState CurrentStateView
   , oldContract: Nothing
   }
 
@@ -319,10 +315,9 @@ data Action
   | Undo
   | LoadContract String
   -- simulation view
-  | ChangeSimulationView BottomPanelView
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
-  | ShowBottomPanel Boolean
+  | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | EditSource
 
 defaultEvent :: String -> Event
@@ -341,10 +336,9 @@ instance isEventAction :: IsEvent Action where
   toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (LoadContract _) = Just $ defaultEvent "LoadContract"
-  toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (ShowRightPanel _) = Just $ defaultEvent "ShowRightPanel"
-  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent (BottomPanelAction action) = A.toEvent action
   toEvent EditSource = Just $ defaultEvent "EditSource"
 
 data Query a
