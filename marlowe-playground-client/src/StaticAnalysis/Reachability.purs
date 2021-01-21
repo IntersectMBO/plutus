@@ -38,6 +38,8 @@ reachabilityAnalysisDef =
   { analysisDataSetter: ReachabilityAnalysis
   , expandSubproblemImpl: expandSubproblem
   , isValidSubproblemImpl: isValidSubproblem
+  , shouldExamineChildren: identity
+  , isProblemConterExample: identity
   }
 
 startReachabilityAnalysis ::

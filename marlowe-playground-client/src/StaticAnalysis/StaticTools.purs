@@ -212,7 +212,7 @@ stepSubproblem problemDef isCounterExample ( rad@{ currPath: oldPath
   , numSubproblems: oldTotalN
   , counterExampleSubcontracts: results
   }
-) = case getNextSubproblem problemDef.isValidSubproblemImpl oldSubproblems (if isCounterExample then oldChildren else Nil) of
+) = case getNextSubproblem problemDef.isValidSubproblemImpl oldSubproblems (if willExamineChildren then oldChildren else Nil) of
   Just ((contractZipper /\ subcontract /\ newChildren) /\ newSubproblems) ->
     let
       newPath /\ newContract = problemDef.expandSubproblemImpl contractZipper subcontract
@@ -238,11 +238,15 @@ stepSubproblem problemDef isCounterExample ( rad@{ currPath: oldPath
             }
         )
   where
+  willExamineChildren = problemDef.shouldExamineChildren isCounterExample
+
+  isProblemCounterExample = problemDef.isProblemConterExample isCounterExample
+
   newN = n + 1
 
-  newTotalN = oldTotalN - (if isCounterExample then 0 else countSubproblems problemDef.isValidSubproblemImpl oldChildren)
+  newTotalN = oldTotalN - (if willExamineChildren then 0 else countSubproblems problemDef.isValidSubproblemImpl oldChildren)
 
-  newResults = results <> (if isCounterExample then Nil else Cons oldPath Nil)
+  newResults = results <> (if isProblemCounterExample then Nil else Cons oldPath Nil)
 
 updateWithResponse ::
   forall m.

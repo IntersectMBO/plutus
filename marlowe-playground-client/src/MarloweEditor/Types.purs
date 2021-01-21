@@ -44,6 +44,7 @@ data Action
   | SelectHole (Maybe String)
   | AnalyseContract
   | AnalyseReachabilityContract
+  | AnalyseContractForCloseRefund
   | Save
 
 defaultEvent :: String -> Event
@@ -66,6 +67,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
+  toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
   toEvent Save = Just $ defaultEvent "Save"
 
 data ContractZipper
@@ -134,11 +136,14 @@ data AnalysisState
   = NoneAsked
   | WarningAnalysis (WebData Result)
   | ReachabilityAnalysis MultiStageAnalysisData
+  | CloseAnalysis MultiStageAnalysisData
 
 type MultiStageAnalysisProblemDef
   = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
     , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
     , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
+    , shouldExamineChildren :: Boolean -> Boolean
+    , isProblemConterExample :: Boolean -> Boolean
     }
 
 data BottomPanelView
