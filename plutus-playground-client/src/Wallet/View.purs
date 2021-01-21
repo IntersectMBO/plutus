@@ -14,15 +14,16 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
-import Plutus.V1.Ledger.Value (Value)
+import MainFrame.Types (HAction(..), WalletEvent(..))
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
+import Plutus.V1.Ledger.Value (Value)
 import Prelude (const, show, ($), (<), (<>), (<$>), (<<<))
 import Schema (FormSchema)
 import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
-import Types (HAction(..), WalletEvent(..), _simulatorWalletWallet)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Wallet (Wallet(..))
+import Wallet.Lenses (_simulatorWalletWallet)
 
 walletsPane :: forall p. Signatures -> Value -> Array SimulatorWallet -> HTML p HAction
 walletsPane signatures initialValue simulatorWallets =

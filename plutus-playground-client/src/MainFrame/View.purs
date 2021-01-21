@@ -1,7 +1,6 @@
-module View (render) where
+module MainFrame.View (render) where
 
 import Bootstrap (active, btn, containerFluid, hidden, justifyContentBetween, mlAuto, mrAuto, navItem, navLink, navbar, navbarBrand, navbarExpand, navbarNav, navbarText, nbsp)
-import Chain (evaluationPane)
 import Chain.Types as Chain
 import Control.Monad.State (evalState)
 import Cursor (Cursor)
@@ -11,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semiring (zero)
 import Data.Tuple.Nested (type (/\), (/\))
-import Editor.Types (_currentCodeIsCompiled, _keyBindings)
+import Editor.Lenses (_currentCodeIsCompiled, _keyBindings)
 import Editor.Types as Editor
 import Editor.View (compileButton, editorPreferencesSelect, simulateButton, editorPane, editorFeedback)
 import Effect.Aff.Class (class MonadAff)
@@ -22,14 +21,15 @@ import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, height, href, src, target, width)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
+import MainFrame.Lenses (getKnownCurrencies, _contractDemoEditorContents)
+import MainFrame.Types (ChildSlots, HAction(..), State(..), View(..), WebCompilationResult, WebEvaluationResult)
 import Network.RemoteData (RemoteData(..))
 import Playground.Types (ContractDemo(..), Simulation)
 import Prelude (class Eq, const, ($), (<$>), (<<<), (==))
 import Schema.Types (mkInitialValue)
-import Simulation (simulatorTitle, simulationsPane, simulationsNav)
-import StaticData (_contractDemoEditorContents)
-import StaticData as StaticData
-import Types (ChildSlots, HAction(..), State(..), View(..), WebCompilationResult, WebEvaluationResult, getKnownCurrencies)
+import Simulator.View (simulatorTitle, simulationsPane, simulationsNav)
+import StaticData (bufferLocalStorageKey, lookupContractDemo)
+import Transaction.View (evaluationPane)
 
 foreign import plutusLogo :: String
 
@@ -191,12 +191,12 @@ editorWrapper contractDemos currentView editorState compilationResult =
             , simulateButton (view _currentCodeIsCompiled editorState) compilationResult
             ]
         ]
-    , mapComponent EditorAction $ editorPane defaultContents StaticData.bufferLocalStorageKey editorState
+    , mapComponent EditorAction $ editorPane defaultContents bufferLocalStorageKey editorState
     , mapComponent EditorAction $ editorFeedback editorState compilationResult
     ]
   where
   defaultContents :: Maybe String
-  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
+  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> lookupContractDemo "Vesting" contractDemos
 
 simulationsWrapper :: forall p. State -> HTML p HAction
 simulationsWrapper state@(State { actionDrag, currentView, compilationResult, simulations, lastEvaluatedSimulation, evaluationResult }) =

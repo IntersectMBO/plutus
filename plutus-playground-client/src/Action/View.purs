@@ -1,6 +1,7 @@
 module Action.View (actionsPane) where
 
 import Action.Validation (actionIsValid)
+import Action.Lenses (_InSlot)
 import Bootstrap (btn, card, cardBody_, col, colFormLabel, col_, formCheck, formCheckInline, formCheckInput, formCheckLabel, formControl, formGroup_, formRow_, floatRight)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -15,15 +16,16 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChange, onClick, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDragStart, onDrop, onValueInput)
 import Halogen.HTML.Properties (InputType(..), checked, class_, classes, draggable, for, id_, name, placeholder, required, type_, value)
 import Icons (Icon(..), icon)
-import Plutus.V1.Ledger.Slot (Slot)
+import MainFrame.Types (DragAndDropEventType(..), HAction(..), SimulatorAction)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Types (ContractCall(..), SimulatorWallet, _FunctionSchema)
+import Plutus.V1.Ledger.Slot (Slot)
 import Prelude (const, map, show, ($), (+), (<$>), (<<<), (<>), (==))
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..))
 import Schema.View (actionArgumentForm)
-import Types (DragAndDropEventType(..), HAction(..), SimulatorAction, _InSlot, _walletId)
 import Validation (_argument)
 import ValueEditor (valueForm)
+import Wallet.Lenses (_walletId)
 import Wallet.View (walletIdPane)
 import Web.Event.Event (Event)
 import Web.HTML.Event.DragEvent (DragEvent)

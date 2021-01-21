@@ -1,6 +1,27 @@
-module MonadApp where
+module MainFrame.MonadApp
+  ( class MonadApp
+  , editorGetContents
+  , editorSetContents
+  , editorHandleAction
+  , editorSetAnnotations
+  , saveBuffer
+  , setDropEffect
+  , setDataTransferData
+  , readFileFromDragEvent
+  , getOauthStatus
+  , getGistByGistId
+  , postEvaluation
+  , postGist
+  , patchGistByGistId
+  , postContract
+  , resizeEditor
+  , resizeBalancesChart
+  , preventDefault
+  , scrollIntoView
+  , HalogenApp(..)
+  , runHalogenApp
+  ) where
 
-import Prelude
 import Animation (class MonadAnimate, animate)
 import Auth (AuthStatus)
 import Clipboard (class MonadClipboard, copy)
@@ -25,15 +46,17 @@ import Halogen.Chartist as Chartist
 import Halogen.Extra as HE
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, SourceCode(SourceCode), InterpreterResult)
+import MainFrame.Lenses (_balancesChartSlot, _editorSlot, _editorState)
+import MainFrame.Types (ChildSlots, HAction, State, WebData)
 import Monaco (IMarkerData)
 import Network.RemoteData as RemoteData
 import Playground.Server (SPParams_)
 import Playground.Server as Server
 import Playground.Types (CompilationResult, Evaluation, EvaluationResult, PlaygroundError)
+import Prelude (class Applicative, class Apply, class Bind, class Functor, class Monad, Unit, Void, bind, identity, map, pure, unit, void, ($), (<$>), (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey)
-import Types (ChildSlots, HAction, State, WebData, _balancesChartSlot, _editorSlot, _editorState)
 import Web.Event.Extra (class IsEvent)
 import Web.Event.Extra as WebEvent
 import Web.HTML.Event.DataTransfer (DropEffect)
@@ -48,7 +71,6 @@ class
   editorSetAnnotations :: Array IMarkerData -> m Unit
   --
   saveBuffer :: String -> m Unit
-  preventDefault :: forall e. IsEvent e => e -> m Unit
   setDropEffect :: DropEffect -> DragEvent -> m Unit
   setDataTransferData :: DragEvent -> MediaType -> String -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
@@ -61,6 +83,8 @@ class
   postContract :: SourceCode -> m (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
   resizeEditor :: m Unit
   resizeBalancesChart :: m Unit
+  --
+  preventDefault :: forall e. IsEvent e => e -> m Unit
   scrollIntoView :: RefLabel -> m Unit
 
 newtype HalogenApp m a
@@ -113,7 +137,6 @@ instance monadAppHalogenApp ::
   editorSetContents (SourceCode contents) cursor = wrap $ void $ query _editorSlot unit $ tell $ Monaco.SetText contents
   editorHandleAction action = wrap $ HE.imapState _editorState $ Editor.handleAction bufferLocalStorageKey action
   editorSetAnnotations annotations = wrap $ void $ query _editorSlot unit $ Monaco.SetModelMarkers annotations identity
-  preventDefault event = wrap $ liftEffect $ WebEvent.preventDefault event
   setDropEffect dropEffect event = wrap $ liftEffect $ DataTransfer.setDropEffect dropEffect $ dataTransfer event
   setDataTransferData event mimeType value = wrap $ liftEffect $ DataTransfer.setData mimeType value $ dataTransfer event
   readFileFromDragEvent event = wrap $ liftAff $ WebEvent.readFileFromDragEvent event
@@ -126,6 +149,7 @@ instance monadAppHalogenApp ::
   postContract source = runAjax $ Server.postContract source
   resizeEditor = wrap $ void $ H.query _editorSlot unit (Monaco.Resize unit)
   resizeBalancesChart = wrap $ void $ H.query _balancesChartSlot unit (Chartist.Resize unit)
+  preventDefault event = wrap $ liftEffect $ WebEvent.preventDefault event
   scrollIntoView ref = wrap $ HE.scrollIntoView ref
 
 runAjax ::
@@ -139,7 +163,6 @@ instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   editorSetContents contents cursor = lift $ editorSetContents contents cursor
   editorHandleAction action = lift $ editorHandleAction action
   editorSetAnnotations annotations = lift $ editorSetAnnotations annotations
-  preventDefault event = lift $ preventDefault event
   setDropEffect dropEffect event = lift $ setDropEffect dropEffect event
   setDataTransferData event mimeType value = lift $ setDataTransferData event mimeType value
   readFileFromDragEvent event = lift $ readFileFromDragEvent event
@@ -152,4 +175,5 @@ instance monadAppState :: MonadApp m => MonadApp (StateT s m) where
   postContract source = lift $ postContract source
   resizeEditor = lift resizeEditor
   resizeBalancesChart = lift resizeBalancesChart
+  preventDefault event = lift $ preventDefault event
   scrollIntoView = lift <<< scrollIntoView

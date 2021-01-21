@@ -3,7 +3,6 @@ module ChainTests
   ) where
 
 import Prelude
-import Chain (extractAmount)
 import Data.Array (mapWithIndex)
 import Data.BigInteger as BigInteger
 import Data.Maybe (Maybe(..))
@@ -13,6 +12,7 @@ import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Playground.Types (SimulatorWallet(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
+import Transaction.View (extractAmount)
 import Wallet.Emulator.Wallet (Wallet(..))
 
 all :: TestSuite

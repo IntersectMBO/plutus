@@ -1,4 +1,7 @@
-module Chain (evaluationPane, extractAmount) where
+module Transaction.View
+  ( evaluationPane
+  , extractAmount
+  ) where
 
 import Bootstrap (btn, nbsp)
 import Chain.Types (State, _value)
@@ -27,20 +30,22 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Language.PlutusTx.AssocMap as AssocMap
-import Plutus.Trace.Emulator.Types (ContractInstanceLog(..), _ContractInstanceTag)
+import MainFrame.Lenses (_balancesChartSlot)
+import MainFrame.Types (ChildSlots, HAction(..), View(..))
+import Playground.Lenses (_tokenName, _contractInstanceTag)
+import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
+import Plutus.Trace.Emulator.Types (ContractInstanceLog(..))
 import Plutus.V1.Ledger.Slot (Slot(..))
 import Plutus.V1.Ledger.TxId (TxId(TxId))
 import Plutus.V1.Ledger.Value (CurrencySymbol, TokenName)
-import Playground.Lenses (_tokenName, _contractInstanceTag)
-import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (const, map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(..), View(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent'(..))
 import Wallet.Emulator.MultiAgent as MultiAgent
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
+import Wallet.Lenses (_simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 
 evaluationPane :: forall m. MonadAff m => State -> EvaluationResult -> ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
