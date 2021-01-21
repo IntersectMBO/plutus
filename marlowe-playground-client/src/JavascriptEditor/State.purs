@@ -5,13 +5,13 @@ module JavascriptEditor.State
   ) where
 
 import Prelude hiding (div)
-import BottomPanel.State as BottomPanel
-import BottomPanel.Types as BottomPanel
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, to, use, view)
+import Data.Lens (assign, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -20,17 +20,15 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Examples.JS.Contracts as JSE
 import Halogen (Component, HalogenM, gets, liftEffect, query)
-import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
 import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings)
-import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _jsEditorSlot)
+import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Marlowe (SPParams_)
 import Monaco (IRange, getModel, isError, setValue)
 import Servant.PureScript.Settings (SPSettings_)

@@ -6,6 +6,8 @@ module HaskellEditor.State
   ) where
 
 import Prelude hiding (div)
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
@@ -16,8 +18,9 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
+import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
-import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
@@ -28,9 +31,16 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.Types (_result)
-import Types (WebData)
 import StaticData (bufferLocalStorageKey)
+import Types (WebData)
 import Webghc.Server (CompileRequest(..))
+
+toBottomPanel ::
+  forall m a.
+  Functor m =>
+  HalogenM (BottomPanel.State BottomPanelView) (BottomPanel.Action BottomPanelView Action) ChildSlots Void m a ->
+  HalogenM State Action ChildSlots Void m a
+toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 
 handleAction ::
   forall m.
@@ -55,14 +65,19 @@ handleAction settings Compile = do
       result <- runAjax $ flip runReaderT settings $ postRunghc (CompileRequest { code, implicitPrelude: true })
       assign _compilationResult result
       -- Update the error display.
+      case result of
+        Success (Left _) -> handleAction settings $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+        _ -> pure unit
       let
         markers = case result of
           Success (Left errors) -> toMarkers errors
           _ -> []
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
-handleAction _ (ShowBottomPanel val) = do
-  assign _showBottomPanel val
+handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+
+handleAction _ (BottomPanelAction action) = do
+  toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
 handleAction _ SendResultToSimulator = pure unit

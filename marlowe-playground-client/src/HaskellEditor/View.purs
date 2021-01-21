@@ -1,6 +1,8 @@
 module HaskellEditor.View where
 
 import Prelude hiding (div)
+import BottomPanel.Types (Action(..)) as BottomPanel
+import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
@@ -12,12 +14,14 @@ import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, group, minimizeIcon)
+import Halogen.Classes as Classes
+import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import HaskellEditor.Types (Action(..), State, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
@@ -37,8 +41,15 @@ render state =
         [ div [ classes [ codeEditor ] ]
             [ haskellEditor state ]
         ]
-    , bottomPanel state
+    , renderSubmodule _bottomPanelState BottomPanelAction (BottomPanel.render panelTitles wrapBottomPanelContents) state
     ]
+  where
+  panelTitles =
+    [ { title: "Generated code", view: GeneratedOutputView, classes: [] }
+    , { title: "Errors", view: ErrorsView, classes: [] }
+    ]
+
+  wrapBottomPanelContents panelView = BottomPanel.PanelAction <$> panelContents state panelView
 
 otherActions :: forall p. State -> HTML p Action
 otherActions state =
@@ -87,36 +98,6 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
 
   component = monacoComponent $ HM.settings setup
 
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state =
-  div
-    ( [ classes
-          ( if showingBottomPanel then
-              [ analysisPanel ]
-            else
-              [ analysisPanel, collapsed ]
-          )
-      ]
-    )
-    [ div
-        [ classes [ footerPanelBg, ClassName "flip-x" ] ]
-        [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-            [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal ] ]
-                [ div [ class_ (ClassName "minimize-icon-container") ]
-                    [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                        [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
-                    ]
-                ]
-            ]
-        , section
-            [ classes [ ClassName "panel-sub-header", aHorizontal, ClassName "panel-contents" ]
-            ]
-            (resultPane state)
-        ]
-    ]
-  where
-  showingBottomPanel = state ^. _showBottomPanel
-
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
   button [ onClick $ const $ Just Compile ]
@@ -136,17 +117,26 @@ sendResultButton state msg action =
           [ text msg ]
       _ -> text ""
 
-resultPane :: forall p. State -> Array (HTML p Action)
-resultPane state = case state ^. _showBottomPanel, view _compilationResult state of
-  true, Success (Right (InterpreterResult result)) ->
-    [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
-        numberedText
-    ]
-    where
-    numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
-  true, Success (Left (TimeoutError error)) -> [ text error ]
-  true, Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
-  _, _ -> [ text "" ]
+panelContents :: forall p. State -> BottomPanelView -> HTML p Action
+panelContents state GeneratedOutputView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ] case view _compilationResult state of
+    Success (Right (InterpreterResult result)) ->
+      [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+          numberedText
+      ]
+      where
+      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
+    _ -> [ text "There is no generated code" ]
+
+panelContents state ErrorsView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ] case view _compilationResult state of
+    Success (Left (TimeoutError error)) -> [ text error ]
+    Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
+    _ -> [ text "No errors" ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text error ]

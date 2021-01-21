@@ -3,7 +3,10 @@ module HaskellEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import BottomPanel.Types as BottomPanel
 import Data.Either (Either(..))
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Getter', Lens', Fold', _Right, to)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -20,7 +23,7 @@ data Action
   = Compile
   | ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
-  | ShowBottomPanel Boolean
+  | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
   | InitHaskellProject String
 
@@ -31,14 +34,14 @@ instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
-  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
 
 type State
   = { keybindings :: KeyBindings
     , compilationResult :: WebData (Either InterpreterError (InterpreterResult String))
-    , showBottomPanel :: Boolean
+    , bottomPanelState :: BottomPanel.State BottomPanelView
     }
 
 _haskellEditorKeybindings :: Lens' State KeyBindings
@@ -61,12 +64,23 @@ _Pretty = to f
 _ContractString :: forall r. Monoid r => Fold' r State String
 _ContractString = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result <<< _Pretty
 
-_showBottomPanel :: Lens' State Boolean
-_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
+_bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
+_bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
   , compilationResult: NotAsked
-  , showBottomPanel: true
+  , bottomPanelState: BottomPanel.initialState GeneratedOutputView
   }
+
+data BottomPanelView
+  = ErrorsView
+  | GeneratedOutputView
+
+derive instance eqBottomPanelView :: Eq BottomPanelView
+
+derive instance genericBottomPanelView :: Generic BottomPanelView _
+
+instance showBottomPanelView :: Show BottomPanelView where
+  show = genericShow
