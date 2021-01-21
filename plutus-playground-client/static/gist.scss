@@ -81,11 +81,15 @@
             border: 0;
             padding: 0;
             margin: 0;
+
+            p {
+                margin: 0;
+            }
         }
 
         .btn {
-            width: 2em;
-            padding: .25em;
+            width: 1em;
+            padding: 0;
             color: $red;
         }
     }
