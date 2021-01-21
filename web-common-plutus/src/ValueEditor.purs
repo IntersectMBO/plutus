@@ -74,9 +74,16 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
                       , placeholder "Amount"
                       , min zero
                       , onValueInput
-                          $ \str -> do
-                              newAmount <- BigInteger.fromString str
-                              pure $ handler $ SetBalance currencySymbol tokenName newAmount
+                          $ \str ->
+                              let
+                                -- prevent the empty string from being given as input
+                                -- (for reasons I have yet to fathom, this doesn't work when you delete "0";
+                                -- until I get to the bottom of that, this is at least an improvement)
+                                newStr = if str == "" then "0" else str
+                              in
+                                do
+                                  newAmount <- BigInteger.fromString newStr
+                                  pure $ handler $ SetBalance currencySymbol tokenName newAmount
                       ]
                   ]
               ]
