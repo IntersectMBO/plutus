@@ -419,6 +419,16 @@ executable plc
         text -any,
         transformers -any
 
+executable plc-mini
+  main-is: Main.hs
+  hs-source-dirs: plc-mini
+  build-depends:
+    base -any,
+    plutus-core,
+    transformers,
+    bytestring
+  
+        
 benchmark plutus-core-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0

@@ -304,6 +304,17 @@
           hsSourceDirs = [ "exe" ];
           mainPath = [ "Main.hs" ];
           };
+        "plc-mini" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "plc-mini" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       tests = {
         "plutus-core-test" = {
