@@ -1,17 +1,18 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
+import Data.Lens (assign, use)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (Component, HalogenM, raise)
 import Halogen as H
 import Halogen.HTML (HTML)
-import MainFrame.Types (Action(..), ChildSlots, Msg(..), Query(..), State)
+import MainFrame.Types (Action(..), Msg(..), Query(..), State, ChildSlots, _on)
 import MainFrame.View (render)
 import WebSocket (StreamToServer(..))
 
 initialState :: State
-initialState = {}
+initialState = { on: true }
 
 ------------------------------------------------------------
 mkMainFrame ::
@@ -34,9 +35,12 @@ mkMainFrame =
 
 handleQuery ::
   forall a m.
-  Monad m =>
-  Query a -> m (Maybe a)
-handleQuery (ReceiveWebSocketMessage msg next) = pure $ Just next
+  Query a ->
+  HalogenM State Action ChildSlots Msg m (Maybe a)
+handleQuery (ReceiveWebSocketMessage msg next) = do
+  current <- use _on
+  assign _on (not current)
+  pure $ Just next
 
 handleAction ::
   forall m.
@@ -45,4 +49,6 @@ handleAction ::
   HalogenM State Action ChildSlots Msg m Unit
 handleAction Init = pure unit
 
-handleAction ClickedButton = raise (SendWebSocketMessage ServerMsg)
+handleAction ClickedButton = do
+  current <- use _on
+  raise (SendWebSocketMessage (ServerMsg current))

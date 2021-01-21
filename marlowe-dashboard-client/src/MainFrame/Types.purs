@@ -2,7 +2,10 @@ module MainFrame.Types where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
+import Data.Lens (Lens')
+import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Symbol (SProxy(..))
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
 
@@ -27,5 +30,8 @@ type ChildSlots
     )
 
 type State
-  = {
+  = { on :: Boolean
     }
+
+_on :: Lens' State Boolean
+_on = prop (SProxy :: SProxy "on")

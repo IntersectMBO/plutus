@@ -16,4 +16,5 @@ render ::
 render state =
   div []
     [ button [ onClick $ const $ Just ClickedButton ] [ text "Click Me" ]
+    , text $ if state.on then "On" else "Off"
     ]

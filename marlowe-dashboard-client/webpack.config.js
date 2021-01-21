@@ -33,7 +33,8 @@ module.exports = {
                 target: 'http://localhost:8080'
             },
             "/ws": {
-                target: 'http://localhost:8080'
+                target: 'http://localhost:8080',
+                ws: true
             }
         }
     },

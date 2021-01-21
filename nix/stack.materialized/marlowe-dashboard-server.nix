@@ -51,7 +51,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           ];
         buildable = true;
-        modules = [ "Server" "API" ];
+        modules = [ "Server" "API" "WebSocket" ];
         hsSourceDirs = [ "src" ];
         };
       exes = {
@@ -74,6 +74,7 @@
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
             (hsPkgs."wai" or (errorHandler.buildDepError "wai"))
             (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
             (hsPkgs."wai-extra" or (errorHandler.buildDepError "wai-extra"))
@@ -81,7 +82,7 @@
             ];
           buildable = true;
           modules = [ "Webserver" "PSGenerator" ];
-          hsSourceDirs = [ "app" "contracts" ];
+          hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };
         };
