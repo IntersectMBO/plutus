@@ -57,37 +57,6 @@ let
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
 
-  plutus-playground-generate-purs = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
-    rm -rf ./generated
-    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator generated
-  '';
-  plutus-playground-server = pkgs.writeShellScriptBin "plutus-playground-server" ''
-    export FRONTEND_URL=https://localhost:8009
-    export WEBGHC_URL=http://localhost:8080
-    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)bin/plutus-playground webserver
-  '';
-  marlowe-playground-generate-purs = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
-    rm -rf ./generated
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
-  '';
-  marlowe-playground-server = pkgs.writeShellScriptBin "marlowe-playground-server" ''
-    export FRONTEND_URL=https://localhost:8009
-    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
-  '';
-  plutus-pab-generate-purs = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
-    rm -rf ./generated
-    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
-  '';
-  plutus-pab-server = pkgs.writeShellScriptBin "plutus-pab-server" ''
-    export FRONTEND_URL=https://localhost:8009
-    export WEBGHC_URL=http://localhost:8080
-    rm -rf ./generated
-    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
-    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
-  '';
-
-
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
     cabal-install
@@ -97,12 +66,12 @@ let
     hie-bios
     gen-hie
     hlint
-    marlowe-playground-generate-purs
-    marlowe-playground-server
-    plutus-pab-generate-purs
-    plutus-pab-server
-    plutus-playground-generate-purs
-    plutus-playground-server
+    plutus-playground.generate-purescript
+    plutus-playground.start-backend
+    marlowe-playground.generate-purescript
+    marlowe-playground.start-backend
+    plutus-pab.generate-purescript
+    plutus-pab.start-backend
     purs
     purty
     spago

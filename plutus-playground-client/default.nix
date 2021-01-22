@@ -27,11 +27,20 @@ let
     ${server-invoker}/bin/plutus-playground psgenerator $out
   '';
 
+
   # For dev usage
-  generate-purescript = pkgs.writeShellScript "plutus-playground-generate-purescript" ''
+  generate-purescript = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
     rm -rf ./generated
-    ${server-invoker}/bin/plutus-playground psgenerator generated
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator generated
   '';
+
+  # For dev usage
+  start-backend = pkgs.writeShellScriptBin "plutus-playground-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground webserver
+  '';
+
 
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
@@ -60,5 +69,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript generate-purescript;
+  inherit client server-invoker generated-purescript generate-purescript start-backend;
 }

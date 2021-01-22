@@ -9,9 +9,19 @@ let
   '';
 
   # For dev usage
-  generate-purescript = pkgs.writeShellScript "plutus-pab-generate-purescript" ''
+  generate-purescript = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
     rm -rf ./generated
-    ${server-invoker}/bin/plutus-pab psgenerator generated
+    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
+  '';
+
+  # For dev usage
+  start-backend = pkgs.writeShellScriptBin "plutus-pab-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    export WEBGHC_URL=http://localhost:8080
+    rm -rf ./generated
+    cp ../plutus-pab/plutus-pab.yaml .
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
   '';
 
   nodeModules = buildNodeModules {
@@ -44,5 +54,5 @@ let
 
 in
 {
-  inherit client demo-scripts server-invoker generated-purescript generate-purescript;
+  inherit client demo-scripts server-invoker generated-purescript generate-purescript start-backend;
 }
