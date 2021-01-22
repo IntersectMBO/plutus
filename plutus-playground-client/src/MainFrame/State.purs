@@ -8,7 +8,7 @@ import AjaxUtils (AjaxErrorPaneAction(..), ajaxErrorRefLabel, renderForeignError
 import Analytics (analyticsTracking)
 import Animation (class MonadAnimate, animate)
 import Chain.State (handleAction) as Chain
-import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
+import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing, _txIdOf)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
 import Control.Monad.Error.Class (class MonadThrow)
@@ -18,7 +18,7 @@ import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT,
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (class MonadAsk, runReaderT)
-import Control.Monad.State.Class (class MonadState)
+import Control.Monad.State.Class (class MonadState, gets)
 import Control.Monad.State.Extra (zoomStateT)
 import Control.Monad.Trans.Class (lift)
 import Cursor (_current)
@@ -32,7 +32,7 @@ import Data.BigInteger as BigInteger
 import Data.Either (Either(..), note)
 import Data.Lens (Traversal', _Right, assign, modifying, over, to, traversed, use, view)
 import Data.Lens.Extra (peruse)
-import Data.Lens.Fold (maximumOf, preview)
+import Data.Lens.Fold (maximumOf, lastOf, preview)
 import Data.Lens.Index (ix)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType.Common (textPlain)
@@ -55,7 +55,7 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, getKnownCurrencies)
+import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
 import MainFrame.MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData)
 import MainFrame.View (render)
@@ -227,6 +227,10 @@ handleAction EvaluateActions =
             when (isSuccess result) do
               assign _lastEvaluatedSimulation simulation
               assign _blockchainVisualisationState Chain.initialState
+              -- preselect the first transaction (if any)
+              mAnnotatedBlockchain <- peruse (_successfulEvaluationResult <<< _resultRollup <<< to AnnotatedBlockchain)
+              txId <- (gets <<< lastOf) (_successfulEvaluationResult <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
+              lift $ zoomStateT _blockchainVisualisationState $ Chain.handleAction (FocusTx txId) mAnnotatedBlockchain
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
           Success (Left _) -> do
@@ -313,7 +317,7 @@ handleAction (ChangeSimulation subaction) = do
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
-    peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+    peruse (_successfulEvaluationResult <<< _resultRollup <<< to AnnotatedBlockchain)
   let
     wrapper = case subaction of
       (FocusTx _) -> animate (_blockchainVisualisationState <<< _chainFocusAppearing)
