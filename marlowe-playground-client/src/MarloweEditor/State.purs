@@ -5,6 +5,7 @@ module MarloweEditor.State
   ) where
 
 import Prelude hiding (div)
+import CloseAnalysis (startCloseAnalysis)
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
@@ -151,6 +152,19 @@ handleAction settings AnalyseReachabilityContract =
           emptySemanticState = emptyState zero
         newReachabilityAnalysisState <- lift $ startReachabilityAnalysis settings contract emptySemanticState
         assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+
+handleAction settings AnalyseContractForCloseRefund =
+  void
+    $ runMaybeT do
+        contents <- MaybeT $ editorGetValue
+        contract <- hoistMaybe $ parseContract' contents
+        -- when editor and simulator were together the analyse contract could be made
+        -- at any step of the simulator. Now that they are separate, it can only be done
+        -- with initial state
+        let
+          emptySemanticState = emptyState zero
+        newCloseAnalysisState <- lift $ startCloseAnalysis settings contract emptySemanticState
+        assign _analysisState (CloseAnalysis newCloseAnalysisState)
 
 handleAction _ Save = pure unit
 

@@ -90,6 +90,11 @@ isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
 
 isReachabilityLoading _ = false
 
+isCloseAnalysisLoading :: AnalysisState -> Boolean
+isCloseAnalysisLoading (CloseAnalysis (AnalysisInProgress _)) = true
+
+isCloseAnalysisLoading _ = false
+
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section
@@ -100,13 +105,17 @@ panelContents state StaticAnalysisView =
         [ text (if loading then "Analysing..." else "Analyse for warnings") ]
     , button [ onClick $ const $ Just $ AnalyseReachabilityContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
         [ text (if loadingReachability then "Analysing..." else "Analyse reachability") ]
+    , button [ onClick $ const $ Just $ AnalyseContractForCloseRefund, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
+        [ text (if loadingCloseAnalysis then "Analysing..." else "Analyse for refunds on Close") ]
     ]
   where
   loading = state ^. _analysisState <<< to isStaticLoading
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
-  enabled' = not loading && not loadingReachability && not contractHasErrors state
+  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+
+  enabled' = not loading && not loadingReachability && not loadingCloseAnalysis && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section
@@ -300,6 +309,54 @@ analysisResultPane state =
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]
             , text "Reachability analysis could not find any subcontract that is not reachable."
+            ]
+      CloseAnalysis closeAnalysisSubResult -> case closeAnalysisSubResult of
+        AnalysisNotStarted ->
+          explanation
+            [ text ""
+            ]
+        AnalysisInProgress
+          { numSubproblems: totalSteps
+        , numSolvedSubproblems: doneSteps
+        , counterExampleSubcontracts: foundcounterExampleSubcontracts
+        } ->
+          explanation
+            ( [ text ("Close analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+                <> if null foundcounterExampleSubcontracts then
+                    [ br_, text "No refunds on Close found so far." ]
+                  else
+                    ( [ br_, text "Found the following refunds on Close so far:" ]
+                        <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                              contractPath <- toUnfoldable foundcounterExampleSubcontracts
+                              pure (li_ [ text (show contractPath) ])
+                          ]
+                    )
+            )
+        AnalyisisFailure err ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during Close refund analysis" ]
+            , text "Close refund analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText err ]
+                    ]
+                ]
+            ]
+        AnalysisFoundCounterExamples { counterExampleSubcontracts } ->
+          explanation
+            ( [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Close Refund Analysis Result: Some of the Close constructs may refund assets" ]
+              , text "The following Close constructs may implicitly refund money:"
+              ]
+                <> [ ul [ classes [ ClassName "indented-enum-initial" ] ] do
+                      contractPath <- toUnfoldable (toList counterExampleSubcontracts)
+                      pure (li_ [ text (show contractPath) ])
+                  ]
+                <> [ text "This does not necessarily mean there is anything wrong with the contract." ]
+            )
+        AnalysisFinishedAndPassed ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Close Refund Analysis Result: No implicit refunds" ]
+            , text "None of the Close constructs refunds any money, all refunds are explicit."
             ]
 
 displayTransactionList :: forall p. Array TransactionInput -> HTML p Action
