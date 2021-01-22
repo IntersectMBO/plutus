@@ -7,7 +7,7 @@ Writing a basic Plutus app in the Plutus Playground
 :term:`Plutus apps<contract application>` are programs that run off-chain and manage active contract instances.
 They monitor the blockchain, ask for user input, and submit transactions to the blockchain.
 If you are a contract author, building a Plutus app is the easiest way to create and spend Plutus script outputs.
-In this tutorial you are going to write a Plutus app that locks some Ada in a script output and splits them evenly between two recipients.
+In this tutorial you are going to write a Plutus app that locks some ada in a script output and splits them evenly between two recipients.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK0
@@ -22,7 +22,7 @@ You start by defining some data types that you're going to need for the _Split_ 
    :start-after: BLOCK1
    :end-before: BLOCK2
 
-``SplitData`` describes the two recipients of the funds, and the total amount of the funds denoted in Ada.
+``SplitData`` describes the two recipients of the funds, and the total amount of the funds denoted in ada.
 
 You are using the ``PubKeyHash`` type to identify the recipients.
 When making the payment you can use the hashes to create two public key outputs.
@@ -32,7 +32,7 @@ Instances for data types
 
 The ``SplitData`` type has instances for a number of typeclasses.
 These instances enable the serialisation of ``SplitData`` to different formats.
-``ToJSON`` and ``FromJSON`` are needed for JSON serialisation.
+``ToJSON`` and ``FromJSON`` are needed for JSON serialization.
 JSON objects are passed between the frontend (for example, the Playground) and the app instance.
 :hsobj:`Language.PlutusTx.IsData` is used for values that are attached to transactions, for example as the <redeemer> of a script output.
 This class is used by the Plutus app at runtime to construct ``Data`` values.
@@ -120,7 +120,7 @@ A real Plutus app would use the metadata server or a custom lookup function for 
 Locking the funds
 -----------------
 
-With the ``SplitData`` that you got from the user you can now write a transaction that locks the requested amount of Ada in a script output.
+With the ``SplitData`` that you got from the user you can now write a transaction that locks the requested amount of ada in a script output.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK7
@@ -179,7 +179,7 @@ You also need a couple of declarations that generate glue code for the Playgroun
 
    $(mkKnownCurrencies [])
 
-And an additional import at the top of the file.
+You also need an additional import at the top of the file.
 
 .. code-block:: haskell
 
