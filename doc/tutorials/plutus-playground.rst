@@ -58,7 +58,7 @@ You can use the simulator to define complex scenarios with multiple agents tradi
 For the "Hello, World" app however you don't need to change anything in the simulator.
 You can click **Evaluate** right away.
 This sends the simulation to the server, alongside the source code of our app.
-When the server is finished running the simulation, the transactions pane is displayedm which presents the outcome of the simulation.
+When the server is finished running the simulation, the transactions pane is displayed, which presents the outcome of the simulation.
 
 Interpreting the results of the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
