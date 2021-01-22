@@ -16,7 +16,7 @@ In this tutorial you are going to write a Plutus app that locks some Ada in a sc
 Defining the types
 ------------------
 
-We start by defining some data types that you're going to need for the _Split_ app.
+You start by defining some data types that you're going to need for the _Split_ app.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK1
@@ -24,7 +24,7 @@ We start by defining some data types that you're going to need for the _Split_ a
 
 ``SplitData`` describes the two recipients of the funds, and the total amount of the funds denoted in Ada.
 
-We are using the ``PubKeyHash`` type to identify the recipients.
+You are using the ``PubKeyHash`` type to identify the recipients.
 When making the payment you can use the hashes to create two public key outputs.
 
 Instances for data types
@@ -52,7 +52,7 @@ Plutus validators have the following type signature:
 
 where ``d`` is the type of the <datum> and ``r`` is the type of the redeemer.
 
-We are going to use the validator script to lock a script output that contains the ``amount`` specified in the ``SplitData``.
+You are going to use the validator script to lock a script output that contains the ``amount`` specified in the ``SplitData``.
 
 .. note::
 
@@ -68,7 +68,7 @@ The validator looks at the ``ValidatorCtx`` value to see if the conditions for m
 
 The validator checks that the transaction, represented by ``valCtxTxInfo``, pays half the specified amount to each recipient.
 
-We then need some boilerplate to compile the validator to a Plutus script (see :ref:`basic_validators_tutorial`).
+You then need some boilerplate to compile the validator to a Plutus script (see :ref:`basic_validators_tutorial`).
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK3
@@ -85,7 +85,7 @@ In Plutus apps, the mechanism for requesting inputs is called :term:`endpoints <
 All endpoints that an app wants to use must be declared as part of the type of the app.
 The set of all endpoints of an app is called the :term:`schema` of the app.
 The schema is defined as a Haskell type.
-We can build a schema using the ``Endpoint`` type family to construct individual endpoint types, and the ``.\/`` operator to combine them.
+You can build a schema using the ``Endpoint`` type family to construct individual endpoint types, and the ``.\/`` operator to combine them.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK4
@@ -94,7 +94,7 @@ We can build a schema using the ``Endpoint`` type family to construct individual
 The ``SplitSchema`` defines two endpoints, ``lock`` and ``unlock``.
 Each endpoint declaration contains the endpoint's name and its type.
 Note that ``SplitData`` has two ``PubKeyHash`` fields for the recipients, whereas the endpoint has two ``Wallet`` fields (the wallet type is used in the Playground as the identity of a simulated agent).
-We are going to convert the wallet values to their corresponding public key hashes in the ``Split`` app.
+You are going to convert the wallet values to their corresponding public key hashes in the ``Split`` app.
 That way, the user can simply identify the recipient by a number and doesn't have to enter a public key into a text box.
 This type of conversion from a nickname to a unique identifier is a common task for Plutus apps.
 
@@ -152,7 +152,7 @@ The other two constraints use ``mustPayToPubKey`` to add payments for the recipi
 Deploying the app on the Playground
 -----------------------------------
 
-We have all the functions you need for the on-chain and off-chain parts of the app.
+You have all the functions you need for the on-chain and off-chain parts of the app.
 Every contract in the Playground must define its public interface like this:
 
 .. literalinclude:: BasicApps.hs
@@ -171,7 +171,7 @@ The left branch starts with ``lock`` and the right branch starts with ``unlock``
 The app exposes both endpoints and proceeds with the branch that receives an answer first.
 So, if you call the ``lock`` endpoint in one of the simulated wallets, it will call ``lockFunds`` and ignore the ``unlock`` side of the contract.
 
-We also need a couple of declarations that generate glue code for the Playground.
+You also need a couple of declarations that generate glue code for the Playground.
 
 .. code-block:: haskell
       

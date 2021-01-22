@@ -54,9 +54,9 @@ The code editor disappears and the simulator opens.
 
   Plutus Playground (simulator)
 
-We can use the simulator to define complex scenarios with multiple agents trading and communicating over the Cardano blockchain.
+You can use the simulator to define complex scenarios with multiple agents trading and communicating over the Cardano blockchain.
 For the "Hello, World" app however you don't need to change anything in the simulator.
-We can click **Evaluate** right away.
+You can click **Evaluate** right away.
 This sends the simulation to the server, alongside the source code of our app.
 When the server is done running the simulation, the transactions pane opens, showing the outcome of the simulation.
 
@@ -74,11 +74,11 @@ The blockchain section shows all the transactions that were produced during the 
 Each simulation is run on a fresh blockchain.
 The "Hello, World" simulation only results in a single transaction.
 This is the initial transaction that distributes some funds to the simulated agents.
-We can click the box that says "Slot 0, Tx 0" to examine the transaction.
+You can click the box that says "Slot 0, Tx 0" to examine the transaction.
 Now there are two new sections visible.
 The first of the new sections shows the inputs and outputs of the selected transaction, and some other details.
 The second of the new sections has a table with the balances of each address *after* the selected transaction.
-We can see that wallet 1 and wallet 2 each have ten lovelace.
+You can see that wallet 1 and wallet 2 each have ten lovelace.
 
 Below this there is a chart showing the final balances at the end of the simulation, after all transactions.
 Since you only have a single transaction, the final balances are exactly the same as the "Balances Carried Forward" from the initial transaction.
@@ -132,17 +132,17 @@ Therefore the remaining five lovelace were given back to wallet 3.
 The "Balances carried forward" and "Final balances" sections also reflect the payment that was made.
 
 Finally, the logs tell us that there are now three instances running, because the "Hello, world" message shows up three times.
-We can see that the payment transaction was validated, and that the simulation ran until slot 12.
+You can see that the payment transaction was validated, and that the simulation ran until slot 12.
 
 Running the "Vesting" app
 -------------------------
 
-We've seen how to compile code, run simulations and make sense of their output.
+You've seen how to compile code, run simulations and make sense of their output.
 In the second part of this tutorial you are going to run an app that actually does something on the blockchain, and you're going to feed input to it using the endpoints that it provides.
 
 Click the "Vesting" link in the row of demo files at the top.
 The vesting app is loaded into the code editor.
-We are not going to look at the source for now (there are comments in the code explaining how it works).
+You are not going to look at the source for now (there are comments in the code explaining how it works).
 
 .. note::
 
@@ -186,7 +186,7 @@ The script address always stays the same, but the number of outputs at the addre
 
 .. note::
 
-  At any point in time there may be zero, one or more outputs at the script address. All those outputs together constitute the *state* of the script. We change the state by spending and producing outputs at the script address.
+  At any point in time there may be zero, one or more outputs at the script address. All those outputs together constitute the *state* of the script. You change the state by spending and producing outputs at the script address.
 
 The final transaction (Slot 61, Tx 0) takes the remaining four lovelace from the script and places them in a public-key output belonging to wallet 1.
 
