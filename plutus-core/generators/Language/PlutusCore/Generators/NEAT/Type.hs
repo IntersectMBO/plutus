@@ -443,6 +443,14 @@ extKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 -- ** Type checking
 
+instance Check TypeBuiltinG TermConstantG where
+  check TyByteStringG (TmByteStringG _) = true
+  check TyIntegerG    (TmIntegerG    _) = true
+  check TyStringG     (TmStringG     _) = true
+  check TyBoolG       (TmBoolG       _) = true
+  check _             _                 = false
+
+
 checkTypeG
   :: Eq tyname
   => KCS tyname
@@ -478,7 +486,7 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
     tmTypeOk = checkTypeG kcs tcs (TyForallG k vCod) tm
     tyKindOk = checkKindG kcs k ty
     tyOk = vTy == normalizeTypeG (TyAppG (TyLamG vCod) ty k)
-
+checkTypeG _kcs _tcs (TyBuiltinG tc) (ConstantG c) = check tc c
 checkTypeG _ _ _ _ = false
 
 instance Check ClosedTypeG ClosedTermG where
