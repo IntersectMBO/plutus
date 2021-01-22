@@ -96,9 +96,4 @@ haskell.project.shellFor {
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
-
-  # The shell should never depend on any of our Haskell packages, which can
-  # sometimes happen by accident. In practice, everything depends transitively
-  # on 'plutus-core', so this does the job.
-  disallowedRequisites = [ haskell.packages.plutus-core.components.library ];
 }

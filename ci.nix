@@ -66,8 +66,17 @@ let
           # Should be in roots, see https://github.com/input-output-hk/haskell.nix/issues/967
           inherit (pkgs.haskell-nix) internal-nix-tools internal-cabal-install;
 
-          # build the shell expression to be sure it works on all platforms
-          shell = import ./shell.nix { inherit packages; };
+          # Build the shell expression to be sure it works on all platforms
+          #
+          # The shell should never depend on any of our Haskell packages, which can
+          # sometimes happen by accident. In practice, everything depends transitively
+          # on 'plutus-core', so this does the job.
+          # FIXME: this should simply be set on the main shell derivation, but this breaks 
+          # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
+          # only on the CI version, so that we still catch it, but lorri doesn't see it.
+          shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
+            disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
+          });
 
           # build deployment tools
           inherit (plutus) thorp;
