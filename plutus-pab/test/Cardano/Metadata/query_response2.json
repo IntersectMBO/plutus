@@ -1,6 +1,18 @@
 {
     "subjects": [
         {
+            "subject": "44b57ee30cdb55829d0a5d4f046baef078f1e97a7f21b62d75f8e96ea139c35f",
+            "name": {
+                "value": "Wallet #6",
+                "anSignatures": [
+                    {
+                        "signature": "2e27065e365d38bef19b7bec139206f99b00effc8a2ad05bd22259aa939dd5083f25da91c4cb764eb1bfbce243ec32cce112be9762e1da7a38e975ebb0cc0b08",
+                        "publicKey": "44b57ee30cdb55829d0a5d4f046baef078f1e97a7f21b62d75f8e96ea139c35f"
+                    }
+                ]
+            }
+        },
+        {
             "description": {
                 "value": "A sample description",
                 "anSignatures": [
@@ -45,18 +57,6 @@
                     {
                         "signature": "c2b30fa5f2c09323d81e5050af681c023089d832d0b85d05f60f4278fba3011ab03e6bd9bd2b8649080a368ecfe51573cd232efe8f1e7ca69ff8334ced7b6801",
                         "publicKey": "d40688a3eeda1f229c64efc56dd53b363ff981f71a7462f78c8cc444117a03db"
-                    }
-                ]
-            }
-        },
-        {
-            "subject": "44b57ee30cdb55829d0a5d4f046baef078f1e97a7f21b62d75f8e96ea139c35f",
-            "name": {
-                "value": "Wallet #6",
-                "anSignatures": [
-                    {
-                        "signature": "2e27065e365d38bef19b7bec139206f99b00effc8a2ad05bd22259aa939dd5083f25da91c4cb764eb1bfbce243ec32cce112be9762e1da7a38e975ebb0cc0b08",
-                        "publicKey": "44b57ee30cdb55829d0a5d4f046baef078f1e97a7f21b62d75f8e96ea139c35f"
                     }
                 ]
             }
