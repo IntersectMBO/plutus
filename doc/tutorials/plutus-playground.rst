@@ -1,7 +1,7 @@
 .. highlight:: haskell
 .. _basic_playground_tutorial:
 
-Compiling and testing a Plutus App in the Plutus Playground
+Compiling and testing a Plutus app in the Plutus Playground
 ===========================================================
 
 The Plutus Playground consists of a code editor and a simulator.
@@ -10,11 +10,11 @@ The Plutus Playground consists of a code editor and a simulator.
 
   Plutus Playground (code editor)
 
-We can write Plutus Apps in the code editor and test them in the simulator.
+We can write Plutus apps in the code editor and test them in the simulator.
 
 .. note::
 
-  Plutus Apps are distributed applications with on-chain and off-chain state.
+  Plutus apps are distributed applications with on-chain and off-chain state.
   Their main task is to build the transactions that produce and spend Plutus script outputs.
 
 The Plutus Playground includes a number of sample apps.
