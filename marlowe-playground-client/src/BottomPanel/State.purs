@@ -9,9 +9,9 @@ import Halogen (HalogenM, modify_)
 import MainFrame.Types (ChildSlots)
 
 handleAction ::
-  forall m panel panelAction.
-  Action panel panelAction ->
-  HalogenM (State panel) (Action panel panelAction) ChildSlots Void m Unit
+  forall m panel action.
+  Action panel action ->
+  HalogenM (State panel) (Action panel action) ChildSlots Void m Unit
 handleAction (SetVisibility val) = assign _showBottomPanel val
 
 handleAction (ChangePanel view) =

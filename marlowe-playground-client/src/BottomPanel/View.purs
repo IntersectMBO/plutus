@@ -16,12 +16,18 @@ type PanelTitle panel
     }
 
 render ::
-  forall p panel panelAction.
+  forall p panel action.
+  -- The panel equality restriction allow us to identify the current selected panel.
   Eq panel =>
+  -- panelTitles is an ordered list of the titles we'll show in the widget. The caller needs to provide a
+  -- `title` name to display, the `view` that is selected when the title is clicked and a list
+  -- of `classes` to optionally style the titles.
   Array (PanelTitle panel) ->
-  (panel -> HTML p (Action panel panelAction)) ->
+  -- The panelContents function receives the active panel and returns it's content. The `action` type parameter
+  -- is what allow us to fire an action from the child that is intended to be interpreted on the parent.
+  (panel -> HTML p (Action panel action)) ->
   State panel ->
-  HTML p (Action panel panelAction)
+  HTML p (Action panel action)
 render panelTitles panelContents state =
   div
     ( [ classes

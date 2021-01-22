@@ -8,19 +8,21 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 
--- This action is parameterized in the `panel` type so we can have type safety on the different panels
--- we have, and the panelAction, which is needed to allow the contents of the panel, to fire actions
--- on the parent. The `panel` type could eventually be refactored into just having a Map/Record, if we dont
--- care for it to be type safe, and the PanelAction could eventually be refactored to Variants/Run.
-data Action panel panelAction
+-- This component is an UI element that allows you to have different panels with titles at the bottom of the page. Because the children of this component is set by the page, the Action type
+-- is parameterized in two types:
+--   * The `panel` type defines the possible panels we can have inside this widget. Each page that uses this widget defines a type (normally called BottomPanelView) with the possible panels.
+--     This type needs to implement Eq for the render function to show the current selected pane. By allowing this to be a sum type, we can get the type safety in the render functions that
+--     we need to implement all possible panels. If we don't care about that, we could refactor to a Map/Record and lose this parameter.
+--   * The `action` type allows the posibility for a panel to fire actions on the parent page by using the PanelAction constructor. I think it could be eventually be refactored as a Variant/Run.
+data Action panel action
   = SetVisibility Boolean
   | ChangePanel panel
-  | PanelAction panelAction
+  | PanelAction action
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "BottomPanel." <> s
 
-instance actionIsEvent :: (Show panel, IsEvent panelAction) => IsEvent (Action panel panelAction) where
+instance actionIsEvent :: (Show panel, IsEvent action) => IsEvent (Action panel action) where
   toEvent (SetVisibility true) = Just $ defaultEvent "Show"
   toEvent (SetVisibility false) = Just $ defaultEvent "Hide"
   toEvent (ChangePanel view) = Just $ (defaultEvent "ChangePanel") { label = Just $ show view }
