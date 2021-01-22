@@ -61,6 +61,7 @@
         plutus-doc = ./plutus-doc.nix;
         iots-export = ./iots-export.nix;
         marlowe = ./marlowe.nix;
+        marlowe-dashboard-server = ./marlowe-dashboard-server.nix;
         marlowe-actus = ./marlowe-actus.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
         marlowe-symbolic = ./marlowe-symbolic.nix;

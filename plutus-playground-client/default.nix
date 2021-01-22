@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -52,6 +52,7 @@ let
     extraSrcs = {
       web-common = webCommon;
       web-common-plutus = webCommonPlutus;
+      web-common-playground = webCommonPlayground;
       generated = generated-purescript;
     };
     packages = pkgs.callPackage ./packages.nix { };

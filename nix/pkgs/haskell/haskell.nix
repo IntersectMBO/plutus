@@ -158,6 +158,7 @@ let
           marlowe-symbolic.package.ghcOptions = "-Werror";
           marlowe-actus.package.ghcOptions = "-Werror";
           marlowe-playground-server.package.ghcOptions = "-Werror";
+          marlowe-dashboard-server.package.ghcOptions = "-Werror";
           playground-common.package.ghcOptions = "-Werror";
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";

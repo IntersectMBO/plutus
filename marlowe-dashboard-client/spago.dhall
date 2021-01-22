@@ -2,31 +2,20 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name = "marlowe-playground-client"
+{ name = "marlowe-dashboard-client"
 , dependencies =
   [ "aff-promise"
   , "avar"
   , "concurrent-queues"
-  , "console"
   , "coroutines"
-  , "datetime"
-  , "datetime-iso"
   , "debug"
-  , "decimals"
   , "effect"
-  , "formatters"
-  , "functions"
   , "halogen"
-  , "matryoshka"
   , "node-fs"
   , "prelude"
   , "psci-support"
-  , "routing"
-  , "routing-duplex"
   , "remotedata"
   , "servant-support"
-  , "simple-json"
-  , "string-parsers"
   , "test-unit"
   , "undefinable"
   , "uuid"
@@ -39,6 +28,5 @@ You can edit this file as you like.
   , "generated/**/*.purs"
   , "web-common/**/*.purs"
   , "web-common-marlowe/**/*.purs"
-  , "web-common-playground/**/*.purs"
   ]
 }

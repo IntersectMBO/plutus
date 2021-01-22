@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
@@ -54,6 +54,7 @@ let
     extraSrcs = {
       web-common = webCommon;
       web-common-marlowe = webCommonMarlowe;
+      web-common-playground = webCommonPlayground;
       generated = generated-purescript;
     };
     packages = pkgs.callPackage ./packages.nix { };

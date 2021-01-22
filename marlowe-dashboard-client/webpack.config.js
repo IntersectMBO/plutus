@@ -1,6 +1,5 @@
 'use strict';
 
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -9,14 +8,14 @@ const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-
 const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
-      isWebpackDevServer || !isWatch ? [] : [
-          function () {
-              this.plugin('done', function (stats) {
-                  process.stderr.write(stats.toString('errors-only'));
-              });
-          }
-      ]
-;
+    isWebpackDevServer || !isWatch ? [] : [
+        function () {
+            this.plugin('done', function (stats) {
+                process.stderr.write(stats.toString('errors-only'));
+            });
+        }
+    ]
+    ;
 
 // source map adds 20Mb to the output!
 const devtool = isWebpackDevServer ? 'eval-source-map' : false;
@@ -32,6 +31,10 @@ module.exports = {
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'
+            },
+            "/ws": {
+                target: 'http://localhost:8080',
+                ws: true
             }
         }
     },
@@ -49,6 +52,13 @@ module.exports = {
             { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=10000&mimetype=application/font-woff" },
             { test: /fontawesome-.*\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" },
             {
+                test: /\.ne$/,
+                loader: 'nearley-webpack-loader',
+                options: {
+                    baseDir: '.'
+                }
+            },
+            {
                 test: /\.purs$/,
                 use: [
                     {
@@ -58,8 +68,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                'web-common-plutus/**/*.purs',
-                                'web-common-playground/**/*.purs',
+                                'web-common-marlowe/**/*.purs',
                                 'web-common/**/*.purs'
                             ],
                             psc: null,
@@ -85,14 +94,7 @@ module.exports = {
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
-                use: [
-                    {
-                        loader: 'url-loader',
-                        options: {
-                            limit: 8192
-                        }
-                    }
-                ]
+                use: 'url-loader'
             },
             {
                 test: /\.ttf$/,
@@ -103,12 +105,10 @@ module.exports = {
 
     resolve: {
         modules: [
-            // We need the second entry for node to be able to
-            // locate `node_modules` from client directory when 
-            // modules are referenced from inside `web-common`.
-            'node_modules', path.resolve(__dirname, './node_modules')
+            'node_modules'
         ],
         alias: {
+            grammar: path.resolve(__dirname, './grammar.ne'),
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')
         },
@@ -124,14 +124,11 @@ module.exports = {
 
     plugins: [
         new HtmlWebpackPlugin({
-            template: 'web-common/static/index.html',
+            template: './static/index.html',
             favicon: 'static/favicon.ico',
-            title: 'Plutus Playground',
-            productName: 'plutus',
-            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
-        }),
-        new MonacoWebpackPlugin({
-            languages: ['haskell'],
+            title: 'Marlowe Dashboard',
+            productName: 'marlowe-dashboard',
+            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
         })
     ].concat(plugins)
 };

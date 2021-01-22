@@ -5,6 +5,7 @@ packages:
 - doc
 - iots-export
 - marlowe
+- marlowe-dashboard-server
 - marlowe-actus
 - marlowe-playground-server
 - marlowe-symbolic
