@@ -160,6 +160,7 @@ let
     kris = mkEnv "kris" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
+    playground = mkEnv "playground" "us-west-1";
     wyohack = mkEnv "wyohack" "us-west-2";
     testing = mkEnv "testing" "eu-west-3";
   };
