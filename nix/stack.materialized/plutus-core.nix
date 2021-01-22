@@ -312,6 +312,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             ];
           buildable = true;
+          modules = [ "Lang" "Parser" ];
           hsSourceDirs = [ "plc-mini" ];
           mainPath = [ "Main.hs" ];
           };

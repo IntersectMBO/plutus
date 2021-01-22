@@ -427,7 +427,9 @@ executable plc-mini
     plutus-core,
     transformers,
     bytestring
-  
+  other-modules:
+    Lang
+    Parser
         
 benchmark plutus-core-budgeting-bench
     import: lang
