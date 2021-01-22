@@ -9,6 +9,7 @@ import Data.BigInteger as BigInteger
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (view)
+import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(ClassName), HTML, div, input, label, text)
@@ -75,14 +76,13 @@ balanceRow handler currencyIndex currencySymbol tokenIndex (Tuple tokenName amou
                       , min zero
                       , onValueInput
                           $ \str ->
+                              -- default to 0 in case of empty or invalid input
+                              -- (for reasons I have yet to fathom, this doesn't work when you delete "0";
+                              -- until I get to the bottom of that, this is at least an improvement)
                               let
-                                -- prevent the empty string from being given as input
-                                -- (for reasons I have yet to fathom, this doesn't work when you delete "0";
-                                -- until I get to the bottom of that, this is at least an improvement)
-                                newStr = if str == "" then "0" else str
+                                newAmount = fromMaybe zero $ BigInteger.fromString str
                               in
                                 do
-                                  newAmount <- BigInteger.fromString newStr
                                   pure $ handler $ SetBalance currencySymbol tokenName newAmount
                       ]
                   ]
