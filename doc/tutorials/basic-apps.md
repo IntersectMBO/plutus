@@ -13,9 +13,21 @@ the easiest way to create and spend Plutus script outputs. In this
 tutorial we are going to write a Plutus app that locks some Ada in a
 script output and splits them evenly between two recipients.
 
-::: {.literalinclude start-after="BLOCK0" end-before="BLOCK1"}
-BasicApps.hs
-:::
+```haskell
+import           Control.Monad             (void)
+import           Data.Aeson                (FromJSON, ToJSON)
+import qualified Data.Text                 as T
+import           GHC.Generics              (Generic)
+import           Language.Plutus.Contract
+import qualified Language.PlutusTx         as PlutusTx
+import           Language.PlutusTx.Prelude
+import           Ledger
+import qualified Ledger.Ada                as Ada
+import qualified Ledger.Constraints        as Constraints
+import qualified Ledger.Typed.Scripts      as Scripts
+import           Schema
+import           Wallet.Emulator.Wallet
+```
 
 Defining the types
 ------------------
@@ -23,9 +35,18 @@ Defining the types
 We start by defining some data types that we\'re going to need for the
 \_[Split]() app.
 
-::: {.literalinclude start-after="BLOCK1" end-before="BLOCK2"}
-BasicApps.hs
-:::
+```haskell
+data SplitData =
+    SplitData
+        { recipient1 :: PubKeyHash -- ^ First recipient of the funds
+        , recipient2 :: PubKeyHash -- ^ Second recipient of the funds
+        , amount     :: Ada -- ^ How much Ada we want to lock
+        }
+    deriving stock (Show, Generic)
+
+PlutusTx.makeIsData ''SplitData
+PlutusTx.makeLift ''SplitData
+```
 
 `SplitData` describes the two recipients of the funds, and the total
 amount of the funds denoted in Ada.
@@ -83,9 +104,13 @@ In this tutorial we only need a single validator. Its datum type is
 looks at the `ValidatorCtx` value to see if the conditions for making
 the payment are met:
 
-::: {.literalinclude start-after="BLOCK2" end-before="BLOCK3"}
-BasicApps.hs
-:::
+```haskell
+validateSplit :: SplitData -> () -> ValidatorCtx -> Bool
+validateSplit SplitData{recipient1, recipient2, amount} _ ValidatorCtx{valCtxTxInfo} =
+    let half = Ada.divide amount 2 in
+    Ada.fromValue (valuePaidTo valCtxTxInfo recipient1) >= half &&
+    Ada.fromValue (valuePaidTo valCtxTxInfo recipient2) >= (amount - half)
+```
 
 The validator checks that the transaction, represented by
 `valCtxTxInfo`, pays half the specified amount to each recipient.
@@ -93,9 +118,18 @@ The validator checks that the transaction, represented by
 We then need some boilerplate to compile the validator to a Plutus
 script (see `basic_validators_tutorial`{.interpreted-text role="ref"}).
 
-::: {.literalinclude start-after="BLOCK3" end-before="BLOCK4"}
-BasicApps.hs
-:::
+```haskell
+data Split
+instance Scripts.ScriptType Split where
+    type instance RedeemerType Split = ()
+    type instance DatumType Split = SplitData
+
+splitInstance :: Scripts.ScriptInstance Split
+splitInstance = Scripts.validator @Split
+    $$(PlutusTx.compile [|| validateSplit ||])
+    $$(PlutusTx.compile [|| wrap ||]) where
+        wrap = Scripts.wrapValidator @SplitData @()
+```
 
 The `ScriptType` class defines the types of the validator, and
 `splitInstance` contains the compiled Plutus core code of
@@ -115,9 +149,21 @@ defined as a Haskell type. We can build a schema using the `Endpoint`
 type family to construct individual endpoint types, and the `.\/`
 operator to combine them.
 
-::: {.literalinclude start-after="BLOCK4" end-before="BLOCK5"}
-BasicApps.hs
-:::
+```haskell
+data LockArgs =
+        LockArgs
+            { recipient1Wallet :: Wallet
+            , recipient2Wallet :: Wallet
+            , totalAda         :: Ada
+            }
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON, ToSchema)
+
+type SplitSchema =
+    BlockchainActions
+        .\/ Endpoint "lock" LockArgs
+        .\/ Endpoint "unlock" LockArgs
+```
 
 The `SplitSchema` defines two endpoints, `lock` and `unlock`. Each
 endpoint declaration contains the endpoint\'s name and its type. Note
@@ -134,9 +180,13 @@ To use the `lock` endpoint in our app, we call the
 `Language.Plutus.Contract.Effects.ExposeEndpoint.endpoint`{.interpreted-text
 role="hsobj"} function:
 
-::: {.literalinclude start-after="BLOCK5" end-before="BLOCK6"}
-BasicApps.hs
-:::
+```haskell
+lock :: Contract SplitSchema T.Text LockArgs
+lock = endpoint @"lock"
+
+unlock :: Contract SplitSchema T.Text LockArgs
+unlock = endpoint @"unlock"
+```
 
 `endpoint` has a single argument, the name of the endpoint. The name of
 the endpoint is a Haskell type, not a value, and we have to supply this
@@ -149,9 +199,18 @@ Next we need to turn the two `Wallet` values into their public key
 hashes so that we can get the `SplitData` value from the input that was
 supplied by the user.
 
-::: {.literalinclude start-after="BLOCK6" end-before="BLOCK7"}
-BasicApps.hs
-:::
+```haskell
+mkSplitData :: LockArgs -> SplitData
+mkSplitData LockArgs{recipient1Wallet, recipient2Wallet, totalAda} =
+    let convert :: Wallet -> PubKeyHash
+        convert = pubKeyHash . walletPubKey
+    in
+    SplitData
+        { recipient1 = convert recipient1Wallet
+        , recipient2 = convert recipient2Wallet
+        , amount = totalAda
+        }
+```
 
 Note that the `Wallet.Emulator.Wallet.walletPubKey`{.interpreted-text
 role="hsobj"} function and the
@@ -166,9 +225,13 @@ Locking the funds
 With the `SplitData` that we got from the user we can now write a
 transaction that locks the requested amount of Ada in a script output.
 
-::: {.literalinclude start-after="BLOCK7" end-before="BLOCK8"}
-BasicApps.hs
-:::
+```haskell
+lockFunds :: SplitData -> Contract SplitSchema T.Text ()
+lockFunds s@SplitData{amount} = do
+    logInfo $ "Locking " <> show amount
+    let tx = Constraints.mustPayToTheScript s (Ada.toValue amount)
+    void $ submitTxConstraints splitInstance tx
+```
 
 Using the constraints library that comes with the Plutus SDK we specify
 a transaction `tx` in a single line.
@@ -189,9 +252,18 @@ Unlocking the funds
 All that\'s missing now is the code for retrieving the funds, and some
 glue to put it all together.
 
-::: {.literalinclude start-after="BLOCK8" end-before="BLOCK9"}
-BasicApps.hs
-:::
+```haskell
+unlockFunds :: SplitData -> Contract SplitSchema T.Text ()
+unlockFunds SplitData{recipient1, recipient2, amount} = do
+    let contractAddress = (Ledger.scriptAddress (Scripts.validatorScript splitInstance))
+    utxos <- utxoAt contractAddress
+    let half = Ada.divide amount 2
+        tx =
+            collectFromScript utxos ()
+            <> Constraints.mustPayToPubKey recipient1 (Ada.toValue half)
+            <> Constraints.mustPayToPubKey recipient2 (Ada.toValue $ amount - half)
+    void $ submitTxConstraintsSpending splitInstance utxos tx
+```
 
 In `unlockFunds` we use the constraints library to build the spending
 transaction. Here, `tx` combines three different constraints.
@@ -207,17 +279,17 @@ We have all the functions we need for the on-chain and off-chain parts
 of the app. Every contract in the Playground must define its public
 interface like this:
 
-::: {.literalinclude start-after="BLOCK9" end-before="BLOCK10"}
-BasicApps.hs
-:::
+```haskell
+endpoints :: Contract SplitSchema T.Text ()
+```
 
 The Playground server uses the `endpoints` definition to populate the UI
 (via the schema, in our case `SplitSchema`) and to start the simulation.
 `endpoints` is the high-level definition of our app:
 
-::: {.literalinclude start-after="BLOCK9" end-before="BLOCK10"}
-BasicApps.hs
-:::
+```haskell
+endpoints = (lock >>= lockFunds . mkSplitData) `select` (unlock >>= unlockFunds . mkSplitData)
+```
 
 The `select` function acts like a choice between two branches. The left
 branch starts with `lock` and the right branch starts with `unlock`. The
