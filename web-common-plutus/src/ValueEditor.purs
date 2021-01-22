@@ -16,7 +16,7 @@ import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Properties (InputType(InputNumber), classes, min, placeholder, required, type_, value)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
+import Plutus.V1.Ledger.Value (CurrencySymbol, TokenName, Value(Value))
 import Playground.Lenses (_currencySymbol, _tokenName)
 
 data ValueEvent

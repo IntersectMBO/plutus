@@ -31,7 +31,7 @@ rec {
   inherit (plutus) web-ghc;
   inherit (plutus.lib) buildNodeModules;
 
-  inherit (haskell.packages.plutus-scb.components.exes)
+  inherit (haskell.packages.plutus-pab.components.exes)
     plutus-game
     plutus-currency
     plutus-atomic-swap
@@ -40,6 +40,7 @@ rec {
   webCommon = pkgs.callPackage ./web-common { };
   webCommonPlutus = pkgs.callPackage ./web-common-plutus { };
   webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { };
+  webCommonPlayground = pkgs.callPackage ./web-common-playground { };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
@@ -47,8 +48,8 @@ rec {
 
     inherit (pkgs.callPackage ./plutus-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
-      inherit set-git-rev haskell webCommon webCommonPlutus;
-    }) client server-invoker generated-purescript;
+      inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
+    }) client server-invoker generated-purescript generate-purescript;
   };
 
   marlowe-playground = pkgs.recurseIntoAttrs rec {
@@ -56,8 +57,15 @@ rec {
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
       inherit (plutus.lib) buildPursPackage buildNodeModules;
+      inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
+    }) client server-invoker generated-purescript generate-purescript;
+  };
+
+  marlowe-dashboard = pkgs.recurseIntoAttrs rec {
+    inherit (pkgs.callPackage ./marlowe-dashboard-client {
+      inherit (plutus.lib) buildPursPackage buildNodeModules;
       inherit set-git-rev haskell webCommon webCommonMarlowe;
-    }) client server-invoker generated-purescript;
+    }) client server-invoker generated-purescript generate-purescript;
   };
 
   marlowe-symbolic-lambda = plutusMusl.callPackage ./marlowe-symbolic/lambda.nix {
@@ -72,7 +80,7 @@ rec {
     inherit (haskell.muslProject) ghcWithPackages;
   };
 
-  plutus-scb = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-scb-client {
+  plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
     inherit (plutus.lib) buildPursPackage buildNodeModules;
     inherit set-git-rev haskell webCommon webCommonPlutus;
   });

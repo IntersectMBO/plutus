@@ -32,8 +32,8 @@ import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Semigroup (..), foldMap)
 import           Ledger
 import qualified Ledger.Constraints                as Constraints
+import           Ledger.Contexts                   as V
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 as V
 
 import           Prelude                           (Semigroup (..), foldMap)
 

@@ -1,6 +1,5 @@
 module Main where
 
-import Prelude
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(Nothing))
 import Effect (Effect)
@@ -11,8 +10,9 @@ import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
-import MainFrame (mkMainFrame)
-import Types (HAction(..))
+import MainFrame.State (mkMainFrame)
+import MainFrame.Types (HAction(..))
+import Prelude (Unit, bind, discard, pure, show, ($), (<>))
 
 main :: Effect Unit
 main = do

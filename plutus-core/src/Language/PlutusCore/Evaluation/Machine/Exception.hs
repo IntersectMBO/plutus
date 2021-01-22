@@ -43,6 +43,7 @@ import           Control.Monad.Except
 import           Data.String                                     (IsString)
 import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc
+import           ErrorCode
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
@@ -61,6 +62,7 @@ data ConstAppError fun term
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
     deriving (Show, Eq, Functor)
+
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun term
@@ -84,6 +86,8 @@ data MachineError fun term
       -- See the machine implementations for details.
     | UnknownBuiltin fun
     deriving (Show, Eq, Functor)
+
+
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
@@ -127,6 +131,9 @@ instance Bifunctor ErrorWithCause where
 
 instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
     _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
+
+instance (Pretty err, Pretty term) => Pretty (ErrorWithCause err term) where
+    pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
 
 type EvaluationException user internal =
     ErrorWithCause (EvaluationError user internal)
@@ -231,3 +238,31 @@ instance (PrettyPlc term, PrettyPlc err) =>
 
 instance (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) =>
             Exception (ErrorWithCause err term)
+
+
+instance HasErrorCode UnliftingError where
+      errorCode        UnliftingErrorE {}        = ErrorCode 30
+
+instance HasErrorCode (ConstAppError _a _b) where
+      errorCode        TooManyArgumentsConstAppError {} = ErrorCode 29
+      errorCode        TooFewArgumentsConstAppError {}  = ErrorCode 28
+      errorCode (UnliftingConstAppError e)              = errorCode e
+
+instance HasErrorCode (MachineError err _a) where
+      errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
+      errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
+      errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
+      errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
+      errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
+      errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
+      errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
+      errorCode        (ConstAppMachineError e)                     = errorCode e
+      errorCode        UnknownBuiltin {}                            = ErrorCode 17
+
+instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
+  errorCode (InternalEvaluationError e) = errorCode e
+  errorCode (UserEvaluationError e)     = errorCode e
+
+
+instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
+    errorCode (ErrorWithCause e _) = errorCode e

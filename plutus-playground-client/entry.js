@@ -16,5 +16,7 @@ import { initVimMode, VimMode } from 'monaco-vim';
 global.VimMode = VimMode;
 global.initVimMode = initVimMode;
 global.monacoExtraTypeScriptLibs = [];
+import plutusLogo from 'static/images/plutus-logo.svg';
+global.plutusLogo = plutusLogo
 
 import './src/Main.purs';

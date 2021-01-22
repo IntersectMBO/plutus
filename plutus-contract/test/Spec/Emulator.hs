@@ -40,13 +40,13 @@ import qualified Language.PlutusTx.Numeric     as P
 import qualified Language.PlutusTx.Prelude     as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                    as Ada
+import           Ledger.Bytes                  as LedgerBytes
 import           Ledger.Generators             (Mockchain (Mockchain))
 import qualified Ledger.Generators             as Gen
 import qualified Ledger.Index                  as Index
 import           Ledger.Typed.Scripts          (wrapValidator)
 import           Ledger.Value                  (CurrencySymbol, Value (Value))
 import qualified Ledger.Value                  as Value
-import           LedgerBytes                   as LedgerBytes
 import           Plutus.Trace                  (EmulatorTrace)
 import qualified Plutus.Trace                  as Trace
 import           Test.Tasty

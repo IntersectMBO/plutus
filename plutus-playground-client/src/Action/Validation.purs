@@ -5,9 +5,9 @@ import Data.Lens (view)
 import Playground.Types (ContractCall(..), SimulatorWallet)
 import Prelude ((==), (&&), (<<<))
 import Schema.Types (FormArgument)
-import Types (_simulatorWalletWallet, _walletId)
 import Validation (isValid)
 import Wallet.Emulator.Wallet (Wallet)
+import Wallet.Lenses (_simulatorWalletWallet, _walletId)
 
 actionIsValid :: Array SimulatorWallet -> ContractCall FormArgument -> Boolean
 actionIsValid simulatorWallets simulatorAction = actionWalletsExist simulatorAction && isValid simulatorAction

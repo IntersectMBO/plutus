@@ -84,7 +84,7 @@ pkgs/.stack
 # Backend config files
 marlowe-playground-server/playground.yaml
 plutus-playground-server/playground.yaml
-plutus-scb/plutus-scb.yaml
+plutus-pab/plutus-pab.yaml
 
 # Misc
 .history/

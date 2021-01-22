@@ -25,9 +25,9 @@ import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TA
 import qualified Language.PlutusTx.Prelude                             as P
 import           Ledger
 import qualified Ledger.Ada                                            as Ada
+import           Ledger.Bytes
 import qualified Ledger.Crypto                                         as Crypto
 import qualified Ledger.Typed.Scripts                                  as Scripts
-import           LedgerBytes
 import           Wallet
 import           Wallet.Emulator.Types                                 (Wallet (..), walletPubKey)
 

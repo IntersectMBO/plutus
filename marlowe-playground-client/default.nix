@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
@@ -26,6 +26,12 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScript "marlowe-playground-generate-purescript" ''
+    rm -rf ./generated
+    ${server-invoker}/bin/marlowe-playground-server psgenerator generated
+  '';
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -48,6 +54,7 @@ let
     extraSrcs = {
       web-common = webCommon;
       web-common-marlowe = webCommonMarlowe;
+      web-common-playground = webCommonPlayground;
       generated = generated-purescript;
     };
     packages = pkgs.callPackage ./packages.nix { };
@@ -55,5 +62,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript;
 }

@@ -3,7 +3,7 @@ const moo = require("moo");
 
 const lexer = moo.compile({
         WS: /[ \t]+/,
-        number: /0|-?[1-9][0-9]*/,
+        number: /-?[0-9](?:_*[0-9])*/,
         base16: {match: /"(?:[0-9a-fA-F][0-9a-fA-F])*"/, value: x => x.slice(1, -1)},
         string: {match: /"(?:\\["\\]|[^\n"\\])*"/, value: x => x.slice(1, -1)},
         ratio: '%',
@@ -83,12 +83,12 @@ rsquare ->  manyWS %rsquare
 hole -> %hole {% ([hole]) => opts.mkHole(hole.value.substring(1))({startLineNumber: hole.line, startColumn: hole.col, endLineNumber: hole.line, endColumn: hole.col + hole.value.length}) %}
 
 number
-   -> %number {% ([n]) => opts.mkBigInteger(n.value) %}
-    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value) %}
+   -> %number {% ([n]) => opts.mkBigInteger(n.value.replace('_', '')) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value.replace('_', '')) %}
 
 timeout
-   -> %number {% ([n]) => opts.mkTimeout(n.value)({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
-    | lparen %number rparen {% ([start,n,end]) => opts.mkTimeout(n.value)({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
+   -> %number {% ([n]) => opts.mkTimeout(n.value.replace('_', ''))({startLineNumber: n.line, startColumn: n.col, endLineNumber: n.line, endColumn: n.col + n.toString(10).length}) %}
+    | lparen %number rparen {% ([start,n,end]) => opts.mkTimeout(n.value.replace('_', ''))({startLineNumber: start.line, startColumn: start.col, endLineNumber: end.line, endColumn: end.col}) %}
 
 string
    -> %string {% ([s]) => s.value %}

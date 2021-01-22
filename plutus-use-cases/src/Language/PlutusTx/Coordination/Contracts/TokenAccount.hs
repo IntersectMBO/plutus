@@ -54,10 +54,10 @@ import           Ledger                                            (Address, Pub
                                                                     ValidatorHash)
 import qualified Ledger                                            as Ledger
 import qualified Ledger.Constraints                                as Constraints
+import qualified Ledger.Contexts                                   as V
 import qualified Ledger.Scripts
 import           Ledger.Typed.Scripts                              (ScriptType (..))
 import qualified Ledger.Typed.Scripts                              as Scripts
-import qualified Ledger.Validation                                 as V
 import           Ledger.Value                                      (CurrencySymbol, TokenName, Value)
 import qualified Ledger.Value                                      as Value
 

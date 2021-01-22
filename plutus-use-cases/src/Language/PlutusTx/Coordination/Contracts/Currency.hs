@@ -41,9 +41,9 @@ import           Ledger                                          (CurrencySymbol
                                                                   pubKeyHash, scriptCurrencySymbol, txId)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Constraints                              as Constraints
+import qualified Ledger.Contexts                                 as V
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts                            as Scripts
-import qualified Ledger.Validation                               as V
 import           Ledger.Value                                    (TokenName, Value)
 import qualified Ledger.Value                                    as Value
 

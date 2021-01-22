@@ -65,6 +65,15 @@ showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
 showErrorDescription :: forall p i. ErrorDescription -> HTML p i
+showErrorDescription NotFound = div_ [ text $ "Data not found." ]
+
+showErrorDescription (ResponseError statusCode err) =
+  div_
+    [ text $ "Server error."
+    , br_
+    , text err
+    ]
+
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
   div_
     [ text $ "Cannot connect to the server. Please check your network connection."

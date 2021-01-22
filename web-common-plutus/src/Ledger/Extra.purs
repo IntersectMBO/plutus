@@ -7,10 +7,10 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Language.PlutusTx.AssocMap (unionWith)
 import Language.PlutusTx.AssocMap as AssocMap
-import Ledger.Ada (Ada(..))
-import Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
-import Ledger.Slot (Slot(..))
-import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
+import Plutus.V1.Ledger.Ada (Ada(..))
+import Plutus.V1.Ledger.Interval (Extended(..), Interval, LowerBound(..), UpperBound(..), _Interval)
+import Plutus.V1.Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Prelude (show, (+), (<<<), (<>))
 
 humaniseInterval :: Interval Slot -> String

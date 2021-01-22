@@ -25,9 +25,9 @@ import           GHC.Generics             (Generic)
 
 import qualified Language.PlutusTx        as PlutusTx
 import           Ledger                   as Ledger hiding (initialise, to)
+import           Ledger.Contexts          as V
 import           Ledger.Typed.Scripts     (ScriptInstance)
 import qualified Ledger.Typed.Scripts     as Scripts
-import           Ledger.Validation        as V
 
 import           Language.Plutus.Contract as Contract
 import qualified Ledger.Constraints       as Constraints

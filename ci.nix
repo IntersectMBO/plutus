@@ -59,15 +59,24 @@ let
         in
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) {
           # build relevant top level attributes from default.nix
-          inherit (packages) docs tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
+          inherit (packages) docs tests plutus-playground marlowe-playground plutus-pab marlowe-symbolic-lambda marlowe-playground-lambda plutus-playground-lambda;
           # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
           # cache for users
           inherit (plutus.haskell.project) roots;
           # Should be in roots, see https://github.com/input-output-hk/haskell.nix/issues/967
           inherit (pkgs.haskell-nix) internal-nix-tools internal-cabal-install;
 
-          # build the shell expression to be sure it works on all platforms
-          shell = import ./shell.nix { inherit packages; };
+          # Build the shell expression to be sure it works on all platforms
+          #
+          # The shell should never depend on any of our Haskell packages, which can
+          # sometimes happen by accident. In practice, everything depends transitively
+          # on 'plutus-core', so this does the job.
+          # FIXME: this should simply be set on the main shell derivation, but this breaks 
+          # lorri: https://github.com/target/lorri/issues/489. In the mean time, we set it
+          # only on the CI version, so that we still catch it, but lorri doesn't see it.
+          shell = (import ./shell.nix { inherit packages; }).overrideAttrs (attrs: attrs // {
+            disallowedRequisites = [ plutus.haskell.packages.plutus-core.components.library ];
+          });
 
           # build deployment tools
           inherit (plutus) thorp;

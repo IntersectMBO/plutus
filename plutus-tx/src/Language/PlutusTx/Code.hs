@@ -22,6 +22,7 @@ import           Flat.Decoder                     (DecodeException)
 
 import qualified Data.ByteString                  as BS
 import qualified Data.ByteString.Lazy             as BSL
+import           ErrorCode
 
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
@@ -60,6 +61,9 @@ newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure Deco
 instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
 instance Exception ImpossibleDeserialisationFailure
+
+instance HasErrorCode ImpossibleDeserialisationFailure where
+      errorCode ImpossibleDeserialisationFailure {} = ErrorCode 40
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc

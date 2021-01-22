@@ -146,21 +146,34 @@ mkInitialSymState pt (Just State { accounts = accs
 -- The identifiers for Deposit and Choice are calculated using the When clause and
 -- the contract (which is concrete), and using the semantics after a counter example is
 -- found.
-convertToSymbolicTrace :: [(SInteger, SInteger, Maybe SymInput, Integer)] ->
-                          [(SInteger, SInteger, SInteger, SInteger)] -> SBool
-convertToSymbolicTrace [] [] = sTrue
-convertToSymbolicTrace [] ((a, b, c, d):t) = (a .== -1) .&& (b .== -1) .&& (c .== -1) .&&
-                                             (d .== -1) .&& convertToSymbolicTrace [] t
-convertToSymbolicTrace ((lowS, highS, inp, pos):t) ((a, b, c, d):t2) =
+convertRestToSymbolicTrace :: [(SInteger, SInteger, Maybe SymInput, Integer)] ->
+                              [(SInteger, SInteger, SInteger, SInteger)] -> SBool
+convertRestToSymbolicTrace [] [] = sTrue
+convertRestToSymbolicTrace ((lowS, highS, inp, pos):t) ((a, b, c, d):t2) =
   (lowS .== a) .&& (highS .== b) .&& (getSymValFrom inp .== c) .&& (literal pos .== d) .&&
-  convertToSymbolicTrace t t2
+  convertRestToSymbolicTrace t t2
   where
     getSymValFrom :: Maybe SymInput -> SInteger
     getSymValFrom Nothing                       = 0
     getSymValFrom (Just (SymDeposit _ _ _ val)) = val
     getSymValFrom (Just (SymChoice _ val))      = val
     getSymValFrom (Just SymNotify)              = 0
-convertToSymbolicTrace _ _ = error "Provided symbolic trace is not long enough"
+convertRestToSymbolicTrace _ _ = error "Symbolic trace is the wrong length"
+
+isPadding :: [(SInteger, SInteger, SInteger, SInteger)] -> SBool
+isPadding ((a, b, c, d):t) = (a .== -1) .&& (b .== -1) .&& (c .== -1) .&&
+                             (d .== -1) .&& isPadding t
+isPadding [] = sTrue
+
+convertToSymbolicTrace :: [(SInteger, SInteger, Maybe SymInput, Integer)] ->
+                          [(SInteger, SInteger, SInteger, SInteger)] -> SBool
+convertToSymbolicTrace refL symL =
+ let lenRefL = length refL
+     lenSymL = length symL in
+ if lenRefL <= lenSymL
+ then let lenPadding = lenSymL - lenRefL in
+          isPadding (take lenPadding symL) .&& convertRestToSymbolicTrace refL (drop lenPadding symL)
+ else error "Provided symbolic trace is not long enough"
 
 -- Symbolic version evalValue
 symEvalVal :: Value Observation -> SymState -> SInteger
@@ -417,13 +430,13 @@ isValidAndFailsWhen oa hasErr (Case (Choice choId bnds) cont:rest)
                then ensureBounds otherConcVal bnds .|| previousMatch otherSymInput pmSymState
                else previousMatch otherSymInput pmSymState
              _ -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
-                                      newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
                <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
-     return (ite (newCond .&& sNot clashResult)
-                 (ensureBounds concVal bnds .&& newTrace)
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
+     return (ite (newCond .&& sNot clashResult .&& ensureBounds concVal bnds)
+                 newTrace
                  contTrace)
 isValidAndFailsWhen oa hasErr (Case (Notify obs) cont:rest)
                     timeout timCont previousMatch sState pos =
@@ -436,11 +449,11 @@ isValidAndFailsWhen oa hasErr (Case (Notify obs) cont:rest)
            case otherSymInput of
              SymNotify -> pmObsRes .|| previousMatch otherSymInput pmSymState
              _         -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
-                                      newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
                <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
+                                      newPreviousMatch sState (pos + 1)
      return (ite (newCond .&& obsRes .&& sNot clashResult) newTrace contTrace)
 
 --------------------------------------------------
@@ -506,7 +519,7 @@ generateParameters _ = error "Wrong number of labels generated"
 -- concrete values.
 groupResult :: [String] -> Map String Integer -> [(Integer, Integer, Integer, Integer)]
 groupResult (sl:sh:v:b:t) mappings =
-    if ib == -1 then []
+    if ib == -1 then groupResult t mappings
     else (isl, ish, iv, ib):groupResult t mappings
   where (Just isl) = M.lookup sl mappings
         (Just ish) = M.lookup sh mappings

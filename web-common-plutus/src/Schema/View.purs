@@ -1,7 +1,7 @@
 module Schema.View (actionArgumentForm) where
 
 import Prelude hiding (div)
-import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, col_, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, nbsp, row_, textMuted, validFeedback_, wasValidated)
+import Bootstrap (btn, btnInfo, btnLink, btnPrimary, btnSmall, col, col10_, col2_, colFormLabel, formCheckInput, formCheckLabel, formCheck_, formControl, formGroup, formGroup_, formRow_, formText, inputGroupAppend_, inputGroupPrepend_, inputGroup_, invalidFeedback_, row_, textMuted, validFeedback_, wasValidated)
 import Bootstrap as Bootstrap
 import Data.Array as Array
 import Data.BigInteger as BigInteger
@@ -21,8 +21,8 @@ import Halogen.HTML.Properties (IProp, InputType(..), checked, class_, classes, 
 import Halogen.HTML.Properties as HP
 import Icons (Icon(..), icon)
 import Ledger.Extra (_LowerBoundExtended, _LowerBoundInclusive, _UpperBoundExtended, _UpperBoundInclusive, _ivFrom, _ivTo, humaniseInterval)
-import Ledger.Interval (Extended(..), Interval, _Interval)
-import Ledger.Slot (Slot(..))
+import Plutus.V1.Ledger.Interval (Extended(..), Interval, _Interval)
+import Plutus.V1.Ledger.Slot (Slot(..))
 import Prim.TypeError (class Warn, Text)
 import Schema (FormArgumentF(..))
 import Schema.Types (FieldEvent(..), FormArgument, FormEvent(..))

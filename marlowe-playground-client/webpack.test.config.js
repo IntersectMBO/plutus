@@ -41,6 +41,8 @@ module.exports = {
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
                                 'web-common/**/*.purs',
+                                'web-common-marlowe/**/*.purs',
+                                'web-common-playground/**/*.purs',
                                 'test/**/*.purs'
                             ],
                         }

@@ -25,6 +25,7 @@ module Language.PlutusCore.DeBruijn.Internal
     , getUnique
     , unNameDeBruijn
     , unNameTyDeBruijn
+    , fakeNameDeBruijn
     , nameToDeBruijn
     , tyNameToDeBruijn
     , deBruijnToName
@@ -49,6 +50,7 @@ import           Data.Typeable
 import           Numeric.Natural
 
 import           Control.DeepSeq            (NFData)
+import           ErrorCode
 import           GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
@@ -173,6 +175,10 @@ instance Pretty FreeVariableError where
     pretty (FreeIndex i)  = "Free index:" <+> pretty i
 makeClassyPrisms ''FreeVariableError
 
+instance HasErrorCode FreeVariableError where
+    errorCode  FreeIndex {}  = ErrorCode 23
+    errorCode  FreeUnique {} = ErrorCode 22
+
 -- | Get the 'Index' corresponding to a given 'Unique'.
 getIndex :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m) => Unique -> m Index
 getIndex u = do
@@ -196,6 +202,10 @@ unNameDeBruijn (NamedDeBruijn _ ix) = DeBruijn ix
 unNameTyDeBruijn
     :: NamedTyDeBruijn -> TyDeBruijn
 unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
+
+fakeNameDeBruijn
+    :: DeBruijn -> NamedDeBruijn
+fakeNameDeBruijn (DeBruijn ix) = NamedDeBruijn "" ix
 
 nameToDeBruijn
     :: (MonadReader Levels m, AsFreeVariableError e, MonadError e m)

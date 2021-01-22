@@ -6,13 +6,13 @@ import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
 import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
-import Control.Monad.Except (ExceptT(..), lift, runExceptT)
+import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), hush, note)
 import Data.Foldable (fold, for_)
 import Data.Lens (assign, has, preview, set, use, view, (^.))
 import Data.Lens.Extra (peruse)
@@ -23,6 +23,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
 import Gists.Types (parseGistUrl) as Gists
@@ -45,7 +46,7 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellEditorSlot, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
 import Marlowe (SPParams_, getApiGistsByGistId)
 import Marlowe as Server
@@ -71,6 +72,7 @@ import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import SessionStorage as SessionStorage
 import SimulationPage.State as Simulation
 import SimulationPage.Types as ST
 import StaticData (gistIdLocalStorageKey)
@@ -231,8 +233,8 @@ handleRoute ::
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
 handleRoute settings { gistId: (Just gistId), subroute } = do
-  actionWithAnalytics settings (GistAction (SetGistUrl (unwrap gistId)))
-  actionWithAnalytics settings (GistAction LoadGist)
+  handleActionWithoutNavigationGuard settings (GistAction (SetGistUrl (unwrap gistId)))
+  handleActionWithoutNavigationGuard settings (GistAction LoadGist)
   handleSubRoute settings subroute
 
 handleRoute settings { subroute } = handleSubRoute settings subroute
@@ -261,24 +263,26 @@ fullHandleAction ::
   HalogenM State Action ChildSlots Void m Unit
 fullHandleAction settings =
   withAccidentalNavigationGuard settings
+    $ withSessionStorage
     $ withAnalytics
         ( handleAction settings
         )
 
-actionWithAnalytics ::
+handleActionWithoutNavigationGuard ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-actionWithAnalytics settings =
-  withAnalytics
-    ( handleAction settings
-    )
+handleActionWithoutNavigationGuard settings =
+  withSessionStorage
+    $ withAnalytics
+        ( handleAction settings
+        )
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
--- defined above (actionWithAnalytics or fullHandleAction)
+-- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
 -- TODO: Refactor the settings to come from a MonadAsk environment
 handleAction ::
   forall m.
@@ -296,6 +300,12 @@ handleAction settings Init = do
     eventListenerEventSource keyup (toEventTarget document) (map (HandleKey sid) <<< KE.fromEvent)
   toSimulation $ Simulation.handleAction settings ST.Init
   checkAuthStatus settings
+  -- Load session data if available
+  void
+    $ runMaybeT do
+        sessionJSON <- MaybeT $ liftEffect $ SessionStorage.getItem StaticData.sessionStorageKey
+        session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
+        H.modify_ (sessionToState session)
 
 handleAction settings (HandleKey sid ev)
   | KE.key ev == "Escape" = assign _showModal Nothing
@@ -315,8 +325,8 @@ handleAction s (HaskellAction action) = do
       let
         contract = fold mContract
       sendToSimulation s contract
-    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (HE.InitHaskellProject _) -> assign _hasUnsavedChanges false
+    (HE.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Haskell true
+    (HE.InitHaskellProject _) -> setUnsavedChangesForLanguage Haskell false
     _ -> pure unit
 
 handleAction s (JavascriptAction action) = do
@@ -327,8 +337,8 @@ handleAction s (JavascriptAction action) = do
       let
         contract = fold mContract
       sendToSimulation s contract
-    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (JS.InitJavascriptProject _) -> assign _hasUnsavedChanges false
+    (JS.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Javascript true
+    (JS.InitJavascriptProject _) -> setUnsavedChangesForLanguage Javascript false
     _ -> pure unit
 
 handleAction s (MarloweEditorAction action) = do
@@ -344,8 +354,8 @@ handleAction s (MarloweEditorAction action) = do
         void $ toBlocklyEditor $ BlocklyEditor.handleAction (BE.InitBlocklyProject source)
         assign _workflow (Just Blockly)
         selectView BlocklyEditor
-    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> assign _hasUnsavedChanges true
-    (ME.InitMarloweProject _) -> assign _hasUnsavedChanges false
+    (ME.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Marlowe true
+    (ME.InitMarloweProject _) -> setUnsavedChangesForLanguage Marlowe false
     _ -> pure unit
 
 handleAction settings (BlocklyEditorAction action) = do
@@ -365,7 +375,7 @@ handleAction settings (BlocklyEditorAction action) = do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
         toMarloweEditor $ MarloweEditor.handleAction settings $ ME.InitMarloweProject code
-    (BE.HandleBlocklyMessage Blockly.CodeChange) -> assign _hasUnsavedChanges true
+    (BE.HandleBlocklyMessage Blockly.CodeChange) -> setUnsavedChangesForLanguage Blockly true
     _ -> pure unit
 
 handleAction settings (SimulationAction action) = do
@@ -404,7 +414,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
-handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = assign _hasUnsavedChanges true
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = setUnsavedChangesForLanguage Actus true
 
 -- TODO: modify gist action type to take a gistid as a parameter
 -- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
@@ -422,7 +432,6 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
         ( set _createGistResult (Success gist)
             <<< set _showModal Nothing
             <<< set _workflow (Just lang)
-            <<< set _hasUnsavedChanges true
         )
     Left error ->
       modify_
@@ -468,7 +477,6 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
-        <<< set _hasUnsavedChanges true
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -491,13 +499,6 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
-        {- 
-        it is possible that you could load a demo that is already in the editor so there would in theory
-        be no unsaved changes however this is tricky with blockly and I think it's fine to say that if
-        you load a new demo then you have unsaved changes
-        -}
-        
-        <<< set _hasUnsavedChanges true
     )
   selectView $ selectLanguageView lang
 
@@ -619,6 +620,10 @@ showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at positi
 
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
 
+showErrorDescription NotFound = "NotFound"
+
+showErrorDescription (ResponseError status body) = "ResponseError: " <> show status <> " " <> body
+
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 
 showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
@@ -689,9 +694,6 @@ handleGistAction settings PublishGist = do
         modify_
           ( set _gistId (Just gistId)
               <<< set _loadGistResult (Right NotAsked)
-              {- This marks the project as saved globally, it would normally be a replication
-               of the inner unsaved state set below, but we n two places. Here to update the view -}
-              
               <<< set _hasUnsavedChanges false
           )
 
@@ -779,7 +781,7 @@ handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
   fullHandleAction settings CloseModal
   case modalAction of
     ConfirmUnsavedNavigation.Cancel -> pure unit
-    ConfirmUnsavedNavigation.DontSaveProject -> actionWithAnalytics settings intendedAction
+    ConfirmUnsavedNavigation.DontSaveProject -> handleActionWithoutNavigationGuard settings intendedAction
     ConfirmUnsavedNavigation.SaveProject -> do
       state <- H.get
       -- TODO: This was taken from the view, from the gistModal helper. I think we should
@@ -791,6 +793,14 @@ handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
       else
         fullHandleAction settings $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
 
+setUnsavedChangesForLanguage :: forall m. Lang -> Boolean -> HalogenM State Action ChildSlots Void m Unit
+setUnsavedChangesForLanguage lang value = do
+  workflow <- use _workflow
+  when (workflow == Just lang)
+    $ assign _hasUnsavedChanges value
+
+-- This is a HOF intented to be used on top of handleAction. It prevents the user from accidentally doing an Action that
+-- would result in losing the progress.
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>
@@ -798,18 +808,26 @@ withAccidentalNavigationGuard ::
   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-withAccidentalNavigationGuard settings handleAction' action =
-  if not actionIsGuarded then
+withAccidentalNavigationGuard settings handleAction' action = do
+  currentView <- use _view
+  hasUnsavedChanges <- use _hasUnsavedChanges
+  if viewIsGuarded currentView && actionIsGuarded && hasUnsavedChanges then
+    -- If the action would result in the user losing the work, we present a
+    -- modal to confirm, cancel or save the work and we preserve the intended action
+    -- to be executed after.
+    fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
+  else
     handleAction' action
-  else do
-    hasUnsavedChanges <- use _hasUnsavedChanges
-    if hasUnsavedChanges then do
-      fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
-    else do
-      handleAction' action
   where
+  -- Which pages needs to be guarded.
+  viewIsGuarded = case _ of
+    HomePage -> false
+    _ -> true
+
+  -- What actions would result in losing the work.
   actionIsGuarded = case action of
-    (ChangeView _) -> true
+    (ChangeView HomePage) -> true
+    (ChangeView ActusBlocklyEditor) -> true
     (NewProjectAction (NewProject.CreateProject _)) -> true
     (ProjectsAction (Projects.LoadProject _ _)) -> true
     (DemosAction (Demos.LoadDemo _ _)) -> true
@@ -827,7 +845,7 @@ selectView view = do
     window <- Web.window
     Window.scroll 0 0 window
   case view of
-    HomePage -> assign _workflow Nothing
+    HomePage -> modify_ (set _workflow Nothing <<< set _hasUnsavedChanges false)
     Simulation -> do
       Simulation.editorResize
       Simulation.editorSetTheme
@@ -844,3 +862,19 @@ selectView view = do
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> do
       void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+
+------------------------------------------------------------
+withSessionStorage ::
+  forall m.
+  MonadAff m =>
+  (Action -> HalogenM State Action ChildSlots Void m Unit) ->
+  Action ->
+  HalogenM State Action ChildSlots Void m Unit
+withSessionStorage handleAction' action = do
+  preSession <- H.gets stateToSession
+  handleAction' action
+  postSession <- H.gets stateToSession
+  when (preSession /= postSession)
+    $ liftEffect
+    $ SessionStorage.setItem StaticData.sessionStorageKey
+    $ encodeJSON postSession

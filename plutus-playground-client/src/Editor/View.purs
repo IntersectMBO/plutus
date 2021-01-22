@@ -13,8 +13,9 @@ import Data.Either (Either(..))
 import Data.Lens (_Right, preview, to, view)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
+import Editor.Lenses (_warnings)
 import Editor.State (initEditor)
-import Editor.Types (Action(..), State(..), _warnings, allKeyBindings)
+import Editor.Types (Action(..), State(..), allKeyBindings)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, code_, div, div_, option, p_, pre, pre_, select, slot, text)
 import Halogen.HTML.Events (onClick, onDragOver, onDrop, onMouseDown, onMouseMove, onMouseUp, onSelectedIndexChange)
@@ -24,9 +25,10 @@ import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), Warning, _InterpreterResult, _Warning)
 import Language.Haskell.Monaco as HM
 import LocalStorage (Key)
+import MainFrame.Lenses (_editorSlot)
+import MainFrame.Types (ChildSlots, HAction(..), View(..), WebCompilationResult)
 import Network.RemoteData (RemoteData(..), _Success, isLoading)
 import Prelude (const, map, not, pure, show, unit, ($), (<$>), (<<<), (<>), (==))
-import Types (ChildSlots, _editorSlot, HAction(..), View(..), WebCompilationResult)
 import Web.UIEvent.MouseEvent (MouseEvent, pageY)
 
 editorPreferencesSelect :: forall p. KeyBindings -> HTML p Action

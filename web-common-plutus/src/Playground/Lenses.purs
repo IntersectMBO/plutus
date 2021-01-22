@@ -9,9 +9,9 @@ import Data.Lens.Record (prop)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
 import Ledger.Index (UtxoIndex, _UtxoIndex)
-import Ledger.Tx (TxOut, TxOutRef)
-import Ledger.TxId (TxId)
-import Ledger.Value (CurrencySymbol, TokenName, _CurrencySymbol, _TokenName)
+import Plutus.V1.Ledger.Tx (TxOut, TxOutRef)
+import Plutus.V1.Ledger.TxId (TxId)
+import Plutus.V1.Ledger.Value (CurrencySymbol, TokenName, _CurrencySymbol, _TokenName)
 
 _currencySymbol :: Lens' CurrencySymbol String
 _currencySymbol = _CurrencySymbol <<< prop (SProxy :: SProxy "unCurrencySymbol")
