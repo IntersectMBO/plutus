@@ -8,6 +8,7 @@ module MainFrame.Lenses
   , _simulations
   , _actionDrag
   , _evaluationResult
+  , _successfulEvaluationResult
   , _lastEvaluatedSimulation
   , _compilationResult
   , _successfulCompilationResult
@@ -81,6 +82,9 @@ _actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
 
 _evaluationResult :: Lens' State (WebData (Either PlaygroundError EvaluationResult))
 _evaluationResult = _Newtype <<< prop (SProxy :: SProxy "evaluationResult")
+
+_successfulEvaluationResult :: Traversal' State EvaluationResult
+_successfulEvaluationResult = _evaluationResult <<< _Success <<< _Right
 
 _lastEvaluatedSimulation :: Lens' State (Maybe Simulation)
 _lastEvaluatedSimulation = _Newtype <<< prop (SProxy :: SProxy "lastEvaluatedSimulation")

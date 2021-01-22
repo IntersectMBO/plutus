@@ -55,7 +55,7 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, getKnownCurrencies)
+import MainFrame.Lenses (_actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentDemoName, _currentView, _demoFilesMenuVisible, _editorState, _evaluationResult, _functionSchema, _gistErrorPaneVisible, _gistUrl, _lastEvaluatedSimulation, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationId, _simulationWallets, _simulations, _successfulCompilationResult, _successfulEvaluationResult, getKnownCurrencies)
 import MainFrame.MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, resizeEditor, runHalogenApp, saveBuffer, scrollIntoView, setDataTransferData, setDropEffect)
 import MainFrame.Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData)
 import MainFrame.View (render)
@@ -228,8 +228,8 @@ handleAction EvaluateActions =
               assign _lastEvaluatedSimulation simulation
               assign _blockchainVisualisationState Chain.initialState
               -- preselect the first transaction (if any)
-              mAnnotatedBlockchain <- peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
-              txId <- (gets <<< lastOf) (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
+              mAnnotatedBlockchain <- peruse (_successfulEvaluationResult <<< _resultRollup <<< to AnnotatedBlockchain)
+              txId <- (gets <<< lastOf) (_successfulEvaluationResult <<< _resultRollup <<< traversed <<< traversed <<< _txIdOf)
               lift $ zoomStateT _blockchainVisualisationState $ Chain.handleAction (FocusTx txId) mAnnotatedBlockchain
             replaceViewOnSuccess result Simulations Transactions
             lift $ scrollIntoView simulatorTitleRefLabel
@@ -317,7 +317,7 @@ handleAction (ChangeSimulation subaction) = do
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
-    peruse (_evaluationResult <<< _Success <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
+    peruse (_successfulEvaluationResult <<< _resultRollup <<< to AnnotatedBlockchain)
   let
     wrapper = case subaction of
       (FocusTx _) -> animate (_blockchainVisualisationState <<< _chainFocusAppearing)
