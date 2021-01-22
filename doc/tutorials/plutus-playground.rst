@@ -11,6 +11,12 @@ The Plutus Playground consists of a code editor and a simulator.
   Plutus Playground (code editor)
 
 We can write Plutus Apps in the code editor and test them in the simulator.
+
+.. note::
+
+  Plutus Apps are distributed applications with on-chain and off-chain state.
+  Their main task is to build the transactions that produce and spend Plutus script outputs.
+
 The Plutus Playground includes a number of sample apps.
 In this tutorial we are going to run through two of the sample apps.
 
@@ -215,10 +221,6 @@ If it had come from the blockchain we would have seen a failed transaction in th
 The app running in wallet one did not attempt to submit a transaction for retrieving the funds, because such a transaction would fail to validate.
 Instead, the app stopped with an error, leaving the on-chain state untouched.
 This is another example the different notions of state that we are dealing with in Plutus apps.
-
-.. note::
-
-  Plutus Apps are distributed applications. Their state is spread across different locations on-chain and off-chain.
 
 Exercise
 --------
