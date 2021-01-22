@@ -11,7 +11,8 @@
     "test": "spago --no-psa test",
     "test:watch": "spago test --no-psa --watch",
     "docs": "spago docs",
-    "repl": "spago repl"
+    "repl": "spago repl",
+    "start": "npm install && plutus-pab-generate-purs && npm run purs:compile && npm run webpack:server"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",

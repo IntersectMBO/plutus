@@ -59,47 +59,32 @@ let
 
   plutus-playground-generate-purs = pkgs.writeShellScriptBin "plutus-playground-generate-purs" ''
     rm -rf ./generated
-
-    if [[ $1 = "-r" ]]; then
-      $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator generated
-    else
-      ${plutus-playground.server-invoker}/bin/plutus-playground psgenerator generated
-    fi
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground psgenerator generated
   '';
   plutus-playground-server = pkgs.writeShellScriptBin "plutus-playground-server" ''
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
-    ${plutus-playground.server-invoker}/bin/plutus-playground webserver
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)bin/plutus-playground webserver
   '';
   marlowe-playground-generate-purs = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
     rm -rf ./generated
-
-    if [[ $1 = "-r" ]]; then
-      $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
-    else
-      ${marlowe-playground.server-invoker}/bin/marlowe-playground psgenerator generated
-    fi
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
   '';
   marlowe-playground-server = pkgs.writeShellScriptBin "marlowe-playground-server" ''
     export FRONTEND_URL=https://localhost:8009
-    ${marlowe-playground.server-invoker}/bin/marlowe-playground webserver
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
   '';
-  plutus-scb-generate-purs = pkgs.writeShellScriptBin "plutus-scb-generate-purs" ''
+  plutus-pab-generate-purs = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
     rm -rf ./generated
-    cp ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
-
-    if [[ $1 = "-r" ]]; then
-      $(nix-build ../default.nix --quiet --no-build-output -A plutus-scb.server-invoker)/bin/plutus-scb psgenerator generated
-    else
-      ${plutus-scb.server-invoker}/bin/plutus-scb psgenerator generated
-    fi
+    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
   '';
-  plutus-scb-server = pkgs.writeShellScriptBin "plutus-scb-server" ''
+  plutus-pab-server = pkgs.writeShellScriptBin "plutus-pab-server" ''
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
     rm -rf ./generated
-    cp ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
-    ${plutus-scb.server-invoker}/bin/plutus-scb webserver
+    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
+    $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
   '';
 
 
@@ -114,8 +99,8 @@ let
     hlint
     marlowe-playground-generate-purs
     marlowe-playground-server
-    plutus-scb-generate-purs
-    plutus-scb-server
+    plutus-pab-generate-purs
+    plutus-pab-server
     plutus-playground-generate-purs
     plutus-playground-server
     purs
