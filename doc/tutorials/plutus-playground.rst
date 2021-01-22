@@ -10,7 +10,7 @@ The Plutus Playground consists of a code editor and a simulator.
 
   Plutus Playground (code editor)
 
-We can write Plutus apps in the code editor and test them in the simulator.
+You can write Plutus apps in the code editor and test them in the simulator.
 
 .. note::
 
@@ -18,14 +18,14 @@ We can write Plutus apps in the code editor and test them in the simulator.
   Their main task is to build the transactions that produce and spend Plutus script outputs.
 
 The Plutus Playground includes a number of sample apps.
-In this tutorial we are going to run through two of the sample apps.
+In this tutorial you are going to run through two of the sample apps.
 
 .. _playground-compiling-hello-world:
 
 Running the "Hello, World" app
 ------------------------------
 
-When we first open the Plutus Playground, the code editor is populated with the "Vesting" app.
+When you first open the Plutus Playground, the code editor is populated with the "Vesting" app.
 To load the "Hello, World" app, click the link in the top row.
 This app is much simpler than the vesting app.
 In fact, the app itself only consists of a single line, and a type annotation:
@@ -37,8 +37,8 @@ In fact, the app itself only consists of a single line, and a type annotation:
 Running the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now that the app has been compiled, we can run it in the simulated environment. 
-The builtin examples are already compiled, so we can click **Simulate** right away.
+Now that the app has been compiled, you can run it in the simulated environment. 
+The builtin examples are already compiled, so you can click **Simulate** right away.
 
 .. note::
 
@@ -55,7 +55,7 @@ The code editor disappears and the simulator opens.
   Plutus Playground (simulator)
 
 We can use the simulator to define complex scenarios with multiple agents trading and communicating over the Cardano blockchain.
-For the "Hello, World" app however we don't need to change anything in the simulator.
+For the "Hello, World" app however you don't need to change anything in the simulator.
 We can click **Evaluate** right away.
 This sends the simulation to the server, alongside the source code of our app.
 When the server is done running the simulation, the transactions pane opens, showing the outcome of the simulation.
@@ -81,14 +81,14 @@ The second of the new sections has a table with the balances of each address *af
 We can see that wallet 1 and wallet 2 each have ten lovelace.
 
 Below this there is a chart showing the final balances at the end of the simulation, after all transactions.
-Since we only have a single transaction, the final balances are exactly the same as the "Balances Carried Forward" from the initial transaction.
+Since you only have a single transaction, the final balances are exactly the same as the "Balances Carried Forward" from the initial transaction.
 
 .. figure:: images/playground-logs.png
 
   Log output from the "Hello, World" simulation
 
 Next is the "Logs" section.
-Here we can see messages that were produced by the emulator during the simulation.
+Here you can see messages that were produced by the emulator during the simulation.
 The logs tell us that the initial transaction was validated, then the slot number changed, and then the app running in each wallet produced a log message saying "Hello, World".
 
 .. note::
@@ -101,7 +101,7 @@ This data is useful for diagnosing problems with the app.
 Adding a payment to the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now we're going to extend the simulation by adding a new wallet and a payment between two wallets.
+Now you're going to extend the simulation by adding a new wallet and a payment between two wallets.
 Click the close button to get back to the simulator.
 In the "Wallets" section of the simulator there is a box for each simulated wallet.
 Click the "Add Wallet" button to add a new simulated wallet.
@@ -111,7 +111,7 @@ In the "Pay to Wallet" action, enter the number 2 into the "Recipient" field.
 This means that wallet 2 is the recipient of the payment (the payer is wallet 3).
 Change the amount to 5 lovelace.
 
-Now we need to make sure our simulation runs long enough for the payment to appear on the blockchain.
+Now you need to make sure our simulation runs long enough for the payment to appear on the blockchain.
 The simulation ends after the last action in the action sequence.
 To make it run a little longer, click the "Add Wait Action" button.
 Another "Wait" action is added to the end of the list.
@@ -121,12 +121,12 @@ Another "Wait" action is added to the end of the list.
   Action sequence for a payment of 5 lovelace from wallet 3 to wallet 2.
 
 Now click **Evaluate**.
-The results pane opens and we can see that the blockchain has two transactions.
+The results pane opens and you can see that the blockchain has two transactions.
 Click the second transaction.
 It has one input (a public-key output belonging to wallet 3) and two outputs:
 One output with five lovelace belonging to wallet 2, and another output with the remaining five lovelace belonging to wallet 3.
 This second output is called a *change output*.
-It is needed because the input that was spent contained ten lovelace, and we only wanted to pay five of them to wallet 2.
+It is needed because the input that was spent contained ten lovelace, and you only wanted to pay five of them to wallet 2.
 Therefore the remaining five lovelace were given back to wallet 3.
 
 The "Balances carried forward" and "Final balances" sections also reflect the payment that was made.
@@ -138,7 +138,7 @@ Running the "Vesting" app
 -------------------------
 
 We've seen how to compile code, run simulations and make sense of their output.
-In the second part of this tutorial we are going to run an app that actually does something on the blockchain, and we're going to feed input to it using the endpoints that it provides.
+In the second part of this tutorial you are going to run an app that actually does something on the blockchain, and you're going to feed input to it using the endpoints that it provides.
 
 Click the "Vesting" link in the row of demo files at the top.
 The vesting app is loaded into the code editor.
@@ -150,17 +150,17 @@ We are not going to look at the source for now (there are comments in the code e
 
 Click **Compile** and then **Simulate** to get to the simulator.
 The vesting app comes with a predefined simulation of a total of six actions.
-Besides the "Wait" actions which we've seen before, there are some app-specific actions: "vest funds" and "retrieve funds".
+Besides the "Wait" actions which you've seen before, there are some app-specific actions: "vest funds" and "retrieve funds".
 The vesting app defines endpoints with those names and uses them to ask for input.
 
 The box for the "vest funds" action is empty.
 This endpoint is there to tell the app to make a payment to the address of the vesting script.
 The box for the "retrieve funds" endpoint has an input field for an Ada amount.
-In each of the two invocations we retrieve four lovelace.
+In each of the two invocations you retrieve four lovelace.
 
 Each endpoint used by an app has its own type (number, text, currency, etc.) that is defined in the source code.
 The Plutus Playground uses this type to provide the correct set of form elements for creating a value of the type.
-That way we don't need to manually enter JSON objects into the action boxes, and we can perform some basic validation of the values.
+That way you don't need to manually enter JSON objects into the action boxes, and you can perform some basic validation of the values.
 
 Running the vesting simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -216,11 +216,11 @@ The app instance for wallet 1 then stopped with an error and did not process any
 
 It is important to realise the source of the error.
 The error came from the *client* (wallet one), not from the blockchain.
-If it had come from the blockchain we would have seen a failed transaction in the logs.
+If it had come from the blockchain you would have seen a failed transaction in the logs.
 
 The app running in wallet one did not attempt to submit a transaction for retrieving the funds, because such a transaction would fail to validate.
 Instead, the app stopped with an error, leaving the on-chain state untouched.
-This is another example the different notions of state that we are dealing with in Plutus apps.
+This is another example the different notions of state that you are dealing with in Plutus apps.
 
 Exercise
 --------

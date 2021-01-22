@@ -7,7 +7,7 @@ Writing a basic Plutus app in the Plutus Playground
 :term:`Plutus apps<contract application>` are programs that run off-chain and manage active contract instances.
 They monitor the blockchain, ask for user input, and submit transactions to the blockchain.
 If you are a contract author, building a Plutus app is the easiest way to create and spend Plutus script outputs.
-In this tutorial we are going to write a Plutus app that locks some Ada in a script output and splits them evenly between two recipients.
+In this tutorial you are going to write a Plutus app that locks some Ada in a script output and splits them evenly between two recipients.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK0
@@ -16,7 +16,7 @@ In this tutorial we are going to write a Plutus app that locks some Ada in a scr
 Defining the types
 ------------------
 
-We start by defining some data types that we're going to need for the _Split_ app.
+We start by defining some data types that you're going to need for the _Split_ app.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK1
@@ -25,7 +25,7 @@ We start by defining some data types that we're going to need for the _Split_ ap
 ``SplitData`` describes the two recipients of the funds, and the total amount of the funds denoted in Ada.
 
 We are using the ``PubKeyHash`` type to identify the recipients.
-When making the payment we can use the hashes to create two public key outputs.
+When making the payment you can use the hashes to create two public key outputs.
 
 Instances for data types
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,7 +58,7 @@ We are going to use the validator script to lock a script output that contains t
 
    There is an n-to-n relationship between Plutus apps and validator scripts. Apps can deal with multiple validators, and validators can be used by different apps.
 
-In this tutorial we only need a single validator.
+In this tutorial you only need a single validator.
 Its datum type is ``SplitData`` and its redeemer type is ``()`` (the unit type).
 The validator looks at the ``ValidatorCtx`` value to see if the conditions for making the payment are met:
 
@@ -79,7 +79,7 @@ The ``ScriptType`` class defines the types of the validator, and ``splitInstance
 Asking for input
 ----------------
 
-When we start the app, we want to ask the sender for a ``SplitData`` object.
+When you start the app, you want to ask the sender for a ``SplitData`` object.
 In Plutus apps, the mechanism for requesting inputs is called :term:`endpoints <endpoint>`.
 
 All endpoints that an app wants to use must be declared as part of the type of the app.
@@ -98,17 +98,17 @@ We are going to convert the wallet values to their corresponding public key hash
 That way, the user can simply identify the recipient by a number and doesn't have to enter a public key into a text box.
 This type of conversion from a nickname to a unique identifier is a common task for Plutus apps.
 
-To use the ``lock`` endpoint in our app, we call the :hsobj:`Language.Plutus.Contract.Effects.ExposeEndpoint.endpoint` function:
+To use the ``lock`` endpoint in our app, you call the :hsobj:`Language.Plutus.Contract.Effects.ExposeEndpoint.endpoint` function:
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK5
    :end-before: BLOCK6
 
 ``endpoint`` has a single argument, the name of the endpoint.
-The name of the endpoint is a Haskell type, not a value, and we have to supply this argument using the type application operator ``@``.
+The name of the endpoint is a Haskell type, not a value, and you have to supply this argument using the type application operator ``@``.
 This operator is provided by the `TypeApplications <https://gitlab.haskell.org/ghc/ghc/-/wikis/type-application>`_ GHC extension.
 
-Next we need to turn the two ``Wallet`` values into their public key hashes so that we can get the ``SplitData`` value from the input that was supplied by the user.
+Next you need to turn the two ``Wallet`` values into their public key hashes so that you can get the ``SplitData`` value from the input that was supplied by the user.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK6
@@ -120,13 +120,13 @@ A real Plutus app would use the metadata server or a custom lookup function for 
 Locking the funds
 -----------------
 
-With the ``SplitData`` that we got from the user we can now write a transaction that locks the requested amount of Ada in a script output.
+With the ``SplitData`` that you got from the user you can now write a transaction that locks the requested amount of Ada in a script output.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK7
    :end-before: BLOCK8
 
-Using the constraints library that comes with the Plutus SDK we specify a transaction ``tx`` in a single line.
+Using the constraints library that comes with the Plutus SDK you specify a transaction ``tx`` in a single line.
 
 .. code-block:: haskell
 
@@ -144,7 +144,7 @@ All that's missing now is the code for retrieving the funds, and some glue to pu
    :start-after: BLOCK8
    :end-before: BLOCK9
 
-In ``unlockFunds`` we use the constraints library to build the spending transaction.
+In ``unlockFunds`` you use the constraints library to build the spending transaction.
 Here, ``tx`` combines three different constraints.
 ``collectFromScript`` takes the script outputs in ``unspentOutputs`` and adds them as input to the transaction, using the unit ``()`` as the redeemer.
 The other two constraints use ``mustPayToPubKey`` to add payments for the recipients.
@@ -152,7 +152,7 @@ The other two constraints use ``mustPayToPubKey`` to add payments for the recipi
 Deploying the app on the Playground
 -----------------------------------
 
-We have all the functions we need for the on-chain and off-chain parts of the app.
+We have all the functions you need for the on-chain and off-chain parts of the app.
 Every contract in the Playground must define its public interface like this:
 
 .. literalinclude:: BasicApps.hs
@@ -169,7 +169,7 @@ The Playground server uses the ``endpoints`` definition to populate the UI (via 
 The ``select`` function acts like a choice between two branches.
 The left branch starts with ``lock`` and the right branch starts with ``unlock``.
 The app exposes both endpoints and proceeds with the branch that receives an answer first.
-So, if we call the ``lock`` endpoint in one of the simulated wallets, it will call ``lockFunds`` and ignore the ``unlock`` side of the contract.
+So, if you call the ``lock`` endpoint in one of the simulated wallets, it will call ``lockFunds`` and ignore the ``unlock`` side of the contract.
 
 We also need a couple of declarations that generate glue code for the Playground.
 
@@ -185,7 +185,7 @@ And an additional import at the top of the file.
 
    import Playground.Contract
 
-After that, we can compile the contract and create a simulation.
+After that, you can compile the contract and create a simulation.
 The following action sequence results in two transactions that lock the funds and then distribute them to the two recipients.
 
 .. figure:: images/playground-basic-app-simulation.png
