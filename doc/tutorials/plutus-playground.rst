@@ -18,7 +18,7 @@ You can write Plutus apps in the code editor and test them in the simulator.
   Their main task is to build the transactions that produce and spend Plutus script outputs.
 
 The Plutus Playground includes a number of sample apps.
-In this tutorial you are going to run through two of the sample apps.
+In this tutorial you are going to run through two of these sample apps.
 
 .. _playground-compiling-hello-world:
 
@@ -26,7 +26,7 @@ Running the "Hello, World" app
 ------------------------------
 
 When you first open the Plutus Playground, the code editor is populated with the "Vesting" app.
-To load the "Hello, World" app, click the link in the top row.
+To load the "Hello, World" app, click the "Hello, World" link in the top row.
 This app is much simpler than the vesting app.
 In fact, the app itself only consists of a single line, and a type annotation:
 
@@ -34,8 +34,8 @@ In fact, the app itself only consists of a single line, and a type annotation:
     :start-after: BLOCK1
     :end-before: BLOCK2
 
-Running the first simulation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Running the first simulation of the app
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that the app has been compiled, you can run it in the simulated environment. 
 The builtin examples are already compiled, so you can click **Simulate** right away.
@@ -48,22 +48,26 @@ The builtin examples are already compiled, so you can click **Simulate** right a
   When the app has been compiled without errors, the feedback message changes to "Compilation successful", and the **Simulate** button is active.
 
 Click the **Simulate** button.
-The code editor disappears and the simulator opens.
+The code editor is replaced by the simulator.
 
 .. figure:: images/playground-simulator.png
 
   Plutus Playground (simulator)
 
-You can use the simulator to define complex scenarios with multiple agents trading and communicating over the Cardano blockchain.
+You can use the simulator to define complex scenarios with multiple agents trading and communicating over Cardano.
 For the "Hello, World" app however you don't need to change anything in the simulator.
 You can click **Evaluate** right away.
 This sends the simulation to the server, alongside the source code of our app.
-When the server is done running the simulation, the transactions pane opens, showing the outcome of the simulation.
+When the server is finished running the simulation, the transactions pane is displayedm which presents the outcome of the simulation.
 
 Interpreting the results of the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The "Transactions" pane has four sections: Blockchain, final balances, logs and trace.
+
+Blockchain
+""""""""""
+
 The blockchain section shows all the transactions that were produced during the simulation.
 
 .. figure:: images/playground-transactions.png
@@ -80,20 +84,28 @@ The first of the new sections shows the inputs and outputs of the selected trans
 The second of the new sections has a table with the balances of each address *after* the selected transaction.
 You can see that wallet 1 and wallet 2 each have ten lovelace.
 
-Below this there is a chart showing the final balances at the end of the simulation, after all transactions.
+Final Balances
+""""""""""""""
+
+Below this a chart shows the final balances at the end of the simulation, after all transactions.
 Since you only have a single transaction, the final balances are exactly the same as the "Balances Carried Forward" from the initial transaction.
 
 .. figure:: images/playground-logs.png
 
   Log output from the "Hello, World" simulation
 
-Next is the "Logs" section.
-Here you can see messages that were produced by the emulator during the simulation.
+Logs
+""""
+
+The "Logs" section displays messages that were produced by the emulator during the simulation.
 The logs tell us that the initial transaction was validated, then the slot number changed, and then the app running in each wallet produced a log message saying "Hello, World".
 
 .. note::
 
   Each of the simulated wallets has its own application instance with its own state. This is why the message "Hello, world" appears twice in the emulator logs.
+
+Trace
+"""""
 
 The final "Trace" section contains some more detailed information about the emulator.
 This data is useful for diagnosing problems with the app.
@@ -101,27 +113,27 @@ This data is useful for diagnosing problems with the app.
 Adding a payment to the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now you're going to extend the simulation by adding a new wallet and a payment between two wallets.
-Click the close button to get back to the simulator.
+Now you can extend the simulation by adding a new wallet and a payment between two wallets.
+Click the **Close** button to return to the simulator.
 In the "Wallets" section of the simulator there is a box for each simulated wallet.
-Click the "Add Wallet" button to add a new simulated wallet.
-Now click "Pay to Wallet" on wallet 3. In the "Actions" section there are now two entries, a "Wait" action and a "Pay to Wallet" action.
+Click **Add Wallet** to add a new simulated wallet.
+Now click **Pay to Wallet** on wallet 3. In the "Actions" section there are now two entries, a "Wait" action and a "Pay to Wallet" action.
 
 In the "Pay to Wallet" action, enter the number 2 into the "Recipient" field.
 This means that wallet 2 is the recipient of the payment (the payer is wallet 3).
-Change the amount to 5 lovelace.
+Change the amount to five lovelace.
 
 Now you need to make sure our simulation runs long enough for the payment to appear on the blockchain.
 The simulation ends after the last action in the action sequence.
-To make it run a little longer, click the "Add Wait Action" button.
+To make it run a little longer, click **Add Wait Action**.
 Another "Wait" action is added to the end of the list.
 
 .. figure:: images/playground-payment.png
 
-  Action sequence for a payment of 5 lovelace from wallet 3 to wallet 2.
+  Action sequence for a payment of five lovelace from wallet 3 to wallet 2.
 
 Now click **Evaluate**.
-The results pane opens and you can see that the blockchain has two transactions.
+The results pane is displayed and you can see that the blockchain has two transactions.
 Click the second transaction.
 It has one input (a public-key output belonging to wallet 3) and two outputs:
 One output with five lovelace belonging to wallet 2, and another output with the remaining five lovelace belonging to wallet 3.
@@ -131,7 +143,7 @@ Therefore the remaining five lovelace were given back to wallet 3.
 
 The "Balances carried forward" and "Final balances" sections also reflect the payment that was made.
 
-Finally, the logs tell us that there are now three instances running, because the "Hello, world" message shows up three times.
+Finally, the logs indicate that there are now three instances running, because the "Hello, world" message shows up three times.
 You can see that the payment transaction was validated, and that the simulation ran until slot 12.
 
 Running the "Vesting" app
@@ -165,7 +177,7 @@ That way you don't need to manually enter JSON objects into the action boxes, an
 Running the vesting simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Let's click **Evaluate** to see what the simulation does.
+Click **Evaluate** to view what the simulation does.
 There are four transactions.
 
 .. figure:: images/playground-vesting-blockchain.png
@@ -195,8 +207,8 @@ The money came from wallet 2 via the vesting script.
 Note the timing: Wallet 1 retrieved the funds in slot 21 and 61.
 The vesting contract defines how long the funds have to stay locked in the script before the recipient can retrieve them.
 
-Dealing with failure
-^^^^^^^^^^^^^^^^^^^^
+Error Handling
+^^^^^^^^^^^^^^
 
 Let's return to the simulator by clicking the "X" button on the transactions pane.
 Change the first "Wait" action to wait for 10 blocks instead of 20 and click **Evaluate**.
