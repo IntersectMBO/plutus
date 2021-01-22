@@ -60,6 +60,8 @@ data TypeBuiltinG
   | TyIntegerG
   | TyStringG
   | TyBoolG
+  | TyUnitG
+  | TyCharG
   deriving (Typeable, Eq, Show)
 
 deriveEnumerable ''TypeBuiltinG
@@ -140,6 +142,8 @@ data TermConstantG = TmIntegerG Integer
                    | TmByteStringG ByteString
                    | TmStringG String
                    | TmBoolG Bool
+                   | TmUnitG ()
+                   | TmCharG Char
                    deriving (Show, Eq)
 
 deriveEnumerable ''TermConstantG
@@ -202,7 +206,6 @@ deriveEnumerable ''TermG
 
 type ClosedTermG = TermG Z Z
 
-
 -- * Converting types
 
 -- |Convert generated builtin types to Plutus builtin types.
@@ -211,6 +214,8 @@ convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
 convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
+convertTypeBuiltin TyUnitG       = Some (TypeIn DefaultUniUnit)
+convertTypeBuiltin TyCharG       = Some (TypeIn DefaultUniChar)
 
 
 -- |Convert well-kinded generated types to Plutus types.
@@ -279,6 +284,8 @@ convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
 convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
 convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
 convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
+convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
+convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniChar c
 
 convertBuiltin :: TermBuiltinG -> DefaultFun
 convertBuiltin AddIntegerG           = AddInteger
@@ -369,6 +376,8 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyIntegerG    = true
   check (Type _) TyStringG     = true
   check (Type _) TyBoolG       = true
+  check (Type _) TyCharG       = true
+  check (Type _) TyUnitG       = true
   check _        _             = false
 
 
@@ -448,8 +457,59 @@ instance Check TypeBuiltinG TermConstantG where
   check TyIntegerG    (TmIntegerG    _) = true
   check TyStringG     (TmStringG     _) = true
   check TyBoolG       (TmBoolG       _) = true
+  check TyCharG       (TmCharG       _) = true
+  check TyUnitG       (TmUnitG       _) = true
   check _             _                 = false
 
+instance Check (TypeG tyname) TermBuiltinG where
+  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))) b = case b of
+    AddIntegerG      -> true
+    SubtractIntegerG -> true
+    MultiplyIntegerG -> true
+--    DivideIntegerG -> true
+--    QuotientIntegerG -> true
+--    RemainderIntegerG -> true
+--    ModIntegerG -> true
+    _                -> false
+  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))) b = case b of
+    LessThanIntegerG      -> true
+    LessThanEqIntegerG    -> true
+    GreaterThanIntegerG   -> true
+    GreaterThanEqIntegerG -> true
+    EqIntegerG            -> true
+    _                     -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
+    ConcatenateG -> true
+    _            -> false
+  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
+    TakeByteStringG -> true
+    DropByteStringG -> true
+    _               -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)) b = case b of
+    SHA2G -> true
+    SHA3G -> true
+    _     -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))) b = case b of
+    VerifySignatureG -> false
+    _                -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))) b = case b of
+    EqByteStringG -> true
+    LtByteStringG -> true
+    GtByteStringG -> true
+    _             -> false
+  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ)))))) b = case b of
+    IfThenElseG -> true
+    _           -> false
+  check (TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)) b = case b of
+    CharToStringG -> true
+    _             -> false
+  check (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))) b = case b of
+    AppendG -> true
+    _       -> false
+  check (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)) b = case b of
+    TraceG -> true
+    _      -> false
+  check _ _ = false
 
 checkTypeG
   :: Eq tyname
@@ -487,6 +547,13 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
     tyKindOk = checkKindG kcs k ty
     tyOk = vTy == normalizeTypeG (TyAppG (TyLamG vCod) ty k)
 checkTypeG _kcs _tcs (TyBuiltinG tc) (ConstantG c) = check tc c
+{-
+checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
+  where
+    tyKindOk = checkKindG kcs (Type ()) ty
+    tyOk = vTy == normalizeTypeG ty
+-}
+checkTypeG _kcs _tcs vTy (BuiltinG b) = check vTy b
 checkTypeG _ _ _ _ = false
 
 instance Check ClosedTypeG ClosedTermG where
