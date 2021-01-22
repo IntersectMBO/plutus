@@ -3,13 +3,15 @@ module Main where
 open import Haskell.Prelude hiding (_>>=_; _>>_; return)
 
 open import Lang
-{-# FOREIGN AGDA2HS import Lang #-}
 
-{-# FOREIGN AGDA2HS import Parser #-}
-{-# FOREIGN AGDA2HS import Prelude hiding (getContents) #-}
-{-# FOREIGN AGDA2HS import Data.ByteString.Lazy (getContents) #-}
+{-# FOREIGN AGDA2HS 
+import Lang
+import Parser
+import Prelude hiding (getContents)
+import Data.ByteString.Lazy (getContents)
+#-}
 
-
+-- IO and friends are not in the prelude yet...
 postulate
   IO : Set → Set
   _>>=_ : ∀{a b} → IO a → (a → IO b) → IO b
@@ -17,12 +19,13 @@ postulate
   return : ∀{a} → a → IO a
   putStrLn : String → IO ⊤
 
-
   ByteString : Set
   getContents : IO ByteString
   parse : ByteString → Maybe Exp
   pretty : Exp → String
 
+
+-- do would be nicer...
 main : IO ⊤
 main = getContents >>= \b -> maybe
   (putStrLn "parse error")

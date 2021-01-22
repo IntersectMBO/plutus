@@ -1,5 +1,7 @@
 {-# LANGUAGE GADTs #-}
 
+-- This module wraps the PLC parser and pretty printer
+
 module Parser where
 
 import           Lang
@@ -16,8 +18,12 @@ import           Numeric.Natural
 
 type Prog = Program TyName Name DefaultUni DefaultFun AlexPosn
 type Tm   = Term TyName Name DefaultUni DefaultFun ()
+
+-- parser
+
 convCon :: Some (ValueOf DefaultUni) -> Maybe Exp
-convCon (Some (ValueOf DefaultUniInteger i)) | i >= 0 = Just $ Val (fromInteger i)
+convCon (Some (ValueOf DefaultUniInteger i)) | i >= 0 =
+  Just $ Val (fromInteger i)
 convCon _ = Nothing
 
 conv (Program _ _ t) = convTm t

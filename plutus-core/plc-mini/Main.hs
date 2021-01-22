@@ -1,12 +1,9 @@
 module Main where
 
-import           Lang
-
-import           Parser
-
-import           Prelude              hiding (getContents)
-
 import           Data.ByteString.Lazy (getContents)
+import           Lang
+import           Parser
+import           Prelude              hiding (getContents)
 
 main :: IO ()
 main

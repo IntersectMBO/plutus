@@ -1,19 +1,21 @@
 module Lang where
 
+-- import the Ulf's Agdaized version of the Haskell prelude
 open import Haskell.Prelude hiding (e)
+
+-- The syntax, nats and addition, aka Hutton's Razor
 
 data Exp  : Set where
   Val : Nat → Exp
   Add : Exp → Exp → Exp
 
-variable
-  e e1 e2 e3 e4 : Exp
-
-instance
-  postulate
-    expShow : Show Exp
-
 {-# COMPILE AGDA2HS Exp deriving Show #-}
+
+-- we postulate an instance for Show don't need it in Agda, just Haskell
+instance
+  postulate expShow : Show Exp
+
+-- a simple evaluator for Exp
 
 eval : Exp -> Nat
 eval (Val n) = n
@@ -21,8 +23,13 @@ eval (Add e1 e2) = eval e1 + eval e2
 
 {-# COMPILE AGDA2HS eval #-}
 
--- Equational Specification
+-- that's it, below is a specification and some proofs
 
+-- we introduce these variables names so we don't have to quantify over them
+variable
+  e e1 e2 e3 e4 : Exp
+
+-- and equational presentation of the semantics of the language
 data _≃_ : Exp → Exp → Set where
   reflE : e ≃ e
   symE  : e1 ≃ e2 → e2 ≃ e1
@@ -39,7 +46,7 @@ data _≃_ : Exp → Exp → Set where
 open import Relation.Binary.PropositionalEquality
 open import Data.Nat.Properties
 
--- Proof that eval implmenents the spec
+-- Proofs that eval implements the spec
 
 -- soundness
 eval-correct1 : e1 ≃ e2 → eval e1 ≡ eval e2
