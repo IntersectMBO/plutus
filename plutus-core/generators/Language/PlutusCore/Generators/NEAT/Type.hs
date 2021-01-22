@@ -368,6 +368,7 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyByteStringG = true
   check (Type _) TyIntegerG    = true
   check (Type _) TyStringG     = true
+  check (Type _) TyBoolG       = true
   check _        _             = false
 
 
