@@ -38,16 +38,16 @@ Running the first simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that the app has been compiled, we can run it in the simulated environment. 
-The builtin examples are already compiled, so we can click "Simulate" right away.
+The builtin examples are already compiled, so we can click **Simulate** right away.
 
 .. note::
 
-  If an app has not been compiled yet, the "Simulate" button is deactivated.
-  To compile the app, click the "Compile" button.
+  If an app has not been compiled yet, the **Simulate** button is deactivated.
+  To compile the app, click the **Compile** button.
   The feedback line at the bottom of the code editor changes to "Compiling...".
-  When the app has been compiled without errors, the feedback message changes to "Compilation successful", and the "Simulate" button is active.
+  When the app has been compiled without errors, the feedback message changes to "Compilation successful", and the **Simulate** button is active.
 
-Click the "Simulate" button.
+Click the **Simulate** button.
 The code editor disappears and the simulator opens.
 
 .. figure:: images/playground-simulator.png
@@ -56,7 +56,7 @@ The code editor disappears and the simulator opens.
 
 We can use the simulator to define complex scenarios with multiple agents trading and communicating over the Cardano blockchain.
 For the "Hello, World" app however we don't need to change anything in the simulator.
-We can click "Evaluate" right away.
+We can click **Evaluate** right away.
 This sends the simulation to the server, alongside the source code of our app.
 When the server is done running the simulation, the transactions pane opens, showing the outcome of the simulation.
 
@@ -120,7 +120,7 @@ Another "Wait" action is added to the end of the list.
 
   Action sequence for a payment of 5 lovelace from wallet 3 to wallet 2.
 
-Now click "Evaluate".
+Now click **Evaluate**.
 The results pane opens and we can see that the blockchain has two transactions.
 Click the second transaction.
 It has one input (a public-key output belonging to wallet 3) and two outputs:
@@ -148,7 +148,7 @@ We are not going to look at the source for now (there are comments in the code e
 
   The vesting app locks some funds in a script. The recipient of the funds can retrieve them later, when some time has passed.
 
-Click "Compile" and then "Simulate" to get to the simulator.
+Click **Compile** and then **Simulate** to get to the simulator.
 The vesting app comes with a predefined simulation of a total of six actions.
 Besides the "Wait" actions which we've seen before, there are some app-specific actions: "vest funds" and "retrieve funds".
 The vesting app defines endpoints with those names and uses them to ask for input.
@@ -165,7 +165,7 @@ That way we don't need to manually enter JSON objects into the action boxes, and
 Running the vesting simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Let's click "Evaluate" to see what the simulation does.
+Let's click **Evaluate** to see what the simulation does.
 There are four transactions.
 
 .. figure:: images/playground-vesting-blockchain.png
@@ -199,7 +199,7 @@ Dealing with failure
 ^^^^^^^^^^^^^^^^^^^^
 
 Let's return to the simulator by clicking the "X" button on the transactions pane.
-Change the first "Wait" action to wait for 10 blocks instead of 20 and click "Evaluate".
+Change the first "Wait" action to wait for 10 blocks instead of 20 and click **Evaluate**.
 
 .. figure:: images/playground-vesting-actions-modified.png
 
