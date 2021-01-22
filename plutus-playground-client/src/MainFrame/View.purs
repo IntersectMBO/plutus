@@ -21,7 +21,6 @@ import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, height, href, src, target, width)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
-import Logo (plutusLogo)
 import MainFrame.Lenses (getKnownCurrencies, _contractDemoEditorContents)
 import MainFrame.Types (ChildSlots, HAction(..), State(..), View(..), WebCompilationResult, WebEvaluationResult)
 import Network.RemoteData (RemoteData(..))
@@ -31,6 +30,8 @@ import Schema.Types (mkInitialValue)
 import Simulator.View (simulatorTitle, simulationsPane, simulationsNav)
 import StaticData (bufferLocalStorageKey, lookupContractDemo)
 import Transaction.View (evaluationPane)
+
+foreign import plutusLogo :: String
 
 render :: forall m. MonadAff m => State -> ComponentHTML HAction ChildSlots m
 render state@(State { contractDemos, currentView, editorState, compilationResult, simulations, evaluationResult, blockchainVisualisationState }) =
