@@ -12,8 +12,6 @@ main :: IO ()
 main
   = getContents >>=
       \ b ->
-        maybe (putStrLn "parse error")
-          (\ e ->
-             putStrLn (showsPrec 0 e "") >> putStrLn (showsPrec 0 (eval e) ""))
+        maybe (putStrLn "parse error") (putStrLn . pretty . Val . eval)
           (parse b)
 
