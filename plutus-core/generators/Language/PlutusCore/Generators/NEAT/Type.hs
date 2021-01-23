@@ -337,7 +337,7 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
 convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () (convertBuiltin b)
-convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns ty' tm
+convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns (normalizeTypeG ty') tm
   where
   k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
   -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
@@ -511,6 +511,8 @@ instance Check (TypeG tyname) TermBuiltinG where
     _      -> false
   check _ _ = false
 
+-- it's not clear to me whether this function should insist that some
+-- types are in normal form...
 checkTypeG
   :: Eq tyname
   => KCS tyname
@@ -547,6 +549,18 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
     tyKindOk = checkKindG kcs k ty
     tyOk = vTy == normalizeTypeG (TyAppG (TyLamG vCod) ty k)
 checkTypeG _kcs _tcs (TyBuiltinG tc) (ConstantG c) = check tc c
+checkTypeG kcs tcs (TyIFixG ty1 k ty2) (WrapG tm) = ty1Ok &&& ty2Ok &&& tmOk
+  where
+    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty2Ok = checkKindG kcs k ty2
+    tmTy  = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    tmOk  = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
+checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTyOk
+  where
+    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty2Ok = checkKindG kcs k ty2
+    tmOk  = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
+    vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
 {-
 checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
   where
