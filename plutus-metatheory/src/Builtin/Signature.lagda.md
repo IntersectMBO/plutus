@@ -126,6 +126,18 @@ SIG dropByteString =
   con integer ∷ con bytestring ∷ []
   ,,
   con bytestring
+SIG lessThanByteString =
+  ∅
+  ,,
+  con bytestring ∷ con bytestring ∷ []
+  ,,
+  con bool
+SIG greaterThanByteString =
+  ∅
+  ,,
+  con bytestring ∷ con bytestring ∷ []
+  ,,
+  con bool
 SIG sha2-256 =
   ∅
   ,,
