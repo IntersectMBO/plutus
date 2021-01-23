@@ -59,7 +59,7 @@ ISIG sha3-256 = 0 , S Z
 ISIG verifySignature = 0 , S (S (S Z))
 ISIG equalsByteString = 0 , S (S Z)
 ISIG ifThenElse = 1 , S (S (S (T Z))) -- this may be in the wrong order
-ISIG charToString = 0 , S (S Z)
+ISIG charToString = 0 , S Z
 ISIG append = 0 , S (S Z)
 ISIG trace = 0 , S Z
 
@@ -313,7 +313,7 @@ ival sha3-256 = V-builtin sha2-256 _ refl refl base _
 ival verifySignature = V-builtin verifySignature _ refl refl (skipS (skipS base)) _
 ival equalsByteString = V-builtin equalsByteString _ refl refl (skipS base) _
 ival ifThenElse = V-builtin ifThenElse _ refl refl (skipS (skipS base)) _
-ival charToString = V-builtin charToString _ refl refl (skipS base) _
+ival charToString = V-builtin charToString _ refl refl base _
 ival append = V-builtin append _ refl refl (skipS base) _
 ival trace = V-builtin trace _ refl refl base _
 
