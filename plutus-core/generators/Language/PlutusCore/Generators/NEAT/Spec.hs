@@ -118,7 +118,7 @@ prop_typePreservation tyG tmG = do
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
-
+  -- NOTE: the CEK machine doesn't respect this so we are just going through the motions here
   tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
   withExceptT
     (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
@@ -379,7 +379,7 @@ packAssertion f t a =
 -- that applies the given test to each of them.
 bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
-bigTest s GenOptions{..} t f = testCase s $ do
+bigTest s GenOptions{..} t f = testCaseInfo s $ do
   as <- search' genMode genDepth (\a -> check t a)
   _  <- traverse (f t) as
-  return ()
+  return $ show (length as)
