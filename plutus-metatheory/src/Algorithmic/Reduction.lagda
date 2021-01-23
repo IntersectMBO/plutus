@@ -81,7 +81,7 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
     → (σ : SubNf Φ' ∅)
     → (p : (Δ , A) ≤C' Γ)
     → ITel b Δ σ
-    → (t : ∅ ⊢ substNf σ (<C'2type (skip p) C))
+    → (t : ∅ ⊢ subNf σ (<C'2type (skip p) C))
     → Value t
 
   V-IΠ : ∀(b : Builtin){Φ Φ'}{Γ : Ctx Φ}{Δ : Ctx Φ'}{K}{C : Φ ⊢Nf⋆ *}
@@ -92,12 +92,12 @@ data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
     → (σ : SubNf Φ' ∅) -- could try one at a time
       (p : (Δ ,⋆ K) ≤C' Γ)
     → ITel b Δ σ
-    → (t : ∅ ⊢ substNf σ (<C'2type (skip⋆ p) C))
+    → (t : ∅ ⊢ subNf σ (<C'2type (skip⋆ p) C))
     → Value t
 
 ITel b ∅       σ = ⊤
 ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A) σ = ITel b Γ σ × Σ (∅ ⊢ substNf σ A) Value
+ITel b (Γ , A) σ = ITel b Γ σ × Σ (∅ ⊢ subNf σ A) Value
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
@@ -128,7 +128,7 @@ IBUILTIN : (b : Builtin)
       (σ : SubNf Φ ∅)
     → (tel : ITel b Γ σ)
       -----------------------------
-    → Σ (∅ ⊢ substNf σ C) λ t → Value t ⊎ Error t 
+    → Σ (∅ ⊢ subNf σ C) λ t → Value t ⊎ Error t 
       -- ^ should be val or error to avoid throwing away work
 IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i + j)))
 IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i - j)))
@@ -152,10 +152,10 @@ IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integ
 IBUILTIN lessThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i ≤? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i Builtin.Constant.Type.>? j
+IBUILTIN greaterThanInteger σ  ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i I>? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
-IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i Builtin.Constant.Type.≥? j
+IBUILTIN greaterThanEqualsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i I≥? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
 IBUILTIN equalsInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j))  with i ≟ j
@@ -190,7 +190,7 @@ IBUILTIN' : (b : Builtin)
     → (C' : Φ' ⊢Nf⋆ *)
     → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
       -----------------------------
-    → Σ (∅ ⊢ substNf σ C') λ t → Value t ⊎ Error t
+    → Σ (∅ ⊢ subNf σ C') λ t → Value t ⊎ Error t
     
 IBUILTIN' b refl refl σ tel _ refl = IBUILTIN b σ tel
 \end{code}
@@ -274,8 +274,8 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (q : substEq Ctx p Γ ≡  Γ' , A)
     → (C' : Φ' ⊢Nf⋆ *)
     → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ substNf σ A ⇒ substNf σ C')
-    → (u : ∅ ⊢ substNf σ A)
+    → (t : ∅ ⊢ subNf σ A ⇒ subNf σ C')
+    → (u : ∅ ⊢ subNf σ A)
     → (tel : ITel b Γ' σ)
     → (v : Value u)
       -----------------------------
@@ -290,10 +290,10 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
     → (q : substEq Ctx p Γ ≡  (Γ' ,⋆ K))
     → (C' : Φ' ,⋆ K ⊢Nf⋆ *)
     → (r : substEq (_⊢Nf⋆ *) p C ≡ C')
-    → (t : ∅ ⊢ substNf σ (Π C'))
+    → (t : ∅ ⊢ subNf σ (Π C'))
     → (tel : ITel b Γ' σ)
       -----------------------------
-    → t ·⋆ A —→ conv⊢ refl (substNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (substNf-cons σ A) (tel ,, A) C' r))
+    → t ·⋆ A —→ conv⊢ refl (subNf-cons-[]Nf C') (proj₁ (IBUILTIN' b p q (subNf-cons σ A) (tel ,, A) C' r))
 \end{code}
 
 \begin{code}
@@ -387,8 +387,8 @@ progress-·⋆ : ∀{K B}{t : ∅ ⊢ Π B} → Progress t → (A : ∅ ⊢Nf⋆
 progress-·⋆ (step p)        A = step (ξ-·⋆ p)
 progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
-progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip⋆ p) vs t)) A = done (convValue (Πlem p A C σ) (V-IΠ b {C = C} p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (Πlem p A C σ) (t ·⋆ A))) )
-progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip p) vs t))  A = done (convValue (⇒lem p σ C) (V-I⇒ b p' q r (substNf-cons σ A) p (vs ,, A) (conv⊢ refl (⇒lem p σ C) (t ·⋆ A) )))
+progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip⋆ p) vs t)) A = done (convValue (Πlem p A C σ) (V-IΠ b {C = C} p' q r (subNf-cons σ A) p (vs ,, A) (conv⊢ refl (Πlem p A C σ) (t ·⋆ A))) )
+progress-·⋆ (done (V-IΠ b {C = C} p' q r σ (skip p) vs t))  A = done (convValue (⇒lem p σ C) (V-I⇒ b p' q r (subNf-cons σ A) p (vs ,, A) (conv⊢ refl (⇒lem p σ C) (t ·⋆ A) )))
 progress-·⋆ (done (V-IΠ b p q r σ base vs t)) A = step (β-sbuiltin⋆ b σ p q _ r t vs)
 -- ^ it's the last one, call BUILTIN
 

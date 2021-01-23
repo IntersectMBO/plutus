@@ -25,9 +25,6 @@ module Language.Plutus.Contract.Trace.RequestHandler(
     , handleNextTxAtQueries
     , handleOwnInstanceIdQueries
     , handleContractNotifications
-    -- * Misc. types
-    , MaxIterations(..)
-    , defaultMaxIterations
     ) where
 
 import           Control.Applicative                               (Alternative (empty))
@@ -40,19 +37,16 @@ import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Freer.NonDet                        (NonDet)
 import qualified Control.Monad.Freer.NonDet                        as NonDet
 import           Control.Monad.Freer.Reader                        (Reader, ask)
-import           Data.Aeson                                        (FromJSON (..), ToJSON (..))
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Monoid                                       (Alt (..), Ap (..))
 import           Data.Text                                         (Text)
 import qualified Ledger.AddressMap                                 as AM
-import           Numeric.Natural                                   (Natural)
 
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
 import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
                                                                     surroundDebug)
-import           GHC.Generics                                      (Generic)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
@@ -139,11 +133,12 @@ handlePendingTransactions =
         logDebug StartWatchingContractAddresses
         wa <- Wallet.Effects.watchedAddresses
         traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (unBalancedTxTx unbalancedTx))
-        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn HandleTxFailed >> pure (Left err))
+        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn (HandleTxFailed err) >> pure (Left err))
 
 handleUtxoQueries ::
     forall effs.
     ( Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs Address UtxoAtAddress
@@ -152,7 +147,9 @@ handleUtxoQueries = RequestHandler $ \addr ->
         Wallet.Effects.startWatching addr
         AddressMap utxoSet <- Wallet.Effects.watchedAddresses
         case Map.lookup addr utxoSet of
-            Nothing -> empty
+            Nothing -> do
+                logWarn $ UtxoAtFailed addr
+                empty
             Just s  -> pure (UtxoAtAddress addr s)
 
 handleTxConfirmedQueries ::
@@ -205,13 +202,3 @@ handleContractNotifications ::
     => RequestHandler effs Notification (Maybe NotificationError)
 handleContractNotifications = RequestHandler $
     surroundDebug @Text "handleContractNotifications" . Wallet.Effects.sendNotification
-
--- | Maximum number of times request handlers are run before waiting for more
---   blockchain events
-newtype MaxIterations = MaxIterations Natural
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving newtype (ToJSON, FromJSON)
-
--- | The default for 'MaxIterations' is twenty.
-defaultMaxIterations :: MaxIterations
-defaultMaxIterations = MaxIterations 20

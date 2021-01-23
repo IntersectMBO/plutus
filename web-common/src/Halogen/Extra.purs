@@ -4,12 +4,16 @@ import Prelude
 import Control.Applicative.Free (hoistFreeAp)
 import Control.Monad.Free (hoistFree)
 import Data.Bifunctor (bimap)
+import Data.Foldable (for_)
 import Data.Lens (Lens', set, view)
 import Data.Newtype (over)
 import Data.Tuple (Tuple(..))
-import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), get)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
+import Halogen (ComponentHTML, HalogenF(..), HalogenM(..), RefLabel, getHTMLElementRef)
 import Halogen.Query (HalogenM)
 import Halogen.Query.HalogenM (HalogenAp(..), mapAction)
+import Web.HTML.HTMLElement (HTMLElement)
 
 -- | This is a version of imapState that uses a lens
 -- | With the official version it is easy to make a mistake and
@@ -59,3 +63,10 @@ renderSubmodule ::
   state ->
   ComponentHTML action slots m
 renderSubmodule lens wrapper renderer state = bimap (map wrapper) wrapper (renderer (view lens state))
+
+foreign import scrollIntoView_ :: EffectFn1 HTMLElement Unit
+
+scrollIntoView :: forall surface action slots output m. MonadEffect m => RefLabel -> HalogenM surface action slots output m Unit
+scrollIntoView ref = do
+  mElement <- getHTMLElementRef ref
+  for_ mElement (liftEffect <<< runEffectFn1 scrollIntoView_)

@@ -3,10 +3,10 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride rev; }
 }:
 let
-  inherit (packages) pkgs plutus plutusMusl;
+  inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
@@ -51,7 +51,7 @@ let
     shellcheck
     sqlite-interactive
     stack
-    terraform_0_12
+    terraform
     yubikey-manager
     z3
     zlib
@@ -76,8 +76,11 @@ let
   ]);
 
 in
-haskell.packages.shellFor {
+haskell.project.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
+  # We don't currently use this, and it's a pain to materialize, and otherwise
+  # costs a fair bit of eval time.
+  withHoogle = false;
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";

@@ -33,6 +33,7 @@ You can edit this file as you like.
   [ "src/**/*.purs"
   , "test/**/*.purs"
   , "generated/**/*.purs"
-  , "../web-common/**/*.purs"
+  , "web-common/**/*.purs"
+  , "web-common-plutus/**/*.purs"
   ]
 }

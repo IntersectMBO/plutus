@@ -40,8 +40,9 @@ button:active, .btn:active {
   background: var(--btn-primary-color-active);
 }
 
-button.disabled {
+button:disabled, .btn:disabled {
   background: var(--btn-primary-color-disabled);
+  cursor: default;
 }
 
 button.small-btn {

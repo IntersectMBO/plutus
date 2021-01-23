@@ -19,6 +19,8 @@ module Language.PlutusCore.Error
     , AsUniqueError (..)
     , TypeError (..)
     , AsTypeError (..)
+    , FreeVariableError (..)
+    , AsFreeVariableError (..)
     , Error (..)
     , AsError (..)
     , throwingEither
@@ -27,17 +29,19 @@ module Language.PlutusCore.Error
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.DeBruijn.Internal
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
-import           Control.Lens                       hiding (use)
+import           Control.Lens                          hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import qualified Data.Text                          as T
+import qualified Data.Text                             as T
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import           Data.Text.Prettyprint.Doc.Internal    (Doc (Text))
+import           ErrorCode
 
 {- Note [Annotations and equality]
 Equality of two errors DOES DEPEND on their annotations.
@@ -67,7 +71,6 @@ makeClassyPrisms ''ParseError
 instance Pretty ann => Show (ParseError ann)
     where
       show = show . pretty
-
 
 data UniqueError ann
     = MultiplyDefined Unique ann ann
@@ -104,6 +107,7 @@ data Error uni fun ann
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
+    | FreeVariableErrorE FreeVariableError
     deriving (Show, Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
 
@@ -119,6 +123,9 @@ instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun a
 instance (tyname ~ TyName, name ~ Name) =>
             AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
     _NormCheckError = _NormCheckErrorE
+
+instance AsFreeVariableError (Error uni fun ann) where
+    _FreeVariableError = _FreeVariableErrorE
 
 instance Pretty ann => Pretty (ParseError ann) where
     pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
@@ -152,7 +159,8 @@ instance ( Pretty ann
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty fun, Pretty term) =>
             PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
-    prettyBy config (KindMismatch ann ty k k')          =
+    prettyBy config e@(KindMismatch ann ty k k')          =
+        pretty (errorCode e) <> ":" <+>
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
@@ -181,3 +189,34 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Prett
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
+    prettyBy _      (FreeVariableErrorE e)    = pretty e
+
+instance HasErrorCode (ParseError _a) where
+    errorCode InvalidBuiltinConstant {} = ErrorCode 10
+    errorCode UnknownBuiltinFunction {} = ErrorCode 9
+    errorCode UnknownBuiltinType {}     = ErrorCode 8
+    errorCode Unexpected {}             = ErrorCode 7
+    errorCode LexErr {}                 = ErrorCode 6
+
+instance HasErrorCode (UniqueError _a) where
+      errorCode FreeVariable {}    = ErrorCode 21
+      errorCode IncoherentUsage {} = ErrorCode 12
+      errorCode MultiplyDefined {} = ErrorCode 11
+
+instance HasErrorCode (NormCheckError _a _b _c _d _e) where
+      errorCode BadTerm {} = ErrorCode 14
+      errorCode BadType {} = ErrorCode 13
+
+instance HasErrorCode (TypeError _a _b _c _d) where
+    errorCode FreeVariableE {}           = ErrorCode 20
+    errorCode FreeTypeVariableE {}       = ErrorCode 19
+    errorCode TypeMismatch {}            = ErrorCode 16
+    errorCode KindMismatch {}            = ErrorCode 15
+    errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
+
+instance HasErrorCode (Error _a _b _c) where
+    errorCode (ParseErrorE e)           = errorCode e
+    errorCode (UniqueCoherencyErrorE e) = errorCode e
+    errorCode (TypeErrorE e)            = errorCode e
+    errorCode (NormCheckErrorE e)       = errorCode e
+    errorCode (FreeVariableErrorE e)    = errorCode e

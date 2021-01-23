@@ -42,7 +42,7 @@ import           Playground.Types                                (CompilationRes
                                                                   SimulatorWallet (SimulatorWallet), adaCurrency,
                                                                   argument, argumentValues, caller, emulatorLog,
                                                                   endpointDescription, fundsDistribution, program,
-                                                                  resultBlockchain, simulatorWalletBalance,
+                                                                  resultRollup, simulatorWalletBalance,
                                                                   simulatorWalletWallet, sourceCode, walletKeys,
                                                                   wallets)
 import           Playground.Usecases                             (crowdFunding, errorHandling, game, vesting)
@@ -51,6 +51,7 @@ import           Test.Tasty                                      (TestTree, test
 import           Test.Tasty.HUnit                                (Assertion, assertEqual, assertFailure, testCase)
 import           Wallet.Emulator.Types                           (Wallet (Wallet))
 import           Wallet.Rollup.Render                            (showBlockchain)
+import           Wallet.Rollup.Types                             (AnnotatedTx (tx))
 
 tests :: TestTree
 tests =
@@ -223,7 +224,7 @@ hasFundsDistribution _ (Left err) = assertFailure $ show err
 hasFundsDistribution requiredDistribution (Right InterpreterResult {result = EvaluationResult {..}}) = do
     unless (requiredDistribution == fundsDistribution) $ do
         Text.putStrLn $
-            either id id $ showBlockchain walletKeys resultBlockchain
+            either id id $ showBlockchain walletKeys $ fmap (fmap tx) resultRollup
         traverse_ print $ reverse emulatorLog
     assertEqual "" requiredDistribution fundsDistribution
 

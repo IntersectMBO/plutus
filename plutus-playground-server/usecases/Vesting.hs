@@ -24,12 +24,12 @@ import           Language.PlutusTx.Prelude         hiding (Semigroup (..), fold)
 import           Ledger                            (Address, PubKeyHash, Slot (Slot), Validator, pubKeyHash)
 import qualified Ledger.Ada                        as Ada
 import           Ledger.Constraints                (TxConstraints, mustBeSignedBy, mustPayToTheScript, mustValidateIn)
+import           Ledger.Contexts                   (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts                   as Validation
 import qualified Ledger.Interval                   as Interval
 import qualified Ledger.Slot                       as Slot
 import qualified Ledger.Tx                         as Tx
 import qualified Ledger.Typed.Scripts              as Scripts
-import           Ledger.Validation                 (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                 as Validation
 import           Ledger.Value                      (Value)
 import qualified Ledger.Value                      as Value
 import           Playground.Contract

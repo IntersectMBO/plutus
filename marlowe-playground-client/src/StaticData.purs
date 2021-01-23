@@ -4,9 +4,11 @@ module StaticData
   , demoFiles
   , demoFilesJS
   , marloweBufferLocalStorageKey
+  , simulatorBufferLocalStorageKey
   , marloweContract
   , marloweContracts
   , gistIdLocalStorageKey
+  , sessionStorageKey
   ) where
 
 import Data.Map (Map)
@@ -16,6 +18,7 @@ import Examples.Haskell.Contracts (contractForDifference, couponBondGuaranteed, 
 import Examples.JS.Contracts (cfd, couponBondGuaranteed, escrow, example, swap, zeroCouponBond) as JSE
 import Examples.Marlowe.Contracts (contractForDifference, escrow, example, option, swap, zeroCouponBond) as ME
 import LocalStorage as LocalStorage
+import Prim.TypeError (class Warn, Text)
 
 type Label
   = String
@@ -64,6 +67,7 @@ marloweContract ::
 marloweContract = "(Some Marlowe Code)"
 
 bufferLocalStorageKey ::
+  Warn (Text "Refactor bufferLocalStorageKey -> haskellBufferLocalStorageKey") =>
   LocalStorage.Key
 bufferLocalStorageKey = LocalStorage.Key "HaskellBuffer"
 
@@ -75,6 +79,13 @@ marloweBufferLocalStorageKey ::
   LocalStorage.Key
 marloweBufferLocalStorageKey = LocalStorage.Key "MarloweBuffer"
 
+simulatorBufferLocalStorageKey ::
+  LocalStorage.Key
+simulatorBufferLocalStorageKey = LocalStorage.Key "SimulationBuffer"
+
 gistIdLocalStorageKey ::
   LocalStorage.Key
 gistIdLocalStorageKey = LocalStorage.Key "GistId"
+
+sessionStorageKey :: LocalStorage.Key
+sessionStorageKey = LocalStorage.Key "MarlowePlaygroundSession"

@@ -4,22 +4,21 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ lib
+{ stdenv
+, lib
 , haskell-nix
 , fetchFromGitHub
 , fetchFromGitLab
 , index-state
+, compiler-nix-name
 , checkMaterialization
 , buildPackages
 }:
-let
-  compiler-nix-name = "ghc8102";
-in
 {
   Agda = haskell-nix.hackage-package {
     name = "Agda";
     version = "2.6.1.1";
-    plan-sha256 = "1fpj2q02ric566k9pcb812pq219d07l0982rvqq0ijd72mgr9sjz";
+    plan-sha256 = "0dywr1n68gvb0sbrqm5ahp8lkckminqdxsdcybjnjr8vc82sc08c";
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -56,21 +55,21 @@ in
     version = "3.2.0.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "19kn00zpj1b1p1fyrzwbg062z45x2lgcfap5bb9ra5alf0wxngh3";
+    plan-sha256 = "0m1h3hp95cflj28vhxyl1hl7k3frhx8f1mbkc8ry2dms603w2nrw";
   };
   stylish-haskell = haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.12.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "102zl1rjc8qhr6cf38ja4pxsr39i8pkg1b7pajdc4yb8jz6rdzir";
+    plan-sha256 = "0dl37v5sfs9gl46cxiaw04p3h5ny2pmqfy8jrpwr5xca8kxihc8h";
   };
   hlint = haskell-nix.hackage-package {
     name = "hlint";
     version = "3.2.1";
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0pxqq5lnh7kd8pyhfyh81pq2v00g9lzkb1db8065cdxya6nirpjs";
+    plan-sha256 = "0q2ymsp4j3gi6ahaj6gynq1hkw418qwk2qyyarvbk4x9xskkz9fh";
     modules = [{ reinstallableLibGhc = false; }];
   };
 }
@@ -79,24 +78,24 @@ in
 (
   let hspkgs = haskell-nix.cabalProject {
     src = fetchFromGitHub {
-      name = "haskell-language-server";
       owner = "haskell";
       repo = "haskell-language-server";
-      rev = "0.6.0";
-      sha256 = "027fq6752024wzzq9izsilm5lkq9gmpxf82rixbimbijw0yk4pwj";
+      rev = "0.8.0";
+      sha256 = "0p6fqs07lajbi2g1wf4w3j5lvwknnk58n12vlg48cs4iz25gp588";
       fetchSubmodules = true;
     };
-    sha256map = {
-      "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
-      "https://github.com/bubba/hie-bios.git"."cec139a1c3da1632d9a59271acc70156413017e7" = "1iqk55jga4naghmh8zak9q7ssxawk820vw8932dhympb767dfkha";
-    };
-    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
-    # in recent haskell.nix, delete the index-state passing when we update.
-    inherit compiler-nix-name index-state checkMaterialization;
+    inherit compiler-nix-name checkMaterialization;
     # Plan issues with the benchmarks, can try removing later
     configureArgs = "--disable-benchmarks";
     # Invalidate and update if you change the version
-    plan-sha256 = "0rjpf8xnamn063hbzi4wij8h2aiv71ailbpgd4ykfkv7mlc9mzny";
+    plan-sha256 =
+      # See https://github.com/input-output-hk/nix-tools/issues/97
+      if stdenv.isLinux
+      then "07p6z6jb87k8n0ihwxb8rdnjb7zddswds3pxca9dzsw47rd9czyd"
+      else "1s3cn381945hrs1fchg6bbkcf3abi0miqzc30bgpbfj23a8lhj2q";
+    modules = [{
+      packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
+    }];
   };
   in { inherit (hspkgs) haskell-language-server hie-bios implicit-hie; }
 )

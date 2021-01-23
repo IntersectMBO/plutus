@@ -6,21 +6,24 @@ import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
 import Data.Maybe (fromMaybe)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
+import Effect.Aff (Aff)
+import Foreign (fail)
 import Marlowe.Gen (genAction, genContract, genObservation, genTransactionWarning, genValue)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Action, Contract, Observation, Value)
 import Marlowe.Parser (action, observation, parseContract, transactionWarning, value)
 import Marlowe.Semantics (TransactionWarning)
 import Test.QuickCheck (class Testable, Result, (===))
-import Test.Unit (TestSuite, Test, suite, test)
+import Test.Unit (Test, TestSuite, failure, success, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
 import Text.Parsing.StringParser (runParser)
-import Text.Parsing.StringParser.Basic (parens)
+import Text.Parsing.StringParser.Basic (integral, parens)
 import Text.Pretty (genericPretty)
 
 all :: TestSuite
 all =
   suite "Marlowe.Parser" do
+    test "Numbers Parser" $ integralParser
     test "Value Parser" $ quickCheckGen valueParser
     test "Pretty Value Parser" $ quickCheckGen prettyValueParser
     test "Observation Parser" $ quickCheckGen observationParser
@@ -46,6 +49,23 @@ valueParser = do
 
     (expected :: Either String Value) = Right v
   pure (show result === show expected)
+
+integralParser :: Test
+integralParser = do
+  -- https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#numeric-underscores
+  checkParser true (runParser integral) "01_234__5_67___890"
+  checkParser true (parseContract) "Let \"a\" (Constant 01_234__5_67___890) Close"
+  checkParser false (runParser integral) "1000_"
+  checkParser false (parseContract) "Let \"a\" (Constant 1000_) Close"
+  checkParser false (runParser integral) "_1000"
+  checkParser false (parseContract) "Let \"a\" (Constant _1000) Close"
+  checkParser false (runParser integral) "-_1000"
+  checkParser false (parseContract) "Let \"a\" (Constant -_1000) Close"
+  where
+  checkParser :: forall e r. Show e => Boolean -> (String -> Either e r) -> String -> Test
+  checkParser good expr str = case expr str of
+    Left err -> if good then failure (show err) else success
+    Right _ -> if good then success else failure ("Number " <> str <> " should fail to parse")
 
 prettyValueParser :: GenWithHoles Result
 prettyValueParser = do

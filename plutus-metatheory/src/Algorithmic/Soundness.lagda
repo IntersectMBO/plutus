@@ -57,10 +57,10 @@ emb[] A B = trans≡β
   (≡2β (cong embNf
     (trans
       (trans
-        (subst-eval (embNf B) idCR (subst-cons ` (embNf A)))
+        (sub-eval (embNf B) idCR (sub-cons ` (embNf A)))
         (idext (λ { Z → idext idCR (embNf A)
                   ; (S α) → reflectCR (refl {x = ` α})}) (embNf B)))
-      (sym (subst-eval (embNf B) idCR (embNf ∘ substNf-cons (ne ∘ `) A))))))
+      (sym (sub-eval (embNf B) idCR (embNf ∘ subNf-cons (ne ∘ `) A))))))
 \end{code}
 
 \begin{code}
@@ -94,7 +94,7 @@ lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ ≡ Δ')
   → (σ : {J : Kind} → Δ' ∋⋆ J → Γ ⊢Nf⋆ J)
   → nf C ≡ substEq (_⊢Nf⋆ *) (sym q) C' →
-  subst
+  sub
   (λ {J} α →
      substEq (_⊢⋆ J) p
      (embNf (σ (substEq (_∋⋆ J) q α))))
@@ -103,16 +103,16 @@ lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   substEq (_⊢⋆ *) p
   (embNf
    (eval
-    (subst (λ {J₁} x → embNf (σ x))
+    (sub (λ {J₁} x → embNf (σ x))
      (embNf C'))
     (idEnv Γ)))
 lemσ' bn refl C C' refl σ p =  trans≡β
-  (soundness (subst (embNf ∘ σ) C))
+  (soundness (sub (embNf ∘ σ) C))
   (trans≡β
-    (≡2β (cong embNf (subst-eval C idCR (embNf ∘ σ))))
+    (≡2β (cong embNf (sub-eval C idCR (embNf ∘ σ))))
     (trans≡β
       (≡2β (cong embNf (fund (λ α → idext  idCR (embNf (σ α))) (soundness C))))
-      (trans≡β (≡2β (sym (cong embNf (subst-eval (embNf (nf C)) idCR (embNf ∘ σ))))) (≡2β (cong embNf (cong nf (cong (subst (embNf ∘ σ)) (cong embNf p))))))))
+      (trans≡β (≡2β (sym (cong embNf (sub-eval (embNf (nf C)) idCR (embNf ∘ σ))))) (≡2β (cong embNf (cong nf (cong (sub (embNf ∘ σ)) (cong embNf p))))))))
 
 _≡βL_ : ∀{Δ} → (As As' : List (Δ ⊢⋆ *)) → Set
 []       ≡βL []         = ⊤
@@ -161,15 +161,15 @@ lemList' trace = refl≡β _ ,, _
 lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → embNf A ≡β A' →
-  (embNf (substNf σ A)) ≡β
-  subst (λ {J} α → embNf (σ α)) A'
+  (embNf (subNf σ A)) ≡β
+  sub (λ {J} α → embNf (σ α)) A'
 lemsub A A' σ p = trans≡β
   (trans≡β
-    (≡2β (cong embNf (subst-eval (embNf A) idCR (embNf ∘ σ))))
+    (≡2β (cong embNf (sub-eval (embNf A) idCR (embNf ∘ σ))))
     (trans≡β
       (≡2β (cong embNf (fund (λ α → idext  idCR (embNf (σ α))) p)))
-      ((≡2β (sym (cong embNf (subst-eval A' idCR (embNf ∘ σ))))))))
-  (sym≡β (soundness (subst (embNf ∘ σ) A')))
+      ((≡2β (sym (cong embNf (sub-eval A' idCR (embNf ∘ σ))))))))
+  (sym≡β (soundness (sub (embNf ∘ σ) A')))
 
 postulate itype-lem≡β : ∀{Φ} b → Dec.itype {Φ} b ≡β embNf (Alg.itype b)
 

@@ -35,6 +35,7 @@
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."th-abstraction" or (errorHandler.buildDepError "th-abstraction"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -67,6 +68,7 @@
           "Language/PlutusTx/IsData"
           "Language/PlutusTx/IsData/Class"
           "Language/PlutusTx/Eq"
+          "Language/PlutusTx/Either"
           "Language/PlutusTx/Functor"
           "Language/PlutusTx/Lattice"
           "Language/PlutusTx/List"

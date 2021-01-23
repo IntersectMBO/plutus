@@ -16,7 +16,6 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
@@ -40,7 +39,11 @@ withGenArgsRes (TypeSchemeArrow _ schB) f k = do
     withGenArgsRes schB (f x) (k . (v :))
 withGenArgsRes (TypeSchemeAll _ schK)   f k = withGenArgsRes (schK Proxy) f k
 
-type AppErr = EvaluationException () DefaultFun (Term Name DefaultUni DefaultFun ())
+type AppErr =
+    EvaluationException
+        ()
+        (MachineError DefaultFun (Term Name DefaultUni DefaultFun ()))
+        (Term Name DefaultUni DefaultFun ())
 
 -- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM

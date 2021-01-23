@@ -1,28 +1,28 @@
 .ct-chart {
     .chartist-tooltip {
         color: $white;
-        background-color: $fadedblue;
+        background-color: $chart-tooltip;
 
         &:before {
-            border-top-color: $fadedblue;
+            border-top-color: $chart-tooltip;
         }
     }
 
     .ct-chart-bar {
-        background-color: $gray-800;
+        background-color: $chart-bg;
 
         .ct-x-axis-title,
         .ct-y-axis-title {
-            fill: $fadedblue;
+            fill: $chart-title;
         }
 
         .ct-label {
-            color: $fadedblue;
+            color: $chart-label;
         }
 
         .ct-grid.ct-vertical,
         .ct-grid.ct-horizontal {
-            stroke: $fadedblue;
+            stroke: $chart-grid-stroke;
             stroke-dasharray: none;
         }
 

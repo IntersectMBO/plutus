@@ -1,10 +1,13 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
 module Language.PlutusTx.Coordination.Contracts.ErrorHandling(
     Schema
     , MyError(..)
@@ -15,7 +18,9 @@ module Language.PlutusTx.Coordination.Contracts.ErrorHandling(
 import           Control.Lens
 import           Control.Monad            (void)
 import           Control.Monad.Error.Lens
+import           Data.Aeson               (FromJSON, ToJSON)
 import           Data.Text                (Text)
+import           GHC.Generics             (Generic)
 
 import           Language.Plutus.Contract
 
@@ -39,7 +44,8 @@ data MyError =
     Error1 Text
     | Error2
     | MyContractError ContractError
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''MyError
 

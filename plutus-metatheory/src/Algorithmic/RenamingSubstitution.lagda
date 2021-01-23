@@ -120,14 +120,14 @@ weaken⋆ t = ren S (λ α → _∋_.T α) t
 
 \begin{code}
 Sub : ∀{Φ Ψ} → SubNf Φ Ψ → Ctx Φ → Ctx Ψ → Set
-Sub σ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ substNf σ⋆ A)
+Sub σ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ subNf σ⋆ A)
 
 exts : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
   → {B : Φ ⊢Nf⋆ *}
     ---------------------------------
-  → Sub σ⋆ (Γ , B) (Δ , substNf σ⋆ B)
+  → Sub σ⋆ (Γ , B) (Δ , subNf σ⋆ B)
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S α) = weaken (σ α)
 \end{code}
@@ -141,61 +141,61 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
   → Sub (extsNf σ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
 exts⋆ σ⋆ σ {K}(T {A = A} α) = conv⊢
   refl
-  (weakenNf-substNf σ⋆ A)
+  (weakenNf-subNf σ⋆ A)
   (weaken⋆ (σ α))
 \end{code}
 
 \begin{code}
-substTermCon : ∀ {Φ Ψ}
+subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (substNf σ⋆ A ))
-substTermCon σ⋆ (integer i)    = integer i
-substTermCon σ⋆ (bytestring b) = bytestring b
-substTermCon σ⋆ (string s)     = string s
-substTermCon σ⋆ (bool b)       = bool b
-substTermCon σ⋆ (char c)       = char c
-substTermCon σ⋆ unit           = unit
+  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
+subTermCon σ⋆ (integer i)    = integer i
+subTermCon σ⋆ (bytestring b) = bytestring b
+subTermCon σ⋆ (string s)     = string s
+subTermCon σ⋆ (bool b)       = bool b
+subTermCon σ⋆ (char c)       = char c
+subTermCon σ⋆ unit           = unit
 \end{code}
 
 \begin{code}
-subst : ∀ {Φ Ψ Γ Δ}
+sub : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
     -------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
-subst σ⋆ σ (` k)                     = σ k
-subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)
-subst σ⋆ σ (L · M)                   = subst σ⋆ σ L · subst σ⋆ σ M
-subst σ⋆ σ (Λ {B = B} N) =
-  Λ (conv⊢ refl (subst-nf-Π σ⋆ B) (subst (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
-subst σ⋆ σ (_·⋆_ {B = B} L M) = conv⊢
+  → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ subNf σ⋆ A)
+sub σ⋆ σ (` k)                     = σ k
+sub σ⋆ σ (ƛ N)                     = ƛ (sub σ⋆ (exts σ⋆ σ) N)
+sub σ⋆ σ (L · M)                   = sub σ⋆ σ L · sub σ⋆ σ M
+sub σ⋆ σ (Λ {B = B} N) =
+  Λ (conv⊢ refl (sub-nf-Π σ⋆ B) (sub (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
+sub σ⋆ σ (_·⋆_ {B = B} L M) = conv⊢
   refl
-  (sym (subst[]Nf' σ⋆ M B))
-  (subst σ⋆ σ L ·⋆ substNf σ⋆ M)
-subst σ⋆ σ (wrap A B M) = wrap
-  (substNf σ⋆ A)
-  (substNf σ⋆ B)
-  (conv⊢ refl (subst-nf-μ σ⋆ A B) (subst σ⋆ σ M))
-subst σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
+  (sym (sub[]Nf' σ⋆ M B))
+  (sub σ⋆ σ L ·⋆ subNf σ⋆ M)
+sub σ⋆ σ (wrap A B M) = wrap
+  (subNf σ⋆ A)
+  (subNf σ⋆ B)
+  (conv⊢ refl (sub-nf-μ σ⋆ A B) (sub σ⋆ σ M))
+sub σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
   refl
-  (sym (subst-nf-μ σ⋆ A B))
-  (unwrap (subst σ⋆ σ M))
-subst σ⋆ σ (con c) = con (substTermCon σ⋆ c)
-subst σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-subst b σ⋆) (ibuiltin b)
-subst σ⋆ σ (error A) = error (substNf σ⋆ A)
+  (sym (sub-nf-μ σ⋆ A B))
+  (unwrap (sub σ⋆ σ M))
+sub σ⋆ σ (con c) = con (subTermCon σ⋆ c)
+sub σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-sub b σ⋆) (ibuiltin b)
+sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 \end{code}
 
 \begin{code}
-substcons : ∀{Φ Ψ Γ Δ}
+subcons : ∀{Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
   → {A : Φ ⊢Nf⋆ *}
-  → (t : Δ ⊢ substNf σ⋆ A)
+  → (t : Δ ⊢ subNf σ⋆ A)
     ---------------------
-  → (∀ {B : Φ ⊢Nf⋆ *} → Γ , A ∋ B → Δ ⊢ substNf σ⋆ B)
-substcons σ⋆ σ t Z     = t
-substcons σ⋆ σ t (S x) = σ x
+  → (∀ {B : Φ ⊢Nf⋆ *} → Γ , A ∋ B → Δ ⊢ subNf σ⋆ B)
+subcons σ⋆ σ t Z     = t
+subcons σ⋆ σ t (S x) = σ x
 \end{code}
 
 \begin{code}
@@ -205,17 +205,17 @@ _[_] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
     -----
   → Γ ⊢ A
 _[_] {A = A}{B} b a = conv⊢ refl
-  (substNf-id A)
-  (subst ( ne ∘ `)
-         (substcons (ne ∘ `)
-                    (conv⊢ refl (sym (substNf-id _)) ∘ `)
-                    (conv⊢ refl (sym (substNf-id B)) a))
+  (subNf-id A)
+  (sub ( ne ∘ `)
+         (subcons (ne ∘ `)
+                    (conv⊢ refl (sym (subNf-id _)) ∘ `)
+                    (conv⊢ refl (sym (subNf-id B)) a))
          b)
 \end{code}
 
 \begin{code}
 lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) → 
-  Γ ⊢ substNf (substNf-cons (λ x₁ → ne (` x₁)) A) B
+  Γ ⊢ subNf (subNf-cons (λ x₁ → ne (` x₁)) A) B
 lem (T x) = conv⊢
   refl
   (weakenNf[] _ _)
@@ -226,8 +226,8 @@ _[_]⋆ : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}
         → (A : Φ ⊢Nf⋆ K)
           ---------
         → Γ ⊢ B [ A ]Nf
-_[_]⋆ b A = subst
-  (substNf-cons (ne ∘ `) A)
+_[_]⋆ b A = sub
+  (subNf-cons (ne ∘ `) A)
   lem
   b
 \end{code}

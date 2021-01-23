@@ -1,9 +1,10 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.UntypedPlutusCore.Core.Type
     ( TPLC.UniOf
@@ -11,6 +12,8 @@ module Language.UntypedPlutusCore.Core.Type
     , Term (..)
     , Program (..)
     , toTerm
+    , bindFun
+    , mapFun
     , termAnn
     , erase
     , eraseProgram
@@ -22,6 +25,7 @@ import qualified Language.PlutusCore.Constant                       as TPLC
 import qualified Language.PlutusCore.Core                           as TPLC
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.MkPlc
 import qualified Language.PlutusCore.Name                           as TPLC
 import           Language.PlutusCore.Universe
 
@@ -57,6 +61,18 @@ data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fu
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
+instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
+    var      = Var
+    tyAbs    = \ann _ _ -> Delay ann
+    lamAbs   = \ann name _ -> LamAbs ann name
+    apply    = Apply
+    constant = Constant
+    builtin  = Builtin
+    tyInst   = \ann term _ -> Force ann term
+    unwrap   = \_ -> id
+    iWrap    = \_ _ _ -> id
+    error    = \ann _ -> Error ann
+
 instance TPLC.AsConstant (Term name uni fun ann) where
     asConstant (Constant _ val) = Just val
     asConstant _                = Nothing
@@ -91,6 +107,23 @@ termAnn (Apply ann _ _)  = ann
 termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
+
+bindFun
+    :: (ann -> fun -> Term name uni fun' ann)
+    -> Term name uni fun ann
+    -> Term name uni fun' ann
+bindFun f = go where
+    go (Constant ann val)     = Constant ann val
+    go (Builtin ann fun)      = f ann fun
+    go (Var ann name)         = Var ann name
+    go (LamAbs ann name body) = LamAbs ann name $ go body
+    go (Apply ann fun arg)    = Apply ann (go fun) (go arg)
+    go (Delay ann term)       = Delay ann $ go term
+    go (Force ann term)       = Force ann $ go term
+    go (Error ann)            = Error ann
+
+mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
+mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
 
 -- | Erase a Typed Plutus Core term to its untyped counterpart.
 erase :: TPLC.Term tyname name uni fun ann -> Term name uni fun ann

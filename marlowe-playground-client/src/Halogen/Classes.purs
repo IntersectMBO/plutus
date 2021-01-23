@@ -87,6 +87,27 @@ spaceLeft = ClassName "space-left"
 spaceRight :: ClassName
 spaceRight = ClassName "space-right"
 
+spaceBottom :: ClassName
+spaceBottom = ClassName "space-bottom"
+
+smallSpaceBottom :: ClassName
+smallSpaceBottom = ClassName "small-space-bottom"
+
+paddingRight :: ClassName
+paddingRight = ClassName "padding-right"
+
+smallPaddingRight :: ClassName
+smallPaddingRight = ClassName "small-padding-right"
+
+paddingLeft :: ClassName
+paddingLeft = ClassName "padding-left"
+
+smallPaddingLeft :: ClassName
+smallPaddingLeft = ClassName "small-padding-left"
+
+spaceTop :: ClassName
+spaceTop = ClassName "space-top"
+
 uppercase :: ClassName
 uppercase = ClassName "uppercase"
 
@@ -95,9 +116,6 @@ tabLink = ClassName "tab-link"
 
 aCenter :: ClassName
 aCenter = ClassName "a-center"
-
-flexCol :: ClassName
-flexCol = ClassName "flex-col"
 
 tabIcon :: ClassName
 tabIcon = ClassName "tab-icon"
@@ -162,9 +180,6 @@ mAlignCenter = ClassName "m-align-center"
 tAlignCenter :: ClassName
 tAlignCenter = ClassName "t-align-center"
 
-flex :: ClassName
-flex = ClassName "flex"
-
 flexFour :: ClassName
 flexFour = ClassName "flex-four"
 
@@ -203,9 +218,6 @@ rTableEmptyRow = ClassName "RTable-empty-row"
 
 rTableDataRow :: ClassName
 rTableDataRow = ClassName "RTable-data-row"
-
-stateLabel :: ClassName
-stateLabel = ClassName "state-label"
 
 pointer :: ClassName
 pointer = ClassName "pointer"
@@ -272,8 +284,98 @@ group = ClassName "group"
 textBase :: ClassName
 textBase = ClassName "text-base"
 
+textXs :: ClassName
+textXs = ClassName "text-xs"
+
 textSm :: ClassName
 textSm = ClassName "text-sm"
 
+text3xl :: ClassName
+text3xl = ClassName "text-3xl"
+
 fontSemibold :: ClassName
 fontSemibold = ClassName "font-semibold"
+
+textLeft :: ClassName
+textLeft = ClassName "text-left"
+
+textCenter :: ClassName
+textCenter = ClassName "text-center"
+
+textRight :: ClassName
+textRight = ClassName "text-right"
+
+textJustify :: ClassName
+textJustify = ClassName "text-justify"
+
+textWhite :: ClassName
+textWhite = ClassName "text-white"
+
+border :: ClassName
+border = ClassName "border"
+
+borderBlue300 :: ClassName
+borderBlue300 = ClassName "border-blue-300"
+
+activeBorderBlue700 :: ClassName
+activeBorderBlue700 = ClassName "active:border-blue-700"
+
+flex :: ClassName
+flex = ClassName "flex"
+
+flexRow :: ClassName
+flexRow = ClassName "flex-row"
+
+flexRowReverse :: ClassName
+flexRowReverse = ClassName "flex-row-reverse"
+
+flexCol :: ClassName
+flexCol = ClassName "flex-col"
+
+flexColReverse :: ClassName
+flexColReverse = ClassName "flex-col-reverse"
+
+flex1 :: ClassName
+flex1 = ClassName "flex-1"
+
+flexAuto :: ClassName
+flexAuto = ClassName "flex-auto"
+
+flexInitial :: ClassName
+flexInitial = ClassName "flex-initial"
+
+flexNone :: ClassName
+flexNone = ClassName "flex-none"
+
+justifyStart :: ClassName
+justifyStart = ClassName "justify-start"
+
+justifyEnd :: ClassName
+justifyEnd = ClassName "justify-end"
+
+justifyCenter :: ClassName
+justifyCenter = ClassName "justify-center"
+
+justifyBetween :: ClassName
+justifyBetween = ClassName "justify-between"
+
+justifyAround :: ClassName
+justifyAround = ClassName "justify-around"
+
+justifyEvenly :: ClassName
+justifyEvenly = ClassName "justify-evenly"
+
+justifySelfAuto :: ClassName
+justifySelfAuto = ClassName "justify-self-auto"
+
+justifySelfStart :: ClassName
+justifySelfStart = ClassName "justify-self-start"
+
+justifySelfEnd :: ClassName
+justifySelfEnd = ClassName "justify-self-end"
+
+justifySelfCenter :: ClassName
+justifySelfCenter = ClassName "justify-self-center"
+
+justifySelfStretch :: ClassName
+justifySelfStretch = ClassName "justify-self-stretch"

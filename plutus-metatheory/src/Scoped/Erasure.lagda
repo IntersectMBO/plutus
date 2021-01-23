@@ -82,12 +82,7 @@ eraseTm (ƛ A t)                = ƛ (eraseTm t)
 eraseTm (t · u)                = eraseTm t · eraseTm u
 eraseTm (con c)                = con (eraseTC c)
 eraseTm (error A)              = error
-eraseTm (builtin bn (inj₁ (p , refl)) As ts) = builtin bn (subst (_ ≤‴_) (lemma bn) z≤‴n) (eraseTel ts)
-eraseTm {i = i} (builtin bn (inj₂ (refl , q)) As ts) = builtin
-  bn
-  (subst (arity⋆ bn + _ ≤‴_) (lemma bn) (+-monoʳ-≤‴ (arity⋆ bn) q))
-  (eraseTel⋆ i As ++ eraseTel ts)
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
-eraseTm (ibuiltin b) = error
+eraseTm (ibuiltin b)           = builtin b (≤″⇒≤‴ (≤⇒≤″ z≤n)) []
 \end{code}

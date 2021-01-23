@@ -8,13 +8,15 @@
 , agdaWithStdlib
 , buildPackages
 , nix-gitignore
-, checkMaterialization
 , z3
 , R
+, checkMaterialization
+, compiler-nix-name
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.stackProject' {
+    inherit compiler-nix-name;
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
@@ -156,13 +158,15 @@ let
           marlowe-symbolic.package.ghcOptions = "-Werror";
           marlowe-actus.package.ghcOptions = "-Werror";
           marlowe-playground-server.package.ghcOptions = "-Werror";
+          marlowe-dashboard-server.package.ghcOptions = "-Werror";
           playground-common.package.ghcOptions = "-Werror";
           # FIXME: has warnings
           #plutus-metatheory.package.ghcOptions = "-Werror";
           plutus-contract.package.ghcOptions = "-Werror";
           plutus-ledger.package.ghcOptions = "-Werror";
+          plutus-ledger-api.package.ghcOptions = "-Werror";
           plutus-playground-server.package.ghcOptions = "-Werror";
-          plutus-scb.package.ghcOptions = "-Werror";
+          plutus-pab.package.ghcOptions = "-Werror";
           plutus-tx.package.ghcOptions = "-Werror";
           plutus-tx-plugin.package.ghcOptions = "-Werror";
           plutus-doc.package.ghcOptions = "-Werror";

@@ -1,3 +1,5 @@
+/*eslint-env node*/
+/*global global*/
 import '@fortawesome/fontawesome-free/css/all.css';
 import './static/css/main.scss';
 import 'node-blockly/browser';

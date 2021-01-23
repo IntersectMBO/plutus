@@ -47,6 +47,7 @@ import qualified Data.ByteString.Unsafe                 as BSUnsafe
 import qualified Data.Map                               as Map
 import qualified Data.Text.Prettyprint.Doc              as PP
 import           Data.Traversable
+import           ErrorCode
 import qualified FamInstEnv                             as GHC
 
 import           System.IO.Unsafe                       (unsafePerformIO)
@@ -176,7 +177,7 @@ runPluginM pctx act = do
     case res of
         Right x -> pure x
         Left err ->
-            let errInGhc = GHC.ProgramError $ "GHC Core to PLC plugin: " ++ show (PP.pretty err)
+            let errInGhc = GHC.ProgramError $ "GHC Core to PLC plugin: " ++ show (PP.pretty (errorCode err) <> ":" <> PP.pretty err)
             in liftIO $ GHC.throwGhcExceptionIO errInGhc
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.
@@ -334,7 +335,7 @@ runCompiler opts expr = do
     when (poDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
-    let uplcP = UPLC.eraseProgram plcP
+    uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.eraseProgram plcP
     pure (spirP, uplcP)
 
   where

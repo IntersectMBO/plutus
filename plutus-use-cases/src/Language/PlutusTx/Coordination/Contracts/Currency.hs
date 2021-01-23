@@ -41,9 +41,9 @@ import           Ledger                                          (CurrencySymbol
                                                                   pubKeyHash, scriptCurrencySymbol, txId)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Constraints                              as Constraints
+import qualified Ledger.Contexts                                 as V
 import           Ledger.Scripts
 import qualified Ledger.Typed.Scripts                            as Scripts
-import qualified Ledger.Validation                               as V
 import           Ledger.Value                                    (TokenName, Value)
 import qualified Ledger.Value                                    as Value
 
@@ -146,7 +146,9 @@ instance AsPubKeyError CurrencyError where
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
---   If @k == 0@ then no value is forged.
+--   If @k == 0@ then no value is forged. A one-shot monetary policy
+--   script is used to ensure that no more units of the currency can
+--   be forged afterwards.
 forgeContract
     :: forall s e.
     ( HasWriteTx s
@@ -183,7 +185,7 @@ type CurrencySchema =
     BlockchainActions
         .\/ Endpoint "Create native token" SimpleMPS
 
--- | Create the currency specified by a 'SimpleMPS'
+-- | Use 'forgeContract' to create the currency specified by a 'SimpleMPS'
 forgeCurrency
     :: Contract CurrencySchema CurrencyError Currency
 forgeCurrency = do

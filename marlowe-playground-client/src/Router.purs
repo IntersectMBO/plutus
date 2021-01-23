@@ -19,6 +19,7 @@ type Route
 data SubRoute
   = Home
   | Simulation
+  | MarloweEditor
   | HaskellEditor
   | JSEditor
   | ActusBlocklyEditor
@@ -39,6 +40,7 @@ route =
     := sum
         { "Home": noArgs
         , "Simulation": "simulation" / noArgs
+        , "MarloweEditor": "marlowe" / noArgs
         , "HaskellEditor": "haskell" / noArgs
         , "JSEditor": "javascript" / noArgs
         , "Blockly": "blockly" / noArgs

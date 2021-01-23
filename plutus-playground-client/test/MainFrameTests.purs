@@ -34,8 +34,10 @@ import Gist (Gist, GistId, gistId)
 import Gists.Types (GistAction(..))
 import Halogen.Monaco (KeyBindings(..)) as Editor
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode(..))
-import MainFrame (handleAction, mkInitialState)
-import MonadApp (class MonadApp)
+import MainFrame.Lenses (_authStatus, _contractDemoEditorContents, _createGistResult, _currentView, _simulations)
+import MainFrame.MonadApp (class MonadApp)
+import MainFrame.State (handleAction, mkInitialState)
+import MainFrame.Types (HAction(..), State, View(Editor, Simulations), WebData)
 import Network.RemoteData (RemoteData(..), isNotAsked, isSuccess)
 import Network.RemoteData as RemoteData
 import Node.Encoding (Encoding(..))
@@ -44,13 +46,11 @@ import Playground.Gists (playgroundGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (CompilationResult, ContractDemo, EvaluationResult)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import StaticData (_contractDemoEditorContents, bufferLocalStorageKey, mkContractDemos)
-import StaticData as StaticData
+import StaticData (bufferLocalStorageKey, lookupContractDemo, mkContractDemos)
 import Test.QuickCheck ((<?>))
 import Test.Unit (TestSuite, failure, suite, test)
 import Test.Unit.Assert (assert, equal, equal')
 import Test.Unit.QuickCheck (quickCheck)
-import Types (HAction(..), State, View(Editor, Simulations), WebData, _authStatus, _createGistResult, _currentView, _simulations)
 
 all :: TestSuite
 all =
@@ -132,6 +132,7 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
       pure compilationResult
   resizeEditor = pure unit
   resizeBalancesChart = pure unit
+  scrollIntoView _ = pure unit
 
 instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
   tailRecM step a = do
@@ -153,6 +154,12 @@ execMockApp world queries = do
     mkInitialState
       ( Editor.State
           { keyBindings: Editor.DefaultBindings
+          , feedbackPaneMinimised: false
+          , lastCompiledCode: Nothing
+          , currentCodeIsCompiled: false
+          , feedbackPaneDragStart: Nothing
+          , feedbackPaneExtend: 0
+          , feedbackPanePreviousExtend: 0
           }
       )
   RWSResult state result writer <-
@@ -231,7 +238,7 @@ evalTests =
         )
       contractDemos :: Array ContractDemo <- mapError (error <<< show) mkContractDemos
       equal' "Script gets loaded."
-        (view _contractDemoEditorContents <$> StaticData.lookup "Game" contractDemos)
+        (view _contractDemoEditorContents <$> lookupContractDemo "Game" contractDemos)
         finalWorld.editorContents
     test "Loading a script switches back to the editor." do
       loadCompilationResponse1

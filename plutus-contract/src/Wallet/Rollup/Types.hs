@@ -9,7 +9,7 @@
 
 module Wallet.Rollup.Types where
 
-import           Control.Lens              (makeLenses)
+import           Control.Lens              (makeLenses, makeLensesFor)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import           Data.Map                  (Map)
 import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
@@ -34,6 +34,12 @@ data SequenceId =
         }
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+makeLensesFor
+     [ ("slotIndex", "slotIndexL")
+     , ("txIndex", "txIndexL")
+     ]
+    ''SequenceId
 
 data DereferencedInput
     = DereferencedInput
@@ -71,8 +77,6 @@ data AnnotatedTx =
     deriving (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-makeLenses 'SequenceId
-
 makeLenses 'AnnotatedTx
 
 data Rollup =
@@ -83,3 +87,12 @@ data Rollup =
     deriving (Show, Eq, Generic)
 
 makeLenses 'Rollup
+
+data RollupState =
+    RollupState
+        { _currentSequenceId     :: SequenceId
+        , _rollup                :: Rollup
+        , _annotatedTransactions :: [AnnotatedTx] -- reverse order
+        }
+
+makeLenses ''RollupState

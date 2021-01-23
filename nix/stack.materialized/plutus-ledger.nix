@@ -45,6 +45,7 @@
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+          (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."natural-transformation" or (errorHandler.buildDepError "natural-transformation"))
@@ -68,31 +69,17 @@
           ];
         buildable = true;
         modules = [
-          "Data/Aeson/Extras"
-          "Data/Either/Extras"
-          "Data/Text/Prettyprint/Doc/Extras"
           "Ledger"
-          "Ledger/Ada"
-          "Ledger/Address"
           "Ledger/AddressMap"
           "Ledger/Blockchain"
           "Ledger/Constraints"
           "Ledger/Constraints/OffChain"
           "Ledger/Constraints/OnChain"
           "Ledger/Constraints/TxConstraints"
-          "Ledger/Crypto"
           "Ledger/Generators"
           "Ledger/Oracle"
           "Ledger/Orphans"
-          "Ledger/Slot"
-          "Ledger/Scripts"
-          "Ledger/Tx"
-          "Ledger/TxId"
-          "Ledger/Validation"
           "Ledger/Index"
-          "Ledger/Interval"
-          "Ledger/Value"
-          "LedgerBytes"
           "Ledger/Tokens"
           "Ledger/Typed/Scripts"
           "Ledger/Typed/Scripts/Validators"

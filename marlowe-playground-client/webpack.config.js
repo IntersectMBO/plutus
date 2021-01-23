@@ -28,8 +28,7 @@ module.exports = {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 8009,
-        host: "0.0.0.0",
-        https: false,
+        https: true,
         proxy: {
             "/api": {
                 target: 'http://localhost:8080'
@@ -72,7 +71,9 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs'
+                                'web-common/**/*.purs',
+                                'web-common-marlowe/**/*.purs',
+                                'web-common-playground/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),
@@ -108,7 +109,10 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules'
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            'node_modules', path.resolve(__dirname, './node_modules')
         ],
         alias: {
             grammar: path.resolve(__dirname, './grammar.ne'),

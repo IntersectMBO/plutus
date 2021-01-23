@@ -37,10 +37,10 @@ import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
+import           Ledger.Contexts                       (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts                       as Validation
 import qualified Ledger.Interval                       as Interval
 import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Validation                     (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                     as Validation
 import           Ledger.Value                          (Value)
 import qualified Ledger.Value                          as Value
 
@@ -97,7 +97,8 @@ data MSState =
 
     | CollectingSignatures Payment [PubKeyHash]
     -- ^ A payment has been proposed and is awaiting signatures.
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq MSState where
     {-# INLINABLE (==) #-}
@@ -120,12 +121,14 @@ data Input =
 
     | Pay
     -- ^ Make the payment.
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 data MultiSigError =
     MSContractError ContractError
     | MSStateMachineError SM.SMContractError
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 makeClassyPrisms ''MultiSigError
 
 instance AsContractError MultiSigError where

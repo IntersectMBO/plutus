@@ -12,6 +12,10 @@ module Spec.Marlowe.Marlowe
 where
 
 import           Control.Exception                     (SomeException, catch)
+import           Control.Lens                          ((&), (.~))
+import           Control.Monad                         (void)
+import           Control.Monad.Freer                   (run)
+import           Control.Monad.Freer.Error             (runError)
 import qualified Data.Map.Strict                       as Map
 import           Data.Maybe                            (isJust)
 import qualified Data.Text                             as T
@@ -37,18 +41,24 @@ import qualified Codec.Serialise                       as Serialise
 import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
                                                         OptionVal ((:=)), as, interpret, languageExtensions,
                                                         runInterpreter, set, setImports)
-import           Language.Plutus.Contract.Test
+import           Language.Plutus.Contract.Test         hiding ((.&&.))
+import qualified Language.Plutus.Contract.Test         as T
 import           Language.PlutusTx.Lattice
+import qualified Plutus.Trace.Emulator                 as Trace
 
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (lovelaceValueOf)
+import           Ledger.Constraints.TxConstraints      (TxConstraints)
 import           Ledger.Typed.Scripts                  (scriptHash, validatorScript)
 import qualified Ledger.Value                          as Val
 import           Spec.Marlowe.Common
+import qualified Streaming.Prelude                     as S
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
+import qualified Wallet.Emulator.Folds                 as Folds
+import           Wallet.Emulator.Stream                (foldEmulatorStreamM, takeUntilSlot)
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
@@ -80,13 +90,13 @@ bob = Wallet 2
 
 
 zeroCouponBondTest :: TestTree
-zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bond Contract" marlowePlutusContract
+zeroCouponBondTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 250) "Zero Coupon Bond Contract"
     (assertNoFailedTransactions
-    -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
-    /\ walletFundsChange alice (lovelaceValueOf (150))
-    /\ walletFundsChange bob (lovelaceValueOf (-150))
+    -- T..&&. emulatorLog (const False) ""
+    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should close"
+    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should close"
+    T..&&. walletFundsChange alice (lovelaceValueOf (150))
+    T..&&. walletFundsChange bob (lovelaceValueOf (-150))
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
@@ -100,90 +110,66 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @MarloweError "Zero Coupon Bo
                 (When
                     [ Case (Deposit alicePk bobPk ada (Constant 1000)) Close] (Slot 200) Close
                 ))] (Slot 100) Close
-    callEndpoint @"create" alice (defaultRolePayoutValidatorHash, AssocMap.empty, zeroCouponBond)
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
 
-    callEndpoint @"wait" bob (params)
-    handleBlockchainEvents bob
+    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
-    callEndpoint @"apply-inputs" alice (params, [IDeposit alicePk alicePk ada 850])
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
+    Trace.callEndpoint @"create" aliceHdl (AssocMap.empty, zeroCouponBond)
+    Trace.waitNSlots 2
 
-    callEndpoint @"wait" alice (params)
+    Trace.callEndpoint @"wait" bobHdl (params)
 
-    handleBlockchainEvents bob
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params, [IDeposit alicePk alicePk ada 850])
+    Trace.waitNSlots 2
 
-    callEndpoint @"apply-inputs" bob (params, [IDeposit alicePk bobPk ada 1000])
+    Trace.callEndpoint @"wait" aliceHdl (params)
 
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
-    addBlocks 1
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
+    Trace.callEndpoint @"apply-inputs" bobHdl (params, [IDeposit alicePk bobPk ada 1000])
+    void $ Trace.waitNSlots 2
 
 
 trustFundTest :: TestTree
-trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract" marlowePlutusContract
+trustFundTest = checkPredicateOptions (defaultCheckOptions & maxSlot .~ 200) "Trust Fund Contract"
     (assertNoFailedTransactions
-    -- /\ emulatorLog (const False) ""
-    /\ assertDone alice (const True) "contract should close"
-    /\ assertDone bob (const True) "contract should close"
-    /\ walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
-    /\ walletFundsChange bob (Val.singleton (rolesCurrency params) "bob" 1)
+    -- T..&&. emulatorLog (const False) ""
+    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag alice) "contract should not have any errors"
+    T..&&. assertNotDone marlowePlutusContract (Trace.walletInstanceTag bob) "contract should not have any errors"
+    T..&&. walletFundsChange alice (lovelaceValueOf (-256) <> Val.singleton (rolesCurrency params) "alice" 1)
+    T..&&. walletFundsChange bob (lovelaceValueOf 256 <> Val.singleton (rolesCurrency params) "bob" 1)
     ) $ do
+
     -- Init a contract
-    let alicePk = PK $ pubKeyHash $ walletPubKey alice
-        bobPk = PK $ pubKeyHash $ walletPubKey bob
+    let alicePkh = pubKeyHash $ walletPubKey alice
+        bobPkh = pubKeyHash $ walletPubKey bob
+    bobHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError bob marlowePlutusContract
+    aliceHdl <- Trace.activateContractWallet @MarloweSchema @MarloweError alice marlowePlutusContract
 
-    callEndpoint @"create" alice
-        (defaultRolePayoutValidatorHash,
-        AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)],
+    Trace.callEndpoint @"create" aliceHdl
+        (AssocMap.fromList [("alice", alicePkh), ("bob", bobPkh)],
         contract)
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
+    Trace.waitNSlots 5
 
-    callEndpoint @"wait" bob (params)
-    handleBlockchainEvents bob
+    Trace.callEndpoint @"wait" bobHdl (params)
 
-    callEndpoint @"apply-inputs" alice (params,
+    Trace.callEndpoint @"apply-inputs" aliceHdl (params,
         [ IChoice chId 256
         , IDeposit "alice" "alice" ada 256
         ])
-    addBlocks 1
-    handleBlockchainEvents alice
-    addBlocks 1
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
-    addBlocks 15
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
+    Trace.waitNSlots 17
 
-    callEndpoint @"wait" alice (params)
+    Trace.callEndpoint @"wait" aliceHdl (params)
 
-    handleBlockchainEvents bob
+    Trace.callEndpoint @"apply-inputs" bobHdl (params, [INotify])
 
-    callEndpoint @"apply-inputs" bob (params, [INotify])
+    Trace.waitNSlots 2
+    Trace.callEndpoint @"redeem" bobHdl (params, "bob", bobPkh)
+    void $ Trace.waitNSlots 2
+    where
+        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
+        chId = ChoiceId "1" alicePk
 
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
-    addBlocks 1
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
-    addBlocks 1
-    handleBlockchainEvents alice
-    handleBlockchainEvents bob
-  where
-    chId = ChoiceId "1" "alice"
-    contract = When [
+        contract = When [
             Case (Choice chId [Bound 10 1500])
                 (When [Case
                     (Deposit "alice" "alice" ada (ChoiceValue chId))
@@ -193,29 +179,28 @@ trustFundTest = checkPredicate @MarloweSchema @MarloweError "Trust Fund Contract
                         (Slot 40) Close)
                     ] (Slot 30) Close)
             ] (Slot 20) Close
-
-    (params, _) = either error id $ evalTrace @MarloweSchema @MarloweError
-            (setupMarloweParams
-                defaultRolePayoutValidatorHash
-                (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
-                contract
-            )
-            actions
-            alice
-        where
-            actions = do
-                handleBlockchainEvents alice
-                addBlocks 1
-                handleBlockchainEvents alice
-                addBlocks 1
-                handleBlockchainEvents alice
+        (params, (_ :: TxConstraints MarloweInput MarloweData)) =
+            let con = setupMarloweParams @MarloweSchema @MarloweError
+                        (AssocMap.fromList [("alice", pubKeyHash $ walletPubKey alice), ("bob", pubKeyHash $ walletPubKey bob)])
+                        contract
+                fld = Folds.instanceOutcome con (Trace.walletInstanceTag alice)
+                getOutcome (Done a) = a
+                getOutcome e        = error $ "not finished: " <> show e
+            in either (error . show) (getOutcome . S.fst')
+                    $ run
+                    $ runError @Folds.EmulatorFoldErr
+                    $ foldEmulatorStreamM fld
+                    $ Trace.runEmulatorStream Trace.defaultEmulatorConfig
+                    $ do
+                        void $ Trace.activateContractWallet @MarloweSchema @MarloweError alice (void con)
+                        Trace.waitNSlots 10
 
 
 uniqueContractHash :: IO ()
 uniqueContractHash = do
     let params cs = MarloweParams
             { rolesCurrency = cs
-            , rolePayoutValidatorHash = validatorHash rolePayoutScript }
+            , rolePayoutValidatorHash = validatorHash (rolePayoutScript cs) }
 
     let hash1 = scriptHash $ scriptInstance (params "11")
     let hash2 = scriptHash $ scriptInstance (params "22")

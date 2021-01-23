@@ -54,6 +54,7 @@
           (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
           (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
           (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
+          (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
@@ -63,6 +64,7 @@
           "Language/Marlowe/ACTUS/Ops"
           "Language/Marlowe/ACTUS/MarloweCompat"
           "Language/Marlowe/ACTUS/Generator"
+          "Language/Marlowe/ACTUS/QCGenerator"
           "Language/Marlowe/ACTUS/Analysis"
           "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
           "Language/Marlowe/ACTUS/Definitions/ContractTerms"
@@ -143,6 +145,68 @@
             "Language/Marlowe/ACTUS/Ops"
             ];
           hsSourceDirs = [ "app" "src" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "marlowe-actus-test-kit" = {
+          depends = [
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
+            (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
+            (hsPkgs."loch-th" or (errorHandler.buildDepError "loch-th"))
+            (hsPkgs."sort" or (errorHandler.buildDepError "sort"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            (hsPkgs."validation" or (errorHandler.buildDepError "validation"))
+            (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
+            (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+            (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
+            (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            ];
+          buildable = true;
+          modules = [
+            "Language/Marlowe/ACTUS/MarloweCompat"
+            "Language/Marlowe/ACTUS/Generator"
+            "Language/Marlowe/ACTUS/QCGenerator"
+            "Language/Marlowe/ACTUS/Analysis"
+            "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
+            "Language/Marlowe/ACTUS/Definitions/ContractTerms"
+            "Language/Marlowe/ACTUS/Definitions/ContractState"
+            "Language/Marlowe/ACTUS/Definitions/Schedule"
+            "Language/Marlowe/ACTUS/Model/APPLICABILITY/Applicability"
+            "Language/Marlowe/ACTUS/Model/APPLICABILITY/ApplicabilityModel"
+            "Language/Marlowe/ACTUS/Model/POF/PayoffModel"
+            "Language/Marlowe/ACTUS/Model/POF/Payoff"
+            "Language/Marlowe/ACTUS/Model/POF/PayoffFs"
+            "Language/Marlowe/ACTUS/Model/STF/StateTransitionModel"
+            "Language/Marlowe/ACTUS/Model/STF/StateTransition"
+            "Language/Marlowe/ACTUS/Model/STF/StateTransitionFs"
+            "Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel"
+            "Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule"
+            "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
+            "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
+            "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
+            "Language/Marlowe/ACTUS/Model/Utility/DateShift"
+            "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
+            "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
+            "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
+            "Language/Marlowe/ACTUS/Ops"
+            ];
+          hsSourceDirs = [ "testkit" "src" ];
           mainPath = [ "Main.hs" ];
           };
         };

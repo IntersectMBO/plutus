@@ -9,9 +9,9 @@
 # In order to get around this we make sure that the TH code is all in libraries and create
 # a single haskell file that does nothing other than import the main function from the library.
 # We can then pass the `-optl=-static` flag and statically link this as it does not use TH.
-{ pkgs, lib, haskellPackages }:
+{ pkgs, lib, ghcWithPackages }:
 let
-  ghc = haskellPackages.ghcWithPackages (p: [ p.marlowe-playground-server ]);
+  ghc = ghcWithPackages (p: [ p.marlowe-playground-server ]);
   main = pkgs.writeText "app.hs"
     ''
       module Main where

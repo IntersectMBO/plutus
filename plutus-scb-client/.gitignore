@@ -1,9 +1,0 @@
-/node_modules/
-/output/
-/generated/
-/.psci_modules/
-/generated-docs/
-/.psc-package/
-/.psc-package2nix/
-/.spago/
-/.spago2nix/

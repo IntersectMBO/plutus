@@ -33,7 +33,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 
 import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Control.Exception
@@ -60,6 +59,9 @@ instance ToUPlc a uni fun => ToUPlc (ExceptT SomeException IO a) uni fun where
 
 instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
     toUPlc = pure
+
+instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
+    toUPlc p = withExceptT @_ @FreeVariableError toException $ TPLC.runQuoteT $ UPLC.unDeBruijnProgram p
 
 pureTry :: Exception e => a -> Either e a
 pureTry = unsafePerformIO . try . evaluate
@@ -99,28 +101,28 @@ goldenTPlc
     => String -> a -> TestNested
 goldenTPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toTPlc value
-    withExceptT toException $ deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ deBruijnProgram p
 
 goldenTPlcCatch
     :: ToTPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenTPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toTPlc value
-    withExceptT toException $ deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ deBruijnProgram p
 
 goldenUPlc
     :: ToUPlc a DefaultUni TPLC.DefaultFun
      => String -> a -> TestNested
 goldenUPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- toUPlc value
-    withExceptT toException $ UPLC.deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
 
 goldenUPlcCatch
     :: ToUPlc a DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
 goldenUPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- toUPlc value
-    withExceptT toException $ UPLC.deBruijnProgram p
+    withExceptT @_ @FreeVariableError toException $ UPLC.deBruijnProgram p
 
 goldenTEval
     :: ToTPlc a DefaultUni TPLC.DefaultFun

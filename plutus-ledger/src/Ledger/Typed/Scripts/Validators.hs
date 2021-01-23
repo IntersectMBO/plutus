@@ -18,9 +18,9 @@ import           Language.PlutusTx
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
 
-import           Ledger.Scripts
-import           Ledger.Validation         (PolicyCtx (..), TxInfo (..))
-import qualified Ledger.Validation         as Validation
+import           Plutus.V1.Ledger.Contexts (PolicyCtx (..), TxInfo (..))
+import qualified Plutus.V1.Ledger.Contexts as Validation
+import           Plutus.V1.Ledger.Scripts
 
 -- | The type of validators for the given connection type.
 type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.ValidatorCtx -> Bool

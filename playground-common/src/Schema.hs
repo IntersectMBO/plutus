@@ -64,7 +64,7 @@ import qualified Language.PlutusTx.Prelude            as P
 import           Ledger                               (Ada, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash,
                                                        RedeemerHash, Signature, Slot, SlotRange, TokenName,
                                                        ValidatorHash, Value)
-import           LedgerBytes                          (LedgerBytes)
+import           Ledger.Bytes                         (LedgerBytes)
 import           Wallet.Emulator.Wallet               (Wallet)
 import           Wallet.Types                         (ContractInstanceId)
 
