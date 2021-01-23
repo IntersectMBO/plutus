@@ -463,14 +463,14 @@ instance Check TypeBuiltinG TermConstantG where
 
 instance Check (TypeG tyname) TermBuiltinG where
   check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))) b = case b of
-    AddIntegerG      -> true
-    SubtractIntegerG -> true
-    MultiplyIntegerG -> true
---    DivideIntegerG -> true
---    QuotientIntegerG -> true
---    RemainderIntegerG -> true
---    ModIntegerG -> true
-    _                -> false
+    AddIntegerG       -> true
+    SubtractIntegerG  -> true
+    MultiplyIntegerG  -> true
+    DivideIntegerG    -> true
+    QuotientIntegerG  -> true
+    RemainderIntegerG -> true
+    ModIntegerG       -> true
+    _                 -> false
   check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))) b = case b of
     LessThanIntegerG      -> true
     LessThanEqIntegerG    -> true
@@ -561,12 +561,10 @@ checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTy
     ty2Ok = checkKindG kcs k ty2
     tmOk  = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
     vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
-{-
 checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
   where
     tyKindOk = checkKindG kcs (Type ()) ty
     tyOk = vTy == normalizeTypeG ty
--}
 checkTypeG _kcs _tcs vTy (BuiltinG b) = check vTy b
 checkTypeG _ _ _ _ = false
 

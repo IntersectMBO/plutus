@@ -32,7 +32,7 @@ allTests genOpts = testGroup "NEAT"
       (Type ())
       (packAssertion prop_Type)
   , bigTest "term-level"
-      genOpts {genDepth = 19} -- 20 seems to hang for a long time
+      genOpts {genDepth = 17}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]
@@ -97,7 +97,8 @@ prop_Term tyG tmG = do
     checkTypeAgda tyDB tmDB
 
   -- 2. run production CK against metatheory CK
-  tmPlcCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  tmPlcCK <- withExceptT CkP $ liftEither $
+    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK

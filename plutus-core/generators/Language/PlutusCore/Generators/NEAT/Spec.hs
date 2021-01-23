@@ -24,6 +24,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , names
   , throwCtrex
   , Ctrex (..)
+  , handle
   ) where
 
 import           Language.PlutusCore
@@ -34,6 +35,7 @@ import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
+--import           System.IO.Unsafe
 import           Control.Monad.Except
 import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
 import           Data.Coolean                               (Cool, toCool, (!=>))
@@ -64,22 +66,19 @@ tests genOpts@GenOptions{} =
 
   [ -- as originally written, use lazy-search to find ctrexs
     bigTest "normalization commutes with conversion from generated types"
-      genOpts {genDepth = 14}
+      genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
   , bigTest "normal types cannot reduce"
-      genOpts {genDepth = 15}
+      genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
   , bigTest "type preservation - CK & CEK"
-      genOpts {genDepth = 19}
+      genOpts {genDepth = 17}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
   , bigTest "CEK and CK produce the same output"
-      genOpts {genDepth = 19}
---    v - this fails as it exposes mistreatment of type annotations by CEK
---    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
---    v - this would also fail if the depth was increased
+      genOpts {genDepth = 17}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
 {-
@@ -96,7 +95,8 @@ tests genOpts@GenOptions{} =
   ,  mapTest
       genOpts {genDepth = 13}
       (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      (packTest prop_typePreservation) -}
+      (packTest prop_typePreservation)
+-}
   ]
 
 
@@ -117,6 +117,16 @@ not exploited.
 -- This property is expected to hold for the CK machine and fail for
 -- the CEK machine at the time of writing.
 
+
+-- handle a user error and turn it back into an error term
+handle :: Type TyName DefaultUni ()
+       -> ErrorWithCause (EvaluationError user internal) term
+       -> Either (ErrorWithCause (EvaluationError user internal) term)
+                 (Term TyName Name DefaultUni DefaultFun ())
+handle ty e = case _ewcError e of
+  UserEvaluationError     _ -> return (Error () ty)
+  InternalEvaluationError _ -> throwError e
+
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -129,12 +139,14 @@ prop_typePreservation tyG tmG = do
 
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
-  tmCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  tmCK <- withExceptT CkP $ liftEither $
+    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
   -- NOTE: the CEK machine doesn't respect this so we are just going through the motions here
-  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
+  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek
+    defBuiltinsRuntime tm `catchError` handle ty
   withExceptT
     (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
     (checkType tcConfig () tmCEK (Normalized ty))
@@ -161,9 +173,11 @@ prop_agree_Ck_Cek tyG tmG = do
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
   -- check if CK and CEK give the same output
+  tmCek <- withExceptT CekP $ liftEither $
+    evaluateCek defBuiltinsRuntime tm `catchError` handle ty
 
-  tmCek <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
-  tmCk <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  tmCk <- withExceptT CkP $ liftEither $
+    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
@@ -384,16 +398,19 @@ names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
 -- FIXME: this is an experiment
-{-
+
 -- given a prop, generate examples and then turn them into individual
 -- tasty tests
 
+{-
 mapTest :: (Check t a, Enumerable a)
         => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
 mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
   where
   examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
+-}
 
+{-
 iotests :: GenOptions -> IO [TestTree]
 iotests genOpts@GenOptions{} = do
   t1 <- packGroup genOpts (Type ()) (packTest prop_normalizeConvertCommuteTypes)
@@ -407,16 +424,17 @@ packGroup :: (Check t a, Enumerable a)
 packGroup GenOptions{..} t f = fmap (testGroup "a bunch of tests") $ do
   examples <- search' genMode genDepth (\a -> check t a)
   return $ map (f t) examples
-
+-}
 
 -- Take a prop and turn it into a tasty test
+{-
 packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
 packTest f t a = testCase ("typecheck test: " ++ show a) $
   case (runQuote . runExceptT $ f t a) of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
-
 -}
+
 ---
 
 -- | given a prop, generate one test
@@ -428,9 +446,11 @@ packAssertion f t a =
 
 -- | generate examples using `search'` and then generate one big test
 -- that applies the given test to each of them.
+
+-- TODO : printing the number of tests appears to put garbage in the log
 bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
 bigTest s GenOptions{..} t f = testCaseInfo s $ do
-  as <- search' genMode genDepth (\a -> check t a)
+  as <- search' genMode genDepth (\a ->  check t a)
   _  <- traverse (f t) as
   return $ show (length as)
