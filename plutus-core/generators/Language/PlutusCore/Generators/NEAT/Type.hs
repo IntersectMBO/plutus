@@ -497,7 +497,7 @@ instance Check (TypeG tyname) TermBuiltinG where
     LtByteStringG -> true
     GtByteStringG -> true
     _             -> false
-  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ)))))) b = case b of
+  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))) b = case b of
     IfThenElseG -> true
     _           -> false
   check (TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)) b = case b of
