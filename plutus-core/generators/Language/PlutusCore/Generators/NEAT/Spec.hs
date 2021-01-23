@@ -54,7 +54,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 12
+  { genDepth = 13
   , genMode  = OF
   }
 
@@ -64,24 +64,39 @@ tests genOpts@GenOptions{} =
 
   [ -- as originally written, use lazy-search to find ctrexs
     bigTest "normalization commutes with conversion from generated types"
-      genOpts
+      genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
   , bigTest "normal types cannot reduce"
-      genOpts
+      genOpts {genDepth = 15}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
   , bigTest "type preservation - CK & CEK"
-      genOpts
-      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      genOpts {genDepth = 19}
+      (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
   , bigTest "CEK and CK produce the same output"
-      genOpts
+      genOpts {genDepth = 19}
 --    v - this fails as it exposes mistreatment of type annotations by CEK
 --    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
 --    v - this would also fail if the depth was increased
-      (TyBuiltinG TyIntegerG)
+      (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
+{-
+  , testCaseGen "type preservation - CK & CEK"
+      genOpts {genDepth = 13}
+      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_typePreservation
+-}
+{-  ,  mapTest
+      genOpts {genDepth = 13}
+      (Type ())
+      (packTest prop_normalizeConvertCommuteTypes) -}
+{-
+  ,  mapTest
+      genOpts {genDepth = 13}
+      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      (packTest prop_typePreservation) -}
   ]
 
 
@@ -367,6 +382,42 @@ tynames = mkTextNameStream "t"
 -- |Stream of names x0, x1, x2, ..
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
+
+-- FIXME: this is an experiment
+{-
+-- given a prop, generate examples and then turn them into individual
+-- tasty tests
+
+mapTest :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
+mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
+  where
+  examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
+
+iotests :: GenOptions -> IO [TestTree]
+iotests genOpts@GenOptions{} = do
+  t1 <- packGroup genOpts (Type ()) (packTest prop_normalizeConvertCommuteTypes)
+
+  -- more tests...
+
+  return [t1]
+
+packGroup :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> TestTree) -> IO TestTree
+packGroup GenOptions{..} t f = fmap (testGroup "a bunch of tests") $ do
+  examples <- search' genMode genDepth (\a -> check t a)
+  return $ map (f t) examples
+
+
+-- Take a prop and turn it into a tasty test
+packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
+packTest f t a = testCase ("typecheck test: " ++ show a) $
+  case (runQuote . runExceptT $ f t a) of
+    Left  e -> assertFailure $ show e
+    Right _ -> return ()
+
+-}
+---
 
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion

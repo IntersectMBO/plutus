@@ -28,12 +28,12 @@ main = defaultMain $ allTests defaultGenOptions
 allTests :: GenOptions -> TestTree
 allTests genOpts = testGroup "NEAT"
   [ bigTest "type-level"
-      genOpts
+      genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_Type)
   , bigTest "term-level"
-      genOpts
-      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      genOpts {genDepth = 19} -- 20 seems to hang for a long time
+      (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]
 
