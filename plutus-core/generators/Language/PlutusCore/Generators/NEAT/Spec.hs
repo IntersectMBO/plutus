@@ -74,11 +74,11 @@ tests genOpts@GenOptions{} =
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
   , bigTest "type preservation - CK & CEK"
-      genOpts {genDepth = 17}
+      genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
   , bigTest "CEK and CK produce the same output"
-      genOpts {genDepth = 17}
+      genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
 {-

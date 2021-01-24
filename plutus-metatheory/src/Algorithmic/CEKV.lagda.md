@@ -79,7 +79,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
 
 ITel b ∅       σ = ⊤
 ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A) σ = ITel b Γ σ × Value (subNf σ A)
+ITel b (Γ , A)  σ = ITel b Γ σ × Value (subNf σ A)
 
 -- ITel is very similar to Env...
 -- The most significant difference is that envs don't contain types
@@ -276,17 +276,17 @@ IBUILTIN subtractInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
 IBUILTIN multiplyInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (V-con (integer (i ** j)))
 IBUILTIN divideInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer))-- divide by zero
-... | yes p = inj₁ (V-con (integer (div i j)))
+... | no ¬p = inj₁ (V-con (integer (div i j)))
+... | yes p = inj₂ (E-error (con integer))-- divide by zero
 IBUILTIN quotientInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (quot i j)))
+... | no ¬p = inj₁ (V-con (integer (quot i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN remainderInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (rem i j)))
+... | no ¬p = inj₁ (V-con (integer (rem i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN modInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (mod i j)))
+... | no ¬p = inj₁ (V-con (integer (mod i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN lessThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (decIf (i <? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN lessThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =

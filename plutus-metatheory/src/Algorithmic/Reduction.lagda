@@ -134,17 +134,17 @@ IBUILTIN addInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)
 IBUILTIN subtractInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i - j)))
 IBUILTIN multiplyInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) = _ ,, inj₁ (V-con (integer (i ** j)))
 IBUILTIN divideInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₂ E-error -- divide by zero
-... | yes p = _ ,, inj₁ (V-con (integer (div i j)))
+... | no ¬p = _ ,, inj₁ (V-con (integer (div i j)))
+... | yes p = _ ,, inj₂ E-error -- divide by zero
 IBUILTIN quotientInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₂ E-error -- divide by zero
-... | yes p = _ ,, inj₁ (V-con (integer (quot i j)))
+... | no ¬p = _ ,, inj₁ (V-con (integer (quot i j)))
+... | yes p = _ ,, inj₂ E-error -- divide by zero
 IBUILTIN remainderInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₂ E-error -- divide by zero
-... | yes p = _ ,, inj₁ (V-con (integer (rem i j)))
+... | no ¬p = _ ,, inj₁ (V-con (integer (rem i j)))
+... | yes p = _ ,, inj₂ E-error -- divide by zero
 IBUILTIN modInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = _ ,, inj₂ E-error -- divide by zero
-... | yes p = _ ,, inj₁ (V-con (integer (mod i j)))
+... | no ¬p = _ ,, inj₁ (V-con (integer (mod i j)))
+... | yes p = _ ,, inj₂ E-error -- divide by zero
 IBUILTIN lessThanInteger σ ((tt ,, _ ,, V-con (integer i)) ,, _ ,, V-con (integer j)) with i <? j
 ... | no ¬p = _ ,, inj₁ (V-con (bool false))
 ... | yes p = _ ,, inj₁ (V-con (bool true))
