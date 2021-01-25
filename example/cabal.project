@@ -7,53 +7,13 @@ source-repository-package
     type: git
     location: https://github.com/input-output-hk/plutus
     subdir: plutus-core
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: playground-common
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: prettyprinter-configurable
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: iots-export
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: plutus-contract
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: plutus-tx
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: plutus-tx-plugin
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: plutus-ledger
-    tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
-
-source-repository-package
-    type: git
-    location: https://github.com/input-output-hk/plutus
     subdir: plutus-ledger-api
     tag: fa3a9b1c303a0a65cc7ddef0d8ae9bb6d2bbf2ae
 
