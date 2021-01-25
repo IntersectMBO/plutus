@@ -4,6 +4,10 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StrictData         #-}
 
+{- | Use this executable to send a number of transactions per second
+     to the PAB. The executable will read the PAB configuration to get
+     the connection data, and you can specify a rate of transmission
+-}
 module Main where
 
 import           Control.Concurrent             (ThreadId, forkIO, myThreadId, throwTo)
@@ -43,6 +47,10 @@ import           Plutus.PAB.Types               (Config (..))
 import           Wallet.Emulator                (chainState, txPool, walletPubKey)
 import           Wallet.Emulator.MultiAgent     (emulatorStateInitialDist)
 
+{- | The `Stats` are used by both the producer and consumer to track the number of
+     generated transactions (used to verify if we respect the requested TPS rate)
+     and the number of UTxOs (not used at the moment)
+-}
 data Stats = Stats
   { stStartTime :: TimeSpec
   , stCount     :: Integer
@@ -50,6 +58,9 @@ data Stats = Stats
   , stEndTime   :: TimeSpec
   } deriving (Show, Generic)
 
+{- | The `AppEnv` is used by both the producer and the consumer to pass the data
+     required for execution
+-}
 data AppEnv = AppEnv
   { clientEnv :: ClientEnv
   , txQueue   :: TBQueue Tx
@@ -57,6 +68,10 @@ data AppEnv = AppEnv
   , utxoIndex :: UtxoIndex
   }
 
+{- | This builds the default UTxO index, using 10 wallets. We need to use the same
+     number of wallets and addresses as the PAB such that the generated data will
+     be validated by the PAB
+-}
 initialUtxoIndex :: UtxoIndex
 initialUtxoIndex =
   let initialTxs =
@@ -65,6 +80,7 @@ initialUtxoIndex =
         Map.mapKeys walletPubKey defaultDist
   in insertBlock initialTxs (UtxoIndex Map.empty)
 
+-- | Starts the producer thread
 runProducer :: AppEnv -> IO ThreadId
 runProducer AppEnv{txQueue, stats, utxoIndex} = do
   rng <- createSystemRandom
@@ -79,6 +95,8 @@ runProducer AppEnv{txQueue, stats, utxoIndex} = do
         modifyTVar' stats $ \s -> s { stUtxoSize = Map.size $ getIndex utxo' }
       producer rng utxo'
 
+-- | Default consumer will take transactions from the queue and send them
+--   as REST requests to the PAB.
 consumer :: AppEnv -> IO ()
 consumer AppEnv {clientEnv, txQueue, stats} = do
   tx <- atomically $ readTBQueue txQueue
@@ -89,6 +107,7 @@ consumer AppEnv {clientEnv, txQueue, stats} = do
     incrementCount :: Stats -> Stats
     incrementCount s = s { stCount = stCount s + 1 }
 
+-- | Cleanup procedure called when the application is closed, by using SIGINT (C-c)
 completeStats :: ThreadId -> TVar Stats -> IO ()
 completeStats parent stats = do
   endTime <- getTime Monotonic
@@ -105,15 +124,15 @@ showStats :: Stats -> Text
 showStats Stats {stStartTime, stCount, stEndTime} =
   let dt = sec stEndTime - sec stStartTime
       fr = stCount `div` toInteger dt
-  in  "TPS: " <> (T.pack $ show fr)
+  in  "Transactions per second: " <> (T.pack $ show fr)
 
--- Options
-
+-- | Command line options
 data InjectOptions = InjectOptions
   { ioRate         :: Integer
   , ioServerConfig :: String
   } deriving (Show, Generic)
 
+-- | Command line parser
 cmdOptions :: Parser InjectOptions
 cmdOptions = InjectOptions
   <$> option auto
@@ -134,6 +153,7 @@ prgHelp = info (cmdOptions <**> helper)
         ( fullDesc
        <> progDesc "Inject transactions into the SCB at specified RATEs." )
 
+-- | Wrapper that does rate limiting for a consumer
 rateLimitedConsumer
   :: InjectOptions
   -> IO (AppEnv -> IO ())
@@ -142,12 +162,16 @@ rateLimitedConsumer InjectOptions{ioRate} = do
         = fromMicroseconds $
             if ioRate == 0
             then ioRate
+            -- We will need to increase this when we need to generate
+            -- more than 1m TPS.
             else 1_000_000 `div` ioRate
   if  rate == 0
+  -- Don't wrap the consumer if rate limiting is disabled.
   then pure consumer
   else do
     rateLimitExecution rate consumer
 
+-- | Initial stats.
 initializeStats :: IO (TVar Stats)
 initializeStats = do
   sTime <- getTime Monotonic
@@ -157,11 +181,13 @@ initializeStats = do
                   , stEndTime = sTime
                   }
 
+-- | SIGINT / C-c will stop the execution.
 initializeInterruptHandler :: TVar Stats -> IO ()
 initializeInterruptHandler stats = do
   tid <- myThreadId
   installHandler sigINT (const $ completeStats tid stats)
 
+-- | Build a client environment for servant.
 initializeClientEnv :: Config -> IO ClientEnv
 initializeClientEnv cfg =
   mkClientEnv <$> liftIO mkManager
@@ -179,6 +205,7 @@ main = do
   config <- liftIO $ decodeFileThrow (ioServerConfig opts)
   env    <-
     AppEnv <$> initializeClientEnv config
+           -- Increasing the size beyond this point adds quite a bit of overhead.
            <*> newTBQueueIO 1000
            <*> initializeStats
            <*> pure initialUtxoIndex
