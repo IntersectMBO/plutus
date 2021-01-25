@@ -1509,13 +1509,15 @@ functions of which 25 are used.
     length integers.
 \end{itemize}
 
-
 Possibly empty lists are encoded in the standard way, by the tag for the constructor,
 `0' for `Nil' and `1' for `Cons'. The `Cons' constructor is followed by the serialised
 element, and then, recursiveley another list.
 
 Encoded values are aligned to byte/word boundary using a meaningless sequence of `0' bits
 terminated with a `1' bit.
+
+\section{Serialisation example}
+
 \end{appendices}
 
 \bibliographystyle{plainnat} %% ... or whatever
