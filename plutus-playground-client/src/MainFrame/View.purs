@@ -76,7 +76,7 @@ documentationLinksPane =
     (makeNavItem <$> links)
   where
   links =
-    [ text "Getting Started" /\ "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
+    [ text "Getting Started" /\ "https://developers.cardano.org/en/programming-languages/plutus/getting-started/"
     , text "Tutorial" /\ "./tutorial/index.html"
     , text "API" /\ "./tutorial/haddock/index.html"
     , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
