@@ -5,13 +5,12 @@ module MarloweEditor.State
   ) where
 
 import Prelude hiding (div)
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (startCloseAnalysis)
-import BottomPanel.Types as BottomPanel
-import BottomPanel.State as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader (runReaderT)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
@@ -29,21 +28,19 @@ import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe (SPParams_)
-import Marlowe as Server
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract, emptyState)
-import Marlowe.Symbolic.Types.Request as MSReq
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
-import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import Monaco (IMarker, isError, isWarning)
-import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
+import StaticAnalysis.StaticTools (analyseContract)
+import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -132,21 +129,9 @@ handleAction _ (InitMarloweProject contents) = do
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
-handleAction settings AnalyseContract =
-  void
-    $ runMaybeT do
-        contents <- MaybeT $ editorGetValue
-        contract <- hoistMaybe $ parseContract' contents
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        assign _analysisState (WarningAnalysis Loading)
-        let
-          emptySemanticState = emptyState zero
-        response <- lift $ checkContractForWarnings contract emptySemanticState
-        assign _analysisState (WarningAnalysis response)
-  where
-  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+handleAction settings AnalyseContract = do
+  mContents <- editorGetValue
+  for_ mContents $ analyseContract settings
 
 handleAction settings AnalyseReachabilityContract =
   void

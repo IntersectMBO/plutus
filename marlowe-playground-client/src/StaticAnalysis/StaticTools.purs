@@ -1,9 +1,12 @@
-module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
+module StaticAnalysis.StaticTools (analyseContract, closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
 
 -- FIXME: run import clean before merging.
 import Prelude hiding (div)
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
+import Data.Either (hush)
 import Data.Foldable (for_)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
@@ -17,7 +20,9 @@ import Halogen.Monaco as Monaco
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
+import Marlowe.Holes (fromTerm)
+import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
@@ -25,8 +30,30 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
-import StaticAnalysis.Types (AnalysisInProgressRecord, AnalysisState, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
+import StaticAnalysis.Types (AnalysisInProgressRecord, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
 import Types (WebData)
+
+analyseContract ::
+  forall m state action slots.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  String ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
+analyseContract settings contents =
+  void
+    $ runMaybeT do
+        contract <- hoistMaybe $ parseContract' contents
+        assign _analysisState (WarningAnalysis Loading)
+        let
+          emptySemanticState = emptyState zero
+        response <- lift $ checkContractForWarnings contract emptySemanticState
+        assign _analysisState (WarningAnalysis response)
+  where
+  parseContract' = fromTerm <=< hush <<< parseContract
+
+  checkContractForWarnings contract state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+
+  runAjax' action = RemoteData.fromEither <$> runExceptT action
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x

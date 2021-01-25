@@ -8,12 +8,10 @@ module HaskellEditor.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
-import Control.Monad.Except (ExceptT, lift, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
-import Data.Either (Either(..), hush)
+import Data.Either (Either(..))
 import Data.Lens (assign, use)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
@@ -27,16 +25,12 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
-import Marlowe as Server
-import Marlowe.Holes (fromTerm)
-import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (emptyState)
-import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import StaticData (bufferLocalStorageKey)
 import Types (WebData)
@@ -108,29 +102,6 @@ handleAction settings AnalyseContract = do
     Success (Right (InterpreterResult interpretedResult)) -> analyseContract settings interpretedResult.result
     Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
-
--- FIXME: put in a more global place and refactor MarloweEditor handleAction to use this
-analyseContract ::
-  forall m state action slots.
-  MonadAff m =>
-  SPSettings_ SPParams_ ->
-  String ->
-  HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseContract settings contents =
-  void
-    $ runMaybeT do
-        contract <- hoistMaybe $ parseContract' contents
-        assign _analysisState (WarningAnalysis Loading)
-        let
-          emptySemanticState = emptyState zero
-        response <- lift $ checkContractForWarnings contract emptySemanticState
-        assign _analysisState (WarningAnalysis response)
-  where
-  parseContract' = fromTerm <=< hush <<< parseContract
-
-  checkContractForWarnings contract state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
-
-  runAjax' action = RemoteData.fromEither <$> runExceptT action
 
 runAjax ::
   forall m a.
