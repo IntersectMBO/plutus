@@ -3,7 +3,10 @@ module JavascriptEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import BottomPanel.Types as BottomPanel
 import Data.Either (Either(..))
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Getter', Lens', Prism', Fold', prism, to)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -38,7 +41,7 @@ data Action
   = Compile
   | ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
-  | ShowBottomPanel Boolean
+  | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
   | InitJavascriptProject String
 
@@ -49,7 +52,7 @@ instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
-  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
 
@@ -66,8 +69,8 @@ _bottomDecorationId = prop (SProxy :: SProxy "bottomDecorationId")
 
 type State
   = { keybindings :: KeyBindings
+    , bottomPanelState :: BottomPanel.State BottomPanelView
     , compilationResult :: CompilationState
-    , showBottomPanel :: Boolean
     , decorationIds :: Maybe DecorationIds
     }
 
@@ -77,16 +80,27 @@ _keybindings = prop (SProxy :: SProxy "keybindings")
 _compilationResult :: Lens' State CompilationState
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
-_showBottomPanel :: Lens' State Boolean
-_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
-
 _decorationIds :: Lens' State (Maybe DecorationIds)
 _decorationIds = prop (SProxy :: SProxy "decorationIds")
+
+_bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
+_bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
+  , bottomPanelState: BottomPanel.initialState GeneratedOutputView
   , compilationResult: NotCompiled
-  , showBottomPanel: true
   , decorationIds: Nothing
   }
+
+data BottomPanelView
+  = ErrorsView
+  | GeneratedOutputView
+
+derive instance eqBottomPanelView :: Eq BottomPanelView
+
+derive instance genericBottomPanelView :: Generic BottomPanelView _
+
+instance showBottomPanelView :: Show BottomPanelView where
+  show = genericShow

@@ -7,6 +7,8 @@ module SimulationPage.State
   ) where
 
 import Prelude hiding (div)
+import BottomPanel.State as BottomPanel
+import BottomPanel.Types as BottomPanel
 import Control.Alternative ((<|>))
 import Control.Monad.Except (ExceptT, runExceptT, runExcept)
 import Control.Monad.Reader (runReaderT)
@@ -33,6 +35,7 @@ import Effect.Console (log)
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
+import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
@@ -44,7 +47,7 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
-import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showBottomPanel, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
+import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
 import Text.Pretty (genericPretty)
@@ -56,6 +59,13 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
+
+toBottomPanel ::
+  forall m a.
+  Functor m =>
+  HalogenM (BottomPanel.State BottomPanelView) (BottomPanel.Action BottomPanelView Action) ChildSlots Void m a ->
+  HalogenM State Action ChildSlots Void m a
+toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 
 handleAction ::
   forall m.
@@ -169,9 +179,10 @@ handleAction settings (LoadContract contents) = do
   editorSetValue contents
   handleAction settings ResetContract
 
-handleAction _ (ChangeSimulationView view) = do
-  assign _bottomPanelView view
-  assign _showBottomPanel true
+handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+
+handleAction _ (BottomPanelAction action) = do
+  toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
 handleAction _ (ChangeHelpContext help) = do
@@ -179,10 +190,6 @@ handleAction _ (ChangeHelpContext help) = do
   scrollHelpPanel
 
 handleAction _ (ShowRightPanel val) = assign _showRightPanel val
-
-handleAction _ (ShowBottomPanel val) = do
-  assign _showBottomPanel val
-  editorResize
 
 handleAction _ EditSource = pure unit
 

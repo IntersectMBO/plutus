@@ -3,6 +3,7 @@ module MarloweEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import BottomPanel.Types as BottomPanel
 import Data.Array (filter)
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
@@ -35,9 +36,8 @@ data Action
   | MoveToPosition Pos Pos
   | LoadScript String
   | SetEditorText String
-  | ShowBottomPanel Boolean
+  | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | ShowErrorDetail Boolean
-  | ChangeBottomPanelView BottomPanelView
   | SendToSimulator
   | ViewAsBlockly
   | InitMarloweProject String
@@ -58,9 +58,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (MoveToPosition _ _) = Just $ defaultEvent "MoveToPosition"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (SetEditorText _) = Just $ defaultEvent "SetEditorText"
-  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent (BottomPanelAction action) = A.toEvent action
   toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
-  toEvent (ChangeBottomPanelView view) = Just $ (defaultEvent "ChangeBottomPanelView") { label = Just $ show view }
   toEvent SendToSimulator = Just $ defaultEvent "SendToSimulator"
   toEvent ViewAsBlockly = Just $ defaultEvent "ViewAsBlockly"
   toEvent (InitMarloweProject _) = Just $ defaultEvent "InitMarloweProject"
@@ -160,9 +159,8 @@ instance showBottomPanelView :: Show BottomPanelView where
 
 type State
   = { keybindings :: KeyBindings
-    , showBottomPanel :: Boolean
+    , bottomPanelState :: BottomPanel.State BottomPanelView
     , showErrorDetail :: Boolean
-    , bottomPanelView :: BottomPanelView
     , selectedHole :: Maybe String
     -- This is pagination information that we need to provide to the haskell backend
     -- so that it can do the analysis in chunks
@@ -173,9 +171,6 @@ type State
 
 _keybindings :: Lens' State KeyBindings
 _keybindings = prop (SProxy :: SProxy "keybindings")
-
-_showBottomPanel :: Lens' State Boolean
-_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
 
 _showErrorDetail :: Lens' State Boolean
 _showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
@@ -192,15 +187,14 @@ _editorErrors = prop (SProxy :: SProxy "editorErrors")
 _editorWarnings :: forall s a. Lens' { editorWarnings :: a | s } a
 _editorWarnings = prop (SProxy :: SProxy "editorWarnings")
 
-_bottomPanelView :: Lens' State BottomPanelView
-_bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
+_bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
+_bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
-  , showBottomPanel: false
+  , bottomPanelState: BottomPanel.initialState StaticAnalysisView
   , showErrorDetail: false
-  , bottomPanelView: StaticAnalysisView
   , selectedHole: Nothing
   , analysisState: NoneAsked
   , editorErrors: mempty

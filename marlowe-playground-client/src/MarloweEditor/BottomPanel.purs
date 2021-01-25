@@ -1,7 +1,7 @@
-module MarloweEditor.BottomPanel (bottomPanel) where
+module MarloweEditor.BottomPanel (panelContents) where
 
 import Prelude hiding (div)
-import Data.Array (drop, head, length)
+import Data.Array (drop, head)
 import Data.Array as Array
 import Data.Foldable (foldMap)
 import Data.Lens (to, (^.))
@@ -12,73 +12,18 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, spanText, underline)
+import Halogen.Classes (aHorizontal, flexLeft, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, br_, button, div, h2, h3, img, li, li_, ol, pre, section, span_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, b_, br_, button, div, h2, h3, li, li_, ol, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
+import Halogen.HTML.Properties (class_, classes, enabled)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _showBottomPanel, _showErrorDetail, contractHasErrors)
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
 import Network.RemoteData (RemoteData(..), isLoading)
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Text.Parsing.StringParser.Basic (lines)
-
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state =
-  div
-    ( [ classes
-          ( if showingBottomPanel then
-              [ ClassName "simulation-bottom-panel" ]
-            else
-              [ ClassName "simulation-bottom-panel", collapsed ]
-          )
-      ]
-    )
-    [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
-        [ div [ class_ flexTen ]
-            [ div [ classes [ footerPanelBg, active ] ]
-                [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-                    [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
-                        [ ul [ class_ (ClassName "start-item") ]
-                            [ li [ class_ (ClassName "minimize-icon-container") ]
-                                [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
-                                ]
-                            ]
-                        , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-                            [ li
-                                [ classes ([] <> isActive StaticAnalysisView)
-                                , onClick $ const $ Just $ ChangeBottomPanelView StaticAnalysisView
-                                ]
-                                [ a_ [ text "Static Analysis" ] ]
-                            , li
-                                [ classes ([] <> isActive MarloweWarningsView)
-                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweWarningsView
-                                ]
-                                [ a_ [ text $ "Warnings" <> if Array.null warnings then "" else " (" <> show (length warnings) <> ")" ] ]
-                            , li
-                                [ classes ([] <> isActive MarloweErrorsView)
-                                , onClick $ const $ Just $ ChangeBottomPanelView MarloweErrorsView
-                                ]
-                                [ a_ [ text $ "Errors" <> if Array.null errors then "" else " (" <> show (length errors) <> ")" ] ]
-                            ]
-                        ]
-                    ]
-                , panelContents state (state ^. _bottomPanelView)
-                ]
-            ]
-        ]
-    ]
-  where
-  isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
-
-  warnings = state ^. _editorWarnings
-
-  errors = state ^. _editorErrors
-
-  showingBottomPanel = state ^. _showBottomPanel
 
 isStaticLoading :: AnalysisState -> Boolean
 isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData

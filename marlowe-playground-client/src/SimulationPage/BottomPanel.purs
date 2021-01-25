@@ -1,70 +1,22 @@
-module SimulationPage.BottomPanel (bottomPanel) where
+module SimulationPage.BottomPanel (panelContents) where
 
 import Prelude hiding (div)
-import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Foldable (foldMap)
-import Data.Lens (has, only, previewOn, to, (^.))
+import Data.Lens (previewOn, to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, collapsed, first, flex, flexTen, footerPanelBg, minimizeIcon, rTable, rTable4cols, rTableCell, rTableEmptyRow)
+import Halogen.Classes (first, rTable, rTable4cols, rTableCell, rTableEmptyRow)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, div, img, li, section, text, ul)
-import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, src)
+import Halogen.HTML (ClassName(..), HTML, div, text)
+import Halogen.HTML.Properties (class_, classes)
 import Marlowe.Semantics (ChoiceId(..), Party, Token, ValueId(..), _accounts, _boundValues, _choices)
 import Pretty (renderPrettyParty, renderPrettyToken, showPrettyMoney)
-import SimulationPage.Types (Action(..), BottomPanelView(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelView, _executionState, _initialSlot, _marloweState, _showBottomPanel, _slot, _state, _transactionError, _transactionWarnings)
-
-bottomPanel :: forall p. State -> HTML p Action
-bottomPanel state =
-  div
-    ( [ classes
-          ( if showingBottomPanel then
-              [ ClassName "simulation-bottom-panel" ]
-            else
-              [ ClassName "simulation-bottom-panel", collapsed ]
-          )
-      ]
-    )
-    [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
-        [ div [ class_ flexTen ]
-            [ div [ classes [ footerPanelBg, active ] ]
-                [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-                    [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
-                        [ ul [ class_ (ClassName "start-item") ]
-                            [ li [ class_ (ClassName "minimize-icon-container") ]
-                                [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
-                                ]
-                            ]
-                        , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-                            [ li
-                                [ classes ((if hasRuntimeWarnings || hasRuntimeError then [ ClassName "error-tab" ] else []) <> isActive CurrentStateView)
-                                , onClick $ const $ Just $ ChangeSimulationView CurrentStateView
-                                ]
-                                [ a_ [ text "Current State" ] ]
-                            ]
-                        ]
-                    ]
-                , panelContents state (state ^. _bottomPanelView)
-                ]
-            ]
-        ]
-    ]
-  where
-  isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
-
-  -- QUESTION: what are runtimeWarnings and runtimeError? how can I reach that state?
-  hasRuntimeWarnings = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionWarnings <<< to Array.null <<< only false) state
-
-  hasRuntimeError = has (_marloweState <<< _Head <<< _executionState <<< _SimulationRunning <<< _transactionError <<< to isJust <<< only true) state
-
-  showingBottomPanel = state ^. _showBottomPanel
+import SimulationPage.Types (Action, BottomPanelView(..), State, _SimulationNotStarted, _SimulationRunning, _executionState, _initialSlot, _marloweState, _slot, _state)
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =

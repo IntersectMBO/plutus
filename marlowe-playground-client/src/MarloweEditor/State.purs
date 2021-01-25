@@ -6,6 +6,8 @@ module MarloweEditor.State
 
 import Prelude hiding (div)
 import CloseAnalysis (startCloseAnalysis)
+import BottomPanel.Types as BottomPanel
+import BottomPanel.State as BottomPanel
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
@@ -22,6 +24,7 @@ import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
 import Halogen (HalogenM, liftEffect, modify_, query)
+import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
@@ -33,7 +36,7 @@ import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract, emptyState)
 import Marlowe.Symbolic.Types.Request as MSReq
-import MarloweEditor.Types (Action(..), AnalysisState(..), State, _analysisState, _bottomPanelView, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showBottomPanel, _showErrorDetail)
+import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView, State, _analysisState, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -45,6 +48,13 @@ import StaticData as StaticData
 import Text.Pretty (pretty)
 import Types (WebData)
 import Web.Event.Extra (preventDefault, readFileFromDragEvent)
+
+toBottomPanel ::
+  forall m a.
+  Functor m =>
+  HalogenM (BottomPanel.State BottomPanelView) (BottomPanel.Action BottomPanelView Action) ChildSlots Void m a ->
+  HalogenM State Action ChildSlots Void m a
+toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 
 handleAction ::
   forall m.
@@ -103,16 +113,13 @@ handleAction settings (LoadScript key) = do
 handleAction settings (SetEditorText contents) = do
   editorSetValue contents
 
-handleAction _ (ShowBottomPanel val) = do
-  assign _showBottomPanel val
+handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+
+handleAction _ (BottomPanelAction action) = do
+  toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
 handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
-
-handleAction _ (ChangeBottomPanelView view) = do
-  assign _bottomPanelView view
-  assign _showBottomPanel true
-  editorResize
 
 handleAction _ SendToSimulator = pure unit
 
