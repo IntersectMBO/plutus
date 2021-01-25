@@ -194,7 +194,6 @@ data TermG tyname name
       (TypeG tyname)
       (Kind ())
     | ConstantG TermConstantG
-    -- ErrorG could also take a kind k but it should always be * (Type ())
     | BuiltinG  TermBuiltinG
     | WrapG (TermG tyname name)
     | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)

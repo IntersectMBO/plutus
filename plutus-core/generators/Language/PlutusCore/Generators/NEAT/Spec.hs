@@ -24,7 +24,7 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , names
   , throwCtrex
   , Ctrex (..)
-  , handle
+  , handleError
   ) where
 
 import           Language.PlutusCore
@@ -35,7 +35,6 @@ import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
---import           System.IO.Unsafe
 import           Control.Monad.Except
 import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
 import           Data.Coolean                               (Cool, toCool, (!=>))
@@ -43,6 +42,7 @@ import           Data.Either
 import           Data.Maybe
 import qualified Data.Stream                                as Stream
 import qualified Data.Text                                  as Text
+import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -81,22 +81,6 @@ tests genOpts@GenOptions{} =
       genOpts {genDepth = 18}
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
-{-
-  , testCaseGen "type preservation - CK & CEK"
-      genOpts {genDepth = 13}
-      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      prop_typePreservation
--}
-{-  ,  mapTest
-      genOpts {genDepth = 13}
-      (Type ())
-      (packTest prop_normalizeConvertCommuteTypes) -}
-{-
-  ,  mapTest
-      genOpts {genDepth = 13}
-      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-      (packTest prop_typePreservation)
--}
   ]
 
 
@@ -119,11 +103,11 @@ not exploited.
 
 
 -- handle a user error and turn it back into an error term
-handle :: Type TyName DefaultUni ()
+handleError :: Type TyName DefaultUni ()
        -> ErrorWithCause (EvaluationError user internal) term
        -> Either (ErrorWithCause (EvaluationError user internal) term)
                  (Term TyName Name DefaultUni DefaultFun ())
-handle ty e = case _ewcError e of
+handleError ty e = case _ewcError e of
   UserEvaluationError     _ -> return (Error () ty)
   InternalEvaluationError _ -> throwError e
 
@@ -140,13 +124,13 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
+    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
   -- NOTE: the CEK machine doesn't respect this so we are just going through the motions here
   tmCEK <- withExceptT CekP $ liftEither $ evaluateCek
-    defBuiltinsRuntime tm `catchError` handle ty
+    defBuiltinsRuntime tm `catchError` handleError ty
   withExceptT
     (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
     (checkType tcConfig () tmCEK (Normalized ty))
@@ -174,10 +158,10 @@ prop_agree_Ck_Cek tyG tmG = do
 
   -- check if CK and CEK give the same output
   tmCek <- withExceptT CekP $ liftEither $
-    evaluateCek defBuiltinsRuntime tm `catchError` handle ty
+    evaluateCek defBuiltinsRuntime tm `catchError` handleError ty
 
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
+    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
@@ -397,45 +381,22 @@ tynames = mkTextNameStream "t"
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
--- FIXME: this is an experiment
-
 -- given a prop, generate examples and then turn them into individual
--- tasty tests
-
+-- tasty tests. This can be accomplished without unsafePerformIO but
+-- this is convenient to use.
+-- e.g., add this to the tesGroup "NEAT" list above:
 {-
-mapTest :: (Check t a, Enumerable a)
+  mapTest
+      genOpts {genDepth = 13}
+      (Type ())
+      (packTest prop_normalizeConvertCommuteTypes)
+-}
+
+_mapTest :: (Check t a, Enumerable a)
         => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
-mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
+_mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
   where
   examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
--}
-
-{-
-iotests :: GenOptions -> IO [TestTree]
-iotests genOpts@GenOptions{} = do
-  t1 <- packGroup genOpts (Type ()) (packTest prop_normalizeConvertCommuteTypes)
-
-  -- more tests...
-
-  return [t1]
-
-packGroup :: (Check t a, Enumerable a)
-        => GenOptions -> t -> (t -> a -> TestTree) -> IO TestTree
-packGroup GenOptions{..} t f = fmap (testGroup "a bunch of tests") $ do
-  examples <- search' genMode genDepth (\a -> check t a)
-  return $ map (f t) examples
--}
-
--- Take a prop and turn it into a tasty test
-{-
-packTest :: (Show e, Show a) => (t -> a -> ExceptT e Quote ()) -> t -> a -> TestTree
-packTest f t a = testCase ("typecheck test: " ++ show a) $
-  case (runQuote . runExceptT $ f t a) of
-    Left  e -> assertFailure $ show e
-    Right _ -> return ()
--}
-
----
 
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
@@ -447,7 +408,6 @@ packAssertion f t a =
 -- | generate examples using `search'` and then generate one big test
 -- that applies the given test to each of them.
 
--- TODO : printing the number of tests appears to put garbage in the log
 bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
 bigTest s GenOptions{..} t f = testCaseInfo s $ do

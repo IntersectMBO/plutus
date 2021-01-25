@@ -98,7 +98,7 @@ prop_Term tyG tmG = do
 
   -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handle ty
+    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail tyG tmG)) $
     liftEither $ runCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK

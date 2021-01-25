@@ -34,7 +34,6 @@ import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 
 -- * Enumerating deBruijn indices
 
-
 -- empty type
 data Z
   deriving (Typeable, Eq, Show)
