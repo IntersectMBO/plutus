@@ -11,7 +11,8 @@ let
   # For dev usage
   generate-purescript = pkgs.writeShellScriptBin "plutus-pab-generate-purs" ''
     rm -rf ./generated
-    cp ${haskell.packages.plutus-pab.src}/plutus-pab.yaml.sample plutus-pab.yaml
+    # There might be local modifications so only copy when missing
+    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab psgenerator generated
   '';
 
@@ -20,7 +21,8 @@ let
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
     rm -rf ./generated
-    cp ../plutus-pab/plutus-pab.yaml .
+    # There might be local modifications so only copy when missing
+    ! test -f ./plutus-pab.yaml && cp ../plutus-pab/plutus-pab.yaml.sample plutus-pab.yaml
     $(nix-build ../default.nix --quiet --no-build-output -A plutus-pab.server-invoker)/bin/plutus-pab webserver
   '';
 
