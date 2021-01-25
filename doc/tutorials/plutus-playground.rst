@@ -22,6 +22,8 @@ In this tutorial you are going to run through two of these sample apps.
 
 .. _playground-compiling-hello-world:
 
+You can find a video that covers this tutorial on `youtube <https://youtu.be/DhRS-JvoCw8/>`_.
+
 Running the "Hello, World" app
 ------------------------------
 
