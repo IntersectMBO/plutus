@@ -9,6 +9,8 @@ import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
@@ -30,8 +32,9 @@ import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
+import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (AnalysisState(..), _analysisState)
+import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
 import StaticData (bufferLocalStorageKey)
 import Types (WebData)
 import Webghc.Server (CompileRequest(..))
@@ -92,14 +95,35 @@ handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
 
-handleAction settings AnalyseContract = do
+handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
+
+handleAction settings AnalyseReachabilityContract =
+  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
+  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
+  --        or change here so that we construct a AnalysisInProgress
+  compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
+    $ analyseReachability settings
+
+handleAction settings AnalyseContractForCloseRefund = pure unit
+
+-- This function runs a static analysis to the compiled code. It calls the compiler if
+-- it wasn't runned before and it switches to the error panel if the compilation failed
+compileAndAnalyze ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  AnalysisState ->
+  (String -> HalogenM State Action ChildSlots Void m Unit) ->
+  HalogenM State Action ChildSlots Void m Unit
+compileAndAnalyze settings initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
     NotAsked -> do
-      assign _analysisState (WarningAnalysis Loading)
+      -- The initial analysis state allow us to show an "Analysing..." indicator
+      assign _analysisState initialAnalysisState
       handleAction settings Compile
-      handleAction settings AnalyseContract
-    Success (Right (InterpreterResult interpretedResult)) -> analyseContract settings interpretedResult.result
+      compileAndAnalyze settings initialAnalysisState doAnalyze
+    Success (Right (InterpreterResult interpretedResult)) -> doAnalyze interpretedResult.result
     Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 

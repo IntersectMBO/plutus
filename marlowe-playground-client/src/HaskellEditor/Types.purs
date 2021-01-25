@@ -29,6 +29,8 @@ data Action
   | SendResultToSimulator
   | InitHaskellProject String
   | AnalyseContract
+  | AnalyseReachabilityContract
+  | AnalyseContractForCloseRefund
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
@@ -42,6 +44,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent (InitHaskellProject _) = Just $ defaultEvent "InitHaskellProject"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
+  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
+  toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
 
 type State
   = { keybindings :: KeyBindings

@@ -44,6 +44,9 @@ analyseContract settings contents =
     $ runMaybeT do
         contract <- hoistMaybe $ parseContract' contents
         assign _analysisState (WarningAnalysis Loading)
+        -- when editor and simulator were together the analyse contract could be made
+        -- at any step of the simulator. Now that they are separate, it can only be done
+        -- with initial state
         let
           emptySemanticState = emptyState zero
         response <- lift $ checkContractForWarnings contract emptySemanticState

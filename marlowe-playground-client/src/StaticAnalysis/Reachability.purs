@@ -1,7 +1,19 @@
-module StaticAnalysis.Reachability (areContractAndStateTheOnesAnalysed, getUnreachableContracts, initialisePrefixMap, startReachabilityAnalysis, stepPrefixMap) where
+module StaticAnalysis.Reachability
+  ( analyseReachability
+  , areContractAndStateTheOnesAnalysed
+  , getUnreachableContracts
+  , initialisePrefixMap
+  , startReachabilityAnalysis
+  , stepPrefixMap
+  ) where
 
 import Prelude hiding (div)
+import Control.Monad.Except (lift)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.State as CMS
+import Data.Either (hush)
+import Data.Lens (assign)
 import Data.List (List(..), any, catMaybes, fromFoldable, null)
 import Data.List.NonEmpty (fromList, head, tail, toList)
 import Data.Map (fromFoldableWith, lookup, unionWith)
@@ -11,11 +23,34 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
 import Marlowe (SPParams_)
-import Marlowe.Semantics (Contract(..), Observation(..))
+import Marlowe.Holes (fromTerm)
+import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
+import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, _analysisState)
+
+analyseReachability ::
+  forall m state action slots.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  String ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
+analyseReachability settings contents =
+  void
+    $ runMaybeT do
+        contract <- hoistMaybe $ parseContract' contents
+        assign _analysisState (ReachabilityAnalysis AnalysisNotStarted)
+        -- when editor and simulator were together the analyse contract could be made
+        -- at any step of the simulator. Now that they are separate, it can only be done
+        -- with initial state
+        let
+          emptySemanticState = emptyState zero
+        newReachabilityAnalysisState <- lift $ startReachabilityAnalysis settings contract emptySemanticState
+        assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+  where
+  parseContract' = fromTerm <=< hush <<< parseContract
 
 expandSubproblem :: ContractZipper -> Contract -> (ContractPath /\ Contract)
 expandSubproblem z _ = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)

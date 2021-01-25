@@ -10,7 +10,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, flexLeft, underline)
+import Halogen.Classes (aHorizontal, flexLeft, spaceBottom, spaceRight, spaceTop, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, button, div, li, pre, section, text, ul_)
 import Halogen.HTML.Events (onClick)
@@ -20,27 +20,34 @@ import StaticAnalysis.BottomPanel (analysisResultPane)
 import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
 
+analyzeButton ::
+  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
+analyzeButton isLoading isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text (if isLoading then "Analysing..." else name) ]
+
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loading then "Analysing..." else "Analyse for warnings") ]
-    , button [ onClick $ const $ Just $ AnalyseReachabilityContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loadingReachability then "Analysing..." else "Analyse reachability") ]
-    , button [ onClick $ const $ Just $ AnalyseContractForCloseRefund, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loadingCloseAnalysis then "Analysing..." else "Analyse for refunds on Close") ]
+    , analyzeButton loadingAnalyseContract enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
-  loading = state ^. _analysisState <<< to isStaticLoading
+  loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
   loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
 
-  enabled' = not loading && not loadingReachability && not loadingCloseAnalysis && not contractHasErrors state
+  enabled' = not loadingAnalyseContract && not loadingReachability && not loadingCloseAnalysis && not contractHasErrors state
 
 panelContents state MarloweWarningsView =
   section

@@ -12,7 +12,7 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group)
+import Halogen.Classes (aHorizontal, codeEditor, group, spaceBottom, spaceRight, spaceTop)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
@@ -26,7 +26,7 @@ import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import StaticAnalysis.BottomPanel (analysisResultPane)
-import StaticAnalysis.Types (_analysisState, isStaticLoading)
+import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 
 render ::
   forall m.
@@ -148,13 +148,19 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loading then "Analysing..." else "Analyse for warnings") ]
+    , analyzeButton loadingAnalyseContract enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
-  loading = state ^. _analysisState <<< to isStaticLoading
+  loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
 
-  enabled' = not loading && not (isCompiling state)
+  -- FIXME: I need to make this work for loading and not started
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+
+  enabled' = not loadingAnalyseContract && not (isCompiling state)
 
 panelContents state ErrorsView =
   section
@@ -163,6 +169,16 @@ panelContents state ErrorsView =
     Success (Left (TimeoutError error)) -> [ text error ]
     Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "No errors" ]
+
+analyzeButton ::
+  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
+analyzeButton isLoading isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text (if isLoading then "Analysing..." else name) ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text error ]
