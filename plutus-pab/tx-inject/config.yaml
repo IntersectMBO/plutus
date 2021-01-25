@@ -2,7 +2,7 @@ dbConfig:
     dbConfigFile: ./primary.db
     dbConfigPoolSize: 20
 
-scbWebserverConfig:
+pabWebserverConfig:
   baseUrl: http://localhost:8080
   staticDir: .
 
