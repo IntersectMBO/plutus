@@ -10,13 +10,10 @@ import Data.Set (singleton, union)
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
-import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap)
--- FIXME: not sure if Reachability should depend on MarloweEditor, see if we can make the functions that need it generic
-import MarloweEditor.Types (Action, State)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 
@@ -45,11 +42,11 @@ reachabilityAnalysisDef =
   }
 
 startReachabilityAnalysis ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Contract ->
-  S.State -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+  S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startReachabilityAnalysis = startMultiStageAnalysis reachabilityAnalysisDef
 
 getUnreachableContracts :: AnalysisState -> List ContractPath

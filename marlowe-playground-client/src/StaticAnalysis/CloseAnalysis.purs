@@ -1,5 +1,6 @@
 module CloseAnalysis where
 
+-- FIXME: run import clean before merging.
 import Data.Foldable (foldl)
 import Data.List (List(..))
 import Data.List.NonEmpty (toList)
@@ -14,8 +15,6 @@ import Marlowe (SPParams_)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..))
 import Marlowe.Semantics as S
 import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef)
--- FIXME: try to make abstract Action and State
-import MarloweEditor.Types (Action, State)
 import Prelude (Void, const, mempty, not, zero, ($), (&&), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
@@ -69,9 +68,9 @@ closeAnalysisAnalysisDef =
   }
 
 startCloseAnalysis ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Contract ->
-  S.State -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+  S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startCloseAnalysis = startMultiStageAnalysis closeAnalysisAnalysisDef

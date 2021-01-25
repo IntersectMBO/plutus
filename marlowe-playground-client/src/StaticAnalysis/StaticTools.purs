@@ -1,5 +1,6 @@
 module StaticAnalysis.StaticTools (closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
 
+-- FIXME: run import clean before merging.
 import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
@@ -20,13 +21,11 @@ import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
-import StaticAnalysis.Types (AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
--- FIXME: not sure if StaticTools should depend on MarloweEditor, see if we can make the functions that need it generic
-import MarloweEditor.Types (Action, State)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
+import StaticAnalysis.Types (AnalysisInProgressRecord, AnalysisState, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
 import Types (WebData)
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
@@ -155,27 +154,28 @@ getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
 getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
 
 runAjax ::
-  forall m a.
-  ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
-  HalogenM State Action ChildSlots Void m (WebData a)
+  forall m a state action slots.
+  ExceptT AjaxError (HalogenM state action slots Void m) a ->
+  HalogenM state action slots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
 checkContractForFailedAssertions ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Contract ->
   S.State ->
-  HalogenM State Action ChildSlots Void m (WebData Result)
+  HalogenM state action slots Void m (WebData Result)
 checkContractForFailedAssertions settings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: true, contract: contract, state: state }))
 
 startMultiStageAnalysis ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   MultiStageAnalysisProblemDef ->
   SPSettings_ SPParams_ ->
   Contract ->
-  S.State -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+  S.State ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startMultiStageAnalysis problemDef settings contract state = do
   case getNextSubproblem (problemDef.isValidSubproblemImpl) initialSubproblems Nil of
     Nothing -> pure AnalysisFinishedAndPassed
@@ -251,12 +251,12 @@ stepSubproblem problemDef isCounterExample ( rad@{ currPath: oldPath
   newResults = results <> (if isProblemCounterExample then Nil else Cons oldPath Nil)
 
 updateWithResponse ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   MultiStageAnalysisProblemDef ->
   SPSettings_ SPParams_ ->
   MultiStageAnalysisData ->
-  WebData Result -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+  WebData Result -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 updateWithResponse _ _ (AnalysisInProgress _) (Failure (AjaxError err)) = pure (AnalyisisFailure "connection error")
 
 updateWithResponse _ _ (AnalysisInProgress { currPath: path }) (Success (Error err)) = pure (AnalyisisFailure err)
@@ -272,7 +272,14 @@ finishAnalysis { originalState, originalContract, counterExampleSubcontracts: Co
 
 finishAnalysis { counterExampleSubcontracts: Nil } = AnalysisFinishedAndPassed
 
-stepAnalysis :: forall m. MonadAff m => MultiStageAnalysisProblemDef -> SPSettings_ SPParams_ -> Boolean -> AnalysisInProgressRecord -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+stepAnalysis ::
+  forall m state action slots.
+  MonadAff m =>
+  MultiStageAnalysisProblemDef ->
+  SPSettings_ SPParams_ ->
+  Boolean ->
+  AnalysisInProgressRecord ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 stepAnalysis problemDef settings isCounterExample rad =
   let
     thereAreMore /\ newRad = stepSubproblem problemDef isCounterExample rad
@@ -291,6 +298,10 @@ stepAnalysis problemDef settings isCounterExample rad =
       when thereAreNewCounterExamples refreshEditor
       pure result
   where
+  -- FIXME: Refresh editor seems to be updating the simulation slot, probably this is like this
+  --        from a previous use case. At the moment we are not running the analysis from the simulator
+  --        so I don't think this is needed anymore. Confirm before delete.
+  -- mContent <- query _simulatorEditorSlot unit (Monaco.GetText identity)
+  -- for_ mContent (\content -> void $ query _simulatorEditorSlot unit $ Monaco.SetText content unit)
   refreshEditor = do
-    mContent <- query _simulatorEditorSlot unit (Monaco.GetText identity)
-    for_ mContent (\content -> void $ query _simulatorEditorSlot unit $ Monaco.SetText content unit)
+    pure unit

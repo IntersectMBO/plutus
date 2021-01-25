@@ -6,7 +6,7 @@ import BottomPanel.View (render) as BottomPanel
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
-import Data.Lens (has, to, view, (^.))
+import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), split)
 import Data.String as String
@@ -26,10 +26,10 @@ import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..),
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import MarloweEditor.BottomPanel (analysisResultPane)
 import Monaco (getModel, setValue) as Monaco
-import Network.RemoteData (RemoteData(..), _Loading, isLoading, isSuccess)
-import StaticAnalysis.Types (AnalysisState(..), _analysisState, isStaticLoading)
+import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
+import StaticAnalysis.BottomPanel (analysisResultPane)
+import StaticAnalysis.Types (_analysisState, isStaticLoading)
 import StaticData as StaticData
 
 render ::
