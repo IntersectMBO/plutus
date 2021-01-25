@@ -413,11 +413,11 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- 'fromString' invocation at the builtin String type
         (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
             | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == stringTyName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
+                let str = TE.decodeUtf8 bs
                 pure $ PIR.Constant () $ PLC.someValue str
         -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName -> do
-                let str = T.unpack $ TE.decodeUtf8 bs
+                let str = TE.decodeUtf8 bs
                 pure $ PIR.Constant () $ PLC.someValue str
 
         -- See Note [Literals]

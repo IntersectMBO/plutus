@@ -95,6 +95,7 @@
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           ];
         build-tools = [

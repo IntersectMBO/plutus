@@ -54,6 +54,7 @@ import                qualified Data.ByteString                        as BS
 import                qualified Data.Map                               as Map
 import                          Data.Proxy
 import                qualified Data.Set                               as Set
+import                qualified Data.Text                              as T
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -331,7 +332,7 @@ defineBuiltinTerms = do
         let term = mkBuiltin PLC.Append
         defineBuiltinTerm 'Builtins.appendString term [str]
     do
-        let term = PIR.mkConstant () ("" :: String)
+        let term = PIR.mkConstant () ("" :: T.Text)
         defineBuiltinTerm 'Builtins.emptyString term [str]
     do
         let term = mkBuiltin PLC.CharToString
@@ -353,7 +354,7 @@ defineBuiltinTypes = do
 
     -- Strings and chars
     do
-        let ty = PLC.toTypeAst $ Proxy @String
+        let ty = PLC.toTypeAst $ Proxy @T.Text
         defineBuiltinType ''Builtins.String ty []
     do
         let ty = PLC.toTypeAst $ Proxy @Char

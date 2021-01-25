@@ -30,11 +30,13 @@ import           Crypto
 import qualified Data.ByteString                                            as BS
 import qualified Data.ByteString.Hash                                       as Hash
 import           Data.Ix
+import qualified Data.Text                                                  as Text
 import           Data.Word                                                  (Word8)
 import           Debug.Trace                                                (traceIO)
 import           Flat
 import           Flat.Decoder
 import           Flat.Encoder                                               as Flat
+import           NoThunks.Class
 import           System.IO.Unsafe
 
 -- TODO: I think we should have the following structure:
@@ -77,7 +79,7 @@ data DefaultFun
     | CharToString
     | Append
     | Trace
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc, NoThunks)
 
 -- TODO: do we really want function names to be pretty-printed differently to what they are named as
 -- constructors of 'DefaultFun'?
@@ -112,11 +114,11 @@ instance ExMemoryUsage DefaultFun where
     memoryUsage _ = 1
 
 newtype DefaultFunDyn = DefaultFunDyn
-    { defaultFunDynTrace :: String -> IO ()
+    { defaultFunDynTrace :: Text.Text -> IO ()
     }
 
 defDefaultFunDyn :: DefaultFunDyn
-defDefaultFunDyn = DefaultFunDyn traceIO
+defDefaultFunDyn = DefaultFunDyn (traceIO . Text.unpack)
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -222,11 +224,11 @@ instance (GShow uni, GEq uni, DefaultUni <: uni) => ToBuiltinMeaning uni Default
             (runCostingFunThreeArguments . paramIfThenElse)
     toBuiltinMeaning CharToString =
         toStaticBuiltinMeaning
-            (pure :: Char -> String)
+            (Text.singleton :: Char -> Text.Text)
             mempty  -- TODO: budget.
     toBuiltinMeaning Append =
         toStaticBuiltinMeaning
-            ((++) :: String -> String -> String)
+            (Text.append :: Text.Text -> Text.Text -> Text.Text)
             mempty  -- TODO: budget.
     toBuiltinMeaning Trace =
         toDynamicBuiltinMeaning

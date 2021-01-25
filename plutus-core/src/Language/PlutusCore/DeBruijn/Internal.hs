@@ -50,17 +50,18 @@ import           Numeric.Natural
 
 import           Control.DeepSeq            (NFData)
 import           GHC.Generics
+import           NoThunks.Class
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Natural
     deriving stock Generic
     deriving newtype (Show, Num, Eq, Ord, Pretty)
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
     deriving (Show, Generic)
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn { dbnIndex :: Index }

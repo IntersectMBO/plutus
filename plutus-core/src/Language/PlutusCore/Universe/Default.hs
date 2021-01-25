@@ -19,6 +19,7 @@ import           Language.PlutusCore.Parsable
 import           Language.PlutusCore.Universe.Core
 
 import qualified Data.ByteString                   as BS
+import qualified Data.Text                         as Text
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -65,7 +66,7 @@ and have meta-constructors as builtin names. We still have to handle types someh
 data DefaultUni a where
     DefaultUniInteger    :: DefaultUni Integer
     DefaultUniByteString :: DefaultUni BS.ByteString
-    DefaultUniString     :: DefaultUni String
+    DefaultUniString     :: DefaultUni Text.Text
     DefaultUniChar       :: DefaultUni Char
     DefaultUniUnit       :: DefaultUni ()
     DefaultUniBool       :: DefaultUni Bool
@@ -93,7 +94,7 @@ instance Parsable (Some DefaultUni) where
 
 instance DefaultUni `Includes` Integer         where knownUni = DefaultUniInteger
 instance DefaultUni `Includes` BS.ByteString   where knownUni = DefaultUniByteString
-instance a ~ Char => DefaultUni `Includes` [a] where knownUni = DefaultUniString
+instance a ~ Char => DefaultUni `Includes` Text.Text where knownUni = DefaultUniString
 instance DefaultUni `Includes` Char            where knownUni = DefaultUniChar
 instance DefaultUni `Includes` ()              where knownUni = DefaultUniUnit
 instance DefaultUni `Includes` Bool            where knownUni = DefaultUniBool
@@ -110,7 +111,7 @@ instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
         ( constr Integer
         , constr BS.ByteString
-        , constr String
+        , constr Text.Text
         , constr Char
         , constr ()
         , constr Bool

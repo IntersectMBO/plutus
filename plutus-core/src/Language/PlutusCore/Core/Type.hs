@@ -6,6 +6,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE StrictData             #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
@@ -35,6 +36,7 @@ import           Control.Lens
 import           Data.Hashable
 import           GHC.Exts                     (Constraint)
 import           Instances.TH.Lift            ()
+import           NoThunks.Class
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -44,7 +46,7 @@ So don't use @deriving Eq@ for things with annotations.
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Show, Functor, Generic, NFData, Lift, Hashable, NoThunks)
 
 -- | A 'Type' assigned to expressions.
 data Type tyname uni ann
@@ -56,7 +58,7 @@ data Type tyname uni ann
     | TyBuiltin ann (Some (TypeIn uni)) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable, NoThunks)
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -69,16 +71,16 @@ data Term tyname name uni fun ann
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable, NoThunks)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable, NoThunks)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData, Hashable, NoThunks)
 
 -- | Extract the universe from a type.
 type family UniOf a :: * -> *

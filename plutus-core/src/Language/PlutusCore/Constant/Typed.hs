@@ -337,7 +337,7 @@ toBuiltinTypeAst (_ :: proxy a) = mkTyBuiltin @a ()
 
 -- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
-class KnownTypeAst (UniOf term) a => KnownType term a where
+class (KnownTypeAst (UniOf term) a) => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown
@@ -417,7 +417,7 @@ instance uni `Includes` Integer       => KnownTypeAst uni Integer       where
     toTypeAst = toBuiltinTypeAst
 instance uni `Includes` BS.ByteString => KnownTypeAst uni BS.ByteString where
     toTypeAst = toBuiltinTypeAst
-instance uni `Includes` String        => KnownTypeAst uni String        where
+instance uni `Includes` Text.Text          => KnownTypeAst uni Text.Text        where
     toTypeAst = toBuiltinTypeAst
 instance uni `Includes` Char          => KnownTypeAst uni Char          where
     toTypeAst = toBuiltinTypeAst
@@ -428,7 +428,7 @@ instance uni `Includes` Bool          => KnownTypeAst uni Bool          where
 
 instance KnownBuiltinType term Integer       => KnownType term Integer
 instance KnownBuiltinType term BS.ByteString => KnownType term BS.ByteString
-instance KnownBuiltinType term String        => KnownType term String
+instance KnownBuiltinType term Text.Text     => KnownType term Text.Text
 instance KnownBuiltinType term Char          => KnownType term Char
 instance KnownBuiltinType term ()            => KnownType term ()
 instance KnownBuiltinType term Bool          => KnownType term Bool

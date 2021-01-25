@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -42,6 +43,7 @@ import qualified Data.Kind                as GHC (Type)
 import           Data.Proxy
 import           GHC.Exts
 import           Language.Haskell.TH.Lift
+import           NoThunks.Class
 import           Text.Show.Deriving
 
 {- Note [Universes]
@@ -307,3 +309,21 @@ instance Closed uni => Hashable (Some (TypeIn uni)) where
 
 instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
     hashWithSalt salt (Some s) = hashWithSalt salt s
+
+--- NoThunks
+
+instance Closed uni => NoThunks (TypeIn uni a) where
+    wNoThunks context (TypeIn uni) = noThunks context $ encodeUni uni
+    showTypeOf _ = "TypeIn"
+
+instance (Closed uni, uni `Everywhere` NoThunks) => NoThunks (ValueOf uni a) where
+    wNoThunks context (ValueOf uni x) = bring (Proxy @NoThunks) uni $ allNoThunks $ [noThunks context $ Some (TypeIn uni), noThunks context x]
+    showTypeOf _ = "ValueOf"
+
+instance Closed uni => NoThunks (Some (TypeIn uni)) where
+    wNoThunks context (Some s) = noThunks context s
+    showTypeOf _ = "Some"
+
+instance (Closed uni, uni `Everywhere` NoThunks) => NoThunks (Some (ValueOf uni)) where
+    wNoThunks context (Some s) = noThunks context s
+    showTypeOf _ = "Some"

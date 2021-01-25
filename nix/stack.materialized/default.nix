@@ -43,6 +43,7 @@
         "inline-r" = (((hackage.inline-r)."0.10.3").revisions).default;
         "witherable" = (((hackage.witherable)."0.3.5").revisions).default;
         "witherable-class" = (((hackage.witherable-class)."0").revisions).default;
+        "nothunks" = (((hackage.nothunks)."0.1.2").revisions).default;
         "nonempty-containers" = (((hackage.nonempty-containers)."0.3.3.0").revisions).default;
         "pure-zlib" = (((hackage.pure-zlib)."0.6.7").revisions)."5a1cdf87bf3079b7d3abace1f94eeb3c597c687a38a08ee2908783e609271467";
         "Stream" = (((hackage.Stream)."0.4.7.2").revisions)."ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53";

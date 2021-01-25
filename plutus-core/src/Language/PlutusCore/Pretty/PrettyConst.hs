@@ -15,6 +15,7 @@ import qualified Data.ByteString                    as BS
 import           Data.Foldable                      (fold)
 import           Data.Proxy
 import qualified Data.Text                          as T
+import qualified Data.Text                          as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import           Data.Word                          (Word8)
@@ -65,6 +66,7 @@ instance PrettyConst Integer
 instance PrettyConst String
 -- ^ This instance for String quotes control characters (which is what we want)
 -- but also Unicode characters (\8704 and so on).  That may not be ideal.
+instance PrettyConst Text.Text
 
 instance GShow uni => Pretty (TypeIn uni a) where
     pretty (TypeIn uni) = pretty $ gshow uni

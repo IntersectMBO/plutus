@@ -36,6 +36,7 @@ instance Parsable Bool
 instance Parsable Char
 instance Parsable Integer
 instance Parsable String
+instance Parsable T.Text
 instance Parsable ()
 
 instance Parsable ByteString

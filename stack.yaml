@@ -80,6 +80,7 @@ extra-deps:
 - inline-r-0.10.3
 - witherable-0.3.5
 - witherable-class-0
+- nothunks-0.1.2
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 28c37771ef30b0d751960c061ef95627f05d290e

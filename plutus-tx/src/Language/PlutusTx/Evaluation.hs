@@ -29,6 +29,7 @@ import           Language.UntypedPlutusCore.Evaluation.Machine.Cek          hidi
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek          as UPLC (evaluateCek, unsafeEvaluateCek)
 
 import qualified Control.Exception
+import qualified Data.Text                                                  as T
 import           System.IO.Unsafe
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins.
@@ -50,7 +51,7 @@ unsafeEvaluateCek (Program _ _ t) = UPLC.unsafeEvaluateCek defBuiltinsRuntime t
 evaluateCekTrace
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => Program Name uni fun ()
-    -> ([String], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
+    -> ([T.Text], CekExTally fun, Either (CekEvaluationException uni fun) (Term Name uni fun ()))
 evaluateCekTrace (Program _ _ t) =
     let
         (lg, (res, state)) = unsafePerformIO $ withEmit $ \emit -> do

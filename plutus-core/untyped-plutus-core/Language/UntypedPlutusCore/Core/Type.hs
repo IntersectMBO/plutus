@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -31,6 +32,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
 import qualified Language.PlutusCore.Name                           as TPLC
 import           Language.PlutusCore.Universe
+import           NoThunks.Class
 
 -- | The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
 --
@@ -55,12 +57,12 @@ data Term name uni fun ann
     | Force ann (Term name uni fun ann)
     | Error ann
     deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving anyclass (NFData, NoThunks)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
     deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving anyclass (NFData, NoThunks)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 

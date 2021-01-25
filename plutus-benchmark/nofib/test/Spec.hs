@@ -3,6 +3,7 @@ evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to
 run to completion. -}
 
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -23,6 +24,7 @@ import           Language.PlutusCore.Universe                      (DefaultUni)
 import qualified Language.PlutusTx                                 as Tx
 import qualified Language.UntypedPlutusCore                        as UPLC
 import           Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCek)
+import           NoThunks.Class
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
@@ -59,7 +61,12 @@ runCekWithErrMsg term errMsg =
    simple types, but it is not guaranteed that evaluation commutes with Plutus
    compilation in general. -}
 runAndCheck :: Tx.Lift DefaultUni a => Term -> a -> IO ()
-runAndCheck term  haskellValue = do
+runAndCheck term haskellValue = do
+  let !t' = term
+  thunks <- noThunks [] t'
+  case thunks of
+    Nothing -> pure ()
+    Just v  -> assertFailure $ "found thunk in " <> (show v)
   result   <- runCekWithErrMsg term "CEK evaluation failed for PLC program"
   expected <- runCekWithErrMsg (termOfHaskellValue haskellValue) "CEK evaluation failed for lifted Haskell value"
   result @?= expected
