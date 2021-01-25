@@ -663,6 +663,9 @@ cradle:
 
     - path: "plutus-pab/prism/unlock-exchange/Main.hs"
       component: "plutus-pab:exe:prism-unlock-exchange"
+    
+    - path: "plutus-pab/tx-inject/Main.hs"
+      component: "plutus-pab:exe:tx-inject"
 
     - path: "plutus-playground-server/src"
       component: "lib:plutus-playground-server"

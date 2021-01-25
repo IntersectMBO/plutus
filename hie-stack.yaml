@@ -812,6 +812,9 @@ cradle:
     - path: "plutus-use-cases/scripts/Spec/ErrorHandling.hs"
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
+    - path: "plutus-pab/tx-inject/Main.hs"
+      component: "plutus-pab:exe:tx-inject"
+
     - path: "plutus-use-cases/scripts/Spec/Escrow.hs"
       component: "plutus-use-cases:exe:plutus-use-cases-scripts"
 
