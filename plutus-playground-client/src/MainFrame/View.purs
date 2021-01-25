@@ -50,7 +50,7 @@ releaseBanner :: forall p. HTML p HAction
 releaseBanner =
   div
     [ class_ $ ClassName "release-banner" ]
-    [ text "Plutus Refresh - Updated 22nd January 2021" ]
+    [ text "Plutus Refresh - Updated 25th January 2021" ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
