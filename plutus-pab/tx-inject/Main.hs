@@ -68,10 +68,7 @@ data AppEnv = AppEnv
   , utxoIndex :: UtxoIndex
   }
 
-{- | This builds the default UTxO index, using 10 wallets. We need to use the same
-     number of wallets and addresses as the PAB such that the generated data will
-     be validated by the PAB
--}
+-- | This builds the default UTxO index, using 10 wallets.
 initialUtxoIndex :: UtxoIndex
 initialUtxoIndex =
   let initialTxs =
