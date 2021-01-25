@@ -45,6 +45,15 @@ button:disabled, .btn:disabled {
   cursor: default;
 }
 
+.btn.success {
+  background-color: var(--success-color);
+}
+
+.btn.error {
+  background-color: var(--error-color);
+}
+
+
 button.small-btn {
   padding: 0rem;
   width: 32px;

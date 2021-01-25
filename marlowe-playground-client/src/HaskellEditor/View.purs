@@ -105,9 +105,27 @@ compileButton :: forall p. State -> HTML p Action
 compileButton state =
   button
     [ onClick $ const $ Just Compile
-    , enabled $ not $ isCompiling state
+    , enabled enabled'
+    , classes classes'
+    -- , enabled $ not $ isCompiling state
     ]
-    [ text (if isCompiling state then "Compiling..." else "Compile") ]
+    [ text buttonText ]
+  where
+  buttonText = case view _compilationResult state of
+    Loading -> "Compiling..."
+    (Success _) -> "Compiled"
+    _ -> "Compile"
+
+  enabled' = case view _compilationResult state of
+    NotAsked -> true
+    _ -> false
+
+  classes' =
+    [ ClassName "btn" ]
+      <> case view _compilationResult state of
+          (Success (Right _)) -> [ ClassName "success" ]
+          (Success (Left _)) -> [ ClassName "error" ]
+          _ -> []
 
 sendToSimulationButton :: forall p. State -> HTML p Action
 sendToSimulationButton state =
