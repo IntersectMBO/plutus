@@ -8,29 +8,38 @@ module HaskellEditor.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Lens (assign, use, view)
 import Data.Maybe (Maybe(..))
 import Data.String as String
+import Debug.Trace (traceM)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), _InterpreterResult)
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
+import Marlowe as Server
+import Marlowe.Holes (fromTerm)
+import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (Contract, emptyState)
+import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.Types (_result)
+import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import StaticData (bufferLocalStorageKey)
 import Types (WebData)
 import Webghc.Server (CompileRequest(..))
@@ -85,6 +94,45 @@ handleAction _ SendResultToSimulator = pure unit
 handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
+
+handleAction settings AnalyseContract = do
+  compilationResult <- use _compilationResult
+  case compilationResult of
+    NotAsked -> do
+      traceM "Contract not compiled, compiling first"
+      assign _analysisState (WarningAnalysis Loading)
+      handleAction settings Compile
+      handleAction settings AnalyseContract
+    Success (Right (InterpreterResult interpretedResult)) -> do
+      traceM "Successful compile!"
+      traceM interpretedResult.result
+      traceM interpretedResult.warnings
+      analyseContract settings interpretedResult.result
+    Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
+    _ -> pure unit
+
+-- FIXME: put in a more global place and refactor MarloweEditor handleAction to use this
+analyseContract ::
+  forall m state action slots.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  String ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
+analyseContract settings contents =
+  void
+    $ runMaybeT do
+        contract <- hoistMaybe $ parseContract' contents
+        assign _analysisState (WarningAnalysis Loading)
+        let
+          emptySemanticState = emptyState zero
+        response <- lift $ checkContractForWarnings contract emptySemanticState
+        assign _analysisState (WarningAnalysis response)
+  where
+  parseContract' = fromTerm <=< hush <<< parseContract
+
+  checkContractForWarnings contract state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+
+  runAjax' action = RemoteData.fromEither <$> runExceptT action
 
 runAjax ::
   forall m a.

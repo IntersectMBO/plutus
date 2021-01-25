@@ -20,7 +20,9 @@ import Marlowe.Semantics (Case(..), Contract(..), Observation(..))
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
-import MarloweEditor.Types (Action, AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, State, _analysisState)
+import StaticAnalysis.Types (AnalysisInProgressRecord, ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
+-- FIXME: not sure if StaticTools should depend on MarloweEditor, see if we can make the functions that need it generic
+import MarloweEditor.Types (Action, State)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))

@@ -10,22 +10,14 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view, (^.))
 import Data.Lens.Record (prop)
-import Data.List (List)
-import Data.List.Types (NonEmptyList)
-import Data.Map (Map)
 import Data.Maybe (Maybe(..))
-import Data.Set (Set)
 import Data.String (Pattern(..), contains)
 import Data.Symbol (SProxy(..))
-import Data.Tuple.Nested (type (/\))
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
-import Marlowe.Semantics (AccountId, Case, Contract, Observation, Payee, Timeout, Token, Value, ValueId)
-import Marlowe.Semantics as S
-import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
+import StaticAnalysis.Types (AnalysisState(..))
 import Text.Parsing.StringParser (Pos)
-import Types (WebData)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 data Action
@@ -69,82 +61,6 @@ instance actionIsEvent :: IsEvent Action where
   toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
   toEvent Save = Just $ defaultEvent "Save"
 
-data ContractZipper
-  = PayZip AccountId Payee Token Value ContractZipper
-  | IfTrueZip Observation ContractZipper Contract
-  | IfFalseZip Observation Contract ContractZipper
-  | WhenCaseZip (List Case) S.Action ContractZipper (List Case) Timeout Contract -- First list is stored reversed for efficiency
-  | WhenTimeoutZip (Array Case) Timeout ContractZipper
-  | LetZip ValueId Value ContractZipper
-  | AssertZip Observation ContractZipper
-  | HeadZip
-
-type PrefixMap
-  = Map ContractPathStep (Set (NonEmptyList ContractPathStep))
-
-data ContractPathStep
-  = PayContPath
-  | IfTruePath
-  | IfFalsePath
-  | WhenCasePath Int
-  | WhenTimeoutPath
-  | LetPath
-  | AssertPath
-
-derive instance eqContractPathStep :: Eq ContractPathStep
-
-derive instance ordContractPathStep :: Ord ContractPathStep
-
-derive instance genericContractPathStep :: Generic ContractPathStep _
-
-instance showContractPathStep :: Show ContractPathStep where
-  show = genericShow
-
-type ContractPath
-  = List ContractPathStep
-
-type RemainingSubProblemInfo
-  = List (ContractZipper /\ Contract)
-
-type AnalysisInProgressRecord
-  = { currPath :: ContractPath
-    , currContract :: Contract
-    , currChildren :: RemainingSubProblemInfo
-    , originalState :: S.State
-    , originalContract :: Contract
-    , subproblems :: RemainingSubProblemInfo
-    , numSubproblems :: Int
-    , numSolvedSubproblems :: Int
-    , counterExampleSubcontracts :: List ContractPath
-    }
-
-type AnalysisCounterExamplesRecord
-  = { originalState :: S.State
-    , originalContract :: Contract
-    , counterExampleSubcontracts :: NonEmptyList ContractPath
-    }
-
-data MultiStageAnalysisData
-  = AnalysisNotStarted
-  | AnalysisInProgress AnalysisInProgressRecord
-  | AnalyisisFailure String
-  | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
-  | AnalysisFinishedAndPassed
-
-data AnalysisState
-  = NoneAsked
-  | WarningAnalysis (WebData Result)
-  | ReachabilityAnalysis MultiStageAnalysisData
-  | CloseAnalysis MultiStageAnalysisData
-
-type MultiStageAnalysisProblemDef
-  = { expandSubproblemImpl :: ContractZipper -> Contract -> (ContractPath /\ Contract)
-    , isValidSubproblemImpl :: ContractZipper -> Contract -> Boolean
-    , analysisDataSetter :: MultiStageAnalysisData -> AnalysisState
-    , shouldExamineChildren :: Boolean -> Boolean
-    , isProblemCounterExample :: Boolean -> Boolean
-    }
-
 data BottomPanelView
   = StaticAnalysisView
   | MarloweErrorsView
@@ -162,8 +78,6 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , showErrorDetail :: Boolean
     , selectedHole :: Maybe String
-    -- This is pagination information that we need to provide to the haskell backend
-    -- so that it can do the analysis in chunks
     , analysisState :: AnalysisState
     , editorErrors :: Array IMarker
     , editorWarnings :: Array IMarker
@@ -177,9 +91,6 @@ _showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
 
 _selectedHole :: Lens' State (Maybe String)
 _selectedHole = prop (SProxy :: SProxy "selectedHole")
-
-_analysisState :: Lens' State AnalysisState
-_analysisState = prop (SProxy :: SProxy "analysisState")
 
 _editorErrors :: forall s a. Lens' { editorErrors :: a | s } a
 _editorErrors = prop (SProxy :: SProxy "editorErrors")

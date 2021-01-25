@@ -14,7 +14,9 @@ import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (Contract(..), Observation(..))
 import Marlowe.Semantics as S
-import MarloweEditor.Types (Action, AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, State)
+import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap)
+-- FIXME: not sure if Reachability should depend on MarloweEditor, see if we can make the functions that need it generic
+import MarloweEditor.Types (Action, State)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 

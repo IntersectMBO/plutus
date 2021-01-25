@@ -1,4 +1,7 @@
-module MarloweEditor.BottomPanel (panelContents) where
+module MarloweEditor.BottomPanel
+  ( panelContents
+  , {- FIXME: move to a more general module -} analysisResultPane
+  ) where
 
 import Prelude hiding (div)
 import Data.Array (drop, head)
@@ -19,26 +22,12 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, enabled)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView(..), MultiStageAnalysisData(..), State, _analysisState, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
-import Network.RemoteData (RemoteData(..), isLoading)
+import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
+import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
+import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
-
-isStaticLoading :: AnalysisState -> Boolean
-isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
-
-isStaticLoading _ = false
-
-isReachabilityLoading :: AnalysisState -> Boolean
-isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
-
-isReachabilityLoading _ = false
-
-isCloseAnalysisLoading :: AnalysisState -> Boolean
-isCloseAnalysisLoading (CloseAnalysis (AnalysisInProgress _)) = true
-
-isCloseAnalysisLoading _ = false
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =
@@ -138,7 +127,7 @@ panelContents state MarloweErrorsView =
     in
       { message, startColumn, startLineNumber, firstLine, restLines }
 
-analysisResultPane :: forall p. State -> HTML p Action
+analysisResultPane :: forall action p state. { analysisState :: AnalysisState | state } -> HTML p action
 analysisResultPane state =
   let
     result = state ^. _analysisState
@@ -304,7 +293,7 @@ analysisResultPane state =
             , text "None of the Close constructs refunds any money, all refunds are explicit."
             ]
 
-displayTransactionList :: forall p. Array TransactionInput -> HTML p Action
+displayTransactionList :: forall p action. Array TransactionInput -> HTML p action
 displayTransactionList transactionList =
   ol [ classes [ ClassName "indented-enum" ] ]
     ( do
@@ -333,7 +322,7 @@ displayTransactionList transactionList =
           )
     )
 
-displayInputList :: forall p. List Input -> HTML p Action
+displayInputList :: forall p action. List Input -> HTML p action
 displayInputList inputList =
   ol [ classes [ ClassName "indented-loweralpha-enum" ] ]
     ( do
@@ -372,7 +361,7 @@ displayInput (INotify) =
   , b_ [ text "True" ]
   ]
 
-displayWarningList :: forall p. Array TransactionWarning -> HTML p Action
+displayWarningList :: forall p action. Array TransactionWarning -> HTML p action
 displayWarningList transactionWarnings =
   ol [ classes [ ClassName "indented-enum" ] ]
     ( do
@@ -380,7 +369,7 @@ displayWarningList transactionWarnings =
         pure (li_ (displayWarning warning))
     )
 
-displayWarnings :: forall p. Array TransactionWarning -> HTML p Action
+displayWarnings :: forall p action. Array TransactionWarning -> HTML p action
 displayWarnings [] = text mempty
 
 displayWarnings warnings =
@@ -396,7 +385,7 @@ displayWarnings warnings =
         $ foldMap (\warning -> [ li_ (displayWarning warning) ]) warnings
     ]
 
-displayWarning :: forall p. TransactionWarning -> Array (HTML p Action)
+displayWarning :: forall p action. TransactionWarning -> Array (HTML p action)
 displayWarning (TransactionNonPositiveDeposit party owner tok amount) =
   [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "

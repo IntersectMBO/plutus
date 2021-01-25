@@ -36,7 +36,8 @@ import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract, emptyState)
 import Marlowe.Symbolic.Types.Request as MSReq
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView, State, _analysisState, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
+import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -139,9 +140,9 @@ handleAction settings AnalyseContract =
         -- when editor and simulator were together the analyse contract could be made
         -- at any step of the simulator. Now that they are separate, it can only be done
         -- with initial state
+        assign _analysisState (WarningAnalysis Loading)
         let
           emptySemanticState = emptyState zero
-        assign _analysisState (WarningAnalysis Loading)
         response <- lift $ checkContractForWarnings contract emptySemanticState
         assign _analysisState (WarningAnalysis response)
   where

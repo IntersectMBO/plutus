@@ -13,7 +13,9 @@ import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..))
 import Marlowe.Semantics as S
-import MarloweEditor.Types (Action, AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, State)
+import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef)
+-- FIXME: try to make abstract Action and State
+import MarloweEditor.Types (Action, State)
 import Prelude (Void, const, mempty, not, zero, ($), (&&), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)

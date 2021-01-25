@@ -13,21 +13,23 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, analysisPanel, closeDrawerArrowIcon, codeEditor, collapsed, footerPanelBg, group, minimizeIcon)
+import Halogen.Classes (aHorizontal, codeEditor, group)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, option, pre_, section, select, slot, text)
+import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
+import Halogen.HTML.Properties (class_, classes, disabled, enabled)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
+import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, isCompiling)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
+import MarloweEditor.BottomPanel (analysisResultPane)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Loading, isLoading, isSuccess)
+import StaticAnalysis.Types (AnalysisState(..), _analysisState, isStaticLoading)
 import StaticData as StaticData
 
 render ::
@@ -46,6 +48,7 @@ render state =
   where
   panelTitles =
     [ { title: "Generated code", view: GeneratedOutputView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
@@ -56,7 +59,7 @@ otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
     , compileButton state
-    , sendResultButton state "Send To Simulator" SendResultToSimulator
+    , sendToSimulationButton state
     -- FIXME: I think we want to change this action to be called from the simulator
     --        with the action "soon to be implemented" ViewAsBlockly
     -- , sendResultButton state "Send To Blockly" SendResultToBlockly
@@ -100,22 +103,25 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
 
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
-  button [ onClick $ const $ Just Compile ]
-    [ text (if has (_compilationResult <<< _Loading) state then "Compiling..." else "Compile") ]
+  button
+    [ onClick $ const $ Just Compile
+    , enabled $ not $ isCompiling state
+    ]
+    [ text (if isCompiling state then "Compiling..." else "Compile") ]
 
-sendResultButton :: forall p. State -> String -> Action -> HTML p Action
-sendResultButton state msg action =
-  let
-    compilationResult = view _compilationResult state
-  in
-    case view _compilationResult state of
-      Success (Right (InterpreterResult result)) ->
-        button
-          [ onClick $ const $ Just action
-          , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
-          ]
-          [ text msg ]
-      _ -> text ""
+sendToSimulationButton :: forall p. State -> HTML p Action
+sendToSimulationButton state =
+  button
+    [ onClick $ const $ Just SendResultToSimulator
+    , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
+    ]
+    [ text "Send To Simulator" ]
+  where
+  compilationResult = view _compilationResult state
+
+  enabled' = case compilationResult of
+    Success (Right (InterpreterResult _)) -> true
+    _ -> false
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state GeneratedOutputView =
@@ -129,6 +135,19 @@ panelContents state GeneratedOutputView =
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
     _ -> [ text "There is no generated code" ]
+
+panelContents state StaticAnalysisView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ]
+    [ analysisResultPane state
+    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
+        [ text (if loading then "Analysing..." else "Analyse for warnings") ]
+    ]
+  where
+  loading = state ^. _analysisState <<< to isStaticLoading
+
+  enabled' = not loading && not (isCompiling state)
 
 panelContents state ErrorsView =
   section
