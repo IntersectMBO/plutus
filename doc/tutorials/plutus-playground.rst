@@ -76,12 +76,12 @@ The blockchain section shows all the transactions that were produced during the 
 
 
 Each simulation is run on a fresh blockchain.
-The "Hello, World" simulation only results in a single transaction.
+The "Hello, World" simulation only results in a single transaction called "Slot 0, Tx 0".
 This is the initial transaction that distributes some funds to the simulated agents.
-You can click the box that says "Slot 0, Tx 0" to examine the transaction.
-Now there are two new sections visible.
-The first of the new sections shows the inputs and outputs of the selected transaction, and some other details.
-The second of the new sections has a table with the balances of each address *after* the selected transaction.
+The initial transaction is preselected when you open the blockchain view.
+There are two sections with detailed information about the selected transaction.
+The first section shows the inputs and outputs of the selected transaction, and some other details.
+The second section has a table with the balances of each address *after* the selected transaction.
 You can see that wallet 1 and wallet 2 each have ten lovelace.
 
 Final Balances
