@@ -120,6 +120,6 @@ executable marlowe-app
   hs-source-dirs: app
   build-depends:
     base >= 4.9 && < 5,
-    plutus-scb -any,
+    plutus-pab -any,
     plutus-contract -any,
     marlowe
