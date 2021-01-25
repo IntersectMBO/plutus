@@ -16,7 +16,7 @@ In this tutorial you are going to write a Plutus app that locks some ada in a sc
 Defining the types
 ------------------
 
-You start by defining some data types that you're going to need for the _Split_ app.
+You start by defining some data types that you're going to need for the *Split* app.
 
 .. literalinclude:: BasicApps.hs
    :start-after: BLOCK1
