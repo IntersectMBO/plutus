@@ -38,6 +38,7 @@ let
   start-backend = pkgs.writeShellScriptBin "plutus-playground-server" ''
     export FRONTEND_URL=https://localhost:8009
     export WEBGHC_URL=http://localhost:8080
+    export GITHUB_CALLBACK_PATH=https://localhost:8009/api/oauth/github/callback
     $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground webserver
   '';
 
