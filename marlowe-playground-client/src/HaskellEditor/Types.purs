@@ -21,7 +21,8 @@ import Text.Pretty (pretty)
 import Types (WebData)
 
 data Action
-  = Compile
+  = Init
+  | Compile
   | ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
@@ -33,6 +34,7 @@ defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Haskell." <> s
 
 instance actionIsEvent :: IsEvent Action where
+  toEvent Init = Just $ defaultEvent "Init"
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"

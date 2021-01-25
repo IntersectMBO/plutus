@@ -14,31 +14,29 @@ import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
-import Data.Lens (assign, use, view)
-import Data.Maybe (Maybe(..))
+import Data.Lens (assign, use)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
-import Debug.Trace (traceM)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, liftEffect, query)
-import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), _InterpreterResult)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
+import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
-import MainFrame.Types (ChildSlots, _blocklySlot, _haskellEditorSlot)
+import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Marlowe as Server
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Contract, emptyState)
+import Marlowe.Semantics (emptyState)
 import Marlowe.Symbolic.Types.Request as MSReq
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import SimulationPage.Types (_result)
 import StaticAnalysis.Types (AnalysisState(..), _analysisState)
 import StaticData (bufferLocalStorageKey)
 import Types (WebData)
@@ -57,6 +55,11 @@ handleAction ::
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
+handleAction _ Init = do
+  editorSetTheme
+  mContents <- liftEffect $ LocalStorage.getItem bufferLocalStorageKey
+  editorSetValue $ fromMaybe "" mContents
+
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _compilationResult NotAsked
@@ -99,15 +102,10 @@ handleAction settings AnalyseContract = do
   compilationResult <- use _compilationResult
   case compilationResult of
     NotAsked -> do
-      traceM "Contract not compiled, compiling first"
       assign _analysisState (WarningAnalysis Loading)
       handleAction settings Compile
       handleAction settings AnalyseContract
-    Success (Right (InterpreterResult interpretedResult)) -> do
-      traceM "Successful compile!"
-      traceM interpretedResult.result
-      traceM interpretedResult.warnings
-      analyseContract settings interpretedResult.result
+    Success (Right (InterpreterResult interpretedResult)) -> analyseContract settings interpretedResult.result
     Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
@@ -139,6 +137,9 @@ runAjax ::
   ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
   HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _haskellEditorSlot unit (Monaco.Resize unit)

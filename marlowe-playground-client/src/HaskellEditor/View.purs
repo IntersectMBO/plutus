@@ -7,12 +7,11 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens (to, view, (^.))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
-import Examples.Haskell.Contracts as HE
-import Halogen (ClassName(..), ComponentHTML, liftEffect)
+import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (aHorizontal, codeEditor, group)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
@@ -24,13 +23,10 @@ import Halogen.Monaco (monacoComponent)
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, isCompiling)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
-import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import StaticAnalysis.BottomPanel (analysisResultPane)
 import StaticAnalysis.Types (_analysisState, isStaticLoading)
-import StaticData as StaticData
 
 render ::
   forall m.
@@ -90,14 +86,7 @@ haskellEditor ::
   ComponentHTML Action ChildSlots m
 haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
-  setup editor =
-    liftEffect do
-      -- TODO we shouldn't access local storage from the view
-      mContents <- LocalStorage.getItem StaticData.bufferLocalStorageKey
-      let
-        contents = fromMaybe HE.escrow mContents
-      model <- Monaco.getModel editor
-      Monaco.setValue model contents
+  setup editor = pure unit
 
   component = monacoComponent $ HM.settings setup
 
