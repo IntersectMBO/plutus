@@ -25,7 +25,7 @@ genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows = sampleCashflows (const $ RiskFactors 1.0 1.0 1.0 0.0)
 
 postProcessSchedule :: ContractTerms -> [(EventType, ShiftedDay)] -> [(EventType, ShiftedDay)]
-postProcessSchedule ct s =
+postProcessSchedule ct =
     let trim = L.dropWhile (\(_, d) -> calculationDay d < ct_SD ct)
         prioritised = [AD, IED, PR, PI, PRF, PY, FP, PRD, TD, IP, IPCI, IPCB, RR, PP, CE, MD, RRF, SC, STD, DV, XD, MR]
         priority :: (EventType, ShiftedDay) -> Integer
@@ -33,7 +33,7 @@ postProcessSchedule ct s =
         simillarity (_, l) (_, r) = calculationDay l == calculationDay r
         regroup = L.groupBy simillarity
         overwrite = map (L.head . sortOn priority) . regroup
-    in (overwrite . trim) s
+    in overwrite . trim
 
 
 sampleCashflows :: (Day -> RiskFactors) -> ContractTerms -> [CashFlow]
