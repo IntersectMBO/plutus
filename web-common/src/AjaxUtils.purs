@@ -14,7 +14,7 @@ import Data.Maybe (Maybe(Just))
 import Foreign (MultipleErrors, renderForeignError)
 import Foreign.Generic.Class (Options, aesonSumEncoding, defaultOptions)
 import Halogen (RefLabel(RefLabel))
-import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, text)
+import Halogen.HTML (ClassName(..), HTML, br_, button, div, div_, p_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, ref)
 import Icons (Icon(..), icon)
@@ -32,7 +32,7 @@ ajaxErrorPane error =
     [ alertDanger_
         [ showAjaxError error
         , br_
-        , helpText
+        , text "Please try again or contact support for assistance."
         ]
     ]
 
@@ -46,9 +46,7 @@ closeableAjaxErrorPane error =
             , onClick $ const $ Just CloseErrorPane
             ]
             [ icon Close ]
-        , showAjaxError error
-        , br_
-        , helpText
+        , p_ [ showAjaxError error ]
         ]
     ]
 
@@ -58,28 +56,15 @@ ajaxErrorRefLabel = RefLabel "ajax-error"
 ajaxErrorClass :: ClassName
 ajaxErrorClass = ClassName "ajax-error"
 
-helpText :: forall p i. HTML p i
-helpText = text "Please try again or contact support for assistance."
-
 showAjaxError :: forall p i. AjaxError -> HTML p i
 showAjaxError = runAjaxError >>> _.description >>> showErrorDescription
 
 showErrorDescription :: forall p i. ErrorDescription -> HTML p i
-showErrorDescription NotFound = div_ [ text $ "Data not found." ]
+showErrorDescription NotFound = text "Data not found."
 
-showErrorDescription (ResponseError statusCode err) =
-  div_
-    [ text $ "Server error."
-    , br_
-    , text err
-    ]
+showErrorDescription (ResponseError statusCode err) = text $ "Server error " <> show statusCode <> ": " <> err
 
-showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
-  div_
-    [ text $ "Cannot connect to the server. Please check your network connection."
-    , br_
-    , text $ "DecodingError: " <> err
-    ]
+showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = text "Cannot connect to the server. Please check your network connection."
 
 showErrorDescription (DecodingError err) = text $ "DecodingError: " <> err
 

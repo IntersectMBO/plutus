@@ -27,6 +27,16 @@ body {
         @include button-variant($turquoise, $turquoise);
     }
 
+    .release-banner {
+        text-transform: uppercase;
+        text-align: center;
+        font-size: 1.1em;
+        padding: .5rem;
+        background: $blue;
+        color: $gray-background-color;
+        border-bottom: 1px solid $gray-border-color;
+    }
+
     .header,
     .footer {
         background: $gray-background-color;
