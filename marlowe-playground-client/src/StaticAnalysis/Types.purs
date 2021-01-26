@@ -35,10 +35,14 @@ isStaticLoading _ = false
 isReachabilityLoading :: AnalysisState -> Boolean
 isReachabilityLoading (ReachabilityAnalysis (AnalysisInProgress _)) = true
 
+isReachabilityLoading (ReachabilityAnalysis AnalysisNotStarted) = true
+
 isReachabilityLoading _ = false
 
 isCloseAnalysisLoading :: AnalysisState -> Boolean
 isCloseAnalysisLoading (CloseAnalysis (AnalysisInProgress _)) = true
+
+isCloseAnalysisLoading (CloseAnalysis AnalysisNotStarted) = true
 
 isCloseAnalysisLoading _ = false
 

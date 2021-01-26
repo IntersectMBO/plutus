@@ -147,7 +147,6 @@ panelContents state StaticAnalysisView =
   where
   loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
 
-  -- FIXME: I need to make this work for loading and not started
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
   loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading

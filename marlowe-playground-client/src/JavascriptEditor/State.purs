@@ -144,16 +144,10 @@ handleAction _ (InitJavascriptProject prunedContent) = do
 handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
 
 handleAction settings AnalyseReachabilityContract =
-  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
-  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
-  --        or change here so that we construct a AnalysisInProgress
   compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
     $ analyseReachability settings
 
 handleAction settings AnalyseContractForCloseRefund =
-  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
-  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
-  --        or change here so that we construct a AnalysisInProgress
   compileAndAnalyze settings (CloseAnalysis AnalysisNotStarted)
     $ analyseClose settings
 
