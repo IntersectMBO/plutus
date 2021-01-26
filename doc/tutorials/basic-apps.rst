@@ -163,8 +163,8 @@ The Playground server uses the ``endpoints`` definition to populate the UI (via 
 ``endpoints`` is the high-level definition of our app:
 
 .. literalinclude:: BasicApps.hs
-   :start-after: BLOCK9
-   :end-before: BLOCK10
+   :start-after: BLOCK10
+   :end-before: BLOCK11
 
 The ``select`` function acts like a choice between two branches.
 The left branch starts with ``lock`` and the right branch starts with ``unlock``.
