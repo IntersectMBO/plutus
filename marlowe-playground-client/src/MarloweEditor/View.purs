@@ -136,13 +136,6 @@ marloweEditor ::
   ComponentHTML Action ChildSlots m
 marloweEditor state = slot _marloweEditorPageSlot unit component unit (Just <<< HandleEditorMessage)
   where
-  setup editor =
-    liftEffect do
-      -- FIXME we shouldn't access local storage from the view
-      mContents <- LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
-      let
-        contents = fromMaybe HE.escrow mContents
-      model <- Monaco.getModel editor
-      Monaco.setValue model contents
+  setup editor = pure unit
 
   component = monacoComponent $ MM.settings setup

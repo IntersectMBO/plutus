@@ -263,7 +263,7 @@ mkEditor = monacoComponent $ JSM.settings setup
     liftEffect do
       mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
       let
-        contents = fromMaybe JSE.escrow mContents
+        contents = fromMaybe JSE.example mContents
 
         decoratedContent = joinWith "\n" [ decorationHeader, contents, decorationFooter ]
 

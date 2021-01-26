@@ -21,7 +21,8 @@ import Text.Parsing.StringParser (Pos)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 data Action
-  = ChangeKeyBindings KeyBindings
+  = Init
+  | ChangeKeyBindings KeyBindings
   | HandleEditorMessage Monaco.Message
   | HandleDragEvent DragEvent
   | HandleDropEvent DragEvent
@@ -43,6 +44,7 @@ defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "MarloweEditor." <> s
 
 instance actionIsEvent :: IsEvent Action where
+  toEvent Init = Just $ defaultEvent "Init"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
   toEvent (HandleDragEvent _) = Just $ defaultEvent "HandleDragEvent"

@@ -300,6 +300,7 @@ handleAction settings Init = do
     eventListenerEventSource keyup (toEventTarget document) (map (HandleKey sid) <<< KE.fromEvent)
   toSimulation $ Simulation.handleAction settings ST.Init
   toHaskellEditor $ HaskellEditor.handleAction settings HE.Init
+  toMarloweEditor $ MarloweEditor.handleAction settings ME.Init
   checkAuthStatus settings
   -- Load session data if available
   void
@@ -852,7 +853,7 @@ selectView view = do
       Simulation.editorSetTheme
     MarloweEditor -> do
       MarloweEditor.editorResize
-      void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+      MarloweEditor.editorSetTheme
     HaskellEditor -> do
       HaskellEditor.editorResize
       HaskellEditor.editorSetTheme

@@ -2,6 +2,7 @@ module MarloweEditor.State
   ( handleAction
   , editorGetValue
   , {- FIXME: this should be an action -} editorResize
+  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
@@ -16,12 +17,13 @@ import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (assign, preview, set, use)
 import Data.Lens.Index (ix)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Examples.Marlowe.Contracts (contractForDifference, escrow, example, option, swap, zeroCouponBond) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
@@ -31,6 +33,7 @@ import Marlowe (SPParams_)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
+import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Contract)
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
@@ -60,6 +63,11 @@ handleAction ::
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
+handleAction _ Init = do
+  editorSetTheme
+  mContents <- liftEffect $ LocalStorage.getItem marloweBufferLocalStorageKey
+  editorSetValue $ fromMaybe ME.example mContents
+
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
@@ -166,6 +174,9 @@ runAjax ::
   ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
   HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)

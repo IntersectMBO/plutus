@@ -19,6 +19,7 @@ import Data.Lens (assign, use)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
+import Examples.Haskell.Contracts (example) as HE
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
@@ -59,7 +60,7 @@ handleAction ::
 handleAction _ Init = do
   editorSetTheme
   mContents <- liftEffect $ LocalStorage.getItem haskellBufferLocalStorageKey
-  editorSetValue $ fromMaybe "" mContents
+  editorSetValue $ fromMaybe HE.example mContents
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey text
