@@ -1388,7 +1388,7 @@ types of untyped plutus core and how they get serialised.
 \subsection{Variable length data}
 
 \texttt{Non-empty lists} are encoded by prefixing the element stored with `0'
-if this is the last element or `1' if there is more data following.
+if this is the \texttt{last} element or `1' if there is \texttt{more} data following.
 
 \noindent We encode variable length data as a non-empty list of chunks, 7 bits each,
 with the least significant chunk first and the most significant bit first in the chunk.

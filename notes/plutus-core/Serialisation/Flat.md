@@ -20,14 +20,10 @@ We define `Program` in the `Language.PlutusCore.Core.Type` haskell module like t
 > -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 > data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
 >    deriving (Show, Functor, Generic, NFData, Hashable)
->
-> -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-> data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
->    deriving (Show, Functor, Generic, NFData, Hashable)
 
 Because the `Program` data type has only one constructor we know that flat will not waste any space serialising it. `ann` will always be (for serialised ASTs) `()`, which similarly to the `Program` data type has only one constructor and flat will not serialise it.
 
-Next, the `Version` is a tuple of 3 `Natural` numbers, which are encoded as variable length unsigned integers. Because all the version numbers can fit in a 7 bit word, we only need one byte to store each of them. Also, the first bit, which represents the list constructor will always be `0` (standing for `Nil`), resulting in:
+Next, the `Version` is a tuple of 3 `Natural` numbers, which are encoded as variable length unsigned integers. Because all the version numbers can fit in a 7 bit word, we only need one byte to store each of them. Also, the first bit, which represents the list constructor will always be `0` (standing for `Last`), resulting in:
 
 > 0 (*Last*) 000 (*Unused*) 1011   (*11 in binary*)
 > 0 (*Last*) 00  (*Unused*) 10110  (*22 in binary*)
