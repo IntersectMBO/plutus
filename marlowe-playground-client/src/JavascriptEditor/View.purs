@@ -11,7 +11,7 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group, spaceBottom, spaceRight, spaceTop)
+import Halogen.Classes (aHorizontal, codeEditor, group)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, select, slot, text)
@@ -23,7 +23,7 @@ import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPa
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import StaticAnalysis.BottomPanel (analysisResultPane)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
 import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
@@ -160,17 +160,6 @@ panelContents state ErrorsView =
     ] case view _compilationResult state of
     JS.CompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "No errors" ]
-
--- FIXME: Move all to BottomPanel
-analyzeButton ::
-  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
-analyzeButton isLoading isEnabled name action =
-  button
-    [ onClick $ const $ Just $ action
-    , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
-    ]
-    [ text (if isLoading then "Analysing..." else name) ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text "There was an error when running the JavaScript code:", code_ [ pre_ [ text $ error ] ] ]

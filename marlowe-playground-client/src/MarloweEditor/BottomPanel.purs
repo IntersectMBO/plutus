@@ -10,25 +10,15 @@ import Data.Maybe (Maybe(..))
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, flexLeft, spaceBottom, spaceRight, spaceTop, underline)
+import Halogen.Classes (aHorizontal, flexLeft, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, button, div, li, pre, section, text, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, div, li, pre, section, text, ul_)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes, enabled)
+import Halogen.HTML.Properties (class_, classes)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _editorErrors, _editorWarnings, _showErrorDetail, contractHasErrors)
-import StaticAnalysis.BottomPanel (analysisResultPane)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
 import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Parsing.StringParser.Basic (lines)
-
-analyzeButton ::
-  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
-analyzeButton isLoading isEnabled name action =
-  button
-    [ onClick $ const $ Just $ action
-    , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
-    ]
-    [ text (if isLoading then "Analysing..." else name) ]
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state StaticAnalysisView =

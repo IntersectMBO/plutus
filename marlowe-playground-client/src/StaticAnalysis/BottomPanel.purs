@@ -1,5 +1,6 @@
 module StaticAnalysis.BottomPanel
   ( analysisResultPane
+  , analyzeButton
   ) where
 
 import Prelude hiding (div)
@@ -8,15 +9,27 @@ import Data.Lens ((^.))
 import Data.List (List, null, toUnfoldable)
 import Data.List as List
 import Data.List.NonEmpty (toList)
-import Halogen.Classes (spanText)
-import Halogen.HTML (ClassName(..), HTML, b_, br_, div, h2, h3, li_, ol, span_, text, ul)
-import Halogen.HTML.Properties (classes)
+import Data.Maybe (Maybe(..))
+import Halogen.Classes (spaceBottom, spaceRight, spaceTop, spanText)
+import Halogen.HTML (ClassName(..), HTML, b_, br_, button, div, h2, h3, li_, ol, span_, text, ul)
+import Halogen.HTML.Events (onClick)
+import Halogen.HTML.Properties (classes, enabled)
 import Marlowe.Semantics (ChoiceId(..), Input(..), Payee(..), Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..))
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+
+analyzeButton ::
+  forall p action. Boolean -> Boolean -> String -> action -> HTML p action
+analyzeButton isLoading isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text (if isLoading then "Analysing..." else name) ]
 
 analysisResultPane :: forall action p state. { analysisState :: AnalysisState | state } -> HTML p action
 analysisResultPane state =

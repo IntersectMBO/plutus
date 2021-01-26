@@ -12,7 +12,7 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes (aHorizontal, codeEditor, group, spaceBottom, spaceRight, spaceTop)
+import Halogen.Classes (aHorizontal, codeEditor, group)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
@@ -25,7 +25,7 @@ import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..),
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Network.RemoteData (RemoteData(..))
-import StaticAnalysis.BottomPanel (analysisResultPane)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
 import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 
 render ::
@@ -168,16 +168,6 @@ panelContents state ErrorsView =
     Success (Left (TimeoutError error)) -> [ text error ]
     Success (Left (CompilationErrors errors)) -> map compilationErrorPane errors
     _ -> [ text "No errors" ]
-
-analyzeButton ::
-  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
-analyzeButton isLoading isEnabled name action =
-  button
-    [ onClick $ const $ Just $ action
-    , enabled isEnabled
-    , classes [ spaceTop, spaceBottom, spaceRight ]
-    ]
-    [ text (if isLoading then "Analysing..." else name) ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text error ]
