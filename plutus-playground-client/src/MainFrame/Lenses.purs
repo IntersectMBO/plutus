@@ -96,7 +96,7 @@ _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 _successfulCompilationResult :: Traversal' State CompilationResult
 _successfulCompilationResult = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result
 
-_lastSuccessfulCompilationResult :: Lens' State WebCompilationResult
+_lastSuccessfulCompilationResult :: Lens' State (Maybe (InterpreterResult CompilationResult))
 _lastSuccessfulCompilationResult = _Newtype <<< prop (SProxy :: SProxy "lastSuccessfulCompilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)

@@ -21,7 +21,7 @@ import Control.Monad.Reader (class MonadAsk, runReaderT)
 import Control.Monad.State.Class (class MonadState, gets)
 import Control.Monad.State.Extra (zoomStateT)
 import Control.Monad.Trans.Class (lift)
-import Cursor (_current)
+import Cursor (Cursor, _current)
 import Cursor as Cursor
 import Data.Array (catMaybes, (..))
 import Data.Array (deleteAt, snoc) as Array
@@ -104,7 +104,7 @@ mkInitialState editorState = do
         , contractDemos
         , currentDemoName: Nothing
         , compilationResult: NotAsked
-        , lastSuccessfulCompilationResult: NotAsked
+        , lastSuccessfulCompilationResult: Nothing
         , simulations: Cursor.empty
         , actionDrag: Nothing
         , evaluationResult: NotAsked
@@ -257,7 +257,7 @@ handleAction (LoadScript key) = do
       assign (_editorState <<< _lastCompiledCode) (Just contractDemoEditorContents)
       assign (_editorState <<< _currentCodeIsCompiled) true
       assign _compilationResult (Success <<< Right $ contractDemoContext)
-      assign _lastSuccessfulCompilationResult (Success <<< Right $ contractDemoContext)
+      assign _lastSuccessfulCompilationResult (Just contractDemoContext)
       assign _evaluationResult NotAsked
       assign _createGistResult NotAsked
 
@@ -343,36 +343,42 @@ handleAction CompileProgram = do
           -- If there are compilation errors, add editor annotations and expand the feedback pane.
           editorSetAnnotations $ toAnnotations errors
           assign (_editorState <<< _feedbackPaneMinimised) false
-        Success (Right _) ->
+        Success (Right compilationResult) ->
           -- If compilation was successful, clear editor annotations and save the successful result.
           when (isSuccess newCompilationResult) do
             editorSetAnnotations []
             assign (_editorState <<< _currentCodeIsCompiled) true
             assign (_editorState <<< _lastCompiledCode) (Just contents)
-            assign _lastSuccessfulCompilationResult newCompilationResult
-            -- If we have a result with new signatures, we can only hold onto the old actions if
+            assign _lastSuccessfulCompilationResult (Just compilationResult)
+            -- If we have a result with new signatures, we can only hold onto any old actions if
             -- the signatures still match. Any change means we'll have to clear out the existing
             -- simulation. Same thing for currencies. Potentially we could be smarter about this.
             -- But for now, let's at least be correct.
             -- Note we test against the last _successful_ compilation result, so that a failed
             -- compilation in between times doesn't unnecessarily wipe the old actions.
             let
-              oldSignatures = preview (_details <<< _functionSchema) lastSuccessfulCompilationResult
-
               newSignatures = preview (_details <<< _functionSchema) newCompilationResult
 
-              oldCurrencies = preview (_details <<< _knownCurrencies) lastSuccessfulCompilationResult
-
               newCurrencies = preview (_details <<< _knownCurrencies) newCompilationResult
-            unless
-              (oldSignatures == newSignatures && oldCurrencies == newCurrencies)
-              ( assign _simulations
-                  $ case newCurrencies of
-                      Just currencies -> Cursor.singleton $ mkSimulation currencies 1
-                      Nothing -> Cursor.empty
-              )
+            case lastSuccessfulCompilationResult of
+              Nothing ->
+                assign _simulations $ defaultSimulations newCurrencies
+              Just oldCompilationResult -> do
+                let
+                  oldSignatures = preview (_result <<< _functionSchema) (unwrap oldCompilationResult)
+
+                  oldCurrencies = preview (_result <<< _knownCurrencies) (unwrap oldCompilationResult)
+                unless
+                  (oldSignatures == newSignatures && oldCurrencies == newCurrencies)
+                  (assign _simulations $ defaultSimulations newCurrencies)
         _ -> pure unit
       pure unit
+
+defaultSimulations :: Maybe (Array KnownCurrency) -> Cursor Simulation
+defaultSimulations newCurrencies =
+  case newCurrencies of
+    Just currencies -> Cursor.singleton $ mkSimulation currencies 1
+    Nothing -> Cursor.empty
 
 handleSimulationAction ::
   Value ->
