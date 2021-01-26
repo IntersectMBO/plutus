@@ -148,34 +148,7 @@ data TermConstantG = TmIntegerG Integer
 
 deriveEnumerable ''TermConstantG
 
-data TermBuiltinG = AddIntegerG
-                  | SubtractIntegerG
-                  | MultiplyIntegerG
-                  | DivideIntegerG
-                  | QuotientIntegerG
-                  | RemainderIntegerG
-                  | ModIntegerG
-                  | LessThanIntegerG
-                  | LessThanEqIntegerG
-                  | GreaterThanIntegerG
-                  | GreaterThanEqIntegerG
-                  | EqIntegerG
-                  | ConcatenateG
-                  | TakeByteStringG
-                  | DropByteStringG
-                  | SHA2G
-                  | SHA3G
-                  | VerifySignatureG
-                  | EqByteStringG
-                  | LtByteStringG
-                  | GtByteStringG
-                  | IfThenElseG
-                  | CharToStringG
-                  | AppendG
-                  | TraceG
-                  deriving (Show, Eq)
-
-deriveEnumerable ''TermBuiltinG
+deriveEnumerable ''DefaultFun
 
 data TermG tyname name
     = VarG
@@ -194,7 +167,7 @@ data TermG tyname name
       (TypeG tyname)
       (Kind ())
     | ConstantG TermConstantG
-    | BuiltinG  TermBuiltinG
+    | BuiltinG DefaultFun
     | WrapG (TermG tyname name)
     | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
     | ErrorG (TypeG tyname)
@@ -286,33 +259,6 @@ convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
 convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
 convertTermConstant (TmCharG c)       = Some $ ValueOf DefaultUniChar c
 
-convertBuiltin :: TermBuiltinG -> DefaultFun
-convertBuiltin AddIntegerG           = AddInteger
-convertBuiltin SubtractIntegerG      = SubtractInteger
-convertBuiltin MultiplyIntegerG      = MultiplyInteger
-convertBuiltin DivideIntegerG        = DivideInteger
-convertBuiltin QuotientIntegerG      = QuotientInteger
-convertBuiltin RemainderIntegerG     = RemainderInteger
-convertBuiltin ModIntegerG           = ModInteger
-convertBuiltin LessThanIntegerG      = LessThanInteger
-convertBuiltin LessThanEqIntegerG    = LessThanEqInteger
-convertBuiltin GreaterThanIntegerG   = GreaterThanInteger
-convertBuiltin GreaterThanEqIntegerG = GreaterThanEqInteger
-convertBuiltin EqIntegerG            = EqInteger
-convertBuiltin ConcatenateG          = Concatenate
-convertBuiltin TakeByteStringG       = TakeByteString
-convertBuiltin DropByteStringG       = DropByteString
-convertBuiltin SHA2G                 = SHA2
-convertBuiltin SHA3G                 = SHA3
-convertBuiltin VerifySignatureG      = VerifySignature
-convertBuiltin EqByteStringG         = EqByteString
-convertBuiltin LtByteStringG         = LtByteString
-convertBuiltin GtByteStringG         = GtByteString
-convertBuiltin IfThenElseG           = IfThenElse
-convertBuiltin CharToStringG         = CharToString
-convertBuiltin AppendG               = Append
-convertBuiltin TraceG                = Trace
-
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
   => TyNameState tyname -- ^ Type name environment with fresh name stream
@@ -335,7 +281,7 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
   TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
-convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () (convertBuiltin b)
+convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () b
 convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns (normalizeTypeG ty') tm
   where
   k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
@@ -460,54 +406,54 @@ instance Check TypeBuiltinG TermConstantG where
   check TyUnitG       (TmUnitG       _) = true
   check _             _                 = false
 
-instance Check (TypeG tyname) TermBuiltinG where
+instance Check (TypeG tyname) DefaultFun where
   check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))) b = case b of
-    AddIntegerG       -> true
-    SubtractIntegerG  -> true
-    MultiplyIntegerG  -> true
-    DivideIntegerG    -> true
-    QuotientIntegerG  -> true
-    RemainderIntegerG -> true
-    ModIntegerG       -> true
-    _                 -> false
-  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))) b = case b of
-    LessThanIntegerG      -> true
-    LessThanEqIntegerG    -> true
-    GreaterThanIntegerG   -> true
-    GreaterThanEqIntegerG -> true
-    EqIntegerG            -> true
-    _                     -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
-    ConcatenateG -> true
-    _            -> false
-  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
-    TakeByteStringG -> true
-    DropByteStringG -> true
-    _               -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)) b = case b of
-    SHA2G -> true
-    SHA3G -> true
-    _     -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))) b = case b of
-    VerifySignatureG -> false
+    AddInteger       -> true
+    SubtractInteger  -> true
+    MultiplyInteger  -> true
+    DivideInteger    -> true
+    QuotientInteger  -> true
+    RemainderInteger -> true
+    ModInteger       -> true
     _                -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))) b = case b of
-    EqByteStringG -> true
-    LtByteStringG -> true
-    GtByteStringG -> true
-    _             -> false
-  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))) b = case b of
-    IfThenElseG -> true
+  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))) b = case b of
+    LessThanInteger      -> true
+    LessThanEqInteger    -> true
+    GreaterThanInteger   -> true
+    GreaterThanEqInteger -> true
+    EqInteger            -> true
+    _                    -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
+    Concatenate -> true
     _           -> false
+  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
+    TakeByteString -> true
+    DropByteString -> true
+    _              -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)) b = case b of
+    SHA2 -> true
+    SHA3 -> true
+    _    -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))) b = case b of
+    VerifySignature -> false
+    _               -> false
+  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))) b = case b of
+    EqByteString -> true
+    LtByteString -> true
+    GtByteString -> true
+    _            -> false
+  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))) b = case b of
+    IfThenElse -> true
+    _          -> false
   check (TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)) b = case b of
-    CharToStringG -> true
-    _             -> false
+    CharToString -> true
+    _            -> false
   check (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))) b = case b of
-    AppendG -> true
-    _       -> false
-  check (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)) b = case b of
-    TraceG -> true
+    Append -> true
     _      -> false
+  check (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)) b = case b of
+    Trace -> true
+    _     -> false
   check _ _ = false
 
 -- it's not clear to me whether this function should insist that some
