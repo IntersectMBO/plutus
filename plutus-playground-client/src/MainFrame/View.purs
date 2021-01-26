@@ -50,7 +50,7 @@ releaseBanner :: forall p. HTML p HAction
 releaseBanner =
   div
     [ class_ $ ClassName "release-banner" ]
-    [ text "Plutus Refresh - Updated 22nd January 2021" ]
+    [ text "Plutus Refresh - Updated 25th January 2021" ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
@@ -76,7 +76,7 @@ documentationLinksPane =
     (makeNavItem <$> links)
   where
   links =
-    [ text "Getting Started" /\ "https://testnet.iohkdev.io/plutus/get-started/writing-contracts-in-plutus/"
+    [ text "Getting Started" /\ "https://developers.cardano.org/en/programming-languages/plutus/getting-started/"
     , text "Tutorial" /\ "./tutorial/index.html"
     , text "API" /\ "./tutorial/haddock/index.html"
     , text "Privacy" /\ "https://static.iohk.io/docs/data-protection/iohk-data-protection-gdpr-policy.pdf"
@@ -272,6 +272,7 @@ mainFooter =
         [ classes [ navbarNav, mlAuto ] ]
         [ makeNavItem $ text "GitHub" /\ "https://github.com/input-output-hk/plutus"
         , makeNavItem $ text "Twitter" /\ "https://twitter.com/hashtag/Plutus"
+        , makeNavItem $ text "Feedback" /\ "https://input-output.typeform.com/to/gQ0t9ep5"
         ]
     ]
 
