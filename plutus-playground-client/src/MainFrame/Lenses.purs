@@ -12,6 +12,7 @@ module MainFrame.Lenses
   , _lastEvaluatedSimulation
   , _compilationResult
   , _successfulCompilationResult
+  , _lastSuccessfulCompilationResult
   , _authStatus
   , _createGistResult
   , _gistUrl
@@ -45,8 +46,8 @@ import Data.Maybe (Maybe, fromMaybe)
 import Data.Symbol (SProxy(..))
 import Editor.Types (State) as Editor
 import Gist (Gist)
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
-import MainFrame.Types (State, View, WebData)
+import Language.Haskell.Interpreter (InterpreterResult, SourceCode, _InterpreterResult)
+import MainFrame.Types (State, View, WebCompilationResult, WebData)
 import Network.RemoteData (_Success)
 import Playground.Types (CompilationResult, ContractCall, ContractDemo, EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, Simulation, SimulatorWallet)
 import Plutus.V1.Ledger.Crypto (PubKeyHash)
@@ -89,11 +90,14 @@ _successfulEvaluationResult = _evaluationResult <<< _Success <<< _Right
 _lastEvaluatedSimulation :: Lens' State (Maybe Simulation)
 _lastEvaluatedSimulation = _Newtype <<< prop (SProxy :: SProxy "lastEvaluatedSimulation")
 
-_compilationResult :: Lens' State (WebData (Either InterpreterError (InterpreterResult CompilationResult)))
+_compilationResult :: Lens' State WebCompilationResult
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
 
 _successfulCompilationResult :: Traversal' State CompilationResult
 _successfulCompilationResult = _compilationResult <<< _Success <<< _Right <<< _InterpreterResult <<< _result
+
+_lastSuccessfulCompilationResult :: Lens' State WebCompilationResult
+_lastSuccessfulCompilationResult = _Newtype <<< prop (SProxy :: SProxy "lastSuccessfulCompilationResult")
 
 _authStatus :: Lens' State (WebData AuthStatus)
 _authStatus = _Newtype <<< prop (SProxy :: SProxy "authStatus")
