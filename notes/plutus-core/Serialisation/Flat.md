@@ -73,7 +73,7 @@ So we see how, for the integer type we care about the type is encoded as a list 
 
 > 1 (*Cons*) 0000 (The `0` tag using 4 bits for storage) 0 (*Nil*)
 
-The annotation will not be serialised, and we are left with the constant itself. Because it is an variable length signed integer, we first need to find out it's value after conversion to the `ZigZag` format.
+The annotation will not be serialised, and we are left with the constant itself. Because it is an variable length signed integer, we first need to find out its value after conversion to the `ZigZag` format.
 
 > stack repl plutus-core:exe:plc
 > ghci> import Data.ZigZag
