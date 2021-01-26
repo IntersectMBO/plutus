@@ -8,6 +8,7 @@ module HaskellEditor.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
+import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
@@ -104,7 +105,12 @@ handleAction settings AnalyseReachabilityContract =
   compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
     $ analyseReachability settings
 
-handleAction settings AnalyseContractForCloseRefund = pure unit
+handleAction settings AnalyseContractForCloseRefund =
+  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
+  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
+  --        or change here so that we construct a AnalysisInProgress
+  compileAndAnalyze settings (CloseAnalysis AnalysisNotStarted)
+    $ analyseClose settings
 
 -- This function runs a static analysis to the compiled code. It calls the compiler if
 -- it wasn't runned before and it switches to the error panel if the compilation failed

@@ -7,10 +7,8 @@ module MarloweEditor.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
-import CloseAnalysis (startCloseAnalysis)
-import Control.Monad.Except (ExceptT, lift, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import CloseAnalysis (analyseClose)
+import Control.Monad.Except (ExceptT, runExceptT)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
@@ -32,15 +30,15 @@ import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Contract, emptyState)
+import Marlowe.Semantics (Contract)
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts, startReachabilityAnalysis)
+import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
-import StaticAnalysis.Types (AnalysisState(..), _analysisState)
+import StaticAnalysis.Types (_analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -137,18 +135,9 @@ handleAction settings AnalyseReachabilityContract = do
   mContents <- editorGetValue
   for_ mContents $ analyseReachability settings
 
-handleAction settings AnalyseContractForCloseRefund =
-  void
-    $ runMaybeT do
-        contents <- MaybeT $ editorGetValue
-        contract <- hoistMaybe $ parseContract' contents
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        newCloseAnalysisState <- lift $ startCloseAnalysis settings contract emptySemanticState
-        assign _analysisState (CloseAnalysis newCloseAnalysisState)
+handleAction settings AnalyseContractForCloseRefund = do
+  mContents <- editorGetValue
+  for_ mContents $ analyseClose settings
 
 handleAction _ Save = pure unit
 
