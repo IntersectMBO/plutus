@@ -128,7 +128,8 @@ module.exports = {
             favicon: 'static/favicon.ico',
             title: 'Plutus Playground',
             productName: 'plutus',
-            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
+            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7',
+            segmentAnalyticsId: isWebpackDevServer ? 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' : '0CEePM8LJUSpPoo2QGrXHDw4GKg4JFBo'
         }),
         new MonacoWebpackPlugin({
             languages: ['haskell'],
