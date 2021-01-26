@@ -17,14 +17,14 @@ import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, code_, div, div_, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, disabled, enabled)
+import Halogen.HTML.Properties (class_, classes, enabled)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import HaskellEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _haskellEditorKeybindings, isCompiling)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
+import Network.RemoteData (RemoteData(..))
 import StaticAnalysis.BottomPanel (analysisResultPane)
 import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 
@@ -96,7 +96,6 @@ compileButton state =
     [ onClick $ const $ Just Compile
     , enabled enabled'
     , classes classes'
-    -- , enabled $ not $ isCompiling state
     ]
     [ text buttonText ]
   where
@@ -120,7 +119,7 @@ sendToSimulationButton :: forall p. State -> HTML p Action
 sendToSimulationButton state =
   button
     [ onClick $ const $ Just SendResultToSimulator
-    , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
+    , enabled enabled'
     ]
     [ text "Send To Simulator" ]
   where

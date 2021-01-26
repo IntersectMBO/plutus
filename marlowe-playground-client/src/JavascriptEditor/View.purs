@@ -54,13 +54,22 @@ otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
     , compileButton state
-    , sendButton state
+    , sendToSimulationButton state
     ]
 
-sendButton :: forall p. State -> HTML p Action
-sendButton state = case view _compilationResult state of
-  JS.CompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultToSimulator ] [ text "Send To Simulator" ]
-  _ -> text ""
+sendToSimulationButton :: forall p. State -> HTML p Action
+sendToSimulationButton state =
+  button
+    [ onClick $ const $ Just SendResultToSimulator
+    , enabled enabled'
+    ]
+    [ text "Send To Simulator" ]
+  where
+  compilationResult = view _compilationResult state
+
+  enabled' = case compilationResult of
+    (JS.CompiledSuccessfully _) -> true
+    _ -> false
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =
@@ -89,12 +98,29 @@ jsEditor state = slot _jsEditorSlot unit mkEditor unit (Just <<< HandleEditorMes
 
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
-  button [ onClick $ const $ Just Compile ]
-    [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+  button
+    [ onClick $ const $ Just Compile
+    , enabled enabled'
+    , classes classes'
+    ]
+    [ text buttonText ]
   where
-  isLoading JS.Compiling = true
+  buttonText = case view _compilationResult state of
+    JS.Compiling -> "Compiling..."
+    (JS.CompiledSuccessfully _) -> "Compiled"
+    (JS.CompilationError _) -> "Compiled"
+    JS.NotCompiled -> "Compile"
 
-  isLoading _ = false
+  enabled' = case view _compilationResult state of
+    JS.NotCompiled -> true
+    _ -> false
+
+  classes' =
+    [ ClassName "btn" ]
+      <> case view _compilationResult state of
+          (JS.CompiledSuccessfully _) -> [ ClassName "success" ]
+          (JS.CompilationError _) -> [ ClassName "error" ]
+          _ -> []
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state GeneratedOutputView =
