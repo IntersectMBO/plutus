@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "scripts": {
     "webpack": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
-    "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "spago build",
@@ -11,7 +10,8 @@
     "test": "spago --no-psa test",
     "test:watch": "spago test --no-psa --watch",
     "docs": "spago docs",
-    "repl": "spago repl"
+    "repl": "spago repl",
+    "start": "npm install && plutus-playground-generate-purs && npm run purs:compile && npm run webpack:server"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",

@@ -6,7 +6,7 @@
 , packages ? import ./. { inherit crossSystem config sourcesOverride rev; }
 }:
 let
-  inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab;
+  inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab marlowe-dashboard;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
@@ -66,6 +66,13 @@ let
     hie-bios
     gen-hie
     hlint
+    marlowe-dashboard.generate-purescript
+    marlowe-playground.generate-purescript
+    marlowe-playground.start-backend
+    plutus-playground.generate-purescript
+    plutus-playground.start-backend
+    plutus-pab.generate-purescript
+    plutus-pab.start-backend
     purs
     purty
     spago

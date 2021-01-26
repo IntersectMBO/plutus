@@ -27,9 +27,15 @@ let
   '';
 
   # For dev usage
-  generate-purescript = pkgs.writeShellScript "marlowe-playground-generate-purescript" ''
+  generate-purescript = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
     rm -rf ./generated
-    ${server-invoker}/bin/marlowe-playground-server psgenerator generated
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
+  '';
+
+  # For dev usage
+  start-backend = pkgs.writeShellScriptBin "marlowe-playground-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
   '';
 
   nodeModules = buildNodeModules {
@@ -62,5 +68,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript generate-purescript;
+  inherit client server-invoker generated-purescript generate-purescript start-backend;
 }

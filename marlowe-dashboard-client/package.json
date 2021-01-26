@@ -10,7 +10,8 @@
     "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' 'web-common/**/*.purs' 'web-common-marlowe/**/*.purs'",
     "test": "NODE_OPTIONS=\"--max-old-space-size=8192\" webpack --config webpack.test.config.js --mode=development && node --max-old-space-size=8192 dist/test.js",
     "docs": "spago docs",
-    "repl": "spago repl"
+    "repl": "spago repl",
+    "start": "npm install && marlowe-dashboard-generate-purs && npm run purs:compile && npm run webpack:server"
   },
   "dependencies": {
     "json-bigint": "^1.0.0"

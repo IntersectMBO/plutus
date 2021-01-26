@@ -8,6 +8,13 @@ let
     ${dashboard-exe}/bin/marlowe-dashboard-server psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScriptBin "marlowe-dashboard-generate-purs" ''
+    rm -rf ./generated
+    $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server)/bin/marlowe-dashboard-server psgenerator ./generated
+  '';
+
+
   nodeModules = buildNodeModules {
     projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
     packageJson = ./package.json;
@@ -30,5 +37,5 @@ let
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript;
 }
