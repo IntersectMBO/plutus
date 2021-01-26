@@ -8,7 +8,9 @@ import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
-import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
+import Control.Monad.Maybe.Extra (hoistMaybe)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
@@ -127,19 +129,25 @@ handleAction _ (InitMarloweProject contents) = do
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
-handleAction settings AnalyseContract = do
-  mContents <- editorGetValue
-  for_ mContents $ analyseContract settings
+handleAction settings AnalyseContract = runAnalysis $ analyseContract settings
 
-handleAction settings AnalyseReachabilityContract = do
-  mContents <- editorGetValue
-  for_ mContents $ analyseReachability settings
+handleAction settings AnalyseReachabilityContract = runAnalysis $ analyseReachability settings
 
-handleAction settings AnalyseContractForCloseRefund = do
-  mContents <- editorGetValue
-  for_ mContents $ analyseClose settings
+handleAction settings AnalyseContractForCloseRefund = runAnalysis $ analyseClose settings
 
 handleAction _ Save = pure unit
+
+runAnalysis ::
+  forall m.
+  MonadAff m =>
+  (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
+  HalogenM State Action ChildSlots Void m Unit
+runAnalysis doAnalyze =
+  void
+    $ runMaybeT do
+        contents <- MaybeT $ editorGetValue
+        contract <- hoistMaybe $ parseContract' contents
+        lift $ doAnalyze contract
 
 parseContract' :: String -> Maybe Contract
 parseContract' = fromTerm <=< hush <<< parseContract

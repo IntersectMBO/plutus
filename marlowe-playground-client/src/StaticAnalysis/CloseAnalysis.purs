@@ -2,24 +2,14 @@ module CloseAnalysis where
 
 -- FIXME: run import clean before merging.
 import Prelude hiding (div)
-import Control.Monad.Except (lift)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
-import Data.Either (hush)
 import Data.Foldable (foldl)
 import Data.Lens (assign)
-import Data.List (List(..))
-import Data.List.NonEmpty (toList)
-import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
-import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import Marlowe.Holes (fromTerm)
-import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
 import Servant.PureScript.Settings (SPSettings_)
@@ -30,22 +20,17 @@ analyseClose ::
   forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  String ->
+  Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseClose settings contents =
-  void
-    $ runMaybeT do
-        contract <- hoistMaybe $ parseContract' contents
-        assign _analysisState (CloseAnalysis AnalysisNotStarted)
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        newCloseAnalysisState <- lift $ startCloseAnalysis settings contract emptySemanticState
-        assign _analysisState (CloseAnalysis newCloseAnalysisState)
-  where
-  parseContract' = fromTerm <=< hush <<< parseContract
+analyseClose settings contract = do
+  assign _analysisState (CloseAnalysis AnalysisNotStarted)
+  -- when editor and simulator were together the analyse contract could be made
+  -- at any step of the simulator. Now that they are separate, it can only be done
+  -- with initial state
+  let
+    emptySemanticState = emptyState zero
+  newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
+  assign _analysisState (CloseAnalysis newCloseAnalysisState)
 
 extractAccountIdsFromZipper :: ContractZipper -> Set (AccountId /\ Token)
 extractAccountIdsFromZipper = go

@@ -11,18 +11,20 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
+import Halogen.Classes (aHorizontal, codeEditor, group, spaceBottom, spaceRight, spaceTop)
 import Halogen.Classes as Classes
-import Halogen.Classes (aHorizontal, codeEditor, group)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
 import JavascriptEditor.State (mkEditor)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings, isCompiling)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
+import StaticAnalysis.BottomPanel (analysisResultPane)
+import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
 render ::
@@ -41,6 +43,7 @@ render state =
   where
   panelTitles =
     [ { title: "Generated code", view: GeneratedOutputView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
@@ -106,12 +109,42 @@ panelContents state GeneratedOutputView =
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
     _ -> [ text "There is no generated code" ]
 
+panelContents state StaticAnalysisView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ]
+    [ analysisResultPane state
+    , analyzeButton loadingAnalyseContract enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    ]
+  where
+  loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
+
+  -- FIXME: I need to make this work for loading and not started
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+
+  enabled' = not loadingAnalyseContract && not (isCompiling state)
+
 panelContents state ErrorsView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ] case view _compilationResult state of
     JS.CompilationError err -> [ compilationErrorPane err ]
     _ -> [ text "No errors" ]
+
+-- FIXME: Move all to BottomPanel
+analyzeButton ::
+  forall p. Boolean -> Boolean -> String -> Action -> HTML p Action
+analyzeButton isLoading isEnabled name action =
+  button
+    [ onClick $ const $ Just $ action
+    , enabled isEnabled
+    , classes [ spaceTop, spaceBottom, spaceRight ]
+    ]
+    [ text (if isLoading then "Analysing..." else name) ]
 
 compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text "There was an error when running the JavaScript code:", code_ [ pre_ [ text $ error ] ] ]

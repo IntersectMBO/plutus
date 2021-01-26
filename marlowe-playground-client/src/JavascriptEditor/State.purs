@@ -7,11 +7,12 @@ module JavascriptEditor.State
 import Prelude hiding (div)
 import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
+import CloseAnalysis (analyseClose)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Lens (assign, view)
+import Data.Lens (assign, use, view)
 import Data.List ((:))
 import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -25,13 +26,19 @@ import Halogen.HTML (HTML)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (Message, Query, monacoComponent)
 import JavascriptEditor.Types (Action(..), BottomPanelView(..), CompilationState(..), State, _bottomPanelState, _compilationResult, _decorationIds, _keybindings)
+import Language.Javascript.Interpreter (InterpreterResult(..))
 import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Marlowe (SPParams_)
+import Marlowe.Semantics (Contract)
 import Monaco (IRange, getModel, isError, setValue)
+import Network.RemoteData (RemoteData(..))
 import Servant.PureScript.Settings (SPSettings_)
+import StaticAnalysis.Reachability (analyseReachability)
+import StaticAnalysis.StaticTools (analyseContract)
+import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
 import StaticData (jsBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Parsing.StringParser.Basic (lines)
@@ -133,6 +140,43 @@ handleAction _ SendResultToSimulator = pure unit
 handleAction _ (InitJavascriptProject prunedContent) = do
   editorSetValue prunedContent
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
+
+handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
+
+handleAction settings AnalyseReachabilityContract =
+  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
+  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
+  --        or change here so that we construct a AnalysisInProgress
+  compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
+    $ analyseReachability settings
+
+handleAction settings AnalyseContractForCloseRefund =
+  -- FIXME: the loading is done with AnalysisInProgress, but that requires a record not trivial to build.
+  --        I need to either change the loading indicator so that it works with AnalysisNotStarted and AnalysisInProgress
+  --        or change here so that we construct a AnalysisInProgress
+  compileAndAnalyze settings (CloseAnalysis AnalysisNotStarted)
+    $ analyseClose settings
+
+-- This function runs a static analysis to the compiled code. It calls the compiler if
+-- it wasn't runned before and it switches to the error panel if the compilation failed
+compileAndAnalyze ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  AnalysisState ->
+  (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
+  HalogenM State Action ChildSlots Void m Unit
+compileAndAnalyze settings initialAnalysisState doAnalyze = do
+  compilationResult <- use _compilationResult
+  case compilationResult of
+    NotCompiled -> do
+      -- The initial analysis state allow us to show an "Analysing..." indicator
+      assign _analysisState initialAnalysisState
+      handleAction settings Compile
+      compileAndAnalyze settings initialAnalysisState doAnalyze
+    (CompiledSuccessfully (InterpreterResult interpretedResult)) -> doAnalyze interpretedResult.result
+    (CompilationError _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
+    _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _jsEditorSlot unit (Monaco.Resize unit)

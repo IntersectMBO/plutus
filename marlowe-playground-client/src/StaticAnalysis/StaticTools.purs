@@ -37,24 +37,19 @@ analyseContract ::
   forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  String ->
+  Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseContract settings contents =
-  void
-    $ runMaybeT do
-        contract <- hoistMaybe $ parseContract' contents
-        assign _analysisState (WarningAnalysis Loading)
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        response <- lift $ checkContractForWarnings contract emptySemanticState
-        assign _analysisState (WarningAnalysis response)
+analyseContract settings contract = do
+  assign _analysisState (WarningAnalysis Loading)
+  -- when editor and simulator were together the analyse contract could be made
+  -- at any step of the simulator. Now that they are separate, it can only be done
+  -- with initial state
+  let
+    emptySemanticState = emptyState zero
+  response <- checkContractForWarnings emptySemanticState
+  assign _analysisState (WarningAnalysis response)
   where
-  parseContract' = fromTerm <=< hush <<< parseContract
-
-  checkContractForWarnings contract state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+  checkContractForWarnings state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
 
   runAjax' action = RemoteData.fromEither <$> runExceptT action
 

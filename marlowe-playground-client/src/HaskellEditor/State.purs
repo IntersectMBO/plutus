@@ -15,7 +15,8 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
+import Data.Foldable (for_)
 import Data.Lens (assign, use)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
@@ -29,6 +30,9 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
+import Marlowe.Holes (fromTerm)
+import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (Contract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -120,7 +124,7 @@ compileAndAnalyze ::
   MonadAff m =>
   SPSettings_ SPParams_ ->
   AnalysisState ->
-  (String -> HalogenM State Action ChildSlots Void m Unit) ->
+  (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
 compileAndAnalyze settings initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
@@ -130,7 +134,11 @@ compileAndAnalyze settings initialAnalysisState doAnalyze = do
       assign _analysisState initialAnalysisState
       handleAction settings Compile
       compileAndAnalyze settings initialAnalysisState doAnalyze
-    Success (Right (InterpreterResult interpretedResult)) -> doAnalyze interpretedResult.result
+    Success (Right (InterpreterResult interpretedResult)) ->
+      let
+        mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
+      in
+        for_ mContract doAnalyze
     Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
