@@ -11,8 +11,6 @@ import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
@@ -41,7 +39,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
-import StaticData (bufferLocalStorageKey)
+import StaticData (haskellBufferLocalStorageKey)
 import Types (WebData)
 import Webghc.Server (CompileRequest(..))
 
@@ -60,11 +58,11 @@ handleAction ::
   HalogenM State Action ChildSlots Void m Unit
 handleAction _ Init = do
   editorSetTheme
-  mContents <- liftEffect $ LocalStorage.getItem bufferLocalStorageKey
+  mContents <- liftEffect $ LocalStorage.getItem haskellBufferLocalStorageKey
   editorSetValue $ fromMaybe "" mContents
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+  liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey text
   assign _compilationResult NotAsked
 
 handleAction _ (ChangeKeyBindings bindings) = do
@@ -99,7 +97,7 @@ handleAction _ SendResultToSimulator = pure unit
 
 handleAction _ (InitHaskellProject contents) = do
   editorSetValue contents
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey contents
+  liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey contents
 
 handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
 
