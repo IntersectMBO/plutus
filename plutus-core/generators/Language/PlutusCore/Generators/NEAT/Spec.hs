@@ -142,14 +142,8 @@ prop_typePreservation tyG tmG = do
     evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
-  -- Check if the converted term, when evaluated by CEK, still has the same type:
-  -- NOTE: the CEK machine doesn't respect this so we are just going through the motions here
-  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek
-    testBuiltinsRuntime tm `catchError` handleError ty
-  withExceptT
-    (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
-    (checkType tcConfig () tmCEK (Normalized ty))
-    `catchError` \_ -> return () -- expecting this to fail at the moment
+  -- note: the CEK does not respect this property in general as it
+  -- does not properly handle type annotations.
 
 -- |Property: check if both the CK and CEK machine produce the same ouput
 --
