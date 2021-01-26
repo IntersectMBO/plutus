@@ -70,6 +70,7 @@ variable "bastion_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }
@@ -85,6 +86,7 @@ variable "nixops_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging" ]
+    playground = [ "live-infra-staging", "kris", "david" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }
@@ -100,6 +102,7 @@ variable "playground_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
     testing = ["david", "pablo", "kris"]
   }
