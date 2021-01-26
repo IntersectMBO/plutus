@@ -5,6 +5,7 @@ generators.
 -}
 
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -28,20 +29,24 @@ module Language.PlutusCore.Generators.NEAT.Spec
   ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                               (Cool, toCool, (!=>))
+import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
+                                                                             search')
+import           Data.Coolean                                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
+import qualified Data.Stream                                                as Stream
+import qualified Data.Text                                                  as Text
 import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -59,6 +64,16 @@ defaultGenOptions = GenOptions
   { genDepth = 13
   , genMode  = OF
   }
+
+
+-- a version of the `plc` runtime which behaves the same as the
+-- default except trace is silent and doesn't end up in the test log
+
+testDefaultFunDyn :: DefaultFunDyn
+testDefaultFunDyn = DefaultFunDyn (const $ return ())
+
+testBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+testBuiltinsRuntime = toBuiltinsRuntime testDefaultFunDyn defaultCostModel
 
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
@@ -124,13 +139,13 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
   -- Check if the converted term, when evaluated by CEK, still has the same type:
   -- NOTE: the CEK machine doesn't respect this so we are just going through the motions here
   tmCEK <- withExceptT CekP $ liftEither $ evaluateCek
-    defBuiltinsRuntime tm `catchError` handleError ty
+    testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT
     (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
     (checkType tcConfig () tmCEK (Normalized ty))
@@ -158,10 +173,10 @@ prop_agree_Ck_Cek tyG tmG = do
 
   -- check if CK and CEK give the same output
   tmCek <- withExceptT CekP $ liftEither $
-    evaluateCek defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCek testBuiltinsRuntime tm `catchError` handleError ty
 
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCk defBuiltinsRuntime tm `catchError` handleError ty
+    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
