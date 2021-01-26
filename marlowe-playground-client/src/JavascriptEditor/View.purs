@@ -151,7 +151,7 @@ panelContents state StaticAnalysisView =
 
   loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
 
-  enabled' = not loadingAnalyseContract && not (isCompiling state)
+  enabled' = not loadingAnalyseContract && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 
 panelContents state ErrorsView =
   section

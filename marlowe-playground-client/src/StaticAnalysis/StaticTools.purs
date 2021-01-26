@@ -1,13 +1,16 @@
-module StaticAnalysis.StaticTools (analyseContract, closeZipperContract, countSubproblems, getNextSubproblem, initSubproblems, startMultiStageAnalysis, zipperToContractPath) where
+module StaticAnalysis.StaticTools
+  ( analyseContract
+  , closeZipperContract
+  , countSubproblems
+  , getNextSubproblem
+  , initSubproblems
+  , startMultiStageAnalysis
+  , zipperToContractPath
+  ) where
 
--- FIXME: run import clean before merging.
 import Prelude hiding (div)
-import Control.Monad.Except (ExceptT, lift, runExceptT)
-import Control.Monad.Maybe.Extra (hoistMaybe)
-import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Either (hush)
-import Data.Foldable (for_)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.Types (NonEmptyList(..))
@@ -15,13 +18,9 @@ import Data.Maybe (Maybe(..))
 import Data.NonEmpty ((:|))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, query)
-import Halogen.Monaco as Monaco
-import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
+import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Holes (fromTerm)
-import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Request as MSReq

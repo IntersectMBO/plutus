@@ -1,6 +1,5 @@
 module CloseAnalysis where
 
--- FIXME: run import clean before merging.
 import Prelude hiding (div)
 import Data.Foldable (foldl)
 import Data.Lens (assign)

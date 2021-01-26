@@ -1,17 +1,15 @@
 module MarloweEditor.View where
 
 import Prelude hiding (div)
-import BottomPanel.Types (_showBottomPanel)
-import BottomPanel.Types as BottomPanel
-import BottomPanel.View as BottomPanel
+import BottomPanel.Types (Action(..)) as BottomPanel
+import BottomPanel.View (render) as BottomPanel
 import Data.Array (length)
 import Data.Array as Array
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Lens ((^.))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Examples.Haskell.Contracts as HE
-import Halogen (ClassName(..), ComponentHTML, liftEffect)
+import Halogen (ClassName(..), ComponentHTML)
 import Halogen.Classes (codeEditor, group)
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, button, div, div_, option, section, select, slot, text)
@@ -19,14 +17,11 @@ import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (class_, classes, disabled, title)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe.Monaco as MM
 import MarloweEditor.BottomPanel (panelContents)
 import MarloweEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, contractHasErrors, contractHasHoles)
-import Monaco (getModel, setValue) as Monaco
 import Prim.TypeError (class Warn, Text)
-import StaticData as StaticData
 
 render ::
   forall m.
