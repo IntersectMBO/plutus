@@ -361,8 +361,7 @@ handleAction CompileProgram = do
 
               newCurrencies = preview (_details <<< _knownCurrencies) newCompilationResult
             case lastSuccessfulCompilationResult of
-              Nothing ->
-                assign _simulations $ defaultSimulations newCurrencies
+              Nothing -> assign _simulations $ defaultSimulations newCurrencies
               Just oldCompilationResult -> do
                 let
                   oldSignatures = preview (_result <<< _functionSchema) (unwrap oldCompilationResult)
@@ -375,10 +374,9 @@ handleAction CompileProgram = do
       pure unit
 
 defaultSimulations :: Maybe (Array KnownCurrency) -> Cursor Simulation
-defaultSimulations newCurrencies =
-  case newCurrencies of
-    Just currencies -> Cursor.singleton $ mkSimulation currencies 1
-    Nothing -> Cursor.empty
+defaultSimulations newCurrencies = case newCurrencies of
+  Just currencies -> Cursor.singleton $ mkSimulation currencies 1
+  Nothing -> Cursor.empty
 
 handleSimulationAction ::
   Value ->
