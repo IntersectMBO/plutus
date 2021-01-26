@@ -40,6 +40,7 @@ import           Control.Monad.Except
 import           Data.Bifunctor.TH
 import           Data.ByteString                            (ByteString, pack)
 import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
+import qualified Data.Map                                   as Map
 import qualified Data.Stream                                as Stream
 import qualified Data.Text                                  as Text
 import           Language.PlutusCore
@@ -62,7 +63,7 @@ data TypeBuiltinG
   | TyBoolG
   | TyUnitG
   | TyCharG
-  deriving (Typeable, Eq, Show)
+  deriving (Typeable, Eq, Ord, Show)
 
 deriveEnumerable ''TypeBuiltinG
 
@@ -79,7 +80,9 @@ data TypeG tyname
   | TyBuiltinG TypeBuiltinG
   | TyLamG (TypeG (S tyname))
   | TyAppG (TypeG tyname) (TypeG tyname) (Kind ())
-  deriving (Typeable, Eq, Show, Functor)
+  deriving (Typeable, Eq, Ord, Show, Functor)
+
+deriving instance Ord (Kind ())
 
 deriveEnumerable ''Kind
 
@@ -406,60 +409,40 @@ instance Check TypeBuiltinG TermConstantG where
   check TyUnitG       (TmUnitG       _) = true
   check _             _                 = false
 
-instance Check (TypeG tyname) DefaultFun where
-  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))) b = case b of
-    AddInteger       -> true
-    SubtractInteger  -> true
-    MultiplyInteger  -> true
-    DivideInteger    -> true
-    QuotientInteger  -> true
-    RemainderInteger -> true
-    ModInteger       -> true
-    _                -> false
-  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))) b = case b of
-    LessThanInteger      -> true
-    LessThanEqInteger    -> true
-    GreaterThanInteger   -> true
-    GreaterThanEqInteger -> true
-    EqInteger            -> true
-    _                    -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
-    Concatenate -> true
-    _           -> false
-  check (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))) b = case b of
-    TakeByteString -> true
-    DropByteString -> true
-    _              -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)) b = case b of
-    SHA2 -> true
-    SHA3 -> true
-    _    -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))) b = case b of
-    VerifySignature -> false
-    _               -> false
-  check (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))) b = case b of
-    EqByteString -> true
-    LtByteString -> true
-    GtByteString -> true
-    _            -> false
-  check (TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))) b = case b of
-    IfThenElse -> true
-    _          -> false
-  check (TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)) b = case b of
-    CharToString -> true
-    _            -> false
-  check (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))) b = case b of
-    Append -> true
-    _      -> false
-  check (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)) b = case b of
-    Trace -> true
-    _     -> false
-  check _ _ = false
+defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
+defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+                   ,[AddInteger,SubtractInteger,MultiplyInteger,DivideInteger,QuotientInteger,RemainderInteger,ModInteger])
+                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
+                   ,[LessThanInteger,LessThanEqInteger,GreaterThanInteger,GreaterThanEqInteger,EqInteger])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+                   ,[Concatenate])
+                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+                   ,[TakeByteString,DropByteString])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
+                   ,[SHA2,SHA3])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
+                   ,[VerifySignature])
+                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
+                   ,[EqByteString,LtByteString,GtByteString])
+                  ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
+                   ,[IfThenElse])
+                  ,(TyFunG (TyBuiltinG TyCharG) (TyBuiltinG TyStringG)
+                   ,[CharToString])
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
+                   ,[Append])
+                  ,(TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyUnitG)
+                   ,[Trace])
+                  ]
+
+instance Ord tyname => Check (TypeG tyname) DefaultFun where
+  check ty b = case Map.lookup ty defaultFunTypes of
+    Just bs -> toCool $ elem b bs
+    Nothing -> false
 
 -- it's not clear to me whether this function should insist that some
 -- types are in normal form...
 checkTypeG
-  :: Eq tyname
+  :: Ord tyname
   => KCS tyname
   -> TCS tyname name
   -> TypeG tyname
