@@ -855,6 +855,7 @@ selectView view = do
       void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
     HaskellEditor -> do
       HaskellEditor.editorResize
+      HaskellEditor.editorSetTheme
     JSEditor -> do
       void $ query _jsEditorSlot unit (Monaco.Resize unit)
       void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)

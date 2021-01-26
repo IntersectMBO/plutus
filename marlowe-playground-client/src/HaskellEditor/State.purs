@@ -3,6 +3,7 @@ module HaskellEditor.State
   , editorGetValue
   -- TODO: This should probably be exposed by an action
   , editorResize
+  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
