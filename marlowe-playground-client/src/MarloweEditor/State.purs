@@ -67,27 +67,7 @@ handleAction _ (ChangeKeyBindings bindings) = do
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
-  analysisState <- use _analysisState
-  let
-    parsedContract = parseContract text
-
-    unreachableContracts = getUnreachableContracts analysisState
-
-    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
-  markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
-  traverse_ editorSetMarkers markers
-  {-
-    There are three different Monaco objects that require the linting information:
-      * Markers
-      * Code completion (type aheads)
-      * Code suggestions (Quick fixes)
-     To avoid having to recalculate the linting multiple times, we add aditional context to the providers
-     whenever the code changes.
-  -}
-  providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
-  case providers of
-    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
-    _ -> pure unit
+  lintText text
 
 handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
 
@@ -148,9 +128,38 @@ runAnalysis doAnalyze =
         contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
         lift $ doAnalyze contract
+        lift $ lintText contents
 
 parseContract' :: String -> Maybe Contract
 parseContract' = fromTerm <=< hush <<< parseContract
+
+lintText ::
+  forall m.
+  MonadAff m =>
+  String ->
+  HalogenM State Action ChildSlots Void m Unit
+lintText text = do
+  analysisState <- use _analysisState
+  let
+    parsedContract = parseContract text
+
+    unreachableContracts = getUnreachableContracts analysisState
+
+    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
+  markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
+  traverse_ editorSetMarkers markers
+  {-
+    There are three different Monaco objects that require the linting information:
+      * Markers
+      * Code completion (type aheads)
+      * Code suggestions (Quick fixes)
+     To avoid having to recalculate the linting multiple times, we add aditional context to the providers
+     whenever the code changes.
+  -}
+  providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
+  case providers of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
 
 runAjax ::
   forall m a.
