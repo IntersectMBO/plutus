@@ -1,0 +1,364 @@
+\section{Resources: Costing Plutus Core}
+\label{sec:costing}
+
+A key, unusual, requirement of the scripting language we use is that it must have a built-in notion of resource tracking.
+We are going to run untrusted code on many machines during transaction validation and diffusion - it is important that we carefully control its resource usage.
+
+This is a familiar problem in other systems such as Ethereum (which tracks resource usage using ``gas''), but we are focussing on a somewhat different set of requirements.
+
+\subsection{Requirements}
+\begin{requirement}[Profitable fees]
+\label{req:costing-profitability}
+\Glspl{slot-leader} are compensated for the work that they do validating transactions by being given the transaction fees.
+This ensures that it is economical (or even profitable) to run a stake pool even just based on transaction fee income.
+We therefore need to ensure that the fees for script execution don't change this dynamic, e.g. by making it un-economical to run a pool.
+
+If transactions with scripts are un-economical to process, then slot leaders may simply choose not to include them, which would compromise the usability of the system.
+\end{requirement}
+
+\begin{requirement}[DoS security]
+\label{req:costing-dos}
+Scripts allow the user who submits a transaction to force every node on the network to perform some computation of the user's choice.
+This provides an obvious angle for DoS attacks: simply flood the network with pointless transactions that require a lot of computation, thus preventing the network from doing anything else.
+Of course, any such attack must pay the script execution fees for these transactions.
+So we need to make the fees high enough that such an attack is un-economical.
+\end{requirement}
+
+\begin{requirement}[Usable fees]
+\label{req:costing-usable}
+We do want users of \gls{cardano} to actually use scripts.
+So the cost to run scripts can't be too high, otherwise nobody will use them.
+The simplest way to encourage this is to make the evaluator faster, which benefits legitimate users without compromising the security of the system.
+\end{requirement}
+
+\begin{requirement}[Determinism]
+\label{req:costing-determinism}
+Script execution cost affects whether a transaction validates, and as such if the costs are non-deterministic then it is non-deterministic whether a transaction with scripts will validate at all.
+Predictable costs ensure that users can submit transactions and be sure that they will validate (or if they don't, it will be for other reasons).
+
+See also \cref{req:ledger-determinism}.
+\end{requirement}
+
+\begin{requirement}[Evaluator abort]
+\label{req:costing-abort}
+The evaluator must be able to run scripts with limited resources and stop them when they exceed it, so we actually enforce budgets.
+\end{requirement}
+
+\begin{requirement}[Intuitive costs]
+\label{req:costing-intuitive}
+Programmers will want to reason about costs when writing their programs.
+So ideally costs should track those intuitions.
+That way, if a user does something that they expect to reduce the cost of the program, then it probably does do so.
+\end{requirement}
+
+\begin{requirement}[Specifiablity]
+\label{req:costing-specifiable}
+We want to formally specify how the costs for a script should be calculated, which means that the method for computing them must be relatively simple and manageable to specify.
+\end{requirement}
+
+\begin{requirement}[Low overhead]
+\label{req:costing-overhead}
+Tracking costs during script execution should not impose too much overhead.
+We don't want the process of preventing scripts from running too slow to itself slow them down significantly!
+\end{requirement}
+
+\begin{requirement}[Parameterizable models]
+\label{req:costing-parameters}
+We are unlikely to get all the numeric choices about how to assign costs correct first time.
+Or, they might be invalidated by hardware or software changes.
+Hence we should parameterize the model so that the ledger can change the parameters (e.g. with a protocol parameter update).
+\end{requirement}
+
+\begin{requirement}[Language-agnostic ledger support]
+\label{req:costing-language-agnostic}
+The ledger will support many different languages, which may think about costing in quite different ways.
+We want to make this as easy as possible, ideally by abstracting away some of the details.
+\end{requirement}
+
+\begin{requirement}[Block budgets]
+\label{req:costing-block-budget}
+We have some constraints on how long block validation as a whole can take, in order to ensure that blocks can propagate across the network fast enough.
+In addition, we have limits on how much peak memory we can use in a block, based on our expectations of typical hardware.
+
+We may therefore need hard limits on resource usage per-block, in addition to setting prices for resource usage.
+\end{requirement}
+
+\subsection{Non-Requirements}
+There are some things which we could have designed for, but we have chosen not to.
+A few notable examples are given here.
+
+\paragraph{Units of cost should be persistent across transactions}
+On Ethereum, gas which a contract does not spend in a single transaction is persistent - it can be used later.
+We don't intend to replicate this: because execution costs are predictable, it is no problem to require users to provide exactly the amount that they need.
+Moreover, persistent cost units potentially allows undesirable arbitrage where a user can ``buy'' computation when it is cheap and ``spend'' it later when it is expensive, which is not what the network wants.
+
+\paragraph{Users should be able to calculate script execution costs for any input to that script}
+Users often care about the ``total cost of operation'' of an application.
+But this may consist of running the same script with many different inputs across time, depending on contingent facts which will not be known until later.
+To give this information to users precisely we would need to be able to predict, for any input, what the execution cost would be.
+This is something that has been studied, but we believe it would be a lot of work to apply to our situation.
+\footnote{
+  There is research in doing this for languages with explicit recursion and datatypes.
+  We would probably want to do this analysis on Plutus IR, and then try and translate the analysis down to Plutus Core.
+  This seems like a substantial amount of work, probably a PhD thesis or so.
+}
+Users will still be able to get some idea of total cost of operation by running their script with a selection of indicative inputs.
+
+\paragraph{Slot leaders should be compensated for the opportunity cost of memory usage}
+We want to enforce a peak memory limit to avoid crashes, but we don't bother compensating slot leaders for the opportunity cost of using their memory.
+
+\subsection{High-level approach}
+This section gives a very high-level overview of the approach we take to the problem.
+Further details on each of these topics are given later.
+
+\paragraph{Abstract resources}
+Rather than computing costs directly in Ada or in real resource units (e.g. seconds), we instead compute them in \emph{abstract resource units}, which do not have a definitional link to real resources.
+The reasons for this are that:
+\begin{itemize}
+\item Costs must be deterministic and specifiable (\cref{req:costing-determinism,req:costing-specifiable}), so we cannot use \emph{real} resource units which will differ by machine.
+\item The decision for how to convert these resource units into Ada (``pricing'') can be the ledger's responsibility alone.
+\item Language-specific costing solutions don't need to worry about the (potentially strategic) concerns that affect pricing (\cref{req:costing-language-agnostic}).
+\end{itemize}
+
+\paragraph{Limiting execution}
+The evaluator can run in a mode (``restricting'') where it is given a budget of abstract resources, and terminates if the execution exceeds that (\cref{req:costing-abort}).
+We also provide another mode (``counting'') where we do not take a budget, and instead return the minimum budget that the script requires.
+
+\subsubsection{Cost model}
+We call the system which tells the evaluator how much an script should cost a ``cost model''.
+
+\paragraph{Cost model strategy}
+The cost model for \gls{plutus-core} is defined in a fairly simple, compositional way by giving costs for individual operations, and then accumulating them over the course of the evaluation.
+
+This cost model naturally has a lot of parameters: the numbers that influence the costs for the individual operations.
+We allow all of these to be changed, so the evaluator accepts a bag of parameters which gives all of these values.
+These parameters will be put into the protocol parameters, so we should have a large amount of flexibility if we need to tweak the cost model later (\cref{req:costing-parameters}).
+
+\paragraph{Choosing the cost model parameters}
+The decoupling of the abstract resource units from the pricing units allows us to use a fairly simple rubric for picking cost model parameters: try and actually follow (be correlated with) real costs!
+
+This ensures that resource costs will follow programmers' intuitions (\cref{req:costing-intuitive}), while giving plenty of flexibility in the final pricing of those resources.
+
+If we later change our minds about the cost model parameters (e.g. because what we consider ``typical hardware'' changes), we can re-calibrate our parameters and submit a protocol parameter change.
+
+However, we do want our choices to generally be an \emph{over-approximation}, because anywhere we under-approximate is a potential source of attacks (\cref{sec:costing-security}).
+
+\subsubsection{Pricing model}
+The conversion from abstract resources to Ada is done by the ledger.
+We call the system which tells us how to do this conversion the ``pricing model''.
+
+\paragraph{Pricing model strategy}
+The current proposed pricing model simply consists of an Ada price for each of the abstract resources.
+So a budget in terms of \gls{space} and \gls{time} will be turned into a price in terms of Ada by multiplying the components of the limit by their respective prices.
+
+These prices also obviously function as parameters for the pricing model.
+Hence they will also be put in the protocol parameters, so that pricing can be changed with only a protocol parameter change.
+
+\paragraph{Choosing the pricing model parameters}
+Choosing the pricing model parameters is a complex problem that may have strategic considerations.
+At minimum, the prices will need to be high enough to avoid DoS attacks (\cref{req:costing-dos}).
+
+\subsubsection{Validating scripts}
+Putting the pieces together, what happens when a script is validated is:
+\begin{itemize}
+\item
+  The ledger uses the pricing model parameters to compute the price for the stated resource budget in Ada, and ensures that the transaction has sufficient fees to cover this, and that it does not cause us to exceed the per-block budget (\cref{req:costing-block-budget}).
+\item
+  The ledger runs the script, passing in the stated budget and the cost model parameters.
+\item
+  The evaluator either terminates normally, with success or an error depending on the program, or stops early if it runs out of budget.
+\end{itemize}
+
+\subsection{Abstract resource units and resource budgets}
+\label{sec:costing-units}
+We use two abstract resource units:
+\begin{itemize}
+\item Abstract time/CPU usage (``\gls{time}'')
+\item Abstract peak memory usage (``\gls{space}'')
+\end{itemize}
+
+Script execution is limited in both \gls{time} and \gls{space}.
+The overall limit (budget) is therefore a pair of some amount of \gls{time} and \gls{space}.
+
+Crucially, the interpretation of the \gls{space} limit is that it is a limit on (our over-approximation of) \emph{peak} space usage.
+This is because the limit is mainly to prevent crashes due to exceeding a machine's available RAM, not to compensate the slot leader for RAM usage.
+
+The reason we need to track memory at all is because our evaluators can use unbounded memory.
+This is not true in e.g. Ethereum where there is a (small) stack limit, so programs can be assumed to fit within a constant memory budget.
+Plutus Core has both unbounded integers and unbounded recursion, so it is not hard to use a large amount of memory.\footnote{
+Most programs that use lots of memory will also use lots of time, and we could price them punitively to ensure that the time budget was always a binding constraint.
+But this requires some subtle reasoning: it is easier to simply talk about memory if that's what we care about.
+}
+
+\subsection{Building the cost model}
+The high-level description of the cost model said that we would give costs for ``individual operations''.
+This means that the model is tied to exactly what kind of evaluator we use.
+At the moment we use a fairly standard CEK machine.
+
+\todompj{Ref into PLC section}
+
+Our goal in producing a cost model is to make the computed costs be well-correlated with the real costs.
+Since the pricing model can be used to control how these are paid for, we can stick to trying to track reality.
+Hence we start by benchmarking individual parts of execution, and using statistical methods to infer model parameters from that.
+
+\subsubsection{Mapping between real and abstract units}
+Any benchmarks we run will give results in actual units (e.g. microseconds), not our abstract units.
+So in order to actually use them we need to do one of two things:
+\begin{enumerate}
+\item
+  Set a target mapping for how real units should correspond to abstract units, e.g. 1 \gls{time} = 1 microsecond.
+  We can then use this to interpret our benchmarks as benchmarks of ideal abstract unit usage.
+\item
+  Pick one of the parameters as a baseline and relativize all the others to that.
+  For example, we could declare that 1 machine step will take 1 \gls{time}, and then divide the times for other operations by the time for a machine step to get their abstract \gls{time} usage.
+  Then the abstract units would indicate ``resource usage relative to the chosen baseline operation''.
+\end{enumerate}
+
+Option 1 has two advantages:
+\begin{enumerate}
+\item It gives us a way to calibrate abstract resource usage across multiple scripting languages, which is important if we want to use (and price) the same units for all of them.
+\item It gives us an obvious way to say how many real units correspond to an abstract unit, which is useful for constructing the pricing model.
+\end{enumerate}
+
+So we adopt option 1.
+
+The specific targets we are using at the moment are:
+\begin{itemize}
+\item \gls{time}: 1 \gls{time} = 1 microsecond
+\item \gls{space}: 1 \gls{space} = 1 machine word (8 bytes on a 64 bit machine)
+\end{itemize}
+
+\subsubsection{Simplifying assumptions about memory usage in Haskell}
+Memory usage in Haskell is quite complicated.
+However, we can simplify the situation by making some assumptions.
+
+\paragraph{No memory is ever garbage-collected or freed}
+This is a pessimistic assumption, but being pessimistic is fine since we're aiming for an overestimate.
+It simplifies our calculations, since it means that we can just track all \emph{allocations} of memory, and don't have to worry about the details of when things are de-allocated.
+
+\paragraph{All references to the AST are shared}
+This is an optimistic assumption, but justified by our knowledge about how Haskell works.
+This means that we can work out how much memory the AST takes up, and then we can assume that references to parts of the AST (e.g. in variable environments) take no memory for the AST part.
+That simplifies our accounting significantly, since the new allocations will be for small things like entries in variable environment mappings.
+
+\subsubsection{\gls{space} for the AST}
+We need to compute \gls{space} usage for the AST in several places:
+\begin{itemize}
+\item At the start of execution to account for loading it into memory and to handle references (see the above discussion of sharing).
+\item When evaluating a builtin operation (see below) the cost may depend on the size of  the arguments.
+\end{itemize}
+
+For the AST itself we follow a fairly simple scheme where we make some assumptions about how much space the nodes themselves take up, as well as their children.
+For constants, we simply think about the underlying type: how much space do we think an integer, say, takes up?
+
+\subsubsection{\gls{space} and \gls{time} for builtin operations}
+Builtin operations are in some ways the trickiest thing to cost, since they are very heterogeneous, and are implemented by external code.
+Moreover, their performance characteristics often depend on the inputs to the function: adding two 1000000 digit numbers is much slower than adding two 10 digit numbers.
+
+\paragraph{Size of builtin arguments}
+We use the \gls{space} usage of an argument (typically a constant term) as a proxy for its size.
+This is not perfectly precise, but it is reasonably correlated with the measures of size that e.g. addition is likely to care about.
+
+\paragraph{Builtin accounting happens before execution}
+Builtin operations can in principle use a lot of resources just in the operation itself.
+For example, multiplying two sufficiently large numbers can require a large amount of memory to hold the result, much larger than that required to hold the arguments.
+This leads to a conflict: builtin operations are atomic (in that we can't interrupt them), but we want to interrupt evaluation as soon as we exceed our resource budget.
+
+Our solution is to compute the costs for a builtin operation before we run it.
+Since we are not actually measuring anything, but rather computing the cost from our model, we are able to do this.
+That way we can terminate evaluation if we would exceed the budget after running the operation, without actually running the operation.
+
+\paragraph{\gls{time} for builtin operations}
+The approach we take for \gls{time} is very empirical:
+\begin{enumerate}
+\item
+  Micro-benchmark the builtin with arguments of varying sizes.
+\item
+  Look at the resulting data and try to pick an appropriate linear model for the running time based on the argument sizes (e.g. ``linear in both arguments'').\footnote{
+  This is an imprecise approach, but choice of statistical models is always more of an art than a science.
+  }
+\item
+  Use linear regression to infer the parameters for the model, these are the cost model parameters for this builtin.
+\end{enumerate}
+
+\paragraph{\gls{space} for builtin operations}
+The approach we take for \gls{space} is more deductive.
+Generally it is hard to measure memory allocation, especially when it occurs in a foreign library.
+So we largely rely on reasoning about or inspecting the libraries in question.
+Many perform no allocation, or a predictable amount of allocation.
+
+\subsubsection{\gls{space} and \gls{time} for machine steps}
+The CEK machine itself has many steps that it goes through, which correspond to handling e.g. application of user-defined functions.
+These also need to have costs associated: naive profiling suggests that the operation of the machine itself (as opposed to builtin functions) is usually more than 50\% of evaluation time.
+
+\paragraph{\gls{time} for machine steps}
+The approach we initially took for \gls{time} is empirical, matching the approach for builtins:
+\begin{enumerate}
+\item Assume that the execution time is linear in all the kinds of machine steps.
+\item Benchmark execution of a large number of varied programs that use all the execution steps.
+\item Use linear regression to infer the parameters for the model, these are the cost parameters for the machine steps.
+\end{enumerate}
+
+However, when we actually did this, we found that the number of machine steps of different kinds are almost perfectly correlated, such that there is little point trying to infer coefficients for them individually.
+So instead we fit a single-parameter linear model based only on the total number of steps.\footnote{
+The argument from correlation holds even if the different steps do actually have very different execution costs!
+It's possible that they are all indistinguishably similar, but even if they were quite distinct, if they're very well correlated a single-parameter model will still do a better job.
+}
+
+\paragraph{\gls{space} for machine steps}
+The approach we take for \gls{space} is more deductive.
+Generally we assume that machine steps incur memory usage in certain specific ways, such as creating machine frames or creating mappings in variable environments, and we handle these specifically.
+
+\subsubsection{Summary of overall calculation}
+To sum up, the cost for a program execution is:
+\begin{itemize}
+\item The initial \gls{space} cost of the AST.
+\item The initial \gls{time} cost for starting the machine (the intercept of the linear model for the machine steps).
+\item The \gls{time} and \gls{space} costs for each machine step that is taken (as determined by the coefficients of the linear model for the machine steps).
+\item The \gls{time} and \gls{space} costs for each builtin call (as determined by the linear models for each builtin operation).
+\end{itemize}
+
+\subsection{Building the pricing model}
+The pricing model is out of our control - it is the ledger's responsibility, and as we discussed earlier, the process of choosing the model is likely to be complex and influenced by many non-technical factors.
+However, anyone making a decision about how to set prices does need at least some input from us, because prices relate to real costs (real CPU seconds, real memory usage), and so we need to know how our abstract units correspond (in reality, at the current time) to real units.
+
+Fortunately, we have this information easily to hand, since we are targeting specific relationships between abstract units and real units when we build our models.
+So we can assume that those relationships hold (e.g. 1 \gls{time} = 1 microsecond).
+
+\subsection{Security}
+\label{sec:costing-security}
+
+The top priority of the model is to ensure the security of the ledger against attacks, particularly DoS attacks, but also economic attacks that sap profit from the system.
+
+\paragraph{Basic structure of an attack}
+The basic kind of attack we are worried about is where we have set one of our cost parameters too low, effectively under-costing a particular operation.
+For example, maybe addition is too cheap, or a certain kind of machine step.
+
+An attacker could then construct a synthetic program that disproportionately uses the under-costed operation.
+Such a program would then be more expensive to execute in reality than the model predicts, allowing the attacker to force node operators to do more work than they are paying for.
+
+How dangerous this is depends on how badly we under-estimate the parameter.
+If we under-estimate it by only 10\%, then an attacker is only getting a 10\% ``discount'' on computation: probably not enough to make it worthwhile to mount an attack.
+If we under-estimate it by an order of magnitude or two, then we could be in trouble.
+
+We might think that such malicious programs would be large, and so transaction size limits would help us.
+But we have loops and recursion in Plutus Core, so it is likely that an attacker could make a relatively small program that does a very large number of the problematic runtime operations.
+
+\paragraph{Simple prevention approaches}
+Our attack prevention approach is fairly simple.
+We try and make the cost model give an \emph{over}-estimate of reality, and then we try to make the pricing model over-price the resources.
+
+In order to keep this working, we need to:
+\begin{enumerate}
+\item Ensure that we take great care when updating the cost model, especially if we make things cheaper (say, on the basis of the evaluator getting faster)
+\item Ensure that we adjust prices as appropriate when the cost of hardware changes.
+\end{enumerate}
+
+\paragraph{Tools for node operators to check accuracy of models on their hardware}
+Our benchmarks are going to be run on a reference machine.
+Of course, not all machines are alike, and it's possible that our hardware may be unusual, or certain node operators' hardware is unusual in such a way that allows an attack.
+
+For example, perhaps addition is unusually slow on operator O's machine: then a program which does lots of addition might be costed cheaply, run fine on our reference machine, but overload O's machine.
+
+A simple way to mitigate this risk is to provide tools for node operators to run the benchmarks on their own hardware.
+If they get results that indicate that costs should be higher, then that indicates a potential attack and we may need to raise costs.

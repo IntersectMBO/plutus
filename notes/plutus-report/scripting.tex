@@ -260,29 +260,3 @@ We have done so in Agda: the resulting formalization is partially published in \
 
 Our formalization includes the type system and semantics, proofs of progress and preservation, and an evaluator which provably implements the semantics.
 This evaluator can be extracted to a Haskell executable, which we use to cross-test against the Haskell interpreter.
-
-\subsection{Costing}
-\label{sec:costing}
-
-The \gls{plutus-core} evaluator can track the \emph{cost} of evaluating a program.
-The \gls{plutus-core} evaluator can return the amount of resources consumed while evaluating a program, or work within a preset resource limit, halting if it is exceeded.
-The ledger itself is responsible for deciding how many \gls{exunits} the evaluation of a particular \gls{script} should be allowed.
-
-\subsubsection{Exunits}
-
-Resources are tracked in terms of two abstract units: abstract time, and abstract (peak) memory.
-Together we refer to these as \gls{exunits}.
-
-Why are the units here ``abstract''?
-They must be, because we need to be able to keep things deterministic (\cref{req:ledger-determinism}), and so we cannot use \emph{real} time or memory usage.
-Rather we have to define some abstract measures which we try to align with real resource usage.
-
-\subsubsection{Cost model}
-
-The \gls{plutus-core} evaluator is parameterized by a \gls{cost-model}.
-This is a set of parameters which affects how the evaluator assigns resource costs to various operations during evaluation.
-For example, there might be a parameter setting a multiplicative parameter for the time taken to do an integer addition.
-Eventually these will be stabilised and formalised as part of \textcite{plutus-core-spec}.
-
-We need to carefully calibrate the cost model so that the abstract costs we assign are well correlated with real costs.
-In combination with appropriate prices for \gls{exunits} this should ensure that script evaluation is economically viable for \glspl{slot-leader}.
