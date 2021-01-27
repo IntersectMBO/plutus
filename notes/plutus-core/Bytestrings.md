@@ -140,7 +140,7 @@ characters, produced when the PlutusTx compiler compiles Haskell Strings.  We
 should discourage people from using the latter, and we can probably do this by
 removing the character type and the appendChar builtin from Plutus Core.
 Also, we should replace the string type with `Data.Text` (and maybe change the PLC
-name to text to reduce confusion?).  Strings are mostly used for logging, so
+name to `text` to reduce confusion?).  Strings are mostly used for logging, so
 supporting them isn't a priority (although we may need to use them in conjunction
 with bytestrings: see below).  Even for logging, what we can do is pretty limited
 since we can't convert, eg, an integer to a string on the chain.  Probably what we
