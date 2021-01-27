@@ -7,18 +7,27 @@ This file contains
 -}
 
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
+{-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE ConstraintKinds           #-}
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE DerivingVia               #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE PolyKinds                 #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE TypeOperators             #-}
 
 module Language.PlutusCore.Generators.NEAT.Type
   ( TypeBuiltinG (..)
@@ -47,6 +56,11 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
+-- needed for universe experiment
+import           Data.Proxy
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
+
 newtype Neutral a = Neutral
   { unNeutral :: a
   }
@@ -63,7 +77,7 @@ data TypeBuiltinG
   | TyBoolG
   | TyUnitG
   | TyCharG
-  deriving (Typeable, Eq, Ord, Show)
+  deriving (Show, Eq, Ord)
 
 deriveEnumerable ''TypeBuiltinG
 
@@ -192,7 +206,6 @@ convertTypeBuiltin TyBoolG       = Some (TypeIn DefaultUniBool)
 convertTypeBuiltin TyUnitG       = Some (TypeIn DefaultUniUnit)
 convertTypeBuiltin TyCharG       = Some (TypeIn DefaultUniChar)
 
-
 -- |Convert well-kinded generated types to Plutus types.
 --
 -- NOTE: Passes an explicit `TyNameState`, instead of using a State
@@ -237,7 +250,6 @@ convertClosedType
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
 convertClosedType tynames = convertType (emptyTyNameState tynames)
-
 
 -- ** Converting terms
 
@@ -328,7 +340,6 @@ instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyUnitG       = true
   check _        _             = false
 
-
 -- |Kind check types.
 checkKindG :: KCS n -> Kind () -> TypeG n -> Cool
 checkKindG kcs k (TyVarG i)
@@ -408,6 +419,7 @@ instance Check TypeBuiltinG TermConstantG where
   check TyCharG       (TmCharG       _) = true
   check TyUnitG       (TmUnitG       _) = true
   check _             _                 = false
+
 
 defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
 defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
@@ -582,3 +594,34 @@ instance Show GenError where
     printf "Test generation error: convert type %s at kind %s" (show ty) (show k)
   show (BadTermG ty tm) =
     printf "Test generation error: convert term %s at type %s" (show tm) (show ty)
+
+
+-- standalone universe experiment
+
+data TypeG' uni tyname
+  = TyVarG' tyname
+  | TyFunG' (TypeG' uni tyname) (TypeG' uni tyname)
+  | TyIFixG' (TypeG' uni tyname) (Kind ()) (TypeG' uni tyname)
+  | TyForallG' (Kind ()) (TypeG' uni (S tyname))
+  | TyBuiltinG' (Some (TypeIn uni))
+  | TyLamG' (TypeG' uni (S tyname))
+  | TyAppG' (TypeG' uni tyname) (TypeG' uni tyname) (Kind ())
+  deriving (Typeable, Eq, Show, Functor)
+
+_mkTyBuiltinG
+    :: forall a uni tyname. uni `Includes` a
+    => TypeG' uni tyname
+_mkTyBuiltinG = TyBuiltinG' . Some . TypeIn $ knownUni @uni @a
+
+_toBuiltinTypeAstG :: uni `Includes` a => proxy a -> TypeG' uni tyname
+_toBuiltinTypeAstG (_ :: proxy a) = _mkTyBuiltinG @a
+
+_typeSchemeToTypeG :: (UniOf term `Includes` res, UniOf term `IncludesAll` args)
+  => TypeScheme term args res -> TypeG' (UniOf term) tyname'
+_typeSchemeToTypeG (TypeSchemeResult pR)      = _toBuiltinTypeAstG pR
+_typeSchemeToTypeG (TypeSchemeArrow pA schB)  =
+  TyFunG' (_toBuiltinTypeAstG pA) $ _typeSchemeToTypeG schB
+_typeSchemeToTypeG (TypeSchemeAll proxy schK) = case proxy of
+    (_ :: Proxy '(text, uniq, kind)) ->
+      TyForallG' (knownKind $ Proxy @kind) $ _typeSchemeToTypeG (schK Proxy)
+
