@@ -16,7 +16,7 @@
         "branch": "master",
         "description": "Automatically generated Nix expressions for Hackage",
         "homepage": "",
-        "owner": "input-output-hk", 
+        "owner": "input-output-hk",
         "repo": "hackage.nix",
         "rev": "a97132667c5bf098ac6123f4d163b8ae68348537",
         "sha256": "1ddpzpkrqxyncrnq6cfaqmlk2kxg9nzm5x7jcrpa6iy9q0kjvk67",
@@ -172,10 +172,10 @@
         "homepage": "https://github.com/kemitix/thorp",
         "owner": "kemitix",
         "repo": "thorp",
-        "rev": "61ef2a6ce5b8f585a8d9bc198616dadc749dc2a4",
-        "sha256": "13j7vsnp95pnaqgk64zdjyl17hp33zq94a73kiy2ln3hig2ma794",
+        "rev": "27251ec8ee661cf82b9a9e8576bc6ed9d44520a5",
+        "sha256": "1l8mdb9rhbinjpw1y36xldj4nn0f1gbls2ki9n4wbdrwf40g610s",
         "type": "tarball",
-        "url": "https://github.com/kemitix/thorp/archive/61ef2a6ce5b8f585a8d9bc198616dadc749dc2a4.tar.gz",
+        "url": "https://github.com/kemitix/thorp/archive/27251ec8ee661cf82b9a9e8576bc6ed9d44520a5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
