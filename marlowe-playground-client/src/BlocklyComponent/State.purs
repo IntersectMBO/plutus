@@ -7,13 +7,13 @@ import Blockly.Internal as Blockly
 import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyState, _errorMessage, _generator, _useEvents, emptyState)
 import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
-import Control.Monad.ST as ST
-import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), either, note)
 import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for, for_)
+import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
@@ -54,26 +54,19 @@ handleQuery ::
   HalogenM State Action slots Message m (Maybe a)
 handleQuery (Resize next) = do
   mState <- use _blocklyState
-  case mState of
-    Just state ->
-      pure
-        $ ST.run do
-            workspaceRef <- STRef.new state.workspace
-            Blockly.resize state.blockly workspaceRef
-    Nothing -> pure unit
+  for_ mState \{ blockly, workspace } ->
+    liftEffect $ Blockly.resize blockly workspace
   pure $ Just next
 
 handleQuery (SetCode code next) = do
   mState <- use _blocklyState
-  case mState of
-    Nothing -> pure unit
-    Just blocklyState -> do
-      assign _useEvents false
-      let
-        contract = case Parser.parseContract (Text.stripParens code) of
-          Right c -> c
-          Left _ -> Hole blocklyState.rootBlockName Proxy zero
-      pure $ ST.run (buildBlocks newBlock blocklyState contract)
+  for_ mState \blocklyState -> do
+    assign _useEvents false
+    let
+      -- FIXME: replace with lmap const
+      contract = either (const $ Hole blocklyState.rootBlockName Proxy zero) identity $ Parser.parseContract (Text.stripParens code)
+    -- FIXME: check why buildBlocks requires we pass newBlock
+    liftEffect $ buildBlocks newBlock blocklyState contract
   assign _errorMessage Nothing
   pure $ Just next
 
@@ -84,31 +77,26 @@ handleQuery (SetError err next) = do
 handleQuery (GetWorkspace f) = do
   mState <- use _blocklyState
   for mState \bs -> do
-    let
-      xml = Blockly.workspaceXML bs.blockly bs.workspace
+    xml <- liftEffect $ Blockly.workspaceXML bs.blockly bs.workspace
     pure $ f xml
 
 handleQuery (LoadWorkspace xml next) = do
   mState <- use _blocklyState
-  for_ mState \state ->
-    pure
-      $ ST.run do
-          workspaceRef <- STRef.new state.workspace
-          Blockly.loadWorkspace state.blockly workspaceRef xml
+  for_ mState \{ blockly, workspace } ->
+    liftEffect $ Blockly.loadWorkspace blockly workspace xml
   assign _errorMessage Nothing
   pure $ Just next
 
 handleQuery (GetCode next) = do
+  mBlocklyState <- use _blocklyState
+  mGenerator <- use _generator
   eCode <-
-    runExceptT do
-      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
-      generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
-      let
-        workspace = blocklyState.workspace
-
-        rootBlockName = blocklyState.rootBlockName
-      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      except <<< lmap unexpected $ blockToCode block generator
+    liftEffect
+      $ runExceptT do
+          { workspace, rootBlockName } <- except <<< (note $ unexpected "BlocklyState not set") $ mBlocklyState
+          generator <- except <<< (note $ unexpected "Generator not set") $ mGenerator
+          block <- ExceptT <<< map (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+          ExceptT $ lmap unexpected <$> blockToCode block generator
   case eCode of
     Left e -> do
       assign _errorMessage $ Just e
@@ -126,20 +114,13 @@ handleAction ::
   Action ->
   HalogenM State Action slots Message m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
-  blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
-  let
-    _ =
-      -- NOTE: This could be refactored to use Effect instead of ST
-      -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533371159
-      ST.run
-        ( do
-            blocklyRef <- STRef.new blocklyState.blockly
-            workspaceRef <- STRef.new blocklyState.workspace
-            Blockly.addBlockTypes blocklyRef blockDefinitions
-            Blockly.initializeWorkspace blocklyState.blockly workspaceRef
-        )
-
-    generator = buildGenerator blocklyState
+  blocklyState /\ generator <-
+    liftEffect do
+      state <- Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
+      Blockly.addBlockTypes state.blockly blockDefinitions
+      Blockly.initializeWorkspace state.blockly state.workspace
+      generator <- buildGenerator state.blockly
+      pure $ Tuple state generator
   void $ H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
   modify_
     ( set _blocklyState (Just blocklyState)

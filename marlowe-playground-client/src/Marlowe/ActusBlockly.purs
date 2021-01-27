@@ -1,14 +1,11 @@
 module Marlowe.ActusBlockly where
 
 import Prelude
-import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, name, style, x, xml, y)
 import Blockly.Generator (Generator, getFieldValue, getType, insertGeneratorFunction, mkGenerator, statementToCode)
-import Blockly.Types (Block, BlocklyState)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, name, style, x, xml, y)
+import Blockly.Types (Block, Blockly, BlocklyState)
 import Control.Alternative ((<|>))
 import Control.Monad.Except (runExcept)
-import Control.Monad.ST as ST
-import Control.Monad.ST.Internal (ST, STRef)
-import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap, rmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
@@ -27,6 +24,7 @@ import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Traversable (sequence, traverse_)
+import Effect (Effect)
 import Foreign (F)
 import Foreign.Class (class Decode, class Encode, decode)
 import Foreign.Generic (genericEncode, genericDecode, encodeJSON)
@@ -456,21 +454,17 @@ workspaceBlocks =
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser' (parens p <|> p)
 
-buildGenerator :: BlocklyState -> Generator
-buildGenerator blocklyState =
-  ST.run
-    ( do
-        gRef <- mkGenerator blocklyState "Actus"
-        g <- STRef.read gRef
-        traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusContractTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusValueTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusPeriodTypes
-        STRef.read gRef
-    )
-
-mkGenFun :: forall a r t. Show a => Show t => STRef r Generator -> t -> (Block -> Either String a) -> ST r Unit
-mkGenFun generator blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+buildGenerator :: Blockly -> Effect Generator
+buildGenerator blockly = do
+  generator <- mkGenerator blockly "Actus"
+  let
+    mkGenFun :: forall a t. Show a => Show t => t -> (Block -> Either String a) -> Effect Unit
+    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+  traverse_ (\t -> mkGenFun t (baseContractDefinition generator)) [ BaseContractType ]
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actusContractTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actusValueTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actusPeriodTypes
+  pure generator
 
 class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
