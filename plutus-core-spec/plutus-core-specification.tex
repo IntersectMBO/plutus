@@ -1390,7 +1390,7 @@ types of untyped Plutus Core and how they get serialised.
 \texttt{Non-empty lists} are encoded by prefixing the element stored with `0'
 if this is the \texttt{last} element or `1' if there is \texttt{more} data following.
 
-\noindent We encode variable length data as a non-empty list of chunks, 7 bits each,
+\noindent We encode \texttt{Integers} as a non-empty list of chunks, 7 bits each,
 with the least significant chunk first and the most significant bit first in the chunk.
 
 \medskip
@@ -1406,6 +1406,13 @@ length integer):
   \item Add list constructor tags: \\
     \verb|0000000 0000000 0000010| $\rightarrow$ \verb|10000000 10000000 00000010|
 \end{enumerate}
+
+For \texttt{ByteString}s, \texttt{Char}s and \texttt{String}s we use a byte aligned
+array of bytes (in the case of \texttt{Char} and \texttt{String} the bytes correspond
+to the UTF-8 encoding of the text). The structure is pre-aligned to the byte boundary
+by using the `0' bit as a filler and the `1' bit as the final bit. Following the filler
+we have the number of bytes that the data uses, a number from 0 to 255 (1 byte),
+followed by the bytes themselves, and a final 0 length block (the byte `0').
 
 \subsection{Constants}
 
