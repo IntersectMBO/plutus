@@ -176,7 +176,7 @@ really want is a proper debugger, but that would be a lot of work.
 * We also want some way of converting a string into a bytestring.  There seem to
   be at least three ways of doing this:
    * We could add a function `hexStringToByteString` which would convert strings
-     like "1A2F357C" to bytestrings.  This might be expensive to run on the
+     like `"1A2F357C"` to bytestrings.  This might be expensive to run on the
      chain, especially if you're converting massive hashes (you'd have to read
      pair of characters and convert them into bytes, failing if you get a
      non-hex digit).
