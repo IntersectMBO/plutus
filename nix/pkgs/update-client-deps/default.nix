@@ -1,7 +1,6 @@
 { stdenv
 , lib
-, writeScriptBin
-, runtimeShell
+, writeShellScriptBin
 , git
 , fd
 , coreutils
@@ -10,8 +9,6 @@
 , gnused
 , nodejs
 , nodePackages
-, yarn
-, yarn2nix-moretea
 , purs
 , psc-package
 , spago
@@ -19,8 +16,7 @@
 , clang
 }:
 
-lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "update-client-deps" ''
-  #!${runtimeShell}
+lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeShellScriptBin "update-client-deps" ''
   set -eou pipefail
 
   export PATH=${lib.makeBinPath ([
@@ -31,25 +27,19 @@ lib.meta.addMetaAttrs { platforms = lib.platforms.linux; } (writeScriptBin "upda
     gnused
     nodejs
     nodePackages.node-gyp
-    yarn
-    yarn2nix-moretea.yarn2nix
     purs
     psc-package
     spago
     spago2nix
   ] ++ lib.optionals stdenv.isDarwin [ clang ])}
 
-  if [ ! -f package.json ]
+  if [ ! -f spago.dhall ]
   then
-      echo "package.json not found. Please run this script from the client directory." >&2
+      echo "spago.dhall not found. Please run this script from the client directory." >&2
       exit 1
   fi
 
-  echo Installing JavaScript Dependencies
-  yarn
-
   echo Generating nix configs.
-  yarn2nix > yarn.nix
   spago2nix generate
 
   echo Done

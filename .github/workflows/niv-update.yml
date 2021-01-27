@@ -1,0 +1,28 @@
+name: Automated niv-managed dependency updates
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # run this every day at 4:00am
+    - cron:  '0 4 * * *'
+jobs:
+  niv-updater:
+    name: 'Create PRs for niv-managed dependencies'
+    runs-on: ubuntu-latest
+    steps:
+      # notice there is no checkout step
+      - name: niv-updater-action
+        uses: knl/niv-updater-action@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # nixpkgs,haskell.nix: most updates are a mass rebuild, so merging 
+          # an update will force devs  to re-download GHC etc. And even if 
+          # we don't want to merge  it, creating the PR will clog up Hydra.
+          #
+          # hackage.nix/stackage.nix: updates *daily*, just gives a new index,
+          # not worth doing unless you need it.
+          #
+          # iohk-nix: updates somewhat frequently due to random IOHK ops stuff,
+          # and is almost totally irrelevant to us at the moment.
+          blacklist: 'nixpkgs,hackage.nix,stackage.nix,haskell.nix,iohk-nix'
+

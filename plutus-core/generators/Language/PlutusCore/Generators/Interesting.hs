@@ -142,8 +142,7 @@ genNaiveFib = do
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
 -- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
-genNatRoundtrip
-    :: TermGen Integer
+genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
     let typedInt = AsKnownType @(Term TyName Name DefaultUni DefaultFun ())
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt

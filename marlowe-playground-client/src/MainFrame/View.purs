@@ -1,19 +1,18 @@
 module MainFrame.View where
 
+import Prelude hiding (div)
 import Auth (_GithubUser, authStatusAuthRole)
+import BlocklyEditor.View as BlocklyEditor
 import Data.Lens (has, to, (^.))
 import Data.Maybe (Maybe(..))
-import Demos.View (render) as Demos
 import Effect.Aff.Class (class MonadAff)
-import GistButtons (authButton)
-import Gists (GistAction(..))
+import Gists.Types (GistAction(..))
 import Halogen (ComponentHTML)
 import Halogen.ActusBlockly as ActusBlockly
-import Halogen.Blockly (blockly)
-import Halogen.Classes (aHorizontal, active, flex, fullHeight, fullWidth, hide, noMargins, spaceLeft, spaceRight, uppercase, vl)
+import Halogen.Classes (aHorizontal, active, flex, fontSemibold, fullHeight, fullWidth, group, hide, noMargins, smallSpaceBottom, spaceLeft, spaceRight, text3xl, textWhite, uppercase, vl)
 import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
-import Halogen.HTML (ClassName(ClassName), HTML, a, button, div, h1_, h2, header, hr_, main, section, slot, span, text)
+import Halogen.HTML (ClassName(ClassName), HTML, a, div, div_, h1_, h2, header, hr_, main, section, slot, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -22,18 +21,14 @@ import HaskellEditor.View (otherActions, render) as HaskellEditor
 import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklySlot, _createGistResult, _haskellState, _javascriptState, _newProject, _projectName, _projects, _rename, _saveAs, _showModal, _simulationState, _view, _walletSlot)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
 import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
-import Marlowe.Blockly as MB
+import MarloweEditor.View as MarloweEditor
+import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import NewProject.State (render) as NewProject
-import Prelude (const, eq, identity, negate, unit, ($), (<<<), (<>))
-import Projects.State (render) as Projects
-import Rename.State (render) as Rename
-import SaveAs.State (render) as SaveAs
 import Servant.PureScript.Settings (SPSettings_)
-import Simulation as Simulation
+import SimulationPage.View as Simulation
 import Wallet as Wallet
 
 render ::
@@ -46,12 +41,12 @@ render settings state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]
-              [ div [ classes [ ClassName "group", aHorizontal, ClassName "marlowe-title-group" ] ]
+              [ div [ classes [ group, aHorizontal, ClassName "marlowe-title-group" ] ]
                   [ div [ class_ (ClassName "marlowe-logo"), onClick $ const $ Just $ ChangeView HomePage ] [ marloweIcon ]
                   , h2 [ classes [ spaceLeft, uppercase, spaceRight ] ] [ text "Marlowe Playground" ]
                   ]
               , projectTitle
-              , div [ classes [ ClassName "group", ClassName "marlowe-links-group" ] ]
+              , div [ classes [ group, ClassName "marlowe-links-group" ] ]
                   [ a [ href "./tutorial/index.html", target "_blank", classes [ ClassName "external-links" ] ] [ text "Tutorial" ]
                   , a [ onClick $ const $ Just $ ChangeView ActusBlocklyEditor, classes [ ClassName "external-links" ] ] [ text "Actus Labs" ]
                   ]
@@ -63,13 +58,10 @@ render settings state =
           , section [ id_ "main-panel" ]
               [ tabContents HomePage [ Home.render state ]
               , tabContents Simulation [ renderSubmodule _simulationState SimulationAction Simulation.render state ]
+              , tabContents MarloweEditor [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.render state ]
               , tabContents HaskellEditor [ renderSubmodule _haskellState HaskellAction HaskellEditor.render state ]
               , tabContents JSEditor [ renderSubmodule _javascriptState JavascriptAction JSEditor.render state ]
-              , tabContents BlocklyEditor
-                  [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
-                  , MB.toolbox
-                  , MB.workspaceBlocks
-                  ]
+              , tabContents BlocklyEditor [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.render state ]
               , tabContents ActusBlocklyEditor
                   [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
                   , AMB.toolbox
@@ -82,6 +74,7 @@ render settings state =
               ]
           ]
       , modal state
+      , globalLoadingOverlay
       , div [ classes [ ClassName "footer" ] ]
           [ div [ classes [ flex, ClassName "links" ] ]
               [ a [ href "https://cardano.org/", target "_blank" ] [ text "cardano.org" ]
@@ -106,11 +99,20 @@ render settings state =
       let
         title = state ^. _projectName
 
+        unsavedChangesIndicator = if state ^. _hasUnsavedChanges then "*" else ""
+
         isLoading = has (_createGistResult <<< _Loading) state
 
         spinner = if isLoading then icon Spinner else div [ classes [ ClassName "empty" ] ] []
       in
-        div [ classes [ ClassName "project-title" ] ] [ h1_ [ text title ], spinner ]
+        div [ classes [ ClassName "project-title" ] ]
+          [ h1_
+              {- TODO: Fix style when name is super long -}
+              [ text title
+              , span [ class_ (ClassName "unsave-change-indicator") ] [ text unsavedChangesIndicator ]
+              ]
+          , spinner
+          ]
 
   isActiveView activeView = state ^. _view <<< to (eq activeView)
 
@@ -126,44 +128,20 @@ render settings state =
 
   otherActions JSEditor = [ renderSubmodule _javascriptState JavascriptAction JSEditor.otherActions state ]
 
-  otherActions BlocklyEditor =
-    [ div [ classes [ ClassName "group" ] ]
-        [ button
-            [ onClick $ const $ Just SendBlocklyToSimulator
-            ]
-            [ text "Send To Simulator" ]
-        ]
-    ]
+  otherActions MarloweEditor = [ renderSubmodule _marloweEditorState MarloweEditorAction MarloweEditor.otherActions state ]
+
+  otherActions BlocklyEditor = [ renderSubmodule _blocklyEditorState BlocklyEditorAction BlocklyEditor.otherActions state ]
 
   otherActions _ = []
 
-modal ::
-  forall m.
-  MonadAff m =>
-  State -> ComponentHTML Action ChildSlots m
-modal state = case state ^. _showModal of
-  Nothing -> text ""
-  Just view ->
-    div [ classes [ ClassName "modal" ] ]
-      [ div [ classes [ ClassName "modal-container" ] ]
-          [ div [ classes [ ClassName "modal-content" ] ]
-              [ a [ class_ (ClassName "close"), onClick $ const $ Just CloseModal ] [ text "x" ]
-              , modalContent view
-              ]
-          ]
-      ]
-  where
-  modalContent NewProject = renderSubmodule _newProject NewProjectAction NewProject.render state
-
-  modalContent OpenProject = renderSubmodule _projects ProjectsAction Projects.render state
-
-  modalContent OpenDemo = renderSubmodule identity DemosAction Demos.render state
-
-  modalContent RenameProject = renderSubmodule _rename RenameAction Rename.render state
-
-  modalContent SaveProjectAs = renderSubmodule _saveAs SaveAsAction SaveAs.render state
-
-  modalContent (GithubLogin intendedAction) = authButton intendedAction state
+  globalLoadingOverlay =
+    if hasGlobalLoading state then
+      div [ classes [ ClassName "loading-overlay", text3xl, fontSemibold, textWhite ] ]
+        [ div [ class_ smallSpaceBottom ] [ text "Loading..." ]
+        , div_ [ icon Spinner ]
+        ]
+    else
+      text ""
 
 menuBar :: forall p. State -> HTML p Action
 menuBar state =
@@ -197,7 +175,9 @@ menuBar state =
     HaskellEditor -> buttons
     JSEditor -> buttons
     BlocklyEditor -> buttons
+    ActusBlocklyEditor -> buttons
     Simulation -> buttons
+    MarloweEditor -> buttons
     _ -> []
 
 marloweIcon :: forall p a. HTML p a

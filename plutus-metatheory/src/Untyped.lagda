@@ -11,8 +11,6 @@ open import Data.Vec
 open import Data.String using (String) renaming (_++_ to _+++_)
 open import Data.Char
 
-open import Builtin.Constant.Type hiding (length)
-  -- perhaps the postulates should be elsewhere
 open import Builtin
 \end{code}
 
@@ -44,6 +42,8 @@ arity equalsInteger            = 2
 arity concatenate              = 2
 arity takeByteString           = 2
 arity dropByteString           = 2
+arity lessThanByteString       = 2
+arity greaterThanByteString    = 2
 arity sha2-256                 = 1
 arity sha3-256                 = 1
 arity verifySignature          = 3
@@ -64,7 +64,6 @@ data _⊢ n where
   con     : TermCon → n ⊢
   builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
   error   : n ⊢
-
 \end{code}
 
 

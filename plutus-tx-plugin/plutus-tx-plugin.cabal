@@ -40,25 +40,26 @@ library
     hs-source-dirs: src
     exposed-modules:
         Language.PlutusTx.Plugin
-    other-modules:
-        Language.PlutusTx.PLCTypes
-        Language.PlutusTx.PIRTypes
         Language.PlutusTx.Compiler.Error
+    other-modules:
         Language.PlutusTx.Compiler.Binders
         Language.PlutusTx.Compiler.Builtins
-        Language.PlutusTx.Compiler.Laziness
         Language.PlutusTx.Compiler.Expr
-        Language.PlutusTx.Compiler.Names
         Language.PlutusTx.Compiler.Kind
+        Language.PlutusTx.Compiler.Laziness
+        Language.PlutusTx.Compiler.Names
         Language.PlutusTx.Compiler.Primitives
         Language.PlutusTx.Compiler.Type
         Language.PlutusTx.Compiler.Types
         Language.PlutusTx.Compiler.Utils
+        Language.PlutusTx.PIRTypes
+        Language.PlutusTx.PLCTypes
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
         extra -any,
+        flat -any,
         ghc >=8.10 && <9,
         ghc-prim -any,
         plutus-core -any,
@@ -69,7 +70,7 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        plutus-tx -any,
+        plutus-tx -any
 
 test-suite plutus-tx-tests
     type: exitcode-stdio-1.0
@@ -94,6 +95,8 @@ test-suite plutus-tx-tests
     default-language: Haskell2010
     build-depends:
         base >=4.9 && <5,
+        flat -any,
+        deepseq -any,
         integer-gmp -any,
         plutus-core -any,
         plutus-tx -any,

@@ -58,7 +58,9 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/**/*.purs'
+                                'web-common-plutus/**/*.purs',
+                                'web-common-playground/**/*.purs',
+                                'web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),
@@ -83,7 +85,14 @@ module.exports = {
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
-                use: 'url-loader'
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: 8192
+                        }
+                    }
+                ]
             },
             {
                 test: /\.ttf$/,
@@ -94,7 +103,10 @@ module.exports = {
 
     resolve: {
         modules: [
-            'node_modules'
+            // We need the second entry for node to be able to
+            // locate `node_modules` from client directory when 
+            // modules are referenced from inside `web-common`.
+            'node_modules', path.resolve(__dirname, './node_modules')
         ],
         alias: {
             static: path.resolve(__dirname, './static'),
@@ -112,11 +124,12 @@ module.exports = {
 
     plugins: [
         new HtmlWebpackPlugin({
-            template: '../web-common/static/index.html',
+            template: 'web-common/static/index.html',
             favicon: 'static/favicon.ico',
             title: 'Plutus Playground',
             productName: 'plutus',
-            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
+            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7',
+            segmentAnalyticsId: isWebpackDevServer ? 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' : '0CEePM8LJUSpPoo2QGrXHDw4GKg4JFBo'
         }),
         new MonacoWebpackPlugin({
             languages: ['haskell'],

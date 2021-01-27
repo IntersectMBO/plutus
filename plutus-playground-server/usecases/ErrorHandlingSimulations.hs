@@ -1,12 +1,14 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module ErrorHandlingSimulations where
 
+import           Data.Text             (Text)
 import           ErrorHandling         (registeredKnownCurrencies)
-import           Playground.Types      (Simulation (Simulation), SimulatorAction, simulationActions, simulationName,
-                                        simulationWallets)
+import           Playground.Types      (Simulation (Simulation), SimulatorAction, simulationActions, simulationId,
+                                        simulationName, simulationWallets)
 import           SimulationUtils       (callEndpoint, simulatorWallet)
 import           Wallet.Emulator.Types (Wallet (Wallet), getWallet)
 
@@ -20,12 +22,13 @@ simulations = [throwCatch]
     throwCatch =
         Simulation
             { simulationName = "Throw/Catch"
+            , simulationId = 1
             , simulationWallets
             , simulationActions = [throwError wallet1, catchError wallet2]
             }
 
 throwError :: Wallet -> SimulatorAction
-throwError caller = callEndpoint caller "throwError" ()
+throwError caller = callEndpoint @Text caller "throwError" "Hello"
 
 catchError :: Wallet -> SimulatorAction
-catchError caller = callEndpoint caller "catchError" ()
+catchError caller = callEndpoint @Text caller "catchError" "World"

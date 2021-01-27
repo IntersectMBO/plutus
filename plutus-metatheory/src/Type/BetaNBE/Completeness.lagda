@@ -386,15 +386,15 @@ ren-eval (con tcn) p ρ = refl
 Subsitution lemma
 
 \begin{code}
-subst-eval : ∀{Φ Ψ Θ K}
+sub-eval : ∀{Φ Ψ Θ K}
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (σ : Sub Θ Ψ) →
-  CR K (eval (subst σ t) η) (eval t (λ x → eval (σ x) η'))
-subst-eval (` x)      p σ = idext p (σ x)
-subst-eval (Π B)    p σ = cong Π (trans
-  (subst-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (exts σ))
+  CR K (eval (sub σ t) η) (eval t (λ x → eval (σ x) η'))
+sub-eval (` x)      p σ = idext p (σ x)
+sub-eval (Π B)    p σ = cong Π (trans
+  (sub-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (exts σ))
   (idext (λ{ Z     → reflectCR refl
            ; (S x) → transCR
                 (ren-eval
@@ -402,13 +402,13 @@ subst-eval (Π B)    p σ = cong Π (trans
                   (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl)) S)
                 (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
-subst-eval (A ⇒ B) p σ = cong₂ _⇒_ (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (ƛ B) p σ =
+sub-eval (A ⇒ B) p σ = cong₂ _⇒_ (sub-eval A p σ) (sub-eval B p σ)
+sub-eval (ƛ B) p σ =
   (λ ρ ρ' v v' q → transCR
-     (renVal-eval (subst (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
+     (renVal-eval (sub (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
      (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
                ; (S x) → symCR (renVal-comp ρ ρ' (reflCR (p x)))})
-            (subst (exts σ) B)))
+            (sub (exts σ) B)))
   ,
   (λ ρ ρ' v v' q → transCR
     (renVal-eval B (CR,,⋆ (renCR ρ ∘ idext (reflCR ∘ symCR ∘ p) ∘ σ) q) ρ')
@@ -417,7 +417,7 @@ subst-eval (ƛ B) p σ =
                    (renVal-comp ρ ρ' (idext (reflCR ∘ symCR ∘ p) (σ x)))})
            B))
   ,
-  λ ρ q → transCR (subst-eval B (CR,,⋆ (renCR ρ ∘ p) q) (exts σ))
+  λ ρ q → transCR (sub-eval B (CR,,⋆ (renCR ρ ∘ p) q) (exts σ))
     (idext (λ { Z     → reflCR (symCR q)
               ; (S x) → transCR
                    (ren-eval
@@ -426,10 +426,10 @@ subst-eval (ƛ B) p σ =
                      S)
                    (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
-subst-eval (A · B) p σ = AppCR (subst-eval A p σ) (subst-eval B p σ)
-subst-eval (μ A B) p ρ =
-  cong₂ μ (reifyCR (subst-eval A p ρ)) (reifyCR (subst-eval B p ρ))
-subst-eval (con tcn) p ρ = refl
+sub-eval (A · B) p σ = AppCR (sub-eval A p σ) (sub-eval B p σ)
+sub-eval (μ A B) p ρ =
+  cong₂ μ (reifyCR (sub-eval A p ρ)) (reifyCR (sub-eval B p ρ))
+sub-eval (con tcn) p ρ = refl
 \end{code}
 
 Fundamental Theorem of logical relations for CR
@@ -465,7 +465,7 @@ fund p (β≡β B A) =
   transCR (idext (λ { Z     → idext (reflCR ∘ p) A
                     ; (S x) → renVal-id (reflCR (p x))})
                  B)
-          (symCR (subst-eval B (symCR ∘ p) (subst-cons ` A)))
+          (symCR (sub-eval B (symCR ∘ p) (sub-cons ` A)))
 \end{code}
 
 constructing the identity CR

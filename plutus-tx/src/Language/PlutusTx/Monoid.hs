@@ -43,6 +43,10 @@ instance Monoid () where
     {-# INLINABLE mempty #-}
     mempty = ()
 
+instance (Monoid a, Monoid b) => Monoid (a, b) where
+    {-# INLINABLE mempty #-}
+    mempty = (mempty, mempty)
+
 class Monoid a => Group a where
     inv :: a -> a
 

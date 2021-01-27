@@ -18,7 +18,7 @@ Forging policies, like validators, receive some information from the validating 
 - The :term:`redeemer`, which is some script-specific data specified by the party performing the forging.
 - The :term:`forging context`, which contains a representation of the spending transaction, as well as the hash of the forging policy which is currently being run.
 
-The forging policy is a function which receives these three inputs as *arguments*.
+The forging policy is a function which receives these two inputs as *arguments*.
 The validating node is responsible for passing them in and running the forging policy.
 As with validator scripts, the arguments are passed encoded as :hsobj:`Language.PlutusTx.Data.Data`.
 

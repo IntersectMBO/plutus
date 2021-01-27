@@ -1,11 +1,11 @@
-{ pkgs, set-git-rev, haskell, webCommon, buildPursPackage }:
+{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, webCommonPlayground, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
 
   server-invoker =
     let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
-      runtimeGhc = haskell.packages.ghcWithPackages (ps: [
+      runtimeGhc = haskell.project.ghcWithPackages (ps: [
         ps.marlowe
         ps.marlowe-playground-server
       ]);
@@ -26,16 +26,47 @@ let
     ${playground-exe}/bin/marlowe-playground-server psgenerator $out
   '';
 
+  # For dev usage
+  generate-purescript = pkgs.writeShellScriptBin "marlowe-playground-generate-purs" ''
+    rm -rf ./generated
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground psgenerator generated
+  '';
+
+  # For dev usage
+  start-backend = pkgs.writeShellScriptBin "marlowe-playground-server" ''
+    export FRONTEND_URL=https://localhost:8009
+    $(nix-build ../default.nix --quiet --no-build-output -A marlowe-playground.server-invoker)/bin/marlowe-playground webserver
+  '';
+
+  nodeModules = buildNodeModules {
+    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
+    packageJson = ./package.json;
+    packageLockJson = ./package-lock.json;
+    githubSourceHashMap = {
+      shmish111.nearley-webpack-loader."939360f9d1bafa9019b6ff8739495c6c9101c4a1" = "1brx669dgsryakf7my00m25xdv7a02snbwzhzgc9ylmys4p8c10x";
+      # Note: for some unknown reason, it is necessary to add libxmljs to package.json even though it is a transitive dependency
+      # failure to do this meant that node_modules was being built without it there, even though it is in package-lock.json
+      znerol.libxmljs."0517e063347ea2532c9fdf38dc47878c628bf0ae" = "0g3kgwnqfr6v2xp1i7dfbm4z45inz1019ln06lfxl9mwxlc31wfg";
+    };
+  };
+
   client = buildPursPackage {
-    inherit webCommon;
+    inherit pkgs nodeModules;
     src = ./.;
+    checkPhase = ''
+      ${pkgs.nodejs}/bin/npm run test
+    '';
     name = "marlowe-playground-client";
-    psSrc = generated-purescript;
-    additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+    extraSrcs = {
+      web-common = webCommon;
+      web-common-marlowe = webCommonMarlowe;
+      web-common-playground = webCommonPlayground;
+      generated = generated-purescript;
+    };
     packages = pkgs.callPackage ./packages.nix { };
     spagoPackages = pkgs.callPackage ./spago-packages.nix { };
   };
 in
 {
-  inherit client server-invoker generated-purescript;
+  inherit client server-invoker generated-purescript generate-purescript start-backend;
 }

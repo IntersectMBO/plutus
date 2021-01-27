@@ -12,6 +12,16 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# LANGUAGE StrictData             #-}
+
+{- Note [Strict Data for budgeting]
+
+Without the StrictData pragma here, we get a memory leak during evaluation
+because large unevaluated arthimetic expressions build up.  Strictness is only
+really required for ExBudget and ExBudgetState, but it's simpler if we jut make
+everything strict, and it doesn't seem to do any harm.
+-}
+
 {- Note [Budgeting]
 
 When running Plutus code on the chain, you're running code on other peoples
@@ -175,7 +185,7 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExBudget where
         , "}"
         ]
 
-data ExBudgetState  exBudgetCat = ExBudgetState
+data ExBudgetState exBudgetCat = ExBudgetState
     { _exBudgetStateTally  :: ExTally exBudgetCat -- ^ for counting what cost how much
     , _exBudgetStateBudget :: ExBudget -- ^ for making sure we don't spend too much
     }

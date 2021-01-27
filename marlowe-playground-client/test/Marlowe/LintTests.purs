@@ -2,15 +2,13 @@ module Marlowe.LintTests where
 
 import Prelude
 import Data.Array (singleton)
-import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
-import Data.Map as Map
+import Data.List (List(..))
 import Data.Set (toUnfoldable)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Party(..), Token(..))
 import Marlowe.Semantics as S
 import Test.Unit (TestSuite, Test, suite, test, failure)
 import Test.Unit.Assert as Assert
@@ -58,7 +56,6 @@ all = do
     test "Defined ChoiceValue" $ normalChoiceValue
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
-    test "Deposit in state" $ depositFromState
     test "Pay to hole" payToHole
     test "Pay to account and then Pay" $ payThroughAccount
     test "Pay twice" $ payTwice
@@ -115,7 +112,7 @@ testWarningWithState :: forall a. S.State -> (a -> Array String) -> (a -> String
 testWarningWithState state makeWarning composeExpression expression = case parseContract $ composeExpression expression of
   Right contractTerm -> do
     let
-      State st = lint state contractTerm
+      State st = lint Nil contractTerm
     Assert.equal (makeWarning expression) $ map show $ toUnfoldable $ st.warnings
   Left err -> failure (show err)
 
@@ -339,27 +336,27 @@ negativePay :: Test
 negativePay = testWarningSimple (payContract "(Constant -1)") $ show NegativePayment
 
 payBeforeWarning :: Test
-payBeforeWarning = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payBeforeWarning = testWarningSimple contract "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   contract = "When [Case (Deposit (Role \"role1\" ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 payBeforeWarningBranch :: Test
-payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   contract = "When [Case (Deposit (Role \"role\") (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
 payDepositDifferentCurrency :: Test
-payDepositDifferentCurrency = testWarningSimple (depositAndThenDo "(Constant 10)" continuation) "The contract makes a payment from account (Role \"role\") before a deposit has been made"
+payDepositDifferentCurrency = testWarningSimple (depositAndThenDo "(Constant 10)" continuation) "The contract makes a payment from account \"role\" before a deposit has been made"
   where
   continuation = "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"0000\" \"0000\") (Constant 10) Close)"
 
 payInsufficientDeposit :: Test
-payInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 10 (Token \"\" \"\") from account (Role \"role\") but the account only has 9"
+payInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 10 ADA from account \"role\" but the account only has 9"
   where
   continuation = "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
 payTwiceInsufficientDeposit :: Test
-payTwiceInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 5 (Token \"\" \"\") from account (Role \"role\") but the account only has 4"
+payTwiceInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 5 ADA from account \"role\" but the account only has 4"
   where
   continuation =
     "(Pay (Role \"role\") (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) "
@@ -392,21 +389,6 @@ normalChoiceValue = testNoWarning (choiceAndThenDo (addParenthesis (payContract 
 
 positiveDeposit :: Test
 positiveDeposit = testNoWarning (depositContract "(Constant 1)")
-
-depositFromState :: Test
-depositFromState =
-  let
-    accountId = Role "test"
-
-    state =
-      S.State
-        { accounts: Map.singleton (Tuple accountId (Token "" "")) (fromInt 10)
-        , choices: mempty
-        , boundValues: mempty
-        , minSlot: zero
-        }
-  in
-    testNoWarningWithState state "When [] 2 (Pay (Role \"test\" ) (Party (Role \"test\")) (Token \"\" \"\") (Constant 10) Close)"
 
 positivePay :: Test
 positivePay = testNoWarning (payContract "(Constant 1)")

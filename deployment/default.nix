@@ -56,9 +56,11 @@ let
         plutus_playground_lambda_file="${plutus-playground-lambda}/plutus-playground-lambda.zip"'';
     };
 
-  syncS3 = env:
+  syncS3 = env: region:
     writeShellScript "syncs3" ''
       set -eou pipefail
+
+      export AWS_REGION=${region}
 
       echo "sync with S3"
       ${plutus.thorp}/bin/thorp -b marlowe-playground-website-${env} -s ${static.marlowe}
@@ -115,7 +117,7 @@ let
       set -eou pipefail
 
       ${applyTerraform env region}
-      ${syncS3 env}
+      ${syncS3 env region}
       echo "done"
     '';
 
@@ -149,7 +151,7 @@ let
 
   mkEnv = env: region: {
     inherit terraform-vars terraform-locals terraform;
-    syncS3 = (syncS3 env);
+    syncS3 = (syncS3 env region);
     applyTerraform = (applyTerraform env region);
     deploy = (deploy env region);
     destroy = (destroy env region);
@@ -160,7 +162,9 @@ let
     kris = mkEnv "kris" "eu-west-1";
     alpha = mkEnv "alpha" "eu-west-2";
     pablo = mkEnv "pablo" "eu-west-3";
+    playground = mkEnv "playground" "us-west-1";
     wyohack = mkEnv "wyohack" "us-west-2";
+    testing = mkEnv "testing" "eu-west-3";
   };
 in
 envs // { inherit getCreds static; }

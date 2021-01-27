@@ -1,9 +1,8 @@
 module StaticData
   ( mkContractDemos
-  , lookup
-  , _contractDemoName
-  , _contractDemoEditorContents
+  , lookupContractDemo
   , bufferLocalStorageKey
+  , keybindingsLocalStorageKey
   ) where
 
 import Data.Array as Array
@@ -15,24 +14,23 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (class Foldable)
 import Foreign (F)
 import Foreign.Generic (decodeJSON)
-import Language.Haskell.Interpreter (SourceCode)
-import LocalStorage as LocalStorage
+import LocalStorage (Key(..))
 import Playground.Types (ContractDemo)
-import Playground.Usecases as Usecases
+import Playground.Usecases (contractDemos)
 import Prelude ((<<<), (==))
 
 mkContractDemos :: F (Array ContractDemo)
 mkContractDemos = do
-  decodeJSON Usecases.contractDemos
+  decodeJSON contractDemos
+
+lookupContractDemo :: forall f. Foldable f => String -> f ContractDemo -> Maybe ContractDemo
+lookupContractDemo key = Array.find (\demo -> view _contractDemoName demo == key)
 
 _contractDemoName :: Lens' ContractDemo String
 _contractDemoName = _Newtype <<< prop (SProxy :: SProxy "contractDemoName")
 
-_contractDemoEditorContents :: Lens' ContractDemo SourceCode
-_contractDemoEditorContents = _Newtype <<< prop (SProxy :: SProxy "contractDemoEditorContents")
+bufferLocalStorageKey :: Key
+bufferLocalStorageKey = Key "PlutusPlaygroundBuffer"
 
-lookup :: forall f. Foldable f => String -> f ContractDemo -> Maybe ContractDemo
-lookup key = Array.find (\demo -> view _contractDemoName demo == key)
-
-bufferLocalStorageKey :: LocalStorage.Key
-bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
+keybindingsLocalStorageKey :: Key
+keybindingsLocalStorageKey = Key "EditorPreferences.KeyBindings"

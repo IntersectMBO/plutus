@@ -33,11 +33,11 @@ import           Ledger                               (PubKeyHash, TxInfo (..), 
                                                        pubKeyHash, txId, valueSpent)
 import qualified Ledger                               as Ledger
 import qualified Ledger.Ada                           as Ada
+import qualified Ledger.Contexts                      as V
 import qualified Ledger.Interval                      as Interval
 import qualified Ledger.Scripts                       as Scripts
 import           Ledger.Slot                          (Slot, SlotRange)
 import qualified Ledger.Typed.Scripts                 as Scripts
-import qualified Ledger.Validation                    as V
 import           Ledger.Value                         (Value)
 import qualified Ledger.Value                         as Value
 import           Playground.Contract

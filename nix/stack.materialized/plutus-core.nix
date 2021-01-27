@@ -131,7 +131,6 @@
           "Language/PlutusCore/Pretty/Utils"
           "Language/PlutusCore/Universe/Core"
           "Language/PlutusCore/Universe/Default"
-          "Language/PlutusCore/Error"
           "Language/PlutusCore/Size"
           "Language/PlutusCore/TypeCheck/Internal"
           "Language/PlutusCore/TypeCheck"
@@ -162,6 +161,7 @@
           "Language/UntypedPlutusCore/Core/Instance/Eq"
           "Language/UntypedPlutusCore/Core/Instance/Pretty"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Classic"
+          "Language/UntypedPlutusCore/Core/Instance/Pretty/Default"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Plc"
           "Language/UntypedPlutusCore/Core/Instance/Pretty/Readable"
           "Language/UntypedPlutusCore/Core/Instance/Recursive"
@@ -231,6 +231,7 @@
           "Language/PlutusCore/Generators/NEAT/Type"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
+          "Language/PlutusCore/Error"
           "Language/PlutusIR"
           "Language/PlutusIR/Compiler"
           "Language/PlutusIR/Compiler/Names"
@@ -255,6 +256,7 @@
           "Language/UntypedPlutusCore/Rename"
           "PlutusPrelude"
           "Common"
+          "ErrorCode"
           "Data/ByteString/Hash"
           "PlcTestUtils"
           "Crypto"
@@ -353,6 +355,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))

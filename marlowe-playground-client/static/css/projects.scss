@@ -1,46 +1,40 @@
-.projects-container {
-  width: 90%;
+.open-project-modal {
+  // This forces the width of the modal to be as wide as it can.
+  // Is the same calculation as the max-width in modal, but instead of using 2 *, we use 4 * to include
+  // the modal padding.
+  width: calc(var(--breakpoint-mid) - 4 * var(--medium-margin));
 }
+.project-list {
+  display: grid;
+  // Creates a grid of 7 colums. The last four being the Open Actions
+  grid-template-columns: 1fr max-content max-content [actions-start] repeat(4, min-content) [actions-end];
 
-.projects-container h1 {
-  margin: 1.5rem 0rem;
-}
-
-.projects-container hr {
-  margin-bottom: 2rem;
-}
-
-.gists tr:nth-child(even) {
-  background-color: #f1f1f1;
-}
-
-.gists tr:nth-child(odd) {
-  background-color: white;
-}
-
-table.gists {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.gists th, td {
-  border: 1px solid grey;
-  padding: 0.1rem 0.5rem;
-}
-
-.language-links {
-  justify-content: space-evenly;
-  color: #3677f7;
-  text-decoration: underline;
-  text-align: center;
-  a {
-    flex: 1;
+  // Make the Open header to span accross all actions
+  & div:nth-child(4) {
+    grid-column: actions-start / span actions-end;
   }
-  .empty {
-    flex: 1;
-  }
-}
 
-td.date {
-  text-align: center;
+  & > div {
+    border-bottom: 1px solid #d0d0d4;
+    padding-bottom: var(--small-margin);
+    padding-top: var(--small-margin);
+  }
+
+  .project-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .language-link {
+    justify-content: space-evenly;
+    color: var(--blue-800);
+    &.disabled {
+      a {
+        cursor: initial;
+        text-decoration: none;
+      }
+      color: var(--grey-700);
+    }
+  }
 }

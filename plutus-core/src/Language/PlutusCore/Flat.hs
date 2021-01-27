@@ -14,6 +14,7 @@
 
 module Language.PlutusCore.Flat ( encode
                                 , decode
+                                , safeEncodeBits
                                 ) where
 
 import           Language.PlutusCore.Core
@@ -69,10 +70,10 @@ tags and their used/available encoding possibilities.
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
 
-All encodings use the function `eBits :: NumBits -> Word8 -> Encoding`, which encodes
+All encodings use the function `safeEncodeBits :: NumBits -> Word8 -> Encoding`, which encodes
 at most 8 bits of data, and the first argument specifies how many bits from the 8
-available are actually used. The function `dBEBits8 :: Int -> Get Word8` is used for
-decoding the encoded values.
+available are actually used. This function also checks the size of the `Word8`
+argument at runtime.
 
 Flat uses an extra function in its class definition called `size`. Since we want
 to reserve some space for future data constructors and we don't want to have the
@@ -82,16 +83,39 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
+safeEncodeBits :: NumBits -> Word8 -> Encoding
+safeEncodeBits n v =
+  if 2 ^ n < v
+  then error $ "Overflow detected, cannot fit "
+               <> show v <> " in " <> show n <> " bits."
+  else eBits n v
+
+constantWidth :: NumBits
+constantWidth = 4
+
+encodeConstant :: Word8 -> Encoding
+encodeConstant = safeEncodeBits constantWidth
+
+decodeConstant :: Get Word8
+decodeConstant = dBEBits8 constantWidth
+
 -- See Note [The G, the Tag and the Auto].
 instance Closed uni => Flat (Some (TypeIn uni)) where
-    encode (Some (TypeIn uni)) = encode . map (fromIntegral :: Int -> Word) $ encodeUni uni
+    encode (Some (TypeIn uni)) =
+      encodeListWith encodeConstant .
+        map (fromIntegral :: Int -> Word8) $ encodeUni uni
 
-    decode = go . decodeUni . map (fromIntegral :: Word -> Int) =<< decode where
+    decode = go . decodeUni . map (fromIntegral :: Word8 -> Int)
+                =<< decodeListWith decodeConstant
+        where
         go Nothing    = fail "Failed to decode a universe"
         go (Just uni) = pure uni
 
     -- Encode a view of the universe, not the universe itself.
-    size (Some (TypeIn uni)) acc = size (encodeUni uni) acc
+    size (Some (TypeIn uni)) acc =
+      acc +
+      length (encodeUni uni) * (1 + constantWidth) + -- List Cons (1 bit) + constant
+      1 -- List Nil (1 bit)
 
 -- See Note [The G, the Tag and the Auto].
 instance (Closed uni, uni `Everywhere` Flat) => Flat (Some (ValueOf uni)) where
@@ -128,7 +152,7 @@ kindTagWidth :: NumBits
 kindTagWidth = 1
 
 encodeKind :: Word8 -> Encoding
-encodeKind = eBits kindTagWidth
+encodeKind = safeEncodeBits kindTagWidth
 
 decodeKind :: Get Word8
 decodeKind = dBEBits8 kindTagWidth
@@ -152,7 +176,7 @@ typeTagWidth :: NumBits
 typeTagWidth = 3
 
 encodeType :: Word8 -> Encoding
-encodeType = eBits typeTagWidth
+encodeType = safeEncodeBits typeTagWidth
 
 decodeType :: Get Word8
 decodeType = dBEBits8 typeTagWidth
@@ -190,7 +214,7 @@ termTagWidth :: NumBits
 termTagWidth = 4
 
 encodeTerm :: Word8 -> Encoding
-encodeTerm = eBits termTagWidth
+encodeTerm = safeEncodeBits termTagWidth
 
 decodeTerm :: Get Word8
 decodeTerm = dBEBits8 termTagWidth
@@ -275,6 +299,14 @@ instance Flat DeBruijn where
     encode (DeBruijn i) = encode i
     decode = DeBruijn <$> decode
 
+instance Flat NamedDeBruijn where
+    encode (NamedDeBruijn txt index) = encode txt <> encode index
+    decode = NamedDeBruijn <$> decode <*> decode
+
 instance Flat TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
+
+instance Flat NamedTyDeBruijn where
+    encode (NamedTyDeBruijn n) = encode n
+    decode = NamedTyDeBruijn <$> decode

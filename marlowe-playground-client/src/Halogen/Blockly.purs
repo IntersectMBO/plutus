@@ -1,5 +1,6 @@
 module Halogen.Blockly where
 
+import Prelude hiding (div)
 import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
@@ -9,29 +10,30 @@ import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_)
 import Halogen as H
-import Halogen.HTML (HTML, button, div, text)
-import Halogen.HTML.Events (onClick)
+import Halogen.BlocklyCommons (updateUnsavedChangesActionHandler, blocklyEvents)
+import Halogen.HTML (HTML, div, text)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, zero, ($), (<<<), (<>))
+import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
-import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
+    , useEvents :: Boolean
     }
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -43,8 +45,11 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
+_useEvents :: Lens' State Boolean
+_useEvents = prop (SProxy :: SProxy "useEvents")
+
 emptyState :: State
-emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, useEvents: false }
 
 data Query a
   = Resize a
@@ -52,20 +57,25 @@ data Query a
   | SetError String a
   | GetWorkspace (XML -> a)
   | LoadWorkspace XML a
-  | GetCodeQuery a
+  | GetCode (String -> a)
 
 data Action
   = Inject String (Array BlockDefinition)
   | SetData Unit
-  | GetCode
+  | BlocklyEvent BT.BlocklyEvent
 
 data Message
-  = CurrentCode String
+  = CodeChange
 
 type DSL slots m a
   = HalogenM State Action slots Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
+blockly ::
+  forall m.
+  MonadAff m =>
+  String ->
+  Array BlockDefinition ->
+  Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
     { initialState: const emptyState
@@ -96,12 +106,13 @@ handleQuery (SetCode code next) = do
   mState <- use _blocklyState
   case mState of
     Nothing -> pure unit
-    Just bs -> do
+    Just blocklyState -> do
+      assign _useEvents false
       let
-        contract = case Parser.parseContract code of
+        contract = case Parser.parseContract (Text.stripParens code) of
           Right c -> c
-          Left _ -> Hole bs.rootBlockName Proxy zero
-      pure $ ST.run (buildBlocks newBlock bs contract)
+          Left _ -> Hole blocklyState.rootBlockName Proxy zero
+      pure $ ST.run (buildBlocks newBlock blocklyState contract)
   assign _errorMessage Nothing
   pure $ Just next
 
@@ -126,8 +137,8 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleQuery (GetCodeQuery next) = do
-  res <-
+handleQuery (GetCode next) = do
+  eCode <-
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
@@ -136,22 +147,29 @@ handleQuery (GetCodeQuery next) = do
 
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap unexpected $ blockToCode block generator
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
-  case res of
-    Left e -> assign _errorMessage $ Just e
-    Right contract -> do
+      except <<< lmap unexpected $ blockToCode block generator
+  case eCode of
+    Left e -> do
+      assign _errorMessage $ Just e
+      pure Nothing
+    Right code -> do
       assign _errorMessage Nothing
-      raise <<< CurrentCode <<< show <<< pretty $ contract
-  pure $ Just next
+      pure <<< Just <<< next $ code
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
-handleAction :: forall m slots. MonadEffect m => Action -> DSL slots m Unit
+handleAction ::
+  forall m slots.
+  Warn (Text "SCP-1648 Fix blockly code being lost after refresh") =>
+  MonadAff m =>
+  Action ->
+  DSL slots m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
+      -- NOTE: This could be refactored to use Effect instead of ST
+      -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533371159
       ST.run
         ( do
             blocklyRef <- STRef.new blocklyState.blockly
@@ -161,35 +179,20 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  assign _blocklyState (Just blocklyState)
-  assign _generator (Just generator)
+  void $ H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
+  modify_
+    ( set _blocklyState (Just blocklyState)
+        <<< set _generator (Just generator)
+    )
 
 handleAction (SetData _) = pure unit
 
-handleAction GetCode = do
-  res <-
-    runExceptT do
-      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
-      generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
-      let
-        workspace = blocklyState.workspace
-
-        rootBlockName = blocklyState.rootBlockName
-      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap unexpected $ blockToCode block generator
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
-  case res of
-    Left e -> assign _errorMessage $ Just e
-    Right contract -> do
-      assign _errorMessage Nothing
-      raise <<< CurrentCode <<< show <<< pretty $ contract
-  where
-  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
 
-render :: forall p. State -> HTML p Action
+render :: forall r p action. { errorMessage :: Maybe String | r } -> HTML p action
 render state =
   div []
     [ div
@@ -199,19 +202,6 @@ render state =
         ]
         [ errorMessage state.errorMessage ]
     ]
-
-otherActions :: forall p. State -> HTML p Action
-otherActions state =
-  div []
-    [ toCodeButton "Send To Simulator"
-    ]
-
-toCodeButton :: forall p. String -> HTML p Action
-toCodeButton key =
-  button
-    [ onClick $ const $ Just GetCode
-    ]
-    [ text key ]
 
 errorMessage :: forall p i. Maybe String -> HTML p i
 errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]

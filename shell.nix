@@ -3,14 +3,14 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./nix { inherit crossSystem config sourcesOverride rev; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride rev; }
 }:
 let
-  inherit (packages) pkgs plutus plutusMusl;
+  inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab marlowe-dashboard;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
-  inherit (plutus) purty purs spargo;
+  inherit (plutus) purty purty-pre-commit purs spargo;
 
   # For Sphinx, and ad-hoc usage
   sphinxTools = python3.withPackages (ps: [ sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
@@ -22,7 +22,7 @@ let
       stylish-haskell = stylish-haskell;
       nixpkgs-fmt = nixpkgs-fmt;
       shellcheck = pkgs.shellcheck;
-      purty = purty;
+      purty = purty-pre-commit;
     };
     hooks = {
       purty.enable = true;
@@ -32,7 +32,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/yarn.nix$" ".*/packages.nix$" ];
+        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };
@@ -51,8 +51,7 @@ let
     shellcheck
     sqlite-interactive
     stack
-    terraform_0_12
-    yarn
+    terraform
     yubikey-manager
     z3
     zlib
@@ -65,18 +64,30 @@ let
     fixStylishHaskell
     haskell-language-server
     hie-bios
+    gen-hie
     hlint
+    marlowe-dashboard.generate-purescript
+    marlowe-playground.generate-purescript
+    marlowe-playground.start-backend
+    plutus-playground.generate-purescript
+    plutus-playground.start-backend
+    plutus-pab.generate-purescript
+    plutus-pab.start-backend
     purs
     purty
     spago
     stylish-haskell
+    updateHie
     updateClientDeps
     updateMetadataSamples
   ]);
 
 in
-haskell.packages.shellFor {
+haskell.project.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
+  # We don't currently use this, and it's a pain to materialize, and otherwise
+  # costs a fair bit of eval time.
+  withHoogle = false;
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";

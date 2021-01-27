@@ -1,7 +1,6 @@
-{ writeScriptBin, git, fd, stylish-haskell, runtimeShell }:
+{ writeShellScriptBin, git, fd, stylish-haskell }:
 
-writeScriptBin "fix-stylish-haskell" ''
-  #!${runtimeShell}
+writeShellScriptBin "fix-stylish-haskell" ''
   set -eou pipefail
 
   ${git}/bin/git diff > pre-stylish.diff

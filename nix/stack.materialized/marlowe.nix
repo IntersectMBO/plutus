@@ -46,6 +46,7 @@
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+          (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
@@ -91,9 +92,14 @@
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."streaming" or (errorHandler.buildDepError "streaming"))
             ];
           buildable = true;
-          modules = [ "Spec/Marlowe/Common" "Spec/Marlowe/Marlowe" ];
+          modules = [
+            "Spec/Marlowe/Common"
+            "Spec/Marlowe/Marlowe"
+            "Spec/Marlowe/AutoExecute"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

@@ -1015,11 +1015,11 @@ let
 
     "servant-support" = pkgs.stdenv.mkDerivation {
         name = "servant-support";
-        version = "v10.0.0";
+        version = "1805f896560751c48a04d3e29f9c109df850d8d3";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-servant-support";
-          rev = "54cd333b87f74225d855c8f7d2d1bf1801856830";
-          sha256 = "19zp7yzxaf5mbja18c56gr5rmyxjhzh0xdih705r8bxmdhgn5d9m";
+          rev = "1805f896560751c48a04d3e29f9c109df850d8d3";
+          sha256 = "1n8a0j5rwgkanvwp47f78gn5qacs06siii2f5x5fr4rw15q6a9ma";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -1352,41 +1352,33 @@ let
       fi
     '';
 
-  getGlob = pkg: ''\".spago/${pkg.name}/${pkg.version}/src/**/*.purs\"'';
+  getGlob = pkg: ''".spago/${pkg.name}/${pkg.version}/src/**/*.purs"'';
 
-  getStoreGlob = pkg: ''\"${pkg.outPath}/src/**/*.purs\"'';
+  getStoreGlob = pkg: ''"${pkg.outPath}/src/**/*.purs"'';
 
 in {
   inherit inputs;
 
-  installSpagoStyle = pkgs.runCommand "install-spago-style" {} ''
-      >>$out echo "#!/usr/bin/env bash"
-      >>$out echo
-      >>$out echo "echo installing dependencies..."
-      >>$out echo "${builtins.toString (
-        builtins.map cpPackage (builtins.attrValues inputs))}"
-      >>$out echo "echo done."
-      chmod +x $out
+  installSpagoStyle = pkgs.writeShellScriptBin "install-spago-style" ''
+      set -e
+      echo installing dependencies...
+      ${builtins.toString (builtins.map cpPackage (builtins.attrValues inputs))}
+      echo "echo done."
   '';
 
-  buildSpagoStyle = pkgs.runCommand "build-spago-style" {} ''
-      >>$out echo "#!/usr/bin/env bash"
-      >>$out echo
-      >>$out echo "echo building project..."
-      >>$out echo "purs compile ${builtins.toString (
-        builtins.map getGlob (builtins.attrValues inputs))}" \"\$@\"
-      >>$out echo "echo done."
-      chmod +x $out
+  buildSpagoStyle = pkgs.writeShellScriptBin "build-spago-style" ''
+      set -e
+      echo building project...
+      purs compile ${builtins.toString (builtins.map getGlob (builtins.attrValues inputs))} "$@"
+      echo done.
   '';
 
-  buildFromNixStore = pkgs.runCommand "build-from-store" {} ''
-      >>$out echo "#!/usr/bin/env bash"
-      >>$out echo
-      >>$out echo "echo building project using sources from nix store..."
-      >>$out echo "purs compile ${builtins.toString (
-        builtins.map getStoreGlob (builtins.attrValues inputs))}" \"\$@\"
-      >>$out echo "echo done."
-      chmod +x $out
+  buildFromNixStore = pkgs.writeShellScriptBin "build-from-store" ''
+      set -e
+      echo building project using sources from nix store...
+      purs compile ${builtins.toString (
+        builtins.map getStoreGlob (builtins.attrValues inputs))} "$@"
+      echo done.
   '';
 
   mkBuildProjectOutput =

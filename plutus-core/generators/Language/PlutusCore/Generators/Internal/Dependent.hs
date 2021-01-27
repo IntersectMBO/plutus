@@ -32,7 +32,7 @@ data AsKnownType term a where
     AsKnownType :: KnownType term a => AsKnownType term a
 
 instance GShow (UniOf term) => Pretty (AsKnownType term a) where
-    pretty a@AsKnownType = pretty $ toTypeAst @(UniOf term) a
+    pretty a@AsKnownType = pretty $ toTypeAst @_ @(UniOf term) a
 
 instance GShow (UniOf term) => GEq (AsKnownType term) where
     a `geq` b = do

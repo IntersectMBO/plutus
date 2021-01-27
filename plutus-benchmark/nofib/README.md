@@ -39,7 +39,7 @@ Each benchmark can be run with a number of inputs: type
 
 or 
 ```
-  cabal v2-bench plutus-benchmark:nofib --benchmark-arguments --list
+  cabal bench plutus-benchmark:nofib --benchmark-options --list
 ```
 
 to see the available benchmarks.
@@ -53,8 +53,10 @@ data to get reasonable results (use Criterion's `-L` option to change the
 execution time). The `last-piece` program has been omitted from the benchmarkign
 process because it exhausts memory on the current version of the CEK machine.
 
-Some of the benchmarks also consume a lot of memory, so it may be helpful to
+Some of the benchmarks may consume a lot of memory, so it may be helpful to
 close memory-hungry programs (Slack, Firefox, ...) before running them.
+[**UPDATE**: excessive memory consumption should no longer occur, but running
+on a quiet machine will still give more reliable results.]
 
 It's hoped that these benchmarks will be useful for stress-testing Plutus Core
 evaluators.  Some of them take a considerable time to run and consume a lot of

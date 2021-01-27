@@ -37,6 +37,7 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+          (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
           (hsPkgs."ghc" or (errorHandler.buildDepError "ghc"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
@@ -51,20 +52,20 @@
           ];
         buildable = true;
         modules = [
-          "Language/PlutusTx/PLCTypes"
-          "Language/PlutusTx/PIRTypes"
-          "Language/PlutusTx/Compiler/Error"
           "Language/PlutusTx/Compiler/Binders"
           "Language/PlutusTx/Compiler/Builtins"
-          "Language/PlutusTx/Compiler/Laziness"
           "Language/PlutusTx/Compiler/Expr"
-          "Language/PlutusTx/Compiler/Names"
           "Language/PlutusTx/Compiler/Kind"
+          "Language/PlutusTx/Compiler/Laziness"
+          "Language/PlutusTx/Compiler/Names"
           "Language/PlutusTx/Compiler/Primitives"
           "Language/PlutusTx/Compiler/Type"
           "Language/PlutusTx/Compiler/Types"
           "Language/PlutusTx/Compiler/Utils"
+          "Language/PlutusTx/PIRTypes"
+          "Language/PlutusTx/PLCTypes"
           "Language/PlutusTx/Plugin"
+          "Language/PlutusTx/Compiler/Error"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -72,6 +73,8 @@
         "plutus-tx-tests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))

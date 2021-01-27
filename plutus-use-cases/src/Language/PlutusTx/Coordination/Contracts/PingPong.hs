@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -28,6 +30,8 @@ module Language.PlutusTx.Coordination.Contracts.PingPong(
 
 import           Control.Lens
 import           Control.Monad                         (void)
+import           Data.Aeson                            (FromJSON, ToJSON)
+import           GHC.Generics                          (Generic)
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..), check)
 import qualified Ledger.Ada                            as Ada
@@ -41,7 +45,8 @@ import qualified Language.Plutus.Contract.StateMachine as SM
 import           Language.Plutus.Contract
 
 data PingPongState = Pinged | Ponged | Stopped
-    deriving stock Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq PingPongState where
     Pinged == Pinged = True
@@ -49,7 +54,8 @@ instance Eq PingPongState where
     _ == _           = False
 
 data Input = Ping | Pong | Stop
-    deriving stock Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 type PingPongSchema =
     BlockchainActions
@@ -61,13 +67,14 @@ type PingPongSchema =
 
 data PingPongError =
     PingPongContractError ContractError
-    | PingPongSMError (SM.SMContractError PingPongState Input)
+    | PingPongSMError SM.SMContractError
     | StoppedUnexpectedly
-    deriving stock (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''PingPongError
 
-instance AsSMContractError PingPongError PingPongState Input where
+instance AsSMContractError PingPongError where
     _SMContractError = _PingPongSMError
 
 instance AsContractError PingPongError where
@@ -112,13 +119,14 @@ run ::
     -> Contract PingPongSchema PingPongError ()
     -> Contract PingPongSchema PingPongError ()
 run expectedState action = do
-    (st, _) <- SM.getOnChainState client
     let extractState = tyTxOutData . fst
         go Nothing = throwError StoppedUnexpectedly
         go (Just currentState)
             | extractState currentState == expectedState = action
             | otherwise = SM.waitForUpdate client >>= go
-    go (Just st)
+    maybeState <- SM.getOnChainState client
+    let datum = fmap fst maybeState
+    go datum
 
 runPing :: Contract PingPongSchema PingPongError ()
 runPing = run Ponged (endpoint @"ping" >> void (SM.runStep client Ping))

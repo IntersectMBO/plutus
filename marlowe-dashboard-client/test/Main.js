@@ -1,0 +1,3 @@
+window = {};
+
+exports.forDeps = function () {};

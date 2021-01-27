@@ -70,7 +70,9 @@ variable "bastion_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
+    testing = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access any machine, changing the value for a particular environment will cause the bastion machines to be re-created, this is not a problem but it may take some time."
@@ -84,7 +86,9 @@ variable "nixops_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging" ]
+    playground = [ "live-infra-staging", "kris", "david" ]
     wyohack = ["david", "pablo", "kris"]
+    testing = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access the nixops machine, changing the value for a particular environment will cause the nixops machine to be re-created, this is not a problem but it may take some time."
@@ -98,7 +102,9 @@ variable "playground_ssh_keys" {
     kris    = ["kris"]
     pablo   = ["pablo"]
     prod = [ "live-infra-staging", "david", "kris", "mpj" ]
+    playground = [ "live-infra-staging", "david", "kris", "mpj" ]
     wyohack = ["david", "pablo", "kris"]
+    testing = ["david", "pablo", "kris"]
   }
 
   description = "this should contain the public keys of anyone who wants to access the playground machines"

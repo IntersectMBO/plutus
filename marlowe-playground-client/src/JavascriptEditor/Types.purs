@@ -3,8 +3,11 @@ module JavascriptEditor.Types where
 import Prelude
 import Analytics (class IsEvent, Event)
 import Analytics as A
+import BottomPanel.Types as BottomPanel
 import Data.Either (Either(..))
-import Data.Lens (Getter', Lens', Prism', Fold', prism, to)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.Lens (Getter', Lens', Prism', Fold', prism, to, (^.))
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
@@ -13,6 +16,7 @@ import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
+import StaticAnalysis.Types (AnalysisState(..))
 import Text.Pretty (pretty)
 
 data CompilationState
@@ -37,23 +41,27 @@ _ContractString = _compilationResult <<< _CompiledSuccessfully <<< _result <<< _
 data Action
   = Compile
   | ChangeKeyBindings KeyBindings
-  | LoadScript String
   | HandleEditorMessage Monaco.Message
-  | ShowBottomPanel Boolean
+  | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
-  | SendResultToBlockly
+  | InitJavascriptProject String
+  | AnalyseContract
+  | AnalyseReachabilityContract
+  | AnalyseContractForCloseRefund
 
 defaultEvent :: String -> Event
-defaultEvent s = A.defaultEvent $ "Haskell." <> s
+defaultEvent s = A.defaultEvent $ "Javascript." <> s
 
 instance actionIsEvent :: IsEvent Action where
   toEvent Compile = Just $ defaultEvent "Compile"
   toEvent (ChangeKeyBindings _) = Just $ defaultEvent "ChangeKeyBindings"
-  toEvent (LoadScript _) = Just $ defaultEvent "LoadScript"
   toEvent (HandleEditorMessage _) = Just $ defaultEvent "HandleEditorMessage"
-  toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
-  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
+  toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
+  toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
+  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
+  toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
 
 type DecorationIds
   = { topDecorationId :: String
@@ -68,9 +76,10 @@ _bottomDecorationId = prop (SProxy :: SProxy "bottomDecorationId")
 
 type State
   = { keybindings :: KeyBindings
+    , bottomPanelState :: BottomPanel.State BottomPanelView
     , compilationResult :: CompilationState
-    , showBottomPanel :: Boolean
     , decorationIds :: Maybe DecorationIds
+    , analysisState :: AnalysisState
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -79,16 +88,34 @@ _keybindings = prop (SProxy :: SProxy "keybindings")
 _compilationResult :: Lens' State CompilationState
 _compilationResult = prop (SProxy :: SProxy "compilationResult")
 
-_showBottomPanel :: Lens' State Boolean
-_showBottomPanel = prop (SProxy :: SProxy "showBottomPanel")
-
 _decorationIds :: Lens' State (Maybe DecorationIds)
 _decorationIds = prop (SProxy :: SProxy "decorationIds")
+
+_bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
+_bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
+
+isCompiling :: State -> Boolean
+isCompiling state = case state ^. _compilationResult of
+  Compiling -> true
+  _ -> false
 
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
+  , bottomPanelState: BottomPanel.initialState GeneratedOutputView
   , compilationResult: NotCompiled
-  , showBottomPanel: true
   , decorationIds: Nothing
+  , analysisState: NoneAsked
   }
+
+data BottomPanelView
+  = StaticAnalysisView
+  | ErrorsView
+  | GeneratedOutputView
+
+derive instance eqBottomPanelView :: Eq BottomPanelView
+
+derive instance genericBottomPanelView :: Generic BottomPanelView _
+
+instance showBottomPanelView :: Show BottomPanelView where
+  show = genericShow

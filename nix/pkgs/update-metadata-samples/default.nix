@@ -1,4 +1,4 @@
-{ writeScriptBin, runtimeShell, curl }:
+{ writeShellScriptBin, curl }:
 let
   metadataQueryPayload1 = {
     subjects = [
@@ -18,13 +18,12 @@ let
     ];
   };
 in
-writeScriptBin "update-metadata-samples" ''
-  #!${runtimeShell}
+writeShellScriptBin "update-metadata-samples" ''
   set -eou pipefail
 
   SERVER=https://api.cardano.org/staging
   SUBJECT=7f71940915ea5fe85e840f843c929eba467e6f050475bad1f10b9c274d1888c0
-  DATA_DIR=plutus-scb/test/Cardano/Metadata
+  DATA_DIR=plutus-pab/test/Cardano/Metadata
 
   ${curl}/bin/curl -o $DATA_DIR/subject_response1.json $SERVER/metadata/$SUBJECT
 

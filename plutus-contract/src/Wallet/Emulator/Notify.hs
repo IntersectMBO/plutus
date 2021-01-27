@@ -25,7 +25,7 @@ import           Control.Monad.Freer.Log   (LogMsg, logWarn)
 import           Control.Monad.Freer.TH    (makeEffect)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc
-import qualified Data.UUID                 as UUID
+import qualified Data.UUID.Extras          as UUID
 import           GHC.Generics              (Generic)
 
 
@@ -40,7 +40,7 @@ makeEffect ''EmulatorContractNotifyEffect
 
 {- Note [Emulator contract instances]
 
-In the emulator, unlike the SCB, there is no distinction between agents (called
+In the emulator, unlike the PAB, there is no distinction between agents (called
 wallets) and instances. Every emulated agent runs one instance of
 the same contract. We don't have any 'ContractInstanceId' values in
 the emulator either. The 'Notify' effect however uses contract instance IDs to
@@ -56,15 +56,13 @@ functions below.
 --   See note [Emulator contract instances].
 walletInstanceId :: Wallet -> ContractInstanceId
 walletInstanceId (Wallet i) =
-    ContractInstanceId $ UUID.fromWords 1 1 1 (fromIntegral i)
+    ContractInstanceId . UUID.sequenceIdToMockUUID $ fromIntegral i
 
 -- | The wallet of a 'ContractInstanceId'.
 --   See note [Emulator contract instances].
 instanceIdWallet :: ContractInstanceId -> Maybe Wallet
 instanceIdWallet (ContractInstanceId u) =
-    case UUID.toWords u of
-        (1, 1, 1, x) -> Just $ Wallet (fromIntegral x)
-        _            -> Nothing
+    Wallet . fromIntegral <$> UUID.mockUUIDToSequenceId u
 
 -- | Handle the 'ContractRuntimeEffect' by forwarding notifications to
 --   'EmulatorContractNotifyEffect'

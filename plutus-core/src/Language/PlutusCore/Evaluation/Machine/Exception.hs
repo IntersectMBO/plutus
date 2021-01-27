@@ -24,9 +24,9 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , EvaluationError (..)
     , AsEvaluationError (..)
     , ErrorWithCause (..)
-    , MachineException
     , EvaluationException
-    , mapErrorWithCauseF
+    , mapCauseInMachineException
+    , throwing_
     , throwingWithCause
     , extractEvaluationResult
     ) where
@@ -38,10 +38,12 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
+import           Control.Monad.Error.Lens                        (throwing_)
 import           Control.Monad.Except
 import           Data.String                                     (IsString)
 import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc
+import           ErrorCode
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
@@ -52,7 +54,7 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError fun term
-    =  TooFewArgumentsConstAppError fun
+    = TooFewArgumentsConstAppError fun
     | TooManyArgumentsConstAppError fun [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
@@ -60,6 +62,7 @@ data ConstAppError fun term
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
     deriving (Show, Eq, Functor)
+
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun term
@@ -84,10 +87,12 @@ data MachineError fun term
     | UnknownBuiltin fun
     deriving (Show, Eq, Functor)
 
+
+
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
-data EvaluationError user fun term
-    = InternalEvaluationError (MachineError fun term)
+data EvaluationError user internal
+    = InternalEvaluationError internal
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
@@ -100,39 +105,44 @@ mtraverse makeClassyPrisms
     , ''EvaluationError
     ]
 
-instance AsMachineError (EvaluationError user fun term) fun term where
+instance internal ~ MachineError fun term => AsMachineError (EvaluationError user internal) fun term where
     _MachineError = _InternalEvaluationError
 instance AsConstAppError (MachineError fun term) fun term where
     _ConstAppError = _ConstAppMachineError
-instance AsConstAppError (EvaluationError user fun term) fun term where
+instance internal ~ MachineError fun term => AsConstAppError (EvaluationError user internal) fun term where
     _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
 instance AsUnliftingError (ConstAppError fun term) where
     _UnliftingError = _UnliftingConstAppError
-instance AsUnliftingError (EvaluationError user fun term) where
-    _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
+instance AsUnliftingError internal => AsUnliftingError (EvaluationError user internal) where
+    _UnliftingError = _InternalEvaluationError . _UnliftingError
 instance AsUnliftingError (MachineError fun term) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
+instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user internal) where
+    _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
 -- | An error and (optionally) what caused it.
-data ErrorWithCause err term
-    = ErrorWithCause err (Maybe term)
-    deriving (Eq, Functor)
+data ErrorWithCause err term = ErrorWithCause
+    { _ewcError :: err
+    , _ewcCause :: Maybe term
+    } deriving (Eq, Functor)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
 
-type MachineException fun term =
-    ErrorWithCause (MachineError fun term) term
+instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
+    _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
 
-type EvaluationException user fun term =
-    ErrorWithCause (EvaluationError user fun term) term
+instance (Pretty err, Pretty term) => Pretty (ErrorWithCause err term) where
+    pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
 
-mapErrorWithCauseF
-    :: Functor f
-    => (term1 -> term2)
-    -> ErrorWithCause (f term1) term1
-    -> ErrorWithCause (f term2) term2
-mapErrorWithCauseF f = bimap (fmap f) f
+type EvaluationException user internal =
+    ErrorWithCause (EvaluationError user internal)
+
+mapCauseInMachineException
+    :: (term1 -> term2)
+    -> EvaluationException user (MachineError fun term1) term1
+    -> EvaluationException user (MachineError fun term2) term2
+mapCauseInMachineException f = bimap (fmap (fmap f)) f
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -157,8 +167,8 @@ and so on are genuine errors and we report their context if available.
 
 -- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
-    :: Either (EvaluationException user fun term) a
-    -> Either (MachineException fun term) (EvaluationResult a)
+    :: Either (EvaluationException user internal term) a
+    -> Either (ErrorWithCause internal term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left  $ ErrorWithCause err cause
@@ -202,9 +212,9 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "Encountered an unknown built-in function:" <+> pretty fun
 
 instance
-        ( PrettyBy config term, HasPrettyDefaults config ~ 'True
-        , Pretty fun, Pretty user
-        ) => PrettyBy config (EvaluationError user fun term) where
+        ( HasPrettyDefaults config ~ 'True
+        , PrettyBy config internal, Pretty user
+        ) => PrettyBy config (EvaluationError user internal) where
     prettyBy config (InternalEvaluationError err) = fold
         [ "error:", hardline
         , prettyBy config err
@@ -228,3 +238,31 @@ instance (PrettyPlc term, PrettyPlc err) =>
 
 instance (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) =>
             Exception (ErrorWithCause err term)
+
+
+instance HasErrorCode UnliftingError where
+      errorCode        UnliftingErrorE {}        = ErrorCode 30
+
+instance HasErrorCode (ConstAppError _a _b) where
+      errorCode        TooManyArgumentsConstAppError {} = ErrorCode 29
+      errorCode        TooFewArgumentsConstAppError {}  = ErrorCode 28
+      errorCode (UnliftingConstAppError e)              = errorCode e
+
+instance HasErrorCode (MachineError err _a) where
+      errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
+      errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
+      errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
+      errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
+      errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
+      errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
+      errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
+      errorCode        (ConstAppMachineError e)                     = errorCode e
+      errorCode        UnknownBuiltin {}                            = ErrorCode 17
+
+instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
+  errorCode (InternalEvaluationError e) = errorCode e
+  errorCode (UserEvaluationError e)     = errorCode e
+
+
+instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
+    errorCode (ErrorWithCause e _) = errorCode e

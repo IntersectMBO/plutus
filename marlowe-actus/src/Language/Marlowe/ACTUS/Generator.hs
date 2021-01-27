@@ -124,10 +124,12 @@ genStaticContract terms =
         Success t ->
             let
                 cfs = genProjectedCashflows t
-                gen CashFlow{..} =
-                    if amount > 0.0
-                        then invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
-                        else invoice "counterparty" "party" (Constant $ round $ -amount) (Slot $ dayToSlotNumber cashPaymentDay)
+                gen CashFlow {..}
+                    | amount == 0.0 = id
+                    | amount > 0.0
+                    = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
+                    | otherwise
+                    = invoice "counterparty" "party" (Constant $ round $ - amount) (Slot $ dayToSlotNumber cashPaymentDay)
             in Success $ foldl (flip gen) Close cfs
 
 
@@ -147,7 +149,7 @@ genFsContract terms =
                 schedCfs = genProjectedCashflows terms
                 schedEvents = cashEvent <$> schedCfs
                 schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
-                previousDates = ([ct_SD terms] ++ (cashCalculationDay <$> schedCfs))
+                previousDates = ct_SD terms : (cashCalculationDay <$> schedCfs)
                 cfsDirections = amount <$> schedCfs
                 ctx = context <$> constraints terms
 
@@ -156,10 +158,10 @@ genFsContract terms =
                     inquiryFs ev terms ("_" ++ show t) date "oracle" ctx
                     $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
-                    $ if (isNothing pof) then cont
+                    $ if isNothing pof then cont
                     else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                     else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
-                    where pof = (payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf))
+                    where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
             in Success $ inititializeStateFs terms scheduleAcc

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main(main) where
 
+import qualified Spec.Marlowe.AutoExecute
 import qualified Spec.Marlowe.Marlowe
 
 import           Test.Tasty
@@ -13,6 +14,7 @@ main = defaultMain tests
 tests :: TestTree
 tests = testGroup "Marlowe"
     [ testGroup "Contracts" [ Spec.Marlowe.Marlowe.tests
+                            , Spec.Marlowe.AutoExecute.tests
 -- Does not work when invoking it from nix
 --                            , testProperty "Correct Show instance for Contract"
 --                                           Spec.Marlowe.Marlowe.prop_showWorksForContracts

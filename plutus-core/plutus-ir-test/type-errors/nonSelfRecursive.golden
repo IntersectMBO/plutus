@@ -1,2 +1,2 @@
-Error during PIR typechecking:
+E019: Error during PIR typechecking:
 Free type variable at  nonSelfRecursive:8:62 :  List

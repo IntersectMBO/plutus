@@ -52,25 +52,26 @@ simplifyTerm = runIfOpts $ pure . Inline.inline . DeadCode.removeDeadBindings
 floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 floatTerm = runIfOpts $ pure . LetFloat.floatTerm
 
--- | Perform typechecking of a PIR Term.
+-- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
 typeCheckTerm :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
 typeCheckTerm t = do
-    tcconfig <- asks _ccTypeCheckConfig
-    void . runTypeCheckM tcconfig $ inferTypeM t
+    mtcconfig <- asks _ccTypeCheckConfig
+    case mtcconfig of
+        Just tcconfig -> void . runTypeCheckM tcconfig $ inferTypeM t
+        Nothing       -> pure ()
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
 compileToReadable :: Compiling m e uni fun a
-                  => Bool
-                  -> Term TyName Name uni fun a
+                  => Term TyName Name uni fun a
                   -> m (Term TyName Name uni fun (Provenance a))
-compileToReadable doTypecheck =
+compileToReadable =
     (pure . original)
     -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
     >=> PLC.rename
-    >=> through (when doTypecheck . typeCheckTerm)
+    >=> through typeCheckTerm
     >=> simplifyTerm
     >=> (pure . ThunkRec.thunkRecursions)
     >=> floatTerm
@@ -91,6 +92,6 @@ compileReadableToPlc =
 
 --- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
 compileTerm :: Compiling m e uni fun a
-            => Bool -- ^ flag to run PIR-typecheking or not (for debuggin purposes)
-            -> Term TyName Name uni fun a -> m (PLCTerm uni fun a)
-compileTerm doTypecheck  = compileToReadable doTypecheck >=> compileReadableToPlc
+            => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
+compileTerm = compileToReadable >=> compileReadableToPlc
+

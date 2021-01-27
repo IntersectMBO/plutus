@@ -84,9 +84,10 @@ sampleProgramValueGolden folder name genTerm = do
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
     :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
-       , PrettyPlc termErr
+       , PrettyPlc internal
        )
-    => (Plain Term uni fun -> Either (EvaluationException user fun termErr) (Plain Term uni fun))
+    => (Plain Term uni fun ->
+           Either (EvaluationException user internal (Plain Term uni fun)) (Plain Term uni fun))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.
     -> Property

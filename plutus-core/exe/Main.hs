@@ -6,6 +6,7 @@
 module Main (main) where
 
 import qualified Language.PlutusCore                               as PLC
+import qualified Language.PlutusCore.CBOR                          as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
 import qualified Language.PlutusCore.Generators                    as Gen
@@ -17,7 +18,6 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat         as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Integer           as StdLib
 import qualified Language.PlutusCore.StdLib.Data.Unit              as StdLib
 import qualified Language.UntypedPlutusCore                        as UPLC
-import qualified Language.UntypedPlutusCore.DeBruijn               as UPLC
 import qualified Language.UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
 
 import           Codec.Serialise
@@ -317,7 +317,7 @@ typedDeBruijnNotSupportedError =
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijn :: UntypedProgram a -> IO (UntypedProgramDeBruijn a)
 toDeBruijn prog = do
-  r <- PLC.runQuoteT $ runExceptT (UPLC.deBruijnProgram prog)
+  r <- PLC.runQuoteT $ runExceptT @UPLC.FreeVariableError (UPLC.deBruijnProgram prog)
   case r of
     Left e  -> hPutStrLn stderr (show e) >> exitFailure
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
@@ -329,7 +329,7 @@ toDeBruijn prog = do
 fromDeBruijn :: UntypedProgramDeBruijn a -> IO (UntypedProgram a)
 fromDeBruijn prog = do
     let namedProgram = UPLC.programMapNames (\(UPLC.DeBruijn ix) -> UPLC.NamedDeBruijn "v" ix) prog
-    case PLC.runQuote $ runExceptT $ UPLC.unDeBruijnProgram namedProgram of
+    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnProgram namedProgram of
       Left e  -> hPutStrLn stderr (show e) >> exitFailure
       Right p -> return p
 
@@ -365,10 +365,11 @@ getBinaryInput (FileInput file) = BSL.readFile file
 loadASTfromCBOR :: Language -> AstNameType -> Input -> IO (Program ())
 loadASTfromCBOR language cborMode inp =
     case (language, cborMode) of
-         (TypedPLC,   Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult TypedProgram
-         (UntypedPLC, Named)    -> getBinaryInput inp <&> deserialiseOrFail >>= handleResult UntypedProgram
+         (TypedPLC,   Named)    -> getBinaryInput inp <&> PLC.deserialiseRestoringUnitsOrFail >>= handleResult TypedProgram
+         (UntypedPLC, Named)    -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>= handleResult UntypedProgram
          (TypedPLC,   DeBruijn) -> typedDeBruijnNotSupportedError
-         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> deserialiseOrFail >>= mapM fromDeBruijn >>= handleResult UntypedProgram
+         (UntypedPLC, DeBruijn) -> getBinaryInput inp <&> UPLC.deserialiseRestoringUnitsOrFail >>=
+                                   mapM fromDeBruijn >>= handleResult UntypedProgram
     where handleResult wrapper =
               \case
                Left (DeserialiseFailure offset msg) ->
@@ -402,16 +403,16 @@ getProgram language fmt inp =
                return $ PLC.AlexPn 0 0 0 <$ prog  -- No source locations in CBOR, so we have to make them up.
 
 
----------------- Serialise an program using CBOR ----------------
+---------------- Serialise a program using CBOR ----------------
 
-serialiseProgramCBOR :: Serialise a => Program a -> BSL.ByteString
-serialiseProgramCBOR (TypedProgram p)   = serialise p
-serialiseProgramCBOR (UntypedProgram p) = serialise p
+serialiseProgramCBOR :: Program () -> BSL.ByteString
+serialiseProgramCBOR (TypedProgram p)   = PLC.serialiseOmittingUnits p
+serialiseProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits p
 
 -- | Convert names to de Bruijn indices and then serialise
-serialiseDbProgramCBOR :: Serialise a => Program a -> IO (BSL.ByteString)
+serialiseDbProgramCBOR :: Program () -> IO (BSL.ByteString)
 serialiseDbProgramCBOR (TypedProgram _)   = typedDeBruijnNotSupportedError
-serialiseDbProgramCBOR (UntypedProgram p) = serialise <$> toDeBruijn p
+serialiseDbProgramCBOR (UntypedProgram p) = UPLC.serialiseOmittingUnits <$> toDeBruijn p
 
 writeCBOR :: Output -> AstNameType -> Program a -> IO ()
 writeCBOR outp cborMode prog = do
@@ -420,8 +421,7 @@ writeCBOR outp cborMode prog = do
             DeBruijn -> serialiseDbProgramCBOR (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL.putStr cbor >> T.putStrLn ""
-
+    StdOutput       -> BSL.putStr cbor
 
 ---------------- Serialise a program using Flat ----------------
 
@@ -441,7 +441,7 @@ writeFlat outp flatMode prog = do
             DeBruijn -> serialiseDbProgramFlat (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
-    StdOutput       -> BSL.putStr flatProg >> T.putStrLn ""  -- FIXME: no newline
+    StdOutput       -> BSL.putStr flatProg
 
 
 ---------------- Write an AST as PLC source ----------------
@@ -615,7 +615,7 @@ runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
                   CEK -> PLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
             body = void . PLC.toTerm $ prog
         () <-  Exn.evaluate $ rnf body
-        -- ^ Force evaluation of body to ensure that we're not timing parsing/deserialisation.
+        -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- performGC >> getCPUTime
         case evaluate body of

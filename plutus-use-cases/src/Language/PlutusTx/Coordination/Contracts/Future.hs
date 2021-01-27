@@ -39,11 +39,16 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , initialState
     , scriptInstance
     , setupTokens
+    -- * Test data
+    , testAccounts
+    , setupTokensTrace
     ) where
 
 import           Control.Lens                                          (makeClassyPrisms, prism', review)
 import           Control.Monad                                         (void)
 import           Control.Monad.Error.Lens                              (throwing)
+import qualified Control.Monad.Freer                                   as Freer
+import qualified Control.Monad.Freer.Error                             as Freer
 import           Data.Aeson                                            (FromJSON, ToJSON)
 import           GHC.Generics                                          (Generic)
 import           Language.Plutus.Contract
@@ -72,6 +77,11 @@ import           Language.PlutusTx.Coordination.Contracts.Escrow       (AsEscrow
 import qualified Language.PlutusTx.Coordination.Contracts.Escrow       as Escrow
 import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
+import qualified Plutus.Trace.Emulator                                 as Trace
+import qualified Streaming.Prelude                                     as S
+import qualified Wallet.Emulator.Folds                                 as Folds
+import qualified Wallet.Emulator.Stream                                as Stream
+import qualified Wallet.Emulator.Wallet                                as Wallet
 
 import qualified Prelude                                               as Haskell
 
@@ -129,7 +139,9 @@ data Margins =
     Margins
         { ftsShortMargin :: Value
         , ftsLongMargin  :: Value
-        } deriving (Haskell.Eq, Show, Generic)
+        }
+        deriving (Haskell.Eq, Show, Generic)
+        deriving anyclass (ToJSON, FromJSON)
 
 instance Eq Margins where
     l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
@@ -140,7 +152,8 @@ data FutureState =
     -- ^ Ongoing contract, with the current margins.
     | Finished
     -- ^ Contract is finished.
-    deriving (Haskell.Eq, Show)
+    deriving stock (Show, Generic, Haskell.Eq)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq FutureState where
     Running ma == Running ma' = ma == ma'
@@ -158,23 +171,25 @@ data FutureAction =
     -- ^ Close the contract early after a margin payment has been missed.
     --   The value of both margin accounts will be paid to the role that
     --   *didn't* violate the margin requirement
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 data FutureError =
     TokenSetupFailed Currency.CurrencyError
     -- ^ Something went wrong during the setup of the two tokens
-    | StateMachineError (SM.SMContractError FutureState FutureAction)
+    | StateMachineError SM.SMContractError
     | OtherFutureError ContractError
     | EscrowFailed EscrowError
     -- ^ The escrow that initialises the future contract failed
     | EscrowRefunded RefundSuccess
     -- ^ The other party didn't make their payment in time so the contract never
     --   started.
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makeClassyPrisms ''FutureError
 
-instance AsSMContractError FutureError FutureState FutureAction where
+instance AsSMContractError FutureError where
     _SMContractError = _StateMachineError
 
 instance AsContractError FutureError where
@@ -518,7 +533,7 @@ settleFuture client = mapError (review _FutureError) $ do
 settleEarly
     :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -535,7 +550,7 @@ increaseMargin
        , HasWriteTx s
        , HasOwnPubKey s
        , HasTxConfirmation s
-       , AsSMContractError e FutureState FutureAction
+       , AsSMContractError e
        , AsContractError e
        )
     => SM.StateMachineClient FutureState FutureAction
@@ -606,6 +621,26 @@ escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
         { escrowDeadline = contractStart
         , escrowTargets = targets
         }
+
+testAccounts :: FutureAccounts
+testAccounts =
+    let con = setupTokens @FutureSchema @FutureError
+        fld = Folds.instanceOutcome con (Trace.walletInstanceTag (Wallet.Wallet 1))
+        getOutcome (Folds.Done a) = a
+        getOutcome e              = Haskell.error $ "not finished: " <> show e
+    in
+    either (Haskell.error . Haskell.show) (getOutcome . S.fst')
+        $ Freer.run
+        $ Freer.runError @Folds.EmulatorFoldErr
+        $ Stream.foldEmulatorStreamM fld
+        $ Stream.takeUntilSlot 10
+        $ Trace.runEmulatorStream Trace.defaultEmulatorConfig setupTokensTrace
+
+setupTokensTrace :: Trace.EmulatorTrace ()
+setupTokensTrace = do
+    _ <- Trace.waitNSlots 1
+    _ <- Trace.activateContractWallet (Wallet.Wallet 1) (void $ setupTokens @FutureSchema @FutureError)
+    void $ Trace.waitNSlots 2
 
 PlutusTx.makeLift ''Future
 PlutusTx.makeLift ''FutureAccounts

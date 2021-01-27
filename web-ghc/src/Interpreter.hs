@@ -69,6 +69,7 @@ runghcOpts implicitPrelude =
     "-XGeneralizedNewtypeDeriving",
     "-XMultiParamTypeClasses",
     "-XNamedFieldPuns",
+    "-XNumericUnderscores",
     "-XOverloadedStrings",
     "-XRecordWildCards",
     "-XScopedTypeVariables",

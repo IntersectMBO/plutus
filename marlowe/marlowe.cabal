@@ -44,6 +44,7 @@ library
     plutus-contract -any,
     plutus-core,
     plutus-ledger,
+    plutus-use-cases,
     text,
     vector,
     sbv >= 8.4,
@@ -82,10 +83,9 @@ test-suite marlowe-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-      -- Spec.Common
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
-      -- Spec.Actus
+        Spec.Marlowe.AutoExecute
     build-depends:
         aeson -any,
         base >=4.9 && <5,
@@ -107,7 +107,8 @@ test-suite marlowe-test
         sbv >= 8.4,
         plutus-tx -any,
         QuickCheck,
-        template-haskell -any
+        template-haskell -any,
+        streaming -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates

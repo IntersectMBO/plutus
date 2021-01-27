@@ -16,6 +16,8 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
+import Control.Monad.Maybe.Trans (runMaybeT, MaybeT(..))
+import Control.Monad.Trans.Class (lift)
 import Data.Traversable (for_, traverse)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -27,7 +29,7 @@ import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider, IRange)
 import Monaco as Monaco
-import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, when, ($), (==), (>>=))
+import Prelude hiding (div)
 
 data KeyBindings
   = DefaultBindings
@@ -197,7 +199,9 @@ handleQuery :: forall a input m. MonadEffect m => Query a -> HalogenM State Acti
 handleQuery (SetText text next) = do
   withEditor \editor -> do
     model <- liftEffect $ Monaco.getModel editor
-    liftEffect $ Monaco.setValue model text
+    -- We want to avoid setting the same value because it will cause https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.itextmodel.html#ondidchangecontent
+    -- to fire even though the content didn't change
+    when (text /= Monaco.getValue model) $ liftEffect $ Monaco.setValue model text
     pure next
 
 handleQuery (GetText f) = do
@@ -227,13 +231,12 @@ handleQuery (GetModelMarkers f) = do
       markers <- Monaco.getModelMarkers monaco model
       pure $ f markers
 
-handleQuery (GetDecorationRange decoratorId f) = do
-  withEditor \editor -> do
-    liftEffect do
-      model <- liftEffect $ Monaco.getModel editor
-      let
-        decoRange = Monaco.getDecorationRange model decoratorId
-      pure $ f decoRange
+handleQuery (GetDecorationRange decoratorId f) =
+  runMaybeT do
+    editor <- MaybeT $ H.gets _.editor
+    model <- lift $ liftEffect $ Monaco.getModel editor
+    decoRange <- MaybeT $ liftEffect $ Monaco.getDecorationRange model decoratorId
+    pure $ f decoRange
 
 handleQuery (SetDeltaDecorations first last f) = do
   withEditor \editor -> do
@@ -278,6 +281,9 @@ handleQuery (SetKeyBindings bindings next) =
     { deactivateBindings } <- get
     newDeactivateBindings <- liftEffect $ replaceKeyBindings bindings editor deactivateBindings
     modify_ (_ { deactivateBindings = newDeactivateBindings })
+    -- Changing keybindings can affect layout (by changing the status
+    -- line in Vim/Emacs modes, for instance).
+    liftEffect $ Monaco.layout editor
     pure next
 
 handleQuery (GetObjects f) = do

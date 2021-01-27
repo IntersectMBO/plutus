@@ -21,8 +21,9 @@ import           Data.Aeson                                                  (Fr
 import           GHC.Generics                                                (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Effects.RPC
-import           Language.Plutus.Contract.StateMachine                       (SMContractError, StateMachine,
-                                                                              StateMachineTransition (..), mkStep)
+import           Language.Plutus.Contract.StateMachine                       (InvalidTransition, SMContractError,
+                                                                              StateMachine, StateMachineTransition (..),
+                                                                              mkStep)
 import           Language.PlutusTx.Coordination.Contracts.Prism.StateMachine (IDAction (PresentCredential), IDState,
                                                                               UserCredential (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Prism.StateMachine as StateMachine
@@ -58,7 +59,8 @@ credentialManager =
 -- | Error that occurs when running the 'credential-token-req' RPC call.
 --   This needs to be handled by the client.
 data CredentialManagerClientError =
-    StateMachineError (SMContractError IDState IDAction)
+    StateMachineError SMContractError
+    | TransitionError (InvalidTransition IDState IDAction)
     deriving stock (Haskell.Eq, Haskell.Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -78,7 +80,8 @@ presentToken :: forall s.
     -> Contract s CredentialManagerClientError (TxConstraints IDAction IDState, ScriptLookups (StateMachine IDState IDAction))
 presentToken userCredential = do
     let theClient = StateMachine.machineClient (StateMachine.scriptInstance userCredential) userCredential
-    StateMachineTransition{smtConstraints=cons, smtLookups=lookups} <-
-        mapError StateMachineError
-        $ mkStep theClient PresentCredential
-    pure (cons, lookups)
+    t <- mapError StateMachineError $ mkStep theClient PresentCredential
+    case t of
+        Left e -> throwError (TransitionError e)
+        Right StateMachineTransition{smtConstraints=cons, smtLookups=lookups} ->
+            pure (cons, lookups)

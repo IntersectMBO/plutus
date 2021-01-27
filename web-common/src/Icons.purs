@@ -10,6 +10,7 @@ data Icon
   | ArrowRight
   | ArrowDown
   | ArrowLeft
+  | Bars
   | Close
   | Check
   | Bitcoin
@@ -46,7 +47,9 @@ iconClass ArrowDown = ClassName "fa fa-arrow-down"
 
 iconClass ArrowLeft = ClassName "fa fa-arrow-left"
 
-iconClass Close = ClassName "fa fa-close"
+iconClass Bars = ClassName "fa fa-bars"
+
+iconClass Close = ClassName "fa fa-times"
 
 iconClass Check = ClassName "fa fa-check"
 

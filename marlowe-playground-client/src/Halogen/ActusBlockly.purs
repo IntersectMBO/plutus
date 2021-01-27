@@ -1,5 +1,6 @@
 module Halogen.ActusBlockly where
 
+import Prelude hiding (div)
 import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, blockToCode)
@@ -9,23 +10,25 @@ import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
+import Data.Newtype (unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Effect (Effect)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Foreign.Generic (encodeJSON)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
+import Halogen.BlocklyCommons (blocklyEvents, updateUnsavedChangesActionHandler)
 import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref, src, attr)
 import Marlowe.ActusBlockly (buildGenerator, parseActusJsonCode)
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 
 foreign import sendContractToShiny ::
   String ->
@@ -36,6 +39,7 @@ type State
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , showShiny :: Boolean
+    , useEvents :: Boolean
     }
 
 _actusBlocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -63,19 +67,28 @@ data ContractFlavour
 data Action
   = Inject String (Array BlockDefinition)
   | GetTerms ContractFlavour
+  | BlocklyEvent BT.BlocklyEvent
   | RunAnalysis
 
 data Message
   = Initialized
   | CurrentTerms ContractFlavour String
+  | CodeChange
 
 type DSL m a
   = HalogenM State Action () Message m a
 
-blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
+blockly :: forall m. MonadAff m => String -> Array BlockDefinition -> Component HTML Query Unit Message m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Just "(Labs is an experimental feature)", showShiny: false }
+    { initialState:
+        const
+          { actusBlocklyState: Nothing
+          , generator: Nothing
+          , errorMessage: Just "(Labs is an experimental feature)"
+          , showShiny: false
+          , useEvents: false
+          }
     , render
     , eval:
         H.mkEval
@@ -120,7 +133,7 @@ handleQuery (LoadWorkspace xml next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
-handleAction :: forall m. MonadEffect m => Action -> DSL m Unit
+handleAction :: forall m. MonadAff m => Action -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusBlocklyToolbox")
   let
@@ -134,8 +147,11 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  assign _actusBlocklyState (Just blocklyState)
-  assign _generator (Just generator)
+  void $ H.subscribe $ blocklyEvents BlocklyEvent blocklyState.workspace
+  modify_
+    ( set _actusBlocklyState (Just blocklyState)
+        <<< set _generator (Just generator)
+    )
 
 handleAction (GetTerms flavour) = do
   res <-
@@ -152,7 +168,18 @@ handleAction (GetTerms flavour) = do
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      raise $ CurrentTerms flavour $ contract
+      case parseActusJsonCode contract of
+        Left e -> assign _errorMessage $ Just e
+        Right ctRaw -> do
+          let
+            ct = (unwrap ctRaw)
+          case flavour of
+            F ->
+              if (isJust ct.ct_RRCL) then
+                assign _errorMessage $ Just "Rate resets are not allowed in static contracts"
+              else
+                raise $ CurrentTerms flavour $ contract
+            _ -> raise $ CurrentTerms flavour $ contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
@@ -178,6 +205,8 @@ handleAction RunAnalysis = do
           liftEffect $ sendContractToShiny $ encodeJSON c
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+
+handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

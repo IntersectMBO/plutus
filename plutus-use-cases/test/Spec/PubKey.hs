@@ -1,18 +1,18 @@
 {-# LANGUAGE TypeApplications #-}
-module Spec.PubKey(tests) where
+module Spec.PubKey(tests, pubKeyTrace) where
 
 import           Control.Monad                                   (void)
 import qualified Data.Map                                        as Map
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
 import qualified Ledger
 import qualified Ledger.Ada                                      as Ada
 import           Ledger.Constraints                              (ScriptLookups (..))
 import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts                                  (unitRedeemer)
 import           Ledger.Typed.Scripts                            as Scripts
+import qualified Plutus.Trace.Emulator                           as Trace
 
 import           Language.PlutusTx.Coordination.Contracts.PubKey (PubKeyError, pubKeyContract)
 
@@ -37,7 +37,14 @@ theContract = do
 tests :: TestTree
 tests = testGroup "pubkey"
   [ checkPredicate "works like a public key output"
-      theContract
-      (walletFundsChange w1 mempty /\ assertDone w1 (const True) "pubkey contract not done")
-      (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1)
+      (walletFundsChange w1 mempty .&&. assertDone theContract (Trace.walletInstanceTag w1) (const True) "pubkey contract not done")
+      pubKeyTrace
   ]
+
+-- | Use 'pubKeyContract' to create a script output that works like a
+--   public key output, requiring only the right signature on the spending
+--   transaction. Then spend the script output.
+pubKeyTrace :: Trace.EmulatorTrace ()
+pubKeyTrace = do
+    _ <- Trace.activateContractWallet w1 theContract
+    void $ Trace.waitNSlots 2

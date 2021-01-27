@@ -37,15 +37,16 @@ import           GHC.Generics                          (Generic)
 import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
 import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
+import           Ledger.Contexts                       (TxInfo (..), ValidatorCtx (..))
+import qualified Ledger.Contexts                       as Validation
 import qualified Ledger.Interval                       as Interval
 import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Validation                     (TxInfo (..), ValidatorCtx (..))
-import qualified Ledger.Validation                     as Validation
 import           Ledger.Value                          (Value)
 import qualified Ledger.Value                          as Value
 
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..), Void)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..),
+                                                        TransitionResult (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..))
@@ -96,7 +97,8 @@ data MSState =
 
     | CollectingSignatures Payment [PubKeyHash]
     -- ^ A payment has been proposed and is awaiting signatures.
-    deriving (Show)
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Eq MSState where
     {-# INLINABLE (==) #-}
@@ -119,18 +121,20 @@ data Input =
 
     | Pay
     -- ^ Make the payment.
-    deriving Show
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 data MultiSigError =
     MSContractError ContractError
-    | MSStateMachineError (SM.SMContractError MSState Input)
-    deriving Show
+    | MSStateMachineError SM.SMContractError
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 makeClassyPrisms ''MultiSigError
 
 instance AsContractError MultiSigError where
     _ContractError = _MSContractError
 
-instance AsSMContractError MultiSigError MSState Input where
+instance AsSMContractError MultiSigError where
     _SMContractError = _MSStateMachineError
 
 type MultiSigSchema =
@@ -253,13 +257,13 @@ client p = SM.mkStateMachineClient (machineInstance p)
 
 contract ::
     ( AsContractError e
-    , AsSMContractError e MSState Input
+    , AsSMContractError e
     )
     => Params
     -> Contract MultiSigSchema e ()
 contract params = forever endpoints where
     theClient = client params
-    endpoints = lock `select` propose `select` cancel `select` addSignature `select` pay
+    endpoints = (TransitionSuccess <$> lock) `select` propose `select` cancel `select` addSignature `select` pay
     propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel
     addSignature = endpoint @"add-signature" >> (pubKeyHash <$> ownPubKey) >>= SM.runStep theClient . AddSignature

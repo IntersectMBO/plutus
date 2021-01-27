@@ -23,7 +23,6 @@ import qualified GhcPlugins                             as GHC
 
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Control.Monad.State
 
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as Map
@@ -44,8 +43,6 @@ data CompileContext uni fun = CompileContext {
     ccScopes          :: ScopeStack uni fun,
     ccBlackholed      :: Set.Set GHC.Name
     }
-
-data CompileState = CompileState {}
 
 -- | A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
 -- will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use
@@ -118,7 +115,6 @@ type Compiling uni fun m =
     , MonadError (CompileError uni fun) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
-    , MonadState CompileState m
     , MonadDefs LexName uni fun () m
     , PLC.GShow uni, PLC.GEq uni
     , PLC.ToBuiltinMeaning uni fun

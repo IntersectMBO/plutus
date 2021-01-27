@@ -1,9 +1,8 @@
-{ thorpSrc, mvn2nix, stdenv, jdk11_headless, maven, makeWrapper, graphviz }:
+{ thorpSrc, mvn2nix, stdenv, jdk11_headless, maven, makeWrapper, graphviz, lib, writeText }:
 let
-
-  # This file was generated from mvn2nix pom.xml > mvn2nix-lock.json however one of the hashes was incorrect
-  # and so was changed manually, see https://github.com/fzakaria/mvn2nix/issues/29
-  # also the format in the json file is base32 but the error is reported in base64 so you need to convert
+  # The lock file iss generated from mvn2nix pom.xml > mvn2nix-lock.json however one of the hashes was incorrect
+  # (see https://github.com/fzakaria/mvn2nix/issues/29) so we override it in mvn2nix-lock.json
+  # also the format in the json file is base32 but hash errors reported are base64 so you need to convert
   # nix-hash --type sha256 --to-base16 $expectedHash
   mavenRepository = mvn2nix.buildMavenRepositoryFromLockFile { file = ./mvn2nix-lock.json; };
 in

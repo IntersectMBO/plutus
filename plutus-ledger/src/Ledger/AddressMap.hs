@@ -27,23 +27,25 @@ module Ledger.AddressMap(
     fromChain
     ) where
 
-import           Codec.Serialise.Class (Serialise)
-import           Control.Lens          (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, view, (&), (.~), (^.))
-import           Control.Monad         (join)
-import           Data.Aeson            (FromJSON (..), ToJSON (..))
-import qualified Data.Aeson            as JSON
-import qualified Data.Aeson.Extras     as JSON
-import           Data.Foldable         (fold)
-import           Data.Map              (Map)
-import qualified Data.Map              as Map
-import           Data.Maybe            (mapMaybe)
-import qualified Data.Set              as Set
-import           GHC.Generics          (Generic)
+import           Codec.Serialise.Class    (Serialise)
+import           Control.Lens             (At (..), Index, IxValue, Ixed (..), Lens', at, lens, non, view, (&), (.~),
+                                           (^.))
+import           Control.Monad            (join)
+import           Data.Aeson               (FromJSON (..), ToJSON (..))
+import qualified Data.Aeson               as JSON
+import qualified Data.Aeson.Extras        as JSON
+import           Data.Foldable            (fold)
+import           Data.Map                 (Map)
+import qualified Data.Map                 as Map
+import           Data.Maybe               (mapMaybe)
+import qualified Data.Set                 as Set
+import           GHC.Generics             (Generic)
 
-import           Ledger                (Address, Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), Value,
-                                        txId)
 import           Ledger.Blockchain
-import qualified Ledger.Tx             as Tx
+import           Plutus.V1.Ledger.Address (Address (..))
+import           Plutus.V1.Ledger.Tx      (Tx (..), TxIn (..), TxOut (..), TxOutRef (..), TxOutTx (..), txId)
+import qualified Plutus.V1.Ledger.Tx      as Tx
+import           Plutus.V1.Ledger.Value   (Value)
 
 type UtxoMap = Map TxOutRef TxOutTx
 
