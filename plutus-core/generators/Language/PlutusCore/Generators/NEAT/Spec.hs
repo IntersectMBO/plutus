@@ -5,6 +5,7 @@ generators.
 -}
 
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -24,23 +25,29 @@ module Language.PlutusCore.Generators.NEAT.Spec
   , names
   , throwCtrex
   , Ctrex (..)
+  , handleError
   ) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.Builtins
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                             (Enumerable (..), Options (..), ctrex', search')
-import           Data.Coolean                               (Cool, toCool, (!=>))
+import           Control.Search                                             (Enumerable (..), Options (..), ctrex',
+                                                                             search')
+import           Data.Coolean                                               (Cool, toCool, (!=>))
 import           Data.Either
 import           Data.Maybe
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
+import qualified Data.Stream                                                as Stream
+import qualified Data.Text                                                  as Text
+import           System.IO.Unsafe
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -54,9 +61,19 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 12
+  { genDepth = 13
   , genMode  = OF
   }
+
+
+-- a version of the `plc` runtime which behaves the same as the
+-- default except trace is silent and doesn't end up in the test log
+
+testDefaultFunDyn :: DefaultFunDyn
+testDefaultFunDyn = DefaultFunDyn (const $ return ())
+
+testBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+testBuiltinsRuntime = toBuiltinsRuntime testDefaultFunDyn defaultCostModel
 
 tests :: GenOptions -> TestTree
 tests genOpts@GenOptions{} =
@@ -64,23 +81,20 @@ tests genOpts@GenOptions{} =
 
   [ -- as originally written, use lazy-search to find ctrexs
     bigTest "normalization commutes with conversion from generated types"
-      genOpts
+      genOpts {genDepth = 13}
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
   , bigTest "normal types cannot reduce"
-      genOpts
+      genOpts {genDepth = 14}
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
   , bigTest "type preservation - CK & CEK"
-      genOpts
-      (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      genOpts {genDepth = 18}
+      (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
   , bigTest "CEK and CK produce the same output"
-      genOpts
---    v - this fails as it exposes mistreatment of type annotations by CEK
---    (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
---    v - this would also fail if the depth was increased
-      (TyBuiltinG TyIntegerG)
+      genOpts {genDepth = 18}
+      (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_Ck_Cek)
   ]
 
@@ -102,6 +116,16 @@ not exploited.
 -- This property is expected to hold for the CK machine and fail for
 -- the CEK machine at the time of writing.
 
+
+-- handle a user error and turn it back into an error term
+handleError :: Type TyName DefaultUni ()
+       -> ErrorWithCause (EvaluationError user internal) term
+       -> Either (ErrorWithCause (EvaluationError user internal) term)
+                 (Term TyName Name DefaultUni DefaultFun ())
+handleError ty e = case _ewcError e of
+  UserEvaluationError     _ -> return (Error () ty)
+  InternalEvaluationError _ -> throwError e
+
 prop_typePreservation :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_typePreservation tyG tmG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
@@ -114,16 +138,12 @@ prop_typePreservation tyG tmG = do
 
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
-  tmCK <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  tmCK <- withExceptT CkP $ liftEither $
+    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
-  -- Check if the converted term, when evaluated by CEK, still has the same type:
-
-  tmCEK <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
-  withExceptT
-    (\ (_ :: TypeError (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun ()) -> Ctrex (CtrexTypePreservationFail tyG tmG tm tmCEK))
-    (checkType tcConfig () tmCEK (Normalized ty))
-    `catchError` \_ -> return () -- expecting this to fail at the moment
+  -- note: the CEK does not respect this property in general as it
+  -- does not properly handle type annotations.
 
 -- |Property: check if both the CK and CEK machine produce the same ouput
 --
@@ -146,9 +166,11 @@ prop_agree_Ck_Cek tyG tmG = do
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
   -- check if CK and CEK give the same output
+  tmCek <- withExceptT CekP $ liftEither $
+    evaluateCek testBuiltinsRuntime tm `catchError` handleError ty
 
-  tmCek <- withExceptT CekP $ liftEither $ evaluateCek defBuiltinsRuntime tm
-  tmCk <- withExceptT CkP $ liftEither $ evaluateCk defBuiltinsRuntime tm
+  tmCk <- withExceptT CkP $ liftEither $
+    evaluateCk testBuiltinsRuntime tm `catchError` handleError ty
   unless (tmCk == tmCek) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG [tmCek,tmCk])
 
 -- |Property: the following diagram commutes for well-kinded types...
@@ -368,6 +390,23 @@ tynames = mkTextNameStream "t"
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
 
+-- given a prop, generate examples and then turn them into individual
+-- tasty tests. This can be accomplished without unsafePerformIO but
+-- this is convenient to use.
+-- e.g., add this to the tesGroup "NEAT" list above:
+{-
+  mapTest
+      genOpts {genDepth = 13}
+      (Type ())
+      (packTest prop_normalizeConvertCommuteTypes)
+-}
+
+_mapTest :: (Check t a, Enumerable a)
+        => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
+_mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
+  where
+  examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
+
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
 packAssertion f t a =
@@ -377,9 +416,10 @@ packAssertion f t a =
 
 -- | generate examples using `search'` and then generate one big test
 -- that applies the given test to each of them.
+
 bigTest :: (Check t a, Enumerable a)
         => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
-bigTest s GenOptions{..} t f = testCase s $ do
-  as <- search' genMode genDepth (\a -> check t a)
+bigTest s GenOptions{..} t f = testCaseInfo s $ do
+  as <- search' genMode genDepth (\a ->  check t a)
   _  <- traverse (f t) as
-  return ()
+  return $ show (length as)

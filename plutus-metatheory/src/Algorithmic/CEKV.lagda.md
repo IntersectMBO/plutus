@@ -79,7 +79,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
 
 ITel b ∅       σ = ⊤
 ITel b (Γ ,⋆ J) σ = ITel b Γ (σ ∘ S) × ∅ ⊢Nf⋆ J
-ITel b (Γ , A) σ = ITel b Γ σ × Value (subNf σ A)
+ITel b (Γ , A)  σ = ITel b Γ σ × Value (subNf σ A)
 
 -- ITel is very similar to Env...
 -- The most significant difference is that envs don't contain types
@@ -184,6 +184,8 @@ BUILTIN takeByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   inj₁ (V-con (bytestring (take i b)))
 BUILTIN dropByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   inj₁ (V-con (bytestring (drop i b)))
+BUILTIN lessThanByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (B< b b')))
+BUILTIN greaterThanByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (B> b b')))
 BUILTIN sha2-256 σ (V-con (bytestring b) ,, tt) =
   inj₁ (V-con (bytestring (SHA2-256 b)))
 BUILTIN sha3-256 σ (V-con (bytestring b) ,, tt) =
@@ -249,6 +251,8 @@ ival equalsInteger = V-I⇒ equalsInteger {Γ = proj₁ (proj₂ (ISIG equalsInt
 ival concatenate = V-I⇒ concatenate {Γ = proj₁ (proj₂ (ISIG concatenate))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG concatenate))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin concatenate)
 ival takeByteString = V-I⇒ takeByteString {Γ = proj₁ (proj₂ (ISIG takeByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG takeByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin takeByteString)
 ival dropByteString = V-I⇒ dropByteString {Γ = proj₁ (proj₂ (ISIG dropByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG dropByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin dropByteString)
+ival lessThanByteString = V-I⇒ lessThanByteString {Γ = proj₁ (proj₂ (ISIG lessThanByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG lessThanByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin lessThanByteString)
+ival greaterThanByteString = V-I⇒ greaterThanByteString {Γ = proj₁ (proj₂ (ISIG greaterThanByteString))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG greaterThanByteString))} refl refl refl (λ()) (≤Cto≤C' (skip base)) tt (ibuiltin greaterThanByteString)
 ival sha2-256 = V-I⇒ sha2-256 {Γ = proj₁ (proj₂ (ISIG sha2-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha2-256))} refl refl refl (λ()) base tt (ibuiltin sha2-256)
 ival sha3-256 = V-I⇒ sha3-256 {Γ = proj₁ (proj₂ (ISIG sha3-256))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG sha3-256))} refl refl refl (λ()) base tt (ibuiltin sha3-256)
 ival verifySignature = V-I⇒ verifySignature {Γ = proj₁ (proj₂ (ISIG verifySignature))}{Δ = ∅}{C = proj₂ (proj₂ (ISIG verifySignature))} refl refl refl (λ()) (≤Cto≤C' (skip (skip base))) tt (ibuiltin verifySignature)
@@ -272,17 +276,17 @@ IBUILTIN subtractInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
 IBUILTIN multiplyInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (V-con (integer (i ** j)))
 IBUILTIN divideInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer))-- divide by zero
-... | yes p = inj₁ (V-con (integer (div i j)))
+... | no ¬p = inj₁ (V-con (integer (div i j)))
+... | yes p = inj₂ (E-error (con integer))-- divide by zero
 IBUILTIN quotientInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (quot i j)))
+... | no ¬p = inj₁ (V-con (integer (quot i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN remainderInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (rem i j)))
+... | no ¬p = inj₁ (V-con (integer (rem i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN modInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = inj₂ (E-error (con integer)) -- divide by zero
-... | yes p = inj₁ (V-con (integer (mod i j)))
+... | no ¬p = inj₁ (V-con (integer (mod i j)))
+... | yes p = inj₂ (E-error (con integer)) -- divide by zero
 IBUILTIN lessThanInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
   inj₁ (decIf (i <? j) (V-con (bool true)) (V-con (bool false)))
 IBUILTIN lessThanEqualsInteger σ ((tt ,, V-con (integer i)) ,, V-con (integer j)) =
@@ -297,6 +301,8 @@ IBUILTIN concatenate σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) 
   inj₁ (V-con (bytestring (concat b b')))
 IBUILTIN takeByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (take i b)))
 IBUILTIN dropByteString σ ((tt ,, V-con (integer i)) ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (drop i b)))
+IBUILTIN lessThanByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = inj₁ (V-con (bool (B< b b')))
+IBUILTIN greaterThanByteString σ ((tt ,, V-con (bytestring b)) ,, V-con (bytestring b')) = inj₁ (V-con (bool (B> b b')))
 IBUILTIN sha2-256 σ (tt ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (SHA2-256 b)))
 IBUILTIN sha3-256 σ (tt ,, V-con (bytestring b)) = inj₁ (V-con (bytestring (SHA3-256 b)))
 IBUILTIN verifySignature σ ((((tt ,, V-con (bytestring k)) ,, V-con (bytestring d))) ,, V-con (bytestring c)) with verifySig k d c
