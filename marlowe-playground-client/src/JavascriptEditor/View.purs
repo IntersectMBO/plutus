@@ -68,7 +68,7 @@ sendToSimulationButton state =
   compilationResult = view _compilationResult state
 
   enabled' = case compilationResult of
-    (JS.CompiledSuccessfully _) -> true
+    JS.CompiledSuccessfully _ -> true
     _ -> false
 
 editorOptions :: forall p. State -> HTML p Action
@@ -107,8 +107,8 @@ compileButton state =
   where
   buttonText = case view _compilationResult state of
     JS.Compiling -> "Compiling..."
-    (JS.CompiledSuccessfully _) -> "Compiled"
-    (JS.CompilationError _) -> "Compiled"
+    JS.CompiledSuccessfully _ -> "Compiled"
+    JS.CompilationError _ -> "Compiled"
     JS.NotCompiled -> "Compile"
 
   enabled' = case view _compilationResult state of
@@ -118,8 +118,8 @@ compileButton state =
   classes' =
     [ ClassName "btn" ]
       <> case view _compilationResult state of
-          (JS.CompiledSuccessfully _) -> [ ClassName "success" ]
-          (JS.CompilationError _) -> [ ClassName "error" ]
+          JS.CompiledSuccessfully _ -> [ ClassName "success" ]
+          JS.CompilationError _ -> [ ClassName "error" ]
           _ -> []
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
@@ -140,18 +140,18 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , analyzeButton loadingAnalyseContract enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
     , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
-  loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
+  loadingWarningAnalysis = state ^. _analysisState <<< to isStaticLoading
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
   loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
 
-  enabled' = not loadingAnalyseContract && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 
 panelContents state ErrorsView =
   section

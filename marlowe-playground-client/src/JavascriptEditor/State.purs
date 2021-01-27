@@ -168,8 +168,8 @@ compileAndAnalyze settings initialAnalysisState doAnalyze = do
       assign _analysisState initialAnalysisState
       handleAction settings Compile
       compileAndAnalyze settings initialAnalysisState doAnalyze
-    (CompiledSuccessfully (InterpreterResult interpretedResult)) -> doAnalyze interpretedResult.result
-    (CompilationError _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
+    CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
+    CompilationError _ -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit

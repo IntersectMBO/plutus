@@ -135,8 +135,10 @@ runAnalysis doAnalyze =
     $ runMaybeT do
         contents <- MaybeT $ editorGetValue
         contract <- hoistMaybe $ parseContract' contents
-        lift $ doAnalyze contract
-        lift $ lintText contents
+        lift
+          $ do
+              doAnalyze contract
+              lintText contents
 
 parseContract' :: String -> Maybe Contract
 parseContract' = fromTerm <=< hush <<< parseContract

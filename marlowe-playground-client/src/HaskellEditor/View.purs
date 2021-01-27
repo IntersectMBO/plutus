@@ -101,7 +101,7 @@ compileButton state =
   where
   buttonText = case view _compilationResult state of
     Loading -> "Compiling..."
-    (Success _) -> "Compiled"
+    Success _ -> "Compiled"
     _ -> "Compile"
 
   enabled' = case view _compilationResult state of
@@ -111,8 +111,8 @@ compileButton state =
   classes' =
     [ ClassName "btn" ]
       <> case view _compilationResult state of
-          (Success (Right _)) -> [ ClassName "success" ]
-          (Success (Left _)) -> [ ClassName "error" ]
+          Success (Right _) -> [ ClassName "success" ]
+          Success (Left _) -> [ ClassName "error" ]
           _ -> []
 
 sendToSimulationButton :: forall p. State -> HTML p Action
@@ -147,18 +147,18 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , analyzeButton loadingAnalyseContract enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
     , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
     , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
     ]
   where
-  loadingAnalyseContract = state ^. _analysisState <<< to isStaticLoading
+  loadingWarningAnalysis = state ^. _analysisState <<< to isStaticLoading
 
   loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
 
   loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
 
-  enabled' = not loadingAnalyseContract && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
+  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 
 panelContents state ErrorsView =
   section
