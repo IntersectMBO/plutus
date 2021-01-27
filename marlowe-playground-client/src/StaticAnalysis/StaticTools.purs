@@ -307,25 +307,13 @@ stepAnalysis ::
 stepAnalysis problemDef settings isCounterExample rad =
   let
     thereAreMore /\ newRad = stepSubproblem problemDef isCounterExample rad
-
-    thereAreNewCounterExamples = length newRad.counterExampleSubcontracts > length rad.counterExampleSubcontracts
   in
     if thereAreMore then do
       assign _analysisState (problemDef.analysisDataSetter (AnalysisInProgress newRad))
-      when thereAreNewCounterExamples refreshEditor
       response <- checkContractForFailedAssertions settings (newRad.currContract) (newRad.originalState)
       updateWithResponse problemDef settings (AnalysisInProgress newRad) response
     else do
       let
         result = finishAnalysis newRad
       assign _analysisState (problemDef.analysisDataSetter result)
-      when thereAreNewCounterExamples refreshEditor
       pure result
-  where
-  -- FIXME: Refresh editor seems to be updating the simulation slot, probably this is like this
-  --        from a previous use case. At the moment we are not running the analysis from the simulator
-  --        so I don't think this is needed anymore. Confirm before delete.
-  -- mContent <- query _simulatorEditorSlot unit (Monaco.GetText identity)
-  -- for_ mContent (\content -> void $ query _simulatorEditorSlot unit $ Monaco.SetText content unit)
-  refreshEditor = do
-    pure unit
