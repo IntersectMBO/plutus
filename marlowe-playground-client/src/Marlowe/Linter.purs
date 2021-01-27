@@ -54,7 +54,7 @@ import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
-import MarloweEditor.Types (ContractPath, ContractPathStep(..), PrefixMap)
+import StaticAnalysis.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
 import Text.Pretty (hasArgs, pretty)
 

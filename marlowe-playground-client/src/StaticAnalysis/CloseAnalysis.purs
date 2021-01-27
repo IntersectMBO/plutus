@@ -1,22 +1,35 @@
 module CloseAnalysis where
 
+import Prelude hiding (div)
 import Data.Foldable (foldl)
-import Data.List (List(..))
-import Data.List.NonEmpty (toList)
-import Data.Maybe (Maybe(..))
+import Data.Lens (assign)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM)
-import MainFrame.Types (ChildSlots)
 import Marlowe (SPParams_)
-import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..))
+import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
-import MarloweEditor.Types (Action, AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, State)
-import Prelude (Void, const, mempty, not, zero, ($), (&&), (==))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
+import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, _analysisState)
+
+analyseClose ::
+  forall m state action slots.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Contract ->
+  HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
+analyseClose settings contract = do
+  assign _analysisState (CloseAnalysis AnalysisNotStarted)
+  -- when editor and simulator were together the analyse contract could be made
+  -- at any step of the simulator. Now that they are separate, it can only be done
+  -- with initial state
+  let
+    emptySemanticState = emptyState zero
+  newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
+  assign _analysisState (CloseAnalysis newCloseAnalysisState)
 
 extractAccountIdsFromZipper :: ContractZipper -> Set (AccountId /\ Token)
 extractAccountIdsFromZipper = go
@@ -67,9 +80,9 @@ closeAnalysisAnalysisDef =
   }
 
 startCloseAnalysis ::
-  forall m.
+  forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Contract ->
-  S.State -> HalogenM State Action ChildSlots Void m MultiStageAnalysisData
+  S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startCloseAnalysis = startMultiStageAnalysis closeAnalysisAnalysisDef

@@ -2,47 +2,48 @@ module MarloweEditor.State
   ( handleAction
   , editorGetValue
   , {- FIXME: this should be an action -} editorResize
+  , editorSetTheme
   ) where
 
 import Prelude hiding (div)
-import CloseAnalysis (startCloseAnalysis)
-import BottomPanel.Types as BottomPanel
-import BottomPanel.State as BottomPanel
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
+import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader (runReaderT)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
 import Data.Lens (assign, preview, set, use)
 import Data.Lens.Index (ix)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
 import Marlowe (SPParams_)
-import Marlowe as Server
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
+import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Contract, emptyState)
-import Marlowe.Symbolic.Types.Request as MSReq
-import MarloweEditor.Types (Action(..), AnalysisState(..), BottomPanelView, State, _analysisState, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
+import Marlowe.Semantics (Contract)
+import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
-import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import StaticAnalysis.Reachability (getUnreachableContracts, startReachabilityAnalysis)
+import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
+import StaticAnalysis.StaticTools (analyseContract)
+import StaticAnalysis.Types (_analysisState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
@@ -62,6 +63,11 @@ handleAction ::
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
+handleAction _ Init = do
+  editorSetTheme
+  mContents <- liftEffect $ LocalStorage.getItem marloweBufferLocalStorageKey
+  editorSetValue $ fromMaybe ME.example mContents
+
 handleAction _ (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
@@ -69,27 +75,7 @@ handleAction _ (ChangeKeyBindings bindings) = do
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
-  analysisState <- use _analysisState
-  let
-    parsedContract = parseContract text
-
-    unreachableContracts = getUnreachableContracts analysisState
-
-    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
-  markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
-  traverse_ editorSetMarkers markers
-  {-
-    There are three different Monaco objects that require the linting information:
-      * Markers
-      * Code completion (type aheads)
-      * Code suggestions (Quick fixes)
-     To avoid having to recalculate the linting multiple times, we add aditional context to the providers
-     whenever the code changes.
-  -}
-  providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
-  case providers of
-    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
-    _ -> pure unit
+  lintText text
 
 handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
 
@@ -131,58 +117,68 @@ handleAction _ (InitMarloweProject contents) = do
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
-handleAction settings AnalyseContract =
-  void
-    $ runMaybeT do
-        contents <- MaybeT $ editorGetValue
-        contract <- hoistMaybe $ parseContract' contents
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        assign _analysisState (WarningAnalysis Loading)
-        response <- lift $ checkContractForWarnings contract emptySemanticState
-        assign _analysisState (WarningAnalysis response)
-  where
-  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+handleAction settings AnalyseContract = runAnalysis $ analyseContract settings
 
-handleAction settings AnalyseReachabilityContract =
-  void
-    $ runMaybeT do
-        contents <- MaybeT $ editorGetValue
-        contract <- hoistMaybe $ parseContract' contents
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        newReachabilityAnalysisState <- lift $ startReachabilityAnalysis settings contract emptySemanticState
-        assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+handleAction settings AnalyseReachabilityContract = runAnalysis $ analyseReachability settings
 
-handleAction settings AnalyseContractForCloseRefund =
-  void
-    $ runMaybeT do
-        contents <- MaybeT $ editorGetValue
-        contract <- hoistMaybe $ parseContract' contents
-        -- when editor and simulator were together the analyse contract could be made
-        -- at any step of the simulator. Now that they are separate, it can only be done
-        -- with initial state
-        let
-          emptySemanticState = emptyState zero
-        newCloseAnalysisState <- lift $ startCloseAnalysis settings contract emptySemanticState
-        assign _analysisState (CloseAnalysis newCloseAnalysisState)
+handleAction settings AnalyseContractForCloseRefund = runAnalysis $ analyseClose settings
 
 handleAction _ Save = pure unit
 
+runAnalysis ::
+  forall m.
+  MonadAff m =>
+  (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
+  HalogenM State Action ChildSlots Void m Unit
+runAnalysis doAnalyze =
+  void
+    $ runMaybeT do
+        contents <- MaybeT $ editorGetValue
+        contract <- hoistMaybe $ parseContract' contents
+        lift
+          $ do
+              doAnalyze contract
+              lintText contents
+
 parseContract' :: String -> Maybe Contract
 parseContract' = fromTerm <=< hush <<< parseContract
+
+lintText ::
+  forall m.
+  MonadAff m =>
+  String ->
+  HalogenM State Action ChildSlots Void m Unit
+lintText text = do
+  analysisState <- use _analysisState
+  let
+    parsedContract = parseContract text
+
+    unreachableContracts = getUnreachableContracts analysisState
+
+    (Tuple markerData additionalContext) = Linter.markers unreachableContracts parsedContract
+  markers <- query _marloweEditorPageSlot unit (Monaco.SetModelMarkers markerData identity)
+  traverse_ editorSetMarkers markers
+  {-
+    There are three different Monaco objects that require the linting information:
+      * Markers
+      * Code completion (type aheads)
+      * Code suggestions (Quick fixes)
+     To avoid having to recalculate the linting multiple times, we add aditional context to the providers
+     whenever the code changes.
+  -}
+  providers <- query _marloweEditorPageSlot unit (Monaco.GetObjects identity)
+  case providers of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
 
 runAjax ::
   forall m a.
   ExceptT AjaxError (HalogenM State Action ChildSlots Void m) a ->
   HalogenM State Action ChildSlots Void m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+editorSetTheme :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
+editorSetTheme = void $ query _marloweEditorPageSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit
 editorResize = void $ query _marloweEditorPageSlot unit (Monaco.Resize unit)

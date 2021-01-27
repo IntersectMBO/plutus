@@ -7,7 +7,7 @@ import BottomPanel.Types as BottomPanel
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Lens (Getter', Lens', Prism', Fold', prism, to)
+import Data.Lens (Getter', Lens', Prism', Fold', prism, to, (^.))
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
@@ -16,6 +16,7 @@ import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
 import Marlowe.Semantics (Contract)
+import StaticAnalysis.Types (AnalysisState(..))
 import Text.Pretty (pretty)
 
 data CompilationState
@@ -44,6 +45,9 @@ data Action
   | BottomPanelAction (BottomPanel.Action BottomPanelView Action)
   | SendResultToSimulator
   | InitJavascriptProject String
+  | AnalyseContract
+  | AnalyseReachabilityContract
+  | AnalyseContractForCloseRefund
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Javascript." <> s
@@ -55,6 +59,9 @@ instance actionIsEvent :: IsEvent Action where
   toEvent (BottomPanelAction action) = A.toEvent action
   toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
   toEvent (InitJavascriptProject _) = Just $ defaultEvent "InitJavascriptProject"
+  toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
+  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
+  toEvent AnalyseContractForCloseRefund = Just $ defaultEvent "AnalyseContractForCloseRefund"
 
 type DecorationIds
   = { topDecorationId :: String
@@ -72,6 +79,7 @@ type State
     , bottomPanelState :: BottomPanel.State BottomPanelView
     , compilationResult :: CompilationState
     , decorationIds :: Maybe DecorationIds
+    , analysisState :: AnalysisState
     }
 
 _keybindings :: Lens' State KeyBindings
@@ -86,16 +94,23 @@ _decorationIds = prop (SProxy :: SProxy "decorationIds")
 _bottomPanelState :: Lens' State (BottomPanel.State BottomPanelView)
 _bottomPanelState = prop (SProxy :: SProxy "bottomPanelState")
 
+isCompiling :: State -> Boolean
+isCompiling state = case state ^. _compilationResult of
+  Compiling -> true
+  _ -> false
+
 initialState :: State
 initialState =
   { keybindings: DefaultBindings
   , bottomPanelState: BottomPanel.initialState GeneratedOutputView
   , compilationResult: NotCompiled
   , decorationIds: Nothing
+  , analysisState: NoneAsked
   }
 
 data BottomPanelView
-  = ErrorsView
+  = StaticAnalysisView
+  | ErrorsView
   | GeneratedOutputView
 
 derive instance eqBottomPanelView :: Eq BottomPanelView

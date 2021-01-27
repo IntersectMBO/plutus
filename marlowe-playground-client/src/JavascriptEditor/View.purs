@@ -11,18 +11,20 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ClassName(..), ComponentHTML)
-import Halogen.Classes as Classes
 import Halogen.Classes (aHorizontal, codeEditor, group)
+import Halogen.Classes as Classes
 import Halogen.Extra (renderSubmodule)
 import Halogen.HTML (HTML, a, button, code_, div, div_, option, pre_, section, select, slot, text)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
-import Halogen.HTML.Properties (class_, classes, href)
+import Halogen.HTML.Properties (class_, classes, enabled, href)
 import Halogen.HTML.Properties as HTML
 import JavascriptEditor.State (mkEditor)
-import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings)
+import JavascriptEditor.Types (Action(..), BottomPanelView(..), State, _bottomPanelState, _compilationResult, _keybindings, isCompiling)
 import JavascriptEditor.Types as JS
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
+import StaticAnalysis.BottomPanel (analysisResultPane, analyzeButton)
+import StaticAnalysis.Types (_analysisState, isCloseAnalysisLoading, isReachabilityLoading, isStaticLoading)
 import Text.Pretty (pretty)
 
 render ::
@@ -41,6 +43,7 @@ render state =
   where
   panelTitles =
     [ { title: "Generated code", view: GeneratedOutputView, classes: [] }
+    , { title: "Static Analysis", view: StaticAnalysisView, classes: [] }
     , { title: "Errors", view: ErrorsView, classes: [] }
     ]
 
@@ -51,13 +54,22 @@ otherActions state =
   div [ classes [ group ] ]
     [ editorOptions state
     , compileButton state
-    , sendButton state
+    , sendToSimulationButton state
     ]
 
-sendButton :: forall p. State -> HTML p Action
-sendButton state = case view _compilationResult state of
-  JS.CompiledSuccessfully _ -> button [ onClick $ const $ Just SendResultToSimulator ] [ text "Send To Simulator" ]
-  _ -> text ""
+sendToSimulationButton :: forall p. State -> HTML p Action
+sendToSimulationButton state =
+  button
+    [ onClick $ const $ Just SendResultToSimulator
+    , enabled enabled'
+    ]
+    [ text "Send To Simulator" ]
+  where
+  compilationResult = view _compilationResult state
+
+  enabled' = case compilationResult of
+    JS.CompiledSuccessfully _ -> true
+    _ -> false
 
 editorOptions :: forall p. State -> HTML p Action
 editorOptions state =
@@ -86,12 +98,29 @@ jsEditor state = slot _jsEditorSlot unit mkEditor unit (Just <<< HandleEditorMes
 
 compileButton :: forall p. State -> HTML p Action
 compileButton state =
-  button [ onClick $ const $ Just Compile ]
-    [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+  button
+    [ onClick $ const $ Just Compile
+    , enabled enabled'
+    , classes classes'
+    ]
+    [ text buttonText ]
   where
-  isLoading JS.Compiling = true
+  buttonText = case view _compilationResult state of
+    JS.Compiling -> "Compiling..."
+    JS.CompiledSuccessfully _ -> "Compiled"
+    JS.CompilationError _ -> "Compiled"
+    JS.NotCompiled -> "Compile"
 
-  isLoading _ = false
+  enabled' = case view _compilationResult state of
+    JS.NotCompiled -> true
+    _ -> false
+
+  classes' =
+    [ ClassName "btn" ]
+      <> case view _compilationResult state of
+          JS.CompiledSuccessfully _ -> [ ClassName "success" ]
+          JS.CompilationError _ -> [ ClassName "error" ]
+          _ -> []
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state GeneratedOutputView =
@@ -105,6 +134,24 @@ panelContents state GeneratedOutputView =
       where
       numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
     _ -> [ text "There is no generated code" ]
+
+panelContents state StaticAnalysisView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
+    ]
+    [ analysisResultPane state
+    , analyzeButton loadingWarningAnalysis enabled' "Analyse for warnings" AnalyseContract
+    , analyzeButton loadingReachability enabled' "Analyse reachability" AnalyseReachabilityContract
+    , analyzeButton loadingCloseAnalysis enabled' "Analyse for refunds on Close" AnalyseContractForCloseRefund
+    ]
+  where
+  loadingWarningAnalysis = state ^. _analysisState <<< to isStaticLoading
+
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  loadingCloseAnalysis = state ^. _analysisState <<< to isCloseAnalysisLoading
+
+  enabled' = not loadingWarningAnalysis && not loadingReachability && not loadingCloseAnalysis && not (isCompiling state)
 
 panelContents state ErrorsView =
   section
