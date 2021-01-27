@@ -1,74 +1,31 @@
-module Halogen.Blockly where
+module BlocklyComponent.State where
 
 import Prelude hiding (div)
-import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
+import Blockly.Generator (blockToCode, newBlock)
+import Blockly.Internal (BlockDefinition, ElementId(..), getBlockById)
 import Blockly.Internal as Blockly
-import Blockly.Generator (Generator, newBlock, blockToCode)
-import Blockly.Types as BT
+import BlocklyComponent.Types (Action(..), Message(..), Query(..), State, _blocklyState, _errorMessage, _generator, _useEvents, emptyState)
+import BlocklyComponent.View (render)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, set, use)
-import Data.Lens.Record (prop)
+import Data.Lens (assign, set, use)
 import Data.Maybe (Maybe(..))
-import Data.Symbol (SProxy(..))
 import Data.Traversable (for, for_)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_)
+import Halogen (Component, HalogenM, liftEffect, mkComponent, modify_)
 import Halogen as H
 import Halogen.BlocklyCommons (updateUnsavedChangesActionHandler, blocklyEvents)
-import Halogen.HTML (HTML, div, text)
-import Halogen.HTML.Properties (class_, classes, id_, ref)
+import Halogen.HTML (HTML)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
 import Prim.TypeError (class Warn, Text)
 import Text.Extra as Text
 import Type.Proxy (Proxy(..))
-
-type State
-  = { blocklyState :: Maybe BT.BlocklyState
-    , generator :: Maybe Generator
-    , errorMessage :: Maybe String
-    , useEvents :: Boolean
-    }
-
-_blocklyState :: Lens' State (Maybe BT.BlocklyState)
-_blocklyState = prop (SProxy :: SProxy "blocklyState")
-
-_generator :: Lens' State (Maybe Generator)
-_generator = prop (SProxy :: SProxy "generator")
-
-_errorMessage :: Lens' State (Maybe String)
-_errorMessage = prop (SProxy :: SProxy "errorMessage")
-
-_useEvents :: Lens' State Boolean
-_useEvents = prop (SProxy :: SProxy "useEvents")
-
-emptyState :: State
-emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, useEvents: false }
-
-data Query a
-  = Resize a
-  | SetCode String a
-  | SetError String a
-  | GetWorkspace (XML -> a)
-  | LoadWorkspace XML a
-  | GetCode (String -> a)
-
-data Action
-  = Inject String (Array BlockDefinition)
-  | SetData Unit
-  | BlocklyEvent BT.BlocklyEvent
-
-data Message
-  = CodeChange
-
-type DSL slots m a
-  = HalogenM State Action slots Message m a
 
 blockly ::
   forall m.
@@ -90,7 +47,11 @@ blockly rootBlockName blockDefinitions =
           }
     }
 
-handleQuery :: forall slots m a. MonadEffect m => Query a -> DSL slots m (Maybe a)
+handleQuery ::
+  forall slots m a.
+  MonadEffect m =>
+  Query a ->
+  HalogenM State Action slots Message m (Maybe a)
 handleQuery (Resize next) = do
   mState <- use _blocklyState
   case mState of
@@ -163,7 +124,7 @@ handleAction ::
   Warn (Text "SCP-1648 Fix blockly code being lost after refresh") =>
   MonadAff m =>
   Action ->
-  DSL slots m Unit
+  HalogenM State Action slots Message m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
@@ -188,22 +149,3 @@ handleAction (Inject rootBlockName blockDefinitions) = do
 handleAction (SetData _) = pure unit
 
 handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
-
-blocklyRef :: RefLabel
-blocklyRef = RefLabel "blockly"
-
-render :: forall r p action. { errorMessage :: Maybe String | r } -> HTML p action
-render state =
-  div []
-    [ div
-        [ ref blocklyRef
-        , id_ "blocklyWorkspace"
-        , classes [ ClassName "blockly-workspace", ClassName "container-fluid" ]
-        ]
-        [ errorMessage state.errorMessage ]
-    ]
-
-errorMessage :: forall p i. Maybe String -> HTML p i
-errorMessage (Just error) = div [ class_ (ClassName "blocklyError") ] [ text error ]
-
-errorMessage Nothing = div [ class_ (ClassName "blocklyError") ] []

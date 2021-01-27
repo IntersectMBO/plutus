@@ -6,7 +6,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Halogen.Blockly as Blockly
+import BlocklyComponent.Types as Blockly
 
 data Action
   = HandleBlocklyMessage Blockly.Message

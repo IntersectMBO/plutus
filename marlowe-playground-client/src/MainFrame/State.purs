@@ -31,7 +31,7 @@ import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (withAnalytics)
-import Halogen.Blockly as Blockly
+import BlocklyComponent.Types as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
