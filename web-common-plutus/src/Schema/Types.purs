@@ -220,7 +220,7 @@ handleFormEvent initialValue event = cata (Fix <<< algebra event)
 
   algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF (handleFormEvent initialValue subEvent field1) field2
 
-  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleFormEvent initialValue subEvent field2)
+  algebra (SetSubField 2 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleFormEvent initialValue subEvent field2)
 
   algebra (SetSubField 0 subEvent) (FormMaybeF schema field) = FormMaybeF schema $ over _Just (handleFormEvent initialValue subEvent) field
 
