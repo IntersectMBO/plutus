@@ -3,7 +3,7 @@
 module Halogen.BlocklyCommons where
 
 import Prelude hiding (div)
-import Blockly (addChangeListener, removeChangeListener)
+import Blockly.Internal (addChangeListener, removeChangeListener)
 import Blockly.Events (fromEvent, newParentId, oldParentId)
 import Blockly.Types (BlocklyEvent, Workspace)
 import Blockly.Types as BT

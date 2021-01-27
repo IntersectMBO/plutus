@@ -1,4 +1,4 @@
-module Blockly where
+module Blockly.Internal where
 
 import Prelude
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)

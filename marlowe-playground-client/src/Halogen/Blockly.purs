@@ -1,8 +1,8 @@
 module Halogen.Blockly where
 
 import Prelude hiding (div)
-import Blockly (BlockDefinition, ElementId(..), XML, getBlockById)
-import Blockly as Blockly
+import Blockly.Internal (BlockDefinition, ElementId(..), XML, getBlockById)
+import Blockly.Internal as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
