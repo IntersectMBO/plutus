@@ -1,6 +1,8 @@
 ## Extending bytestring operations in PlutusTx and Plutus Core
 (19th November 2020)
 
+UPDATE: See the [Conclusions](#conclusions) for what we eventually decided to do.
+
 In a [Slack thread](https://input-output-rnd.slack.com/archives/C21UF2WVC/p1599120765047200)
 some time ago, Alex asked about extending support for bytestrings in Plutus Core.
 This document describes the issue and suggests some possible extensions.
@@ -118,3 +120,72 @@ Here's an initial proposal for some new Plutus Core builtins to improve bytestri
 Any new PLC builtins should be mirrored in PlutusTx, but this should be
 reasonably straightforward since everything mentioned above is based on existing
 Haskell functions.
+
+--------------------------------------------------------------------------------
+
+## Conclusions
+[January 2021]  After some discussion, we decided on the following.
+See also the comments on [PR #2480](https://github.com/input-output-hk/plutus/pull/2480).
+
+I'll write signatures of PLC builtins like this: `<integer, integer, bystetring> -> integer`.
+
+#### Strings
+
+We currently have two types of strings in PLC: a built-in `string` type which is
+implemented opaquely as the Haskell String type, and Scott-encoded lists of
+characters, produced when the PlutusTx compiler compiles Haskell Strings.  We
+should discourage people from using the latter, and we can probably do this by
+removing the character type and the appendChar builtin from Plutus Core.
+Also, we should replace the string type with `Data.Text` (and maybe change the PLC
+name to text to reduce confusion?).  Strings are mostly used for logging, so
+supporting them isn't a priority (although we may need to use them in conjunction
+with bytestrings: see below).  Even for logging, what we can do is pretty limited
+since we can't convert, eg, an integer to a string on the chain.  Probably what we
+really want is a proper debugger, but that would be a lot of work.
+
+#### Bystestrings
+
+* Get rid of `takeBytestring` and `dropBytestring` and replace them
+  with a function called `sliceBytestring` or `subByteString` or
+  something similar, of type
+     `<integer, integer, bytestring> -> bytestring`
+  I think we'd have to use the Haskell's `take` and `drop` bytestring operations
+  to do this anyway though: there doesn't seem to be a direct Haskell
+  equivalent.  Do we fail if an index is out of range, or just carry on
+  regardless?
+
+* Add a function `consByte: <integer, bytestring> -> bytestring` which adds a
+  byte to the front of a bytestring.  This would do a range check and return
+  error if the integer doesn't fit into a single byte.  We'd probably have to
+  go via `Data.ByteString.cons :: Word8 -> ByteString -> ByteString`, which
+  copies the whole of the original bytestring, so using this a lot would be
+  expensive.
+    * One way to avoid expensive computations involving repeated calls to `cons`
+      would be to have a function `consBytes` which takes
+      a list of characters and prepends them all to a bytestring in one go
+      (maybe via `pack`).  The problem with this is that we don't have lists in
+      Plutus Core at the moment
+      
+* Add `lengthOfByteString: <bytestring> -> integer.`
+
+* Add `byteAt: <bytestring, integer> -> integer`, failing if the index is out of range.
+
+* Probably we should change `concatenate` to `appendBytestring` while we're at it.
+
+* We also want some way of converting a string into a bytestring.  There seem to
+  be at least three ways of doing this:
+   * We could add a function `hexStringToByteString` which would convert strings
+     like "1A2F357C" to bytestrings.  This might be expensive to run on the
+     chain, especially if you're converting massive hashes (you'd have to read
+     pair of characters and convert them into bytes, failing if you get a
+     non-hex digit).
+   * We can use `Data.Text.Encoding.encodeUtf8` to convert a `Text` string to a
+     bytestring. It might be tricky for the programmer to write down the correct
+     string: for instance to get the bytestring `#1A2F357C` you'd have to write
+     `"\SUBx2F5|"` (where `\SUB` is the ascii character 0x1A).  Maybe we blame
+     the programmer if they get that wrong though.
+   * We can also use `OverloadedStrings` to write bytestrings directly in
+     Haskell in the form `"\x1Ax2F\x35\x7C"`.  This may be a bad idea (for one
+     thing, the `fromString` function doing this behind the scenes silently
+     truncates multi-byte characters to single bytes), but can we actually
+     prevent people from doing it?
