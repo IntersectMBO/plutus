@@ -1,18 +1,21 @@
 module BlocklyEditor.State where
 
 import Prelude
-import BlocklyEditor.Types (Action(..), State, _errorMessage, _marloweCode)
+import BlocklyEditor.Types (Action(..), State, _errorMessage, _hasHoles, _marloweCode)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
-import Data.Either (note, Either(..))
-import Data.Lens (assign)
+import Data.Either (Either(..), either, note)
+import Data.Lens (set)
+import Data.List (List(..))
 import Data.Maybe (Maybe(..))
-import Debug.Trace (spy)
+import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (HalogenM, query)
+import Halogen (HalogenM, modify_, query)
 import Halogen as H
 import Halogen.Blockly as Blockly
 import MainFrame.Types (ChildSlots, _blocklySlot)
+import Marlowe.Linter as Linter
 import Marlowe.Parser as Parser
 import Text.Extra as Text
 import Text.Pretty (pretty)
@@ -26,20 +29,33 @@ handleAction (HandleBlocklyMessage Blockly.CodeChange) = do
   eContract <-
     runExceptT do
       code <- ExceptT <<< map (note "Blockly Workspace is empty") $ query _blocklySlot unit $ H.request Blockly.GetCode
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      contract <- except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      let
+        hasHoles = Linter.hasHoles $ Linter.lint Nil contract
+      pure $ Tuple contract hasHoles
   case eContract of
-    Left e -> do
-      assign _errorMessage $ Just e
-      assign _marloweCode Nothing
-    Right contract -> do
-      assign _errorMessage Nothing
-      assign _marloweCode $ Just $ show $ pretty contract
+    Left e ->
+      modify_
+        ( set _errorMessage (Just e)
+            <<< set _marloweCode Nothing
+        )
+    Right (contract /\ hasHoles) ->
+      modify_
+        ( set _errorMessage Nothing
+            <<< set _marloweCode (Just $ show $ pretty contract)
+            <<< set _hasHoles hasHoles
+        )
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
 handleAction (InitBlocklyProject code) = do
-  assign _marloweCode $ Just code
   void $ query _blocklySlot unit $ H.tell (Blockly.SetCode code)
+  let
+    hasHoles = either (const false) identity $ (Linter.hasHoles <<< Linter.lint Nil) <$> Parser.parseContract code
+  modify_
+    ( set _marloweCode (Just code)
+        <<< set _hasHoles hasHoles
+    )
 
 handleAction SendToSimulator = pure unit
 
