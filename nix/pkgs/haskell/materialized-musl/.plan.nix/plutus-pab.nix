@@ -86,7 +86,6 @@
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."servant-swagger" or (errorHandler.buildDepError "servant-swagger"))
           (hsPkgs."swagger2" or (errorHandler.buildDepError "swagger2"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
@@ -167,7 +166,6 @@
           "Plutus/PAB/Instances"
           "Plutus/PAB/MonadLoggerBridge"
           "Plutus/PAB/Monitoring"
-          "Plutus/PAB/Swagger"
           "Plutus/PAB/Webserver/API"
           "Plutus/PAB/Webserver/Handler"
           "Plutus/PAB/Webserver/Server"
