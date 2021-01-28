@@ -38,6 +38,13 @@ import           Data.Proxy
 import           Data.Typeable
 
 -- | A higher-order version of 'Term'.
+-- We parameterize it by a monad, because there's no way we could generally convert a first-order
+-- 'Term' into a higher-order 'HTerm' in a pure way: the original term may contain free variables
+-- and we can't look under lambdas to find that out before evaluation starts. Hence we need to
+-- postpone converting variables when they appear under lambdas, which either means throwing an
+-- 'error' on a free variable or embedding delayed monadic computations right into the AST.
+-- It's not an unseen trick, here Kmett uses, for example: https://www.reddit.com/r/haskell/comments/j2q5p8/monthly_hask_anything_october_2020/g7zunsk/
+-- Except he hardcodes the monad to be 'IO' and we keep it general, which seems convenient.
 data HTerm m name uni fun ann
     = HConstant ann (Some (ValueOf uni))
     | HBuiltin ann fun
@@ -80,6 +87,7 @@ instance PrettyBy PrettyConfigPlc UserHoasError where
 instance Pretty fun => PrettyBy config (InternalHoasError fun) where
     prettyBy _ = pretty . show . fmap (display @String)
 
+-- | The type of errors that can occur during HOAS-based evaluation.
 type HoasException fun = EvaluationException UserHoasError (InternalHoasError fun)
 
 instance AsEvaluationFailure UserHoasError where
@@ -93,7 +101,7 @@ type Value unique name uni fun ann =
 -- | A builtin application consists of a (possibly partially applied) built-in function and
 -- a delayed computation returning the 'Term' representation of that builtin, which we need
 -- in case the built-in function never gets fully saturated, which requires us to put the
--- builtin into the resulting term.
+-- (possibly partially applied) builtin into the resulting term.
 data BuiltinApp unique name uni fun ann = BuiltinApp
     { _builtinAppTerm    :: EvalM unique name uni fun ann (Term name uni fun ann)
     , _builtinAppRuntime :: BuiltinRuntime (Value unique name uni fun ann)
@@ -165,6 +173,28 @@ lookupBuiltin ann fun (BuiltinsRuntime meanings) =
     case meanings ^? ix fun of
         Nothing      -> throwingWithCause _InternalHoasError (UnknownBuiltinHoasError fun) Nothing
         Just meaning -> pure . HBuiltin ann $ BuiltinApp (pure $ Builtin ann fun) meaning
+{- Note [Handling non-constant results]
+Evaluation may return a non-constant term. This has a couple of implications:
+
+1. we have to keep a 'Term' representation of a partial builtin application, so that if evaluation
+   results in an underapplied builtin like @addinteger 1@, we can return that term. If we were only
+   to keep the denotation of a builtin, we couldn't reconstruct the term from it
+2. 'evalApply' and 'evalForce' have to handle the case when their argument is neither a
+   'HLamAbs'/'HDelay' nor a built-in function, because if evaluation results in, say,
+   @\f -> f 1@, then we need to turn that application into an 'HApply' AST node (which itself
+   can be forced or applied to another term), which upon final reification becomes an 'Apply' node.
+   This is the usual ways HOAS evaluation works
+-}
+
+{- Note [Builtin application evaluation]
+The HOAS evaluator uses a different way to evaluate builtin applications. Instead of collecting
+arguments in a list like the CEK machine does, we store partially applied meanings of builtins
+right in the AST by instantiating the @fun@ type variable to 'BuiltinApp'. This allows us to
+feed a builtin as soon as an 'Apply' or a 'Force' pops up. The builtin application gets evaluated
+one it's fully saturated, before that it's just feeding arguments one by one to the denotation
+of the builtin and collecting a 'Term' version of the application
+(see Note [Handling non-constant results]).
+-}
 
 -- | Take pieces of a 'BuiltinApp' and either create a 'Value' using 'makeKnown' or a partial
 -- builtin application depending on whether the built-in function is fully saturated or not.
@@ -173,12 +203,13 @@ evalBuiltinApp
     -> EvalM unique name uni fun ann (Term name uni fun ann)
     -> BuiltinRuntime (Value unique name uni fun ann)
     -> EvalM unique name uni fun ann (Value unique name uni fun ann)
--- Note the absence of 'evalValue'. Same logic as with the CEK machine applies: 'makeKnown' never
--- returns a non-value term.
+-- Note the absence of 'evalValue'. Same logic as with the CEK machine applies:
+-- 'makeKnown' never returns a non-value term.
 evalBuiltinApp _   _       (BuiltinRuntime (TypeSchemeResult _) _ x _) = makeKnown x
 evalBuiltinApp ann getTerm runtime                                     =
     pure . HBuiltin ann $ BuiltinApp getTerm runtime
 
+-- See Note [Builtin application evaluation].
 -- | Either 'Apply' or 'Force' a (possibly partially applied) built-in function depending on
 --
 -- 1. what the builtin expects
@@ -211,10 +242,7 @@ evalFeedBuiltinApp ann (BuiltinApp getTerm (BuiltinRuntime sch ar f _)) e =
     -- involving costs. Especially since it's planned to support costing in the HOAS evaluator.
     noCosting = error "HOAS currently does not support costing"
 
-{- Note [Partial applications]
-evalApply evalForce
--}
-
+-- See Note [Handling non-constant results].
 -- | Evaluate the application of a function to a value.
 evalApply
     :: ann
@@ -225,6 +253,7 @@ evalApply _   (HLamAbs _ _ body) arg = body arg
 evalApply _   (HBuiltin ann fun) arg = evalFeedBuiltinApp ann fun $ Just arg
 evalApply ann fun                arg = pure $ HApply ann fun arg
 
+-- See Note [Handling non-constant results].
 -- | Force a delayed computation.
 evalForce
     :: ann
@@ -234,6 +263,7 @@ evalForce _   (HDelay _ getBody) = getBody ()
 evalForce _   (HBuiltin ann fun) = evalFeedBuiltinApp ann fun Nothing
 evalForce ann term               = pure $ HForce ann term
 
+-- See Note [Builtin application evaluation]
 -- | Evaluate a 'Term' in the 'EvalM' monad using HOAS.
 evalTerm
     :: forall term value unique name uni fun ann.
