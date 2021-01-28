@@ -3,7 +3,8 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./. { inherit crossSystem config sourcesOverride rev; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }
+, enableHaskellProfiling ? false
 }:
 let
   inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab marlowe-dashboard;

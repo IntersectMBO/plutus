@@ -49,6 +49,19 @@ this can at least potentially cause problems or cause you to be missing
 bug workarounds.
 ====
 
+=== How to build the code with profiling
+
+If you launch `nix-shell` with the `enableHaskellProfiling` argument set to true, you will get a shell where all the dependencies have been built with profiling.
+
+Like this: `nix-shell --arg enableHaskellProfiling true`
+
+Then you can do e.g. `cabal run --enableProfiling ...`.
+
+[WARNING]
+====
+This is not curently cached, so may result in you rebuilding all of our dependencies with profiling on your machine.
+====
+
 === How to setup `haskell-language-server`
 
 The `nix-shell` environment has a `haskell-language-server` binary for the right version of GHC.

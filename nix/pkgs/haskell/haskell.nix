@@ -12,6 +12,7 @@
 , R
 , checkMaterialization
 , compiler-nix-name
+, enableHaskellProfiling
 }:
 let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
@@ -141,7 +142,10 @@ let
           eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances -XMultiParamTypeClasses";
         };
       }
-    ];
+    ] ++ lib.optional enableHaskellProfiling {
+      enableLibraryProfiling = true;
+      enableExecutableProfiling = true;
+    };
   };
 
 in
