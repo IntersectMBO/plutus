@@ -12,13 +12,15 @@ import           Control.Monad.Freer                (Eff, run)
 import           Control.Monad.Freer.Extras         (raiseEnd)
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
+import           Data.Foldable                      (foldl')
 import qualified Data.Map                           as Map
 import           Data.Maybe                         (isJust)
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                   as HUnit
 
-import           Language.Plutus.Contract.Resumable (IterationID (..), Request (..), RequestID (..), Requests (..),
-                                                     Responses (..), Resumable, prompt, select)
+import           Language.Plutus.Contract.Resumable (IterationID (..), MultiRequestContStatus, Request (..),
+                                                     RequestID (..), Requests (..), Response (..), Responses (..),
+                                                     Resumable, prompt, select)
 import qualified Language.Plutus.Contract.Resumable as S
 import           Language.Plutus.Contract.Util      (loopM)
 
@@ -27,13 +29,18 @@ runResumableTest ::
     Responses i
     -> Eff '[Resumable i o] a
     -> (Maybe a, Requests o)
-runResumableTest record =
-    run
-    . runState mempty
-    . runReader record
-    . S.handleNonDetPrompt @i @o @a
-    . S.handleResumable
-    . raiseEnd
+runResumableTest events action =
+    let r = run . evalState (mempty @(Responses i))
+        initial = r $ S.suspendNonDet @i @o @a $ S.handleResumable $ raiseEnd action
+        mkResp (itId, rqId) evt = Response{rspRqID = rqId, rspItID = itId, rspResponse=evt}
+        go :: Maybe (MultiRequestContStatus i o '[State (Responses i)] a) -> Response i -> Maybe (MultiRequestContStatus i o '[State (Responses i)] a)
+        go (Just (S.AContinuation S.MultiRequestContinuation{S.ndcRequests, S.ndcCont})) rsp = r (ndcCont rsp)
+        go _ _                                                                               = Nothing
+        result = foldl' go initial (S.responses events)
+    in case result of
+        Nothing                                                          -> (Nothing, mempty)
+        Just (S.AResult a)                                               -> (Just a, mempty)
+        Just (S.AContinuation S.MultiRequestContinuation{S.ndcRequests}) -> (Nothing, ndcRequests)
 
 tests :: TestTree
 tests = testGroup "stateful contract"
@@ -67,7 +74,7 @@ tests = testGroup "stateful contract"
             (_, Requests{unRequests}) = runResumableTest @Int @String record ((askStr "prompt1" >> askStr "prompt3") `selectStr` (askStr "prompt2" >> pure 10))
         in HUnit.assertEqual
                 "commit to a branch"
-                [ Request{rqID = RequestID 2, itID = IterationID 2, rqRequest = "prompt3"} ]
+                [ Request{rqID = RequestID 1, itID = IterationID 2, rqRequest = "prompt3"} ]
                 unRequests
 
     , HUnit.testCase "commit to a branch (II)" $
@@ -75,7 +82,7 @@ tests = testGroup "stateful contract"
             (_, Requests{unRequests}) = runResumableTest @Int @String record ((askStr "prompt2" >> pure 10) `selectStr` (askStr "prompt1" >> askStr "prompt3"))
         in HUnit.assertEqual
             "commit to a branch (II)"
-            [ Request{rqID = RequestID 3, itID = IterationID 2, rqRequest = "prompt3"} ]
+            [ Request{rqID = RequestID 1, itID = IterationID 2, rqRequest = "prompt3"} ]
             unRequests
 
     , HUnit.testCase "return a result" $
@@ -84,7 +91,7 @@ tests = testGroup "stateful contract"
         in HUnit.assertEqual "return a result" (Just 10) result
 
     , HUnit.testCase "go into a branch" $
-        let record = Responses $ Map.fromList [((IterationID 1, RequestID 2), 5), ((IterationID 2, RequestID 4), 10) ]
+        let record = Responses $ Map.fromList [((IterationID 1, RequestID 2), 5), ((IterationID 2, RequestID 2), 10) ]
             (result, _) = runResumableTest @Int @String record
                 ((askStr "prompt1" >> askStr "prompt4")
                 `selectStr`
@@ -96,9 +103,9 @@ tests = testGroup "stateful contract"
         let record = Responses
                  $ Map.fromList
                     [ ((IterationID 1, RequestID 1), 1)
-                    , ((IterationID 2, RequestID 2), 1)
-                    , ((IterationID 3, RequestID 3), 1)
-                    , ((IterationID 4, RequestID 5), 1)
+                    , ((IterationID 2, RequestID 1), 1)
+                    , ((IterationID 3, RequestID 1), 1)
+                    , ((IterationID 4, RequestID 2), 1)
                     ]
             stopLeft = askStr "stop left" >> pure (10 :: Int)
             stopRight = askStr "stop right" >> pure 11
@@ -110,17 +117,17 @@ tests = testGroup "stateful contract"
         let record = Responses
                  $ Map.fromList
                     [ ((IterationID 1, RequestID 1), 1)
-                    , ((IterationID 2, RequestID 2), 1)
-                    , ((IterationID 3, RequestID 3), 1)
+                    , ((IterationID 2, RequestID 1), 1)
+                    , ((IterationID 3, RequestID 1), 1)
                     ]
             stopLeft = askStr "stop left" >> pure (10 :: Int)
             stopRight = askStr "stop right" >> pure 11
             (_, Requests{unRequests}) = runResumableTest @Int @String record $
                 loopM (const $ (Left <$> askStr "keep going") `selectStr` (Right <$> (stopLeft `selectStr` stopRight))) 0
         in HUnit.assertEqual "loop requests"
-            [ Request{rqID = RequestID 6, itID = IterationID 4, rqRequest = "stop right"}
-            , Request{rqID = RequestID 5, itID = IterationID 4, rqRequest = "stop left"}
-            , Request{rqID = RequestID 4, itID = IterationID 4, rqRequest = "keep going"}
+            [ Request{rqID = RequestID 3, itID = IterationID 4, rqRequest = "stop right"}
+            , Request{rqID = RequestID 2, itID = IterationID 4, rqRequest = "stop left"}
+            , Request{rqID = RequestID 1, itID = IterationID 4, rqRequest = "keep going"}
             ]
             unRequests
 
