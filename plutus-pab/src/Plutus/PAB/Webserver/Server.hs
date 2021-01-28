@@ -27,11 +27,9 @@ import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.PAB.App                  (App, runApp)
 import           Plutus.PAB.Arbitrary            ()
 import           Plutus.PAB.PABLogMsg            (ContractExeLogMsg (StartingPABBackendServer), PABLogMsg)
-import           Plutus.PAB.Swagger              (Swagger, SwaggerAPI)
-import qualified Plutus.PAB.Swagger              as Swagger
 import           Plutus.PAB.Types                (Config, ContractExe, PABError (InvalidUUIDError), baseUrl,
                                                   pabWebserverConfig, staticDir)
-import           Plutus.PAB.Webserver.API        (API, DocumentationAPI, WSAPI)
+import           Plutus.PAB.Webserver.API        (API, WSAPI)
 import           Plutus.PAB.Webserver.Handler    (handler)
 import           Plutus.PAB.Webserver.WebSocket  (handleWS)
 import           Servant                         (Application, Handler (Handler), Raw, ServerT, err400, err500, errBody,
@@ -48,9 +46,9 @@ asHandler trace logConfig config =
     decodeErr err = err500 {errBody = LBS.pack $ show err}
 
 app :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Application
-app trace logConfig config = serve rest (apiServer :<|> swaggerServer :<|> fileServer)
+app trace logConfig config = serve rest (apiServer :<|> fileServer)
   where
-    rest = Proxy @((API ContractExe :<|> WSAPI) :<|> SwaggerAPI :<|> Raw)
+    rest = Proxy @((API ContractExe :<|> WSAPI) :<|> Raw)
     apiServer :: ServerT (API ContractExe :<|> WSAPI) Handler
     apiServer =
       hoistServer
@@ -59,8 +57,6 @@ app trace logConfig config = serve rest (apiServer :<|> swaggerServer :<|> fileS
         (handler :<|> handleWS trace logConfig)
     fileServer :: ServerT Raw Handler
     fileServer = serveDirectoryFileServer (staticDir . pabWebserverConfig $ config)
-    swaggerServer :: Handler Swagger
-    swaggerServer = Swagger.handler (Proxy @(DocumentationAPI ContractExe))
 
 main :: Trace IO PABLogMsg -> CM.Configuration -> Config -> Availability -> App ()
 main trace logConfig config availability = do

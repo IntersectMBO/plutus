@@ -99,7 +99,6 @@ library
         Plutus.PAB.Instances
         Plutus.PAB.MonadLoggerBridge
         Plutus.PAB.Monitoring
-        Plutus.PAB.Swagger
         Plutus.PAB.Webserver.API
         Plutus.PAB.Webserver.Handler
         Plutus.PAB.Webserver.Server
