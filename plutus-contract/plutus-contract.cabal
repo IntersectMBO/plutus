@@ -110,7 +110,7 @@ library
         plutus-tx -any,
         iots-export -any
     build-depends:
-        aeson -any,
+        aeson >= 1.5.2,
         base >=4.7 && <5,
         containers -any,
         deepseq -any,
@@ -132,7 +132,7 @@ library
         transformers-base -any,
         monad-control -any,
         mmorph -any,
-        row-types -any,
+        row-types < 1.0,
         freer-simple -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,

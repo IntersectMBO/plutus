@@ -68,7 +68,17 @@ let
   #
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
-  updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+  updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
+    # This runs the 'updateMaterialize' script in all platform combinations we care about.
+    # See the comment in ./haskell/haskell.nix
+
+    # Update the linux files (will do for all unixes atm).
+    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+
+    # Update the musl files. This isn't quite as simple as just passing a system, since it's inherently a "cross" build,
+    # but we actually have a variant project exposed already, so we can just use that.
+    $(nix-build default.nix -A plutus.haskell.muslProject.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+  '';
   updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {

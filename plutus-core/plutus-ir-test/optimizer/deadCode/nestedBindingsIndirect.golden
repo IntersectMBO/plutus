@@ -6,7 +6,7 @@
     (datatypebind
       (datatype
         (tyvardecl SomeType (type))
-        
+
         match_SomeType
         (vardecl Constr (fun unit SomeType))
       )

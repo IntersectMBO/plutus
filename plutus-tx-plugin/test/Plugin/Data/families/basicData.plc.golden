@@ -4,7 +4,7 @@
     (datatypebind
       (datatype
         (tyvardecl RBasicDataBool (type))
-        
+
         RConsBasicDataBool_match
         (vardecl Inst (fun (con integer) RBasicDataBool))
       )
