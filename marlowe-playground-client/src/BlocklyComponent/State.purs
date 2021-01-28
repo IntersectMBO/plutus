@@ -63,8 +63,11 @@ handleQuery (SetCode code next) = do
   for_ mState \blocklyState -> do
     assign _useEvents false
     let
-      -- FIXME: replace with lmap const
-      contract = either (const $ Hole blocklyState.rootBlockName Proxy zero) identity $ Parser.parseContract (Text.stripParens code)
+      contract =
+        either
+          (const $ Hole blocklyState.rootBlockName Proxy zero)
+          identity
+          $ Parser.parseContract (Text.stripParens code)
     -- FIXME: check why buildBlocks requires we pass newBlock
     liftEffect $ buildBlocks newBlock blocklyState contract
   assign _errorMessage Nothing

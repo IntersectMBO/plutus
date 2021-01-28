@@ -11,17 +11,17 @@ import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
+import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Halogen (liftEffect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
@@ -1087,18 +1087,11 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
 
       inputs = inputList block
     boundsInput <- note "No Input with name \"bound\" found" $ getInputWithName inputs "bounds"
-    -- FIXME
-    -- FIXME
-    -- FIXME Comented out the effectful computation as it makes a whoooole
-    ---      set of changes. Need to revisit this.
-    -- FIXME
-    -- FIXME
-    -- let
-    --   mTopboundBlock = getBlockInputConnectedTo boundsInput
-    -- bounds <- case mTopboundBlock of
-    --   Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
-    --   Either.Right topboundBlock -> boundsDefinition g topboundBlock
-    bounds <- pure [ Hole "bounds" Proxy zero ]
+    let
+      mTopboundBlock = getBlockInputConnectedTo boundsInput
+    bounds <- case mTopboundBlock of
+      Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
+      Either.Right topboundBlock -> boundsDefinition g topboundBlock
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
   blockDefinition NotifyActionType g block = do
@@ -1149,18 +1142,11 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     let
       inputs = inputList block
     casesInput <- note "No Input with name \"case\" found" $ getInputWithName inputs "case"
-    -- FIXME
-    -- FIXME
-    -- FIXME Comented out the effectful computation as it makes a whoooole
-    ---      set of changes. Need to revisit this.
-    -- FIXME
-    -- FIXME
-    -- let
-    --   eTopCaseBlock = getBlockInputConnectedTo casesInput
-    -- cases <- case eTopCaseBlock of
-    --   Either.Right topCaseBlock -> casesDefinition g topCaseBlock
-    --   Either.Left _ -> pure []
-    cases <- pure []
+    let
+      eTopCaseBlock = getBlockInputConnectedTo casesInput
+    cases <- case eTopCaseBlock of
+      Either.Right topCaseBlock -> casesDefinition g topCaseBlock
+      Either.Left _ -> pure []
     slot <- parse Parser.timeout =<< getFieldValue block "timeout"
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (When cases slot contract)
@@ -1264,23 +1250,18 @@ buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
   clearWorkspace bs.workspace
   initializeWorkspace bs.blockly bs.workspace
-  -- TODO: maybe refactor to runMaybeT?
-  rootBlock <-
-    liftEffect
-      $ do
-          mBlock <- getBlockById bs.workspace bs.rootBlockName
-          case mBlock of
-            Nothing -> newBlock bs.workspace (show BaseContractType)
-            Just block -> pure block
+  -- Get or create rootBlock
+  mRootBlock <- getBlockById bs.workspace bs.rootBlockName
+  rootBlock <- case mRootBlock of
+    Nothing -> newBlock bs.workspace (show BaseContractType)
+    Just block -> pure block
   let
     inputs = inputList rootBlock
 
     mInput = getInputWithName inputs (show BaseContractType)
-  case mInput of
-    Nothing -> pure unit
-    Just i -> do
-      toBlockly newBlock bs.workspace i contract
-      render bs.workspace
+  for_ mInput \input -> do
+    toBlockly newBlock bs.workspace input contract
+    render bs.workspace
 
 setField :: Block -> String -> String -> Effect Unit
 setField block name value = do

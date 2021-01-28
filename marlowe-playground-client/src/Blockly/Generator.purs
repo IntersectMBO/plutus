@@ -1,5 +1,7 @@
 module Blockly.Generator where
 
+-- FIXME: There are a lot of FFI functions here that should probably run inside in Effect, but we will try to remove
+--        Generator altogether in a second step of the Blockly refactor.
 import Prelude
 import Blockly.Types (Block, Blockly, Workspace)
 import Data.Array as Array
@@ -35,23 +37,23 @@ foreign import data Field :: Type
 
 foreign import data Connection :: Type
 
--- FIXME: Should this be EffectFn3?
+-- FIXME: This should probably be EffectFn3, but read top level comment.
 foreign import nextBlock_ :: Fn3 (Block -> Maybe Block) (Maybe Block) Block (Maybe Block)
 
 foreign import getType_ :: Fn1 Block String
 
--- FIXME: Should this be EffectFn4?
+-- FIXME: This should probably be EffectFn4, but read top level comment.
 foreign import getFieldValue_ :: forall a. Fn4 (String -> Either String a) (a -> Either String a) Block String (Either String String)
 
--- FIXME: Should this be EffectFn5?
+-- FIXME: This should probably be EffectFn5, but read top level comment.
 foreign import statementToCode_ :: forall a. Fn5 (String -> Either String a) (a -> Either String a) Generator Block String (Either String String)
 
--- FIXME: Should this be EffectFn6?
+-- FIXME: This should probably be EffectFn6, but read top level comment.
 foreign import valueToCode_ :: forall a. Fn6 (String -> Either String a) (a -> Either String a) Generator Block String Number (Either String String)
 
 foreign import mkGenerator_ :: EffectFn2 Blockly String Generator
 
--- FIXME: should the callback be (Block -> Effect String)
+-- FIXME: should the callback be (Block -> Effect String)?
 foreign import insertGeneratorFunction_ :: EffectFn3 Generator String (Block -> String) Unit
 
 foreign import blockToCode_ :: forall a b. EffectFn4 (a -> Either a b) (b -> Either a b) Block Generator (Either String String)
@@ -70,25 +72,26 @@ foreign import connectToOutput_ :: EffectFn2 Block Input Unit
 
 foreign import newBlock_ :: EffectFn2 Workspace String Block
 
--- FIXME: Should this be EffectFn1?
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import inputName_ :: Fn1 Input String
 
--- FIXME: Should this be EffectFn1?
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import inputType_ :: Fn1 Input Int
 
 foreign import clearWorkspace_ :: EffectFn1 Workspace Unit
 
--- FIXME: Should this be EffectFn1?
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import fieldRow_ :: Fn1 Input (Array Field)
 
 foreign import setFieldText_ :: EffectFn2 Field String Unit
 
--- FIXME: Should this be EffectFn1?
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import fieldName_ :: Fn1 Field String
 
 foreign import unsafeThrowError_ :: forall a. Fn1 String a
 
-foreign import getBlockInputConnectedTo_ :: forall a b. EffectFn3 (a -> Either a b) (b -> Either a b) Input (Either String Block)
+-- FIXME: This should probably be EffectFn3, but read top level comment.
+foreign import getBlockInputConnectedTo_ :: forall a b. Fn3 (a -> Either a b) (b -> Either a b) Input (Either String Block)
 
 nextBlock :: Block -> Maybe Block
 nextBlock = runFn3 nextBlock_ Just Nothing
@@ -164,5 +167,5 @@ setFieldText = runEffectFn2 setFieldText_
 fieldName :: Field -> String
 fieldName = runFn1 fieldName_
 
-getBlockInputConnectedTo :: Input -> Effect (Either String Block)
-getBlockInputConnectedTo = runEffectFn3 getBlockInputConnectedTo_ Left Right
+getBlockInputConnectedTo :: Input -> Either String Block
+getBlockInputConnectedTo = runFn3 getBlockInputConnectedTo_ Left Right
