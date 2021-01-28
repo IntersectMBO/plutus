@@ -174,7 +174,6 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
-        servant-swagger -any,
         swagger2 -any,
         typed-protocols -any,
         typed-protocols-examples -any,
