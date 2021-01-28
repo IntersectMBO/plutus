@@ -4,8 +4,8 @@ module Main where
 import           Data.Bifunctor          (first)
 import           Data.Proxy              (Proxy (..))
 import           Language.Marlowe.Client (MarloweSchema, marlowePlutusContract)
-import           Plutus.SCB.ContractCLI  (commandLineApp')
-import           Plutus.SCB.Utils        (tshow)
+import           Plutus.PAB.ContractCLI  (commandLineApp')
+import           Plutus.PAB.Utils        (tshow)
 
 main :: IO ()
 main =
