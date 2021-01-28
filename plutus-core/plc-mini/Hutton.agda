@@ -1,4 +1,4 @@
-module Lang where
+module Hutton where
 
 -- import the Ulf's Agdaized version of the Haskell prelude
 open import Haskell.Prelude hiding (e)
@@ -10,10 +10,6 @@ data Exp  : Set where
   Add : Exp → Exp → Exp
 
 {-# COMPILE AGDA2HS Exp deriving Show #-}
-
--- we postulate an instance for Show don't need it in Agda, just Haskell
-instance
-  postulate expShow : Show Exp
 
 -- a simple evaluator for Exp
 

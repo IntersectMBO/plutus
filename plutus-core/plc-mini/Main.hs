@@ -1,7 +1,7 @@
 module Main where
 
 import           Data.ByteString.Lazy (getContents)
-import           Lang
+import           Hutton
 import           Parser
 import           Prelude              hiding (getContents)
 

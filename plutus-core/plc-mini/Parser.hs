@@ -4,7 +4,7 @@
 
 module Parser where
 
-import           Lang
+import           Hutton
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Lexer

@@ -1,4 +1,4 @@
-module Lang where
+module Hutton where
 
 import           Numeric.Natural (Natural)
 

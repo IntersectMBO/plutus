@@ -2,10 +2,10 @@ module Main where
 
 open import Haskell.Prelude hiding (_>>=_; _>>_; return)
 
-open import Lang
+open import Hutton
 
 {-# FOREIGN AGDA2HS 
-import Lang
+import Hutton
 import Parser
 import Prelude hiding (getContents)
 import Data.ByteString.Lazy (getContents)
