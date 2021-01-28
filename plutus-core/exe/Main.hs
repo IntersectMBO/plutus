@@ -101,7 +101,7 @@ instance Show Format where
 data TypecheckOptions = TypecheckOptions Input Format
 data ConvertOptions   = ConvertOptions Language Input Format Output Format PrintMode
 data PrintOptions     = PrintOptions Language Input PrintMode
-data ExampleOptions   = ExampleOptions ExampleMode
+data ExampleOptions   = ExampleOptions Language ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
 data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
@@ -244,7 +244,7 @@ exampleSingle :: Parser ExampleMode
 exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
-exampleOpts = ExampleOptions <$> exampleMode
+exampleOpts = ExampleOptions <$> languageMode <*> exampleMode
 
 eraseOpts :: Parser EraseOptions
 eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
@@ -289,9 +289,10 @@ plutusOpts = hsubparser (
             (progDesc "Convert PLC programs between various formats"))
     <> command "example"
            (info (Example <$> exampleOpts)
-            (progDesc $ "Show a typed Plutus Core program example. "
+            (progDesc $ "Show a typed or untyped Plutus Core program example. "
                      ++ "Usage: first request the list of available examples (optional step), "
-                     ++ "then request a particular example by the name of a type/term. "
+                     ++ "then request a particular example by the name of a term (or also a "
+                     ++ "type if --typed is specified). "
                      ++ "Note that evaluating a generated example may result in 'Failure'."))
     <> command "typecheck"
            (info (Typecheck <$> typecheckOpts)
@@ -485,8 +486,24 @@ runPrint (PrintOptions language inp mode) =
     parsePlcInput language inp >>= print . (getPrintMethod mode)
 
 
----------------- Script application ----------------
+---------------- Erasure ----------------
 
+eraseProgram :: TypedProgram a -> Program a
+eraseProgram = UntypedProgram . UPLC.eraseProgram
+
+-- | Input a program, erase the types, then output it
+runErase :: EraseOptions -> IO ()
+runErase (EraseOptions inp ifmt outp ofmt mode) = do
+  TypedProgram typedProg <- getProgram TypedPLC ifmt inp
+  let untypedProg = () <$ eraseProgram typedProg
+  case ofmt of
+    Plc           -> writePlc outp mode untypedProg
+    Cbor cborMode -> writeCBOR outp cborMode untypedProg
+    Flat flatMode -> writeFlat outp flatMode untypedProg
+
+
+
+---------------- Script application ----------------
 
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
@@ -508,24 +525,36 @@ runApply (ApplyOptions language inputfiles ifmt outp ofmt mode) = do
 ---------------- Examples ----------------
 
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
-data TermExample = TermExample
+data TypedTermExample = TypedTermExample
     (PLC.Type PLC.TyName PLC.DefaultUni ())
     (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
+data SomeTypedExample = SomeTypeExample TypeExample | SomeTypedTermExample TypedTermExample
+
+data UntypedTermExample = UntypedTermExample
+    (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+data SomeUntypedExample = SomeUntypedTermExample UntypedTermExample
+
+data SomeExample = SomeTypedExample SomeTypedExample | SomeUntypedExample SomeUntypedExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
-prettySignature name (SomeTypeExample (TypeExample kind _)) =
+prettySignature name (SomeTypedExample (SomeTypeExample (TypeExample kind _))) =
     pretty name <+> "::" <+> PP.prettyPlcDef kind
-prettySignature name (SomeTermExample (TermExample ty _)) =
+prettySignature name (SomeTypedExample (SomeTypedTermExample (TypedTermExample ty _))) =
     pretty name <+> ":"  <+> PP.prettyPlcDef ty
+prettySignature name (SomeUntypedExample _) =
+    pretty name
 
 prettyExample :: SomeExample -> Doc ann
-prettyExample (SomeTypeExample (TypeExample _ ty))   = PP.prettyPlcDef ty
-prettyExample (SomeTermExample (TermExample _ term)) =
-    PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
+prettyExample =
+    \case
+         SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlcDef ty
+         SomeTypedExample (SomeTypedTermExample (TypedTermExample _ term))
+             -> PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
+         SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
+             PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TermExample
-toTermExample term = TermExample ty term where
+toTypedTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
+toTypedTermExample term = TypedTermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
@@ -540,34 +569,51 @@ getInteresting =
         Gen.TermOf term _ <- Gen.getSampleTermValue gen
         pure (T.pack name, term)
 
-simpleExamples :: [(ExampleName, SomeExample)]
+simpleExamples :: [(ExampleName, SomeTypedExample)]
 simpleExamples =
-    [ ("succInteger", SomeTermExample $ toTermExample StdLib.succInteger)
-    , ("unit"       , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.unit)
-    , ("unitval"    , SomeTermExample $ toTermExample StdLib.unitval)
-    , ("bool"       , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.bool)
-    , ("true"       , SomeTermExample $ toTermExample StdLib.true)
-    , ("false"      , SomeTermExample $ toTermExample StdLib.false)
-    , ("churchNat"  , SomeTypeExample $ TypeExample (PLC.Type ()) StdLib.churchNat)
-    , ("churchZero" , SomeTermExample $ toTermExample StdLib.churchZero)
-    , ("churchSucc" , SomeTermExample $ toTermExample StdLib.churchSucc)
+    [ ("succInteger", SomeTypedTermExample $ toTypedTermExample StdLib.succInteger)
+    , ("unit"       , SomeTypeExample      $ TypeExample (PLC.Type ()) StdLib.unit)
+    , ("unitval"    , SomeTypedTermExample $ toTypedTermExample StdLib.unitval)
+    , ("bool"       , SomeTypeExample      $ TypeExample (PLC.Type ()) StdLib.bool)
+    , ("true"       , SomeTypedTermExample $ toTypedTermExample StdLib.true)
+    , ("false"      , SomeTypedTermExample $ toTypedTermExample StdLib.false)
+    , ("churchNat"  , SomeTypeExample      $ TypeExample (PLC.Type ()) StdLib.churchNat)
+    , ("churchZero" , SomeTypedTermExample $ toTypedTermExample StdLib.churchZero)
+    , ("churchSucc" , SomeTypedTermExample $ toTypedTermExample StdLib.churchSucc)
     ]
 
-getAvailableExamples :: IO [(ExampleName, SomeExample)]
-getAvailableExamples = do
+
+-- TODO: This supplies both typed and untyped examples.  Currently the untyped
+-- examples are obtained by erasing typed ones, but it might be useful to have
+-- some untyped ones that can't be obtained by erasure.
+getAvailableExamples :: Language -> IO [(ExampleName, SomeExample)]
+getAvailableExamples language = do
     interesting <- getInteresting
-    pure $ simpleExamples ++ map (second $ SomeTermExample . toTermExample) interesting
+    let examples = simpleExamples ++ map (second $ SomeTypedTermExample . toTypedTermExample) interesting
+    case language of
+      TypedPLC   -> pure $ map (fmap SomeTypedExample) examples
+      UntypedPLC -> pure $ mapMaybeSnd convert examples
+                    where convert =
+                              \case
+                               SomeTypeExample _ -> Nothing
+                               SomeTypedTermExample (TypedTermExample _ e) ->
+                                   Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ UPLC.erase e
+                          mapMaybeSnd _ []     = []
+                          mapMaybeSnd f ((a,b):r) =
+                              case f b of
+                                Nothing -> mapMaybeSnd f r
+                                Just b' -> (a,b') : mapMaybeSnd f r
 
 -- The implementation is a little hacky: we generate interesting examples when the list of examples
--- is requsted and at each lookup of a particular example. I.e. each time we generate distinct
+-- is requested and at each lookup of a particular example. I.e. each time we generate distinct
 -- terms. But types of those terms must not change across requests, so we're safe.
 
-runExample :: ExampleOptions -> IO ()
-runExample (ExampleOptions ExampleAvailable)     = do
-    examples <- getAvailableExamples
+runPrintExample :: ExampleOptions -> IO ()
+runPrintExample (ExampleOptions language ExampleAvailable) = do
+    examples <- getAvailableExamples language
     traverse_ (T.putStrLn . PP.render . uncurry prettySignature) examples
-runExample (ExampleOptions (ExampleSingle name)) = do
-    examples <- getAvailableExamples
+runPrintExample (ExampleOptions language (ExampleSingle name)) = do
+    examples <- getAvailableExamples language
     T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
         Just ex -> PP.render $ prettyExample ex
@@ -586,19 +632,6 @@ runTypecheck (TypecheckOptions inp fmt) = do
         T.hPutStrLn stderr (PP.displayPlcDef e) >> exitFailure
       Right ty                                               ->
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
-
-
----------------- Erasure ----------------
-
--- | Input a program, erase the types, then output it
-runErase :: EraseOptions -> IO ()
-runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  TypedProgram typedProg <- getProgram TypedPLC ifmt inp
-  let untypedProg = () <$ (UntypedProgram $ UPLC.eraseProgram typedProg)
-  case ofmt of
-    Plc           -> writePlc outp mode untypedProg
-    Cbor cborMode -> writeCBOR outp cborMode untypedProg
-    Flat flatMode -> writeFlat outp flatMode untypedProg
 
 
 ---------------- Evaluation ----------------
@@ -650,10 +683,10 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plutus
     case options of
-        Apply     opts -> runApply     opts
-        Typecheck opts -> runTypecheck opts
-        Eval      opts -> runEval      opts
-        Example   opts -> runExample   opts
-        Erase     opts -> runErase     opts
-        Print     opts -> runPrint     opts
-        Convert   opts -> runConvert   opts
+        Apply     opts -> runApply        opts
+        Typecheck opts -> runTypecheck    opts
+        Eval      opts -> runEval         opts
+        Example   opts -> runPrintExample opts
+        Erase     opts -> runErase        opts
+        Print     opts -> runPrint        opts
+        Convert   opts -> runConvert      opts
