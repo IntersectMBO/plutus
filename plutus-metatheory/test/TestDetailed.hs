@@ -33,10 +33,11 @@ catchOutput act = do
 
 compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
 compareResult eq mode test = do
-  example <- readProcess "plc" ["example","-s",test] []
+  example <- readProcess "plc" ["example","-t","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode,"--input","tmp"] []
+  let mode' = if mode == "evaluate" then [mode,"-t"] else [mode]
+  plcOutput <- readProcess "plc" (mode' ++ ["--input","tmp"]) []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs [mode,"--file","tmp"]  M.main)
     (\ e -> case e of
@@ -46,7 +47,7 @@ compareResult eq mode test = do
 
 compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResultMode mode1 mode2 eq test = do
-  example <- readProcess "plc" ["example","-s",test] []
+  example <- readProcess "plc" ["example","-t","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
