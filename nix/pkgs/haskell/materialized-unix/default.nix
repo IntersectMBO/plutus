@@ -719,7 +719,6 @@
         Win32-network = ./.plan.nix/Win32-network.nix;
         plutus-errors = ./.plan.nix/plutus-errors.nix;
         plutus-core = ./.plan.nix/plutus-core.nix;
-        iots-export = ./.plan.nix/iots-export.nix;
         byron-spec-chain = ./.plan.nix/byron-spec-chain.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
@@ -790,7 +789,6 @@
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
           "plutus-errors" = { flags = {}; };
           "plutus-core" = { flags = {}; };
-          "iots-export" = { flags = {}; };
           "byron-spec-chain" = {
             flags = { "development" = lib.mkOverride 900 true; };
             };

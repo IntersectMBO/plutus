@@ -56,8 +56,6 @@ include::plutus-contract/ARCHITECTURE.adoc[]
 
 include::plutus-use-cases/ARCHITECTURE.adoc[]
 
-include::iots-export/ARCHITECTURE.adoc[]
-
 == Marlowe
 
 Although conceptually separate from Plutus, a fair amount of Marlowe-related
