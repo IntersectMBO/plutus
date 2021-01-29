@@ -1,3 +1,15 @@
+{-| Description: PLC Syntax, typechecker,semantics property based testing.
+
+This file contains
+1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
+2. A kind checker and a type checker
+3. Reduction semantics for types
+-}
+
+
+module Language.PlutusCore.Generators.NEAT.Type where
+
+{-# FOREIGN AGDA2HS
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
@@ -12,22 +24,6 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
-module Language.PlutusCore.Generators.NEAT.Type where
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor.TH
@@ -38,41 +34,105 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
-newtype Neutral a = Neutral
-  { unNeutral :: a
-  }
+#-}
 
-data TypeBuiltinG = TyByteStringG
-                  | TyIntegerG
-                  | TyStringG
-                      deriving (Typeable, Eq, Show)
+open import Haskell.Prelude hiding (m;t)
+open import Language.PlutusCore.Generators.NEAT.Common
+open import Relation.Binary.PropositionalEquality
 
+postulate Kind : Set → Set
+
+-- * Enumeration
+
+-- ** Enumerating types
+
+data TypeBuiltinG : Set where
+  TyByteStringG : TypeBuiltinG
+  TyIntegerG    : TypeBuiltinG
+  TyStringG     : TypeBuiltinG
+
+{-# COMPILE AGDA2HS TypeBuiltinG deriving (Typeable, Eq, Show) #-}
+
+{-# FOREIGN AGDA2HS
 deriveEnumerable ''TypeBuiltinG
+#-}
 
-data TypeG n = TyVarG n
-             | TyFunG (TypeG n) (TypeG n)
-             | TyIFixG (TypeG n) (Kind ()) (TypeG n)
-             | TyForallG (Kind ()) (TypeG (S n))
-             | TyBuiltinG TypeBuiltinG
-             | TyLamG (TypeG (S n))
-             | TyAppG (TypeG n) (TypeG n) (Kind ())
-                 deriving (Typeable, Eq, Show)
+-- NOTE: Unusually, the application case is annotated with a kind.
+--       The reason is eagerness and efficiency. If we have the kind
+--       information at the application site, we can check the two
+--       subterms in parallel, while evaluating as little as possible.
 
-ext :: (m -> n) -> S m -> S n
+variable
+  n m : Set
+
+data TypeG (n : Set) : Set where
+  TyVarG : n → TypeG n
+  TyFunG : TypeG n → TypeG n → TypeG n
+  TyIFixG : TypeG n  → Kind ⊤ → TypeG n → TypeG n
+  TyForallG : Kind ⊤ → TypeG (S n) → TypeG n
+  TyBuiltinG : TypeBuiltinG → TypeG n
+  TyLamG : TypeG (S n) → TypeG n
+  TyAppG : TypeG n → TypeG n → Kind ⊤ → TypeG n
+
+{-# COMPILE AGDA2HS TypeG deriving (Typeable, Eq, Show) #-}
+-- switched off deriving Functor
+
+ext : (m → n) → S m → S n
 ext f FZ     = FZ
 ext f (FS x) = FS (f x)
 
-ren :: (m -> n) -> TypeG m -> TypeG n
-ren f (TyVarG x)          = TyVarG (f x)
-ren f (TyFunG ty1 ty2)    = TyFunG (ren f ty1) (ren f ty2)
-ren f (TyIFixG ty1 k ty2) = TyIFixG (ren f ty1) k (ren f ty2)
-ren f (TyForallG k ty)    = TyForallG k (ren (ext f) ty)
-ren f (TyBuiltinG b)      = TyBuiltinG b
-ren f (TyLamG ty)         = TyLamG (ren (ext f) ty)
-ren f (TyAppG ty1 ty2 k)  = TyAppG (ren f ty1) (ren f ty2) k
+{-# COMPILE AGDA2HS ext #-}
 
+ren : (m → n) → TypeG m → TypeG n
+ren f (TyVarG x) = TyVarG (f x)
+ren f (TyFunG ty1 ty2) = TyFunG (ren f ty1) (ren f ty2)
+ren f (TyIFixG ty1 k ty2) = TyIFixG (ren f ty1) k (ren f ty2)
+ren f (TyForallG k ty) = TyForallG k (ren (ext f) ty)
+ren f (TyBuiltinG b) = TyBuiltinG b
+ren f (TyLamG ty) = TyLamG (ren (ext f) ty)
+ren f (TyAppG ty1 ty2 k) = TyAppG (ren f ty1) (ren f ty2) k
+
+{-# COMPILE AGDA2HS ren #-}
+
+ext-cong : {f g : m → n} → (∀ x → f x ≡ g x) → ∀ x → ext f x ≡ ext g x
+ext-cong p FZ     = refl
+ext-cong p (FS x) = cong FS (p x)
+
+ren-cong : {f g : m → n} → (∀ x → f x ≡ g x) → ∀ t → ren f t ≡ ren g t
+ren-cong p (TyVarG x)          = cong TyVarG (p x)
+ren-cong p (TyFunG ty1 ty2)    = cong₂ TyFunG (ren-cong p ty1) (ren-cong p ty2)
+ren-cong p (TyIFixG ty1 k ty2) =
+  cong₂ (λ ty1 ty2 → TyIFixG ty1 k ty2) (ren-cong p ty1) (ren-cong p ty2)
+ren-cong p (TyForallG k ty)    = cong (TyForallG k) (ren-cong (ext-cong p) ty)
+ren-cong p (TyBuiltinG b)      = refl
+ren-cong p (TyLamG ty)         = cong TyLamG (ren-cong (ext-cong p) ty)
+ren-cong p (TyAppG ty1 ty2 k)  =
+  cong₂ (λ ty1 ty2 → TyAppG ty1 ty2 k) (ren-cong p ty1) (ren-cong p ty2)
+
+ext-id : (x : S m) → ext id x ≡ x
+ext-id FZ     = refl
+ext-id (FS x) = refl
+
+ren-id : (ty : TypeG m) → ren id ty ≡ ty 
+ren-id (TyVarG _)          = refl
+ren-id (TyFunG ty1 ty2)    = cong₂ TyFunG (ren-id ty1) (ren-id ty2)
+ren-id (TyIFixG ty1 k ty2) =
+  cong₂ (λ ty1 ty2 → TyIFixG ty1 k ty2) (ren-id ty1) (ren-id ty2)
+ren-id (TyForallG k ty)    =
+  cong (TyForallG k) (trans (ren-cong ext-id ty) (ren-id ty))
+ren-id (TyBuiltinG _)      = refl
+ren-id (TyLamG ty)         =
+  cong TyLamG (trans (ren-cong ext-id ty) (ren-id ty))
+ren-id (TyAppG ty1 ty2 k)  =
+  cong₂ (λ ty1 ty2 → TyAppG ty1 ty2 k) (ren-id ty1) (ren-id ty2)
+
+{-# FOREIGN AGDA2HS
 instance Functor TypeG where
   fmap = ren
+
+newtype Neutral a = Neutral
+  { unNeutral :: a
+  }
 
 deriveEnumerable ''Kind
 
@@ -124,24 +184,34 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
     [ pay . c1 $ \i         -> Neutral (TyVarG i)
     , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
     ]
+#-}
 
-extTySub :: (n -> TypeG m) -> S n -> TypeG (S m)
+-- * Normalisation
+
+-- ** Type reduction
+
+-- |Extend type substitutions.
+extTySub : (n → TypeG m) -> S n → TypeG (S m)
 extTySub _ FZ     = TyVarG FZ
-extTySub s (FS i) = ren FS (s i)
+extTySub s (FS i) = ren FS (s i) -- FS <$> s i
 
-applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m
-applyTySub s (TyVarG i) = s i
-applyTySub s (TyFunG ty1 ty2)
-  = TyFunG (applyTySub s ty1) (applyTySub s ty2)
-applyTySub s (TyIFixG ty1 k ty2)
-  = TyIFixG (applyTySub s ty1) k (applyTySub s ty2)
-applyTySub s (TyForallG k ty)
-  = TyForallG k (applyTySub (extTySub s) ty)
+{-# COMPILE AGDA2HS extTySub #-}
+
+-- |Simultaneous substitution of type variables.
+applyTySub : (n -> TypeG m) -> TypeG n -> TypeG m
+applyTySub s (TyVarG i)             = s i
+applyTySub s (TyFunG ty1 ty2)       = TyFunG (applyTySub s ty1) (applyTySub s ty2)
+applyTySub s (TyIFixG ty1 k ty2)    = TyIFixG (applyTySub s ty1) k (applyTySub s ty2)
+applyTySub s (TyForallG k ty)       = TyForallG k (applyTySub (extTySub s) ty)
 applyTySub _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
-applyTySub s (TyLamG ty) = TyLamG (applyTySub (extTySub s) ty)
-applyTySub s (TyAppG ty1 ty2 k)
-  = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
+applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
+applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
 
+{-# COMPILE AGDA2HS applyTySub #-}
+
+
+
+{-# FOREIGN AGDA2HS
 instance Monad TypeG where
   a >>= f = applyTySub f a
 --  return = pure
@@ -172,4 +242,4 @@ normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
 
 -- NOTE: The errors we need to handle in property-based testing are
 --       when the generator generates garbage (which shouldn't happen).
-
+#-}

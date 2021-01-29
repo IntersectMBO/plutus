@@ -9,8 +9,9 @@ module Lambda where
 
 -- import the Ulf's Agdaized version of the Haskell prelude
 open import Haskell.Prelude hiding (e)
+open import Relation.Binary.PropositionalEquality
 
--- The syntax, nats and addition, aka Hutton's Razor
+-- The syntax of STLC + nats and addition
 
 data Tm (a : Set) : Set where
   Lam : Tm (Maybe a) → Tm a
@@ -21,13 +22,8 @@ data Tm (a : Set) : Set where
 
 {-# COMPILE AGDA2HS Tm deriving Show #-}
 
--- we postulate an instance for Show don't need it in Agda, just Haskell
-instance
-  postulate tmShow : Show (Tm a)
-
-ext : {a b : Set} → (a → b) → Maybe a → Maybe b
-ext ρ Nothing  = Nothing
-ext ρ (Just x) = Just (ρ x)
+ext : (a → b) → Maybe a → Maybe b
+ext = fmap
 
 {-# COMPILE AGDA2HS ext #-}
 
@@ -55,8 +51,26 @@ sub σ (Add t u) = Add (sub σ t) (sub σ u)
 
 {-# COMPILE AGDA2HS sub #-}
 
--- correctness of substitution
+-- correctness of renaming and substitution
+-- easy to prove in Agda
 
+-- Tm is a functor
+-- ren = fmap
+postulate ren-id   : (t : Tm a)
+                   → ren id t ≡ t
+postulate ren-comp : (t : Tm a)(ρ : b → c)(ρ' : a → b)
+                   → ren (ρ ∘ ρ') t ≡ ren ρ (ren ρ' t)
+
+-- Tm is a monad
+-- Var = return
+-- sub = (=<<)
+
+postulate sub-id   : (t : Tm a)
+                   → sub Var t ≡ t
+postulate sub-comp : (t : Tm a)(σ : b → Tm c)(σ' : a → Tm b)
+                   → sub (sub σ ∘ σ') t ≡ sub σ (sub σ' t)
+
+-- back to the program...
 
 sub1 : Tm (Maybe a) → Tm a → Tm a
 sub1 t u = sub (λ where (Just x) → Var x; Nothing → u) t
@@ -67,9 +81,13 @@ data Empty : Set where
 
 {-# COMPILE AGDA2HS Empty deriving Show #-}
 
+-- small step reduction
+-- quite minimal and loosely specified
+-- note no variable case
+
 step : Tm Empty → Maybe (Tm Empty)
 step (Lam t)               = Nothing
-step (App (Lam t) u)       = Just (sub1 t u) 
+step (App (Lam t) u)       = Just (sub1 t u)
 step (App t u)             = fmap (λ t → App t u) (step t)
 step (Val n)               = Nothing
 step (Add (Val m) (Val n)) = Just (Val (m + n))
@@ -84,12 +102,15 @@ data Gas : Set where
 
 {-# COMPILE AGDA2HS Gas #-}
 
+-- iterate small step reduction for a given number of steps 
+
 stepper : Gas → Tm Empty → Maybe (Tm Empty)
 stepper Z     t = Nothing -- out of gas
 stepper (S n) t = maybe (Just t) (stepper n) (step t)
 
 {-# COMPILE AGDA2HS stepper #-}
 
+-- (\x -> 2 + x) 2
 ex : Tm Empty
 ex = App (Lam (Add (Val 2) (Var Nothing))) (Val 2)
 

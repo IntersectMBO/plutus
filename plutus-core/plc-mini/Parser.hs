@@ -16,7 +16,7 @@ import           Data.Bifunctor
 import qualified Data.ByteString.Lazy       as BSL
 import           Numeric.Natural
 
-type Prog = Program TyName Name DefaultUni DefaultFun AlexPosn
+type Prog = Program TyName Name DefaultUni DefaultFun ()
 type Tm   = Term TyName Name DefaultUni DefaultFun ()
 
 -- parser
@@ -26,8 +26,7 @@ convCon (Some (ValueOf DefaultUniInteger i)) | i >= 0 =
   Just $ Val (fromInteger i)
 convCon _ = Nothing
 
-conv (Program _ _ t) = convTm t
-
+convTm :: Tm -> Maybe Exp
 convTm (Constant _ c) = convCon c
 convTm (Apply _ (Apply _ (Builtin _ AddInteger) t) u) = do
   e1 <- convTm t
@@ -35,13 +34,16 @@ convTm (Apply _ (Apply _ (Builtin _ AddInteger) t) u) = do
   return $ Add e1 e2
 convTm _ = Nothing
 
-parseProg :: BSL.ByteString -> Either (ParseError ()) Prog
-parseProg = first (() <$) . runQuote . runExceptT . parseProgram
+convProg :: Prog -> Maybe Exp
+convProg (Program _ _ t) = convTm t
 
-parse :: BSL.ByteString -> Maybe Exp
-parse b = case parseProg b of
+parseProg :: BSL.ByteString -> Either (ParseError ()) Prog
+parseProg = bimap (() <$) (() <$) . runQuote . runExceptT . parseProgram
+
+parseExp :: BSL.ByteString -> Maybe Exp
+parseExp b = case parseProg b of
   Left _  -> Nothing
-  Right p -> conv p
+  Right p -> convProg p
 
 -- pretty printer
 

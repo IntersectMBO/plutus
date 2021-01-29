@@ -25,7 +25,7 @@ eval (Add e1 e2) = eval e1 + eval e2
 variable
   e e1 e2 e3 e4 : Exp
 
--- and equational presentation of the semantics of the language
+-- an equational presentation of the semantics of the language
 data _≃_ : Exp → Exp → Set where
   reflE : e ≃ e
   symE  : e1 ≃ e2 → e2 ≃ e1

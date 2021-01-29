@@ -14,8 +14,7 @@ data Tm a = Lam (Tm (Maybe a))
               deriving Show
 
 ext :: (a -> b) -> Maybe a -> Maybe b
-ext ρ Nothing  = Nothing
-ext ρ (Just x) = Just (ρ x)
+ext = fmap
 
 ren :: (a -> b) -> Tm a -> Tm b
 ren ρ (Lam t)   = Lam (ren (ext ρ) t)

@@ -10,5 +10,5 @@ main
   = getContents >>=
       \ b ->
         maybe (putStrLn "parse error") (putStrLn . pretty . Val . eval)
-          (parse b)
+          (parseExp b)
 

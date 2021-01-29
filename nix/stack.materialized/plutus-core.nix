@@ -229,6 +229,7 @@
           "Language/PlutusCore/Generators/NEAT/Common"
           "Language/PlutusCore/Generators/NEAT/Spec"
           "Language/PlutusCore/Generators/NEAT/Type"
+          "Language/PlutusCore/Generators/NEAT/Term"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
           "Language/PlutusCore/Error"
@@ -312,7 +313,7 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             ];
           buildable = true;
-          modules = [ "Lang" "Parser" ];
+          modules = [ "Hutton" "Parser" ];
           hsSourceDirs = [ "plc-mini" ];
           mainPath = [ "Main.hs" ];
           };
