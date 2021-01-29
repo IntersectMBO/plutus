@@ -1,10 +1,11 @@
 { pkgs
-, plutusMusl
+, pkgsMusl
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? null
 , sources
+, enableHaskellProfiling
 }:
 let
   inherit (pkgs) stdenv;
@@ -22,8 +23,8 @@ let
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit plutusMusl;
-    inherit agdaWithStdlib checkMaterialization;
+    inherit pkgsMusl;
+    inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
   };
 
   #
