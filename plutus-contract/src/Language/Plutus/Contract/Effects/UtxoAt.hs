@@ -7,7 +7,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -21,7 +20,6 @@ import           GHC.Generics                               (Generic)
 import           Ledger                                     (Address, Slot, TxOut (..), TxOutTx (..))
 import           Ledger.AddressMap                          (UtxoMap)
 
-import           IOTS                                       (IotsType)
 import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot)
 import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
@@ -40,7 +38,7 @@ data UtxoAtAddress =
     , utxo    :: UtxoMap
     }
   deriving stock (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty UtxoAtAddress where
   pretty UtxoAtAddress{address, utxo} =

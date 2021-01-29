@@ -32,7 +32,6 @@ import qualified Data.Set                            as Set
 import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                        (Generic)
-import           IOTS                                (IotsType)
 import           Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
 import qualified Language.PlutusTx.Prelude           as PlutusTx
 import           Ledger
@@ -62,7 +61,7 @@ instance Show SigningProcess where
 newtype Wallet = Wallet { getWallet :: Integer }
     deriving (Show, Eq, Ord, Generic)
     deriving newtype (ToHttpApiData, FromHttpApiData, Hashable)
-    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey, IotsType)
+    deriving anyclass (Newtype, ToJSON, FromJSON, ToJSONKey)
 
 instance Pretty Wallet where
     pretty (Wallet i) = "W" <> pretty i

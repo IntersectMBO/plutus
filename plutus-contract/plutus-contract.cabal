@@ -56,7 +56,6 @@ library
         Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Trace
         Language.Plutus.Contract.Trace.RequestHandler
-        Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.StateMachine
@@ -108,7 +107,6 @@ library
     build-depends:
         plutus-ledger -any,
         plutus-tx -any,
-        iots-export -any
     build-depends:
         aeson >= 1.5.2,
         base >=4.7 && <5,
