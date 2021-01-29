@@ -259,7 +259,6 @@
         "semigroups".flags.template-haskell = true;
         "data-default".revision = (((hackage."data-default")."0.7.1.1").revisions).default;
         "HUnit".revision = (((hackage."HUnit")."1.6.1.0").revisions).default;
-        "servant-swagger".revision = (((hackage."servant-swagger")."1.1.7.1").revisions).default;
         "vector-instances".revision = (((hackage."vector-instances")."3.4").revisions).default;
         "vector-instances".flags.hashable = true;
         "cborg-json".revision = (((hackage."cborg-json")."0.2.2.0").revisions).default;
