@@ -11,6 +11,7 @@ import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, set, use)
 import Data.Lens.Record (prop)
+import Data.List (List)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.Symbol (SProxy(..))
@@ -23,7 +24,7 @@ import Effect.Class (class MonadEffect)
 import Foreign.Generic (encodeJSON)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, modify_, raise)
 import Halogen as H
-import Halogen.BlocklyCommons (blocklyEvents, updateUnsavedChangesActionHandler)
+import Halogen.BlocklyCommons (blocklyEvents, detectCodeChanges)
 import Halogen.Classes (aHorizontal, expanded, panelSubHeader, panelSubHeaderMain, sidebarComposer, hide, alignedButtonInTheMiddle, alignedButtonLast)
 import Halogen.HTML (HTML, button, div, text, iframe, aside, section)
 import Halogen.HTML.Core (AttrName(..))
@@ -40,7 +41,7 @@ type State
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     , showShiny :: Boolean
-    , useEvents :: Boolean
+    , eventsWhileDragging :: Maybe (List BT.BlocklyEvent)
     }
 
 _actusBlocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -89,7 +90,7 @@ blockly rootBlockName blockDefinitions =
           , generator: Nothing
           , errorMessage: Just "(Labs is an experimental feature)"
           , showShiny: false
-          , useEvents: false
+          , eventsWhileDragging: Nothing
           }
     , render
     , eval:
@@ -192,7 +193,7 @@ handleAction RunAnalysis = do
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
-handleAction (BlocklyEvent event) = updateUnsavedChangesActionHandler CodeChange event
+handleAction (BlocklyEvent event) = detectCodeChanges CodeChange event
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"

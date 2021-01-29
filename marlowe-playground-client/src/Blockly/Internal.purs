@@ -97,6 +97,11 @@ foreign import workspaceXML_ :: EffectFn2 Blockly Workspace XML
 
 foreign import loadWorkspace_ :: EffectFn3 Blockly Workspace XML Unit
 
+-- This function exposes the blockly state in the global window so it's easier to debug/test functionalities
+-- It is only called once per editor at the creation of the editor, so it doesn't consume resources and
+-- could be left enabled.
+foreign import debugBlockly_ :: EffectFn2 String BlocklyState Unit
+
 newtype ElementId
   = ElementId String
 
@@ -107,6 +112,7 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
   blockly <- createBlocklyInstance_
   toolbox <- runEffectFn1 getElementById_ (unwrap toolboxElementId)
   workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) (config toolbox)
+  runEffectFn2 debugBlockly_ (unwrap workspaceElementId) { blockly, workspace, rootBlockName }
   pure { blockly, workspace, rootBlockName }
   where
   config toolbox =
