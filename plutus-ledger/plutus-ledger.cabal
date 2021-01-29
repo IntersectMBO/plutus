@@ -88,7 +88,6 @@ library
         flat -any,
         hashable -any,
         hedgehog -any,
-        iots-export -any,
         plutus-core -any,
         plutus-ledger-api -any,
         memory -any,
