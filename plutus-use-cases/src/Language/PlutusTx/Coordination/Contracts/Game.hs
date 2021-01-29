@@ -43,7 +43,6 @@ module Language.PlutusTx.Coordination.Contracts.Game
 import           Control.Monad                   (void)
 import           Data.Aeson                      (FromJSON, ToJSON)
 import           GHC.Generics                    (Generic)
-import           IOTS                            (IotsType)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Schema ()
 import qualified Language.PlutusTx               as PlutusTx
@@ -114,14 +113,14 @@ data LockParams = LockParams
     , amount     :: Value
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 --  | Parameters for the "guess" endpoint
 newtype GuessParams = GuessParams
     { guessWord :: String
     }
     deriving stock (Prelude.Eq, Prelude.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema, ToArgument)
+    deriving anyclass (FromJSON, ToJSON, ToSchema, ToArgument)
 
 lock :: AsContractError e => Contract GameSchema e ()
 lock = do

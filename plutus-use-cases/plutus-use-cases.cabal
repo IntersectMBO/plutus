@@ -65,7 +65,6 @@ library
         aeson -any,
         bytestring -any,
         containers -any,
-        iots-export -any,
         mtl -any,
         plutus-core -any,
         plutus-tx -any,

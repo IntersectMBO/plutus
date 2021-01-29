@@ -50,7 +50,6 @@ import qualified Ledger.Value                                    as Value
 import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Map                                        as Map
 import           GHC.Generics                                    (Generic)
-import           IOTS                                            (IotsType)
 import           Prelude                                         (Semigroup (..))
 import qualified Prelude
 import           Schema                                          (ToSchema)
@@ -179,7 +178,7 @@ data SimpleMPS =
         , amount    :: Integer
         }
         deriving stock (Prelude.Eq, Prelude.Show, Generic)
-        deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
+        deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 type CurrencySchema =
     BlockchainActions
