@@ -226,7 +226,6 @@
             (hsPkgs."insert-ordered-containers" or (errorHandler.buildDepError "insert-ordered-containers"))
             (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
-            (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-playground-server" or (errorHandler.buildDepError "plutus-playground-server"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))

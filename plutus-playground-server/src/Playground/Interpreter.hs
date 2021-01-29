@@ -81,11 +81,10 @@ mkCompileScript script =
   replaceModuleName script
     <> Text.unlines
       [ "",
-        "$ensureIotsDefinitions",
         "$ensureKnownCurrencies",
         "",
         "main :: IO ()",
-        "main = printSchemas (schemas, registeredKnownCurrencies, iotsDefinitions)"
+        "main = printSchemas (schemas, registeredKnownCurrencies)"
       ]
 
 runghc :: CompileRequest -> ClientM (Either InterpreterError (InterpreterResult String))
