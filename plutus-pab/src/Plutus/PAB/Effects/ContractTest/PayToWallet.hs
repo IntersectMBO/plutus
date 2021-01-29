@@ -15,7 +15,6 @@ module Plutus.PAB.Effects.ContractTest.PayToWallet(
 
 import           Data.Aeson               (FromJSON, ToJSON)
 import           GHC.Generics             (Generic)
-import           IOTS                     (IotsType)
 import           Schema                   (ToSchema)
 
 import           Language.Plutus.Contract
@@ -30,7 +29,7 @@ data PayToWalletParams =
         , wallet :: Wallet
         }
         deriving stock (Eq, Show, Generic)
-        deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema)
+        deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 type PayToWalletSchema =
   BlockchainActions .\/ Endpoint "Pay to wallet" PayToWalletParams
