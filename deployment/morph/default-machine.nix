@@ -25,6 +25,7 @@
 
   systemd.services.amazon-init.wantedBy = pkgs.lib.mkForce [ ];
 
+  # HVM is recommeneded by AWS: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html
   ec2.hvm = true;
 
   networking.timeServers = [ "1.amazon.pool.ntp.org" "2.amazon.pool.ntp.org" "3.amazon.pool.ntp.org" ];
