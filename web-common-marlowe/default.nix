@@ -1,1 +1,1 @@
-{ lib, nix-gitignore }: nix-gitignore.gitignoreSource [ ] ./.
+{ lib, gitignore-nix }: gitignore-nix.gitignoreSource ./.

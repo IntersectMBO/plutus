@@ -31,7 +31,6 @@ rec {
   inherit pkgs plutus pkgsMusl;
 
   inherit (plutus) web-ghc;
-  inherit (plutus.lib) buildNodeModules;
 
   inherit (haskell.packages.plutus-pab.components.exes)
     plutus-game
@@ -39,17 +38,17 @@ rec {
     plutus-atomic-swap
     plutus-pay-to-wallet;
 
-  webCommon = pkgs.callPackage ./web-common { };
-  webCommonPlutus = pkgs.callPackage ./web-common-plutus { };
-  webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { };
-  webCommonPlayground = pkgs.callPackage ./web-common-playground { };
+  webCommon = pkgs.callPackage ./web-common { inherit (plutus.lib) gitignore-nix; };
+  webCommonPlutus = pkgs.callPackage ./web-common-plutus { inherit (plutus.lib) gitignore-nix; };
+  webCommonMarlowe = pkgs.callPackage ./web-common-marlowe { inherit (plutus.lib) gitignore-nix; };
+  webCommonPlayground = pkgs.callPackage ./web-common-playground { inherit (plutus.lib) gitignore-nix; };
 
   plutus-playground = pkgs.recurseIntoAttrs rec {
     tutorial = docs.site;
     haddock = plutus.plutus-haddock-combined;
 
     inherit (pkgs.callPackage ./plutus-playground-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules;
+      inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonPlutus webCommonPlayground;
     }) client server-invoker generated-purescript generate-purescript start-backend;
   };
@@ -58,14 +57,14 @@ rec {
     tutorial = docs.marlowe-tutorial;
 
     inherit (pkgs.callPackage ./marlowe-playground-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules;
+      inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonMarlowe webCommonPlayground;
     }) client server-invoker generated-purescript generate-purescript start-backend;
   };
 
   marlowe-dashboard = pkgs.recurseIntoAttrs rec {
     inherit (pkgs.callPackage ./marlowe-dashboard-client {
-      inherit (plutus.lib) buildPursPackage buildNodeModules;
+      inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix;
       inherit set-git-rev haskell webCommon webCommonMarlowe;
     }) client server-invoker generated-purescript generate-purescript;
   };
@@ -83,7 +82,7 @@ rec {
   };
 
   plutus-pab = pkgs.recurseIntoAttrs (pkgs.callPackage ./plutus-pab-client {
-    inherit (plutus.lib) buildPursPackage buildNodeModules;
+    inherit (plutus.lib) buildPursPackage buildNodeModules gitignore-nix;
     inherit set-git-rev haskell webCommon webCommonPlutus;
   });
 

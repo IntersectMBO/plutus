@@ -7,7 +7,7 @@
 , haskell-nix
 , buildPackages
 , checkMaterialization
-, nix-gitignore
+, gitignore-nix
 , R
 , rPackages
 , z3
@@ -35,8 +35,8 @@ let
 
   # The haskell project created by haskell-nix.stackProject'
   project = import ./haskell.nix {
-    inherit lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
+    inherit lib stdenv haskell-nix buildPackages R rPackages z3;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
     inherit enableHaskellProfiling;
   };
 
@@ -51,8 +51,8 @@ let
 
   # The haskell project created by haskell-nix.stackProject' (musl version)
   muslProject = import ./haskell.nix {
-    inherit (pkgsMusl) lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
+    inherit (pkgsMusl) lib stdenv haskell-nix buildPackages R rPackages z3;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
     inherit enableHaskellProfiling;
   };
 

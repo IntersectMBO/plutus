@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules }:
+{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonPlutus, webCommonPlayground, buildPursPackage, buildNodeModules }:
 let
   playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
 
@@ -42,16 +42,17 @@ let
     $(nix-build --quiet --no-build-output ../default.nix -A plutus-playground.server-invoker)/bin/plutus-playground webserver
   '';
 
+  cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
-    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
+    projectDir = cleanSrc;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
   };
 
   client = buildPursPackage {
     inherit pkgs nodeModules;
-    src = ./.;
+    src = cleanSrc;
     name = "plutus-playground-client";
     # ideally we would just use `npm run test` but
     # this executes `spago` which *always* attempts to download
