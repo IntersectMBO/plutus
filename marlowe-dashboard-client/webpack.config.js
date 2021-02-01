@@ -86,11 +86,8 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader']
-            },
-            {
-                test: /\.scss$/,
-                use: ['style-loader', 'css-loader', 'sass-loader']
+                exclude: /node_modules/,
+                use: ['style-loader', 'css-loader', 'postcss-loader']
             },
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
