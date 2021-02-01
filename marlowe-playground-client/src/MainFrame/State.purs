@@ -1,4 +1,4 @@
-module MainFrame.State (mkMainFrame) where
+module MainFrame.State (component) where
 
 import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
@@ -10,7 +10,7 @@ import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader (runReaderT)
+import Control.Monad.Reader (class MonadAsk, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), hush, note)
@@ -24,6 +24,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
@@ -113,11 +114,13 @@ initialState =
   }
 
 ------------------------------------------------------------
-mkMainFrame ::
+component ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ -> Component HTML Query Unit Void m
-mkMainFrame settings =
+  MonadAsk Env m =>
+  SPSettings_ SPParams_ ->
+  Component HTML Query Unit Void m
+component settings =
   H.mkComponent
     { initialState: const initialState
     , render: render settings
@@ -230,6 +233,7 @@ handleSubRoute settings Router.GithubAuthCallback = do
 handleRoute ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Route -> HalogenM State Action ChildSlots Void m Unit
 handleRoute settings { gistId: (Just gistId), subroute } = do
@@ -241,9 +245,8 @@ handleRoute settings { subroute } = handleSubRoute settings subroute
 
 handleQuery ::
   forall m a.
-  Functor m =>
-  MonadEffect m =>
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Query a ->
   HalogenM State Action ChildSlots Void m (Maybe a)
@@ -258,6 +261,7 @@ handleQuery settings (ChangeRoute route next) = do
 fullHandleAction ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
@@ -271,6 +275,7 @@ fullHandleAction settings =
 handleActionWithoutNavigationGuard ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
@@ -287,6 +292,7 @@ handleActionWithoutNavigationGuard settings =
 handleAction ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
@@ -777,6 +783,7 @@ loadGist settings gist = do
 handleConfirmUnsavedNavigationAction ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   Action ->
   ConfirmUnsavedNavigation.Action ->
@@ -808,6 +815,7 @@ setUnsavedChangesForLanguage lang value = do
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>
+  MonadAsk Env m =>
   SPSettings_ SPParams_ ->
   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
   Action ->

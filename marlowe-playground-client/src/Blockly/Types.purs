@@ -24,11 +24,11 @@ data BlocklyEvent
   | UI UIEvent
 
 isDragStart :: BlocklyEvent -> Boolean
-isDragStart (UI event) = eq (Just "dragStart") $ element event
+isDragStart (UI event) = element event == (Just "dragStart")
 
 isDragStart _ = false
 
 isDragStop :: BlocklyEvent -> Boolean
-isDragStop (UI event) = eq (Just "dragStop") $ element event
+isDragStop (UI event) = element event == (Just "dragStop")
 
 isDragStop _ = false
