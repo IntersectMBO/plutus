@@ -1,19 +1,22 @@
 module BlocklyComponent.Types where
 
 import Prelude hiding (div)
-import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Generator (Generator)
+import Blockly.Internal (BlockDefinition, XML)
 import Blockly.Types as BT
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Halogen (SubscriptionId)
 
 type State
   = { blocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
-    , useEvents :: Boolean
+    , blocklyEventSubscription :: Maybe SubscriptionId
+    , eventsWhileDragging :: Maybe (List BT.BlocklyEvent)
     }
 
 _blocklyState :: Lens' State (Maybe BT.BlocklyState)
@@ -25,11 +28,17 @@ _generator = prop (SProxy :: SProxy "generator")
 _errorMessage :: Lens' State (Maybe String)
 _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
-_useEvents :: Lens' State Boolean
-_useEvents = prop (SProxy :: SProxy "useEvents")
+_blocklyEventSubscription :: Lens' State (Maybe SubscriptionId)
+_blocklyEventSubscription = prop (SProxy :: SProxy "blocklyEventSubscription")
 
 emptyState :: State
-emptyState = { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing, useEvents: false }
+emptyState =
+  { blocklyState: Nothing
+  , generator: Nothing
+  , errorMessage: Nothing
+  , blocklyEventSubscription: Nothing
+  , eventsWhileDragging: Nothing
+  }
 
 data Query a
   = Resize a

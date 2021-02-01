@@ -80,9 +80,12 @@ openLoginPopup = do
       mbListener <- Ref.read listenerRef
       for_ mbListener \listener ->
         removeEventListener messageEvent listener false windowEventTarget
-  featureString <- liftEffect $ features
-  _ <- liftEffect $ Window.open githubLoginPage "_blank" featureString window
-  listenerRef <- liftEffect $ Ref.new Nothing
+  listenerRef <-
+    liftEffect
+      $ do
+          featureString <- features
+          void $ Window.open githubLoginPage "_blank" featureString window
+          Ref.new Nothing
   -- Make sure that the event listener is removed no matter what
   finally
     (liftEffect $ removeWaitForEventListener listenerRef)

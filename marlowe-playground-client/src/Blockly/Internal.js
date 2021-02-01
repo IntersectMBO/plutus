@@ -6,7 +6,12 @@ var JSONbig = require("json-bigint");
 exports.createBlocklyInstance_ = function () {
   return require("node-blockly/browser");
 };
-
+exports.debugBlockly_ = function debugBlockly_ (name, state) {
+  if (typeof window.blockly === 'undefined') {
+    window.blockly = {};
+  }
+  window.blockly[name] = state
+}
 exports.getElementById_ = function (id) {
   return document.getElementById(id);
 };

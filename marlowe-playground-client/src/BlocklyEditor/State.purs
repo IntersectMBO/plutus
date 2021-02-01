@@ -1,3 +1,4 @@
+-- TODO: rename modules from BlocklyEditor -> MarloweBlocklyEditor
 module BlocklyEditor.State where
 
 import Prelude
