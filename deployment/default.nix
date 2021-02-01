@@ -76,7 +76,7 @@ let
 
       ln -s ${./terraform}/* "$tmp_dir"
 
-      # in case we have some tfvars around in ./terraform
+      # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
       rm $tmp_dir/*.tfvars || true
 
       ln -s ${terraform-locals env}/* "$tmp_dir"
@@ -117,8 +117,9 @@ let
 
       echo "json files created in $tmp_dir/nixops"
 
-      # This is a nasty way to make deployment with morph easier. Once you have run this script you will have the correct
-      # information in the morph directory for morph to deploy to the EC2 instances
+      # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work 
+      # from within a nix derivation shell script. 
+      # Once you have run this script you will have the correct information in the morph directory for morph to deploy to the EC2 instances
       if [[ ! -z "$PLUTUS_ROOT" ]]; then
         echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
         cp $tmp_dir/nixops/machines.json $PLUTUS_ROOT/deployment/morph/
