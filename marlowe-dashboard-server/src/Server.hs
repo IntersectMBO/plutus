@@ -26,21 +26,21 @@ import           GHC.Generics                (Generic)
 import           Git                         (gitRev)
 import           Network.Wai.Middleware.Cors (cors, corsRequestHeaders, simpleCorsResourcePolicy)
 import           Servant                     (Application, Handler (Handler), Server, ServerError, hoistServer, serve,
-                                              (:<|>) ((:<|>)), (:>))
+                                              serveDirectoryFileServer, (:<|>) ((:<|>)), (:>))
 import qualified WebSocket                   as WS
 
 version :: Applicative m => m Text
 version = pure gitRev
 
-handlers :: Server API
-handlers = version :<|> WS.handle
+handlers :: FilePath -> Server API
+handlers staticPath = version :<|> WS.handle :<|> serveDirectoryFileServer staticPath
 
-app :: Application
-app =
-  cors (const $ Just policy) $ serve (Proxy @API) handlers
+app :: FilePath -> Application
+app staticPath =
+  cors (const $ Just policy) $ serve (Proxy @API) (handlers staticPath)
   where
     policy =
       simpleCorsResourcePolicy
 
-initializeApplication :: IO Application
-initializeApplication = pure app
+initializeApplication :: FilePath -> IO Application
+initializeApplication staticPath = pure $ app staticPath

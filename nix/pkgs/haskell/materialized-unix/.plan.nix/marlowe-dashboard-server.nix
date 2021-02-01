@@ -46,6 +46,7 @@
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."wai-app-static" or (errorHandler.buildDepError "wai-app-static"))
           (hsPkgs."wai-cors" or (errorHandler.buildDepError "wai-cors"))
           (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))

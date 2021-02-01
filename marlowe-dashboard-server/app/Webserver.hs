@@ -11,7 +11,7 @@ import           Network.Wai.Handler.Warp as Warp
 import           Servant                  (serve)
 import qualified Server
 
-run :: Int -> IO ()
-run port = do
+run :: FilePath -> Settings -> IO ()
+run staticPath settings = do
   let server = Server.handlers
-  Warp.run port (serve (Proxy @API) server)
+  Warp.runSettings settings (serve (Proxy @API) (server staticPath))

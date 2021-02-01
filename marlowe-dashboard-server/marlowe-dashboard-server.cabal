@@ -37,6 +37,7 @@ library
         servant-server -any,
         servant-websockets -any,
         text -any,
+        wai-app-static -any,
         wai-cors -any,
         websockets -any,
         uuid -any
