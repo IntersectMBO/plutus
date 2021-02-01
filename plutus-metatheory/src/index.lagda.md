@@ -158,7 +158,7 @@ Untyped terms, reduction and evaluation
 ```
 import Untyped
 import Untyped.RenamingSubstitution
-import Untyped.Reduction
+--import Untyped.Reduction
 ```
 
 ## Type checker
