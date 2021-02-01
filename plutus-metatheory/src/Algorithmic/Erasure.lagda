@@ -204,12 +204,6 @@ lem[]'' : ∀{n n'}(p : n ≡ n') →
   [] ≡ subst (λ n → Vec (n ⊢) 0) p []
 lem[]'' refl = refl
 
-{-
-lem-plc_dummy : ∀{n n'}(p : n ≡ n') →
-  plc_dummy ≡ subst _⊢ p plc_dummy
-lem-plc_dummy refl = refl
--}
-
 lem∷ : ∀{m n n'}(p : n ≡ n')(t : n ⊢)(ts : Vec (n ⊢) m)
   → subst _⊢ p t ∷ subst (λ n → Vec (n ⊢) m) p ts ≡ subst (λ n → Vec (n ⊢) (suc m)) p (t ∷ ts) 
 lem∷ refl t ts = refl

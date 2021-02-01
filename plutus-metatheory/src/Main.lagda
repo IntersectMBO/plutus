@@ -26,7 +26,7 @@ open import Scoped.Extrication
 open import Type.BetaNBE
 open import Type.BetaNormal
 open import Untyped as U
---import Untyped.Reduction as U
+import Untyped.Reduction as U
 import Scoped as S
 import Scoped.Reduction as S
 open import Raw
