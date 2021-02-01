@@ -113,16 +113,3 @@ ugly (delay t) = "(delay " +++ ugly t +++ ")"
 --ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
 ugly error = "error"
 \end{code}
-
-\begin{code}
-{-
-plc_true : ∀{n} → n ⊢
-plc_true = con (bool true)
-
-plc_false : ∀{n} → n ⊢
-plc_false = con (bool false)
-
-plc_dummy : ∀{n} → n ⊢
-plc_dummy = con unit
--}
-\end{code}
