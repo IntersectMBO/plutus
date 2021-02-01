@@ -11,6 +11,7 @@ module StaticAnalysis.StaticTools
 import Prelude hiding (div)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
+import Data.Bifunctor (lmap)
 import Data.Lens (assign)
 import Data.List (List(..), foldl, fromFoldable, length, snoc, toUnfoldable)
 import Data.List.Types (NonEmptyList(..))
@@ -23,6 +24,8 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
+import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
+import Marlowe.ExtendedMarlowe as EM
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
@@ -30,27 +33,34 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError(..))
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Types (AnalysisInProgressRecord, AnalysisState(..), ContractPath, ContractPathStep(..), ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, RemainingSubProblemInfo, _analysisState)
-import Types (WebData)
+import Types (WarningAnalysisError(..), WebData)
+
+runAjax ::
+  forall m a state action slots.
+  ExceptT AjaxError (HalogenM state action slots Void m) a ->
+  HalogenM state action slots Void m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
 
 analyseContract ::
   forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  Contract ->
+  EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseContract settings contract = do
-  assign _analysisState (WarningAnalysis Loading)
-  -- when editor and simulator were together the analyse contract could be made
-  -- at any step of the simulator. Now that they are separate, it can only be done
-  -- with initial state
-  let
-    emptySemanticState = emptyState zero
-  response <- checkContractForWarnings emptySemanticState
-  assign _analysisState (WarningAnalysis response)
+analyseContract settings extendedContract = do
+  case convertContractIfNoExtensions extendedContract of
+    Just contract -> do
+      assign _analysisState (WarningAnalysis Loading)
+      -- when editor and simulator were together the analyse contract could be made
+      -- at any step of the simulator. Now that they are separate, it can only be done
+      -- with initial state
+      response <- checkContractForWarnings emptySemanticState contract
+      assign _analysisState $ WarningAnalysis $ lmap WarningAnalysisAjaxError $ response
+    Nothing -> assign _analysisState $ WarningAnalysis $ Failure WarningAnalysisIsExtendedMarloweError
   where
-  checkContractForWarnings state = runAjax' $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
+  emptySemanticState = emptyState zero
 
-  runAjax' action = RemoteData.fromEither <$> runExceptT action
+  checkContractForWarnings state contract = runAjax $ (flip runReaderT) settings (Server.postMarloweanalysis (MSReq.Request { onlyAssertions: false, contract, state }))
 
 splitArray :: forall a. List a -> List (List a /\ a /\ List a)
 splitArray x = splitArrayAux Nil x
@@ -177,12 +187,6 @@ getNextSubproblem f (Cons (zipper /\ contract) rest) Nil =
 
 getNextSubproblem f acc newChildren = getNextSubproblem f (acc <> newChildren) Nil
 
-runAjax ::
-  forall m a state action slots.
-  ExceptT AjaxError (HalogenM state action slots Void m) a ->
-  HalogenM state action slots Void m (WebData a)
-runAjax action = RemoteData.fromEither <$> runExceptT action
-
 checkContractForFailedAssertions ::
   forall m state action slots.
   MonadAff m =>
@@ -281,9 +285,9 @@ updateWithResponse ::
   SPSettings_ SPParams_ ->
   MultiStageAnalysisData ->
   WebData Result -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
-updateWithResponse _ _ (AnalysisInProgress _) (Failure (AjaxError err)) = pure (AnalyisisFailure "connection error")
+updateWithResponse _ _ (AnalysisInProgress _) (Failure (AjaxError err)) = pure (AnalysisFailure "connection error")
 
-updateWithResponse _ _ (AnalysisInProgress { currPath: path }) (Success (Error err)) = pure (AnalyisisFailure err)
+updateWithResponse _ _ (AnalysisInProgress { currPath: path }) (Success (Error err)) = pure (AnalysisFailure err)
 
 updateWithResponse problemDef settings (AnalysisInProgress rad) (Success Valid) = stepAnalysis problemDef settings false rad
 

@@ -5,7 +5,7 @@ import Control.Monad.State (class MonadState)
 import Data.Array (fromFoldable, mapMaybe, sort, toUnfoldable, uncons)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (has, modifying, nearly, over, previewOn, set, to, use, view, (^.))
+import Data.Lens (has, modifying, nearly, over, set, to, use, view, (^.))
 import Data.List (List(..))
 import Data.List as List
 import Data.List.Types (NonEmptyList)
@@ -23,6 +23,7 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
+import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
 import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum
@@ -88,16 +89,17 @@ updateContractInStateP text state = case parseContract text of
 
       mContract = fromTerm parsedContract
     in
+      -- We reuse the extended Marlowe parser for now since it is a superset
       case mContract of
-        Just contract -> do
-          set _editorErrors [] <<< set _contract (Just contract) $ state
-        Nothing -> do
+        Just extendedContract -> case convertContractIfNoExtensions extendedContract of
+          Just contract -> set _editorErrors [] <<< set _contract (Just contract) $ state
+          Nothing -> (set _holes mempty) state
+        Nothing ->
           let
             holes = view L._holes lintResult
-          (set _holes holes) state
+          in
+            (set _holes holes) state
   Left error -> (set _holes mempty) state
-  where
-  marloweState = fromMaybe (emptyState zero) (previewOn state (_executionState <<< _SimulationRunning <<< _state))
 
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState@{ executionState: SimulationRunning executionState } =

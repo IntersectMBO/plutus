@@ -1073,15 +1073,15 @@ statementToTerm g block name p = case statementToCode g block name of
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
   blockDefinition DepositActionType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    party <- statementToTerm g block "from_party" Parser.party
+    party <- statementToTerm g block "from_party" Parser.partyExtended
     amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountOwner party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
 
@@ -1101,10 +1101,10 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) where
   blockDefinition AccountPayeeType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Account accountOwner)
   blockDefinition PartyPayeeType g block = do
-    party <- statementToTerm g block "party" Parser.party
+    party <- statementToTerm g block "party" Parser.partyExtended
     pure $ mkDefaultTerm (Party party)
 
 instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
@@ -1127,9 +1127,9 @@ instance hasBlockDefinitionToken :: HasBlockDefinition TokenType (Term Token) wh
 instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Contract) where
   blockDefinition CloseContractType _ _ = pure $ mkDefaultTerm Close
   blockDefinition PayContractType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
-    payee <- statementToTerm g block "payee" Parser.payee
+    payee <- statementToTerm g block "payee" Parser.payeeExtended
     value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Pay accountOwner payee tok value contract)
@@ -1174,7 +1174,7 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
     pure $ mkDefaultTerm (NotObs observation)
   blockDefinition ChoseSomethingObservationType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoseSomething choiceId)
@@ -1203,7 +1203,7 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) where
   blockDefinition AvailableMoneyValueType g block = do
-    accountOwner <- statementToTerm g block "party" Parser.party
+    accountOwner <- statementToTerm g block "party" Parser.partyExtended
     tok <- statementToTerm g block "token" Parser.token
     pure $ mkDefaultTerm (AvailableMoney accountOwner tok)
   blockDefinition ConstantValueType g block = do
@@ -1231,7 +1231,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "party" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.partyExtended
     let
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoiceValue choiceId)

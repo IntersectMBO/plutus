@@ -52,7 +52,8 @@ import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), H
 import Marlowe.Holes as Holes
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
-import Marlowe.Semantics as Semantics
+import Marlowe.Semantics as S
+import Marlowe.ExtendedMarlowe as EM
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
@@ -96,8 +97,8 @@ data WarningDetail
   | DivisionByZero
   | SimplifiableValue (Term Value) (Term Value)
   | SimplifiableObservation (Term Observation) (Term Observation)
-  | PayBeforeDeposit Semantics.AccountId
-  | PartialPayment Semantics.AccountId Semantics.Token BigInteger BigInteger
+  | PayBeforeDeposit S.AccountId
+  | PartialPayment S.AccountId S.Token BigInteger BigInteger
 
 instance showWarningDetail :: Show WarningDetail where
   show NegativePayment = "The contract can make a non-positive payment"
@@ -225,9 +226,9 @@ hasHoles = not Holes.isEmpty <<< view _holes
 
 newtype LintEnv
   = LintEnv
-  { choicesMade :: Set Semantics.ChoiceId
-  , deposits :: Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger)
-  , letBindings :: Set Semantics.ValueId
+  { choicesMade :: Set S.ChoiceId
+  , deposits :: Map (S.AccountId /\ S.Token) (Maybe BigInteger)
+  , letBindings :: Set S.ValueId
   , maxTimeout :: MaxTimeout
   , isReachable :: Boolean
   , unreachablePaths :: Maybe PrefixMap
@@ -235,16 +236,16 @@ newtype LintEnv
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
 
-_choicesMade :: Lens' LintEnv (Set Semantics.ChoiceId)
+_choicesMade :: Lens' LintEnv (Set S.ChoiceId)
 _choicesMade = _Newtype <<< prop (SProxy :: SProxy "choicesMade")
 
-_letBindings :: Lens' LintEnv (Set Semantics.ValueId)
+_letBindings :: Lens' LintEnv (Set S.ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
 _maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
-_deposits :: Lens' LintEnv (Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger))
+_deposits :: Lens' LintEnv (Map (S.AccountId /\ S.Token) (Maybe BigInteger))
 _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 
 _isReachable :: Lens' LintEnv Boolean
@@ -352,7 +353,7 @@ constToObs false = Term FalseObs zero
 constToVal :: BigInteger -> Term Value
 constToVal x = Term (Constant x) zero
 
-addMoneyToEnvAccount :: BigInteger -> Semantics.AccountId -> Semantics.Token -> LintEnv -> LintEnv
+addMoneyToEnvAccount :: BigInteger -> S.AccountId -> S.Token -> LintEnv -> LintEnv
 addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (addMoney amountToAdd) (accTerm /\ tokenTerm))
   where
   addMoney :: BigInteger -> Maybe (Maybe BigInteger) -> Maybe (Maybe BigInteger)
@@ -415,7 +416,7 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
             tempEnv = over _deposits (Map.insert key (Just (avMoney - actualPaidMoney))) env
           pure
             ( case fromTerm payee of
-                Just (Semantics.Account newAcc) -> addMoneyToEnvAccount actualPaidMoney newAcc tokenTerm tempEnv
+                Just (EM.Account newAcc) -> addMoneyToEnvAccount actualPaidMoney newAcc tokenTerm tempEnv
                 _ -> tempEnv
             )
         Nothing /\ _ -> pure env
@@ -659,7 +660,7 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
       isSimp = (abs gcdv) > one
     in
       case sc of
-        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (Semantics.Scale (Semantics.Rational a b) (Semantics.Constant v))))
+        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.Scale (S.Rational a b) (S.Constant v))))
         (ValueSimp _ _ v) -> do
           if isSimp then
             pure unit
@@ -711,9 +712,9 @@ lintValue env t@(Term (Cond c a b) pos) = do
       pure (ValueSimp pos false t)
 
 data Effect
-  = ConstantDeposit Semantics.AccountId Semantics.Token BigInteger
-  | UnknownDeposit Semantics.AccountId Semantics.Token
-  | ChoiceMade Semantics.ChoiceId
+  = ConstantDeposit S.AccountId S.Token BigInteger
+  | UnknownDeposit S.AccountId S.Token
+  | ChoiceMade S.ChoiceId
   | NoEffect
 
 lintCase :: LintEnv -> Int -> Term Case -> CMS.State State Unit
