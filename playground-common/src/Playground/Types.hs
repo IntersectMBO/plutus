@@ -150,7 +150,6 @@ data CompilationResult =
     CompilationResult
         { functionSchema  :: [FunctionSchema FormSchema]
         , knownCurrencies :: [KnownCurrency]
-        , iotsSpec        :: Text
         }
     deriving (Show, Eq, Generic, ToJSON)
 

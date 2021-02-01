@@ -88,7 +88,7 @@ vestingTest =
         "vesting"
         [ compilationChecks vesting
         , testCase "should compile with the expected schema" $ do
-              Right (InterpreterResult _ (CompilationResult result _ _)) <-
+              Right (InterpreterResult _ (CompilationResult result _)) <-
                   compile vesting
               assertEqual
                   ""
@@ -328,7 +328,7 @@ knownCurrencyTest =
               "MyCurrency"
               (TokenName "MyToken" :| [])
         ]
-    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ currencies _))) =
+    hasKnownCurrency (Right (InterpreterResult _ (CompilationResult _ currencies))) =
         assertEqual "" expectedCurrencies currencies
     hasKnownCurrency other =
         assertFailure $ "Compilation failed: " <> show other
