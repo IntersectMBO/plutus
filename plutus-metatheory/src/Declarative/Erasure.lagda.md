@@ -106,8 +106,8 @@ erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : T.Sub Φ Ψ)
 erase (` α)             = ` (eraseVar α)
 erase (ƛ t)             = ƛ (erase t) 
 erase (t · u)           = erase t · erase u
-erase (Λ t)             = ƛ (U.weaken (erase t))
-erase (t ·⋆ A)          = erase t · plc_dummy
+erase (Λ t)             = delay (erase t)
+erase (t ·⋆ A)          = force (erase t)
 erase (wrap A B t)      = erase t
 erase (unwrap t)        = erase t
 erase (conv p t)        = erase t

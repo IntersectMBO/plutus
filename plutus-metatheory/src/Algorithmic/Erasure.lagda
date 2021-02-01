@@ -92,8 +92,8 @@ erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
 erase (ƛ t)                = ƛ (erase t) 
 erase (t · u)              = erase t · erase u
-erase (Λ t)                = ƛ (U.weaken (erase t))
-erase (_·⋆_ t A)           = erase t · plc_dummy
+erase (Λ t)                = delay (erase t)
+erase (_·⋆_ t A)           = force (erase t)
 erase (wrap A B t)         = erase t
 erase (unwrap t)           = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
@@ -180,6 +180,12 @@ lemƛ refl refl t = refl
 lem· : ∀{n n'}(p : n ≡ n')(t u : n ⊢) → subst _⊢ p t · subst _⊢ p u ≡ subst _⊢ p (t · u)
 lem· refl t u = refl
 
+lem-delay : ∀{n n'}(p : n ≡ n')(t : n ⊢) → delay (subst _⊢ p t) ≡ subst _⊢ p (delay t)
+lem-delay refl t = refl
+
+lem-force : ∀{n n'}(p : n ≡ n')(t : n ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
+lem-force refl t = refl
+
 lem-weaken : ∀{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : n ⊢)
   → U.weaken (subst _⊢ p t) ≡ subst _⊢ q (U.weaken t)
 lem-weaken refl refl t = refl
@@ -198,10 +204,11 @@ lem[]'' : ∀{n n'}(p : n ≡ n') →
   [] ≡ subst (λ n → Vec (n ⊢) 0) p []
 lem[]'' refl = refl
 
+{-
 lem-plc_dummy : ∀{n n'}(p : n ≡ n') →
   plc_dummy ≡ subst _⊢ p plc_dummy
 lem-plc_dummy refl = refl
-
+-}
 
 lem∷ : ∀{m n n'}(p : n ≡ n')(t : n ⊢)(ts : Vec (n ⊢) m)
   → subst _⊢ p t ∷ subst (λ n → Vec (n ⊢) m) p ts ≡ subst (λ n → Vec (n ⊢) (suc m)) p (t ∷ ts) 
@@ -220,11 +227,13 @@ lem:<' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(ts : Vec A n)(t 
 lem:<' refl refl ts t = refl
 
 
+{-
 lemTel : ∀{m n n'}(p : n ≡ n')(bn : Builtin)(ts : Vec (n ⊢) m)
   → (q : m ≤‴ arity bn)
   → builtin bn q (subst (λ n → Vec (n ⊢) m) p ts)
     ≡ subst _⊢ p (builtin bn q ts)
 lemTel refl bn ts q = refl
+-}
 
 lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(t : Γ A.⊢ A)
   → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
@@ -233,13 +242,14 @@ lem-erase refl refl t = refl
 lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
 lem-subst t refl = refl
 
+{-
 lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → (p : n ≤‴ arity b)
   → (q : n' ≤‴ arity b)
   → (r : n ≡ n')
   → Untyped.builtin b p ts ≡ builtin b q (subst (Vec (m ⊢)) r ts)
 lem-builtin b ts p q refl = cong (λ p → builtin b p ts) (lem≤‴ p q)
-
+-}
 
 lem-erase' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡ A')(t : Γ A.⊢ A)
   → erase t  ≡ erase (conv⊢ refl q t)
@@ -279,13 +289,17 @@ same {Γ = Γ} (D.ƛ t) = trans
 same {Γ = Γ} (t D.· u) = trans
   (cong₂ _·_ (same t) (same u))
   (lem· (lenLemma Γ) (erase (nfType t)) (erase (nfType u)))
-same {Γ = Γ} (D.Λ {B = B} t) = trans (trans (trans (cong (ƛ ∘ U.weaken) (same t)) (cong ƛ (lem-weaken (lenLemma Γ) (cong suc (lenLemma Γ)) (erase (nfType t))))) (lemƛ (lenLemma Γ) (cong suc (lenLemma Γ)) (U.weaken (erase (nfType t))))) (cong (subst _⊢ (lenLemma Γ) ∘ ƛ ∘ U.weaken) (lem-erase' (subNf-lemma' B) (nfType t)))
+same {Γ = Γ} (D.Λ {B = B} t) = trans
+  (trans (cong delay (same t))
+         (lem-delay (lenLemma Γ) (erase (nfType t))))
+  (cong (subst _⊢ (lenLemma Γ) ∘ delay)
+        (lem-erase' (subNf-lemma' B) (nfType t)))
 same {Γ = Γ} (D._·⋆_ {B = B} t A) = trans
-  (cong (_· plc_dummy) (same t))
-  (trans
-    (trans (cong₂ _·_ (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemΠ B) (nfType t)) ) (lem-plc_dummy (lenLemma Γ)))
-           (lem· (lenLemma Γ) (erase (conv⊢ refl (lemΠ B) (nfType t))) plc_dummy))
-    (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A)))) 
+  (trans (cong force (same t))
+         (lem-force (lenLemma Γ) (erase (nfType t))))
+  (cong (subst _⊢ (lenLemma Γ))
+        (trans (cong force (lem-erase' (lemΠ B) (nfType t)))
+        (lem-erase' (lem[] A B) (conv⊢ refl (lemΠ B) (nfType t) ·⋆ nf A))))
 same {Γ = Γ} (D.wrap A B t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (stability-μ A B) (nfType t)))
@@ -345,17 +359,17 @@ same' {Γ = Γ} (ƛ t) = trans
 same' {Γ = Γ} (t · u) = trans
   (cong₂ _·_ (same' t) (same' u))
   (lem· (same'Len Γ) (D.erase (emb t)) (D.erase (emb u)))
-same' {Γ = Γ} (Λ t)      = trans
-  (trans (cong (ƛ ∘ U.weaken) (same' t))
-         (cong ƛ
-               (lem-weaken (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t)))))
-  (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (U.weaken (D.erase (emb t))))
-same' {Γ = Γ} (_·⋆_ t A)   = trans
-  (cong₂ _·_ (same' t) (lem-plc_dummy (same'Len Γ)))
-  (lem· (same'Len Γ) (D.erase (emb t)) plc_dummy)
+same' {Γ = Γ} (Λ t) =  trans
+  (cong delay (same' t))
+  (lem-delay (same'Len Γ) (D.erase (emb t)))
+same' {Γ = Γ} (t ·⋆ A)   = trans
+  (cong force (same' t))
+  (lem-force (same'Len Γ) (D.erase (emb t)))
 same' {Γ = Γ} (wrap A B t)   = same' t
 same' {Γ = Γ} (unwrap t) = same' t
-same' {Γ = Γ} (con x) = trans (cong con (same'TC {Γ = Γ} x)) (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
+same' {Γ = Γ} (con x) = trans
+  (cong con (same'TC {Γ = Γ} x))
+  (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
 same' {Γ = Γ} (ibuiltin b) = lemerror (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}
