@@ -83,6 +83,7 @@ let
     updateHie
     updateClientDeps
     updateMetadataSamples
+    deployment.getCreds
   ]);
 
 in
