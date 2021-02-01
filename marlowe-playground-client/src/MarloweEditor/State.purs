@@ -12,6 +12,7 @@ import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Array (filter)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_, traverse_)
@@ -23,13 +24,13 @@ import Data.String as String
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Env (Env)
 import Examples.Marlowe.Contracts (example) as ME
 import Halogen (HalogenM, liftEffect, modify_, query)
 import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _marloweEditorPageSlot)
-import Marlowe (SPParams_)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
@@ -40,7 +41,6 @@ import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelStat
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
-import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Reachability (analyseReachability, getUnreachableContracts)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (_analysisState)
@@ -60,34 +60,34 @@ toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction _ Init = do
+handleAction Init = do
   editorSetTheme
   mContents <- liftEffect $ LocalStorage.getItem marloweBufferLocalStorageKey
   editorSetValue $ fromMaybe ME.example mContents
 
-handleAction _ (ChangeKeyBindings bindings) = do
+handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _marloweEditorPageSlot unit (Monaco.SetKeyBindings bindings unit)
 
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
+handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   lintText text
 
-handleAction _ (HandleDragEvent event) = liftEffect $ preventDefault event
+handleAction (HandleDragEvent event) = liftEffect $ preventDefault event
 
-handleAction settings (HandleDropEvent event) = do
+handleAction (HandleDropEvent event) = do
   liftEffect $ preventDefault event
   contents <- liftAff $ readFileFromDragEvent event
   void $ editorSetValue contents
 
-handleAction _ (MoveToPosition lineNumber column) = do
+handleAction (MoveToPosition lineNumber column) = do
   void $ query _marloweEditorPageSlot unit (Monaco.SetPosition { column, lineNumber } unit)
 
-handleAction settings (LoadScript key) = do
+handleAction (LoadScript key) = do
   for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
     let
       prettyContents = case parseContract contents of
@@ -96,34 +96,33 @@ handleAction settings (LoadScript key) = do
     editorSetValue prettyContents
     liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey prettyContents
 
-handleAction settings (SetEditorText contents) = do
-  editorSetValue contents
+handleAction (SetEditorText contents) = editorSetValue contents
 
-handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction _ (BottomPanelAction action) = do
+handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
-handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
+handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
-handleAction _ SendToSimulator = pure unit
+handleAction SendToSimulator = pure unit
 
-handleAction _ ViewAsBlockly = pure unit
+handleAction ViewAsBlockly = pure unit
 
-handleAction _ (InitMarloweProject contents) = do
+handleAction (InitMarloweProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey contents
 
-handleAction _ (SelectHole hole) = assign _selectedHole hole
+handleAction (SelectHole hole) = assign _selectedHole hole
 
-handleAction settings AnalyseContract = runAnalysis $ analyseContract settings
+handleAction AnalyseContract = runAnalysis $ analyseContract
 
-handleAction settings AnalyseReachabilityContract = runAnalysis $ analyseReachability settings
+handleAction AnalyseReachabilityContract = runAnalysis $ analyseReachability
 
-handleAction settings AnalyseContractForCloseRefund = runAnalysis $ analyseClose settings
+handleAction AnalyseContractForCloseRefund = runAnalysis $ analyseClose
 
-handleAction _ Save = pure unit
+handleAction Save = pure unit
 
 runAnalysis ::
   forall m.

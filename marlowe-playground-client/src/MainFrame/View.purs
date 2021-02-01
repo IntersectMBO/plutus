@@ -22,22 +22,19 @@ import Home as Home
 import Icons (Icon(..), icon)
 import JavascriptEditor.View as JSEditor
 import MainFrame.Types (Action(..), ChildSlots, ModalView(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _createGistResult, _hasUnsavedChanges, _haskellState, _javascriptState, _marloweEditorState, _projectName, _simulationState, _view, _walletSlot, hasGlobalLoading)
-import Marlowe (SPParams_)
 import Marlowe.ActusBlockly as AMB
 import MarloweEditor.View as MarloweEditor
 import Modal.View (modal)
 import Network.RemoteData (_Loading, _Success)
-import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.View as Simulation
 import Wallet as Wallet
 
 render ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
   State ->
   ComponentHTML Action ChildSlots m
-render settings state =
+render state =
   div [ class_ (ClassName "site-wrap") ]
     ( [ header [ classes [ noMargins, aHorizontal ] ]
           [ div [ classes [ aHorizontal, fullWidth ] ]

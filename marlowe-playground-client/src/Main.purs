@@ -45,7 +45,7 @@ main =
     body <- HA.awaitBody
     let
       mainFrame :: H.Component HH.HTML MainFrame.Query Unit Void Aff
-      mainFrame = H.hoist (runAppM environment) (MainFrame.component environment.ajaxSettings)
+      mainFrame = H.hoist (runAppM environment) MainFrame.component
     driver <- runUI mainFrame unit body
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
