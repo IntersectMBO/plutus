@@ -16,7 +16,9 @@ import           Data.Aeson                                      (ToJSON)
 import qualified Data.Aeson                                      as JSON
 import qualified Data.Aeson.Text                                 as JSON
 import           Data.Foldable                                   (traverse_)
+import           Data.List                                       (isPrefixOf)
 import           Data.List.NonEmpty                              (NonEmpty ((:|)))
+import           Data.Maybe                                      (fromMaybe)
 import qualified Data.Text                                       as Text
 import qualified Data.Text.IO                                    as Text
 import qualified Data.Text.Lazy                                  as TL
@@ -47,8 +49,10 @@ import           Playground.Types                                (CompilationRes
                                                                   wallets)
 import           Playground.Usecases                             (crowdFunding, errorHandling, game, vesting)
 import           Schema                                          (FormSchema (FormSchemaUnit, FormSchemaValue))
+import           System.Environment                              (lookupEnv)
 import           Test.Tasty                                      (TestTree, testGroup)
-import           Test.Tasty.HUnit                                (Assertion, assertEqual, assertFailure, testCase)
+import           Test.Tasty.HUnit                                (Assertion, assertBool, assertEqual, assertFailure,
+                                                                  testCase)
 import           Wallet.Emulator.Types                           (Wallet (Wallet))
 import           Wallet.Rollup.Render                            (showBlockchain)
 import           Wallet.Rollup.Types                             (AnnotatedTx (tx))
@@ -57,7 +61,8 @@ tests :: TestTree
 tests =
     testGroup
         "Playground.Usecases"
-        [ vestingTest
+        [ runningInNixBuildTest
+        , vestingTest
         , gameTest
         , errorHandlingTest
         , crowdfundingTest
@@ -81,6 +86,17 @@ w5 = Wallet 5
 mkSimulatorWallet :: Wallet -> Value -> SimulatorWallet
 mkSimulatorWallet simulatorWalletWallet simulatorWalletBalance =
     SimulatorWallet {..}
+
+--  Unfortunately it's currently not possible to get these tests to work outside of a nix build.
+--  Running `cabal test` will yield a lot of import errors because of missing modules.
+runningInNixBuildTest :: TestTree
+runningInNixBuildTest =
+    testGroup
+        "nixBuild"
+        [ testCase "needs to be executed via nix-build" $ do
+            nixBuildTop <- fromMaybe "" <$> lookupEnv "NIX_BUILD_TOP"
+            assertBool "UsecasesSpec will only work when executed as part of a nix build" (nixBuildTop == "/build" || "/private/tmp/nix-build" `isPrefixOf` nixBuildTop)
+        ]
 
 vestingTest :: TestTree
 vestingTest =
