@@ -36,7 +36,7 @@ These instances enable the serialisation of ``SplitData`` to different formats.
 JSON objects are passed between the frontend (for example, the Playground) and the app instance.
 :hsobj:`Language.PlutusTx.IsData` is used for values that are attached to transactions, for example as the <redeemer> of a script output.
 This class is used by the Plutus app at runtime to construct ``Data`` values.
-Finally, :hsobj:`Language.PlutusTx.makeLift` is a Template Haskell statement that generates an instance of the :hsobj:`Language.PlutusTx.Lift.Class.Lift` class for ``SplitValue``.
+Finally, :hsobj:`Language.PlutusTx.makeLift` is a Template Haskell statement that generates an instance of the :hsobj:`Language.PlutusTx.Lift.Class.Lift` class for ``SplitData``.
 This class is used by the Plutus compiler at compile-time to construct Plutus core programs.
 
 Defining the validator script
