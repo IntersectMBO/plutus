@@ -6,11 +6,11 @@ import Data.Lens ((^.))
 import Data.Maybe (Maybe(..), isJust)
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
-import Halogen.Blockly as Blockly
+import BlocklyComponent.State as Blockly
 import Halogen.Classes (group)
 import Halogen.HTML (HTML, button, div, slot, text, div_)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (classes, disabled, enabled)
+import Halogen.HTML.Properties (classes, enabled)
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Blockly as MB
 

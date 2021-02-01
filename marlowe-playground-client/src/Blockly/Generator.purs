@@ -1,24 +1,24 @@
 module Blockly.Generator where
 
+-- FIXME: There are a lot of FFI functions here that should probably run inside in Effect, but we will try to remove
+--        Generator altogether in a second step of the Blockly refactor.
 import Prelude
-import Blockly.Types (Block, BlocklyState, Workspace)
-import Control.Monad.ST (ST)
-import Control.Monad.ST.Ref (STRef)
-import Control.Monad.ST.Ref as STRef
+import Blockly.Types (Block, Blockly, Workspace)
 import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Function.Uncurried (Fn1, Fn2, Fn3, Fn4, Fn5, Fn6, runFn1, runFn2, runFn3, runFn4, runFn5, runFn6)
+import Data.Function.Uncurried (Fn1, Fn3, Fn4, Fn5, Fn6, runFn1, runFn3, runFn4, runFn5, runFn6)
 import Data.Maybe (Maybe(..))
+import Effect (Effect)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
 import Partial.Unsafe (unsafePartial)
 
 type GeneratorFunction
   = Block -> Either String String
 
-type NewBlockFunction r
-  = (STRef r Workspace) -> String -> ST r (STRef r Block)
-
-type NewSTRefFunction
-  = (forall a r. a -> ST r (STRef r a))
+-- FIXME: Do we still need a NewBlockFunction type? or was it because the ST code? can we use Blockly.Generator.newBlock directly?
+--        In any case we may get rid of Generator altogether in a second step of the refactor.
+type NewBlockFunction
+  = Workspace -> String -> Effect Block
 
 data Order
   = Atomic
@@ -37,51 +37,60 @@ foreign import data Field :: Type
 
 foreign import data Connection :: Type
 
--- Functions that mutate values always work on STRefs rather than regular values
+-- FIXME: This should probably be EffectFn3, but read top level comment.
 foreign import nextBlock_ :: Fn3 (Block -> Maybe Block) (Maybe Block) Block (Maybe Block)
 
 foreign import getType_ :: Fn1 Block String
 
+-- FIXME: This should probably be EffectFn4, but read top level comment.
 foreign import getFieldValue_ :: forall a. Fn4 (String -> Either String a) (a -> Either String a) Block String (Either String String)
 
+-- FIXME: This should probably be EffectFn5, but read top level comment.
 foreign import statementToCode_ :: forall a. Fn5 (String -> Either String a) (a -> Either String a) Generator Block String (Either String String)
 
+-- FIXME: This should probably be EffectFn6, but read top level comment.
 foreign import valueToCode_ :: forall a. Fn6 (String -> Either String a) (a -> Either String a) Generator Block String Number (Either String String)
 
-foreign import mkGenerator_ :: forall r. Fn3 NewSTRefFunction BlocklyState String (ST r (STRef r Generator))
+foreign import mkGenerator_ :: EffectFn2 Blockly String Generator
 
-foreign import insertGeneratorFunction_ :: forall r. Fn3 (STRef r Generator) String (Block -> String) (ST r Unit)
+-- FIXME: should the callback be (Block -> Effect String)?
+foreign import insertGeneratorFunction_ :: EffectFn3 Generator String (Block -> String) Unit
 
-foreign import blockToCode_ :: forall a b. Fn4 (a -> Either a b) (b -> Either a b) Block Generator (Either String String)
+foreign import blockToCode_ :: forall a b. EffectFn4 (a -> Either a b) (b -> Either a b) Block Generator (Either String String)
 
 foreign import inputList_ :: Fn1 Block (Array Input)
 
-foreign import connectToPrevious_ :: forall r. Fn2 (STRef r Block) Input (ST r Unit)
+foreign import connectToPrevious_ :: EffectFn2 Block Input Unit
 
-foreign import previousConnection_ :: forall r. Fn1 (STRef r Block) (ST r Connection)
+foreign import previousConnection_ :: EffectFn1 Block Connection
 
-foreign import nextConnection_ :: forall r. Fn1 (STRef r Block) (ST r Connection)
+foreign import nextConnection_ :: EffectFn1 Block Connection
 
-foreign import connect_ :: forall r. Fn2 Connection Connection (ST r Unit)
+foreign import connect_ :: EffectFn2 Connection Connection Unit
 
-foreign import connectToOutput_ :: forall r. Fn2 (STRef r Block) Input (ST r Unit)
+foreign import connectToOutput_ :: EffectFn2 Block Input Unit
 
-foreign import newBlock_ :: forall r. Fn3 NewSTRefFunction (STRef r Workspace) String (ST r (STRef r Block))
+foreign import newBlock_ :: EffectFn2 Workspace String Block
 
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import inputName_ :: Fn1 Input String
 
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import inputType_ :: Fn1 Input Int
 
-foreign import clearWorkspace_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
+foreign import clearWorkspace_ :: EffectFn1 Workspace Unit
 
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import fieldRow_ :: Fn1 Input (Array Field)
 
-foreign import setFieldText_ :: forall r. Fn2 (STRef r Field) String (ST r Unit)
+foreign import setFieldText_ :: EffectFn2 Field String Unit
 
+-- FIXME: This should probably be EffectFn1, but read top level comment.
 foreign import fieldName_ :: Fn1 Field String
 
 foreign import unsafeThrowError_ :: forall a. Fn1 String a
 
+-- FIXME: This should probably be EffectFn3, but read top level comment.
 foreign import getBlockInputConnectedTo_ :: forall a b. Fn3 (a -> Either a b) (b -> Either a b) Input (Either String Block)
 
 nextBlock :: Block -> Maybe Block
@@ -99,11 +108,11 @@ statementToCode = runFn5 statementToCode_ Left Right
 valueToCode :: Generator -> Block -> String -> Order -> Either String String
 valueToCode g b v o = runFn6 valueToCode_ Left Right g b v (toNumber o)
 
-mkGenerator :: forall r. BlocklyState -> String -> ST r (STRef r Generator)
-mkGenerator = runFn3 mkGenerator_ STRef.new
+mkGenerator :: Blockly -> String -> Effect Generator
+mkGenerator = runEffectFn2 mkGenerator_
 
-insertGeneratorFunction :: forall r. STRef r Generator -> String -> (Block -> Either String String) -> ST r Unit
-insertGeneratorFunction generator key f = runFn3 insertGeneratorFunction_ generator key ((unsafePartial unsafeFromRight) <<< f)
+insertGeneratorFunction :: Generator -> String -> (Block -> Either String String) -> Effect Unit
+insertGeneratorFunction generator key f = runEffectFn3 insertGeneratorFunction_ generator key ((unsafePartial unsafeFromRight) <<< f)
 
 -- | This will throw the Left value in a result as a runtime exception
 unsafeFromRight :: forall a. Partial => Either String a -> a
@@ -111,29 +120,29 @@ unsafeFromRight (Right a) = a
 
 unsafeFromRight (Left e) = runFn1 unsafeThrowError_ e
 
-blockToCode :: Block -> Generator -> Either String String
-blockToCode = runFn4 blockToCode_ Left Right
+blockToCode :: Block -> Generator -> Effect (Either String String)
+blockToCode = runEffectFn4 blockToCode_ Left Right
 
 inputList :: Block -> Array Input
 inputList = runFn1 inputList_
 
-connectToPrevious :: forall r. (STRef r Block) -> Input -> ST r Unit
-connectToPrevious = runFn2 connectToPrevious_
+connectToPrevious :: Block -> Input -> Effect Unit
+connectToPrevious = runEffectFn2 connectToPrevious_
 
-previousConnection :: forall r. (STRef r Block) -> ST r Connection
-previousConnection = runFn1 previousConnection_
+previousConnection :: Block -> Effect Connection
+previousConnection = runEffectFn1 previousConnection_
 
-nextConnection :: forall r. (STRef r Block) -> ST r Connection
-nextConnection = runFn1 nextConnection_
+nextConnection :: Block -> Effect Connection
+nextConnection = runEffectFn1 nextConnection_
 
-connect :: forall r. Connection -> Connection -> ST r Unit
-connect from to = runFn2 connect_ from to
+connect :: Connection -> Connection -> Effect Unit
+connect = runEffectFn2 connect_
 
-connectToOutput :: forall r. (STRef r Block) -> Input -> ST r Unit
-connectToOutput = runFn2 connectToOutput_
+connectToOutput :: Block -> Input -> Effect Unit
+connectToOutput = runEffectFn2 connectToOutput_
 
-newBlock :: forall r. (STRef r Workspace) -> String -> ST r (STRef r Block)
-newBlock = runFn3 newBlock_ STRef.new
+newBlock :: Workspace -> String -> Effect Block
+newBlock = runEffectFn2 newBlock_
 
 inputName :: Input -> String
 inputName = runFn1 inputName_
@@ -146,14 +155,14 @@ getInputWithName inputs name = do
   idx <- Array.findIndex (\i -> (inputName i) == name) inputs
   Array.index inputs idx
 
-clearWorkspace :: forall r. STRef r Workspace -> ST r Unit
-clearWorkspace = runFn1 clearWorkspace_
+clearWorkspace :: Workspace -> Effect Unit
+clearWorkspace = runEffectFn1 clearWorkspace_
 
 fieldRow :: Input -> Array Field
 fieldRow = runFn1 fieldRow_
 
-setFieldText :: forall r. (STRef r Field) -> String -> ST r Unit
-setFieldText = runFn2 setFieldText_
+setFieldText :: Field -> String -> Effect Unit
+setFieldText = runEffectFn2 setFieldText_
 
 fieldName :: Field -> String
 fieldName = runFn1 fieldName_

@@ -13,7 +13,7 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, modify_, query)
 import Halogen as H
-import Halogen.Blockly as Blockly
+import BlocklyComponent.Types as Blockly
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Linter as Linter
 import Marlowe.Parser as Parser

@@ -1,19 +1,17 @@
 module Marlowe.Blockly where
 
 import Prelude
-import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
-import Blockly.Types (Block, BlocklyState, Workspace)
+import Blockly.Internal (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
+import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
-import Control.Monad.ST as ST
-import Control.Monad.ST.Internal (ST, STRef)
-import Control.Monad.ST.Ref as STRef
 import Data.Array (filter, head, uncons, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
+import Data.Foldable (for_)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
@@ -23,6 +21,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
@@ -1009,26 +1008,22 @@ workspaceBlocks =
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser' (parens p <|> p)
 
-buildGenerator :: BlocklyState -> Generator
-buildGenerator blocklyState =
-  ST.run
-    ( do
-        gRef <- mkGenerator blocklyState "Marlowe"
-        g <- STRef.read gRef
-        traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) contractTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) payeeTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) partyTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) tokenTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
-        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actionTypes
-        traverse_ (\t -> mkGenFun gRef t (boundsDefinition g)) [ BoundsType ]
-        STRef.read gRef
-    )
-
-mkGenFun :: forall a r t. Show a => Show t => STRef r Generator -> t -> (Block -> Either String a) -> ST r Unit
-mkGenFun generator blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+buildGenerator :: Blockly -> Effect Generator
+buildGenerator blockly = do
+  generator <- mkGenerator blockly "Marlowe"
+  let
+    mkGenFun :: forall a t. Show a => Show t => t -> (Block -> Either String a) -> Effect Unit
+    mkGenFun blockType f = insertGeneratorFunction generator (show blockType) ((rmap show) <<< f)
+  traverse_ (\t -> mkGenFun t (baseContractDefinition generator)) [ BaseContractType ]
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) contractTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) payeeTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) partyTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) tokenTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) observationTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) valueTypes
+  traverse_ (\t -> mkGenFun t (blockDefinition t generator)) actionTypes
+  traverse_ (\t -> mkGenFun t (boundsDefinition generator)) [ BoundsType ]
+  pure generator
 
 class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
@@ -1251,57 +1246,47 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     els <- statementToTerm g block "else" (Parser.value unit)
     pure $ mkDefaultTerm (Cond condition thn els)
 
-buildBlocks :: forall r. NewBlockFunction r -> BlocklyState -> Term Contract -> ST r Unit
+buildBlocks :: NewBlockFunction -> BlocklyState -> Term Contract -> Effect Unit
 buildBlocks newBlock bs contract = do
-  workspaceRef <- STRef.new bs.workspace
-  clearWorkspace workspaceRef
-  initializeWorkspace bs.blockly workspaceRef
-  let
-    mContract = getBlockById bs.workspace bs.rootBlockName
-  rootBlock <- case mContract of
-    Nothing -> do
-      blockRef <- newBlock workspaceRef (show BaseContractType)
-      STRef.read blockRef
+  clearWorkspace bs.workspace
+  initializeWorkspace bs.blockly bs.workspace
+  -- Get or create rootBlock
+  mRootBlock <- getBlockById bs.workspace bs.rootBlockName
+  rootBlock <- case mRootBlock of
+    Nothing -> newBlock bs.workspace (show BaseContractType)
     Just block -> pure block
   let
     inputs = inputList rootBlock
 
     mInput = getInputWithName inputs (show BaseContractType)
-  case mInput of
-    Nothing -> pure unit
-    Just i -> do
-      toBlockly newBlock workspaceRef i contract
-      render workspaceRef
+  for_ mInput \input -> do
+    toBlockly newBlock bs.workspace input contract
+    render bs.workspace
 
-setField :: forall r. (STRef r Block) -> String -> String -> ST r Unit
-setField blockRef name value = do
-  block <- STRef.read blockRef
+setField :: Block -> String -> String -> Effect Unit
+setField block name value = do
   let
     fields = inputList block >>= fieldRow
   case Array.find (\f -> fieldName f == name) fields of
     Nothing -> pure unit
-    Just f -> do
-      field <- STRef.new f
-      setFieldText field value
+    Just field -> setFieldText field value
 
-getNextInput :: forall r. STRef r Block -> ST r (Maybe Input)
-getNextInput blockRef = do
-  block <- STRef.read blockRef
+getNextInput :: Block -> Effect (Maybe Input)
+getNextInput block = do
   let
     inputs = inputList block
 
     nextConInputs = filter (\input -> inputType input == 5) inputs
   pure (head nextConInputs)
 
-inputToBlockly :: forall a r. ToBlockly a => NewBlockFunction r -> (STRef r Workspace) -> STRef r Block -> String -> a -> ST r Unit
-inputToBlockly newBlock workspaceRef blockRef name value = do
-  block <- STRef.read blockRef
+inputToBlockly :: forall a. ToBlockly a => NewBlockFunction -> Workspace -> Block -> String -> a -> Effect Unit
+inputToBlockly newBlock workspace block name value = do
   case Array.find (\i -> inputName i == name) (inputList block) of
     Nothing -> pure unit
-    Just input -> toBlockly newBlock workspaceRef input value
+    Just input -> toBlockly newBlock workspace input value
 
 class ToBlockly a where
-  toBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Input -> a -> ST r Unit
+  toBlockly :: NewBlockFunction -> Workspace -> Input -> a -> Effect Unit
 
 instance toBlocklyTerm :: ToBlockly a => ToBlockly (Term a) where
   toBlockly newBlock workspace input (Term a _) = toBlockly newBlock workspace input a
@@ -1337,7 +1322,7 @@ instance toBlocklyToken :: ToBlockly Token where
     setField block "currency_symbol" currSym
     setField block "token_name" tokName
 
-nextBound :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array (Term Bound) -> ST r Unit
+nextBound :: NewBlockFunction -> Workspace -> Connection -> Array (Term Bound) -> Effect Unit
 nextBound newBlock workspace fromConnection bounds = do
   case uncons bounds of
     Nothing -> pure unit
@@ -1364,7 +1349,7 @@ instance toBlocklyBounds :: ToBlockly (Array (Term Bound)) where
         fromConnection <- nextConnection block
         nextBound newBlock workspace fromConnection tail
 
-oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
+oneCaseToBlockly :: NewBlockFunction -> Workspace -> Case -> Effect Block
 oneCaseToBlockly newBlock workspace (Case (Term (Deposit accountOwner party tok value) _) cont) = do
   block <- newBlock workspace (show DepositActionType)
   inputToBlockly newBlock workspace block "party" accountOwner
@@ -1395,7 +1380,7 @@ oneCaseToBlockly newBlock workspace (Case (Term (Notify observation) _) cont) = 
 -- we will allow blockly to fill in a default Notify action
 oneCaseToBlockly newBlock workspace _ = newBlock workspace (show NotifyActionType)
 
-nextCase :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array (Term Case) -> ST r Unit
+nextCase :: NewBlockFunction -> Workspace -> Connection -> Array (Term Case) -> Effect Unit
 nextCase newBlock workspace fromConnection cases = do
   case uncons cases of
     Nothing -> pure unit

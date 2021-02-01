@@ -1,15 +1,13 @@
-module Blockly where
+module Blockly.Internal where
 
 import Prelude
 import Blockly.Types (Block, Blockly, BlocklyState, Workspace)
-import Control.Monad.ST.Internal (ST, STRef)
-import Data.Function.Uncurried (Fn1, Fn2, Fn3, Fn4, runFn1, runFn2, runFn3, runFn4)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (class Foldable, traverse_)
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, runEffectFn1, runEffectFn2, runEffectFn3)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4)
 import Foreign (Foreign)
 import Global (infinity)
 import Halogen.HTML (AttrName(..), ElemName(..), Node)
@@ -21,6 +19,7 @@ import Simple.JSON as JSON
 import Web.Event.EventTarget (EventListener)
 import Web.HTML (HTMLElement)
 
+-- QUESTION: Should we move these under Blockly.Types??
 type GridConfig
   = { spacing :: Int
     , length :: Int
@@ -73,30 +72,30 @@ derive newtype instance monoidXML :: Monoid XML
 
 derive newtype instance eqXML :: Eq XML
 
--- Functions that mutate values always work on STRefs rather than regular values
+-- END QUESTION
 foreign import getElementById_ :: EffectFn1 String HTMLElement
 
 foreign import createBlocklyInstance_ :: Effect Blockly
 
 foreign import createWorkspace_ :: EffectFn3 Blockly String WorkspaceConfig Workspace
 
-foreign import resizeBlockly_ :: forall r. Fn2 Blockly (STRef r Workspace) (ST r Unit)
+foreign import resizeBlockly_ :: EffectFn2 Blockly Workspace Unit
 
-foreign import addBlockType_ :: forall r. Fn3 (STRef r Blockly) String Foreign (ST r Unit)
+foreign import addBlockType_ :: EffectFn3 Blockly String Foreign Unit
 
-foreign import initializeWorkspace_ :: forall r. Fn2 Blockly (STRef r Workspace) (ST r Unit)
+foreign import initializeWorkspace_ :: EffectFn2 Blockly Workspace Unit
 
 foreign import addChangeListener_ :: EffectFn2 Workspace EventListener Unit
 
 foreign import removeChangeListener_ :: EffectFn2 Workspace EventListener Unit
 
-foreign import render_ :: forall r. Fn1 (STRef r Workspace) (ST r Unit)
+foreign import render_ :: EffectFn1 Workspace Unit
 
-foreign import getBlockById_ :: forall a. Fn4 (a -> Maybe a) (Maybe a) Workspace String (Maybe Block)
+foreign import getBlockById_ :: forall a. EffectFn4 (a -> Maybe a) (Maybe a) Workspace String (Maybe Block)
 
-foreign import workspaceXML_ :: Fn2 Blockly Workspace XML
+foreign import workspaceXML_ :: EffectFn2 Blockly Workspace XML
 
-foreign import loadWorkspace_ :: forall r. Fn3 Blockly (STRef r Workspace) XML (ST r Unit)
+foreign import loadWorkspace_ :: EffectFn3 Blockly Workspace XML Unit
 
 newtype ElementId
   = ElementId String
@@ -145,23 +144,23 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
         }
     }
 
-resize :: forall r. Blockly -> STRef r Workspace -> ST r Unit
-resize = runFn2 resizeBlockly_
+resize :: Blockly -> Workspace -> Effect Unit
+resize = runEffectFn2 resizeBlockly_
 
-addBlockType :: forall r. STRef r Blockly -> BlockDefinition -> ST r Unit
+addBlockType :: Blockly -> BlockDefinition -> Effect Unit
 addBlockType blocklyRef (BlockDefinition fields) =
   let
     definition = JSON.write $ Record.delete type_ fields
 
     type' = fields.type
   in
-    runFn3 addBlockType_ blocklyRef type' definition
+    runEffectFn3 addBlockType_ blocklyRef type' definition
 
-addBlockTypes :: forall f r. Foldable f => STRef r Blockly -> f BlockDefinition -> ST r Unit
+addBlockTypes :: forall f. Foldable f => Blockly -> f BlockDefinition -> Effect Unit
 addBlockTypes blocklyState = traverse_ (addBlockType blocklyState)
 
-initializeWorkspace :: forall r. Blockly -> STRef r Workspace -> ST r Unit
-initializeWorkspace = runFn2 initializeWorkspace_
+initializeWorkspace :: Blockly -> Workspace -> Effect Unit
+initializeWorkspace = runEffectFn2 initializeWorkspace_
 
 addChangeListener :: Workspace -> EventListener -> Effect Unit
 addChangeListener = runEffectFn2 addChangeListener_
@@ -169,17 +168,17 @@ addChangeListener = runEffectFn2 addChangeListener_
 removeChangeListener :: Workspace -> EventListener -> Effect Unit
 removeChangeListener = runEffectFn2 removeChangeListener_
 
-render :: forall r. (STRef r Workspace) -> ST r Unit
-render = runFn1 render_
+render :: Workspace -> Effect Unit
+render = runEffectFn1 render_
 
-getBlockById :: Workspace -> String -> Maybe Block
-getBlockById = runFn4 getBlockById_ Just Nothing
+getBlockById :: Workspace -> String -> Effect (Maybe Block)
+getBlockById = runEffectFn4 getBlockById_ Just Nothing
 
-workspaceXML :: Blockly -> Workspace -> XML
-workspaceXML = runFn2 workspaceXML_
+workspaceXML :: Blockly -> Workspace -> Effect XML
+workspaceXML = runEffectFn2 workspaceXML_
 
-loadWorkspace :: forall r. Blockly -> (STRef r Workspace) -> XML -> ST r Unit
-loadWorkspace = runFn3 loadWorkspace_
+loadWorkspace :: Blockly -> Workspace -> XML -> Effect Unit
+loadWorkspace = runEffectFn3 loadWorkspace_
 
 data Pair
   = Pair String String
