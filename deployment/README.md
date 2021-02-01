@@ -19,6 +19,13 @@ A website is served from AWS API Gateway which will proxy to the following parts
 
 If you are using OSX then you cannot build the lambdas locally, therefore if you want to update the infrastructure you will need to build the lambdas on a remote builder with system type "x86_64-linux". You can do this by adding such a build machine to your `/etc/nix/machines` file, nix will try to use this machine to build the lambdas.
 
+We use `pass` to store secrets in the repository, given this you will need to setup your gpg key.
+1. Add your key to ./deployment/keys/my.name.gpg
+2. Add your name, key filename and key id to the ./deployment/default.nix `keys` attribute set
+3. Run `$(nix-build -A deployment.importKeys)` to make sure you have everyone else's keys
+4. Add your key name to any environment you want to be able to deploy in ./deployment/default.nix `envs`
+4. Once you've added your key you will need to get someone else who already has access to enable you. To do this commit your changes to a branch and ask this person to checkout the branch, run `$(nix-build -A deployment.the_env_you_want.initPass)` and commit the changes this will have made.
+
 The scripts produce files for use with nixops (until we get rid of the legacy infra) and so you should provide the location where you want these files to go by setting another terraform variable, e.g. `export TF_VAR_nixops_root=$(pwd)/deployment/nixops`.
 
 The infrastructure is based around multiple environments, for example `alpha`, `david` etc. Scripts exist for updating a particular environment under the `deployment` attribute, e.g. the main deployment script for the environment `david` can be run with `$(nix-build -A deployment.david.deploy)`. This will run other scripts that will do everything needed. These other scripts can be run individually, which can be useful if you are playing around with the infrastructure.

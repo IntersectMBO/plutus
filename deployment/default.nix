@@ -163,24 +163,60 @@ let
       ${terraform}/bin/terraform destroy -var-file=${env}.tfvars
     '';
 
-  mkEnv = env: region: {
+  /* The set of all gpg keys that can be used by pass
+     To add a new user, put their key in ./deployment/keys and add the key filename and id here.
+     You can cheat the id by putting an empty value and then running `$(nix-build -A deployment.importKeys)`
+     and then finding the key id with `gpg --list-keys` and updating this set.
+  */
+  keys = {
+    david = { name = "david.smith.gpg"; id = "97AC81FA54660BD539BE34F0B9D7A61EC23259A6"; };
+    kris = { name = "kris.jenkins.gpg"; id = "7EE9B7DE0F3CA25DB5B93D88A1ABC88D19C8136C"; };
+    pablo = { name = "pablo.lamela.gpg"; id = "52AB1370A5BB41307470F9B05BA76ACFF04A2ACD"; };
+  };
+
+  /* We store developers public gpg keys in this project so this is a little
+     script that imports all the relevant keys.
+  */
+  importKeys =
+    let
+      nameToFile = name: ./. + "/keys/${name}";
+      keyFiles = lib.mapAttrsToList (name: value: nameToFile value.name) keys;
+      lines = map (k: "gpg --import ${k}") keyFiles;
+    in
+    writeShellScript "import-gpg-keys" (lib.concatStringsSep "\n" lines);
+
+  /* This will change an environment's pass entry to work with specific people's keys
+     i.e. If you want to enable a new developer to deploy to a specific environment you
+     need to add them to the list of keys for the environment and then re-encrypt with
+     this script.
+  */
+  initPass = env: keys:
+    let
+      ids = map (k: k.id) keys;
+    in
+    writeShellScript "init-keys-${env}" ''
+      pass init -p ${env} ${lib.concatStringsSep " " ids}
+    '';
+
+  mkEnv = env: region: keyNames: {
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env region);
     applyTerraform = (applyTerraform env region);
     deploy = (deploy env region);
     destroy = (destroy env region);
+    initPass = (initPass env keyNames);
   };
 
   envs = {
-    david = mkEnv "david" "eu-west-1";
-    kris = mkEnv "kris" "eu-west-1";
-    alpha = mkEnv "alpha" "eu-west-2";
-    pablo = mkEnv "pablo" "eu-west-3";
-    playground = mkEnv "playground" "us-west-1";
-    wyohack = mkEnv "wyohack" "us-west-2";
-    testing = mkEnv "testing" "eu-west-3";
+    david = mkEnv "david" "eu-west-1" [ keys.david ];
+    kris = mkEnv "kris" "eu-west-1" [ keys.kris ];
+    alpha = mkEnv "alpha" "eu-west-2" [ keys.david keys.kris keys.pablo ];
+    pablo = mkEnv "pablo" "eu-west-3" [ keys.pablo ];
+    playground = mkEnv "playground" "us-west-1" [ keys.david keys.kris keys.pablo ];
+    wyohack = mkEnv "wyohack" "us-west-2" [ keys.david keys.kris keys.pablo ];
+    testing = mkEnv "testing" "eu-west-3" [ keys.david keys.kris keys.pablo ];
   };
 
   configTest = import ./morph/test.nix;
 in
-envs // { inherit getCreds static configTest; }
+envs // { inherit getCreds static configTest importKeys; }
