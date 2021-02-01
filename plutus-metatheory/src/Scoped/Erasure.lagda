@@ -68,23 +68,24 @@ eraseTC unit           = unit
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢
 
+{-
 eraseTel⋆ : ∀{m n}(i : Weirdℕ n) → Vec (ScopedTy n) m → Vec (len i ⊢) m
 eraseTel⋆ i []       = []
 eraseTel⋆ i (A ∷ As) = plc_dummy ∷ eraseTel⋆ i As
-
+-}
 eraseTel : ∀{m n}{i : Weirdℕ n} → Vec (ScopedTm i) m → Vec (len i ⊢) m
 
 eraseTel []       = []
 eraseTel (t ∷ ts) = eraseTm t ∷ eraseTel ts
 
 eraseTm (` x)                  = ` (eraseVar x)
-eraseTm (Λ K t)                = ƛ (weaken (eraseTm t))
-eraseTm (t ·⋆ A)               = eraseTm t · plc_dummy
+eraseTm (Λ K t)                = delay (eraseTm t)
+eraseTm (t ·⋆ A)               = force (eraseTm t)
 eraseTm (ƛ A t)                = ƛ (eraseTm t)
 eraseTm (t · u)                = eraseTm t · eraseTm u
 eraseTm (con c)                = con (eraseTC c)
 eraseTm (error A)              = error
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
-eraseTm (ibuiltin b)           = builtin b (≤″⇒≤‴ (≤⇒≤″ z≤n)) []
+eraseTm (ibuiltin b)           = error -- builtin b (≤″⇒≤‴ (≤⇒≤″ z≤n)) []
 \end{code}
