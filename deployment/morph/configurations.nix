@@ -18,12 +18,14 @@ let
   webGhcMachine = import ./webghc.nix;
   marloweDash = plutus.marlowe-dashboard;
   marloweDashMachine = import ./marlowe-dash.nix;
+  prometheusMachine = import ./prometheus.nix;
 in
 {
-  # We partially apply mkInstance, it also expects a hostName however this means we
-  # can add it later on a host-by-host basis while haveing exactly the same config
-  # that we can test separately in Hydra with a fake host name
+  # We partially apply mkInstance, it also expects a hostName and possibly other values
+  # however this means we can add it later on a host-by-host basis while haveing exactly 
+  # the same config that we can test separately in Hydra with a fake values
   marloweDash = marloweDashMachine.mkInstance { inherit defaultMachine marloweDash pkgs; };
   webGhc = webGhcMachine.mkInstance { inherit defaultMachine web-ghc monitoringKeys; };
+  prometheus = prometheusMachine.mkInstance { inherit defaultMachine monitoringKeys; };
   inherit pkgs;
 }

@@ -33,7 +33,7 @@
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ 80 9100 9091 9113 ];
+        allowedTCPPorts = [ 22 80 9100 9091 9113 ];
       };
 
       services.prometheus.exporters = {
@@ -43,7 +43,6 @@
           extraFlags =
             [ "--collector.textfile.directory ${promNodeTextfileDir}" ];
         };
-        nginx = { enable = true; };
       };
 
       # a user for people who want to ssh in and fiddle with webghc service only

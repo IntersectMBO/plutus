@@ -14,7 +14,7 @@
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ httpPort 9100 9091 9113 ];
+        allowedTCPPorts = [ 22 httpPort 9100 9091 9113 ];
       };
 
       services.prometheus.exporters = {
