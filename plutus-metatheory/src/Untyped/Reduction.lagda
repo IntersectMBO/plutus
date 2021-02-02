@@ -42,17 +42,21 @@ data Error {n} : n ⊢ → Set where
 \end{code}
 
 \begin{code}
+-- I cannot remember why there is both a FValue and a Value...
 data FValue {n} : n ⊢ → Set where
   V-ƛ : (t : suc n ⊢) → FValue (ƛ t)
+{-  
   V-builtin : (b : Builtin)
               → ∀{l}
               → (ts : Tel l n)
               → (p : l <‴ arity b)
               → FValue (builtin b (≤‴-step p) ts)
+-}
 
 data Value {n} : n ⊢ → Set where
-  V-F   : {t : n ⊢} → FValue t → Value t
-  V-con : (tcn : TermCon) → Value (con {n} tcn)
+  V-F     : {t : n ⊢} → FValue t → Value t
+  V-delay : {t : n ⊢} → Value (delay t)
+  V-con   : (tcn : TermCon) → Value (con {n} tcn)
 
 
 -- membership of a (partially evaluated) telescope:
@@ -95,6 +99,11 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
 
   β-ƛ : ∀{L : suc n ⊢}{V : n ⊢} → Value V → ƛ L · V —→ L [ V ]
 
+  ξ-force : {L L' : n ⊢} → L —→ L' → force L —→ force L'
+
+  β-delay : {L : n ⊢} → force (delay L) —→ L
+
+{-
   ξ-builtin : (b : Builtin)
               {ts ts' : Tel (arity b) n}
             → ts —→T ts'
@@ -112,17 +121,23 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
               → Value t
               → (p : l <‴ arity b)
               → builtin b (≤‴-step p) ts · t —→ builtin b p (ts :< t)
-
+-}
   E-·₁ : {M : n ⊢} → error · M —→ error
   E-·₂ : {L : n ⊢} → FValue L → L · error —→ error
 
+  E-force : force error —→ error
+
+{-
   E-builtin : (b : Builtin)
               (ts : Tel (arity b) n)
             → Any Error ts
             → builtin b ≤‴-refl ts —→ error
-
+-}
   -- these correspond to type errors encountered at runtime
-  E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
+  E-con· : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
+  E-con-force : {tcn : TermCon} → force (con tcn) —→ error
+  E-FVal-force : {L : n ⊢} → FValue L → force L —→ error
+  E-delay· : {L M : n ⊢} → delay L · M —→ error
 
   -- this is a runtime type error that ceases to be a type error after erasure
   -- E-runtime : {L : n ⊢} → L —→ error
@@ -142,8 +157,8 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 
 \begin{code}
 VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
-VERIFYSIG (just Bool.false) = plc_false
-VERIFYSIG (just Bool.true)  = plc_true
+VERIFYSIG (just Bool.false) = con (bool false)
+VERIFYSIG (just Bool.true)  = con (bool true)
 VERIFYSIG nothing           = error
 
 BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
@@ -161,15 +176,15 @@ BUILTIN remainderInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j)
 BUILTIN modInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
   = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (mod i j)))
 BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i <? j) plc_true plc_false
+  decIf (i <? j) (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≤? j) plc_true plc_false
+  decIf (i ≤? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i I>? j) plc_true plc_false
+  decIf (i I>? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i I≥? j) plc_true plc_false
+  decIf (i I≥? j) (con (bool true)) (con (bool false))
 BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≟ j) plc_true plc_false
+  decIf (i ≟ j) (con (bool true)) (con (bool false))
 BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   con (bytestring (concat b b'))
 BUILTIN takeByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
@@ -212,11 +227,12 @@ progress-·V : ∀{n}
   → {t : n ⊢} → Value t
   → {u : n ⊢} → Progress u
   → Progress (t · u)
-progress-·V (V-con tcn)              v               = step E-con
+progress-·V (V-con tcn)              v               = step E-con·
 progress-·V (V-F v)                  (step q)        = step (ξ-·₂ v q)
 progress-·V (V-F v)                  (error E-error) = step (E-·₂ v)
 progress-·V (V-F (V-ƛ t))            (done v)        = step (β-ƛ v)
-progress-·V (V-F (V-builtin b ts p)) (done v)        = step (sat-builtin v p)
+progress-·V V-delay                  v               = step E-delay·
+--progress-·V (V-F (V-builtin b ts p)) (done v)        = step (sat-builtin v p)
 
 progress-· : ∀{n}
   → {t : n ⊢} → Progress t
@@ -225,6 +241,21 @@ progress-· : ∀{n}
 progress-· (done v)        q = progress-·V v q
 progress-· (step p)        q = step (ξ-·₁ p)
 progress-· (error E-error) q = step E-·₁
+
+progress-forceV : ∀{n}
+  → {t : n ⊢} → Value t
+  → Progress (force t)
+progress-forceV (V-F V)     = step (E-FVal-force V)
+progress-forceV V-delay     = step β-delay
+progress-forceV (V-con tcn) = step E-con-force
+
+progress-force : ∀{n}
+  → {t : n ⊢} → Progress t
+  → Progress (force t)
+progress-force (done v)        = progress-forceV v
+progress-force (step p)        = step (ξ-force p)
+progress-force (error E-error) = step E-force
+
 
 progress : (t : 0 ⊢) → Progress t
 
@@ -242,12 +273,17 @@ progressTel (t ∷ ts) | error e = error (here e)
 progress (` ())
 progress (ƛ t)        = done (V-F (V-ƛ t))
 progress (t · u)      = progress-· (progress t) (progress u)
+progress (force t)    = progress-force (progress t)
+progress (delay t)    = done V-delay
+
 progress (con tcn)    = done (V-con tcn)
+{-
 progress (builtin b ≤‴-refl ts) with progressTel ts
 progress (builtin b ≤‴-refl ts) | done vs = step (β-builtin ts vs)
 progress (builtin b ≤‴-refl ts) | step p = step (ξ-builtin b p)
 progress (builtin b ≤‴-refl ts) | error p = step (E-builtin b ts p)
 progress (builtin b (≤‴-step p) ts) = done (V-F (V-builtin b ts p))
+-}
 progress error       = error E-error
 \end{code}
 
@@ -269,13 +305,13 @@ open import Relation.Nullary
 -- a value cannot make progress
 val-red : ∀{n}{t : n ⊢} → Value t → ¬ (Σ (n ⊢)  (t —→_))
 val-red (V-F (V-ƛ t)) (t' , ())
-val-red (V-F (V-builtin b ts p)) (t' , ())
+--val-red (V-F (V-builtin b ts p)) (t' , ())
 val-red (V-con tcn) (t' , ())
 
 val-err : ∀{n}{t : n ⊢} → Value t → ¬ (Error t)
 val-err (V-con tcn) ()
 val-err (V-F (V-ƛ t)) ()
-val-err (V-F (V-builtin b ts p)) ()
+--val-err (V-F (V-builtin b ts p)) ()
 
 err-red : ∀{n}{t : n ⊢} → Error t → ¬ (Σ (n ⊢)  (t —→_))
 err-red E-error (_ , ())
@@ -297,8 +333,9 @@ valT-redT {ts = t ∷ ts} (v , vs) (._ , there v' p) = valT-redT vs (_ , p)
 
 valUniq : ∀{n}{t : n ⊢}(v v' : Value t) → v ≡ v'
 valUniq (V-F (V-ƛ t)) (V-F (V-ƛ .t)) = refl
-valUniq (V-F (V-builtin b ts p)) (V-F (V-builtin .b .ts .p)) = refl
+--valUniq (V-F (V-builtin b ts p)) (V-F (V-builtin .b .ts .p)) = refl
 valUniq (V-con tcn) (V-con .tcn) = refl
+valUniq V-delay V-delay = refl
 
 valTUniq : ∀{m n}{ts : Tel m n}(vs vs' : VTel m n ts) → vs ≡ vs'
 valTUniq {ts = []}     _        _          = refl
@@ -316,12 +353,13 @@ det (ξ-·₁ p) (E-·₂ v) = ⊥-elim (val-red (V-F v) (_ , p))
 det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q))
 det (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (det p q)
 det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (val-red w (_ , p))
-det (ξ-·₂ v p) (sat-builtin w q) = ⊥-elim (val-red w (_ , p))
-det (ξ-·₂ () p) E-con
+--det (ξ-·₂ v p) (sat-builtin w q) = ⊥-elim (val-red w (_ , p))
+det (ξ-·₂ () p) E-con·
 det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q))
 det (β-ƛ v) (β-ƛ w) = refl
 det (β-ƛ (V-F ())) (E-·₂ v)
 det (E-·₂ v) (β-ƛ (V-F ()))
+{-
 det (ξ-builtin b p) (ξ-builtin .b q) = cong (builtin b ≤‴-refl) (detT p q)
 det (ξ-builtin b p) (β-builtin ts vs) = ⊥-elim (valT-redT vs (_ , p))
 det (ξ-builtin b p) (E-builtin .b e q) = ⊥-elim (errT-redT q (_ , p))
@@ -331,18 +369,28 @@ det (β-builtin ts vs) (E-builtin b v q) = ⊥-elim (valT-errT vs q)
 det (sat-builtin v p) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q))
 det (sat-builtin v p) (sat-builtin w .p) = refl
 det (sat-builtin (V-F ()) p) (E-·₂ w)
+-}
 det E-·₁ E-·₁ = refl
 det (E-·₂ v) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q))
-det (E-·₂ v) (sat-builtin (V-F ()) p)
+--det (E-·₂ v) (sat-builtin (V-F ()) p)
 det (E-·₂ v) (E-·₂ w) = refl
-det (E-·₂ ()) E-con
+det (E-·₂ ()) E-con·
+{-
 det (E-builtin b ts p) (ξ-builtin .b q) = ⊥-elim (errT-redT p (_ , q))
 det (E-builtin b ts p) (β-builtin ts vs) = ⊥-elim (valT-errT vs p)
 det (E-builtin b ts p) (E-builtin .b w q) = refl
-det E-con (ξ-·₂ () q)
-det E-con (E-·₂ ())
-det E-con E-con = refl
-
+-}
+det E-con· (ξ-·₂ () q)
+det E-con· (E-·₂ ())
+det E-con· E-con· = refl
+det (ξ-force p) (ξ-force q) = cong force (det p q)
+det (ξ-force ()) (E-FVal-force (V-ƛ t))
+det β-delay β-delay = refl
+det E-force E-force = refl
+det E-con-force E-con-force = refl
+det (E-FVal-force (V-ƛ t)) (ξ-force ())
+det (E-FVal-force x) (E-FVal-force x₁) = refl
+det E-delay· E-delay· = refl
 detT (here p) (here q) = cong (_∷ _) (det p q)
 detT (here p) (there v q) = ⊥-elim (val-red v (_ , p))
 detT (there v p) (here q) = ⊥-elim (val-red v (_ , q))

@@ -61,8 +61,11 @@ data _⊢ n where
   `       : Fin n → n ⊢
   ƛ       : suc n ⊢ → n ⊢
   _·_     : n ⊢ → n ⊢ → n ⊢
+  force   : n ⊢ → n ⊢
+  delay   : n ⊢ → n ⊢
   con     : TermCon → n ⊢
-  builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
+-- temporarily disabled
+--  builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
   error   : n ⊢
 \end{code}
 
@@ -70,24 +73,7 @@ data _⊢ n where
 \begin{code}
 open import Data.Sum
 open import Data.Product renaming (_,_ to _,,_)
-
--- should do this when de Bruijnifying so it can be shared
-{-
-builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
-builtinMatcher (` x) = inj₂ (` x)
-builtinMatcher (ƛ t) = inj₂ (ƛ t)
-builtinMatcher (t · u) = inj₂ (t · u)
-builtinMatcher (con c) = inj₂ (con c)
-builtinMatcher (builtin b ts p) = inj₁ (b ,, ts)
-builtinMatcher error = inj₂ error
--}
 open import Relation.Nullary
-{-
-builtinEater : ∀{n} → Builtin → List (n ⊢) → n ⊢ → n ⊢
-builtinEater b ts u with Data.List.length (ts ++ [ u ]) Data.Nat.≤? arity b
-builtinEater b ts u | true because ofʸ p   = builtin b (ts Data.List.++ [ u ]) p
-builtinEater b ts u | false because ofⁿ ¬p = (builtin b ts {!!}) · u
--}
 \end{code}
 
 \begin{code}
@@ -122,17 +108,8 @@ ugly (` x) = "(` " +++ uglyFin x +++ ")"
 ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
 ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
 ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
-ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
+ugly (force t) = "(f0rce " +++ ugly t +++ ")"
+ugly (delay t) = "(delay " +++ ugly t +++ ")"
+--ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
 ugly error = "error"
-\end{code}
-
-\begin{code}
-plc_true : ∀{n} → n ⊢
-plc_true = con (bool true) -- ƛ (ƛ (ƛ (` (suc zero))))
-
-plc_false : ∀{n} → n ⊢
-plc_false = con (bool false) -- ƛ (ƛ (ƛ (` zero)))
-
-plc_dummy : ∀{n} → n ⊢
-plc_dummy = con unit -- ƛ (ƛ (` zero)) -- the erasure of unitval
 \end{code}
