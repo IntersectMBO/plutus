@@ -6,14 +6,15 @@ module Blockly.Events
   , FinishLoadingEvent
   , MoveEvent
   , UIEvent
+  , element
   , newParentId
   , oldParentId
   , oldInputName
   , newInputName
   ) where
 
-import Data.Maybe (Maybe(..))
 import Data.Function.Uncurried (Fn4, runFn4)
+import Data.Maybe (Maybe(..))
 import Web.Event.Event (Event)
 
 class HasEvent a where
@@ -41,6 +42,9 @@ foreign import data UIEvent :: Type
 instance hasEventUIEvent :: HasEvent UIEvent where
   fromEvent :: Event -> Maybe UIEvent
   fromEvent = readBlocklyEventType "ui"
+
+element :: UIEvent -> Maybe String
+element = readProperty "element"
 
 ------------------------------------------------------------
 foreign import data FinishLoadingEvent :: Type

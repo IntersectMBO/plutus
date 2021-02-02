@@ -2,15 +2,16 @@
 , fetchFromGitHub
 , fetchFromGitLab
 , agdaWithStdlib
-, plutusMusl
+, pkgsMusl
 , stdenv
 , haskell-nix
 , buildPackages
 , checkMaterialization
-, nix-gitignore
+, gitignore-nix
 , R
 , rPackages
 , z3
+, enableHaskellProfiling
 }:
 let
   # The Hackage index-state from cabal.project
@@ -34,8 +35,9 @@ let
 
   # The haskell project created by haskell-nix.stackProject'
   project = import ./haskell.nix {
-    inherit lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
+    inherit lib stdenv haskell-nix buildPackages R rPackages z3;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+    inherit enableHaskellProfiling;
   };
 
   # All the packages defined by our project, including dependencies
@@ -49,8 +51,9 @@ let
 
   # The haskell project created by haskell-nix.stackProject' (musl version)
   muslProject = import ./haskell.nix {
-    inherit (plutusMusl) lib stdenv haskell-nix buildPackages nix-gitignore R rPackages z3;
-    inherit agdaWithStdlib checkMaterialization compiler-nix-name;
+    inherit (pkgsMusl) lib stdenv haskell-nix buildPackages R rPackages z3;
+    inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+    inherit enableHaskellProfiling;
   };
 
   # All the packages defined by our project, built for musl

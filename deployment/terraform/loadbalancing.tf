@@ -54,6 +54,33 @@ data "aws_acm_certificate" "marlowe_private" {
   most_recent = true
 }
 
+resource "aws_acm_certificate" "marlowe_dash_private" {
+  domain_name      = "*.${var.marlowe_dash_tld}"
+  validation_method = "DNS"
+}
+
+resource "aws_route53_record" "marlowe_dash_private" {
+  for_each = {
+    for dvo in aws_acm_certificate.marlowe_dash_private.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = var.marlowe_dash_public_zone
+}
+
+resource "aws_acm_certificate_validation" "marlowe_dash_private" {
+  certificate_arn         = aws_acm_certificate.marlowe_dash_private.arn
+  validation_record_fqdns = [for record in aws_route53_record.marlowe_dash_private : record.fqdn]
+}
+
 data "aws_acm_certificate" "monitoring_private" {
   domain      = "*.${var.monitoring_tld}"
   statuses    = ["ISSUED"]
@@ -125,6 +152,11 @@ resource "aws_lb_listener_certificate" "marlowe" {
 resource "aws_lb_listener_certificate" "monitoring" {
   listener_arn    = aws_alb_listener.playground.arn
   certificate_arn = data.aws_acm_certificate.monitoring_private.arn
+}
+
+resource "aws_lb_listener_certificate" "marlowe_dash" {
+  listener_arn    = aws_alb_listener.playground.arn
+  certificate_arn = aws_acm_certificate.marlowe_dash_private.arn
 }
 
 # FIXME: This needs to stay here until aws_alb_listener.playground no longer depends on it
@@ -234,6 +266,63 @@ resource "aws_alb_target_group_attachment" "monitoring_a" {
 resource "aws_route53_record" "monitoring_alb" {
   zone_id = var.monitoring_public_zone
   name    = local.monitoring_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.plutus.dns_name
+    zone_id                = aws_alb.plutus.zone_id
+    evaluate_target_health = true
+  }
+}
+
+## ALB rule for marlowe-dashboard
+resource "aws_alb_target_group" "marlowe_dash" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.plutus.id
+
+  health_check {
+    path = "/version"
+  }
+
+  stickiness {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "marlowe_dash" {
+  depends_on   = [aws_alb_target_group.marlowe_dash]
+  listener_arn = aws_alb_listener.playground.arn
+  priority     = 114
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_alb_target_group.marlowe_dash.id
+  }
+
+  condition {
+    host_header {
+      values = [local.marlowe_dash_domain_name]
+    }
+  }
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_dash_a" {
+  target_group_arn = aws_alb_target_group.marlowe_dash.arn
+  target_id        = aws_instance.marlowe_dash_a.id
+  port             = "80"
+}
+
+resource "aws_alb_target_group_attachment" "marlowe_dash_b" {
+  target_group_arn = aws_alb_target_group.marlowe_dash.arn
+  target_id        = aws_instance.marlowe_dash_b.id
+  port             = "80"
+}
+
+resource "aws_route53_record" "marlowe_dash_alb" {
+  zone_id = var.marlowe_dash_public_zone
+  name    = local.marlowe_dash_domain_name
   type    = "A"
 
   alias {

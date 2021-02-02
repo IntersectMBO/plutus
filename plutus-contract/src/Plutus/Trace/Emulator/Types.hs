@@ -27,8 +27,10 @@ module Plutus.Trace.Emulator.Types(
     , ContractConstraints
     -- * Instance state
     , ContractInstanceState(..)
+    , ContractInstanceStateInternal(..)
     , emptyInstanceState
     , addEventInstanceState
+    , toInstanceState
     -- * Logging
     , ContractInstanceLog(..)
     , cilId
@@ -66,7 +68,7 @@ import           Language.Plutus.Contract           (Contract (..))
 import           Language.Plutus.Contract.Resumable (Request (..), Requests (..), Response (..))
 import qualified Language.Plutus.Contract.Resumable as State
 import           Language.Plutus.Contract.Schema    (Event, Handlers, Input, Output)
-import           Language.Plutus.Contract.Types     (ResumableResult (..))
+import           Language.Plutus.Contract.Types     (ResumableResult (..), SuspendedContract (..))
 import qualified Language.Plutus.Contract.Types     as Contract.Types
 import           Ledger.Slot                        (Slot (..))
 import           Ledger.Tx                          (Tx)
@@ -213,7 +215,29 @@ instance Pretty ContractInstanceLog where
     pretty ContractInstanceLog{_cilMessage, _cilId, _cilTag} =
         hang 2 $ vsep [pretty _cilId <+> braces (pretty _cilTag) <> colon, pretty _cilMessage]
 
+-- | State of the contract instance, internal to the contract instance thread.
+--   It contains both the serialisable state of the contract instance and the
+--   non-serialisable continuations in 'SuspendedContract'.
+data ContractInstanceStateInternal s e a =
+    ContractInstanceStateInternal
+        { cisiSuspState       :: SuspendedContract e (Event s) (Handlers s) a
+        , cisiEvents          :: Seq (Response (Event s))
+        , cisiHandlersHistory :: Seq [State.Request (Handlers s)]
+        }
+
+-- | Extract the serialisable 'ContractInstanceState' from the
+--   'ContractInstanceStateInternal'. We need to do this when
+--   we want to send the instance state to another thread.
+toInstanceState :: ContractInstanceStateInternal s e a -> ContractInstanceState s e a
+toInstanceState ContractInstanceStateInternal{cisiSuspState=SuspendedContract{_resumableResult}, cisiEvents, cisiHandlersHistory} =
+    ContractInstanceState
+        { instContractState = _resumableResult
+        , instEvents = cisiEvents
+        , instHandlersHistory = cisiHandlersHistory
+        }
+
 -- | The state of a running contract instance with schema @s@ and error type @e@
+--   Serialisable to JSON.
 data ContractInstanceState s e a =
     ContractInstanceState
         { instContractState   :: ResumableResult e (Event s) (Handlers s) a
@@ -225,25 +249,28 @@ data ContractInstanceState s e a =
 deriving anyclass instance  (V.Forall (Input s) JSON.ToJSON, V.Forall (Output s) JSON.ToJSON, JSON.ToJSON e, JSON.ToJSON a) => JSON.ToJSON (ContractInstanceState s e a)
 deriving anyclass instance  (V.Forall (Input s) JSON.FromJSON, V.Forall (Output s) JSON.FromJSON, JSON.FromJSON e, JSON.FromJSON a, V.AllUniqueLabels (Input s), V.AllUniqueLabels (Output s)) => JSON.FromJSON (ContractInstanceState s e a)
 
-emptyInstanceState :: Contract s e a -> ContractInstanceState s e a
+emptyInstanceState :: Contract s e a -> ContractInstanceStateInternal s e a
 emptyInstanceState (Contract c) =
-    ContractInstanceState
-        { instContractState = Contract.Types.runResumable [] mempty c
-        , instEvents = mempty
-        , instHandlersHistory = mempty
+    ContractInstanceStateInternal
+        { cisiSuspState = Contract.Types.suspend c
+        , cisiEvents = mempty
+        , cisiHandlersHistory = mempty
         }
 
 addEventInstanceState :: forall s e a.
-    Contract s e a
-    -> Response (Event s)
-    -> ContractInstanceState s e a
-    -> ContractInstanceState s e a
-addEventInstanceState (Contract c) event s@ContractInstanceState{instContractState, instEvents, instHandlersHistory} =
-    let ResumableResult{wcsResponses,wcsRequests=Requests{unRequests},wcsCheckpointStore} = instContractState
-        state' = Contract.Types.insertAndUpdate c wcsCheckpointStore wcsResponses event
-        events' = instEvents |> event
-        history' = instHandlersHistory |> unRequests
-    in s { instContractState = state', instEvents = events', instHandlersHistory = history'}
+    Response (Event s)
+    -> ContractInstanceStateInternal s e a
+    -> Maybe (ContractInstanceStateInternal s e a)
+addEventInstanceState event ContractInstanceStateInternal{cisiSuspState, cisiEvents, cisiHandlersHistory} =
+    case Contract.Types.runStep cisiSuspState event of
+        Nothing -> Nothing
+        Just newState ->
+            let SuspendedContract{_resumableResult=ResumableResult{_requests=Requests rq}} = cisiSuspState in
+            Just ContractInstanceStateInternal
+                { cisiSuspState = newState
+                , cisiEvents = cisiEvents |> event
+                , cisiHandlersHistory = cisiHandlersHistory |> rq
+                }
 
 makeLenses ''ContractInstanceLog
 makePrisms ''ContractInstanceMsg

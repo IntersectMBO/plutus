@@ -58,7 +58,7 @@ source-repository-package
 -- newer version of persistent. See stack.yaml for the mirrored
 -- configuration.
 package eventful-sql-common
-  ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances
+  ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances
 
 -- TODO: remove whenn inline-r version>0.10.3  is pushed to hackage
 package inline-r
@@ -79,16 +79,22 @@ allow-newer: Win32-network:base
            , prometheus:base
            -- restricts to ghc<8.10
            , monoidal-containers:base
+           , monoidal-containers:aeson
 
            -- we make use of an older servant. this makes the older servant build for ghc-8.10
            , servant:base
+           , servant:aeson
            , servant-server:base
+           , servant-server:aeson
            , servant-foreign:base
            , servant-foreign:lens
            , servant-client-core:base
+           , servant-client-core:aeson
            , servant-client-core:template-haskell
            , servant-client:base
+           , servant-client:aeson
            , servant-swagger:base
+           , servant-swagger:aeson
            , servant-swagger:swagger2
            , servant-swagger:lens
            , servant-swagger:Cabal
@@ -102,18 +108,26 @@ allow-newer: Win32-network:base
 
            -- size-based restricts TemplateHaskell to that of  ghc<8.10
            , size-based:template-haskell
+
 constraints:
   -- cardano-prelude currently redefines some instances that appear in 0.3.4
   nonempty-containers < 0.3.4
   -- cardano-binary, of the cardano-base repository, cannot build with 5.2 but Cabal picks that one
   , recursion-schemes < 5.2
-  -- A bunch of onstraints to make our forked servant-purescript build using an older servant
+  -- A bunch of constraints to make our forked servant-purescript build using an older servant
   , servant < 0.17
   , servant-server < 0.17
   , servant-foreign < 0.15.1
   , servant-client-core < 0.17
   , servant-client < 0.17
   , servant-swagger < 1.1.8
+  -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
+  , aws-lambda-haskell-runtime <= 3.0.3
+
+-- These are dependencies of the (disabled) tests of some of our source-repository-package dependencies.
+-- But shellFor still wants them around (https://github.com/input-output-hk/haskell.nix/issues/993), so
+-- we ensure they're included.
+extra-packages: data-ordlist, sequence, tasty-expected-failure, doctest-discover
 
 package ouroboros-network
   tests: False
@@ -217,6 +231,7 @@ source-repository-package
     typed-protocols
     typed-protocols-examples
     ouroboros-network
+    ouroboros-network-testing
     ouroboros-network-framework
     io-sim
     io-sim-classes

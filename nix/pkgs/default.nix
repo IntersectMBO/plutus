@@ -1,10 +1,11 @@
 { pkgs
-, plutusMusl
+, pkgsMusl
 , checkMaterialization
 , system ? builtins.currentSystem
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? null
 , sources
+, enableHaskellProfiling
 }:
 let
   inherit (pkgs) stdenv;
@@ -16,14 +17,17 @@ let
       sourcesOverride = { inherit (sources) nixpkgs; };
     };
 
+  gitignore-nix = pkgs.callPackage sources."gitignore.nix" { };
+
   # The git revision comes from `rev` if available (Hydra), otherwise
   # it is read using IFD and git, which is avilable on local builds.
   git-rev = if isNull rev then iohkNix.commitIdFromGitRepo ../../.git else rev;
 
   # { index-state, project, projectPackages, packages, muslProject, muslPackages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit plutusMusl;
-    inherit agdaWithStdlib checkMaterialization;
+    inherit pkgsMusl;
+    inherit gitignore-nix;
+    inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
   };
 
   #
@@ -68,7 +72,17 @@ let
   #
   fixPurty = pkgs.callPackage ./fix-purty { inherit purty; };
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
-  updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+  updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
+    # This runs the 'updateMaterialize' script in all platform combinations we care about.
+    # See the comment in ./haskell/haskell.nix
+
+    # Update the linux files (will do for all unixes atm).
+    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+
+    # Update the musl files. This isn't quite as simple as just passing a system, since it's inherently a "cross" build,
+    # but we actually have a variant project exposed already, so we can just use that.
+    $(nix-build default.nix -A plutus.haskell.muslProject.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
+  '';
   updateHie = pkgs.callPackage ./update-hie { inherit gen-hie; };
   updateMetadataSamples = pkgs.callPackage ./update-metadata-samples { };
   updateClientDeps = pkgs.callPackage ./update-client-deps {
@@ -174,9 +188,10 @@ let
 
   # Collect everything to be exported under `plutus.lib`: builders/functions/utils
   lib = rec {
+    inherit gitignore-nix;
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
-    npmlock2nix = (pkgs.callPackage sources.npmlock2nix { });
+    npmlock2nix = pkgs.callPackage sources.npmlock2nix { };
     buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
       inherit npmlock2nix;

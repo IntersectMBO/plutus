@@ -12,25 +12,21 @@
 module Data.Row.Extras(
       JsonRec(..)
     , JsonVar(..)
-    , MonoidRec(..)
     , namedBranchFromJSON
     , type (.\/)
     ) where
 
-import           Data.Aeson            (FromJSON, ToJSON, (.:), (.=))
-import qualified Data.Aeson            as Aeson
-import qualified Data.Aeson.Types      as Aeson
-import           Data.Functor.Identity
-import           Data.Functor.Product
-import           Data.Proxy            (Proxy (..))
-import           Data.Row              hiding (type (.\/))
-import           Data.Row.Internal     hiding (type (.\/))
-import qualified Data.Row.Records      as Records
-import qualified Data.Row.Variants     as Variants
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
-import           GHC.TypeLits          hiding (Text)
-import qualified GHC.TypeLits          as TL
+import           Data.Aeson        (FromJSON, ToJSON, (.:), (.=))
+import qualified Data.Aeson        as Aeson
+import qualified Data.Aeson.Types  as Aeson
+import           Data.Row          hiding (type (.\/))
+import           Data.Row.Internal hiding (type (.\/))
+import qualified Data.Row.Records  as Records
+import qualified Data.Row.Variants as Variants
+import           Data.Text         (Text)
+import qualified Data.Text         as Text
+import           GHC.TypeLits      hiding (Text)
+import qualified GHC.TypeLits      as TL
 
 newtype JsonVar s = JsonVar { unJsonVar :: Var s }
 
@@ -59,24 +55,6 @@ instance Forall s ToJSON => ToJSON (JsonRec s) where
 
 instance (AllUniqueLabels s, Forall s FromJSON) => FromJSON (JsonRec s) where
   parseJSON vl = JsonRec <$> Records.fromLabelsA @FromJSON @Aeson.Parser @s  (\lbl -> Aeson.withObject "Rec" (\obj -> obj .: (Text.pack $ show lbl) >>= Aeson.parseJSON) vl)
-
-newtype MonoidRec s = MonoidRec { unMonoidRec :: Rec s }
-
-instance Forall s Semigroup => Semigroup (MonoidRec s) where
-  (<>) = merge @s
-
-instance (AllUniqueLabels s, Forall s Semigroup, Forall s Monoid) => Monoid (MonoidRec s) where
-  mempty = MonoidRec (Records.default' @Monoid @s mempty)
-  mappend = (<>)
-
-merge :: forall s. Forall s Semigroup => MonoidRec s -> MonoidRec s -> MonoidRec s
-merge (MonoidRec rec1) (MonoidRec rec2) = MonoidRec $ metamorph @_ @s @Semigroup @(Product Rec Rec) @Rec @Identity Proxy doNil doUncons doCons (Pair rec1 rec2)
-  where
-    doNil _ = empty
-    -- unsafeRemove and unsafeInjectFront are OK to use here
-    -- cf. documentation at https://hackage.haskell.org/package/row-types-0.3.0.0/docs/Data-Row-Records.html
-    doUncons l (Pair r1 r2) = (Identity $ r1 .! l <> r2 .! l, Pair (Records.unsafeRemove l r1) (Records.unsafeRemove l r2))
-    doCons l (Identity v) = Records.unsafeInjectFront l v
 
 -- | Fast union. The implementation in row-types is exponential in time and memory in the number of
 --   overlapping rows, due to limitations in ghc's handling of type families. This version is much

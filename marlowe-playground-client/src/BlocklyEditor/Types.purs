@@ -6,7 +6,7 @@ import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Halogen.Blockly as Blockly
+import BlocklyComponent.Types as Blockly
 
 data Action
   = HandleBlocklyMessage Blockly.Message
@@ -25,6 +25,7 @@ instance blocklyActionIsEvent :: IsEvent Action where
 type State
   = { errorMessage :: Maybe String
     , marloweCode :: Maybe String
+    , hasHoles :: Boolean
     }
 
 _errorMessage :: Lens' State (Maybe String)
@@ -33,8 +34,12 @@ _errorMessage = prop (SProxy :: SProxy "errorMessage")
 _marloweCode :: Lens' State (Maybe String)
 _marloweCode = prop (SProxy :: SProxy "marloweCode")
 
+_hasHoles :: Lens' State Boolean
+_hasHoles = prop (SProxy :: SProxy "hasHoles")
+
 initialState :: State
 initialState =
   { errorMessage: Nothing
   , marloweCode: Nothing
+  , hasHoles: false
   }

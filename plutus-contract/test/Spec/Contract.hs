@@ -195,9 +195,9 @@ tests =
                 $ do
                     hdl <- Trace.activateContractWallet w1 theContract
                     Trace.waitNSlots 1
-                    ContractInstanceState{instContractState=ResumableResult{wcsFinalState}} <- Trace.getContractState hdl
+                    ContractInstanceState{instContractState=ResumableResult{_finalState}} <- Trace.getContractState hdl
                     Log.logInfo @String "Received contract state"
-                    Log.logInfo @String $ "Final state: " <> show wcsFinalState
+                    Log.logInfo @String $ "Final state: " <> show _finalState
 
         ]
 

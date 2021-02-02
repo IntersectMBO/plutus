@@ -7,7 +7,7 @@
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
-        
+
         Bool_match
         (vardecl True Bool) (vardecl False Bool)
       )
@@ -34,7 +34,7 @@
     (datatypebind
       (datatype
         (tyvardecl Animal (type))
-        
+
         Animal_match
         (vardecl Cat Animal) (vardecl Dog Animal)
       )
@@ -131,7 +131,7 @@
     (datatypebind
       (datatype
         (tyvardecl Person (type))
-        
+
         Person_match
         (vardecl Jane Person) (vardecl Jim Person)
       )

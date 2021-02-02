@@ -3,7 +3,8 @@
 , config ? { allowUnfreePredicate = (import ./lib.nix).unfreePredicate; }
 , rev ? "in-nix-shell"
 , sourcesOverride ? { }
-, packages ? import ./. { inherit crossSystem config sourcesOverride rev; }
+, packages ? import ./. { inherit crossSystem config sourcesOverride rev enableHaskellProfiling; }
+, enableHaskellProfiling ? false
 }:
 let
   inherit (packages) pkgs plutus plutusMusl plutus-playground marlowe-playground plutus-pab marlowe-dashboard;
@@ -32,7 +33,7 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/stack.materialized/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
+        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*nix/sources.nix$" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
       shellcheck.enable = true;
     };
@@ -44,6 +45,7 @@ let
     awscli
     cacert
     ghcid
+    morph
     niv
     nixpkgs-fmt
     nodejs
@@ -77,6 +79,7 @@ let
     purty
     spago
     stylish-haskell
+    updateMaterialized
     updateHie
     updateClientDeps
     updateMetadataSamples
@@ -91,6 +94,10 @@ haskell.project.shellFor {
 
   # we have a local passwords store that we use for deployments etc.
   PASSWORD_STORE_DIR = toString ./. + "/secrets";
+
+  # we use the working projects root in a deployment hack, 
+  # you will normally be here to start the shell but this allows you to move around
+  PLUTUS_ROOT = toString ./.;
 
   shellHook = ''
     ${pre-commit-check.shellHook}

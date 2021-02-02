@@ -1,4 +1,4 @@
-{ pkgs, nix-gitignore, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
+{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
 let
   dashboard-exe = set-git-rev haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server;
   server-invoker = dashboard-exe;
@@ -14,9 +14,10 @@ let
     $(nix-build --quiet --no-build-output ../default.nix -A plutus.haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server)/bin/marlowe-dashboard-server psgenerator ./generated
   '';
 
+  cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
-    projectDir = nix-gitignore.gitignoreSource [ "/*.nix" "/*.md" ] ./.;
+    projectDir = cleanSrc;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = { };
@@ -25,7 +26,9 @@ let
   client = buildPursPackage {
     inherit pkgs nodeModules;
     src = ./.;
-    checkPhase = "npm run test";
+    checkPhase = ''
+      node -e 'require("./output/Test.Main").main()'
+    '';
     name = "marlowe-dashboard-client";
     extraSrcs = {
       web-common = webCommon;

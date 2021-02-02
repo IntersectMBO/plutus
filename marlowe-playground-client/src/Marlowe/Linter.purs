@@ -6,6 +6,7 @@ module Marlowe.Linter
   , WarningDetail(..)
   , AdditionalContext
   , _holes
+  , hasHoles
   , _warnings
   , suggestions
   , markers
@@ -48,6 +49,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes as Holes
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
@@ -217,6 +219,9 @@ _holes = _Newtype <<< prop (SProxy :: SProxy "holes")
 
 _warnings :: Lens' State (Set Warning)
 _warnings = _Newtype <<< prop (SProxy :: SProxy "warnings")
+
+hasHoles :: State -> Boolean
+hasHoles = not Holes.isEmpty <<< view _holes
 
 newtype LintEnv
   = LintEnv

@@ -18,7 +18,7 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype)
+import Data.Newtype (class Newtype, unwrap)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (Pattern(..), contains, splitAt, toLower)
@@ -475,6 +475,9 @@ instance encodeHoles :: Encode Holes where
 
 instance decodeHoles :: Decode Holes where
   decode f = Holes <$> decode f
+
+isEmpty :: Holes -> Boolean
+isEmpty = Map.isEmpty <<< unwrap
 
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _) m = m

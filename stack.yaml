@@ -183,7 +183,6 @@ ghc-options:
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
   # Disable all warnings, we're building with a newer version of GHC
   iohk-monitoring: "-w" 
-  inline-r: "-XStandaloneKindSignatures"
 
 nix:
   shell-file: shell.nix

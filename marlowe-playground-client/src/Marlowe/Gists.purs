@@ -7,7 +7,7 @@ module Marlowe.Gists
   ) where
 
 import Prelude
-import Blockly (XML)
+import Blockly.Internal (XML)
 import Data.Array (catMaybes)
 import Data.Lens (has, view)
 import Data.Lens.Index (ix)

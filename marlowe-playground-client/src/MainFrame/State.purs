@@ -2,6 +2,7 @@ module MainFrame.State (mkMainFrame) where
 
 import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
+import BlocklyComponent.Types as Blockly
 import BlocklyEditor.State as BlocklyEditor
 import BlocklyEditor.Types (_marloweCode)
 import BlocklyEditor.Types as BE
@@ -31,7 +32,6 @@ import Halogen (Component, liftEffect, query, subscribe')
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (withAnalytics)
-import Halogen.Blockly as Blockly
 import Halogen.Extra (mapSubmodule)
 import Halogen.HTML (HTML)
 import Halogen.Monaco (KeyBindings(DefaultBindings))
@@ -479,6 +479,7 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        <<< set _hasUnsavedChanges false
     )
 
 handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
@@ -501,6 +502,7 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   modify_
     ( set _showModal Nothing
         <<< set _workflow (Just lang)
+        <<< set _hasUnsavedChanges false
     )
   selectView $ selectLanguageView lang
 

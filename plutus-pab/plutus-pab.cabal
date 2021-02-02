@@ -99,7 +99,6 @@ library
         Plutus.PAB.Instances
         Plutus.PAB.MonadLoggerBridge
         Plutus.PAB.Monitoring
-        Plutus.PAB.Swagger
         Plutus.PAB.Webserver.API
         Plutus.PAB.Webserver.Handler
         Plutus.PAB.Webserver.Server
@@ -175,7 +174,6 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
-        servant-swagger -any,
         swagger2 -any,
         typed-protocols -any,
         typed-protocols-examples -any,

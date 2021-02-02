@@ -18,7 +18,7 @@ import Gists.Types (GistAction)
 import Halogen (ClassName)
 import Halogen as H
 import Halogen.ActusBlockly as AB
-import Halogen.Blockly as Blockly
+import BlocklyComponent.Types as Blockly
 import Halogen.Classes (activeClass)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
