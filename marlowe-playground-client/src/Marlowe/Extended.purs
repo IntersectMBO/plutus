@@ -10,22 +10,22 @@ import Data.Traversable (traverse)
 import Foreign (ForeignError(..), fail)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Index (hasProperty)
-import Marlowe.Semantics (AccountId, Bound, ChoiceId, Party, Rational(..), Timeout, Token, ValueId, decodeProp)
+import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty)
 
 data Value
-  = AvailableMoney AccountId Token
+  = AvailableMoney S.AccountId S.Token
   | Constant BigInteger
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
   | MulValue Value Value
-  | Scale Rational Value
-  | ChoiceValue ChoiceId
+  | Scale S.Rational Value
+  | ChoiceValue S.ChoiceId
   | SlotIntervalStart
   | SlotIntervalEnd
-  | UseValue ValueId
+  | UseValue S.ValueId
   | Cond Observation Value Value
 
 derive instance genericValue :: Generic Value _
@@ -60,7 +60,7 @@ instance encodeJsonValue :: Encode Value where
       { multiply: lhs
       , times: rhs
       }
-  encode (Scale (Rational num den) val) =
+  encode (Scale (S.Rational num den) val) =
     encode
       { multiply: val
       , times: num
@@ -106,7 +106,7 @@ instance decodeJsonValue :: Decode Value where
         )
       <|> ( if (hasProperty "divide_by" a) then
             ( Scale
-                <$> ( Rational <$> decodeProp "times" a
+                <$> ( S.Rational <$> decodeProp "times" a
                       <*> decodeProp "divide_by" a
                   )
                 <*> decodeProp "multiply" a
@@ -137,7 +137,7 @@ data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
   | NotObs Observation
-  | ChoseSomething ChoiceId
+  | ChoseSomething S.ChoiceId
   | ValueGE Value Value
   | ValueGT Value Value
   | ValueLT Value Value
@@ -244,8 +244,8 @@ instance hasArgsObservation :: Args Observation where
   hasNestedArgs a = genericHasNestedArgs a
 
 data Action
-  = Deposit AccountId Party Token Value
-  | Choice ChoiceId (Array Bound)
+  = Deposit S.AccountId S.Party S.Token Value
+  | Choice S.ChoiceId (Array S.Bound)
   | Notify Observation
 
 derive instance genericAction :: Generic Action _
@@ -296,8 +296,8 @@ instance hasArgsAction :: Args Action where
   hasNestedArgs a = genericHasNestedArgs a
 
 data Payee
-  = Account AccountId
-  | Party Party
+  = Account S.AccountId
+  | Party S.Party
 
 derive instance genericPayee :: Generic Payee _
 
@@ -358,10 +358,10 @@ instance hasArgsCase :: Args Case where
 
 data Contract
   = Close
-  | Pay AccountId Payee Token Value Contract
+  | Pay S.AccountId Payee S.Token Value Contract
   | If Observation Contract Contract
-  | When (Array Case) Timeout Contract
-  | Let ValueId Value Contract
+  | When (Array Case) S.Timeout Contract
+  | Let S.ValueId Value Contract
   | Assert Observation Contract
 
 derive instance genericContract :: Generic Contract _
