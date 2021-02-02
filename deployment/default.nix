@@ -19,7 +19,7 @@ let
   };
 
   # This creates a script that will set AWS env vars by getting a session token based on your user name and MFA
-  getCreds = pkgs.writeShellScript "getcreds" ''
+  getCreds = pkgs.writeShellScriptBin "getcreds" ''
     set -eou pipefail
 
     if [[ $# -ne 2 ]]; then

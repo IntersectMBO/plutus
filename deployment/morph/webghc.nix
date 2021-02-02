@@ -1,6 +1,6 @@
 {
-  mkInstance = { defaultMachine, monitoringKeys, web-ghc, ... }:
-    node:
+  mkInstance = { defaultMachine, monitoringKeys, web-ghc }:
+    hostName:
     { config, pkgs, lib, ... }:
     let
       serviceSystemctl = pkgs.writeScriptBin "web-ghc-systemctl" ''
@@ -18,7 +18,7 @@
         '';
     in
     {
-      imports = [ (defaultMachine pkgs) ];
+      imports = [ (defaultMachine hostName pkgs) ];
 
       security.sudo = {
         enable = true;

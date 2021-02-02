@@ -18,7 +18,7 @@ data "template_file" "ssh_config_section_webghc_a" {
     short_hostname   = "webghc-a.${var.project}"
     ip               = aws_instance.webghc_a.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "monitoring"
+    user_name        = "root"
   }
 }
 
@@ -30,7 +30,7 @@ data "template_file" "ssh_config_section_webghc_b" {
     short_hostname   = "webghc-b.${var.project}"
     ip               = aws_instance.webghc_b.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
-    user_name        = "monitoring"
+    user_name        = "root"
   }
 }
 data "template_file" "ssh_config_section_marlowe_dash_a" {

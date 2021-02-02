@@ -4,6 +4,8 @@ let
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
 in
 {
-  "${machines.marloweDashA.dns}" = configurations.marloweDash;
-  "${machines.marloweDashB.dns}" = configurations.marloweDash;
+  "${machines.marloweDashA.dns}" = configurations.marloweDash "marlowe-dash-a";
+  "${machines.marloweDashB.dns}" = configurations.marloweDash "marlowe-dash-b";
+  "${machines.webghcA.dns}" = configurations.webGhc "web-ghc-a";
+  "${machines.webghcB.dns}" = configurations.webGhc "web-ghc-b";
 }

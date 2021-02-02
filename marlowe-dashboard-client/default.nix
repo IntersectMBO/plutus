@@ -25,7 +25,7 @@ let
 
   client = buildPursPackage {
     inherit pkgs nodeModules;
-    src = ./.;
+    src = cleanSrc;
     checkPhase = ''
       node -e 'require("./output/Test.Main").main()'
     '';

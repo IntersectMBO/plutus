@@ -1,17 +1,30 @@
 {
-  mkInstance = { defaultMachine, marloweDash }:
+  mkInstance = { defaultMachine, marloweDash, pkgs }:
+    hostName:
     let
       httpPort = 80;
+      promNodeTextfileDir = pkgs.writeTextDir "roles.prom"
+        ''
+          machine_role{role="marlowe_dash"} 1
+        '';
     in
     { config, pkgs, lib, ... }:
     {
-      imports = [ (defaultMachine pkgs) ];
+      imports = [ (defaultMachine hostName pkgs) ];
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ httpPort ];
+        allowedTCPPorts = [ httpPort 9100 9091 9113 ];
       };
-      networking.hostName = lib.mkForce "marlowe-dash-b";
+
+      services.prometheus.exporters = {
+        node = {
+          enable = true;
+          enabledCollectors = [ "systemd" ];
+          extraFlags =
+            [ "--collector.textfile.directory ${promNodeTextfileDir}" ];
+        };
+      };
 
       systemd.services.marlowe-dash = {
         wantedBy = [ ];
