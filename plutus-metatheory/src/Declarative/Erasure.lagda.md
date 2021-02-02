@@ -90,10 +90,6 @@ eraseTC (bool b)       = bool b
 eraseTC (char c)       = char c
 eraseTC unit           = unit
 
-eraseTel⋆ : ∀{Φ}(Γ : Ctx Φ)(Δ : Ctx⋆) → Untyped.Tel (len⋆ Δ) (len Γ) 
-eraseTel⋆ _ ∅  = []
-eraseTel⋆ Γ (Δ ,⋆ K) = eraseTel⋆ Γ Δ :< con unit
-
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Nat.Properties
@@ -112,7 +108,7 @@ erase (wrap A B t)      = erase t
 erase (unwrap t)        = erase t
 erase (conv p t)        = erase t
 erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
-erase (ibuiltin b)      = error
+erase (ibuiltin b)      = builtin b
 erase (error A)         = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *

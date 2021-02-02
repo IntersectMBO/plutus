@@ -53,19 +53,14 @@ arity charToString             = 1
 arity append                   = 2
 arity trace                    = 1
 
-data _⊢ (n : ℕ) : Set
-Tel : ℕ → ℕ → Set
-Tel m n = Vec (n ⊢) m
-
-data _⊢ n where
+data _⊢ n : Set where
   `       : Fin n → n ⊢
   ƛ       : suc n ⊢ → n ⊢
   _·_     : n ⊢ → n ⊢ → n ⊢
   force   : n ⊢ → n ⊢
   delay   : n ⊢ → n ⊢
   con     : TermCon → n ⊢
--- temporarily disabled
---  builtin : (b : Builtin){m : ℕ} → m ≤‴ arity b → (ts : Tel m n) → n ⊢
+  builtin : (b : Builtin) → n ⊢
   error   : n ⊢
 \end{code}
 
@@ -110,6 +105,6 @@ ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
 ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
 ugly (force t) = "(f0rce " +++ ugly t +++ ")"
 ugly (delay t) = "(delay " +++ ugly t +++ ")"
---ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
+ugly (builtin b) = "(builtin " +++ uglyBuiltin b +++ ")"
 ugly error = "error"
 \end{code}
