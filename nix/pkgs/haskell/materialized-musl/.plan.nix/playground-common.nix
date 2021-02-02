@@ -51,7 +51,6 @@
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
           (hsPkgs."http-conduit" or (errorHandler.buildDepError "http-conduit"))
-          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."jwt" or (errorHandler.buildDepError "jwt"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))

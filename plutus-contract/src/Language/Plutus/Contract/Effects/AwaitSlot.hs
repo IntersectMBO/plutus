@@ -16,7 +16,6 @@ import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
-import           IOTS                             (IotsType)
 import           Prelude                          hiding (until)
 
 import           Language.Plutus.Contract.Request as Req
@@ -37,7 +36,7 @@ type HasAwaitSlot s =
 newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Slot }
   deriving stock (Eq, Ord, Show, Generic)
   deriving Pretty via (Tagged "WaitingForSlot:" Slot)
-  deriving anyclass (ToJSON, FromJSON, IotsType)
+  deriving anyclass (ToJSON, FromJSON)
 
 type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 

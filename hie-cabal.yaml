@@ -27,12 +27,6 @@ cradle:
     - path: "doc/tutorials/BasicApps.hs"
       component: "plutus-doc:exe:doc-doctests"
 
-    - path: "iots-export/src"
-      component: "lib:iots-export"
-
-    - path: "iots-export/test"
-      component: "iots-export:test:iots-export-test"
-
     - path: "marlowe/src"
       component: "lib:marlowe"
 

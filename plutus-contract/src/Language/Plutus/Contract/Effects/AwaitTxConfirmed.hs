@@ -6,7 +6,6 @@
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -18,7 +17,6 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                     (Generic)
 import           Ledger                           (TxId)
 
-import           IOTS                             (IotsType)
 import           Language.Plutus.Contract.Request (ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Types   (AsContractError, Contract)
@@ -33,7 +31,7 @@ type HasTxConfirmation s =
 newtype TxConfirmed =
     TxConfirmed { unTxConfirmed :: TxId }
         deriving stock (Eq, Ord, Generic, Show)
-        deriving anyclass (ToJSON, FromJSON, IotsType)
+        deriving anyclass (ToJSON, FromJSON)
         deriving Pretty via TxId
 
 type TxConfirmation = TxConfirmationSym .== (TxConfirmed, TxId)

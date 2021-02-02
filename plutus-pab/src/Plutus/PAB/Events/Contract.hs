@@ -114,7 +114,7 @@ one of those requests being handled.
 data ContractPABRequest =
   AwaitSlotRequest WaitingForSlot -- ^ Wait until a slot number is reached
   | AwaitTxConfirmedRequest TxId -- ^ Wait for a transaction to be confirmed (deeper than k blocks) TODO: confirmation levels
-  | UserEndpointRequest ActiveEndpoint -- ^ Expose a named endpoint to the user. The endpoints' schemas can be obtained statically from the contract (using 'Language.Plutus.Contract.IOTS.rowSchema'), so they are not included in the message.
+  | UserEndpointRequest ActiveEndpoint -- ^ Expose a named endpoint to the user.
   | OwnPubkeyRequest OwnPubKeyRequest -- ^ Request a public key. It is expected that the wallet treats any outputs locked by this public key as part of its own funds.
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
   | NextTxAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.

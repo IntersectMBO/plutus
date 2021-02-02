@@ -3,7 +3,6 @@ resolver: nightly-2020-08-17
 packages:
 - deployment-server
 - doc
-- iots-export
 - marlowe
 - marlowe-dashboard-server
 - marlowe-actus

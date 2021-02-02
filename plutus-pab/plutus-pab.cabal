@@ -125,7 +125,6 @@ library
         plutus-contract -any,
         playground-common -any,
         plutus-use-cases -any,
-        iots-export -any
     build-depends:
         QuickCheck -any,
         aeson -any,
@@ -175,6 +174,7 @@ library
         servant-client -any,
         servant-server -any,
         swagger2 -any,
+        tagged -any,
         typed-protocols -any,
         typed-protocols-examples -any,
         servant-websockets -any,

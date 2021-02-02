@@ -59,7 +59,6 @@ library
         http-client-tls -any,
         http-types -any,
         http-conduit -any,
-        iots-export -any,
         jwt -any,
         lens -any,
         memory -any,

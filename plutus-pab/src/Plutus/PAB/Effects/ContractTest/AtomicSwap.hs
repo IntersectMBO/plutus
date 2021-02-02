@@ -20,7 +20,6 @@ import           Control.Lens
 import           Control.Monad                                   (void)
 import           Data.Aeson                                      (FromJSON, ToJSON)
 import           GHC.Generics                                    (Generic)
-import           IOTS                                            (IotsType)
 import           Language.PlutusTx.Coordination.Contracts.Escrow (EscrowParams (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Escrow as Escrow
 import           Schema                                          (ToSchema)
@@ -45,7 +44,7 @@ data AtomicSwapParams =
         , deadline     :: Slot -- ^ Last slot in which the swap can be executed.
         }
         deriving stock (Eq, Show, Generic)
-        deriving anyclass (ToJSON, FromJSON, IotsType, ToSchema)
+        deriving anyclass (ToJSON, FromJSON, ToSchema)
 
 mkValue1 :: AtomicSwapParams -> Value
 mkValue1 = ada

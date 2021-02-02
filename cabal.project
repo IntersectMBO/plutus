@@ -3,7 +3,6 @@ index-state: 2020-11-10T00:00:00Z
 
 packages: deployment-server
           doc
-          iots-export
           marlowe
           marlowe-actus
           marlowe-playground-server
