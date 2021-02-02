@@ -23,7 +23,8 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
-import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended (toCore)
+import Marlowe.Extended as EM
 import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum
@@ -91,7 +92,7 @@ updateContractInStateP text state = case parseContract text of
     in
       -- We reuse the extended Marlowe parser for now since it is a superset
       case mContract of
-        Just extendedContract -> case convertContractIfNoExtensions extendedContract of
+        Just extendedContract -> case toCore (extendedContract :: EM.Contract) of
           Just contract -> set _editorErrors [] <<< set _contract (Just contract) $ state
           Nothing -> (set _holes mempty) state
         Nothing ->

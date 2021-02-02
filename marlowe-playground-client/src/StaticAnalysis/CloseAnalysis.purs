@@ -12,7 +12,7 @@ import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
@@ -25,7 +25,7 @@ analyseClose ::
   EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
 analyseClose settings extendedContract = do
-  case convertContractIfNoExtensions extendedContract of
+  case toCore extendedContract of
     Just contract -> do
       assign _analysisState (CloseAnalysis AnalysisNotStarted)
       -- when editor and simulator were together the analyse contract could be made

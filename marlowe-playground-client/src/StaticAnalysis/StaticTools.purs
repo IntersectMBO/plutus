@@ -24,7 +24,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
@@ -48,7 +48,7 @@ analyseContract ::
   EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
 analyseContract settings extendedContract = do
-  case convertContractIfNoExtensions extendedContract of
+  case toCore extendedContract of
     Just contract -> do
       assign _analysisState (WarningAnalysis Loading)
       -- when editor and simulator were together the analyse contract could be made

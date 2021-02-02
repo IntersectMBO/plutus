@@ -40,7 +40,8 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
-import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended (toCore)
+import Marlowe.Extended as EM
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)
@@ -108,7 +109,7 @@ handleQuery (LoadContract contractString next) = do
     Right contractTerm ->
       for_ (fromTerm contractTerm) \extendedContract -> do
         -- We reuse the extended Marlowe parser for now since it is a superset
-        for_ (convertContractIfNoExtensions extendedContract) \contract -> do
+        for_ (toCore (extendedContract :: EM.Contract)) \contract -> do
           idx <- use (_contracts <<< _NextIndex)
           mOpenWallet <- use _openWallet
           for_ mOpenWallet \openWallet -> do

@@ -14,6 +14,9 @@ import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty)
 
+class ToCore a b where
+  toCore :: a -> Maybe b
+
 data Value
   = AvailableMoney S.AccountId S.Token
   | Constant BigInteger
@@ -133,6 +136,20 @@ instance hasArgsValue :: Args Value where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance toCoreValue :: ToCore Value S.Value where
+  toCore (Constant c) = Just $ S.Constant c
+  toCore (AvailableMoney accId tok) = S.AvailableMoney <$> pure accId <*> pure tok
+  toCore (NegValue v) = S.NegValue <$> toCore v
+  toCore (AddValue lhs rhs) = S.AddValue <$> toCore lhs <*> toCore rhs
+  toCore (SubValue lhs rhs) = S.SubValue <$> toCore lhs <*> toCore rhs
+  toCore (MulValue lhs rhs) = S.MulValue <$> toCore lhs <*> toCore rhs
+  toCore (Scale f v) = S.Scale <$> pure f <*> toCore v
+  toCore (ChoiceValue choId) = Just $ S.ChoiceValue choId
+  toCore SlotIntervalStart = Just $ S.SlotIntervalStart
+  toCore SlotIntervalEnd = Just $ S.SlotIntervalEnd
+  toCore (UseValue vId) = Just $ S.UseValue vId
+  toCore (Cond obs lhs rhs) = S.Cond <$> toCore obs <*> toCore lhs <*> toCore rhs
+
 data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
@@ -243,6 +260,19 @@ instance hasArgsObservation :: Args Observation where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance toCoreObservation :: ToCore Observation S.Observation where
+  toCore (AndObs lhs rhs) = S.AndObs <$> toCore lhs <*> toCore rhs
+  toCore (OrObs lhs rhs) = S.OrObs <$> toCore lhs <*> toCore rhs
+  toCore (NotObs v) = S.NotObs <$> toCore v
+  toCore (ChoseSomething choId) = Just $ S.ChoseSomething choId
+  toCore (ValueGE lhs rhs) = S.ValueGE <$> toCore lhs <*> toCore rhs
+  toCore (ValueGT lhs rhs) = S.ValueGT <$> toCore lhs <*> toCore rhs
+  toCore (ValueLT lhs rhs) = S.ValueLT <$> toCore lhs <*> toCore rhs
+  toCore (ValueLE lhs rhs) = S.ValueLE <$> toCore lhs <*> toCore rhs
+  toCore (ValueEQ lhs rhs) = S.ValueEQ <$> toCore lhs <*> toCore rhs
+  toCore TrueObs = Just S.TrueObs
+  toCore FalseObs = Just S.FalseObs
+
 data Action
   = Deposit S.AccountId S.Party S.Token Value
   | Choice S.ChoiceId (Array S.Bound)
@@ -295,6 +325,11 @@ instance hasArgsAction :: Args Action where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
+instance toCoreAction :: ToCore Action S.Action where
+  toCore (Deposit accId party tok val) = S.Deposit <$> pure accId <*> pure party <*> pure tok <*> toCore val
+  toCore (Choice choId bounds) = Just $ S.Choice choId bounds
+  toCore (Notify obs) = S.Notify <$> toCore obs
+
 data Payee
   = Account S.AccountId
   | Party S.Party
@@ -323,6 +358,10 @@ instance prettyPayee :: Pretty Payee where
 instance hasArgsPayee :: Args Payee where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
+
+instance toCorePayee :: ToCore Payee S.Payee where
+  toCore (Account accId) = Just $ S.Account accId
+  toCore (Party roleName) = Just $ S.Party roleName
 
 data Case
   = Case Action Contract
@@ -355,6 +394,9 @@ instance prettyCase :: Pretty Case where
 instance hasArgsCase :: Args Case where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
+
+instance toCoreCase :: ToCore Case S.Case where
+  toCore (Case act c) = S.Case <$> toCore act <*> toCore c
 
 data Contract
   = Close
@@ -442,78 +484,10 @@ instance hasArgsContract :: Args Contract where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-convertPayeeIfNoExtensions :: Payee -> Maybe S.Payee
-convertPayeeIfNoExtensions (Account accId) = Just $ S.Account accId
-
-convertPayeeIfNoExtensions (Party roleName) = Just $ S.Party roleName
-
-convertValueIfNoExtensions :: Value -> Maybe S.Value
-convertValueIfNoExtensions (Constant c) = Just $ S.Constant c
-
-convertValueIfNoExtensions (AvailableMoney accId tok) = S.AvailableMoney <$> pure accId <*> pure tok
-
-convertValueIfNoExtensions (NegValue v) = S.NegValue <$> convertValueIfNoExtensions v
-
-convertValueIfNoExtensions (AddValue lhs rhs) = S.AddValue <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertValueIfNoExtensions (SubValue lhs rhs) = S.SubValue <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertValueIfNoExtensions (MulValue lhs rhs) = S.MulValue <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertValueIfNoExtensions (Scale f v) = S.Scale <$> pure f <*> convertValueIfNoExtensions v
-
-convertValueIfNoExtensions (ChoiceValue choId) = Just $ S.ChoiceValue choId
-
-convertValueIfNoExtensions SlotIntervalStart = Just $ S.SlotIntervalStart
-
-convertValueIfNoExtensions SlotIntervalEnd = Just $ S.SlotIntervalEnd
-
-convertValueIfNoExtensions (UseValue vId) = Just $ S.UseValue vId
-
-convertValueIfNoExtensions (Cond obs lhs rhs) = S.Cond <$> convertObservationIfNoExtensions obs <*> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions :: Observation -> Maybe S.Observation
-convertObservationIfNoExtensions (AndObs lhs rhs) = S.AndObs <$> convertObservationIfNoExtensions lhs <*> convertObservationIfNoExtensions rhs
-
-convertObservationIfNoExtensions (OrObs lhs rhs) = S.OrObs <$> convertObservationIfNoExtensions lhs <*> convertObservationIfNoExtensions rhs
-
-convertObservationIfNoExtensions (NotObs v) = S.NotObs <$> convertObservationIfNoExtensions v
-
-convertObservationIfNoExtensions (ChoseSomething choId) = Just $ S.ChoseSomething choId
-
-convertObservationIfNoExtensions (ValueGE lhs rhs) = S.ValueGE <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions (ValueGT lhs rhs) = S.ValueGT <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions (ValueLT lhs rhs) = S.ValueLT <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions (ValueLE lhs rhs) = S.ValueLE <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions (ValueEQ lhs rhs) = S.ValueEQ <$> convertValueIfNoExtensions lhs <*> convertValueIfNoExtensions rhs
-
-convertObservationIfNoExtensions TrueObs = Just S.TrueObs
-
-convertObservationIfNoExtensions FalseObs = Just S.FalseObs
-
-convertActionIfNoExtensions :: Action -> Maybe S.Action
-convertActionIfNoExtensions (Deposit accId party tok val) = S.Deposit <$> pure accId <*> pure party <*> pure tok <*> convertValueIfNoExtensions val
-
-convertActionIfNoExtensions (Choice choId bounds) = Just $ S.Choice choId bounds
-
-convertActionIfNoExtensions (Notify obs) = S.Notify <$> convertObservationIfNoExtensions obs
-
-convertCaseIfNoExtensions :: Case -> Maybe S.Case
-convertCaseIfNoExtensions (Case act c) = S.Case <$> convertActionIfNoExtensions act <*> convertContractIfNoExtensions c
-
-convertContractIfNoExtensions :: Contract -> Maybe S.Contract
-convertContractIfNoExtensions Close = Just S.Close
-
-convertContractIfNoExtensions (Pay accId payee tok val cont) = S.Pay <$> pure accId <*> convertPayeeIfNoExtensions payee <*> pure tok <*> convertValueIfNoExtensions val <*> convertContractIfNoExtensions cont
-
-convertContractIfNoExtensions (If obs cont1 cont2) = S.If <$> convertObservationIfNoExtensions obs <*> convertContractIfNoExtensions cont1 <*> convertContractIfNoExtensions cont2
-
-convertContractIfNoExtensions (When cases tim cont) = S.When <$> traverse convertCaseIfNoExtensions cases <*> pure tim <*> convertContractIfNoExtensions cont
-
-convertContractIfNoExtensions (Let varId val cont) = S.Let <$> pure varId <*> convertValueIfNoExtensions val <*> convertContractIfNoExtensions cont
-
-convertContractIfNoExtensions (Assert obs cont) = S.Assert <$> convertObservationIfNoExtensions obs <*> convertContractIfNoExtensions cont
+instance toCoreContract :: ToCore Contract S.Contract where
+  toCore Close = Just S.Close
+  toCore (Pay accId payee tok val cont) = S.Pay <$> pure accId <*> toCore payee <*> pure tok <*> toCore val <*> toCore cont
+  toCore (If obs cont1 cont2) = S.If <$> toCore obs <*> toCore cont1 <*> toCore cont2
+  toCore (When cases tim cont) = S.When <$> traverse toCore cases <*> pure tim <*> toCore cont
+  toCore (Let varId val cont) = S.Let <$> pure varId <*> toCore val <*> toCore cont
+  toCore (Assert obs cont) = S.Assert <$> toCore obs <*> toCore cont
