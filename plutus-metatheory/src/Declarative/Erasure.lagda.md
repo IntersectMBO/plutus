@@ -46,37 +46,6 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
-lemma : (b : Builtin)
-  → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≡ arity b
-lemma addInteger = refl
-lemma subtractInteger = refl
-lemma multiplyInteger = refl
-lemma divideInteger = refl
-lemma quotientInteger = refl
-lemma remainderInteger = refl
-lemma modInteger = refl
-lemma lessThanInteger = refl
-lemma lessThanEqualsInteger = refl
-lemma greaterThanInteger = refl
-lemma greaterThanEqualsInteger = refl
-lemma equalsInteger = refl
-lemma concatenate = refl
-lemma takeByteString = refl
-lemma dropByteString = refl
-lemma lessThanByteString = refl
-lemma greaterThanByteString = refl
-lemma sha2-256 = refl
-lemma sha3-256 = refl
-lemma verifySignature = refl
-lemma equalsByteString = refl
-lemma ifThenElse = refl
-lemma charToString = refl
-lemma append = refl
-lemma trace = refl
-
-lemma≤ : (b : Builtin) → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
-lemma≤ b rewrite lemma b = ≤‴-refl
-
 eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero 
 eraseVar (S α) = suc (eraseVar α) 

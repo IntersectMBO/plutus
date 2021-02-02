@@ -26,33 +26,6 @@ data TermCon : Set where
 \end{code}
 
 \begin{code}
-arity : Builtin → ℕ
-arity addInteger               = 2
-arity subtractInteger          = 2
-arity multiplyInteger          = 2
-arity divideInteger            = 2
-arity quotientInteger          = 2
-arity remainderInteger         = 2
-arity modInteger               = 2
-arity lessThanInteger          = 2
-arity lessThanEqualsInteger    = 2
-arity greaterThanInteger       = 2
-arity greaterThanEqualsInteger = 2
-arity equalsInteger            = 2
-arity concatenate              = 2
-arity takeByteString           = 2
-arity dropByteString           = 2
-arity lessThanByteString       = 2
-arity greaterThanByteString    = 2
-arity sha2-256                 = 1
-arity sha3-256                 = 1
-arity verifySignature          = 3
-arity equalsByteString         = 2
-arity ifThenElse               = 4
-arity charToString             = 1
-arity append                   = 2
-arity trace                    = 1
-
 data _⊢ n : Set where
   `       : Fin n → n ⊢
   ƛ       : suc n ⊢ → n ⊢

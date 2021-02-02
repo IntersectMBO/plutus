@@ -45,7 +45,10 @@ open import Data.String using (String)
 
 \begin{code}
 
+-- something very much like a substitution
+-- labelled by a builtin and given a first order presentation
 ITel : Builtin → ∀{Φ} → Ctx Φ → SubNf Φ ∅ → Set
+
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set where
 
   V-ƛ : {A B : ∅ ⊢Nf⋆ *}
