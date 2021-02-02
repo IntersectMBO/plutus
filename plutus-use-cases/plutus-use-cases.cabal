@@ -26,6 +26,7 @@ flag defer-plugin-errors
 library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
+        Language.PlutusTx.Coordination.Contracts.Auction
         Language.PlutusTx.Coordination.Contracts.TokenAccount
         Language.PlutusTx.Coordination.Contracts.Crowdfunding
         Language.PlutusTx.Coordination.Contracts.Currency
