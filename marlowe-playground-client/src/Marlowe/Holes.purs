@@ -30,6 +30,7 @@ import Foreign (readString)
 import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
 import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
+import Marlowe.Extended as EM
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Extra as Text
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
@@ -639,10 +640,10 @@ instance hasArgsAction :: Args Action where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance actionFromTerm :: FromTerm Action S.Action where
-  fromTerm (Deposit a b c d) = S.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
-  fromTerm (Choice a b) = S.Choice <$> fromTerm a <*> (traverse fromTerm b)
-  fromTerm (Notify a) = S.Notify <$> fromTerm a
+instance actionFromTerm :: FromTerm Action EM.Action where
+  fromTerm (Deposit a b c d) = EM.Deposit <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d
+  fromTerm (Choice a b) = EM.Choice <$> fromTerm a <*> (traverse fromTerm b)
+  fromTerm (Notify a) = EM.Notify <$> fromTerm a
 
 instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
@@ -672,9 +673,9 @@ instance hasArgsPayee :: Args Payee where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance payeeFromTerm :: FromTerm Payee S.Payee where
-  fromTerm (Account a) = S.Account <$> fromTerm a
-  fromTerm (Party (Term a _)) = S.Party <$> fromTerm a
+instance payeeFromTerm :: FromTerm Payee EM.Payee where
+  fromTerm (Account a) = EM.Account <$> fromTerm a
+  fromTerm (Party (Term a _)) = EM.Party <$> fromTerm a
   fromTerm _ = Nothing
 
 instance payeeMarloweType :: IsMarloweType Payee where
@@ -705,8 +706,8 @@ instance hasArgsCase :: Args Case where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance caseFromTerm :: FromTerm Case S.Case where
-  fromTerm (Case a b) = S.Case <$> fromTerm a <*> fromTerm b
+instance caseFromTerm :: FromTerm Case EM.Case where
+  fromTerm (Case a b) = EM.Case <$> fromTerm a <*> fromTerm b
 
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
@@ -744,19 +745,19 @@ instance hasArgsValue :: Args Value where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance valueFromTerm :: FromTerm Value S.Value where
-  fromTerm (AvailableMoney a b) = S.AvailableMoney <$> fromTerm a <*> fromTerm b
-  fromTerm (Constant a) = pure $ S.Constant a
-  fromTerm (NegValue a) = S.NegValue <$> fromTerm a
-  fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
-  fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
-  fromTerm (MulValue a b) = S.MulValue <$> fromTerm a <*> fromTerm b
-  fromTerm (Scale a b) = S.Scale <$> fromTerm a <*> fromTerm b
-  fromTerm (ChoiceValue a) = S.ChoiceValue <$> fromTerm a
-  fromTerm SlotIntervalStart = pure S.SlotIntervalStart
-  fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd
-  fromTerm (UseValue a) = S.UseValue <$> fromTerm a
-  fromTerm (Cond c a b) = S.Cond <$> fromTerm c <*> fromTerm a <*> fromTerm b
+instance valueFromTerm :: FromTerm Value EM.Value where
+  fromTerm (AvailableMoney a b) = EM.AvailableMoney <$> fromTerm a <*> fromTerm b
+  fromTerm (Constant a) = pure $ EM.Constant a
+  fromTerm (NegValue a) = EM.NegValue <$> fromTerm a
+  fromTerm (AddValue a b) = EM.AddValue <$> fromTerm a <*> fromTerm b
+  fromTerm (SubValue a b) = EM.SubValue <$> fromTerm a <*> fromTerm b
+  fromTerm (MulValue a b) = EM.MulValue <$> fromTerm a <*> fromTerm b
+  fromTerm (Scale a b) = EM.Scale <$> fromTerm a <*> fromTerm b
+  fromTerm (ChoiceValue a) = EM.ChoiceValue <$> fromTerm a
+  fromTerm SlotIntervalStart = pure EM.SlotIntervalStart
+  fromTerm SlotIntervalEnd = pure EM.SlotIntervalEnd
+  fromTerm (UseValue a) = EM.UseValue <$> fromTerm a
+  fromTerm (Cond c a b) = EM.Cond <$> fromTerm c <*> fromTerm a <*> fromTerm b
 
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
@@ -801,18 +802,18 @@ instance hasArgsObservation :: Args Observation where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance observationFromTerm :: FromTerm Observation S.Observation where
-  fromTerm (AndObs a b) = S.AndObs <$> fromTerm a <*> fromTerm b
-  fromTerm (OrObs a b) = S.OrObs <$> fromTerm a <*> fromTerm b
-  fromTerm (NotObs a) = S.NotObs <$> fromTerm a
-  fromTerm (ChoseSomething a) = S.ChoseSomething <$> fromTerm a
-  fromTerm (ValueGE a b) = S.ValueGE <$> fromTerm a <*> fromTerm b
-  fromTerm (ValueGT a b) = S.ValueGT <$> fromTerm a <*> fromTerm b
-  fromTerm (ValueLT a b) = S.ValueLT <$> fromTerm a <*> fromTerm b
-  fromTerm (ValueLE a b) = S.ValueLE <$> fromTerm a <*> fromTerm b
-  fromTerm (ValueEQ a b) = S.ValueEQ <$> fromTerm a <*> fromTerm b
-  fromTerm TrueObs = pure S.TrueObs
-  fromTerm FalseObs = pure S.FalseObs
+instance observationFromTerm :: FromTerm Observation EM.Observation where
+  fromTerm (AndObs a b) = EM.AndObs <$> fromTerm a <*> fromTerm b
+  fromTerm (OrObs a b) = EM.OrObs <$> fromTerm a <*> fromTerm b
+  fromTerm (NotObs a) = EM.NotObs <$> fromTerm a
+  fromTerm (ChoseSomething a) = EM.ChoseSomething <$> fromTerm a
+  fromTerm (ValueGE a b) = EM.ValueGE <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueGT a b) = EM.ValueGT <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueLT a b) = EM.ValueLT <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueLE a b) = EM.ValueLE <$> fromTerm a <*> fromTerm b
+  fromTerm (ValueEQ a b) = EM.ValueEQ <$> fromTerm a <*> fromTerm b
+  fromTerm TrueObs = pure EM.TrueObs
+  fromTerm FalseObs = pure EM.FalseObs
 
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
@@ -851,13 +852,13 @@ instance hasArgsContract :: Args Contract where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance contractFromTerm :: FromTerm Contract S.Contract where
-  fromTerm Close = pure S.Close
-  fromTerm (Pay a b c d e) = S.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
-  fromTerm (If a b c) = S.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
-  fromTerm (When as (TermWrapper b _) c) = S.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
-  fromTerm (Let a b c) = S.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
-  fromTerm (Assert a b) = S.Assert <$> fromTerm a <*> fromTerm b
+instance contractFromTerm :: FromTerm Contract EM.Contract where
+  fromTerm Close = pure EM.Close
+  fromTerm (Pay a b c d e) = EM.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
+  fromTerm (If a b c) = EM.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
+  fromTerm (When as (TermWrapper b _) c) = EM.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
+  fromTerm (Let a b c) = EM.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
+  fromTerm (Assert a b) = EM.Assert <$> fromTerm a <*> fromTerm b
 
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType

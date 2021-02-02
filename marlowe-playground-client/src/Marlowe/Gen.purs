@@ -18,6 +18,7 @@ import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
+import Marlowe.Extended as EM
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
 
@@ -334,8 +335,11 @@ genPartyValue = oneOf $ pk :| [ role ]
 
   role = S.Role <$> genTokenNameValue
 
-genPayeeValue :: forall m. MonadGen m => MonadRec m => m S.Payee
-genPayeeValue = oneOf $ (S.Account <$> genPartyValue) :| [ S.Party <$> genPartyValue ]
+genPayeeValueCore :: forall m. MonadGen m => MonadRec m => m S.Payee
+genPayeeValueCore = oneOf $ (S.Account <$> genPartyValue) :| [ S.Party <$> genPartyValue ]
+
+genPayeeValueExtended :: forall m. MonadGen m => MonadRec m => m EM.Payee
+genPayeeValueExtended = oneOf $ (EM.Account <$> genPartyValue) :| [ EM.Party <$> genPartyValue ]
 
 genValueIdValue :: forall m. MonadGen m => MonadRec m => m S.ValueId
 genValueIdValue = S.ValueId <$> genString
@@ -376,7 +380,7 @@ genTransactionWarning ::
 genTransactionWarning =
   oneOf
     $ (TransactionNonPositiveDeposit <$> genPartyValue <*> genPartyValue <*> genTokenValue <*> genBigInteger)
-    :| [ TransactionNonPositivePay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger
-      , TransactionPartialPay <$> genPartyValue <*> genPayeeValue <*> genTokenValue <*> genBigInteger <*> genBigInteger
+    :| [ TransactionNonPositivePay <$> genPartyValue <*> genPayeeValueCore <*> genTokenValue <*> genBigInteger
+      , TransactionPartialPay <$> genPartyValue <*> genPayeeValueCore <*> genTokenValue <*> genBigInteger <*> genBigInteger
       , TransactionShadowing <$> genValueIdValue <*> genBigInteger <*> genBigInteger
       ]

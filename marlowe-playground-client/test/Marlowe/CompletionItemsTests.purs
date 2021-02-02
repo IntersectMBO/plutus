@@ -46,7 +46,7 @@ testFor ValueIdType = mkTest false ValueIdType (parse Parser.valueId)
 
 testFor ActionType = mkTest false ActionType (parse Parser.action)
 
-testFor PayeeType = mkTest false PayeeType (parse Parser.payee)
+testFor PayeeType = mkTest false PayeeType (parse Parser.payeeExtended)
 
 testFor CaseType = mkTest false CaseType (parse Parser.case')
 
@@ -60,7 +60,7 @@ testFor BoundType = mkTest false BoundType (parse Parser.bound)
 
 testFor TokenType = mkTest false TokenType (parse Parser.token)
 
-testFor PartyType = mkTest false PartyType (parse Parser.party)
+testFor PartyType = mkTest false PartyType (parse Parser.partyExtended)
 
 all :: TestSuite
 all =

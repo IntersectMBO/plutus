@@ -263,8 +263,11 @@ timeout = do
     (Hole _ _ pos) -> fail ""
     (Term v pos) -> pure $ TermWrapper (Slot v) pos
 
-accountId :: Parser AccountId
-accountId = parseTerm $ parens party
+accountIdExtended :: Parser AccountId
+accountIdExtended = parseTerm $ parens partyExtended
+
+accountIdCore :: Parser S.AccountId
+accountIdCore = parens partyCore
 
 choiceId :: Parser ChoiceId
 choiceId = parens choiceId'
@@ -276,7 +279,7 @@ choiceId' = do
   void someWhiteSpace
   first <- text
   void someWhiteSpace
-  second <- parseTerm $ parens party
+  second <- parseTerm $ parens partyExtended
   skipSpaces
   pure $ ChoiceId first second
 
@@ -298,7 +301,7 @@ rational = do
 -- see https://stackoverflow.com/questions/36984245/undefined-value-reference-not-allowed-workaround/36991223#36991223
 recValue :: Unit -> Parser Value
 recValue _ =
-  (AvailableMoney <$> (string "AvailableMoney" **> accountId) <**> parseTerm (parens token))
+  (AvailableMoney <$> (string "AvailableMoney" **> accountIdExtended) <**> parseTerm (parens token))
     <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
@@ -346,18 +349,28 @@ recObservation =
 observation :: Parser Observation
 observation = atomObservation <|> recObservation
 
-payee :: Parser Payee
-payee =
-  (Account <$> (string "Account" **> accountId))
-    <|> (Party <$> (string "Party" **> parseTerm (parens party)))
+payeeExtended :: Parser Payee
+payeeExtended =
+  (Account <$> (string "Account" **> accountIdExtended))
+    <|> (Party <$> (string "Party" **> parseTerm (parens partyExtended)))
+
+payeeCore :: Parser S.Payee
+payeeCore =
+  (S.Account <$> (string "Account" **> accountIdCore))
+    <|> (S.Party <$> (string "Party" **> parens partyCore))
 
 pubkey :: Parser PubKey
 pubkey = text
 
-party :: Parser Party
-party =
+partyExtended :: Parser Party
+partyExtended =
   (PK <$> (string "PK" **> pubkey))
     <|> (Role <$> (string "Role" **> tokenName))
+
+partyCore :: Parser S.Party
+partyCore =
+  (S.PK <$> (string "PK" **> pubkey))
+    <|> (S.Role <$> (string "Role" **> tokenName))
 
 currencySymbol :: Parser CurrencySymbol
 currencySymbol = text
@@ -389,7 +402,7 @@ bound = do
 
 action :: Parser Action
 action =
-  (Deposit <$> (string "Deposit" **> accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
+  (Deposit <$> (string "Deposit" **> accountIdExtended) <**> parseTerm (parens partyExtended) <**> parseTerm (parens token) <**> value')
     <|> (Choice <$> (string "Choice" **> choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
@@ -416,8 +429,8 @@ atomContract = pure Close <* string "Close"
 
 recContract :: Parser Contract
 recContract =
-  ( Pay <$> (string "Pay" **> accountId)
-      <**> parseTerm (parens payee)
+  ( Pay <$> (string "Pay" **> accountIdExtended)
+      <**> parseTerm (parens payeeExtended)
       <**> parseTerm (parens token)
       <**> value'
       <**> contract'
@@ -558,13 +571,13 @@ testString =
 input :: Parser S.Input
 input =
   maybeParens
-    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> parseToValue (parens party) <**> parseToValue (parens token) <**> (maybeParens bigInteger))
+    ( (S.IDeposit <$> (string "IDeposit" **> accountIdValue) <**> parens partyCore <**> parseToValue (parens token) <**> (maybeParens bigInteger))
         <|> (S.IChoice <$> (string "IChoice" **> choiceIdValue) <**> (maybeParens bigInteger))
         <|> ((const S.INotify) <$> (string "INotify"))
     )
 
 accountIdValue :: Parser S.AccountId
-accountIdValue = parseToValue (parens party)
+accountIdValue = parens partyCore
 
 choiceIdValue :: Parser S.ChoiceId
 choiceIdValue = parseToValue choiceId
@@ -572,8 +585,8 @@ choiceIdValue = parseToValue choiceId
 valueIdValue :: Parser S.ValueId
 valueIdValue = parseToValue valueId
 
-payeeValue :: Parser S.Payee
-payeeValue = parseToValue payee
+payeeCoreValue :: Parser S.Payee
+payeeCoreValue = payeeCore
 
 inputList :: Parser (List S.Input)
 inputList = haskellList input
@@ -627,9 +640,9 @@ transactionWarning = do
       ( do
           skipSpaces
           tWaS <-
-            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> parseToValue (parens party)) <**> accountIdValue <**> parseToValue (parens token) <**> maybeParens bigInteger)
-              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger)
-              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger <**> maybeParens bigInteger)
+            (TransactionNonPositiveDeposit <$> (string "TransactionNonPositiveDeposit" **> parens partyCore) <**> accountIdValue <**> parseToValue (parens token) <**> maybeParens bigInteger)
+              <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeCoreValue) <**> parseToValue (parens token) <**> maybeParens bigInteger)
+              <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeCoreValue) <**> parseToValue (parens token) <**> maybeParens bigInteger <**> maybeParens bigInteger)
               <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
               <|> (TransactionAssertionFailed <$ (string "TransactionAssertionFailed"))
           skipSpaces

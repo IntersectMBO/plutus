@@ -3,6 +3,7 @@ module CloseAnalysis where
 import Prelude hiding (div)
 import Data.Foldable (foldl)
 import Data.Lens (assign)
+import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))
@@ -11,6 +12,8 @@ import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
+import Marlowe.Extended (toCore)
+import Marlowe.Extended as EM
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, _analysisState)
@@ -19,17 +22,20 @@ analyseClose ::
   forall m state action slots.
   MonadAff m =>
   SPSettings_ SPParams_ ->
-  Contract ->
+  EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseClose settings contract = do
-  assign _analysisState (CloseAnalysis AnalysisNotStarted)
-  -- when editor and simulator were together the analyse contract could be made
-  -- at any step of the simulator. Now that they are separate, it can only be done
-  -- with initial state
-  let
-    emptySemanticState = emptyState zero
-  newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
-  assign _analysisState (CloseAnalysis newCloseAnalysisState)
+analyseClose settings extendedContract = do
+  case toCore extendedContract of
+    Just contract -> do
+      assign _analysisState (CloseAnalysis AnalysisNotStarted)
+      -- when editor and simulator were together the analyse contract could be made
+      -- at any step of the simulator. Now that they are separate, it can only be done
+      -- with initial state
+      let
+        emptySemanticState = emptyState zero
+      newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
+      assign _analysisState (CloseAnalysis newCloseAnalysisState)
+    Nothing -> assign _analysisState (CloseAnalysis $ AnalysisFailure "The code has templates. Static analysis can only be run in core Marlowe code.")
 
 extractAccountIdsFromZipper :: ContractZipper -> Set (AccountId /\ Token)
 extractAccountIdsFromZipper = go

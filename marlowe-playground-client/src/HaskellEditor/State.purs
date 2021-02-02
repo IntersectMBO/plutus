@@ -31,7 +31,7 @@ import MainFrame.Types (ChildSlots, _haskellEditorSlot)
 import Marlowe (SPParams_, postRunghc)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Contract)
+import Marlowe.Extended (Contract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData

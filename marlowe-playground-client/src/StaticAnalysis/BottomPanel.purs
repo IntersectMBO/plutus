@@ -20,6 +20,7 @@ import Network.RemoteData (RemoteData(..))
 import Pretty (showPrettyToken)
 import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
+import Types (WarningAnalysisError(..))
 
 analyzeButton ::
   forall p action. Boolean -> Boolean -> String -> action -> HTML p action
@@ -82,7 +83,7 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        Failure (AjaxError { description }) ->
+        Failure (WarningAnalysisAjaxError (AjaxError { description })) ->
           let
             err = case description of
               DecodingError e -> "Decoding error: " <> e
@@ -100,6 +101,16 @@ analysisResultPane state =
                       ]
                   ]
               ]
+        Failure WarningAnalysisIsExtendedMarloweError ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText "The code has templates. Static analysis can only be run in core Marlowe code." ]
+                    ]
+                ]
+            ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
         AnalysisNotStarted ->
@@ -123,7 +134,7 @@ analysisResultPane state =
                           ]
                     )
             )
-        AnalyisisFailure err ->
+        AnalysisFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
             , text "Reachability analysis failed for the following reason:"
@@ -170,7 +181,7 @@ analysisResultPane state =
                           ]
                     )
             )
-        AnalyisisFailure err ->
+        AnalysisFailure err ->
           explanation
             [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during Close refund analysis" ]
             , text "Close refund analysis failed for the following reason:"

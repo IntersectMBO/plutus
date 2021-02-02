@@ -15,12 +15,12 @@ import Marlowe.Semantics (AccountId, Case, Contract, Observation, Payee, Timeout
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (isLoading)
-import Types (WebData)
+import Types (WarningAnalysisData)
 
 -------------------------------------------------------------------------------
 data AnalysisState
   = NoneAsked
-  | WarningAnalysis (WebData Result)
+  | WarningAnalysis (WarningAnalysisData Result)
   | ReachabilityAnalysis MultiStageAnalysisData
   | CloseAnalysis MultiStageAnalysisData
 
@@ -50,7 +50,7 @@ isCloseAnalysisLoading _ = false
 data MultiStageAnalysisData
   = AnalysisNotStarted
   | AnalysisInProgress AnalysisInProgressRecord
-  | AnalyisisFailure String
+  | AnalysisFailure String
   | AnalysisFoundCounterExamples AnalysisCounterExamplesRecord
   | AnalysisFinishedAndPassed
 

@@ -15,7 +15,7 @@ import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Language.Javascript.Interpreter (_result)
 import Language.Javascript.Interpreter as JS
-import Marlowe.Semantics (Contract)
+import Marlowe.Extended (Contract)
 import StaticAnalysis.Types (AnalysisState(..))
 import Text.Pretty (pretty)
 
