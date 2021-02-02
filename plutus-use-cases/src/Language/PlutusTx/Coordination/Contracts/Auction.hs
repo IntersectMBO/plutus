@@ -19,7 +19,6 @@ module Language.PlutusTx.Coordination.Contracts.Auction(
     auctionSeller,
     ) where
 
--- BLOCK0
 
 import           Data.Aeson                            (FromJSON, ToJSON)
 import           Data.Foldable                         (traverse_)
@@ -41,8 +40,6 @@ import qualified Ledger.Typed.Scripts                  as Scripts
 import           Ledger.Typed.Tx                       (TypedScriptTxOut (..))
 import qualified Prelude                               as Haskell
 
--- BLOCK1
-
 -- | Definition of an auction
 data AuctionParams
     = AuctionParams
@@ -55,7 +52,6 @@ data AuctionParams
 
 PlutusTx.makeLift ''AuctionParams
 
--- BLOCK2
 
 data HighestBid =
     HighestBid
@@ -84,13 +80,11 @@ data AuctionInput
     deriving anyclass (ToJSON, FromJSON)
 
 PlutusTx.makeIsData ''AuctionInput
--- BLOCK3
 
 {-# INLINABLE auctionTransition #-}
 -- | The transitions of the auction state machine.
 auctionTransition :: AuctionParams -> State AuctionState -> AuctionInput -> Maybe (TxConstraints Void Void, State AuctionState)
 
--- BLOCK4
 auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=oldState} input =
     case (oldState, input) of
 
@@ -117,7 +111,6 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
         -- This rules out new bids that don't go over the current highest bid.
         _ -> Nothing
 
--- BLOCK5
 
 {-# INLINABLE auctionStateMachine #-}
 auctionStateMachine :: AuctionParams -> StateMachine AuctionState AuctionInput
@@ -125,7 +118,6 @@ auctionStateMachine auctionParams = SM.mkStateMachine (auctionTransition auction
     isFinal Finished{} = True
     isFinal _          = False
 
--- BLOCK6
 
 -- | The script instance of the auction state machine. It contains the state
 --   machine compiled to a Plutus core validator script.
@@ -167,7 +159,6 @@ data AuctionLog =
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
--- BLOCK8
 
 -- | Client code for the seller
 auctionSeller :: Value -> Slot -> Contract SellerSchema SM.SMContractError ()
@@ -191,13 +182,6 @@ auctionSeller value slot = do
         SM.TransitionSuccess (Finished h) -> logInfo $ AuctionEnded h
         SM.TransitionSuccess s            -> logWarn ("Unexpected state after Payout transition: " <> show s)
 
--- BLOCK9
-
-data BuyerChange =
-        AuctionIsOver HighestBid -- ^ The auction has ended with the highest bid
-        | SubmitOwnBid Ada -- ^ We want to submit a new bid
-        | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
-        | NoChange HighestBid
 
 -- | Get the current state of the contract and log it.
 currentState :: StateMachineClient AuctionState AuctionInput -> Contract BuyerSchema SM.SMContractError (Maybe HighestBid)
@@ -208,6 +192,32 @@ currentState client = SM.getOnChainState client >>= \case
     _ -> do
         logWarn CurrentStateNotFound
         pure Nothing
+
+{- Note [Buyer client]
+
+In the buyer client we want to keep track of the on-chain state of the auction
+to give our user a chance to react if they are outbid by somebody else.
+
+At the same time we want to have the "bid" endpoint active for any bids of our
+own, and we want to stop the client when the auction is over.
+
+To achieve this, we have a loop where we wait for one of several events to
+happen and then deal with the event. The waiting is implemented in
+@waitForChange@ and the event handling is in @handleChange@.
+
+Updates to the user are provided via the log functionality. This is not as bad
+as it sounds because the log records JSON objects so we are at least semi-
+structured. (Basically we have a @Writer [Aeson.Value]@ - in the future we
+should just make it a @Writer a@ for some user-defined @a@ so that we can
+export the "current state" of the app more easily.)
+
+-}
+
+data BuyerChange =
+        AuctionIsOver HighestBid -- ^ The auction has ended with the highest bid
+        | SubmitOwnBid Ada -- ^ We want to submit a new bid
+        | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
+        | NoChange HighestBid -- ^ Nothing has changed
 
 waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract BuyerSchema SM.SMContractError BuyerChange
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
@@ -225,12 +235,15 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
             case acrTxns of
                 [] -> pure (NoChange lastHighestBid)
                 _  -> currentState client >>= pure . maybe (AuctionIsOver lastHighestBid) OtherBid
+
+    -- see note [Buyer client]
     auctionOver `select` submitOwnBid `select` otherBid
 
 handleChange :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerChange -> Contract BuyerSchema SM.SMContractError (Either HighestBid ())
 handleChange client lastHighestBid change =
     let continue = pure . Left
         stop     = pure (Right ())
+    -- see note [Buyer client]
     in case change of
         AuctionIsOver _ -> stop
         SubmitOwnBid ada -> do
@@ -249,6 +262,8 @@ auctionBuyer :: AuctionParams -> Contract BuyerSchema SM.SMContractError ()
 auctionBuyer params = do
     let inst         = scriptInstance params
         client       = machineClient inst params
+
+        -- the actual loop, see note [Buyer client]
         loop         = loopM (\h -> waitForChange params client h >>= handleChange client h)
     initial <- currentState client
     traverse_ loop initial

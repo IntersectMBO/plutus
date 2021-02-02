@@ -74,7 +74,7 @@ w3 = Wallet 3
 auctionTrace1 :: Trace.EmulatorTrace ()
 auctionTrace1 = do
     _ <- Trace.activateContractWallet w1 seller
-    _ <- Trace.waitNSlots 2
+    _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 buyer
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 50
@@ -83,7 +83,7 @@ auctionTrace1 = do
 auctionTrace2 :: Trace.EmulatorTrace ()
 auctionTrace2 = do
     _ <- Trace.activateContractWallet w1 seller
-    _ <- Trace.waitNSlots 2
+    _ <- Trace.waitNSlots 1
     hdl2 <- Trace.activateContractWallet w2 buyer
     hdl3 <- Trace.activateContractWallet w3 buyer
     _ <- Trace.waitNSlots 1
