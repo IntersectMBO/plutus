@@ -40,7 +40,7 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Semantics (AccountId, Assets(..), Bound(..), ChoiceId(..), Input(..), Party, Payment(..), PubKey, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
+import Marlowe.Extended (convertContractIfNoExtensions)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
 import Pretty (renderPrettyParty, renderPrettyPayee, renderPrettyToken, showPrettyMoney)

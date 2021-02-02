@@ -23,7 +23,7 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (Action(..), Bound(..), ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party, Slot, SlotInterval(..), State, TransactionError(..), TransactionInput(..), TransactionOutput(..), _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
+import Marlowe.Extended (convertContractIfNoExtensions)
 import SimulationPage.Types (ActionInput(..), ActionInputId(..), ExecutionState(..), ExecutionStateRecord, MarloweEvent(..), MarloweState, Parties, _SimulationRunning, _contract, _currentMarloweState, _editorErrors, _executionState, _holes, _log, _marloweState, _moneyInContract, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, otherActionsParty)
 
 minimumBound :: Array Bound -> ChosenNum

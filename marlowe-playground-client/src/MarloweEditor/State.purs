@@ -35,7 +35,7 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Marlowe.ExtendedMarlowe (Contract)
+import Marlowe.Extended (Contract)
 import MarloweEditor.Types (Action(..), BottomPanelView, State, _bottomPanelState, _editorErrors, _editorWarnings, _keybindings, _selectedHole, _showErrorDetail)
 import Monaco (IMarker, isError, isWarning)
 import Network.RemoteData as RemoteData

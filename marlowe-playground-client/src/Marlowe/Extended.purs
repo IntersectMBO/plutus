@@ -1,4 +1,4 @@
-module Marlowe.ExtendedMarlowe where
+module Marlowe.Extended where
 
 import Prelude
 import Control.Alt ((<|>))

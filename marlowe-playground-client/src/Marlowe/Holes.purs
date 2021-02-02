@@ -30,7 +30,7 @@ import Foreign (readString)
 import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
 import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe as EM
+import Marlowe.Extended as EM
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Extra as Text
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)

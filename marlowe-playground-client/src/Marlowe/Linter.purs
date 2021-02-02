@@ -53,7 +53,7 @@ import Marlowe.Holes as Holes
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe as EM
+import Marlowe.Extended as EM
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)

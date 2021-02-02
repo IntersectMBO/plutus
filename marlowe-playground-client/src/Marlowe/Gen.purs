@@ -18,7 +18,7 @@ import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe as EM
+import Marlowe.Extended as EM
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
 

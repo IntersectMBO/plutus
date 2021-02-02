@@ -24,8 +24,8 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Semantics (Case(..), Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
-import Marlowe.ExtendedMarlowe as EM
+import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended as EM
 import Marlowe.Symbolic.Types.Request as MSReq
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))

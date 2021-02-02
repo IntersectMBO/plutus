@@ -21,8 +21,8 @@ import Halogen (HalogenM)
 import Marlowe (SPParams_)
 import Marlowe.Semantics (Contract(..), Observation(..), emptyState)
 import Marlowe.Semantics as S
-import Marlowe.ExtendedMarlowe (convertContractIfNoExtensions)
-import Marlowe.ExtendedMarlowe as EM
+import Marlowe.Extended (convertContractIfNoExtensions)
+import Marlowe.Extended as EM
 import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractPathStep, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, PrefixMap, _analysisState)

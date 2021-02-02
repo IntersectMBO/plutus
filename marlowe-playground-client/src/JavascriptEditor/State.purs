@@ -32,7 +32,7 @@ import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
 import Marlowe (SPParams_)
-import Marlowe.ExtendedMarlowe (Contract)
+import Marlowe.Extended (Contract)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
 import Servant.PureScript.Settings (SPSettings_)
