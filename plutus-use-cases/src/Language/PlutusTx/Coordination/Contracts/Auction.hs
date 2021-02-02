@@ -217,7 +217,11 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
         submitOwnBid = SubmitOwnBid <$> endpoint @"bid"
         otherBid = do
             let address = Scripts.scriptAddress (validatorInstance (SM.scInstance client))
-            AddressChangeResponse{acrTxns} <- addressChangeRequest AddressChangeRequest{acreqSlot=s, acreqAddress = address}
+                targetSlot = succ (succ s) -- FIXME (jm): There is some off-by-one thing going on that requires us to
+                                           -- use succ.succ instead of just a single succ if we want 'addressChangeRequest'
+                                           -- to wait for the next slot to begin.
+                                           -- I don't have the time to look into that atm though :(
+            AddressChangeResponse{acrTxns} <- addressChangeRequest AddressChangeRequest{acreqSlot=targetSlot, acreqAddress = address}
             case acrTxns of
                 [] -> pure (NoChange lastHighestBid)
                 _  -> currentState client >>= pure . maybe (AuctionIsOver lastHighestBid) OtherBid

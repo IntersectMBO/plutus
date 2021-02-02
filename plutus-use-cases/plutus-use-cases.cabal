@@ -91,6 +91,7 @@ test-suite plutus-use-cases-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling
@@ -152,6 +153,7 @@ executable plutus-use-cases-scripts
         test
     default-language: Haskell2010
     other-modules:
+        Spec.Auction
         Spec.Crowdfunding
         Spec.Currency
         Spec.ErrorHandling
