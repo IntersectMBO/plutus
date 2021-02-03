@@ -10,6 +10,7 @@ import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Lens (assign, use, view)
@@ -19,6 +20,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (drop, joinWith, length, take)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Env (Env)
 import Examples.JS.Contracts as JSE
 import Halogen (Component, HalogenM, gets, liftEffect, query)
 import Halogen.Extra (mapSubmodule)
@@ -31,11 +33,9 @@ import Language.Javascript.Interpreter as JSI
 import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _jsEditorSlot)
-import Marlowe (SPParams_)
 import Marlowe.Extended (Contract)
 import Monaco (IRange, getModel, isError, setValue)
 import Network.RemoteData (RemoteData(..))
-import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
@@ -58,10 +58,10 @@ checkDecorationPosition _ _ _ = false
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
+handleAction (HandleEditorMessage (Monaco.TextChanged text)) =
   ( do
       -- TODO: This handler manages the logic of having a restricted range that cannot be modified. But the
       --       current implementation uses editorSetValue to overwrite the editor contents with the last
@@ -99,11 +99,11 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) =
         Nothing -> editorSetValue prunedText
   )
 
-handleAction _ (ChangeKeyBindings bindings) = do
+handleAction (ChangeKeyBindings bindings) = do
   assign _keybindings bindings
   void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
-handleAction settings Compile = do
+handleAction Compile = do
   maybeModel <- query _jsEditorSlot unit (Monaco.GetModel identity)
   compilationResult <- case maybeModel of
     Nothing -> pure NotCompiled
@@ -125,51 +125,51 @@ handleAction settings Compile = do
             Right result -> pure $ CompiledSuccessfully result
   assign _compilationResult compilationResult
   case compilationResult of
-    (CompilationError _) -> handleAction settings $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+    (CompilationError _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
     _ -> pure unit
   editorResize
 
-handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction _ (BottomPanelAction action) = do
+handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
-handleAction _ SendResultToSimulator = pure unit
+handleAction SendResultToSimulator = pure unit
 
-handleAction _ (InitJavascriptProject prunedContent) = do
+handleAction (InitJavascriptProject prunedContent) = do
   editorSetValue prunedContent
   liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey prunedContent
 
-handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
+handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
 
-handleAction settings AnalyseReachabilityContract =
-  compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
-    $ analyseReachability settings
+handleAction AnalyseReachabilityContract =
+  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+    $ analyseReachability
 
-handleAction settings AnalyseContractForCloseRefund =
-  compileAndAnalyze settings (CloseAnalysis AnalysisNotStarted)
-    $ analyseClose settings
+handleAction AnalyseContractForCloseRefund =
+  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+    $ analyseClose
 
 -- This function runs a static analysis to the compiled code. It calls the compiler if
 -- it wasn't runned before and it switches to the error panel if the compilation failed
 compileAndAnalyze ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   AnalysisState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
-compileAndAnalyze settings initialAnalysisState doAnalyze = do
+compileAndAnalyze initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
     NotCompiled -> do
       -- The initial analysis state allow us to show an "Analysing..." indicator
       assign _analysisState initialAnalysisState
-      handleAction settings Compile
-      compileAndAnalyze settings initialAnalysisState doAnalyze
+      handleAction Compile
+      compileAndAnalyze initialAnalysisState doAnalyze
     CompiledSuccessfully (InterpreterResult interpretedResult) -> doAnalyze interpretedResult.result
-    CompilationError _ -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
+    CompilationError _ -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 editorResize :: forall state action msg m. HalogenM state action ChildSlots msg m Unit

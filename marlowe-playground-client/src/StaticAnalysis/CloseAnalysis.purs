@@ -1,6 +1,7 @@
 module CloseAnalysis where
 
 import Prelude hiding (div)
+import Control.Monad.Reader (class MonadAsk)
 import Data.Foldable (foldl)
 import Data.Lens (assign)
 import Data.Maybe (Maybe(..))
@@ -8,23 +9,22 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect.Aff.Class (class MonadAff)
+import Env (Env)
 import Halogen (HalogenM)
-import Marlowe (SPParams_)
 import Marlowe.Semantics (AccountId, Contract(..), Observation(..), Payee(..), Token, Value(..), emptyState)
 import Marlowe.Semantics as S
 import Marlowe.Extended (toCore)
 import Marlowe.Extended as EM
-import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.StaticTools (closeZipperContract, startMultiStageAnalysis, zipperToContractPath)
 import StaticAnalysis.Types (AnalysisState(..), ContractPath, ContractZipper(..), MultiStageAnalysisData(..), MultiStageAnalysisProblemDef, _analysisState)
 
 analyseClose ::
   forall m state action slots.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   EM.Contract ->
   HalogenM { analysisState :: AnalysisState | state } action slots Void m Unit
-analyseClose settings extendedContract = do
+analyseClose extendedContract = do
   case toCore extendedContract of
     Just contract -> do
       assign _analysisState (CloseAnalysis AnalysisNotStarted)
@@ -33,7 +33,7 @@ analyseClose settings extendedContract = do
       -- with initial state
       let
         emptySemanticState = emptyState zero
-      newCloseAnalysisState <- startCloseAnalysis settings contract emptySemanticState
+      newCloseAnalysisState <- startCloseAnalysis contract emptySemanticState
       assign _analysisState (CloseAnalysis newCloseAnalysisState)
     Nothing -> assign _analysisState (CloseAnalysis $ AnalysisFailure "The code has templates. Static analysis can only be run in core Marlowe code.")
 
@@ -88,7 +88,7 @@ closeAnalysisAnalysisDef =
 startCloseAnalysis ::
   forall m state action slots.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Contract ->
   S.State -> HalogenM { analysisState :: AnalysisState | state } action slots Void m MultiStageAnalysisData
 startCloseAnalysis = startMultiStageAnalysis closeAnalysisAnalysisDef

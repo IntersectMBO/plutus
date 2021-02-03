@@ -11,7 +11,7 @@ import BottomPanel.State (handleAction) as BottomPanel
 import BottomPanel.Types (Action(..), State) as BottomPanel
 import CloseAnalysis (analyseClose)
 import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Reader (runReaderT)
+import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..), hush)
 import Data.Foldable (for_)
@@ -19,6 +19,7 @@ import Data.Lens (assign, use)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
+import Env (Env)
 import Examples.Haskell.Contracts (example) as HE
 import Halogen (HalogenM, liftEffect, query)
 import Halogen.Extra (mapSubmodule)
@@ -28,7 +29,7 @@ import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..),
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _haskellEditorSlot)
-import Marlowe (SPParams_, postRunghc)
+import Marlowe (postRunghc)
 import Marlowe.Holes (fromTerm)
 import Marlowe.Parser (parseContract)
 import Marlowe.Extended (Contract)
@@ -36,7 +37,6 @@ import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
-import Servant.PureScript.Settings (SPSettings_)
 import StaticAnalysis.Reachability (analyseReachability)
 import StaticAnalysis.StaticTools (analyseContract)
 import StaticAnalysis.Types (AnalysisState(..), MultiStageAnalysisData(..), _analysisState)
@@ -54,23 +54,24 @@ toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction _ Init = do
+handleAction Init = do
   editorSetTheme
   mContents <- liftEffect $ LocalStorage.getItem haskellBufferLocalStorageKey
   editorSetValue $ fromMaybe HE.example mContents
 
-handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
+handleAction (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey text
   assign _compilationResult NotAsked
 
-handleAction _ (ChangeKeyBindings bindings) = do
+handleAction (ChangeKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
   void $ query _haskellEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
-handleAction settings Compile = do
+handleAction Compile = do
+  settings <- asks _.ajaxSettings
   mContents <- editorGetValue
   case mContents of
     Nothing -> pure unit
@@ -80,7 +81,7 @@ handleAction settings Compile = do
       assign _compilationResult result
       -- Update the error display.
       case result of
-        Success (Left _) -> handleAction settings $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
+        Success (Left _) -> handleAction $ BottomPanelAction (BottomPanel.ChangePanel ErrorsView)
         _ -> pure unit
       let
         markers = case result of
@@ -88,51 +89,51 @@ handleAction settings Compile = do
           _ -> []
       void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
-handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction _ (BottomPanelAction action) = do
+handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
-handleAction _ SendResultToSimulator = pure unit
+handleAction SendResultToSimulator = pure unit
 
-handleAction _ (InitHaskellProject contents) = do
+handleAction (InitHaskellProject contents) = do
   editorSetValue contents
   liftEffect $ LocalStorage.setItem haskellBufferLocalStorageKey contents
 
-handleAction settings AnalyseContract = compileAndAnalyze settings (WarningAnalysis Loading) $ analyseContract settings
+handleAction AnalyseContract = compileAndAnalyze (WarningAnalysis Loading) $ analyseContract
 
-handleAction settings AnalyseReachabilityContract =
-  compileAndAnalyze settings (ReachabilityAnalysis AnalysisNotStarted)
-    $ analyseReachability settings
+handleAction AnalyseReachabilityContract =
+  compileAndAnalyze (ReachabilityAnalysis AnalysisNotStarted)
+    $ analyseReachability
 
-handleAction settings AnalyseContractForCloseRefund =
-  compileAndAnalyze settings (CloseAnalysis AnalysisNotStarted)
-    $ analyseClose settings
+handleAction AnalyseContractForCloseRefund =
+  compileAndAnalyze (CloseAnalysis AnalysisNotStarted)
+    $ analyseClose
 
 -- This function runs a static analysis to the compiled code. It calls the compiler if
 -- it wasn't runned before and it switches to the error panel if the compilation failed
 compileAndAnalyze ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   AnalysisState ->
   (Contract -> HalogenM State Action ChildSlots Void m Unit) ->
   HalogenM State Action ChildSlots Void m Unit
-compileAndAnalyze settings initialAnalysisState doAnalyze = do
+compileAndAnalyze initialAnalysisState doAnalyze = do
   compilationResult <- use _compilationResult
   case compilationResult of
     NotAsked -> do
       -- The initial analysis state allow us to show an "Analysing..." indicator
       assign _analysisState initialAnalysisState
-      handleAction settings Compile
-      compileAndAnalyze settings initialAnalysisState doAnalyze
+      handleAction Compile
+      compileAndAnalyze initialAnalysisState doAnalyze
     Success (Right (InterpreterResult interpretedResult)) ->
       let
         mContract = (fromTerm <=< hush <<< parseContract) interpretedResult.result
       in
         for_ mContract doAnalyze
-    Success (Left _) -> handleAction settings $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
+    Success (Left _) -> handleAction $ BottomPanelAction $ BottomPanel.ChangePanel ErrorsView
     _ -> pure unit
 
 runAjax ::

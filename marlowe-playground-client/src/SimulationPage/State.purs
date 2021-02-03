@@ -7,11 +7,11 @@ module SimulationPage.State
   ) where
 
 import Prelude hiding (div)
-import BottomPanel.State as BottomPanel
-import BottomPanel.Types as BottomPanel
+import BottomPanel.State (handleAction) as BottomPanel
+import BottomPanel.Types (Action(..), State) as BottomPanel
 import Control.Alternative ((<|>))
 import Control.Monad.Except (ExceptT, runExceptT, runExcept)
-import Control.Monad.Reader (runReaderT)
+import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Data.Array (delete, snoc)
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString)
@@ -32,6 +32,7 @@ import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
+import Env (Env)
 import Foreign.Generic (ForeignError, decode)
 import Foreign.JSON (parseJSON)
 import Halogen (HalogenM, get, modify_, query)
@@ -39,14 +40,12 @@ import Halogen.Extra (mapSubmodule)
 import Halogen.Monaco (Query(..)) as Monaco
 import LocalStorage as LocalStorage
 import MainFrame.Types (ChildSlots, _simulatorEditorSlot)
-import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Monaco as MM
 import Marlowe.Semantics (ChoiceId(..), Input(..), Party(..), inBounds)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError, errorToString)
-import Servant.PureScript.Settings (SPSettings_)
 import SimulationPage.Types (Action(..), ActionInput(..), ActionInputId(..), BottomPanelView, ExecutionState(..), Parties(..), State, _SimulationNotStarted, _SimulationRunning, _bottomPanelState, _currentContract, _currentMarloweState, _executionState, _helpContext, _initialSlot, _marloweState, _moveToAction, _oldContract, _pendingInputs, _possibleActions, _showRightPanel, emptyExecutionStateWithSlot, emptyMarloweState, mapPartiesActionInput)
 import Simulator (applyInput, inFuture, moveToSignificantSlot, moveToSlot, nextSignificantSlot, updateContractInState, updateMarloweState, updatePossibleActions, updateStateP)
 import StaticData (simulatorBufferLocalStorageKey)
@@ -70,17 +69,19 @@ toBottomPanel = mapSubmodule _bottomPanelState BottomPanelAction
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Void m Unit
-handleAction settings Init = do
+  MonadAsk Env m =>
+  Action ->
+  HalogenM State Action ChildSlots Void m Unit
+handleAction Init = do
   editorSetTheme
   mContents <- liftEffect $ LocalStorage.getItem simulatorBufferLocalStorageKey
-  handleAction settings $ LoadContract $ fromMaybe "" mContents
+  handleAction $ LoadContract $ fromMaybe "" mContents
 
-handleAction settings (SetInitialSlot initialSlot) = do
+handleAction (SetInitialSlot initialSlot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot) initialSlot
-  setOraclePrice settings
+  setOraclePrice
 
-handleAction settings StartSimulation = do
+handleAction StartSimulation = do
   maybeInitialSlot <- peruse (_currentMarloweState <<< _executionState <<< _SimulationNotStarted <<< _initialSlot)
   for_ maybeInitialSlot \initialSlot -> do
     saveInitialState
@@ -97,10 +98,10 @@ handleAction settings StartSimulation = do
     case mCurrContract of
       Just currContract -> do
         editorSetValue (show $ genericPretty currContract)
-        setOraclePrice settings
+        setOraclePrice
       Nothing -> pure unit
 
-handleAction settings (MoveSlot slot) = do
+handleAction (MoveSlot slot) = do
   inTheFuture <- inFuture <$> get <*> pure slot
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
   when inTheFuture do
@@ -113,14 +114,14 @@ handleAction settings (MoveSlot slot) = do
     case mCurrContract of
       Just currContract -> do
         editorSetValue (show $ genericPretty currContract)
-        setOraclePrice settings
+        setOraclePrice
       Nothing -> pure unit
 
-handleAction settings (SetSlot slot) = do
+handleAction (SetSlot slot) = do
   assign (_currentMarloweState <<< _executionState <<< _SimulationRunning <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
-  setOraclePrice settings
+  setOraclePrice
 
-handleAction settings (AddInput input bounds) = do
+handleAction (AddInput input bounds) = do
   when validInput do
     saveInitialState
     applyInput ((flip snoc) input)
@@ -128,23 +129,23 @@ handleAction settings (AddInput input bounds) = do
     case mCurrContract of
       Just currContract -> do
         editorSetValue (show $ genericPretty currContract)
-        setOraclePrice settings
+        setOraclePrice
       Nothing -> pure unit
   where
   validInput = case input of
     (IChoice _ chosenNum) -> inBounds chosenNum bounds
     _ -> true
 
-handleAction settings (RemoveInput input) = do
+handleAction (RemoveInput input) = do
   updateMarloweState (over (_executionState <<< _SimulationRunning <<< _pendingInputs) (delete input))
   currContract <- editorGetValue
   case currContract of
     Nothing -> pure unit
     Just contract -> do
       updateContractInState contract
-      setOraclePrice settings
+      setOraclePrice
 
-handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
+handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over (_executionState <<< _SimulationRunning <<< _possibleActions) (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -152,52 +153,53 @@ handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over (_execu
 
   updateChoice _ input = input
 
-handleAction settings ResetSimulator = do
+handleAction ResetSimulator = do
   oldContract <- use _oldContract
   currContract <- editorGetValue
   let
     newContract = fromMaybe mempty $ oldContract <|> currContract
   editorSetValue newContract
   resetContract
-  setOraclePrice settings
+  setOraclePrice
 
-handleAction settings ResetContract = do
+handleAction ResetContract = do
   resetContract
-  setOraclePrice settings
+  setOraclePrice
 
-handleAction settings Undo = do
+handleAction Undo = do
   modifying _marloweState tailIfNotEmpty
   mCurrContract <- use _currentContract
   case mCurrContract of
     Just currContract -> do
       editorSetValue (show $ genericPretty currContract)
-      setOraclePrice settings
+      setOraclePrice
     Nothing -> pure unit
 
-handleAction settings (LoadContract contents) = do
+handleAction (LoadContract contents) = do
   liftEffect $ LocalStorage.setItem simulatorBufferLocalStorageKey contents
   editorSetValue contents
-  handleAction settings ResetContract
+  handleAction ResetContract
 
-handleAction settings (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction settings action
+handleAction (BottomPanelAction (BottomPanel.PanelAction action)) = handleAction action
 
-handleAction _ (BottomPanelAction action) = do
+handleAction (BottomPanelAction action) = do
   toBottomPanel (BottomPanel.handleAction action)
   editorResize
 
-handleAction _ (ChangeHelpContext help) = do
+handleAction (ChangeHelpContext help) = do
   assign _helpContext help
   scrollHelpPanel
 
-handleAction _ (ShowRightPanel val) = assign _showRightPanel val
+handleAction (ShowRightPanel val) = assign _showRightPanel val
 
-handleAction _ EditSource = pure unit
+handleAction EditSource = pure unit
 
 setOraclePrice ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
-setOraclePrice settings = do
+  MonadAsk Env m =>
+  HalogenM State Action ChildSlots Void m Unit
+setOraclePrice = do
   execState <- use (_currentMarloweState <<< _executionState)
   case execState of
     SimulationRunning esr -> do
@@ -207,8 +209,8 @@ setOraclePrice settings = do
         Just acts -> do
           case Array.head (Map.toUnfoldable acts) of
             Just (Tuple (ChoiceInputId choiceId@(ChoiceId pair _)) _) -> do
-              price <- getPrice settings "kraken" pair
-              handleAction settings (SetChoice choiceId price)
+              price <- getPrice "kraken" pair
+              handleAction (SetChoice choiceId price)
             _ -> pure unit
         Nothing -> pure unit
     _ -> pure unit
@@ -216,8 +218,15 @@ setOraclePrice settings = do
 type Resp
   = { result :: { price :: Number }, allowance :: { remaining :: Number, upgrade :: String, cost :: Number } }
 
-getPrice :: forall m. MonadAff m => SPSettings_ SPParams_ -> String -> String -> HalogenM State Action ChildSlots Void m BigInteger
-getPrice settings exchange pair = do
+getPrice ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  String ->
+  String ->
+  HalogenM State Action ChildSlots Void m BigInteger
+getPrice exchange pair = do
+  settings <- asks _.ajaxSettings
   result <- runAjax (runReaderT (Server.getApiOracleByExchangeByPair exchange pair) settings)
   calculatedPrice <-
     liftEffect case result of

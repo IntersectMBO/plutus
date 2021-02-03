@@ -1,4 +1,4 @@
-module MainFrame.State (mkMainFrame) where
+module MainFrame.State (component) where
 
 import Prelude hiding (div)
 import Auth (AuthRole(..), authStatusAuthRole, _GithubUser)
@@ -10,7 +10,7 @@ import ConfirmUnsavedNavigation.Types (Action(..)) as ConfirmUnsavedNavigation
 import Control.Monad.Except (ExceptT(..), lift, runExcept, runExceptT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
-import Control.Monad.Reader (runReaderT)
+import Control.Monad.Reader (class MonadAsk, asks, runReaderT)
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), hush, note)
@@ -24,6 +24,7 @@ import Data.Newtype (unwrap)
 import Demos.Types (Action(..), Demo(..)) as Demos
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect)
+import Env (Env)
 import Foreign.Generic (decodeJSON, encodeJSON)
 import Gist (Gist, _GistId, gistDescription, gistId)
 import Gists.Types (GistAction(..))
@@ -46,13 +47,12 @@ import JavascriptEditor.Types (CompilationState(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import LoginPopup (openLoginPopup, informParentAndClose)
-import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorPageSlot, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
+import MainFrame.Types (Action(..), ChildSlots, ModalView(..), Query(..), State, View(..), _actusBlocklySlot, _authStatus, _blocklyEditorState, _blocklySlot, _createGistResult, _gistId, _hasUnsavedChanges, _haskellState, _javascriptState, _jsEditorSlot, _loadGistResult, _marloweEditorState, _newProject, _projectName, _projects, _rename, _saveAs, _showBottomPanel, _showModal, _simulationState, _view, _walletSlot, _workflow, sessionToState, stateToSession)
 import MainFrame.View (render)
-import Marlowe (SPParams_, getApiGistsByGistId)
+import Marlowe (getApiGistsByGistId)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Gists (mkNewGist, playgroundFiles)
-import Marlowe.Monaco as MM
 import MarloweEditor.State as MarloweEditor
 import MarloweEditor.Types as ME
 import Network.RemoteData (RemoteData(..), _Success)
@@ -71,7 +71,6 @@ import Routing.Hash as Routing
 import SaveAs.State (handleAction) as SaveAs
 import SaveAs.Types (Action(..), State, _status, _projectName, emptyState) as SaveAs
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), errorToString, runAjaxError)
-import Servant.PureScript.Settings (SPSettings_)
 import SessionStorage as SessionStorage
 import SimulationPage.State as Simulation
 import SimulationPage.Types as ST
@@ -113,18 +112,19 @@ initialState =
   }
 
 ------------------------------------------------------------
-mkMainFrame ::
+component ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ -> Component HTML Query Unit Void m
-mkMainFrame settings =
+  MonadAsk Env m =>
+  Component HTML Query Unit Void m
+component =
   H.mkComponent
     { initialState: const initialState
-    , render: render settings
+    , render
     , eval:
         H.mkEval
-          { handleQuery: handleQuery settings
-          , handleAction: fullHandleAction settings
+          { handleQuery
+          , handleAction: fullHandleAction
           , receive: const Nothing
           , initialize: Just Init
           , finalize: Nothing
@@ -194,29 +194,30 @@ toSaveAs = mapSubmodule _saveAs SaveAsAction
 ------------------------------------------------------------
 handleSubRoute ::
   forall m.
-  MonadEffect m =>
   MonadAff m =>
-  SPSettings_ SPParams_ ->
-  SubRoute -> HalogenM State Action ChildSlots Void m Unit
-handleSubRoute settings Router.Home = selectView HomePage
+  MonadAsk Env m =>
+  SubRoute ->
+  HalogenM State Action ChildSlots Void m Unit
+handleSubRoute Router.Home = selectView HomePage
 
-handleSubRoute settings Router.Simulation = selectView Simulation
+handleSubRoute Router.Simulation = selectView Simulation
 
-handleSubRoute settings Router.MarloweEditor = selectView MarloweEditor
+handleSubRoute Router.MarloweEditor = selectView MarloweEditor
 
-handleSubRoute settings Router.HaskellEditor = selectView HaskellEditor
+handleSubRoute Router.HaskellEditor = selectView HaskellEditor
 
-handleSubRoute settings Router.JSEditor = selectView JSEditor
+handleSubRoute Router.JSEditor = selectView JSEditor
 
-handleSubRoute settings Router.Blockly = selectView BlocklyEditor
+handleSubRoute Router.Blockly = selectView BlocklyEditor
 
-handleSubRoute settings Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
+handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
-handleSubRoute settings Router.Wallets = selectView WalletEmulator
+handleSubRoute Router.Wallets = selectView WalletEmulator
 
 -- This route is supposed to be called by the github oauth flow after a succesful login flow
 -- It is supposed to be run inside a popup window
-handleSubRoute settings Router.GithubAuthCallback = do
+handleSubRoute Router.GithubAuthCallback = do
+  settings <- asks _.ajaxSettings
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   case authResult of
     (Success authStatus) -> liftEffect $ informParentAndClose $ view authStatusAuthRole authStatus
@@ -230,78 +231,74 @@ handleSubRoute settings Router.GithubAuthCallback = do
 handleRoute ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Route -> HalogenM State Action ChildSlots Void m Unit
-handleRoute settings { gistId: (Just gistId), subroute } = do
-  handleActionWithoutNavigationGuard settings (GistAction (SetGistUrl (unwrap gistId)))
-  handleActionWithoutNavigationGuard settings (GistAction LoadGist)
-  handleSubRoute settings subroute
+handleRoute { gistId: (Just gistId), subroute } = do
+  handleActionWithoutNavigationGuard (GistAction (SetGistUrl (unwrap gistId)))
+  handleActionWithoutNavigationGuard (GistAction LoadGist)
+  handleSubRoute subroute
 
-handleRoute settings { subroute } = handleSubRoute settings subroute
+handleRoute { subroute } = handleSubRoute subroute
 
 handleQuery ::
   forall m a.
-  Functor m =>
-  MonadEffect m =>
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Query a ->
   HalogenM State Action ChildSlots Void m (Maybe a)
-handleQuery settings (ChangeRoute route next) = do
+handleQuery (ChangeRoute route next) = do
   -- Without the following each route is handled twice, once when we call selectView ourselves
   -- and another which is triggered in Main, when the route changes.
   currentView <- use _view
-  when (routeToView route /= Just currentView) $ handleRoute settings route
+  when (routeToView route /= Just currentView) $ handleRoute route
   pure $ Just next
 
 ------------------------------------------------------------
 fullHandleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-fullHandleAction settings =
-  withAccidentalNavigationGuard settings
+fullHandleAction =
+  withAccidentalNavigationGuard
     $ withSessionStorage
     $ withAnalytics
-        ( handleAction settings
-        )
+        handleAction
 
 handleActionWithoutNavigationGuard ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleActionWithoutNavigationGuard settings =
+handleActionWithoutNavigationGuard =
   withSessionStorage
     $ withAnalytics
-        ( handleAction settings
+        ( handleAction
         )
 
 -- This handleAction can be called recursively, but because we use HOF to extend the functionality
 -- of the component, whenever we need to recurse we most likely be calling one of the extended functions
 -- defined above (handleActionWithoutNavigationGuard or fullHandleAction)
--- TODO: Refactor the settings to come from a MonadAsk environment
 handleAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleAction settings Init = do
+handleAction Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
-    Right route -> handleRoute settings route
-    Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
+    Right route -> handleRoute route
+    Left _ -> handleRoute { subroute: Router.Home, gistId: Nothing }
   document <- liftEffect $ Web.document =<< Web.window
   subscribe' \sid ->
     eventListenerEventSource keyup (toEventTarget document) (map (HandleKey sid) <<< KE.fromEvent)
-  toSimulation $ Simulation.handleAction settings ST.Init
-  toHaskellEditor $ HaskellEditor.handleAction settings HE.Init
-  toMarloweEditor $ MarloweEditor.handleAction settings ME.Init
-  checkAuthStatus settings
+  toSimulation $ Simulation.handleAction ST.Init
+  toHaskellEditor $ HaskellEditor.handleAction HE.Init
+  toMarloweEditor $ MarloweEditor.handleAction ME.Init
+  checkAuthStatus
   -- Load session data if available
   void
     $ runMaybeT do
@@ -309,47 +306,47 @@ handleAction settings Init = do
         session <- hoistMaybe $ hush $ runExcept $ decodeJSON sessionJSON
         H.modify_ (sessionToState session)
 
-handleAction settings (HandleKey sid ev)
+handleAction (HandleKey sid ev)
   | KE.key ev == "Escape" = assign _showModal Nothing
   | KE.key ev == "Enter" = do
     modalView <- use _showModal
     case modalView of
-      Just RenameProject -> handleAction settings (RenameAction Rename.SaveProject)
-      Just SaveProjectAs -> handleAction settings (SaveAsAction SaveAs.SaveProject)
+      Just RenameProject -> handleAction (RenameAction Rename.SaveProject)
+      Just SaveProjectAs -> handleAction (SaveAsAction SaveAs.SaveProject)
       _ -> pure unit
   | otherwise = pure unit
 
-handleAction s (HaskellAction action) = do
-  toHaskellEditor (HaskellEditor.handleAction s action)
+handleAction (HaskellAction action) = do
+  toHaskellEditor (HaskellEditor.handleAction action)
   case action of
     HE.SendResultToSimulator -> do
       mContract <- peruse (_haskellState <<< HE._ContractString)
       let
         contract = fold mContract
-      sendToSimulation s contract
+      sendToSimulation contract
     (HE.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Haskell true
     (HE.InitHaskellProject _) -> setUnsavedChangesForLanguage Haskell false
     _ -> pure unit
 
-handleAction s (JavascriptAction action) = do
-  toJavascriptEditor (JavascriptEditor.handleAction s action)
+handleAction (JavascriptAction action) = do
+  toJavascriptEditor (JavascriptEditor.handleAction action)
   case action of
     JS.SendResultToSimulator -> do
       mContract <- peruse (_javascriptState <<< JS._ContractString)
       let
         contract = fold mContract
-      sendToSimulation s contract
+      sendToSimulation contract
     (JS.HandleEditorMessage (Monaco.TextChanged _)) -> setUnsavedChangesForLanguage Javascript true
     (JS.InitJavascriptProject _) -> setUnsavedChangesForLanguage Javascript false
     _ -> pure unit
 
-handleAction s (MarloweEditorAction action) = do
-  toMarloweEditor (MarloweEditor.handleAction s action)
+handleAction (MarloweEditorAction action) = do
+  toMarloweEditor (MarloweEditor.handleAction action)
   case action of
     ME.SendToSimulator -> do
       mContents <- MarloweEditor.editorGetValue
       for_ mContents \contents -> do
-        sendToSimulation s contents
+        sendToSimulation contents
     ME.ViewAsBlockly -> do
       mSource <- MarloweEditor.editorGetValue
       for_ mSource \source -> do
@@ -360,14 +357,14 @@ handleAction s (MarloweEditorAction action) = do
     (ME.InitMarloweProject _) -> setUnsavedChangesForLanguage Marlowe false
     _ -> pure unit
 
-handleAction settings (BlocklyEditorAction action) = do
+handleAction (BlocklyEditorAction action) = do
   toBlocklyEditor $ BlocklyEditor.handleAction action
   case action of
     BE.SendToSimulator -> do
       mCode <- use (_blocklyEditorState <<< _marloweCode)
       for_ mCode \code -> do
         selectView Simulation
-        void $ toSimulation $ Simulation.handleAction settings (ST.LoadContract code)
+        void $ toSimulation $ Simulation.handleAction (ST.LoadContract code)
     BE.ViewAsMarlowe -> do
       -- TODO: doing an effect that returns a maybe value and doing an action on the possible
       -- result is a pattern that we have repeated a lot in this file. See if we could refactor
@@ -376,33 +373,34 @@ handleAction settings (BlocklyEditorAction action) = do
       for_ mCode \code -> do
         selectView MarloweEditor
         assign _workflow (Just Marlowe)
-        toMarloweEditor $ MarloweEditor.handleAction settings $ ME.InitMarloweProject code
+        toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject code
     (BE.HandleBlocklyMessage Blockly.CodeChange) -> setUnsavedChangesForLanguage Blockly true
     _ -> pure unit
 
-handleAction settings (SimulationAction action) = do
-  toSimulation (Simulation.handleAction settings action)
+handleAction (SimulationAction action) = do
+  toSimulation (Simulation.handleAction action)
   case action of
     ST.EditSource -> do
       mLang <- use _workflow
       for_ mLang \lang -> selectView $ selectLanguageView lang
     _ -> pure unit
 
-handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
+handleAction (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction settings (ChangeView view) = selectView view
+handleAction (ChangeView view) = selectView view
 
-handleAction _ (ShowBottomPanel val) = do
+handleAction (ShowBottomPanel val) = do
   assign _showBottomPanel val
   pure unit
 
-handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
+handleAction (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
+handleAction (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
   let
     parsedTermsEither = AMB.parseActusJsonCode terms
+  settings <- asks _.ajaxSettings
   case parsedTermsEither of
     Left e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
     Right parsedTerms -> do
@@ -412,21 +410,22 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
       case result of
         Success contractAST -> do
           selectView Simulation
-          void $ toSimulation $ Simulation.handleAction settings (ST.LoadContract contractAST)
+          void $ toSimulation $ Simulation.handleAction (ST.LoadContract contractAST)
         Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
         _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
-handleAction _ (HandleActusBlocklyMessage ActusBlockly.CodeChange) = setUnsavedChangesForLanguage Actus true
+handleAction (HandleActusBlocklyMessage ActusBlockly.CodeChange) = setUnsavedChangesForLanguage Actus true
 
 -- TODO: modify gist action type to take a gistid as a parameter
 -- https://github.com/input-output-hk/plutus/pull/2498/files#r533478042
-handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
+handleAction (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
   assign _createGistResult Loading
   res <-
     runExceptT
       $ do
-          gist <- flip runReaderT s $ getApiGistsByGistId gistId
-          lift $ loadGist s gist
+          settings <- asks _.ajaxSettings
+          gist <- flip runReaderT settings $ getApiGistsByGistId gistId
+          lift $ loadGist gist
           pure gist
   case res of
     Right gist ->
@@ -441,14 +440,14 @@ handleAction s (ProjectsAction action@(Projects.LoadProject lang gistId)) = do
             <<< set (_projects <<< Projects._projects) (Failure "Failed to load gist")
             <<< set _workflow Nothing
         )
-  toProjects $ Projects.handleAction s action
+  toProjects $ Projects.handleAction action
   selectView $ selectLanguageView lang
 
-handleAction s (ProjectsAction Projects.Cancel) = fullHandleAction s CloseModal
+handleAction (ProjectsAction Projects.Cancel) = fullHandleAction CloseModal
 
-handleAction s (ProjectsAction action) = toProjects $ Projects.handleAction s action
+handleAction (ProjectsAction action) = toProjects $ Projects.handleAction action
 
-handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
+handleAction (NewProjectAction (NewProject.CreateProject lang)) = do
   modify_
     ( set _projectName "New Project"
         <<< set _gistId Nothing
@@ -456,21 +455,21 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
     )
   liftEffect $ LocalStorage.setItem gistIdLocalStorageKey mempty
   -- We reset all editors and then initialize the selected language.
-  toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject mempty
-  toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject mempty
-  toMarloweEditor $ MarloweEditor.handleAction s $ ME.InitMarloweProject mempty
+  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject mempty
+  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject mempty
+  toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject mempty
   toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject mempty
   -- TODO: implement ActusBlockly.SetCode
   case lang of
     Haskell ->
       for_ (Map.lookup "Example" StaticData.demoFiles) \contents -> do
-        toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject contents
+        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject contents
     Javascript ->
       for_ (Map.lookup "Example" StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject contents
+        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject contents
     Marlowe ->
       for_ (Map.lookup "Example" StaticData.marloweContracts) \contents -> do
-        toMarloweEditor $ MarloweEditor.handleAction s $ ME.InitMarloweProject contents
+        toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
     Blockly ->
       for_ (Map.lookup "Example" StaticData.marloweContracts) \contents -> do
         toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject contents
@@ -482,19 +481,19 @@ handleAction s (NewProjectAction (NewProject.CreateProject lang)) = do
         <<< set _hasUnsavedChanges false
     )
 
-handleAction s (NewProjectAction NewProject.Cancel) = fullHandleAction s CloseModal
+handleAction (NewProjectAction NewProject.Cancel) = fullHandleAction CloseModal
 
-handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
+handleAction (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
   case lang of
     Haskell ->
       for_ (Map.lookup key StaticData.demoFiles) \contents ->
-        toHaskellEditor $ HaskellEditor.handleAction s $ HE.InitHaskellProject contents
+        toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject contents
     Javascript ->
       for_ (Map.lookup key StaticData.demoFilesJS) \contents -> do
-        toJavascriptEditor $ JavascriptEditor.handleAction s $ JS.InitJavascriptProject contents
+        toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject contents
     Marlowe -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
-        toMarloweEditor $ MarloweEditor.handleAction s $ ME.InitMarloweProject contents
+        toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject contents
     Blockly -> do
       for_ (preview (ix key) StaticData.marloweContracts) \contents -> do
         toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject contents
@@ -506,19 +505,19 @@ handleAction s (DemosAction action@(Demos.LoadDemo lang (Demos.Demo key))) = do
     )
   selectView $ selectLanguageView lang
 
-handleAction s (DemosAction Demos.Cancel) = fullHandleAction s CloseModal
+handleAction (DemosAction Demos.Cancel) = fullHandleAction CloseModal
 
-handleAction s (RenameAction action@Rename.SaveProject) = do
+handleAction (RenameAction action@Rename.SaveProject) = do
   projectName <- use (_rename <<< Rename._projectName)
   modify_
     ( set _projectName projectName
         <<< set _showModal Nothing
     )
-  toRename $ Rename.handleAction s action
+  toRename $ Rename.handleAction action
 
-handleAction s (RenameAction action) = toRename $ Rename.handleAction s action
+handleAction (RenameAction action) = toRename $ Rename.handleAction action
 
-handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
+handleAction (SaveAsAction action@SaveAs.SaveProject) = do
   currentName <- use _projectName
   currentGistId <- use _gistId
   projectName <- use (_saveAs <<< SaveAs._projectName)
@@ -527,7 +526,7 @@ handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
         <<< set _projectName projectName
         <<< set (_saveAs <<< SaveAs._status) Loading
     )
-  handleGistAction s PublishGist
+  handleGistAction PublishGist
   res <- peruse (_createGistResult <<< _Success)
   case res of
     Just gist -> do
@@ -542,50 +541,50 @@ handleAction s (SaveAsAction action@SaveAs.SaveProject) = do
             <<< set _projectName currentName
             <<< set _gistId currentGistId
         )
-  toSaveAs $ SaveAs.handleAction s action
+  toSaveAs $ SaveAs.handleAction action
 
-handleAction s (SaveAsAction SaveAs.Cancel) = fullHandleAction s CloseModal
+handleAction (SaveAsAction SaveAs.Cancel) = fullHandleAction CloseModal
 
-handleAction s (SaveAsAction action) = toSaveAs $ SaveAs.handleAction s action
+handleAction (SaveAsAction action) = toSaveAs $ SaveAs.handleAction action
 
-handleAction settings CheckAuthStatus = do
-  checkAuthStatus settings
+handleAction CheckAuthStatus = checkAuthStatus
 
-handleAction settings (GistAction subEvent) = handleGistAction settings subEvent
+handleAction (GistAction subEvent) = handleGistAction subEvent
 
-handleAction settings (OpenModal OpenProject) = do
+handleAction (OpenModal OpenProject) = do
   assign _showModal $ Just OpenProject
-  toProjects $ Projects.handleAction settings Projects.LoadProjects
+  toProjects $ Projects.handleAction Projects.LoadProjects
 
-handleAction _ (OpenModal RenameProject) = do
+handleAction (OpenModal RenameProject) = do
   currentName <- use _projectName
   assign (_rename <<< Rename._projectName) currentName
   assign _showModal $ Just RenameProject
 
-handleAction _ (OpenModal modalView) = assign _showModal $ Just modalView
+handleAction (OpenModal modalView) = assign _showModal $ Just modalView
 
-handleAction _ CloseModal = assign _showModal Nothing
+handleAction CloseModal = assign _showModal Nothing
 
-handleAction _ (ChangeProjectName name) = assign _projectName name
+handleAction (ChangeProjectName name) = assign _projectName name
 
-handleAction settings (OpenLoginPopup intendedAction) = do
+handleAction (OpenLoginPopup intendedAction) = do
   authRole <- liftAff openLoginPopup
-  fullHandleAction settings CloseModal
+  fullHandleAction CloseModal
   assign (_authStatus <<< _Success <<< authStatusAuthRole) authRole
   case authRole of
     Anonymous -> pure unit
-    GithubUser -> fullHandleAction settings intendedAction
+    GithubUser -> fullHandleAction intendedAction
 
-handleAction settings (ConfirmUnsavedNavigationAction intendedAction modalAction) =
-  handleConfirmUnsavedNavigationAction
-    settings
-    intendedAction
-    modalAction
+handleAction (ConfirmUnsavedNavigationAction intendedAction modalAction) = handleConfirmUnsavedNavigationAction intendedAction modalAction
 
-sendToSimulation :: forall m. MonadAff m => SPSettings_ SPParams_ -> String -> HalogenM State Action ChildSlots Void m Unit
-sendToSimulation settings contract = do
+sendToSimulation ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  String ->
+  HalogenM State Action ChildSlots Void m Unit
+sendToSimulation contract = do
   selectView Simulation
-  toSimulation $ Simulation.handleAction settings (ST.LoadContract contract)
+  toSimulation $ Simulation.handleAction (ST.LoadContract contract)
 
 selectLanguageView :: Lang -> View
 selectLanguageView = case _ of
@@ -639,8 +638,13 @@ runAjax ::
 runAjax action = RemoteData.fromEither <$> runExceptT action
 
 ------------------------------------------------------------
-checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Void m Unit
-checkAuthStatus settings = do
+checkAuthStatus ::
+  forall m.
+  MonadAff m =>
+  MonadAsk Env m =>
+  HalogenM State Action ChildSlots Void m Unit
+checkAuthStatus = do
+  settings <- asks _.ajaxSettings
   assign _authStatus Loading
   authResult <- runAjax $ runReaderT Server.getApiOauthStatus settings
   assign _authStatus authResult
@@ -651,9 +655,9 @@ handleGistAction ::
   Warn (Text "Check if the handler for LoadGist is being used") =>
   Warn (Text "SCP-1591 Saving failure does not provide enough information") =>
   MonadAff m =>
-  MonadEffect m =>
-  SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Void m Unit
-handleGistAction settings PublishGist = do
+  MonadAsk Env m =>
+  GistAction -> HalogenM State Action ChildSlots Void m Unit
+handleGistAction PublishGist = do
   description <- use _projectName
   let
     pruneEmpty :: forall a. Eq a => Monoid a => Maybe a -> Maybe a
@@ -688,6 +692,7 @@ handleGistAction settings PublishGist = do
     $ runMaybeT do
         mGist <- use _gistId
         assign _createGistResult Loading
+        settings <- asks _.ajaxSettings
         newResult <-
           lift
             $ case mGist of
@@ -701,7 +706,7 @@ handleGistAction settings PublishGist = do
               <<< set _hasUnsavedChanges false
           )
 
-handleGistAction _ (SetGistUrl url) = do
+handleGistAction (SetGistUrl url) = do
   case Gists.parseGistUrl url of
     Right newGistUrl ->
       modify_
@@ -716,16 +721,17 @@ handleGistAction _ (SetGistUrl url) = do
 -- > so we need to set the appropriate state before handling the gist action. This should probably be
 -- > changed to have gist action type taking gist id as a parameter.
 -- https://github.com/input-output-hk/plutus/pull/2498#discussion_r533478042
-handleGistAction settings LoadGist = do
+handleGistAction LoadGist = do
   res <-
     runExceptT
       $ do
+          settings <- asks _.ajaxSettings
           eGistId <- ExceptT $ note "Gist Id not set." <$> use _gistId
           assign _loadGistResult $ Right Loading
           aGist <- lift $ runAjax $ flip runReaderT settings $ Server.getApiGistsByGistId eGistId
           assign _loadGistResult $ Right aGist
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
-          lift $ loadGist settings gist
+          lift $ loadGist gist
           pure aGist
   assign _loadGistResult res
   where
@@ -739,15 +745,15 @@ handleGistAction settings LoadGist = do
   toEither x NotAsked = x
 
 -- other gist actions are irrelevant here
-handleGistAction _ _ = pure unit
+handleGistAction _ = pure unit
 
 loadGist ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Gist ->
   HalogenM State Action ChildSlots Void m Unit
-loadGist settings gist = do
+loadGist gist = do
   let
     { marlowe
     , blockly
@@ -760,9 +766,9 @@ loadGist settings gist = do
 
     gistId' = preview gistId gist
   -- Restore or reset all editors
-  toHaskellEditor $ HaskellEditor.handleAction settings $ HE.InitHaskellProject $ fromMaybe mempty haskell
-  toJavascriptEditor $ JavascriptEditor.handleAction settings $ JS.InitJavascriptProject $ fromMaybe mempty javascript
-  toMarloweEditor $ MarloweEditor.handleAction settings $ ME.InitMarloweProject $ fromMaybe mempty marlowe
+  toHaskellEditor $ HaskellEditor.handleAction $ HE.InitHaskellProject $ fromMaybe mempty haskell
+  toJavascriptEditor $ JavascriptEditor.handleAction $ JS.InitJavascriptProject $ fromMaybe mempty javascript
+  toMarloweEditor $ MarloweEditor.handleAction $ ME.InitMarloweProject $ fromMaybe mempty marlowe
   toBlocklyEditor $ BlocklyEditor.handleAction $ BE.InitBlocklyProject $ fromMaybe mempty blockly
   -- Actus doesn't have a SetCode to reset for the moment, so we only set if present.
   -- TODO add SetCode to Actus
@@ -777,25 +783,25 @@ loadGist settings gist = do
 handleConfirmUnsavedNavigationAction ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   Action ->
   ConfirmUnsavedNavigation.Action ->
   HalogenM State Action ChildSlots Void m Unit
-handleConfirmUnsavedNavigationAction settings intendedAction modalAction = do
-  fullHandleAction settings CloseModal
+handleConfirmUnsavedNavigationAction intendedAction modalAction = do
+  fullHandleAction CloseModal
   case modalAction of
     ConfirmUnsavedNavigation.Cancel -> pure unit
-    ConfirmUnsavedNavigation.DontSaveProject -> handleActionWithoutNavigationGuard settings intendedAction
+    ConfirmUnsavedNavigation.DontSaveProject -> handleActionWithoutNavigationGuard intendedAction
     ConfirmUnsavedNavigation.SaveProject -> do
       state <- H.get
       -- TODO: This was taken from the view, from the gistModal helper. I think we should
       -- refactor into a `Save (Maybe Action)` action. The handler for that should do
       -- this check and call the next action as a continuation
       if has (_authStatus <<< _Success <<< authStatusAuthRole <<< _GithubUser) state then do
-        fullHandleAction settings $ GistAction PublishGist
-        fullHandleAction settings intendedAction
+        fullHandleAction $ GistAction PublishGist
+        fullHandleAction intendedAction
       else
-        fullHandleAction settings $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
+        fullHandleAction $ OpenModal $ GithubLogin $ ConfirmUnsavedNavigationAction intendedAction modalAction
 
 setUnsavedChangesForLanguage :: forall m. Lang -> Boolean -> HalogenM State Action ChildSlots Void m Unit
 setUnsavedChangesForLanguage lang value = do
@@ -808,18 +814,18 @@ setUnsavedChangesForLanguage lang value = do
 withAccidentalNavigationGuard ::
   forall m.
   MonadAff m =>
-  SPSettings_ SPParams_ ->
+  MonadAsk Env m =>
   (Action -> HalogenM State Action ChildSlots Void m Unit) ->
   Action ->
   HalogenM State Action ChildSlots Void m Unit
-withAccidentalNavigationGuard settings handleAction' action = do
+withAccidentalNavigationGuard handleAction' action = do
   currentView <- use _view
   hasUnsavedChanges <- use _hasUnsavedChanges
   if viewIsGuarded currentView && actionIsGuarded && hasUnsavedChanges then
     -- If the action would result in the user losing the work, we present a
     -- modal to confirm, cancel or save the work and we preserve the intended action
     -- to be executed after.
-    fullHandleAction settings $ OpenModal $ ConfirmUnsavedNavigation action
+    fullHandleAction $ OpenModal $ ConfirmUnsavedNavigation action
   else
     handleAction' action
   where

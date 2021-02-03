@@ -1,6 +1,7 @@
 module Main where
 
 import Prelude
+import AppM (runAppM)
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
@@ -8,21 +9,26 @@ import Effect.Aff (Aff, forkAff, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
+import Env (Env)
 import Foreign.Generic (defaultOptions)
-import Halogen.Aff (awaitBody, runHalogenAff)
+import Halogen as H
+import Halogen.Aff as HA
+import Halogen.HTML as HH
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
-import MainFrame.State (mkMainFrame)
-import MainFrame.Types (Query(..))
+import MainFrame.State as MainFrame
+import MainFrame.Types as MainFrame
 import Marlowe (SPParams_(SPParams_))
 import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
 
-ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
+environment :: Env
+environment =
+  { ajaxSettings: SPSettings_ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
+  }
   where
   SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/" }
 
@@ -34,15 +40,16 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 
 main ::
   Effect Unit
-main = do
-  let
-    mainFrame = mkMainFrame ajaxSettings
-  runHalogenAff do
-    body <- awaitBody
+main =
+  HA.runHalogenAff do
+    body <- HA.awaitBody
+    let
+      mainFrame :: H.Component HH.HTML MainFrame.Query Unit Void Aff
+      mainFrame = H.hoist (runAppM environment) MainFrame.component
     driver <- runUI mainFrame unit body
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
-          when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)
+          when (old /= Just new) $ launchAff_ $ driver.query (MainFrame.ChangeRoute new unit)
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit
