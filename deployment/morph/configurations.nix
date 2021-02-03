@@ -21,7 +21,7 @@ let
   prometheusMachine = import ./prometheus.nix;
 in
 {
-  # We partially apply mkInstance, it also expects a hostName and possibly other values
+  # We partially apply mkInstance, it also expects other values like hostName
   # however this means we can add it later on a host-by-host basis while haveing exactly 
   # the same config that we can test separately in Hydra with a fake values
   marloweDash = marloweDashMachine.mkInstance { inherit defaultMachine marloweDash pkgs; };
