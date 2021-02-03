@@ -80,7 +80,7 @@ library
     build-depends:
         base >=4.9 && <5,
         aeson -any,
-        base16-bytestring -any,
+        base16-bytestring <1, 
         bytestring -any,
         cborg -any,
         containers -any,
@@ -109,7 +109,6 @@ library
         http-api-data -any,
         cardano-crypto -any,
         deepseq -any,
-        cryptonite >=0.25,
         freer-simple -any
 
     ghc-options: -fprint-potential-instances

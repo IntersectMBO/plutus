@@ -485,7 +485,7 @@
         "th-compat".revision = (((hackage."th-compat")."0.1").revisions).default;
         "data-default-class".revision = (((hackage."data-default-class")."0.1.2.0").revisions).default;
         "managed".revision = (((hackage."managed")."1.0.8").revisions).default;
-        "base16-bytestring".revision = (((hackage."base16-bytestring")."1.0.1.0").revisions).default;
+        "base16-bytestring".revision = (((hackage."base16-bytestring")."0.1.1.7").revisions).default;
         "vector-algorithms".revision = (((hackage."vector-algorithms")."0.8.0.3").revisions).default;
         "vector-algorithms".flags.unsafechecks = false;
         "vector-algorithms".flags.internalchecks = false;
