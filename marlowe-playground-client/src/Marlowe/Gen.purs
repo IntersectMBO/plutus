@@ -16,7 +16,7 @@ import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Extended as EM
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), MarloweType(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
@@ -106,13 +106,13 @@ genBound = do
 genPosition :: forall m. MonadGen m => MonadRec m => m Pos
 genPosition = chooseInt 0 1000
 
-genRange :: forall m. MonadGen m => MonadRec m => m Range
+genRange :: forall m. MonadGen m => MonadRec m => m Location
 genRange = do
   startLineNumber <- genPosition
   startColumn <- genPosition
   endLineNumber <- genPosition
   endColumn <- genPosition
-  pure { startLineNumber, startColumn, endLineNumber, endColumn }
+  pure $ Range { startLineNumber, startColumn, endLineNumber, endColumn }
 
 genHole :: forall m a. MonadGen m => MonadRec m => String -> m (Term a)
 genHole name = do
@@ -124,11 +124,11 @@ genHole name = do
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => String -> m a -> m (Term a)
 genTerm name g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure zero) :| (if withHoles then [ genHole name ] else [])
+  oneOf $ (Term <$> g <*> pure NoLocation) :| (if withHoles then [ genHole name ] else [])
 
 genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => m a -> m (TermWrapper a)
 genTermWrapper g = do
-  TermWrapper <$> g <*> pure zero
+  TermWrapper <$> g <*> pure NoLocation
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
 genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
@@ -303,7 +303,7 @@ genContract' size
 
         genNewContract = genTerm (mkArgName ContractType) $ genContract' newSize
 
-        genNewTimeout = Term <$> genTimeout <*> pure zero
+        genNewTimeout = Term <$> genTimeout <*> pure NoLocation
       in
         oneOf $ pure Close
           :| [ Pay <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract

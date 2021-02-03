@@ -16,11 +16,13 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Timeout(SlotParam), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
+import Effect.Exception.Unsafe (unsafeThrow)
+import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Location(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(SlotParam), Token(..), Value(..), ValueId(..), fromTerm, getLocation, mkHole)
 import Marlowe.Holes as H
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
-import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
+import Monaco (IRange)
+import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<), (>>>))
 import Text.Parsing.StringParser (Parser(..), fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
@@ -28,10 +30,10 @@ import Text.Parsing.StringParser.Combinators (between, choice, sepBy)
 import Type.Proxy (Proxy(..))
 
 type HelperFunctions a
-  = { mkHole :: String -> Range -> Term a
-    , mkTerm :: a -> Range -> Term a
-    , mkTermWrapper :: a -> Range -> TermWrapper a
-    , getRange :: Term a -> Range
+  = { mkHole :: String -> IRange -> Term a
+    , mkTerm :: a -> IRange -> Term a
+    , mkTermWrapper :: a -> IRange -> TermWrapper a
+    , getRange :: Term a -> IRange
     , mkBigInteger :: Int -> BigInteger
     , mkSlot :: BigInteger -> Slot
     , mkExtendedSlot :: BigInteger -> Timeout
@@ -81,12 +83,21 @@ type HelperFunctions a
     , mkCond :: Term Observation -> Term Value -> Term Value -> Value
     }
 
+-- We cannot guarantee at the type level that the only type of location we handle in the Parser is a Range
+-- location, so we throw a useful error if we ever get to this situation
+locationToRange :: Location -> IRange
+locationToRange (Range range) = range
+
+locationToRange (BlockId _) = unsafeThrow "Unexpected BlockId location found in MarloweParser"
+
+locationToRange NoLocation = unsafeThrow "Unexpected NoLocation found in MarloweParser"
+
 helperFunctions :: forall a. HelperFunctions a
 helperFunctions =
-  { mkHole: mkHole
-  , mkTerm: Term
-  , mkTermWrapper: TermWrapper
-  , getRange: getRange
+  { mkHole: \h pos -> mkHole h (Range pos)
+  , mkTerm: \a pos -> Term a (Range pos)
+  , mkTermWrapper: \a pos -> TermWrapper a (Range pos)
+  , getRange: getLocation >>> locationToRange
   , mkBigInteger: BigInteger.fromInt
   , mkSlot: Slot
   , mkExtendedSlot: H.Slot
@@ -181,7 +192,7 @@ hole =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Hole name Proxy zero, suffix }
+    pure { result: Hole name Proxy NoLocation, suffix }
   where
   nameChars = alphaNum <|> char '_'
 
@@ -194,7 +205,7 @@ term' (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Term result zero, suffix }
+    pure { result: Term result NoLocation, suffix }
 
 termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
 termWrapper (Parser p) =
@@ -205,7 +216,7 @@ termWrapper (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: TermWrapper result zero, suffix }
+    pure { result: TermWrapper result NoLocation, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)

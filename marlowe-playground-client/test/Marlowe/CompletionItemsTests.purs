@@ -8,13 +8,14 @@ import Data.Enum (upFromIncluding)
 import Data.Map as Map
 import Data.Set as Set
 import Data.Traversable (traverse_)
-import Marlowe.Holes (MarloweHole(..), MarloweType(..), getMarloweConstructors, marloweHoleToSuggestionText)
+import Marlowe.Holes (MarloweHole(..), MarloweType(..), Location(..), getMarloweConstructors)
+import Marlowe.LinterText (marloweHoleToSuggestionText)
 import Marlowe.Parser (parse)
 import Marlowe.Parser as Parser
 import Test.Unit (TestSuite, failure, success, suite, test)
 
 mkHole :: MarloweType -> MarloweHole
-mkHole marloweType = MarloweHole { name: mempty, range: zero, marloweType }
+mkHole marloweType = MarloweHole { name: mempty, location: NoLocation, marloweType }
 
 holeSuggestions :: Boolean -> MarloweHole -> Array String
 holeSuggestions stripParens marloweHole@(MarloweHole { name, marloweType }) =
