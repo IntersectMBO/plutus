@@ -42,8 +42,8 @@ import           Plutus.Trace.Emulator.ContractInstance  (EmulatorRuntimeError, 
 import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..),
                                                           EmulatorMessage (..), EmulatorRuntimeError (..),
                                                           EmulatorThreads, walletInstanceTag)
-import           Plutus.Trace.Scheduler                  (Priority (..), SysCall (..), SystemCall, ThreadId, fork,
-                                                          mkSysCall)
+import           Plutus.Trace.Scheduler                  (EmSystemCall, MessageCall (Message), Priority (..), ThreadId,
+                                                          fork, mkSysCall)
 import           Wallet.Emulator.MultiAgent              (EmulatorEvent' (..), MultiAgentEffect)
 import           Wallet.Emulator.Wallet                  (Wallet)
 import           Wallet.Types                            (EndpointValue (..))
@@ -74,7 +74,7 @@ handleRunContractPlayground ::
     , Show e
     , JSON.ToJSON e
     , Member ContractInstanceIdEff effs
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member (LogMsg EmulatorEvent') effs2
     , Member (Error EmulatorRuntimeError) effs2
     , Member (State EmulatorThreads) effs2
@@ -95,7 +95,7 @@ handleLaunchContract ::
     , ContractConstraints s
     , Show e
     , JSON.ToJSON e
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member ContractInstanceIdEff effs
     , Member (LogMsg EmulatorEvent') effs2
     , Member (Error EmulatorRuntimeError) effs2
@@ -116,7 +116,7 @@ handleCallEndpoint ::
     forall effs effs2.
     ( Member (State (Map Wallet ContractInstanceId)) effs2
     , Member (Error EmulatorRuntimeError) effs2
-    , Member (Yield (SystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
+    , Member (Yield (EmSystemCall effs2 EmulatorMessage) (Maybe EmulatorMessage)) effs
     , Member (State EmulatorThreads) effs2
     )
     => Wallet
@@ -128,7 +128,7 @@ handleCallEndpoint wllt endpointName endpointValue = do
         thr = do
             threadId <- getInstance wllt >>= getThread
             ownId <- ask @ThreadId
-            void $ mkSysCall @effs2 @EmulatorMessage Normal (Message threadId $ EndpointCall ownId (EndpointDescription endpointName) epJson)
+            void $ mkSysCall @effs2 @EmulatorMessage Normal (Left $ Message threadId $ EndpointCall ownId (EndpointDescription endpointName) epJson)
     void $ fork @effs2 @EmulatorMessage "call endpoint" Normal thr
 
 getInstance ::

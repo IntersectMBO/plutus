@@ -52,7 +52,7 @@ import           Plutus.Trace.Emulator.ContractInstance     (EmulatorRuntimeErro
 import           Plutus.Trace.Emulator.System               (launchSystemThreads)
 import           Plutus.Trace.Emulator.Types                (ContractConstraints, EmulatorMessage (..), EmulatorThreads,
                                                              walletInstanceTag)
-import           Plutus.Trace.Scheduler                     (SystemCall, ThreadId, exit, runThreads)
+import           Plutus.Trace.Scheduler                     (EmSystemCall, ThreadId, exit, runThreads)
 import           Streaming                                  (Stream)
 import           Streaming.Prelude                          (Of)
 import           Wallet.Emulator.Chain                      (ChainControlEffect, ChainEffect)
@@ -107,7 +107,7 @@ handlePlaygroundTrace ::
     )
     => Contract s e ()
     -> PlaygroundTrace a
-    -> Eff (Reader ThreadId ': Yield (SystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
+    -> Eff (Reader ThreadId ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage) ': effs) ()
 handlePlaygroundTrace contract action = do
     _ <- interpret handleEmulatedWalletAPI
             . interpret (handleWaiting @_ @effs)

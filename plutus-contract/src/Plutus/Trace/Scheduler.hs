@@ -27,11 +27,13 @@ threads are @freer-simple@ programs that use that effect.
 -}
 module Plutus.Trace.Scheduler(
     ThreadId
-    , SysCall(..)
+    , SysCall
+    , MessageCall(..)
+    , ThreadCall(..)
     , WithPriority(..)
     , Priority(..)
     , Tag
-    , SystemCall
+    , EmSystemCall
     , SuspendedThread
     , EmThread(..)
     , SchedulerState(..)
@@ -155,26 +157,33 @@ data WithPriority t
 
 type SuspendedThread effs systemEvent = WithPriority (EmThread effs systemEvent)
 
-type SystemCall effs systemEvent = WithPriority (SysCall effs systemEvent)
+type EmSystemCall effs systemEvent = WithPriority (SysCall effs systemEvent)
 
 -- | Thread that can be run by the scheduler
 data EmThread effs systemEvent =
     EmThread
-        { _continuation :: Maybe systemEvent -> Eff effs (Status effs (SystemCall effs systemEvent) (Maybe systemEvent) ()) -- ^ The continuation to be run when the thread is resumed.
+        { _continuation :: Maybe systemEvent -> Eff effs (Status effs (EmSystemCall effs systemEvent) (Maybe systemEvent) ()) -- ^ The continuation to be run when the thread is resumed.
         , _threadId     :: ThreadId -- ^ Thread ID
         , _tag          :: Tag -- ^ Tag of the thread. See note [Thread Tag]
         }
 
--- | The "system calls" we can make to the scheduler.
-data SysCall effs systemEvent
+-- | The system calls we can make to the scheduler, affecting the the threads
+--   that are currently running.
+data ThreadCall effs systemEvent
     = Fork (ThreadId -> SuspendedThread effs systemEvent) -- ^ Start a new thread with a new thread ID.
-    | Suspend -- ^ Suspend ourselves (the caller)
-    | Broadcast systemEvent -- ^ Send a message to all threads
-    | Message ThreadId systemEvent -- ^ Send a message to a specific thread
     | Thaw ThreadId -- ^ Unfreeze a thread.
     | Exit -- ^ Terminate the scheduler.
 
-makePrisms ''SysCall
+-- | Sending messages to other threads and waiting for new messages to arrive.
+data MessageCall systemEvent
+    = WaitForMessage -- ^ Suspend ourselves (the caller) until we receive a message
+    | Broadcast systemEvent -- ^ Send a message to all threads
+    | Message ThreadId systemEvent -- ^ Send a message to a specific thread
+
+type SysCall effs systemEvent = Either (MessageCall systemEvent) (ThreadCall effs systemEvent)
+
+makePrisms ''MessageCall
+makePrisms ''ThreadCall
 
 -- | Scheduler state
 data SchedulerState effs systemEvent
@@ -200,7 +209,7 @@ suspendThread = WithPriority
 
 -- | Make a thread with the given priority from an action. This is a
 --   convenience for defining 'SimulatorInterpreter' values.
-mkThread :: Tag -> Priority -> Eff (Reader ThreadId ': Yield (SystemCall effs systemEvent) (Maybe systemEvent) ': effs) () -> ThreadId -> SuspendedThread effs systemEvent
+mkThread :: Tag -> Priority -> Eff (Reader ThreadId ': Yield (EmSystemCall effs systemEvent) (Maybe systemEvent) ': effs) () -> ThreadId -> SuspendedThread effs systemEvent
 mkThread tag prio action tid =
     let action' = runReader tid action
     in WithPriority
@@ -214,39 +223,39 @@ mkThread tag prio action tid =
 
 -- | Make a system call
 mkSysCall :: forall effs systemEvent effs2.
-    Member (Yield (SystemCall effs systemEvent) (Maybe systemEvent)) effs2
+    Member (Yield (EmSystemCall effs systemEvent) (Maybe systemEvent)) effs2
     => Priority -- ^ The 'Priority' of the caller
     -> SysCall effs systemEvent -- ^ The system call
     -> Eff effs2 (Maybe systemEvent)
-mkSysCall prio sc = yield @(SystemCall effs systemEvent) @(Maybe systemEvent) (WithPriority prio sc) id
+mkSysCall prio sc = yield @(EmSystemCall effs systemEvent) @(Maybe systemEvent) (WithPriority prio sc) id
 
 -- | Start a new thread
 fork :: forall effs systemEvent effs2.
-    Member (Yield (SystemCall effs systemEvent) (Maybe systemEvent)) effs2
+    Member (Yield (EmSystemCall effs systemEvent) (Maybe systemEvent)) effs2
     => Tag -- ^ Tag of the new thread. See note [Thread Tag]
     -> Priority -- ^ Priority of the new thread.
-    -> Eff (Reader ThreadId ': Yield (SystemCall effs systemEvent) (Maybe systemEvent) ': effs) ()
+    -> Eff (Reader ThreadId ': Yield (EmSystemCall effs systemEvent) (Maybe systemEvent) ': effs) ()
     -> Eff effs2 (Maybe systemEvent)
-fork tag prio action = mkSysCall prio (Fork $ mkThread tag prio action)
+fork tag prio action = mkSysCall prio (Right $ Fork $ mkThread tag prio action)
 
 -- | Suspend the current thread
 sleep :: forall effs systemEvent effs2.
-    Member (Yield (SystemCall effs systemEvent) (Maybe systemEvent)) effs2
+    Member (Yield (EmSystemCall effs systemEvent) (Maybe systemEvent)) effs2
     => Priority
     -> Eff effs2 (Maybe systemEvent)
-sleep prio = mkSysCall @effs @systemEvent @effs2 prio Suspend
+sleep prio = mkSysCall @effs @systemEvent @effs2 prio (Left WaitForMessage)
 
 -- | Stop the scheduler.
 exit :: forall effs systemEvent effs2.
-    Member (Yield (SystemCall effs systemEvent) (Maybe systemEvent)) effs2
+    Member (Yield (EmSystemCall effs systemEvent) (Maybe systemEvent)) effs2
     => Eff effs2 (Maybe systemEvent)
-exit = mkSysCall @effs @systemEvent @effs2 Normal Exit
+exit = mkSysCall @effs @systemEvent @effs2 Normal (Right Exit)
 
 -- | Tag of the initial thread.
 initialThreadTag :: Tag
 initialThreadTag = "initial thread"
 
--- | Handle the 'Yield (SystemCall effs systemEvent) (Maybe systemEvent)'
+-- | Handle the 'Yield (EmSystemCall effs systemEvent) (Maybe systemEvent)'
 --   effect using the scheduler, see note [Scheduler]. 'runThreads' only
 --   returns when all threads are finished.
 runThreads ::
@@ -254,7 +263,7 @@ runThreads ::
     ( Eq systemEvent
     , Member (LogMsg SchedulerLog) effs
     )
-    => Eff (Reader ThreadId ': Yield (SystemCall effs systemEvent) (Maybe systemEvent) ': effs) ()
+    => Eff (Reader ThreadId ': Yield (EmSystemCall effs systemEvent) (Maybe systemEvent) ': effs) ()
     -> Eff effs ()
 runThreads e = do
     k <- runC $ runReader initialThreadId e
@@ -305,7 +314,7 @@ handleSysCall ::
     -> SchedulerState effs systemEvent
     -> Eff effs (Either StopReason (SchedulerState effs systemEvent))
 handleSysCall sysCall schedulerState = case sysCall of
-    Fork newThread -> do
+    Right (Fork newThread) -> do
         let (schedulerState', tid) = nextThreadId schedulerState
             t = newThread tid
             tag = _tag $ _thread t
@@ -314,17 +323,17 @@ handleSysCall sysCall schedulerState = case sysCall of
                         & mailboxes . at tid .~ Just Seq.empty
         logDebug $ SchedulerLog{slEvent = Started, slThread = tid, slPrio = _priority t, slTag = tag}
         pure (Right newState)
-    Suspend -> pure $ Right schedulerState
-    Broadcast msg -> pure $ Right $ schedulerState & mailboxes . traversed %~ (|> msg)
-    Message t msg -> pure $ Right $ schedulerState & mailboxes . at t . non mempty %~ (|> msg)
-    Thaw tid -> do
+    Left WaitForMessage -> pure $ Right schedulerState
+    Left (Broadcast msg) -> pure $ Right $ schedulerState & mailboxes . traversed %~ (|> msg)
+    Left (Message t msg) -> pure $ Right $ schedulerState & mailboxes . at t . non mempty %~ (|> msg)
+    Right (Thaw tid) -> do
         let (thawed, rest) = Seq.partition (\EmThread{_threadId} -> _threadId == tid) (schedulerState ^. frozen)
         pure $
             Right $
             schedulerState
                 & frozen .~ rest
                 & normalPrio <>~ thawed
-    Exit -> pure (Left ThreadExit)
+    Right Exit -> pure (Left ThreadExit)
 
 
 -- | Return a fresh thread ID and increment the counter
