@@ -22,12 +22,44 @@ $ cabal build
 ### Nix
 
 ```
-$ nix-build -A plutus.haskell.packages.plutus-pab
+$ nix-build ../default.nix -A plutus.haskell.packages.plutus-pab
 ```
 
 ## Running
 
-TODO
+In order to use PAB several of its components need to be started. Furthermore the pab-client has
+to be started in order to access the web frontend. The required steps are described below.
+
+First we build the startup scripts:
+
+```
+$ nix-build ../default.nix plutus-pab.demo-scripts
+```
+
+Next we start all required servers and install several contracts:
+
+```
+$ ./result/bin/pab-start-all-servers
+```
+
+Now we start an additional PAB connecting to the same node:
+
+```
+$ ./result/bin/pab-start-second-pab
+```
+
+Finally we can start the pab web frontend:
+
+```
+$ cd ../plutus-pab-client
+$ npm start
+```
+
+The client is now running at https://localhost:8009 -- See [pab-demo-scripts.nix](https://github.com/input-output-hk/plutus/blob/pab-readme/plutus-pab-client/pab-demo-scripts.nix) for details on the service invcation and contract installation.
+
+**Note**: By default the frontend will forward requests to `localhost:8080` - the first PAB instance. Connecting to the second
+instance currently requires changing the proxy config in [webpack.config.js](https://github.com/input-output-hk/plutus/blob/master/plutus-pab-client/webpack.config.js#L33-L41). The second instance runs on port 8086 so the linked section in the config file would have to be
+updated accordingly.
 
 ## PAB Components
 PAB contains several commands and services, which are outlined below.
