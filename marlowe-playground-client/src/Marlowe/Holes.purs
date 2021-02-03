@@ -28,9 +28,9 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Foreign (readString)
 import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
-import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
-import Marlowe.Semantics as S
 import Marlowe.Extended as EM
+import Marlowe.Semantics (PubKey, Rational(..), TokenName)
+import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Extra as Text
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
@@ -50,6 +50,7 @@ data MarloweType
   | BoundType
   | TokenType
   | PartyType
+  | ExtendedTimeoutType
 
 derive instance eqMarloweType :: Eq MarloweType
 
@@ -107,6 +108,8 @@ readMarloweType "TokenType" = Just TokenType
 
 readMarloweType "PartyType" = Just PartyType
 
+readMarloweType "ExtendedTimeoutType" = Just ExtendedTimeoutType
+
 readMarloweType _ = Nothing
 
 -- | To make a name for a hole we show the type, make the first letter lower case and then drop the "Type" at the end
@@ -126,78 +129,96 @@ data Argument
   | NewtypeArg
   | GenArg MarloweType
 
-getMarloweConstructors :: MarloweType -> Map String (Array Argument)
-getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" [ DefaultString "choiceNumber", DataArg PartyType ]
+data TermGenerator
+  = ArgumentArray (Array Argument)
+  | SimpleArgument Argument
+
+-- Shorter version of constructors for keeping code short
+aa :: Array Argument -> TermGenerator
+aa = ArgumentArray
+
+eaa :: TermGenerator
+eaa = ArgumentArray []
+
+getMarloweConstructors :: MarloweType -> Map String TermGenerator
+getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" $ aa [ DefaultString "choiceNumber", DataArg PartyType ]
 
 getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
-    , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
-    , (Tuple "Notify" [ DataArg ObservationType ])
+    [ (Tuple "Deposit" $ aa [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
+    , (Tuple "Choice" $ aa [ GenArg ChoiceIdType, ArrayArg "bounds" ])
+    , (Tuple "Notify" $ aa [ DataArg ObservationType ])
     ]
 
 getMarloweConstructors PayeeType =
   Map.fromFoldable
-    [ (Tuple "Account" [ DataArg PartyType ])
-    , (Tuple "Party" [ DataArg PartyType ])
+    [ (Tuple "Account" $ aa [ DataArg PartyType ])
+    , (Tuple "Party" $ aa [ DataArg PartyType ])
     ]
 
-getMarloweConstructors CaseType = Map.singleton "Case" [ DataArg ActionType, DataArg ContractType ]
+getMarloweConstructors CaseType = Map.singleton "Case" $ aa [ DataArg ActionType, DataArg ContractType ]
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" [ DataArg PartyType, DataArg TokenType ])
-    , (Tuple "Constant" [ DefaultNumber zero ])
-    , (Tuple "NegValue" [ DataArg ValueType ])
-    , (Tuple "AddValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "SubValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "MulValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "Scale" [ DefaultRational (Rational one one), DataArg ValueType ])
-    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType ])
-    , (Tuple "SlotIntervalStart" [])
-    , (Tuple "SlotIntervalEnd" [])
-    , (Tuple "UseValue" [ DefaultString "valueId" ])
-    , (Tuple "Cond" [ DataArg ObservationType, DataArg ValueType, DataArg ValueType ])
+    [ (Tuple "AvailableMoney" $ aa [ DataArg PartyType, DataArg TokenType ])
+    , (Tuple "Constant" $ aa [ DefaultNumber zero ])
+    , (Tuple "ConstantParam" $ aa [ DefaultString "parameterName" ])
+    , (Tuple "NegValue" $ aa [ DataArg ValueType ])
+    , (Tuple "AddValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "SubValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "MulValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "Scale" $ aa [ DefaultRational (Rational one one), DataArg ValueType ])
+    , (Tuple "ChoiceValue" $ aa [ GenArg ChoiceIdType ])
+    , (Tuple "SlotIntervalStart" eaa)
+    , (Tuple "SlotIntervalEnd" eaa)
+    , (Tuple "UseValue" $ aa [ DefaultString "valueId" ])
+    , (Tuple "Cond" $ aa [ DataArg ObservationType, DataArg ValueType, DataArg ValueType ])
     ]
 
 getMarloweConstructors ObservationType =
   Map.fromFoldable
-    [ (Tuple "AndObs" [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
-    , (Tuple "OrObs" [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
-    , (Tuple "NotObs" [ DataArg ObservationType ])
-    , (Tuple "ChoseSomething" [ GenArg ChoiceIdType ])
-    , (Tuple "ValueGE" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueGT" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueLE" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueLT" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueEQ" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "TrueObs" [])
-    , (Tuple "FalseObs" [])
+    [ (Tuple "AndObs" $ aa [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
+    , (Tuple "OrObs" $ aa [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
+    , (Tuple "NotObs" $ aa [ DataArg ObservationType ])
+    , (Tuple "ChoseSomething" $ aa [ GenArg ChoiceIdType ])
+    , (Tuple "ValueGE" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueGT" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueLE" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueLT" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueEQ" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "TrueObs" eaa)
+    , (Tuple "FalseObs" eaa)
     ]
 
 getMarloweConstructors ContractType =
   Map.fromFoldable
-    [ (Tuple "Close" [])
-    , (Tuple "Pay" [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
-    , (Tuple "If" [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
-    , (Tuple "When" [ EmptyArrayArg, DefaultNumber zero, DataArg ContractType ])
-    , (Tuple "Let" [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
-    , (Tuple "Assert" [ DataArg ObservationType, DataArg ContractType ])
+    [ (Tuple "Close" eaa)
+    , (Tuple "Pay" $ aa [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
+    , (Tuple "If" $ aa [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
+    , (Tuple "When" $ aa [ EmptyArrayArg, DataArg ExtendedTimeoutType, DataArg ContractType ])
+    , (Tuple "Let" $ aa [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
+    , (Tuple "Assert" $ aa [ DataArg ObservationType, DataArg ContractType ])
     ]
 
-getMarloweConstructors BoundType = Map.singleton "Bound" [ DefaultNumber zero, DefaultNumber zero ]
+getMarloweConstructors BoundType = Map.singleton "Bound" $ aa [ DefaultNumber zero, DefaultNumber zero ]
 
-getMarloweConstructors TokenType = Map.singleton "Token" [ DefaultString "", DefaultString "" ]
+getMarloweConstructors TokenType = Map.singleton "Token" $ aa [ DefaultString "", DefaultString "" ]
 
 getMarloweConstructors PartyType =
   Map.fromFoldable
-    [ (Tuple "PK" [ DefaultString "pubKey" ])
-    , (Tuple "Role" [ DefaultString "token" ])
+    [ (Tuple "PK" $ aa [ DefaultString "pubKey" ])
+    , (Tuple "Role" $ aa [ DefaultString "token" ])
     ]
 
-allMarloweConstructors :: Map String (Array Argument)
+getMarloweConstructors ExtendedTimeoutType =
+  Map.fromFoldable
+    [ (Tuple "Slot" $ SimpleArgument $ DefaultNumber zero)
+    , (Tuple "SlotParam" $ aa [ DefaultString "slotParameterName" ])
+    ]
+
+allMarloweConstructors :: Map String TermGenerator
 allMarloweConstructors = foldMap getMarloweConstructors allMarloweTypes
 
 allMarloweConstructorNames :: Map String MarloweType
@@ -231,11 +252,12 @@ getConstructorFromMarloweType t = case Set.toUnfoldable $ Map.keys (getMarloweCo
 
 -- | Creates a String consisting of the data constructor name followed by argument holes
 --   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
-constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
+constructMarloweType :: String -> MarloweHole -> Map String TermGenerator -> String
 constructMarloweType constructorName (MarloweHole { range: { startColumn, startLineNumber } }) m = case Map.lookup constructorName m of
   Nothing -> ""
-  Just [] -> constructorName
-  Just vs -> parens startLineNumber startColumn $ constructorName <> " " <> intercalate " " (map showArgument vs)
+  Just (ArgumentArray []) -> constructorName
+  Just (ArgumentArray vs) -> parens startLineNumber startColumn $ constructorName <> " " <> intercalate " " (map showArgument vs)
+  Just (SimpleArgument vs) -> showArgument vs
   where
   showArgument EmptyArrayArg = "[]"
 
@@ -521,6 +543,41 @@ instance boundIsMarloweType :: IsMarloweType Bound where
 instance boundHasMarloweHoles :: HasMarloweHoles Bound where
   getHoles (Bound a b) m = m
 
+data ExtendedTimeout
+  = Slot BigInteger
+  | SlotParam String
+
+derive instance genericExtendedTimeout :: Generic ExtendedTimeout _
+
+derive instance eqExtendedTimeout :: Eq ExtendedTimeout
+
+derive instance ordExtendedTimeout :: Ord ExtendedTimeout
+
+instance showExtendedTimeout :: Show ExtendedTimeout where
+  show (Slot x) = show x
+  show v = genericShow v
+
+instance prettyExtendedTimeout :: Pretty ExtendedTimeout where
+  pretty (Slot x) = pretty x
+  pretty (SlotParam x) = genericPretty (SlotParam x)
+
+instance hasArgsExtendedTimeout :: Args ExtendedTimeout where
+  hasArgs (Slot _) = false
+  hasArgs x = genericHasArgs x
+  hasNestedArgs (Slot _) = false
+  hasNestedArgs x = genericHasNestedArgs x
+
+instance extendedTimeoutFromTerm :: FromTerm ExtendedTimeout EM.ExtendedTimeout where
+  fromTerm (Slot b) = pure $ EM.Slot b
+  fromTerm (SlotParam b) = pure $ EM.SlotParam b
+
+instance extendedTimeoutIsMarloweType :: IsMarloweType ExtendedTimeout where
+  marloweType _ = ExtendedTimeoutType
+
+instance extendedTimeoutHasMarloweHoles :: HasMarloweHoles ExtendedTimeout where
+  getHoles (Slot a) m = m
+  getHoles (SlotParam a) m = m
+
 data Party
   = PK PubKey
   | Role TokenName
@@ -718,6 +775,7 @@ instance caseHasContractData :: HasContractData Case where
 data Value
   = AvailableMoney AccountId (Term Token)
   | Constant BigInteger
+  | ConstantParam String
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
@@ -748,6 +806,7 @@ instance hasArgsValue :: Args Value where
 instance valueFromTerm :: FromTerm Value EM.Value where
   fromTerm (AvailableMoney a b) = EM.AvailableMoney <$> fromTerm a <*> fromTerm b
   fromTerm (Constant a) = pure $ EM.Constant a
+  fromTerm (ConstantParam a) = pure $ EM.ConstantParam a
   fromTerm (NegValue a) = EM.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = EM.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = EM.SubValue <$> fromTerm a <*> fromTerm b
@@ -834,7 +893,7 @@ data Contract
   = Close
   | Pay AccountId (Term Payee) (Term Token) (Term Value) (Term Contract)
   | If (Term Observation) (Term Contract) (Term Contract)
-  | When (Array (Term Case)) (TermWrapper Slot) (Term Contract)
+  | When (Array (Term Case)) (Term ExtendedTimeout) (Term Contract)
   | Let (TermWrapper ValueId) (Term Value) (Term Contract)
   | Assert (Term Observation) (Term Contract)
 
@@ -856,7 +915,7 @@ instance contractFromTerm :: FromTerm Contract EM.Contract where
   fromTerm Close = pure EM.Close
   fromTerm (Pay a b c d e) = EM.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
   fromTerm (If a b c) = EM.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
-  fromTerm (When as (TermWrapper b _) c) = EM.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
+  fromTerm (When as b c) = EM.When <$> (traverse fromTerm as) <*> fromTerm b <*> fromTerm c
   fromTerm (Let a b c) = EM.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
   fromTerm (Assert a b) = EM.Assert <$> fromTerm a <*> fromTerm b
 

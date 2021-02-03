@@ -15,10 +15,11 @@ import Data.Int (rem)
 import Data.Maybe (fromMaybe)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
+import Marlowe.Extended as EM
 import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Holes as H
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
-import Marlowe.Extended as EM
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
 
@@ -52,8 +53,8 @@ genRational = do
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
-genTimeout :: forall m. MonadGen m => MonadRec m => m (TermWrapper Slot)
-genTimeout = TermWrapper <$> genSlot <*> pure zero
+genTimeout :: forall m. MonadGen m => MonadRec m => m H.ExtendedTimeout
+genTimeout = H.Slot <$> genBigInteger
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -301,11 +302,13 @@ genContract' size
         genNewContractIndexed i = genTerm ((mkArgName ContractType) <> show i) $ genContract' newSize
 
         genNewContract = genTerm (mkArgName ContractType) $ genContract' newSize
+
+        genNewTimeout = Term <$> genTimeout <*> pure zero
       in
         oneOf $ pure Close
           :| [ Pay <$> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContractIndexed 1 <*> genNewContractIndexed 2
-            , When <$> genCases newSize <*> genTimeout <*> genNewContract
+            , When <$> genCases newSize <*> genNewTimeout <*> genNewContract
             , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
             , Assert <$> genNewObservation <*> genNewContract
             ]

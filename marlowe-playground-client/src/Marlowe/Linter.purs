@@ -48,21 +48,21 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
-import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Extended as EM
+import Marlowe.Holes (Action(..), Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Range, Term(..), TermGenerator, TermWrapper(..), Value(..), constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Holes as Holes
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
-import Marlowe.Extended as EM
 import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
 import Pretty (showPrettyMoney, showPrettyParty, showPrettyToken)
-import StaticAnalysis.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import StaticAnalysis.Reachability (initialisePrefixMap, stepPrefixMap)
+import StaticAnalysis.Types (ContractPath, ContractPathStep(..), PrefixMap)
 import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
-  = MaxTimeout (TermWrapper Slot)
+  = MaxTimeout Slot
 
 derive instance newtypeMaxTimeout :: Newtype MaxTimeout _
 
@@ -74,7 +74,7 @@ instance semigroupMax :: Semigroup MaxTimeout where
   append a b = max a b
 
 instance monoidMaxTimeout :: Monoid MaxTimeout where
-  mempty = MaxTimeout (TermWrapper zero zero)
+  mempty = MaxTimeout zero
 
 newtype Warning
   = Warning
@@ -242,7 +242,7 @@ _choicesMade = _Newtype <<< prop (SProxy :: SProxy "choicesMade")
 _letBindings :: Lens' LintEnv (Set S.ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
-_maxTimeout :: Lens' LintEnv (TermWrapper Slot)
+_maxTimeout :: Lens' LintEnv Slot
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
 _deposits :: Lens' LintEnv (Map (S.AccountId /\ S.Token) (Maybe BigInteger))
@@ -454,12 +454,19 @@ lintContract env (Term (If obs c1 c2) _) = do
   lintContract c1NewEnv c1
   lintContract c2NewEnv c2
 
-lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
-  when (timeout <= view _maxTimeout env) (addWarning TimeoutNotIncreasing slot pos)
+lintContract env (Term (When cases (Term (Holes.Slot timeout) pos) cont) _) = do
+  when (Slot timeout <= view _maxTimeout env) (addWarning TimeoutNotIncreasing timeout pos)
   let
-    tmpEnv = (over _maxTimeout (max timeout)) env
+    tmpEnv = (over _maxTimeout (max $ Slot timeout)) env
   traverseWithIndex_ (lintCase tmpEnv) cases
   newEnv <- stepPrefixMapEnv_ tmpEnv WhenTimeoutPath
+  lintContract newEnv cont
+  pure unit
+
+lintContract env (Term (When cases t cont) _) = do
+  modifying _holes (insertHole t)
+  traverseWithIndex_ (lintCase env) cases
+  newEnv <- stepPrefixMapEnv_ env WhenTimeoutPath
   lintContract newEnv cont
   pure unit
 
@@ -588,6 +595,8 @@ lintValue env t@(Term (AvailableMoney acc token) pos) = do
   pure (ValueSimp pos false t)
 
 lintValue env (Term (Constant v) pos) = pure (ConstantSimp pos false v)
+
+lintValue env t@(Term (ConstantParam str) pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term (NegValue a) pos) = do
   sa <- lintValue env a
@@ -867,7 +876,7 @@ holesToMarkers (Holes holes) =
   in
     foldMap holeToMarkers allHoles
 
-holeToMarker :: MarloweHole -> Map String (Array Argument) -> String -> IMarkerData
+holeToMarker :: MarloweHole -> Map String TermGenerator -> String -> IMarkerData
 holeToMarker hole@(MarloweHole { name, marloweType, range: { startLineNumber, startColumn, endLineNumber, endColumn } }) m constructorName =
   { startColumn
   , startLineNumber

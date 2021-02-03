@@ -182,6 +182,13 @@ In order to progress a Marlowe contract, a party must provide an evidence. For P
 So, Role parties will look like (Role "alice"), (Role "bob") and so on.
 """
 
+marloweTypeMarkerText ExtendedTimeoutType =
+  """
+Timeout is the slot number after which the When will no longer accept any new events: Case branches will become unusable, and the contract will continue as specified by the timeout continuation.
+
+Timeouts accept templates, this means that instead of writing a specific slot number it is possible to fill Timeouts by using a template parameter that can be filled just before deploying or simulating the contract, for example: SlotParam "maturityDate"
+"""
+
 helpForConstructor :: String -> Maybe String
 helpForConstructor constructor =
   let
