@@ -46,7 +46,6 @@ data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation erro
                      | PLCError (PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
                      | PLCTypeError (PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
                      | PIRTypeError (TypeErrorExt uni a)
-               deriving (Typeable)
 makeClassyPrisms ''Error
 
 instance HasErrorCode (Error _a _b _c) where

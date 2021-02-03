@@ -500,7 +500,7 @@ data IndicesLengthsMismatchException = IndicesLengthsMismatchException
     { _indicesLengthsMismatchExceptionExpected :: Int
     , _indicesLengthsMismatchExceptionActual   :: Int
     , _indicesLengthsMismatchExceptionTyName   :: TyName
-    } deriving (Typeable)
+    }
 
 instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat

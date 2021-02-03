@@ -22,7 +22,6 @@ module Language.PlutusCore.Generators.NEAT.Common where
 
 {-# FOREIGN AGDA2HS
 
-{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE EmptyCase           #-}
 {-# LANGUAGE EmptyDataDeriving   #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -41,14 +40,14 @@ import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 -- empty type
 data Z : Set where
 
-{-# COMPILE AGDA2HS Z deriving (Typeable, Eq, Ord, Show) #-}
+{-# COMPILE AGDA2HS Z deriving (Eq, Ord, Show) #-}
 
 -- maybe type
 data S (n : Set) : Set where
   FZ : S n
   FS : n → S n
 
-{-# COMPILE AGDA2HS S deriving (Typeable, Eq, Ord, Show, Functor) #-}
+{-# COMPILE AGDA2HS S deriving (Eq, Ord, Show, Functor) #-}
 
 {-# FOREIGN AGDA2HS
 instance Enumerable Z where
