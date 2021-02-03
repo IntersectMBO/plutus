@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules }:
+{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonPlutus, buildPursPackage, buildNodeModules, filterNpm }:
 let
   server-invoker = set-git-rev haskell.packages.plutus-pab.components.exes.plutus-pab;
 
@@ -28,8 +28,9 @@ let
 
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
+
   nodeModules = buildNodeModules {
-    projectDir = cleanSrc;
+    projectDir = filterNpm cleanSrc;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
   };

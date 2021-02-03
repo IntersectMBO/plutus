@@ -191,6 +191,7 @@ let
     inherit gitignore-nix;
     haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
+    filterNpm = pkgs.callPackage ../lib/filter-npm.nix { };
     npmlock2nix = pkgs.callPackage sources.npmlock2nix { };
     buildPursPackage = pkgs.callPackage ../lib/purescript.nix { inherit easyPS;inherit (pkgs) nodejs; };
     buildNodeModules = pkgs.callPackage ../lib/node_modules.nix ({
