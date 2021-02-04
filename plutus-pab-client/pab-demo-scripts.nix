@@ -14,10 +14,13 @@
 #
 ########################################################################
 
-{ pkgs
+{ runCommand
+, writeText
+, writeShellScript
+, yq
+, sqlite-interactive
 , client
-, pab-exes # The haskell.nix "exes" component with the sample contracts
-, dbPath # Temporary location where the SQLite databases can be placed. This has to be outside the nix store.
+, pab-exes
 }:
 let
   inherit (pab-exes)
@@ -30,12 +33,29 @@ let
     prism-unlock-sto
     prism-unlock-exchange;
 
-  dbFile = name: "${dbPath}/${name}.db";
-  mkconf = conf: pkgs.writeTextFile {
-    name = "${conf.configname}.yaml";
-    text = ''
+
+  # mkSetup :: Conf -> Store Path
+  # Takes a Conf object and creates a config file and a sqlite database
+  mkSetup = conf:
+    let
+      cfg = mkConf { inherit conf; };
+    in
+    runCommand "pab-setup" { } ''
+      echo "Creating PAB database"
+      ${pab} --config=${cfg} migrate
+      ${sqlite-interactive}/bin/sqlite3 /tmp/pab-core.db '.tables'
+      mkdir $out
+      cp /tmp/pab-core.db* $out/
+      cp ${cfg} $out/plutus-pab.yaml
+    '';
+
+  # mkConf :: { dbFile, Conf } -> Store Path
+  # Takes an optional database path and a configuration object and 
+  # creates a config file
+  mkConf = { conf }: writeText "pab-setup"
+    ''
       dbConfig:
-          dbConfigFile: ${dbFile conf.configname}
+          dbConfigFile: /tmp/pab-core.db
           dbConfigPoolSize: 20
 
       pabWebserverConfig:
@@ -44,7 +64,7 @@ let
 
       walletServerConfig:
         baseUrl: http://localhost:${conf.walletserver-port}
-        wallet: 
+        wallet:
           getWallet: ${conf.wallet}
 
       nodeServerConfig:
@@ -68,18 +88,20 @@ let
 
       signingProcessConfig:
         spBaseUrl: http://localhost:${conf.signing-process-port}
-        spWallet: 
+        spWallet:
           getWallet: ${conf.wallet}
-        
+
       metadataServerConfig:
         mdBaseUrl: http://localhost:${conf.metadata-server-port}
 
     '';
-  };
-  node-port = "8082"; # mock node, needs to be the same for all PABs
+
+  # mock node, needs to be the same for all PABs
+  node-port = "8082";
+
   pab = "${pab-exes.plutus-pab}/bin/plutus-pab";
 
-  primary = {
+  primary-config = {
     configname = "demo-primary";
     webserver-port = "8080";
     walletserver-port = "8081";
@@ -90,7 +112,7 @@ let
     wallet = "1";
   };
 
-  secondary = {
+  secondary-config = {
     configname = "demo-secondary";
     webserver-port = "8086";
     walletserver-port = "8087";
@@ -101,53 +123,42 @@ let
     wallet = "2";
   };
 
-  config-primary = mkconf primary;
-  config-secondary = mkconf secondary;
+  runWithContracts = setup: cmd: writeShellScript "run-with-contracts" ''
+    WORKDIR=$(mktemp -d)
+    CFG_PATH=$WORKDIR/plutus-pab.yaml
+    DB_PATH=$WORKDIR/pab-core.db
 
-  start-all-servers = pkgs.writeTextFile {
-    name = "start-all-servers.sh";
-    text = ''
-      rm -f ${dbFile primary.configname}
-      ${pab} --config=${config-primary} migrate
-      ${pab} --config=${config-primary} contracts install --path ${plutus-currency}/bin/plutus-currency
-      ${pab} --config=${config-primary} contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
-      ${pab} --config=${config-primary} contracts install --path ${plutus-game}/bin/plutus-game
-      ${pab} --config=${config-primary} contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
-      ${pab} --config=${config-primary} contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
-      ${pab} --config=${config-primary} contracts install --path ${prism-mirror}/bin/prism-mirror
-      ${pab} --config=${config-primary} contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
-      ${pab} --config=${config-primary} contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
-      ${pab} --config=${config-primary} all-servers
-    '';
-    executable = true;
-  };
+    cp ${setup}/pab-core.db* $WORKDIR
+    chmod a+rw $WORKDIR/*
 
-  start-second-pab = pkgs.writeTextFile {
-    name = "start-second-pab.sh";
-    text = ''
-      rm -f ${dbFile secondary.configname}
-      ${pab} --config=${config-secondary} migrate
-      ${pab} --config=${config-secondary} contracts install --path ${plutus-currency}/bin/plutus-currency
-      ${pab} --config=${config-secondary} contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
-      ${pab} --config=${config-secondary} contracts install --path ${plutus-game}/bin/plutus-game
-      ${pab} --config=${config-secondary} contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
-      ${pab} --config=${config-secondary} contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
-      ${pab} --config=${config-secondary} contracts install --path ${prism-mirror}/bin/prism-mirror
-      ${pab} --config=${config-secondary} contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
-      ${pab} --config=${config-secondary} contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
-      ${pab} --config=${config-secondary} client-services 
-    '';
-    executable = true;
-  };
+    ${sqlite-interactive}/bin/sqlite3 $DB_PATH '.tables'
+    cat ${setup}/plutus-pab.yaml | ${yq}/bin/yq -y --arg path $DB_PATH '.dbConfig.dbConfigFile = $path' > $CFG_PATH
+
+    echo "-----------------------------------------------------------------------------"
+    echo "Starting: ${cmd}"
+    echo "PAB config path: $CFG_PATH"
+    echo "PAB database path: $DB_PATH"
+    cat $CFG_PATH
+    echo "-----------------------------------------------------------------------------"
+
+    ${pab} --config=$CFG_PATH contracts install --path ${plutus-currency}/bin/plutus-currency
+    ${pab} --config=$CFG_PATH contracts install --path ${plutus-atomic-swap}/bin/plutus-atomic-swap
+    ${pab} --config=$CFG_PATH contracts install --path ${plutus-game}/bin/plutus-game
+    ${pab} --config=$CFG_PATH contracts install --path ${plutus-pay-to-wallet}/bin/plutus-pay-to-wallet
+    ${pab} --config=$CFG_PATH contracts install --path ${prism-credential-manager}/bin/prism-credential-manager
+    ${pab} --config=$CFG_PATH contracts install --path ${prism-mirror}/bin/prism-mirror
+    ${pab} --config=$CFG_PATH contracts install --path ${prism-unlock-sto}/bin/prism-unlock-sto
+    ${pab} --config=$CFG_PATH contracts install --path ${prism-unlock-exchange}/bin/prism-unlock-exchange
+    ${pab} --config=$CFG_PATH ${cmd}
+  '';
+
+  start-all-servers = runWithContracts (mkSetup primary-config) "all-servers";
+
+  start-second-pab = runWithContracts (mkSetup secondary-config) "client-services";
 
 in
-pkgs.stdenv.mkDerivation {
-  name = "plutus-pab-demo";
-  phases = "installPhase";
-  installPhase = ''
-    mkdir -p $out
-    cd $out
-    ln --symbolic ${start-all-servers} start-all-servers.sh
-    ln --symbolic ${start-second-pab} start-second-pab.sh
-  '';
-}
+runCommand "pab-demo-scripts" { } ''
+  mkdir -p $out/bin
+  cp ${start-all-servers} $out/bin/pab-start-all-servers
+  cp ${start-second-pab} $out/bin/pab-start-second-pab
+''
