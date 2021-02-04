@@ -1,17 +1,17 @@
 module MainFrame.View where
 
 import Prelude hiding (div)
-import Contract.View (renderContractSetup, renderRunningContract)
+import Contract.View (renderContractSetup, renderContractDetails)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML, ClassName(ClassName))
 import Halogen.HTML (a, button, div, div_, header, main, nav, span, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes)
-import Library.View (renderContractLibrary, renderContractDetails)
 import MainFrame.Types (Action(..), Card(..), ChildSlots, Screen(..), State, Overlay(..))
 import Material.Icons as Icon
 import Notifications.View (renderNotifications)
+import Template.View (renderTemplateLibrary, renderTemplateDetails)
 import Welcome.View (renderHome, renderContracts)
 
 render :: forall m. MonadAff m => State -> ComponentHTML Action ChildSlots m
@@ -61,7 +61,7 @@ menu currentOverlay currentScreen =
     [ nav
         [ classes $ ClassName <$> [ "bg-gray", "mx-0.5", "flex", "flex-col" ] ]
         [ menuItem "Home" (Just $ SetScreen Home) (currentScreen == Home)
-        , menuItem "New Contract" (Just $ ToggleCard ContractLibrary) false
+        , menuItem "New Contract" (Just $ ToggleCard TemplateLibrary) false
         , menuItem "Contracts" (Just $ SetScreen Contracts) (currentScreen == Contracts)
         , menuItem "Docs" Nothing false
         , menuItem "Support" Nothing false
@@ -97,9 +97,9 @@ card state =
         ]
         [ Icon.close ]
     , case state.card of
-        Just ContractLibrary -> renderContractLibrary state.contractTemplates
-        Just (ContractDetails template) -> renderContractDetails template
-        Just (RunningContract contract) -> renderRunningContract contract
+        Just TemplateLibrary -> renderTemplateLibrary state.templates
+        Just (TemplateDetails template) -> renderTemplateDetails template
+        Just (ContractDetails contract) -> renderContractDetails contract
         Nothing -> div_ []
     ]
   where
@@ -129,7 +129,7 @@ home state =
         [ Icon.help ]
     , button
         [ classes $ ClassName <$> [ "btn", "absolute", "bottom-1", "right-1", "bg-green", "text-white" ]
-        , onClick $ const $ Just $ ToggleCard ContractLibrary
+        , onClick $ const $ Just $ ToggleCard TemplateLibrary
         ]
         [ Icon.libraryAdd ]
     ]

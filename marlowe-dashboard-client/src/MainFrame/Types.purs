@@ -39,8 +39,8 @@ type State
     , screen :: Screen
     , card :: Maybe Card
     , notifications :: Array Notification
-    , contractTemplates :: Array ContractTemplate
-    , runningContracts :: Array Contract
+    , templates :: Array ContractTemplate
+    , contracts :: Array Contract
     , on :: Boolean
     }
 
@@ -53,14 +53,14 @@ derive instance eqOverlay :: Eq Overlay
 data Screen
   = Home
   | Contracts
-  | SetupContract Contract
+  | SetupContract ContractTemplate
 
 derive instance eqFrame :: Eq Screen
 
 data Card
-  = ContractLibrary
-  | ContractDetails ContractTemplate
-  | RunningContract Contract
+  = TemplateLibrary
+  | TemplateDetails ContractTemplate
+  | ContractDetails Contract
 
 derive instance eqCard :: Eq Card
 

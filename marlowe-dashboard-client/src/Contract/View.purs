@@ -1,6 +1,6 @@
 module Contract.View
   ( renderContractSetup
-  , renderRunningContract
+  , renderContractDetails
   ) where
 
 import Prelude hiding (div)
@@ -16,8 +16,8 @@ renderContractSetup contractTemplate =
     [ classes $ ClassName <$> [ "p-1" ] ]
     [ text "contract setup" ]
 
-renderRunningContract :: forall m. MonadAff m => Contract -> ComponentHTML Action ChildSlots m
-renderRunningContract contract =
+renderContractDetails :: forall m. MonadAff m => Contract -> ComponentHTML Action ChildSlots m
+renderContractDetails contract =
   div
     [ classes $ ClassName <$> [ "p-1", "bg-gray" ] ]
-    [ text "running contract" ]
+    [ text "contract details" ]

@@ -18,8 +18,8 @@ initialState =
   , screen: Home
   , card: Nothing
   , notifications: []
-  , contractTemplates: []
-  , runningContracts: []
+  , templates: []
+  , contracts: []
   , on: true
   }
 

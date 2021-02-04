@@ -51,6 +51,6 @@ addContractButton :: forall p. HTML p Action
 addContractButton =
   button
     [ classes $ ClassName <$> [ "btn", "absolute", "bottom-1", "right-1", "bg-green", "text-white" ]
-    , onClick $ const $ Just $ ToggleCard ContractLibrary
+    , onClick $ const $ Just $ ToggleCard TemplateLibrary
     ]
     [ Icon.libraryAdd ]
