@@ -36,19 +36,68 @@ import Data.Bool as B
 \end{code}
 
 \begin{code}
-eraseVal : {A : ∅ ⊢Nf⋆ *}{t : ∅ A.⊢ A}
-  → A.Value t → U.Value (erase t)
-eraseVal (A.V-ƛ t)    = U.V-F (U.V-ƛ (erase t))
-eraseVal (A.V-Λ t)    = U.V-delay
-eraseVal (A.V-wrap v) = eraseVal v
-eraseVal (A.V-con cn) = U.V-con (eraseTC cn)
-eraseVal (A.V-IΠ b p q r σ p₁ x _) = {!!} -- need untyped builtins here
-eraseVal (A.V-I⇒ b p q r σ p₁ x _) = {!!}
+eraseCtx : ∀{Φ}(Γ : Ctx Φ) → U.Bwd U.Label
+eraseCtx ∅        = U.[]
+eraseCtx (Γ ,⋆ J) = eraseCtx Γ U.:< U.Type
+eraseCtx (Γ , A)  = eraseCtx Γ U.:< U.Term
 
+erase≤C' : ∀{Φ Φ'}{Γ : Ctx Φ}{Γ' : Ctx Φ'} → Γ ≤C' Γ' → eraseCtx Γ U.≤L eraseCtx Γ'
+erase≤C' base      = U.base
+erase≤C' (skip⋆ p) = U.skipType (erase≤C' p)
+erase≤C' (skip p)  = U.skipTerm (erase≤C' p)
+
+erase-arity-lem : ∀ b {Φ}{Γ}(p : proj₁ (ISIG b) ≡ Φ)(q : subst Ctx p (proj₁ (proj₂ (ISIG b))) ≡ Γ) → eraseCtx Γ ≡ U.arity b
+erase-arity-lem addInteger refl refl = refl
+erase-arity-lem subtractInteger refl refl = refl
+erase-arity-lem multiplyInteger refl refl = refl
+erase-arity-lem divideInteger refl refl = refl
+erase-arity-lem quotientInteger refl refl = refl
+erase-arity-lem remainderInteger refl refl = refl
+erase-arity-lem modInteger refl refl = refl
+erase-arity-lem lessThanInteger refl refl = refl
+erase-arity-lem lessThanEqualsInteger refl refl = refl
+erase-arity-lem greaterThanInteger refl refl = refl
+erase-arity-lem greaterThanEqualsInteger refl refl = refl
+erase-arity-lem equalsInteger refl refl = refl
+erase-arity-lem concatenate refl refl = refl
+erase-arity-lem takeByteString refl refl = refl
+erase-arity-lem dropByteString refl refl = refl
+erase-arity-lem lessThanByteString refl refl = refl
+erase-arity-lem greaterThanByteString refl refl = refl
+erase-arity-lem sha2-256 refl refl = refl
+erase-arity-lem sha3-256 refl refl = refl
+erase-arity-lem verifySignature refl refl = refl
+erase-arity-lem equalsByteString refl refl = refl
+erase-arity-lem ifThenElse refl refl = refl
+erase-arity-lem charToString refl refl = refl
+erase-arity-lem append refl refl = refl
+erase-arity-lem trace refl refl = refl
+
+
+
+eraseITel : ∀ b {Φ}(Δ : Ctx Φ)(σ : SubNf Φ ∅)
+          →  A.ITel b Δ σ → U.ITel b (eraseCtx Δ)
 
 eraseFVal : {A B : ∅ ⊢Nf⋆ *}{t : ∅ A.⊢ A ⇒ B}
   → A.Value t → U.FValue (erase t)
 eraseFVal (A.V-ƛ t) = U.V-ƛ (erase t)
+eraseFVal (A.V-I⇒ b p q r σ p' vs t) =
+  U.V-builtin b (erase-arity-lem b p q) (erase≤C' p') (eraseITel b _ σ vs) (erase t)
+
+eraseVal : {A : ∅ ⊢Nf⋆ *}{t : ∅ A.⊢ A}
+  → A.Value t → U.Value (erase t)
+eraseVal v@(A.V-ƛ t)  = U.V-F (eraseFVal v)
+eraseVal (A.V-Λ t)    = U.V-delay
+eraseVal (A.V-wrap v) = eraseVal v
+eraseVal (A.V-con cn) = U.V-con (eraseTC {∅}{∅} cn)
+eraseVal (A.V-IΠ b p q r σ p' vs t) = U.V-builtin⋆ b (erase-arity-lem b p q) (erase≤C' p') (eraseITel b _ σ vs) (erase t)
+eraseVal v@(A.V-I⇒ b p q r σ p₁ x t) = U.V-F (eraseFVal v)
+
+eraseITel b ∅        σ vs             = tt
+eraseITel b (Δ ,⋆ J) σ (vs ,, A)      = eraseITel b Δ (σ ∘ S) vs
+eraseITel b (Δ , A)  σ (vs ,, t ,, v) =
+  eraseITel b Δ σ vs  ,, erase t ,, eraseVal v
+
 
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : A.Ctx Φ}{e : Γ A.⊢ A}
   → A.Error e → U.Error (erase e)
@@ -175,22 +224,8 @@ erase-BUILTIN ifThenElse Γ σ (_ ∷ _ ∷ _ ∷ []) (A.V-con (bool B.true)  ,,
 \end{code}
 
 \begin{code}
-subst—→T : ∀{m m' n}{ts ts' : Untyped.Tel m n}
-  → ts U.—→T ts'
-  → (p : m ≡ m')
-  → subst (λ m → Untyped.Tel m n) p ts U.—→T subst (λ m → Untyped.Tel m n) p ts'
-subst—→T p refl = p
-
 erase—→ : {A : ∅ ⊢Nf⋆ *}{t t' : ∅ A.⊢ A}
   → t A.—→ t' → erase t U.—→ erase t' ⊎ erase t ≡ erase t'
-
-{-
-erase—→T : ∀{Φ}{Γ : A.Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}{As : List (Δ ⊢Nf⋆ *)}{ts ts' : A.Tel Γ Δ σ As}
-  → ts A.—→T ts'
-  → eraseTel ts U.—→T eraseTel ts' ⊎ eraseTel ts ≡ eraseTel ts' 
-erase—→T (A.here p)    = map U.here (cong (_∷ _)) (erase—→ p)
-erase—→T (A.there v p) = map (U.there (eraseVal v)) (cong (_ ∷_)) (erase—→T p)
--}
 erase—→ (A.ξ-·₁ {M = M} p)                              = map
   U.ξ-·₁
   (cong (_· erase M))
@@ -200,18 +235,10 @@ erase—→ (A.ξ-·₂ {V = V} p q)                            = map
   ((cong (erase V ·_)))
   (erase—→ q)
 erase—→ (A.ξ-·⋆ p)                                      =
-  {!!} --  map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
+  map U.ξ-force (cong force) (erase—→ p)
 erase—→ (A.β-ƛ {N = N}{V = V} v)                   =
-  {!!} -- inj₁ (subst ((ƛ (erase N) · erase V) U.—→_) (lem[] N V) (U.β-ƛ (eraseVal v)))
-erase—→ (A.β-Λ {N = N}{A = A})                          = {!!}
-{-  inj₁ (subst (ƛ (U.weaken (erase N)) · plc_dummy U.—→_)
-              (trans (trans (sym (U.sub-ren
-                                   suc
-                                   (U.extend ` plc_dummy)
-                                   (erase N)))
-                            (sym (U.sub-id  (erase N))))
-                     (lem[]⋆ N A))
-              (U.β-ƛ (eraseVal (A.voidVal Γ)))) -}
+  inj₁ (subst ((ƛ (erase N) · erase V) U.—→_) (lem[] N V) (U.β-ƛ (eraseVal v)))
+erase—→ (A.β-Λ {N = N}{A = A})                          = inj₁ (subst (force (delay (erase N)) U.—→_) (lem[]⋆ N A) U.β-delay)
 erase—→ (A.β-wrap p)                                    = inj₂ refl
 erase—→ (A.ξ-unwrap p)                                  = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
@@ -234,13 +261,11 @@ erase—→  {Γ = Γ} (A.ξ-builtin b σ {ts = ts}{ts' = ts'} p) = map
 erase—→ (A.E-·₂ p)                                      =
   inj₁ (U.E-·₂ (eraseFVal p))
 erase—→ A.E-·₁                                          = inj₁ U.E-·₁
-erase—→ A.E-·⋆                                          = {!!} -- inj₁ U.E-·₁
+erase—→ A.E-·⋆                                          = inj₁ U.E-force
 erase—→ A.E-unwrap                                      = inj₂ refl
 erase—→ A.E-wrap                                        = inj₂ refl
-{-
-erase—→ {Γ = Γ} (A.E-builtin b σ ts p) = inj₁ (subst (U._—→ error) (sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) (lemma≤ b) ≤‴-refl (lemma b))) (U.E-builtin b (subst (λ n → Untyped.Tel n (len Γ)) (lemma b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts)) (eraseAnyErr' (lemma b) ts p)))
--}
-erase—→ p = {!!}
+erase—→ (A.β-sbuiltin b σ p q C' r t u vs v) = inj₁ (subst (_ U.—→_) {!!} (U.β-builtin b (erase t) (erase-arity-lem b p q) (eraseITel b _ σ vs) (eraseVal v)))
+erase—→ (A.β-sbuiltin⋆ b σ p q C' r t vs) = inj₁ (subst (_ U.—→_) {!!} (U.β-builtin⋆ b (erase t) (erase-arity-lem b p q) (eraseITel b _ σ vs)))
 \end{code}
 
 -- returning nothing means that the typed step vanishes

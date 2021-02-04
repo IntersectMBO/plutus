@@ -271,56 +271,6 @@ data _—→⋆_ : 0 ⊢ → 0 ⊢ → Set where
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
-VERIFYSIG (just Bool.false) = con (bool false)
-VERIFYSIG (just Bool.true)  = con (bool true)
-VERIFYSIG nothing           = error
-
-{-
-BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = con (integer (i + j))
-BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = con (integer (i - j))
-BUILTIN multiplyInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = con (integer (i * j))
-BUILTIN divideInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (div i j)))
-BUILTIN quotientInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (quot i j)))
-BUILTIN remainderInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (rem i j)))
-BUILTIN modInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
-  = decIf (∣ j ∣ Data.Nat.≟ zero) error (con (integer (mod i j)))
-BUILTIN lessThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i <? j) (con (bool true)) (con (bool false))
-BUILTIN lessThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≤? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i I>? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanEqualsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i I≥? j) (con (bool true)) (con (bool false))
-BUILTIN equalsInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , tt) =
-  decIf (i ≟ j) (con (bool true)) (con (bool false))
-BUILTIN concatenate (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  con (bytestring (concat b b'))
-BUILTIN takeByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
-  con (bytestring (take i b))
-BUILTIN dropByteString (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) =
-  con (bytestring (drop i b))
-BUILTIN sha2-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
-BUILTIN verifySignature (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
-BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  con (bool (equals b b'))
-BUILTIN ifThenElse (_ ∷ _ ∷ t ∷ _ ∷ []) (_ , V-con (bool true)  , vt , _ , tt) = t
-BUILTIN ifThenElse (_ ∷ _ ∷ _ ∷ u ∷ []) (_ , V-con (bool false) , _ , vu , tt) = u
-BUILTIN charToString (_ ∷ []) (V-con (char c) , tt) = con (string (primStringFromList List.[ c ]))
-BUILTIN append (_ ∷ _ ∷ []) (V-con (string s) , V-con (string t) , tt) =
-  con (string (primStringAppend s t))
-BUILTIN trace (_ ∷ []) (V-con (string s) , tt) = con (Debug.trace s unit)
-BUILTIN _ _ _ = error
--}
-
 data Progress (M : 0 ⊢) : Set where
   step : ∀{N}
     → M —→ N
@@ -426,15 +376,6 @@ progress (force t)    = progress-force (progress t)
 progress (delay t)    = done V-delay
 progress (builtin b)  = done (ival b)
 progress (con tcn)    = done (V-con tcn)
-
-
-{-
-progress (builtin b ≤‴-refl ts) with progressTel ts
-progress (builtin b ≤‴-refl ts) | done vs = step (β-builtin ts vs)
-progress (builtin b ≤‴-refl ts) | step p = step (ξ-builtin b p)
-progress (builtin b ≤‴-refl ts) | error p = step (E-builtin b ts p)
-progress (builtin b (≤‴-step p) ts) = done (V-F (V-builtin b ts p))
--}
 progress error       = error E-error
 \end{code}
 
@@ -455,11 +396,15 @@ open import Relation.Nullary
 
 -- a value cannot make progress
 {-
-val-red : ∀{n}{t : n ⊢} → Value t → ¬ (Σ (n ⊢)  (t —→_))
+val-red : ∀{t : 0 ⊢} → Value t → ¬ (Σ (0 ⊢)  (t —→_))
 val-red (V-F (V-ƛ t)) (t' , ())
 --val-red (V-F (V-builtin b ts p)) (t' , ())
 val-red (V-con tcn) (t' , ())
+val-red (V-F (V-builtin b p q vs t)) (p' , q') = {!!}
+val-red (V-builtin⋆ b p q vs t)      (p' , q') = {!!}
+-}
 
+{-
 val-err : ∀{n}{t : n ⊢} → Value t → ¬ (Error t)
 val-err (V-con tcn) ()
 val-err (V-F (V-ƛ t)) ()
