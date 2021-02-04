@@ -477,35 +477,8 @@ firstTCS f tcs = TCS{ typeOf = fmap f . typeOf tcs }
 
 -- * Normalisation
 
--- ** Type reduction
-
-type TySub n m = n -> TypeG m
-
--- |Extend type substitutions.
-extTySub :: TySub n m -> TySub (S n) (S m)
-extTySub _ FZ     = TyVarG FZ
-extTySub s (FS i) = FS <$> s i
-
 weakenTy :: TypeG m -> TypeG (S m)
-weakenTy ty = applyTySub (TyVarG . FS) ty
-
--- |Simultaneous substitution of type variables.
-applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m
-applyTySub s (TyVarG i)             = s i
-applyTySub s (TyFunG ty1 ty2)       = TyFunG (applyTySub s ty1) (applyTySub s ty2)
-applyTySub s (TyIFixG ty1 k ty2)    = TyIFixG (applyTySub s ty1) k (applyTySub s ty2)
-applyTySub s (TyForallG k ty)       = TyForallG k (applyTySub (extTySub s) ty)
-applyTySub _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
-applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
-applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
-
-instance Monad TypeG where
-  a >>= f = applyTySub f a
---  return = pure
-
-instance Applicative TypeG where
-  (<*>) = ap
-  pure = TyVarG
+weakenTy ty = sub (TyVarG . FS) ty
 
 -- |Reduce a generated type by a single step, or fail.
 stepTypeG :: TypeG n -> Maybe (TypeG n)
@@ -517,7 +490,7 @@ stepTypeG (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTypeG ty1 <*> pure k <*
 stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
 stepTypeG (TyBuiltinG _)              = empty
 stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
-stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (applyTySub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
+stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (sub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
 stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
                                     <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
 

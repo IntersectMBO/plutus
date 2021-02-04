@@ -31,7 +31,7 @@ data Z : Set where
 {-# COMPILE AGDA2HS Z deriving (Typeable, Eq, Ord, Show) #-}
 
 -- maybe type
-data S n : Set where
+data S (n : Set) : Set where
   FZ : S n
   FS : n → S n
 

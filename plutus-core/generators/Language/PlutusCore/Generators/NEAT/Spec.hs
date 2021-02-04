@@ -36,7 +36,6 @@ import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Term
-import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
