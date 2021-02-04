@@ -26,13 +26,8 @@ module Language.PlutusCore.Generators.NEAT.Type where
 
 import           Control.Enumerable
 import           Control.Monad.Except
-import           Data.Bifunctor.TH
-import           Data.Coolean                               (Cool, false, toCool, true, (&&&))
-import qualified Data.Stream                                as Stream
-import qualified Data.Text                                  as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
-import           Text.Printf
 
 #-}
 
@@ -78,7 +73,7 @@ data TypeG (n : Set) : Set where
 -- switched off deriving Functor
 
 ext : (m → n) → S m → S n
-ext f FZ     = FZ
+ext _ FZ     = FZ
 ext f (FS x) = FS (f x)
 
 {-# COMPILE AGDA2HS ext #-}
@@ -88,7 +83,7 @@ ren f (TyVarG x) = TyVarG (f x)
 ren f (TyFunG ty1 ty2) = TyFunG (ren f ty1) (ren f ty2)
 ren f (TyIFixG ty1 k ty2) = TyIFixG (ren f ty1) k (ren f ty2)
 ren f (TyForallG k ty) = TyForallG k (ren (ext f) ty)
-ren f (TyBuiltinG b) = TyBuiltinG b
+ren _ (TyBuiltinG b) = TyBuiltinG b
 ren f (TyLamG ty) = TyLamG (ren (ext f) ty)
 ren f (TyAppG ty1 ty2 k) = TyAppG (ren f ty1) (ren f ty2) k
 

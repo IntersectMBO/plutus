@@ -1,0 +1,63 @@
+* agda2hs - an Agda -> Haskell compiler that generates readable Haskell code
+
+  -- https://github.com/agda/agda2hs
+  -- Ulf Norell, Orestis Melkonian and I
+  -- started at last Agda meeting in October
+  -- standalone agda compiler backend (other backends, MAlonzo, latex, html)
+  -- a different approach to the MAlonzo compiler
+     -- which is designed to compile dependently typed programs
+
+  -- the agda2hs approach is to work inside the area where the
+     semantics of Haskell and Agda overlap where any given program is
+     basically 'the same' in both languages. Put another way, to write
+     Haskell in Agda. Then the compilation problem becomes trivial. It
+     doesn't compile the whole file, only annotated parts.
+
+  -- I will show two very minimal examples/sketches
+
+* example 1 -- mini Plutus-Core interpreter
+
+  a plug in replacement for the PLC interpreter for an extremely small
+  fragment of PLC (Hutton's razor)
+
+  -- small intepreter
+  -- code compiled to Haskell and hooked up to PLC parser/pretty printer
+  -- correctness proof in Agda
+
+* example 2 -- verified generator
+
+  -- verifying syntactic properties of the NEAT generator
+  -- we use NEAT to enumerate PLC programs for property based testing
+  -- initial work done by Wen Kokke
+  
+  -- PhD by Jonas Duregård/Chalmers
+  -- http://publications.lib.chalmers.se/records/fulltext/240807/240807.pdf
+  -- https://hackage.haskell.org/package/lazy-search
+
+  -- it uses a scope safe representation of terms which are
+     typechecked during generation. It's easy to prove syntactic
+     properties of this representation but they are hard to test.
+
+* applications
+
+  -- plug in verified replacement for a critical Haskell component
+  
+  -- verified model for testing, verified test generator etc.
+       e.g., verify some easy to verify but hard to test
+             properties of the NEAT PLC generator
+
+* verification strategy
+
+  -- direct correctness proof
+  -- Haskell compatible invariants
+  
+  -- model based - define a more refined model in Agda, show it
+     behaves the same as the Haskell like version in Agda (on correct
+     input for example)
+     
+     -- raising the bar: prove correctness against rigorous model
+        rather than test against it.
+
+  -- hybrid approach, some properties proved, some QuickCheck/NEAT,
+     even some model checked (tweak agda2hs to produce 'symbolic'
+     code.

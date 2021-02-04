@@ -8,6 +8,7 @@ import           Data.List
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Generators.NEAT.Spec
+import           Language.PlutusCore.Generators.NEAT.Term
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Lexer
 import           Language.PlutusCore.Normalize
