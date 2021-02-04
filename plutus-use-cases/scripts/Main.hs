@@ -15,6 +15,7 @@ import           Wallet.Emulator.Stream                                (defaultE
 
 import qualified Language.PlutusTx.Coordination.Contracts.Crowdfunding as Crowdfunding
 import qualified Language.PlutusTx.Coordination.Contracts.Game         as Game
+import           Spec.Auction                                          as Auction
 import qualified Spec.Currency                                         as Currency
 import qualified Spec.Escrow                                           as Escrow
 import qualified Spec.Future                                           as Future
@@ -65,6 +66,8 @@ writeScripts fp = do
         , ("stablecoin_2", Stablecoin.maxReservesExceededTrace)
         , ("token-account", TokenAccount.tokenAccountTrace)
         , ("vesting", Vesting.retrieveFundsTrace)
+        , ("auction_1", Auction.auctionTrace1)
+        , ("auction_2", Auction.auctionTrace2)
         ]
 
 -- | Run an emulator trace and write the applied scripts to a file

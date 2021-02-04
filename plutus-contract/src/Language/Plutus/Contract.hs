@@ -36,6 +36,9 @@ module Language.Plutus.Contract(
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
+    , AddressChangeRequest(..)
+    , AddressChangeResponse(..)
+    , addressChangeRequest
     , nextTransactionsAt
     , watchAddressUntil
     , fundsAtAddressGt
