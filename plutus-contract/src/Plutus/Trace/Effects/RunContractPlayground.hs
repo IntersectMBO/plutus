@@ -109,7 +109,13 @@ handleLaunchContract ::
 handleLaunchContract contract wllt = do
     i <- nextId
     let handle = ContractHandle{chContract=contract, chInstanceId = i, chInstanceTag = walletInstanceTag wllt}
-    void $ fork @effs2 @EmulatorMessage "contract instance" Normal (runReader wllt $ interpret (mapLog InstanceEvent) $ reinterpret (mapLog InstanceEvent) $ contractThread handle)
+    void
+        $ fork @effs2 @EmulatorMessage "contract instance" Normal
+        (_
+            $ runReader wllt
+            $ interpret (mapLog InstanceEvent)
+            $ reinterpret (mapLog InstanceEvent)
+            $ contractThread handle)
     modify @(Map Wallet ContractInstanceId) (set (at wllt) (Just i))
 
 handleCallEndpoint ::

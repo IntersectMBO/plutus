@@ -72,7 +72,7 @@ import           Language.Plutus.Contract.Types     (ResumableResult (..), Suspe
 import qualified Language.Plutus.Contract.Types     as Contract.Types
 import           Ledger.Slot                        (Slot (..))
 import           Ledger.Tx                          (Tx)
-import           Plutus.Trace.Scheduler             (EmSystemCall, ThreadId)
+import           Plutus.Trace.Scheduler             (AgentSystemCall, ThreadId)
 import           Wallet.Emulator.Wallet             (Wallet (..))
 import           Wallet.Types                       (ContractInstanceId, EndpointDescription, Notification (..),
                                                      NotificationError)
@@ -109,7 +109,7 @@ type EmulatorAgentThreadEffs effs =
     LogMsg ContractInstanceLog
     ': Reader Wallet
     ': Reader ThreadId
-    ': Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage)
+    ': Yield (AgentSystemCall EmulatorMessage) (Maybe EmulatorMessage)
     ': effs
 
 data Emulator

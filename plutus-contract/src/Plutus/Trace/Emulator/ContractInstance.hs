@@ -58,8 +58,9 @@ import           Plutus.Trace.Emulator.Types                   (ContractConstrai
                                                                 EmulatorRuntimeError (..), EmulatorThreads,
                                                                 addEventInstanceState, emptyInstanceState,
                                                                 instanceIdThreads, toInstanceState)
-import           Plutus.Trace.Scheduler                        (EmSystemCall, MessageCall (..), Priority (..), ThreadId,
-                                                                mkSysCall, sleep)
+import           Plutus.Trace.Scheduler                        (AgentSystemCall, EmSystemCall, MessageCall (..),
+                                                                Priority (..), ThreadId, mkAgentSysCall, mkSysCall,
+                                                                sleep)
 import qualified Wallet.API                                    as WAPI
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
                                                                 NodeClientEffect, SigningProcessEffect, WalletEffect)
@@ -82,9 +83,9 @@ type ContractInstanceThreadEffs s e effs =
 -- | Handle 'ContractRuntimeEffect' by sending the notification to the
 --   receiving contract's thread
 handleContractRuntime ::
-    forall effs effs2.
+    forall effs2.
     ( Member (State EmulatorThreads) effs2
-    , Member (Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
+    , Member (Yield (AgentSystemCall EmulatorMessage) (Maybe EmulatorMessage)) effs2
     , Member (LogMsg ContractInstanceMsg) effs2
     , Member (Reader ThreadId) effs2
     )
@@ -104,7 +105,7 @@ handleContractRuntime = interpret $ \case
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
                     e = Left $ Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
-                _ <- mkSysCall @effs @EmulatorMessage Normal e
+                -- _ <- mkSysCall @_ @EmulatorMessage Normal e
                 logInfo $ NotificationSuccess n
                 pure Nothing
 
@@ -124,14 +125,14 @@ contractThread :: forall s e effs.
 contractThread ContractHandle{chInstanceId, chContract, chInstanceTag} = do
     ask @ThreadId >>= registerInstance chInstanceId
     interpret (mapLog (\m -> ContractInstanceLog m chInstanceId chInstanceTag))
-        $ handleContractRuntime @effs
+        $ handleContractRuntime
         $ runReader chInstanceId
         $ evalState (emptyInstanceState chContract)
         $ do
             logInfo Started
             logNewMessages @s @e
             logCurrentRequests @s @e
-            msg <- mkSysCall @effs @EmulatorMessage Normal (Left WaitForMessage)
+            msg <- mkAgentSysCall @_ @EmulatorMessage Normal WaitForMessage
             runInstance chContract msg
 
 registerInstance :: forall effs.
@@ -183,12 +184,12 @@ runInstance contract event = do
             Just Freeze -> do
                 logInfo Freezing
                 -- freeze ourselves, see note [Freeze and Thaw]
-                sleep @effs Frozen >>= runInstance contract
+                mkAgentSysCall Frozen WaitForMessage >>= runInstance contract
             Just (EndpointCall _ _ vl) -> do
                 logInfo $ ReceiveEndpointCall vl
                 e <- decodeEvent @s vl
                 _ <- respondToEvent @s @e e
-                sleep @effs Normal >>= runInstance contract
+                mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             Just (ContractInstanceStateRequest sender) -> do
                 state <- get @(ContractInstanceStateInternal s e ())
 
@@ -197,8 +198,8 @@ runInstance contract event = do
                 -- us having to convert to 'Value' and back.
                 let stateJSON = JSON.toJSON $ toInstanceState state
                 logInfo $ SendingContractState sender
-                void $ mkSysCall @effs @EmulatorMessage Normal (Left $ Message sender $ ContractInstanceStateResponse stateJSON)
-                sleep @effs Normal >>= runInstance contract
+                void $ mkAgentSysCall Normal (Message sender $ ContractInstanceStateResponse stateJSON)
+                mkAgentSysCall Normal WaitForMessage >>= runInstance contract
             _ -> do
                 response <- respondToRequest @s @e handleBlockchainQueries
                 let prio =
@@ -214,7 +215,7 @@ runInstance contract event = do
                             -- other active threads have had their turn
                             (const Normal)
                             response
-                sleep @effs prio >>= runInstance contract
+                mkAgentSysCall prio WaitForMessage >>= runInstance contract
 
 decodeEvent ::
     forall s effs.
