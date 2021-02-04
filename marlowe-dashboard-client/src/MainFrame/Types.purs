@@ -2,10 +2,7 @@ module MainFrame.Types where
 
 import Prelude
 import Analytics (class IsEvent, defaultEvent)
-import Data.Lens (Lens')
-import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
-import Data.Symbol (SProxy(..))
 import WebSocket (StreamToClient, StreamToServer)
 import WebSocket.Support as WS
 
@@ -17,12 +14,20 @@ data Msg
 
 data Action
   = Init
+  | ToggleOverlay Overlay
+  | SetScreen Screen
+  | ToggleCard Card
+  | CloseCard
   | ClickedButton
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent Action where
   toEvent Init = Just $ defaultEvent "Init"
+  toEvent (ToggleOverlay _) = Just $ defaultEvent "ToggleOverlay"
+  toEvent (SetScreen _) = Just $ defaultEvent "SetFrame"
+  toEvent (ToggleCard _) = Just $ defaultEvent "ToggleCard"
+  toEvent CloseCard = Just $ defaultEvent "CloseCard"
   toEvent ClickedButton = Just $ defaultEvent "ClickedButton"
 
 type ChildSlots
@@ -30,8 +35,43 @@ type ChildSlots
     )
 
 type State
-  = { on :: Boolean
+  = { overlay :: Maybe Overlay
+    , screen :: Screen
+    , card :: Maybe Card
+    , notifications :: Array Notification
+    , contractTemplates :: Array ContractTemplate
+    , runningContracts :: Array Contract
+    , on :: Boolean
     }
 
-_on :: Lens' State Boolean
-_on = prop (SProxy :: SProxy "on")
+data Overlay
+  = Menu
+  | Notifications
+
+derive instance eqOverlay :: Eq Overlay
+
+data Screen
+  = Home
+  | Contracts
+  | SetupContract Contract
+
+derive instance eqFrame :: Eq Screen
+
+data Card
+  = ContractLibrary
+  | ContractDetails ContractTemplate
+  | RunningContract Contract
+
+derive instance eqCard :: Eq Card
+
+-- notification type TBD
+type Notification
+  = Int
+
+-- contract template type TBD
+type ContractTemplate
+  = Int
+
+-- TODO: move Marlowe.Semantics into web-common-marlowe and get Contract type from there
+type Contract
+  = Int
