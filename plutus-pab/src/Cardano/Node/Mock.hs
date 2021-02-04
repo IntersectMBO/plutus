@@ -29,11 +29,8 @@ import           Servant                           (NoContent (NoContent))
 import           Cardano.BM.Data.Trace             (Trace)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types
-import           Cardano.Protocol.ChainEffect      as CE
-import           Cardano.Protocol.FollowerEffect   as FE
-import qualified Cardano.Protocol.Socket.Client    as Client
 import qualified Cardano.Protocol.Socket.Server    as Server
-import           Ledger                            (Slot, Tx)
+import           Ledger                            (Slot(..), Block, Tx)
 import           Ledger.Tx                         (outputs)
 import           Plutus.PAB.Arbitrary              ()
 import           Plutus.PAB.Monitoring             (handleLogMsgTrace, runLogEffects)
@@ -71,21 +68,18 @@ addTx tx = do
     Chain.queueTx tx
     pure NoContent
 
-
 -- | Run all chain effects in the IO Monad
 runChainEffects ::
  Trace IO MockServerLogMsg
  -> Server.ServerHandler
- -> Client.ClientHandler
  -> MVar AppState
  -> Eff (NodeServerEffects IO) a
  -> IO ([LogMessage MockServerLogMsg], a)
-runChainEffects trace serverHandler clientHandler stateVar eff = do
+runChainEffects trace serverHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
             $ processBlock eff
             & runRandomTx
-            & runNodeFollwer
             & runChain
             & mergeState
             & toWriter
@@ -93,31 +87,36 @@ runChainEffects trace serverHandler clientHandler stateVar eff = do
             & handleLogMsgTrace trace
             & runM
     liftIO $ putMVar stateVar newState
+    void $ Server.processBlocks serverHandler (newlyAddedBlocks oldAppState newState)
     pure (events, a)
         where
             processBlock e = e >>= \r -> Chain.processBlock >> pure r
 
             runRandomTx = subsume . runGenRandomTx
 
-            runNodeFollwer = interpret (mapLog FollowerMsg) . FE.handleNodeFollower
+            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
 
-            runChain = interpret (mapLog ProcessingChainEvent) . reinterpret CE.handleChain . interpret (mapLog ProcessingChainEvent) . reinterpret Chain.handleControlChain
-
-            mergeState = interpret (handleZoomedState chainState) . interpret (handleZoomedState followerState)
+            mergeState = interpret (handleZoomedState chainState)
 
             toWriter = Eff.runWriter . reinterpret (handleLogWriter @MockServerLogMsg @[LogMessage MockServerLogMsg] (unto return))
 
-            runReaders s = Eff.runState s . Eff.runReader serverHandler . Eff.runReader clientHandler
+            runReaders s = Eff.runState s . Eff.runReader serverHandler
+
+newlyAddedBlocks :: AppState -> AppState -> [Block]
+newlyAddedBlocks oldState newState =
+    let chainLens = chainState . Chain.chainNewestFirst
+        oldChain  = view chainLens oldState
+        newChain  = view chainLens newState
+    in take (length newChain - length oldChain) newChain
 
 processChainEffects ::
     Trace IO MockServerLogMsg
     -> Server.ServerHandler
-    -> Client.ClientHandler
     -> MVar AppState
     -> Eff (NodeServerEffects IO) a
     -> IO a
-processChainEffects trace serverHandler clientHandler stateVar eff = do
-    (events, result) <- liftIO $ runChainEffects trace serverHandler clientHandler stateVar eff
+processChainEffects trace serverHandler stateVar eff = do
+    (events, result) <- liftIO $ runChainEffects trace serverHandler stateVar eff
     runLogEffects trace $ traverse_ (\(LogMessage _ chainEvent) -> logDebug chainEvent) events
     liftIO $
         modifyMVar_
@@ -129,14 +128,13 @@ processChainEffects trace serverHandler clientHandler stateVar eff = do
 --   to be validated and added to the chain.
 slotCoordinator ::
     Trace IO MockServerLogMsg
- ->  Second
+ -> Second
  -> Server.ServerHandler
- -> Client.ClientHandler
  -> MVar AppState
  -> IO a
-slotCoordinator trace slotLength serverHandler clientHandler stateVar =
+slotCoordinator trace slotLength serverHandler stateVar =
     forever $ do
-        void $ processChainEffects trace serverHandler clientHandler stateVar addBlock
+        void $ processChainEffects trace serverHandler stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
 
 -- | Generates a random transaction once in each 'mscRandomTxInterval' of the
@@ -145,32 +143,29 @@ transactionGenerator ::
   Trace IO MockServerLogMsg
  -> Second
  -> Server.ServerHandler
- -> Client.ClientHandler
  -> MVar AppState
  -> IO ()
-transactionGenerator trace interval serverHandler clientHandler stateVar =
+transactionGenerator trace interval serverHandler stateVar =
     forever $ do
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds interval
-        processChainEffects trace serverHandler clientHandler stateVar $ do
+        processChainEffects trace serverHandler stateVar $ do
             tx' <- genRandomTx
             unless (null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
-  Trace IO MockServerLogMsg
+    Trace IO MockServerLogMsg
  -> BlockReaperConfig
  -> Server.ServerHandler
- -> Client.ClientHandler
  -> MVar AppState
  -> IO ()
-blockReaper tracer BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler clientHandler stateVar =
+blockReaper tracer BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler stateVar =
     forever $ do
         void $
             processChainEffects
                 tracer
                 serverHandler
-                clientHandler
                 stateVar
                 (Eff.modify (over Chain.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval

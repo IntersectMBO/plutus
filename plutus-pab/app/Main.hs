@@ -32,7 +32,6 @@ import           Plutus.PAB.Monitoring           (convertLog, defaultConfig, han
 import           Plutus.PAB.PABLogMsg            (AppMsg (..))
 import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 
-
 main :: IO ()
 main = do
     AppOpts { minLogLevel, configPath, logConfigPath, runEkgServer, cmd } <- parseOptions

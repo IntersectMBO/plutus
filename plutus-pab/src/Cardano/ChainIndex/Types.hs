@@ -22,7 +22,6 @@ import           Servant.Client                 (BaseUrl)
 import           Cardano.BM.Data.Trace          (Trace)
 import           Cardano.BM.Data.Tracer         (ToObject (..))
 import           Cardano.BM.Data.Tracer.Extras  (Tagged (..), mkObjectStr)
-import           Cardano.Node.Types             (FollowerID)
 import           Control.Monad.Freer.Extras     (LogMsg)
 import           Ledger.Address                 (Address)
 import           Wallet.Effects                 (ChainIndexEffect)
@@ -42,13 +41,12 @@ newtype ChainIndexUrl = ChainIndexUrl BaseUrl
 
 data AppState =
     AppState
-        { _indexState      :: ChainIndexState
-        , _indexEvents     :: Seq (LogMessage ChainIndexEvent)
-        , _indexFollowerID :: Maybe FollowerID
+        { _indexState  :: ChainIndexState
+        , _indexEvents :: Seq (LogMessage ChainIndexEvent)
         } deriving (Eq, Show)
 
 initialAppState :: AppState
-initialAppState = AppState mempty mempty Nothing
+initialAppState = AppState mempty mempty
 
 data ChainIndexConfig =
     ChainIndexConfig
@@ -63,18 +61,8 @@ makeLenses ''ChainIndexConfig
 
 -- | Messages from the ChainIndex Server
 data ChainIndexServerMsg =
-    -- | Obtaining a new follower
-    ObtainingFollowerID
-    -- | Obtained a new follower 'FollowerID'
-    | ObtainedFollowerID FollowerID
-    -- | Updating the chain index with 'FollowerID'
-    | UpdatingChainIndex FollowerID
-    -- | Requesting new blocks from the node
-    | AskingNodeForNewBlocks
-    -- | Requesting the current slot from the node
-    | AskingNodeForCurrentSlot
     -- | Starting a node client thread
-    | StartingNodeClientThread
+      StartingNodeClientThread
     -- | Starting ChainIndex service
     | StartingChainIndex
         Int    -- ^ Port number
@@ -90,24 +78,14 @@ type ChainIndexTrace = Trace IO ChainIndexServerMsg
 
 instance Pretty ChainIndexServerMsg where
     pretty = \case
-        ObtainingFollowerID -> "Obtaining follower ID"
-        ObtainedFollowerID i -> "Obtained follower ID:" <+> pretty i
-        UpdatingChainIndex i -> "Updating chain index with follower ID" <+> pretty i
         ReceivedBlocksTxns blocks txns -> "Received" <+> pretty blocks <+> "blocks" <+> parens (pretty txns <+> "transactions")
-        AskingNodeForNewBlocks -> "Asking the node for new blocks"
-        AskingNodeForCurrentSlot -> "Asking the node for the current slot"
         StartingNodeClientThread -> "Starting node client thread"
         StartingChainIndex port -> "Starting chain index on port: " <> pretty port
         ChainEvent e -> "Processing chain index event: " <> pretty e
 
 instance ToObject ChainIndexServerMsg where
     toObject _ = \case
-      ObtainingFollowerID      -> mkObjectStr "obtaining FollowerID" ()
-      ObtainedFollowerID fID   -> mkObjectStr "obtained FollowerID" (Tagged @"followerID" fID)
-      UpdatingChainIndex fID   -> mkObjectStr "updating chainIndex with FollowerID" (Tagged @"followerID" fID)
       ReceivedBlocksTxns x y   -> mkObjectStr "received block transactions" (Tagged @"blocks" x, Tagged @"transactions" y)
-      AskingNodeForNewBlocks   -> mkObjectStr "asking for new blocks" ()
-      AskingNodeForCurrentSlot -> mkObjectStr "asking node for current slot" ()
       StartingNodeClientThread -> mkObjectStr "starting node client thread" ()
       StartingChainIndex p     -> mkObjectStr "starting chain index" (Tagged @"port" p)
       ChainEvent e             -> mkObjectStr "processing chain event" (Tagged @"event" e)

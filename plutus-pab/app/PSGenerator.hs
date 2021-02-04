@@ -52,7 +52,7 @@ import           Plutus.PAB.Events.Contract                        (ContractEven
 import           Plutus.PAB.Events.Node                            (NodeEvent)
 import           Plutus.PAB.Events.User                            (UserEvent)
 import           Plutus.PAB.Events.Wallet                          (WalletEvent)
-import           Plutus.PAB.MockApp                                (defaultWallet, syncAll)
+import           Plutus.PAB.MockApp                                (defaultWallet)
 import qualified Plutus.PAB.MockApp                                as MockApp
 import           Plutus.PAB.Types                                  (ContractExe)
 import qualified Plutus.PAB.Webserver.API                          as API
@@ -184,7 +184,6 @@ writeTestData outputDir = do
                     schema :: ContractSignatureResponse TestContracts <-
                         Webserver.contractSchema (csContract currencyInstance1)
                     pure (report, schema)
-            syncAll
             void Chain.processBlock
             pure result
     BSL.writeFile

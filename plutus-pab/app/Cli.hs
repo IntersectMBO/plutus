@@ -167,7 +167,7 @@ runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabilit
     liftIO $ ChainIndex.main
         (toChainIndexLog t)
         chainIndexConfig
-        (mscBaseUrl nodeServerConfig)
+        (mscSocketPath nodeServerConfig)
         serviceAvailability
 
 
