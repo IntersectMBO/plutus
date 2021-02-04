@@ -1,4 +1,4 @@
-{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules }:
+{ pkgs, gitignore-nix, set-git-rev, haskell, webCommon, webCommonMarlowe, buildPursPackage, buildNodeModules, filterNpm }:
 let
   dashboard-exe = set-git-rev haskell.packages.marlowe-dashboard-server.components.exes.marlowe-dashboard-server;
   server-invoker = dashboard-exe;
@@ -17,7 +17,7 @@ let
   cleanSrc = gitignore-nix.gitignoreSource ./.;
 
   nodeModules = buildNodeModules {
-    projectDir = cleanSrc;
+    projectDir = filterNpm cleanSrc;
     packageJson = ./package.json;
     packageLockJson = ./package-lock.json;
     githubSourceHashMap = { };
