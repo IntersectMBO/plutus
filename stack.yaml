@@ -1,7 +1,6 @@
 resolver: nightly-2020-08-17
 
 packages:
-- deployment-server
 - doc
 - marlowe
 - marlowe-dashboard-server

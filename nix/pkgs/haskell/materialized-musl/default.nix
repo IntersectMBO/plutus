@@ -49,7 +49,6 @@
         "ghc-paths".revision = (((hackage."ghc-paths")."0.1.0.12").revisions).default;
         "binary".revision = (((hackage."binary")."0.8.8.0").revisions).default;
         "ghc-boot".revision = (((hackage."ghc-boot")."8.10.2.20201118").revisions).default;
-        "http-link-header".revision = (((hackage."http-link-header")."1.0.3.1").revisions).default;
         "wl-pprint-text".revision = (((hackage."wl-pprint-text")."1.2.0.1").revisions).default;
         "lazysmallcheck".revision = (((hackage."lazysmallcheck")."0.6").revisions).default;
         "sequence".revision = (((hackage."sequence")."0.9.8").revisions).default;
@@ -68,7 +67,6 @@
         "bifunctors".flags.semigroups = true;
         "bifunctors".flags.tagged = true;
         "pure-zlib".revision = (((hackage."pure-zlib")."0.6.7").revisions).default;
-        "optparse-generic".revision = (((hackage."optparse-generic")."1.4.4").revisions).default;
         "monoidal-containers".revision = (((hackage."monoidal-containers")."0.6.0.1").revisions).default;
         "monoidal-containers".flags.split-these = true;
         "extra".revision = (((hackage."extra")."1.7.8").revisions).default;
@@ -77,7 +75,6 @@
         "x509-validation".revision = (((hackage."x509-validation")."1.6.11").revisions).default;
         "aeson-casing".revision = (((hackage."aeson-casing")."0.2.0.0").revisions).default;
         "fail".revision = (((hackage."fail")."4.9.0.0").revisions).default;
-        "bytestring-conversion".revision = (((hackage."bytestring-conversion")."0.3.1").revisions).default;
         "MonadRandom".revision = (((hackage."MonadRandom")."0.5.2").revisions).default;
         "mersenne-random-pure64".revision = (((hackage."mersenne-random-pure64")."0.2.2.0").revisions).default;
         "mersenne-random-pure64".flags.small_base = false;
@@ -137,8 +134,6 @@
         "cmdargs".flags.testprog = false;
         "cmdargs".flags.quotation = true;
         "easy-file".revision = (((hackage."easy-file")."0.2.2").revisions).default;
-        "github".revision = (((hackage."github")."0.26").revisions).default;
-        "github".flags.openssl = false;
         "ghci".revision = (((hackage."ghci")."8.10.2.20201118").revisions).default;
         "js-flot".revision = (((hackage."js-flot")."0.8.3").revisions).default;
         "dictionary-sharing".revision = (((hackage."dictionary-sharing")."0.1.0.0").revisions).default;
@@ -259,8 +254,6 @@
         "semigroups".flags.template-haskell = true;
         "data-default".revision = (((hackage."data-default")."0.7.1.1").revisions).default;
         "HUnit".revision = (((hackage."HUnit")."1.6.1.0").revisions).default;
-        "vector-instances".revision = (((hackage."vector-instances")."3.4").revisions).default;
-        "vector-instances".flags.hashable = true;
         "cborg-json".revision = (((hackage."cborg-json")."0.2.2.0").revisions).default;
         "lifted-base".revision = (((hackage."lifted-base")."0.2.3.12").revisions).default;
         "data-default-instances-old-locale".revision = (((hackage."data-default-instances-old-locale")."0.0.1").revisions).default;
@@ -326,9 +319,7 @@
         "snap-server".flags.debug = false;
         "snap-server".flags.build-pong = false;
         "snap-server".flags.build-testserver = false;
-        "deepseq-generics".revision = (((hackage."deepseq-generics")."0.2.0.0").revisions).default;
         "x509-system".revision = (((hackage."x509-system")."1.6.6").revisions).default;
-        "keys".revision = (((hackage."keys")."3.12.3").revisions).default;
         "ansi-terminal".revision = (((hackage."ansi-terminal")."0.10.3").revisions).default;
         "ansi-terminal".flags.example = false;
         "witherable-class".revision = (((hackage."witherable-class")."0").revisions).default;
@@ -383,7 +374,6 @@
         "socks".revision = (((hackage."socks")."0.6.1").revisions).default;
         "wai-cors".revision = (((hackage."wai-cors")."0.2.7").revisions).default;
         "ekg-core".revision = (((hackage."ekg-core")."0.1.1.7").revisions).default;
-        "servant-github-webhook".revision = (((hackage."servant-github-webhook")."0.4.2.0").revisions).default;
         "streaming-commons".revision = (((hackage."streaming-commons")."0.2.2.1").revisions).default;
         "streaming-commons".flags.use-bytestring-builder = false;
         "canonical-json".revision = (((hackage."canonical-json")."0.6.0.0").revisions).default;
@@ -392,7 +382,6 @@
         "base-unicode-symbols".revision = (((hackage."base-unicode-symbols")."0.2.4.2").revisions).default;
         "base-unicode-symbols".flags.base-4-8 = true;
         "base-unicode-symbols".flags.old-base = false;
-        "text-binary".revision = (((hackage."text-binary")."0.2.1.1").revisions).default;
         "fingertree".revision = (((hackage."fingertree")."0.1.4.2").revisions).default;
         "haskell-lexer".revision = (((hackage."haskell-lexer")."1.1").revisions).default;
         "monad-par".revision = (((hackage."monad-par")."0.3.5").revisions).default;
@@ -451,19 +440,7 @@
         "snap-core".flags.network-uri = true;
         "prometheus".revision = (((hackage."prometheus")."2.1.3").revisions).default;
         "rate-limit".revision = (((hackage."rate-limit")."1.4.2").revisions).default;
-        "iso8601-time".revision = (((hackage."iso8601-time")."0.1.5").revisions).default;
-        "iso8601-time".flags.new-time = true;
         "type-equality".revision = (((hackage."type-equality")."1").revisions).default;
-        "pointed".revision = (((hackage."pointed")."5.0.2").revisions).default;
-        "pointed".flags.semigroupoids = true;
-        "pointed".flags.stm = true;
-        "pointed".flags.comonad = true;
-        "pointed".flags.unordered-containers = true;
-        "pointed".flags.kan-extensions = true;
-        "pointed".flags.semigroups = true;
-        "pointed".flags.tagged = true;
-        "pointed".flags.containers = true;
-        "pointed".flags.transformers = true;
         "aws-lambda-haskell-runtime-wai".revision = (((hackage."aws-lambda-haskell-runtime-wai")."1.0.2").revisions).default;
         "optics-extra".revision = (((hackage."optics-extra")."0.3").revisions).default;
         "freer-simple".revision = (((hackage."freer-simple")."1.2.1.1").revisions).default;
@@ -544,7 +521,6 @@
         "digest".revision = (((hackage."digest")."0.0.1.2").revisions).default;
         "digest".flags.bytestring-in-base = false;
         "generic-lens".revision = (((hackage."generic-lens")."2.0.0.0").revisions).default;
-        "binary-instances".revision = (((hackage."binary-instances")."1.0.1").revisions).default;
         "swagger2".revision = (((hackage."swagger2")."2.6").revisions).default;
         "colour".revision = (((hackage."colour")."2.3.5").revisions).default;
         "transformers-base".revision = (((hackage."transformers-base")."0.4.5.2").revisions).default;
@@ -553,8 +529,6 @@
         "file-embed".revision = (((hackage."file-embed")."0.0.13.0").revisions).default;
         "operational".revision = (((hackage."operational")."0.2.3.5").revisions).default;
         "operational".flags.buildexamples = true;
-        "github-webhooks".revision = (((hackage."github-webhooks")."0.15.0").revisions).default;
-        "github-webhooks".flags.ci = false;
         "foundation".revision = (((hackage."foundation")."0.0.25").revisions).default;
         "foundation".flags.minimal-deps = false;
         "foundation".flags.doctest = false;
@@ -756,7 +730,6 @@
         playground-common = ./.plan.nix/playground-common.nix;
         io-sim-classes = ./.plan.nix/io-sim-classes.nix;
         shelley-spec-ledger-test = ./.plan.nix/shelley-spec-ledger-test.nix;
-        deployment-server = ./.plan.nix/deployment-server.nix;
         };
       };
   modules = [
@@ -877,7 +850,6 @@
           "shelley-spec-ledger-test" = {
             flags = { "development" = lib.mkOverride 900 true; };
             };
-          "deployment-server" = { flags = {}; };
           };
         })
     ];

@@ -94,8 +94,6 @@ include::web-common/ARCHITECTURE.adoc[]
 
 include::deployment/ARCHITECTURE.adoc[]
 
-include::deployment-server/ARCHITECTURE.adoc[]
-
 == Smart Contract Backend
 
 The smart contract backend provides the runtime environment for compiled Plutus contracts. It manages the state of contract instances and brokers messages between them and the nodes, users, and wallets that they interact with.

@@ -1,8 +1,7 @@
 -- Bump this if you need newer packages
 index-state: 2020-11-10T00:00:00Z
 
-packages: deployment-server
-          doc
+packages: doc
           marlowe
           marlowe-actus
           marlowe-playground-server

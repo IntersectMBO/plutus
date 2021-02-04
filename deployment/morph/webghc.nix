@@ -1,6 +1,6 @@
 {
-  mkInstance = { defaultMachine, machines, web-ghc, ... }:
-    node:
+  mkInstance = { defaultMachine, monitoringKeys, web-ghc, ports, ... }:
+    hostName:
     { config, pkgs, lib, ... }:
     let
       serviceSystemctl = pkgs.writeScriptBin "web-ghc-systemctl" ''
@@ -18,7 +18,7 @@
         '';
     in
     {
-      imports = [ (defaultMachine node pkgs) ];
+      imports = [ (defaultMachine hostName pkgs) ];
 
       security.sudo = {
         enable = true;
@@ -33,7 +33,7 @@
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ 80 9100 9091 9113 ];
+        allowedTCPPorts = with ports; [ ssh http nodeExporter webGhcExporter ];
       };
 
       services.prometheus.exporters = {
@@ -43,7 +43,6 @@
           extraFlags =
             [ "--collector.textfile.directory ${promNodeTextfileDir}" ];
         };
-        nginx = { enable = true; };
       };
 
       # a user for people who want to ssh in and fiddle with webghc service only
@@ -52,15 +51,13 @@
         home = "/home/monitor";
         description = "a user for administering web-ghc";
         extraGroups = [ "systemd-journal" ];
-        openssh.authorizedKeys.keys = machines.playgroundSshKeys;
+        openssh.authorizedKeys.keys = monitoringKeys;
         packages = [ serviceSystemctl ];
       };
 
       systemd.services.web-ghc = {
-        wantedBy = [ ];
-        before = [ ];
         enable = true;
-        path = [ "${web-ghc}" ];
+        after = [ "network.target" ];
 
         serviceConfig = {
           TimeoutStartSec = "0";
@@ -75,7 +72,7 @@
           AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
         };
 
-        script = "web-ghc-server webserver -b 0.0.0.0 -p 80";
+        script = "${web-ghc}/bin/web-ghc-server webserver -b 0.0.0.0 -p 80";
       };
     };
 }

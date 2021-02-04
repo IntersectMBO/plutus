@@ -1,4 +1,0 @@
-=== `deployment-server`
-
-This package contains a small server that handles automatic continuous
-deployment of the alpha Playground whenever PRs are merged.

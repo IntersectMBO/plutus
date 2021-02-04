@@ -108,7 +108,6 @@ let
           iohk-monitoring.doHaddock = false;
 
           # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
-          deployment-server.package.ghcOptions = "-Werror";
           plutus-core.package.ghcOptions = "-Werror";
           marlowe.package.ghcOptions = "-Werror";
           marlowe-symbolic.package.ghcOptions = "-Werror";
