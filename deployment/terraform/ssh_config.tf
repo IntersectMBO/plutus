@@ -1,10 +1,10 @@
-data "template_file" "ssh_config_section_nixops" {
+data "template_file" "ssh_config_section_prometheus" {
   template = file("${path.module}/templates/ssh-config")
 
   vars = {
-    full_hostname    = "nixops.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "nixops.${var.project}"
-    ip               = aws_instance.nixops.private_ip
+    full_hostname    = "prometheus.${aws_route53_zone.plutus_private_zone.name}"
+    short_hostname   = "prometheus.${local.project}"
+    ip               = aws_instance.prometheus.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
     user_name        = "root"
   }
@@ -15,7 +15,7 @@ data "template_file" "ssh_config_section_webghc_a" {
 
   vars = {
     full_hostname    = "webghc-a.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "webghc-a.${var.project}"
+    short_hostname   = "webghc-a.${local.project}"
     ip               = aws_instance.webghc_a.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
     user_name        = "root"
@@ -27,7 +27,7 @@ data "template_file" "ssh_config_section_webghc_b" {
 
   vars = {
     full_hostname    = "webghc-b.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "webghc-b.${var.project}"
+    short_hostname   = "webghc-b.${local.project}"
     ip               = aws_instance.webghc_b.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
     user_name        = "root"
@@ -38,7 +38,7 @@ data "template_file" "ssh_config_section_marlowe_dash_a" {
 
   vars = {
     full_hostname    = "marlowe-dash-a.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "marlowe-dash-a.${var.project}"
+    short_hostname   = "marlowe-dash-a.${local.project}"
     ip               = aws_instance.marlowe_dash_a.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
     user_name        = "root"
@@ -50,7 +50,7 @@ data "template_file" "ssh_config_section_marlowe_dash_b" {
 
   vars = {
     full_hostname    = "marlowe-dash-b.${aws_route53_zone.plutus_private_zone.name}"
-    short_hostname   = "marlowe-dash-b.${var.project}"
+    short_hostname   = "marlowe-dash-b.${local.project}"
     ip               = aws_instance.marlowe_dash_b.private_ip
     bastion_hostname = aws_instance.bastion.*.public_ip[0]
     user_name        = "root"
@@ -58,10 +58,10 @@ data "template_file" "ssh_config_section_marlowe_dash_b" {
 }
 
 data "template_file" "ssh_config" {
-  template = "\n$${nixops_node}\n$${webghc_a}\n$${webghc_b}\n$${marlowe_dash_a}\n$${marlowe_dash_b}"
+  template = "\n$${prometheus_node}\n$${webghc_a}\n$${webghc_b}\n$${marlowe_dash_a}\n$${marlowe_dash_b}"
 
   vars = {
-    nixops_node    = data.template_file.ssh_config_section_nixops.rendered
+    prometheus_node    = data.template_file.ssh_config_section_prometheus.rendered
     webghc_a       = data.template_file.ssh_config_section_webghc_a.rendered
     webghc_b       = data.template_file.ssh_config_section_webghc_b.rendered
     marlowe_dash_a = data.template_file.ssh_config_section_marlowe_dash_a.rendered
@@ -71,5 +71,5 @@ data "template_file" "ssh_config" {
 
 resource "local_file" "ssh_config" {
   content  = data.template_file.ssh_config.rendered
-  filename = "${pathexpand(var.ssh_config_root)}/config.d/${var.project}.conf"
+  filename = "${pathexpand(var.ssh_config_root)}/config.d/${local.project}.conf"
 }

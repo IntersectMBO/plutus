@@ -67,6 +67,46 @@ let
       ${plutus.thorp}/bin/thorp -b plutus-playground-website-${env} -s ${static.plutus}
     '';
 
+  refreshTerraform = env: region:
+    writeShellScript "refresh" ''
+      set -eou pipefail
+
+      tmp_dir=$(mktemp -d)
+      echo "using tmp_dir $tmp_dir"
+
+      ln -s ${./terraform}/* "$tmp_dir"
+
+      # in case we have some tfvars around in ./terraform (note: don't use "" as it stops wildcards from working)
+      rm $tmp_dir/*.tfvars || true
+
+      ln -s ${terraform-locals env}/* "$tmp_dir"
+      ln -s ${terraform-vars env region}/* "$tmp_dir"
+      cd "$tmp_dir"
+
+      echo "set output directory"
+      export TF_VAR_output_path="$tmp_dir"
+
+      echo "read secrets"
+      TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
+      TF_VAR_marlowe_github_client_secret=$(pass ${env}/marlowe/githubClientSecret)
+      TF_VAR_marlowe_jwt_signature=$(pass ${env}/marlowe/jwtSignature)
+      TF_VAR_plutus_github_client_id=$(pass ${env}/plutus/githubClientId)
+      TF_VAR_plutus_github_client_secret=$(pass ${env}/plutus/githubClientSecret)
+      TF_VAR_plutus_jwt_signature=$(pass ${env}/plutus/jwtSignature)
+
+      export TF_VAR_marlowe_github_client_id
+      export TF_VAR_marlowe_github_client_secret
+      export TF_VAR_marlowe_jwt_signature
+      export TF_VAR_plutus_github_client_id
+      export TF_VAR_plutus_github_client_secret
+      export TF_VAR_plutus_jwt_signature
+
+      echo "refresh terraform"
+      ${terraform}/bin/terraform init
+      ${terraform}/bin/terraform workspace select ${env}
+      ${terraform}/bin/terraform refresh -var-file=${env}.tfvars
+    '';
+
   applyTerraform = env: region:
     writeShellScript "deploy" ''
       set -eou pipefail
@@ -84,8 +124,7 @@ let
       cd "$tmp_dir"
 
       echo "set output directory"
-      mkdir -p "$tmp_dir/nixops"
-      export TF_VAR_nixops_root="$tmp_dir/nixops"
+      export TF_VAR_output_path="$tmp_dir"
 
       echo "read secrets"
       TF_VAR_marlowe_github_client_id=$(pass ${env}/marlowe/githubClientId)
@@ -115,14 +154,14 @@ let
       ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$marlowe_api_id" --stage-name ${env}
       ${awscli}/bin/aws apigateway create-deployment --region "$region" --rest-api-id "$plutus_api_id" --stage-name ${env}
 
-      echo "json files created in $tmp_dir/nixops"
+      echo "json files created in $tmp_dir"
 
       # This is a nasty way to make deployment with morph easier since I cannot yet find a way to get morph deployments to work 
       # from within a nix derivation shell script. 
       # Once you have run this script you will have the correct information in the morph directory for morph to deploy to the EC2 instances
       if [[ ! -z "$PLUTUS_ROOT" ]]; then
         echo "copying machine information to $PLUTUS_ROOT/deployment/morph"
-        cp $tmp_dir/nixops/machines.json $PLUTUS_ROOT/deployment/morph/
+        cp $tmp_dir/machines.json $PLUTUS_ROOT/deployment/morph/
       fi
     '';
 
@@ -202,6 +241,7 @@ let
     inherit terraform-vars terraform-locals terraform;
     syncS3 = (syncS3 env region);
     applyTerraform = (applyTerraform env region);
+    refreshTerraform = (refreshTerraform env region);
     deploy = (deploy env region);
     destroy = (destroy env region);
     initPass = (initPass env keyNames);

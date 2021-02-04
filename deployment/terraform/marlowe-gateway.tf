@@ -40,7 +40,7 @@ resource "aws_api_gateway_deployment" "marlowe" {
 resource "aws_api_gateway_domain_name" "marlowe" {
   domain_name = local.marlowe_domain_name
 
-  regional_certificate_arn   = data.aws_acm_certificate.marlowe_private.arn
+  regional_certificate_arn   = aws_acm_certificate.marlowe_private.arn
   endpoint_configuration {
     types = ["REGIONAL"]
   }

@@ -39,7 +39,7 @@ resource "aws_api_gateway_deployment" "plutus" {
 resource "aws_api_gateway_domain_name" "plutus" {
   domain_name = local.plutus_domain_name
 
-  regional_certificate_arn   = data.aws_acm_certificate.plutus_private.arn
+  regional_certificate_arn   = aws_acm_certificate.plutus_private.arn
   endpoint_configuration {
     types = ["REGIONAL"]
   }

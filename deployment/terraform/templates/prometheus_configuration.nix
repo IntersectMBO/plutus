@@ -22,17 +22,8 @@
 
   users.extraUsers.root.openssh.authorizedKeys.keys = [ ${ssh_keys} ];
 
-  users.users.nixops =
-    {
-      isNormalUser = true;
-      home = "/home/nixops";
-      description = "Nixops user";
-      extraGroups = [ ];
-      openssh.authorizedKeys.keys = [ ${ssh_keys} ];
-    };
-
   environment.systemPackages = with pkgs;
-    [ nixops vim tmux git ];
+    [ vim tmux git ];
 
   services.fail2ban.enable = true;
 

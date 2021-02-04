@@ -1,3 +1,0 @@
-env="myname"
-nixops_root="/home/myname/plutus/plutus-playground/deployment/nixops"
-ssh_config_root="/home/myname/.ssh"
