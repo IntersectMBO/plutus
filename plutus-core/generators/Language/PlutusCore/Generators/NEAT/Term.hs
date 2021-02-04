@@ -20,7 +20,7 @@ This file contains
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
-module Language.PlutusCore.Generators.NEAT.Type
+module Language.PlutusCore.Generators.NEAT.Term
   ( TypeBuiltinG (..)
   , TypeG (..)
   , ClosedTypeG
@@ -47,48 +47,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Text.Printf
 
-newtype Neutral a = Neutral
-  { unNeutral :: a
-  }
-
-
--- * Enumeration
-
--- ** Enumerating types
-
-data TypeBuiltinG
-  = TyByteStringG
-  | TyIntegerG
-  | TyStringG
-  | TyBoolG
-  | TyUnitG
-  | TyCharG
-  deriving (Show, Eq, Ord)
-
-deriveEnumerable ''TypeBuiltinG
-
--- NOTE: Unusually, the application case is annotated with a kind.
---       The reason is eagerness and efficiency. If we have the kind
---       information at the application site, we can check the two
---       subterms in parallel, while evaluating as little as possible.
-
-data TypeG tyname
-  = TyVarG tyname
-  | TyFunG (TypeG tyname) (TypeG tyname)
-  | TyIFixG (TypeG tyname) (Kind ()) (TypeG tyname)
-  | TyForallG (Kind ()) (TypeG (S tyname))
-  | TyBuiltinG TypeBuiltinG
-  | TyLamG (TypeG (S tyname))
-  | TyAppG (TypeG tyname) (TypeG tyname) (Kind ())
-  deriving (Typeable, Eq, Ord, Show, Functor)
-
-deriving instance Ord (Kind ())
-
-deriveEnumerable ''Kind
-
-deriveEnumerable ''TypeG
-
-type ClosedTypeG = TypeG Z
+import           Language.PlutusCore.Generators.NEAT.Type
 
 {-
 

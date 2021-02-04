@@ -1,3 +1,14 @@
+{-| Description : Property based testing Name Utilities
+
+This file contains various naming related utilities used for
+generating Plutus Core types and terms.
+
+-}
+
+module Language.PlutusCore.Generators.NEAT.Common where
+
+{-# FOREIGN AGDA2HS
+
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE EmptyCase           #-}
 {-# LANGUAGE EmptyDataDeriving   #-}
@@ -5,28 +16,28 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Language.PlutusCore.Generators.NEAT.Common where
-
-
-
-
-
-
-
-
 
 import           Control.Enumerable
 import qualified Data.Stream               as Stream
 import qualified Data.Text                 as Text
 import           Language.PlutusCore.Name  (Name, TyName (..))
 import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
+#-}
+-- * Enumerating deBruijn indices
 
-data Z deriving (Typeable, Eq, Ord, Show)
+-- empty type
+data Z : Set where
 
-data S n = FZ
-         | FS n
-             deriving (Typeable, Eq, Ord, Show, Functor)
+{-# COMPILE AGDA2HS Z deriving (Typeable, Eq, Ord, Show) #-}
 
+-- maybe type
+data S n : Set where
+  FZ : S n
+  FS : n → S n
+
+{-# COMPILE AGDA2HS S deriving (Typeable, Eq, Ord, Show, Functor) #-}
+
+{-# FOREIGN AGDA2HS
 instance Enumerable Z where
   enumerate = datatype []
 
@@ -84,4 +95,4 @@ mkTextNameStream prefix =
   Stream.map
     (\n -> prefix <> Text.pack (show n))
     (Stream.iterate (+1) (0 :: Integer))
-
+#-}
