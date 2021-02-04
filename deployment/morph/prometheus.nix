@@ -1,5 +1,5 @@
 {
-  mkInstance = { monitoringKeys, defaultMachine }:
+  mkInstance = { monitoringKeys, defaultMachine, ports, ... }:
     { hostName
       # The deployment environment used as a label in prometheus
     , environment
@@ -8,7 +8,6 @@
     }:
     { config, pkgs, lib, ... }:
     let
-      prometheusPort = 9090;
       target = { port, ip, label }:
         {
           targets = [
@@ -47,7 +46,7 @@
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ 22 prometheusPort ];
+        allowedTCPPorts = with ports; [ ssh prometheus ];
       };
 
       users.users.monitoring =
@@ -71,7 +70,7 @@
             static_configs = targets ++ [
               {
                 targets = [
-                  "localhost:9100"
+                  "localhost:${toString ports.nodeExporter}"
                 ];
                 labels = {
                   instance = "monitoring";
@@ -86,7 +85,7 @@
             static_configs = [
               {
                 targets = [
-                  "localhost:9090"
+                  "localhost:${toString ports.prometheus}"
                 ];
                 labels = {
                   instance = "monitoring";

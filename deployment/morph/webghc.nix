@@ -1,5 +1,5 @@
 {
-  mkInstance = { defaultMachine, monitoringKeys, web-ghc }:
+  mkInstance = { defaultMachine, monitoringKeys, web-ghc, ports, ... }:
     hostName:
     { config, pkgs, lib, ... }:
     let
@@ -33,7 +33,7 @@
 
       networking.firewall = {
         enable = true;
-        allowedTCPPorts = [ 22 80 9100 9091 9113 ];
+        allowedTCPPorts = with ports; [ ssh http nodeExporter webGhcExporter ];
       };
 
       services.prometheus.exporters = {
@@ -56,10 +56,8 @@
       };
 
       systemd.services.web-ghc = {
-        wantedBy = [ ];
-        before = [ ];
         enable = true;
-        path = [ ];
+        after = [ "network.target" ];
 
         serviceConfig = {
           TimeoutStartSec = "0";
