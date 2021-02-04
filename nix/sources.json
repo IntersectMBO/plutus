@@ -29,7 +29,7 @@
         "branch": "master",
         "description": "Automatically generated Nix expressions for Hackage",
         "homepage": "",
-        "owner": "input-output-hk", 
+        "owner": "input-output-hk",
         "repo": "hackage.nix",
         "rev": "a97132667c5bf098ac6123f4d163b8ae68348537",
         "sha256": "1ddpzpkrqxyncrnq6cfaqmlk2kxg9nzm5x7jcrpa6iy9q0kjvk67",
@@ -82,10 +82,10 @@
         "homepage": "https://nixos.org/nixops",
         "owner": "NixOS",
         "repo": "nixops",
-        "rev": "1239ff7fb94bd647ea54d18e7c7da4b81e63f422",
-        "sha256": "1gfl9jasnds7frb9lkx4k0dkynkrlxriirqshwp79kbcjw3g6lnp",
+        "rev": "1ed5a091bc52de6c91319f446f833018a1cb326e",
+        "sha256": "1fx17qv9cl7hz7322zh4xlg02xn7bwwjj82cdcvqpsjf83crz3xi",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixops/archive/1239ff7fb94bd647ea54d18e7c7da4b81e63f422.tar.gz",
+        "url": "https://github.com/NixOS/nixops/archive/1ed5a091bc52de6c91319f446f833018a1cb326e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
