@@ -21,11 +21,10 @@ module Language.PlutusTx.Coordination.Contracts.Auction(
 
 
 import           Data.Aeson                            (FromJSON, ToJSON)
-import           Data.Foldable                         (traverse_)
 import           GHC.Generics                          (Generic)
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.StateMachine (State (..), StateMachine (..), StateMachineClient,
-                                                        StateMachineInstance (..), Void)
+                                                        StateMachineInstance (..), Void, WaitingResult (..))
 import qualified Language.Plutus.Contract.StateMachine as SM
 import           Language.Plutus.Contract.Util         (loopM)
 import qualified Language.PlutusTx                     as PlutusTx
@@ -65,10 +64,16 @@ PlutusTx.makeIsData ''HighestBid
 
 -- | The states of the auction
 data AuctionState
-    = Ongoing HighestBid -- Bids can be submitted
+    = Ongoing HighestBid -- Bids can be submitted.
     | Finished HighestBid -- The auction is finished
     deriving stock (Generic, Haskell.Show)
     deriving anyclass (ToJSON, FromJSON)
+
+-- | Initial 'AuctionState'. In the beginning the highest bid is 0 and the
+--   highest bidder is seller of the asset. So if nobody submits
+--   any bids, the seller gets the asset back after the auction has ended.
+initialState :: PubKeyHash -> AuctionState
+initialState self = Ongoing HighestBid{highestBid = 0, highestBidder = self}
 
 PlutusTx.makeIsData ''AuctionState
 
@@ -101,7 +106,7 @@ auctionTransition AuctionParams{apOwner, apAsset, apEndTime} State{stateData=old
 
         (Ongoing h@HighestBid{highestBidder, highestBid}, Payout) ->
             let constraints =
-                    Constraints.mustValidateIn (Interval.from apEndTime) -- When the auction has ended,
+                    Constraints.mustValidateIn (Interval.from (apEndTime + 1)) -- When the auction has ended,
                     <> Constraints.mustPayToPubKey apOwner (Ada.toValue highestBid) -- the owner receives the payment
                     <> Constraints.mustPayToPubKey highestBidder apAsset -- and the highest bidder the asset
                 newState = State { stateData = Finished h, stateValue = mempty }
@@ -143,7 +148,6 @@ machineClient
 machineClient inst auctionParams =
     let machine = auctionStateMachine auctionParams
     in SM.mkStateMachineClient (StateMachineInstance machine inst)
---BLOCK7
 
 type BuyerSchema = BlockchainActions .\/ Endpoint "bid" Ada
 type SellerSchema = BlockchainActions -- Don't need any endpoints: the contract runs automatically until the auction is finished.
@@ -167,18 +171,17 @@ auctionSeller value slot = do
     let params       = AuctionParams{apOwner = self, apAsset = value, apEndTime = slot }
         inst         = scriptInstance params
         client       = machineClient inst params
-        initialState = Ongoing HighestBid{highestBid = 0, highestBidder = self}
 
     _ <- handleError
             (\e -> do { logError (AuctionFailed e); throwError e})
-            (SM.runInitialise client initialState value)
+            (SM.runInitialise client (initialState self) value)
 
     logInfo $ AuctionStarted params
     _ <- awaitSlot slot
 
     r <- SM.runStep client Payout
     case r of
-        SM.TransitionFailure i            -> logError (TransitionFailed i)
+        SM.TransitionFailure i            -> logError (TransitionFailed i) -- TODO: Add an endpoint "retry" to the seller?
         SM.TransitionSuccess (Finished h) -> logInfo $ AuctionEnded h
         SM.TransitionSuccess s            -> logWarn ("Unexpected state after Payout transition: " <> show s)
 
@@ -203,7 +206,7 @@ own, and we want to stop the client when the auction is over.
 
 To achieve this, we have a loop where we wait for one of several events to
 happen and then deal with the event. The waiting is implemented in
-@waitForChange@ and the event handling is in @handleChange@.
+@waitForChange@ and the event handling is in @handleEvent@.
 
 Updates to the user are provided via the log functionality. This is not as bad
 as it sounds because the log records JSON objects so we are at least semi-
@@ -213,13 +216,13 @@ export the "current state" of the app more easily.)
 
 -}
 
-data BuyerChange =
+data BuyerEvent =
         AuctionIsOver HighestBid -- ^ The auction has ended with the highest bid
         | SubmitOwnBid Ada -- ^ We want to submit a new bid
         | OtherBid HighestBid -- ^ Another buyer submitted a higher bid
         | NoChange HighestBid -- ^ Nothing has changed
 
-waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract BuyerSchema SM.SMContractError BuyerChange
+waitForChange :: AuctionParams -> StateMachineClient AuctionState AuctionInput -> HighestBid -> Contract BuyerSchema SM.SMContractError BuyerEvent
 waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     s <- currentSlot
     let
@@ -239,8 +242,8 @@ waitForChange AuctionParams{apEndTime} client lastHighestBid = do
     -- see note [Buyer client]
     auctionOver `select` submitOwnBid `select` otherBid
 
-handleChange :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerChange -> Contract BuyerSchema SM.SMContractError (Either HighestBid ())
-handleChange client lastHighestBid change =
+handleEvent :: StateMachineClient AuctionState AuctionInput -> HighestBid -> BuyerEvent -> Contract BuyerSchema SM.SMContractError (Either HighestBid ())
+handleEvent client lastHighestBid change =
     let continue = pure . Left
         stop     = pure (Right ())
     -- see note [Buyer client]
@@ -249,10 +252,13 @@ handleChange client lastHighestBid change =
         SubmitOwnBid ada -> do
             self <- Ledger.pubKeyHash <$> ownPubKey
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
-            let newHighestBid = HighestBid{highestBid= ada, highestBidder = self}
             case r of
                 SM.TransitionFailure i -> logError (TransitionFailed i) >> continue lastHighestBid
-                SM.TransitionSuccess _ -> logInfo (BidSubmitted newHighestBid) >> continue newHighestBid
+                SM.TransitionSuccess (Ongoing newHighestBid) -> logInfo (BidSubmitted newHighestBid) >> continue newHighestBid
+
+                -- the last case shouldn't happen because the "Bid" transition always results in the "Ongoing"
+                -- but you never know :-)
+                SM.TransitionSuccess (Finished newHighestBid) -> logError (AuctionEnded newHighestBid) >> stop
         OtherBid s -> do
             logInfo (CurrentState s)
             continue s
@@ -264,6 +270,12 @@ auctionBuyer params = do
         client       = machineClient inst params
 
         -- the actual loop, see note [Buyer client]
-        loop         = loopM (\h -> waitForChange params client h >>= handleChange client h)
+        loop         = loopM (\h -> waitForChange params client h >>= handleEvent client h)
     initial <- currentState client
-    traverse_ loop initial
+    case initial of
+        Just s -> loop s
+
+        -- If the state can't be found we wait for it to appear.
+        Nothing -> SM.waitForUpdateUntil client (apEndTime params) >>= \case
+            WaitingResult (Ongoing s) -> loop s
+            _                         -> logWarn CurrentStateNotFound

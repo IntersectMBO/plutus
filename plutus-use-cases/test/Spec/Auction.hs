@@ -8,7 +8,7 @@ import           Control.Monad                                    (void)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Ledger                                           (Value, pubKeyHash)
+import           Ledger                                           (Ada, Value, pubKeyHash)
 import qualified Ledger.Ada                                       as Ada
 
 import qualified Language.Plutus.Contract.StateMachine            as SM
@@ -25,14 +25,15 @@ tests =
         [ checkPredicateOptions options "run an auction"
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
-            .&&. walletFundsChange w1 (Ada.lovelaceValueOf 50 <> inv theToken)
-            .&&. walletFundsChange w2 (Ada.lovelaceValueOf (-50) <> theToken))
+            .&&. walletFundsChange w1 (Ada.toValue trace1WinningBid <> inv theToken)
+            .&&. walletFundsChange w2 (inv (Ada.toValue trace1WinningBid) <> theToken))
             auctionTrace1
         , checkPredicateOptions options "run an auction with multiple bids"
             (assertDone seller (Trace.walletInstanceTag w1) (const True) "seller should be done"
             .&&. assertDone buyer (Trace.walletInstanceTag w2) (const True) "buyer should be done"
-            .&&. walletFundsChange w1 (Ada.lovelaceValueOf 70 <> inv theToken)
-            .&&. walletFundsChange w2 (Ada.lovelaceValueOf (-70) <> theToken)
+            .&&. assertDone buyer (Trace.walletInstanceTag w3) (const True) "3rd party should be done"
+            .&&. walletFundsChange w1 (Ada.toValue trace2WinningBid <> inv theToken)
+            .&&. walletFundsChange w2 (inv (Ada.toValue trace2WinningBid) <> theToken)
             .&&. walletFundsChange w3 mempty)
             auctionTrace2
         ]
@@ -71,6 +72,9 @@ w1 = Wallet 1
 w2 = Wallet 2
 w3 = Wallet 3
 
+trace1WinningBid :: Ada
+trace1WinningBid = 50
+
 auctionTrace1 :: Trace.EmulatorTrace ()
 auctionTrace1 = do
     _ <- Trace.activateContractWallet w1 seller
@@ -78,7 +82,10 @@ auctionTrace1 = do
     hdl2 <- Trace.activateContractWallet w2 buyer
     _ <- Trace.waitNSlots 1
     Trace.callEndpoint @"bid" hdl2 50
-    void $ Trace.waitUntilSlot (succ $ apEndTime params)
+    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
+
+trace2WinningBid :: Ada
+trace2WinningBid = 70
 
 auctionTrace2 :: Trace.EmulatorTrace ()
 auctionTrace2 = do
@@ -92,4 +99,4 @@ auctionTrace2 = do
     Trace.callEndpoint @"bid" hdl3 60
     _ <- Trace.waitNSlots 35
     Trace.callEndpoint @"bid" hdl2 70
-    void $ Trace.waitUntilSlot (succ $ apEndTime params)
+    void $ Trace.waitUntilSlot (succ $ succ $ apEndTime params)
