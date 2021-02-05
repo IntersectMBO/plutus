@@ -1,11 +1,10 @@
 module MainFrame.State (mkMainFrame) where
 
 import Prelude
-import Data.Lens (assign, modifying, use)
+import Data.Lens (assign, modifying, set, use)
 import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Halogen (Component, HalogenM, raise)
-import Halogen as H
+import Halogen (Component, HalogenM, mkComponent, mkEval, modify_, raise)
 import Halogen.HTML (HTML)
 import MainFrame.Lenses (_card, _on, _overlay, _screen)
 import MainFrame.Types (Action(..), ChildSlots, Msg(..), Query(..), Screen(..), State)
@@ -26,11 +25,11 @@ initialState =
 ------------------------------------------------------------
 mkMainFrame :: forall m. MonadAff m => Component HTML Query Action Msg m
 mkMainFrame =
-  H.mkComponent
+  mkComponent
     { initialState: const initialState
     , render: render
     , eval:
-        H.mkEval
+        mkEval
           { handleQuery
           , handleAction
           , receive: const Nothing
@@ -51,20 +50,24 @@ handleAction Init = pure unit
 handleAction (ToggleOverlay overlay) = do
   mCurrentOverlay <- use _overlay
   case mCurrentOverlay of
-    Just currentOverlay -> assign _overlay $ if overlay == currentOverlay then Nothing else Just overlay
-    Nothing -> assign _overlay $ Just overlay
+    Just currentOverlay
+      | overlay == currentOverlay -> assign _overlay Nothing
+    _ -> assign _overlay $ Just overlay
 
-handleAction (SetScreen screen) = do
-  assign _overlay Nothing
-  assign _card Nothing
-  assign _screen screen
+handleAction (SetScreen screen) =
+  modify_
+    ( set _overlay Nothing
+        <<< set _card Nothing
+        <<< set _screen screen
+    )
 
 handleAction (ToggleCard card) = do
   assign _overlay Nothing
   mCurrentCard <- use _card
   case mCurrentCard of
-    Just currentCard -> assign _card $ if card == currentCard then Nothing else Just card
-    Nothing -> assign _card $ Just card
+    Just currentCard
+      | card == currentCard -> assign _card Nothing
+    _ -> assign _card $ Just card
 
 handleAction CloseCard = assign _card Nothing
 
