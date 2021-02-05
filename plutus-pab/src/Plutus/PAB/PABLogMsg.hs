@@ -9,17 +9,19 @@
 module Plutus.PAB.PABLogMsg(
     PABLogMsg(..),
     ContractExeLogMsg(..),
+    ChainIndexServerMsg(..),
     AppMsg(..)
     ) where
 
 import           Cardano.BM.Data.Tracer             (ToObject (..), TracingVerbosity (..))
 import           Cardano.BM.Data.Tracer.Extras      (Tagged (..), mkObjectStr)
+import           Cardano.Node.Types                 (FollowerID)
 import           Data.Aeson                         (FromJSON, ToJSON, Value)
 import qualified Data.Aeson.Encode.Pretty           as JSON
 import qualified Data.ByteString.Lazy.Char8         as BSL8
 import           Data.String                        (IsString (..))
 import           Data.Text                          (Text)
-import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, hang, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc          (Pretty (..), colon, hang, parens, viaShow, vsep, (<+>))
 import           Data.Time.Units                    (Second)
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.State     (ContractRequest)
@@ -46,9 +48,44 @@ data AppMsg =
     | InstalledContract Text
     | ContractInstance ContractExe [ContractInstanceId]
     | TxHistoryItem Tx
-    | ContractHistoryItem Int (ContractInstanceState ContractExe) -- index
+    | ContractHistoryItem Int (ContractInstanceState ContractExe)
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+-- | Messages from the ChainIndex Server
+data ChainIndexServerMsg =
+    -- | Obtaining a new follower
+    ObtainingFollowerID
+    -- | Obtained a new follower 'FollowerID'
+    | ObtainedFollowerID FollowerID
+    -- | Updating the chain index with 'FollowerID'
+    | UpdatingChainIndex FollowerID
+    -- | Requesting new blocks from the node
+    | AskingNodeForNewBlocks
+    -- | Requesting the current slot from the node
+    | AskingNodeForCurrentSlot
+    -- | Starting a node client thread
+    | StartingNodeClientThread
+    -- | Starting ChainIndex service
+    | StartingChainIndex
+        Int    -- ^ Port number
+      -- | Received transaction
+    | ReceivedBlocksTxns
+        Int    -- ^ Blocks
+        Int    -- ^ Transactions
+    deriving stock (Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty ChainIndexServerMsg where
+    pretty = \case
+        ObtainingFollowerID -> "Obtaining follower ID"
+        ObtainedFollowerID i -> "Obtained follower ID:" <+> pretty i
+        UpdatingChainIndex i -> "Updating chain index with follower ID" <+> pretty i
+        ReceivedBlocksTxns blocks txns -> "Received" <+> pretty blocks <+> "blocks" <+> parens (pretty txns <+> "transactions")
+        AskingNodeForNewBlocks -> "Asking the node for new blocks"
+        AskingNodeForCurrentSlot -> "Asking the node for the current slot"
+        StartingNodeClientThread -> "Starting node client thread"
+        StartingChainIndex port -> "Starting chain index on port: " <> pretty port
 
 instance Pretty AppMsg where
     pretty = \case
@@ -73,6 +110,7 @@ data PABLogMsg =
     | SLoggerBridge MonadLoggerMsg
     | SWebsocketMsg WebSocketLogMsg
     | SContractRuntimeMsg ContractRuntimeMsg
+    | SChainIndexServerMsg ChainIndexServerMsg
     deriving stock (Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -86,6 +124,7 @@ instance Pretty PABLogMsg where
         SLoggerBridge m        -> pretty m
         SWebsocketMsg m        -> pretty m
         SContractRuntimeMsg m  -> pretty m
+        SChainIndexServerMsg m -> pretty m
 
 data ContractExeLogMsg =
     InvokeContractMsg
@@ -183,6 +222,19 @@ instance ToObject PABLogMsg where
         SLoggerBridge e        -> toObject v e
         SWebsocketMsg e        -> toObject v e
         SContractRuntimeMsg e  -> toObject v e
+        SChainIndexServerMsg m -> toObject v m
+
+instance ToObject ChainIndexServerMsg where
+    toObject _ = \case
+      ObtainingFollowerID      -> mkObjectStr "obtaining FollowerID" ()
+      ObtainedFollowerID fID   -> mkObjectStr "obtained FollowerID" (Tagged @"followerID" fID)
+      UpdatingChainIndex fID   -> mkObjectStr "updating chainIndex with FollowerID" (Tagged @"followerID" fID)
+      ReceivedBlocksTxns x y   -> mkObjectStr "received block transactions" (Tagged @"blocks" x, Tagged @"transactions" y)
+      AskingNodeForNewBlocks   -> mkObjectStr "asking for new blocks" ()
+      AskingNodeForCurrentSlot -> mkObjectStr "asking node for current slot" ()
+      StartingNodeClientThread -> mkObjectStr "starting node client thread" ()
+      StartingChainIndex p     -> mkObjectStr "starting chain index" (Tagged @"port" p)
+
 
 instance ToObject ContractExeLogMsg where
     toObject v = \case

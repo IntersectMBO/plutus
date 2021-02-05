@@ -89,7 +89,7 @@ toLogLevel = \case
     LevelOther _ -> L.Info
 
 -- | Interpret 'MonadLogger' effect using a 'Trace'.
--- see note [Use of iohk-monitoring in PAB] for why this is necessary.
+-- see [note on monitoring in pab](#Main.iohk-monitoring-pab) for why this is necessary.
 newtype TraceLoggerT m a = TraceLoggerT { runTraceLoggerT :: Trace m MonadLoggerMsg -> m a }
     deriving (Functor, Applicative, Monad, MonadIO, MonadCatch, MonadThrow) via (ReaderT (Trace m MonadLoggerMsg) m)
 

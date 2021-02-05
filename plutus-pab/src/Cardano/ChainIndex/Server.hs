@@ -4,7 +4,9 @@
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 module Cardano.ChainIndex.Server(
     -- $chainIndex
     main
@@ -13,6 +15,7 @@ module Cardano.ChainIndex.Server(
     , syncState
     ) where
 
+import           Cardano.BM.Data.Trace           (Trace)
 import           Cardano.Node.Types              (FollowerID)
 import           Control.Concurrent              (forkIO, threadDelay)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
@@ -24,12 +27,10 @@ import           Control.Monad.Freer.Log         (renderLogMessages)
 import           Control.Monad.Freer.State
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
-import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable                   (fold, traverse_)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import           Data.Text                       (Text)
-import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
@@ -40,7 +41,8 @@ import           Servant.Client                  (BaseUrl (baseUrlPort), ClientE
 
 import           Ledger.Address                  (Address)
 import           Ledger.AddressMap               (AddressMap)
-import           Plutus.PAB.Utils                (tshow)
+import           Plutus.PAB.Monitoring           (handleLogMsgTrace)
+import           Plutus.PAB.PABLogMsg            (ChainIndexServerMsg (..))
 
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
@@ -66,19 +68,27 @@ app stateVar =
         (processIndexEffects stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
-main :: MonadIO m => ChainIndexConfig -> BaseUrl -> Availability -> m ()
-main ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = runStdoutLoggingT $ do
+handleChainIndexEffects ::
+    forall m.
+    MonadIO m
+    => Trace m ChainIndexServerMsg
+    -> Eff '[LogMsg ChainIndexServerMsg, m]
+    ~> m
+handleChainIndexEffects trace = runM . handleLogMsgTrace trace
+
+main :: Trace IO ChainIndexServerMsg -> ChainIndexConfig -> BaseUrl -> Availability -> IO ()
+main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleChainIndexEffects trace $ do
     let port = baseUrlPort ciBaseUrl
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
             pure $ mkClientEnv nodeManager nodeBaseUrl
     mVarState <- liftIO $ newMVar initialAppState
-    logInfoN "Starting node client thread"
-    void $ liftIO $ forkIO $ runStdoutLoggingT $ updateThread 10 mVarState nodeClientEnv
+    logInfo StartingNodeClientThread
+    void $ liftIO $ forkIO $ handleChainIndexEffects trace $ updateThread 10 mVarState nodeClientEnv
     let warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
-    logInfoN $ "Starting chain index on port: " <> tshow port
+    logInfo $ StartingChainIndex port
     liftIO $ Warp.runSettings warpSettings $ app mVarState
 
 healthcheck :: Monad m => m NoContent
@@ -93,22 +103,6 @@ watchedAddresses = WalletEffects.watchedAddresses
 confirmedBlocks :: (Member ChainIndexEffect effs) => Eff effs [Block]
 confirmedBlocks = WalletEffects.confirmedBlocks
 
-data ChainIndexServerMsg =
-    ObtainingFollowerID
-    | ObtainedFollowerID FollowerID
-    | UpdatingChainIndex FollowerID
-    | ReceivedBlocksTxns Int Int
-    | AskingNodeForNewBlocks
-    | AskingNodeForCurrentSlot
-
-instance Pretty ChainIndexServerMsg where
-    pretty = \case
-        ObtainingFollowerID -> "Obtaining follower ID"
-        ObtainedFollowerID i -> "Obtained follower ID:" <+> pretty i
-        UpdatingChainIndex i -> "Updating chain index with follower ID" <+> pretty i
-        ReceivedBlocksTxns blocks txns -> "Received" <+> pretty blocks <+> "blocks" <+> parens (pretty txns <+> "transactions")
-        AskingNodeForNewBlocks -> "Asking the node for new blocks"
-        AskingNodeForCurrentSlot -> "Asking the node for the current slot"
 
 -- | Update the chain index by asking the node for new blocks since the last
 --   time.
@@ -131,41 +125,46 @@ syncState = do
 
 -- | Get the latest transactions from the node and update the index accordingly
 updateThread ::
-    (MonadIO m, MonadLogger m)
+    forall effs.
+    ( LastMember IO effs
+    , Member (LogMsg ChainIndexServerMsg) effs
+    )
     => Second
     -- ^ Interval between two queries for new blocks
     -> MVar AppState
     -- ^ State of the chain index
     -> ClientEnv
     -- ^ Servant client for the node API
-    -> m ()
+    -> Eff effs ()
 updateThread updateInterval mv nodeClientEnv = do
-    logInfoN "Obtaining follower ID"
+    logInfo ObtainingFollowerID
     followerID <-
         liftIO $
         runClientM NodeClient.newFollower nodeClientEnv >>=
         either (error . show) pure
-    logInfoN $ "Follower ID: " <> tshow followerID
+    logInfo $ ObtainedFollowerID followerID
     forever $ do
         watching <- processIndexEffects mv WalletEffects.watchedAddresses
         unless (watching == mempty) (fetchNewBlocks followerID nodeClientEnv mv)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds updateInterval
 
 fetchNewBlocks ::
-       (MonadLogger m, MonadIO m)
+    forall effs.
+    ( LastMember IO effs
+    , Member (LogMsg ChainIndexServerMsg) effs
+    )
     => FollowerID
     -> ClientEnv
     -> MVar AppState
-    -> m ()
+    -> Eff effs ()
 fetchNewBlocks followerID nodeClientEnv mv = do
-    logInfoN "Asking the node for new blocks"
+    logInfo AskingNodeForNewBlocks
     newBlocks <-
         liftIO $
         runClientM (NodeClient.getBlocks followerID) nodeClientEnv >>=
         either (error . show) pure
-    logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
-    logDebugN $ tshow newBlocks
-    logInfoN "Asking the node for the current slot"
+    logInfo (ReceivedBlocksTxns (length newBlocks) (length $ fold newBlocks))
+    logInfo AskingNodeForCurrentSlot
     curentSlot <-
         liftIO $
         runClientM NodeClient.getCurrentSlot nodeClientEnv >>=
