@@ -155,7 +155,6 @@ type SellerSchema = BlockchainActions -- Don't need any endpoints: the contract 
 data AuctionLog =
     AuctionStarted AuctionParams
     | AuctionFailed SM.SMContractError
-    | CurrentState HighestBid
     | BidSubmitted HighestBid
     | AuctionEnded HighestBid
     | CurrentStateNotFound
@@ -190,7 +189,7 @@ auctionSeller value slot = do
 currentState :: StateMachineClient AuctionState AuctionInput -> Contract BuyerSchema SM.SMContractError (Maybe HighestBid)
 currentState client = SM.getOnChainState client >>= \case
     Just ((TypedScriptTxOut{tyTxOutData=Ongoing s}, _), _) -> do
-        logInfo (CurrentState s)
+        notify (Ongoing s)
         pure (Just s)
     _ -> do
         logWarn CurrentStateNotFound
@@ -208,11 +207,7 @@ To achieve this, we have a loop where we wait for one of several events to
 happen and then deal with the event. The waiting is implemented in
 @waitForChange@ and the event handling is in @handleEvent@.
 
-Updates to the user are provided via the log functionality. This is not as bad
-as it sounds because the log records JSON objects so we are at least semi-
-structured. (Basically we have a @Writer [Aeson.Value]@ - in the future we
-should just make it a @Writer a@ for some user-defined @a@ so that we can
-export the "current state" of the app more easily.)
+Updates to the user are provided via 'notify'.
 
 -}
 
@@ -248,7 +243,7 @@ handleEvent client lastHighestBid change =
         stop     = pure (Right ())
     -- see note [Buyer client]
     in case change of
-        AuctionIsOver _ -> stop
+        AuctionIsOver s -> notify (Finished s) >> stop
         SubmitOwnBid ada -> do
             self <- Ledger.pubKeyHash <$> ownPubKey
             r <- SM.runStep client Bid{newBid = ada, newBidder = self}
@@ -260,7 +255,7 @@ handleEvent client lastHighestBid change =
                 -- but you never know :-)
                 SM.TransitionSuccess (Finished newHighestBid) -> logError (AuctionEnded newHighestBid) >> stop
         OtherBid s -> do
-            logInfo (CurrentState s)
+            notify (Ongoing s)
             continue s
         NoChange s -> continue s
 

@@ -139,7 +139,7 @@ instance FromJSON ContractHandlersResponse where
             "address"         -> NextTxAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
             "own-instance-id" -> OwnInstanceIdRequest <$> v .: "value"
-            "notify"          -> SendNotificationRequest <$> v .: "value"
+            "notify-instance" -> SendNotificationRequest <$> v .: "value"
             _                 -> UserEndpointRequest <$> v .: "value"
 
 instance Pretty ContractPABRequest where

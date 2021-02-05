@@ -159,7 +159,7 @@ call :: forall (rpc :: Symbol) (rpcRsp :: Symbol) req resp err s.
 call t req = do
     ownId <- mapError RPCOtherError ownInstanceId
     let params = RPCParams{rpcCallbackInstance = ownId, rpcPayload = req}
-    _ <- mapError RPCCallError $ notifyUnsafe @rpc t (toJSON params)
+    _ <- mapError RPCCallError $ notifyInstanceUnsafe @rpc t (toJSON params)
     mapError RPCAwaitResponseError $ endpoint @rpcRsp
 
 -- | Wait for another instance to call the RPC endpoint, and respond to the
@@ -187,4 +187,4 @@ respond :: forall (rpc :: Symbol) (rpcRespondEndpoint :: Symbol) req resp s e.
 respond k = do
     RPCParams{rpcCallbackInstance, rpcPayload} <- mapError RPCEndpointError $ endpoint @rpc
     result :: Either e resp <- mapError absurd $ runError $ k rpcPayload
-    mapError RPCNotifyError $ notifyUnsafe @rpcRespondEndpoint rpcCallbackInstance (toJSON result)
+    mapError RPCNotifyError $ notifyInstanceUnsafe @rpcRespondEndpoint rpcCallbackInstance (toJSON result)

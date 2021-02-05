@@ -56,6 +56,7 @@ module Language.Plutus.Contract(
     , ContractInstanceId
     , ownInstanceId
     -- * Notifications
+    , notifyInstance
     , notify
     -- * Transactions
     , HasWriteTx
@@ -159,3 +160,8 @@ logWarn = Contract . L.logWarn . toJSON
 -- | Log a message at the 'Error' level
 logError :: ToJSON a => a -> Contract s e ()
 logError = Contract . L.logError . toJSON
+
+-- | Send a notification to the outside world. (This is a placeholder
+--   until we implement https://jira.iohk.io/browse/SCP-1837)
+notify :: ToJSON a => a -> Contract s e ()
+notify = logInfo
