@@ -2,6 +2,13 @@
 -- Edit this file not Common.hs
 -- The warning below will be written to Common.hs
 
+{- Description : Property based testing Name Utilities
+
+This file contains various naming related utilities used for
+generating Plutus Core types and terms.
+
+-}
+
 module Language.PlutusCore.Generators.NEAT.Common where
 
 -- warning to be written to Haskell file:
@@ -14,13 +21,6 @@ module Language.PlutusCore.Generators.NEAT.Common where
 #-}
 
 {-# FOREIGN AGDA2HS
-
-{-| Description : Property based testing Name Utilities
-
-This file contains various naming related utilities used for
-generating Plutus Core types and terms.
-
--}
 
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE EmptyCase           #-}

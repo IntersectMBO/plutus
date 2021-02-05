@@ -13,13 +13,6 @@ module Language.PlutusCore.Generators.NEAT.Common where
 !!! AND THEN RUN agda2hs ON IT.
 -}
 
-{-| Description : Property based testing Name Utilities
-
-This file contains various naming related utilities used for
-generating Plutus Core types and terms.
-
--}
-
 
 
 
