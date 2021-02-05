@@ -133,89 +133,82 @@ data TermGenerator
   = ArgumentArray (Array Argument)
   | SimpleArgument Argument
 
--- Shorter version of constructors for keeping code short
-aa :: Array Argument -> TermGenerator
-aa = ArgumentArray
-
-eaa :: TermGenerator
-eaa = ArgumentArray []
-
 getMarloweConstructors :: MarloweType -> Map String TermGenerator
-getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" $ aa [ DefaultString "choiceNumber", DataArg PartyType ]
+getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" $ ArgumentArray [ DefaultString "choiceNumber", DataArg PartyType ]
 
 getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" $ aa [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
-    , (Tuple "Choice" $ aa [ GenArg ChoiceIdType, ArrayArg "bounds" ])
-    , (Tuple "Notify" $ aa [ DataArg ObservationType ])
+    [ (Tuple "Deposit" $ ArgumentArray [ DataArg PartyType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
+    , (Tuple "Choice" $ ArgumentArray [ GenArg ChoiceIdType, ArrayArg "bounds" ])
+    , (Tuple "Notify" $ ArgumentArray [ DataArg ObservationType ])
     ]
 
 getMarloweConstructors PayeeType =
   Map.fromFoldable
-    [ (Tuple "Account" $ aa [ DataArg PartyType ])
-    , (Tuple "Party" $ aa [ DataArg PartyType ])
+    [ (Tuple "Account" $ ArgumentArray [ DataArg PartyType ])
+    , (Tuple "Party" $ ArgumentArray [ DataArg PartyType ])
     ]
 
-getMarloweConstructors CaseType = Map.singleton "Case" $ aa [ DataArg ActionType, DataArg ContractType ]
+getMarloweConstructors CaseType = Map.singleton "Case" $ ArgumentArray [ DataArg ActionType, DataArg ContractType ]
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" $ aa [ DataArg PartyType, DataArg TokenType ])
-    , (Tuple "Constant" $ aa [ DefaultNumber zero ])
-    , (Tuple "ConstantParam" $ aa [ DefaultString "parameterName" ])
-    , (Tuple "NegValue" $ aa [ DataArg ValueType ])
-    , (Tuple "AddValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "SubValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "MulValue" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "Scale" $ aa [ DefaultRational (Rational one one), DataArg ValueType ])
-    , (Tuple "ChoiceValue" $ aa [ GenArg ChoiceIdType ])
-    , (Tuple "SlotIntervalStart" eaa)
-    , (Tuple "SlotIntervalEnd" eaa)
-    , (Tuple "UseValue" $ aa [ DefaultString "valueId" ])
-    , (Tuple "Cond" $ aa [ DataArg ObservationType, DataArg ValueType, DataArg ValueType ])
+    [ (Tuple "AvailableMoney" $ ArgumentArray [ DataArg PartyType, DataArg TokenType ])
+    , (Tuple "Constant" $ ArgumentArray [ DefaultNumber zero ])
+    , (Tuple "ConstantParam" $ ArgumentArray [ DefaultString "parameterName" ])
+    , (Tuple "NegValue" $ ArgumentArray [ DataArg ValueType ])
+    , (Tuple "AddValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "SubValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "MulValue" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "Scale" $ ArgumentArray [ DefaultRational (Rational one one), DataArg ValueType ])
+    , (Tuple "ChoiceValue" $ ArgumentArray [ GenArg ChoiceIdType ])
+    , (Tuple "SlotIntervalStart" $ ArgumentArray [])
+    , (Tuple "SlotIntervalEnd" $ ArgumentArray [])
+    , (Tuple "UseValue" $ ArgumentArray [ DefaultString "valueId" ])
+    , (Tuple "Cond" $ ArgumentArray [ DataArg ObservationType, DataArg ValueType, DataArg ValueType ])
     ]
 
 getMarloweConstructors ObservationType =
   Map.fromFoldable
-    [ (Tuple "AndObs" $ aa [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
-    , (Tuple "OrObs" $ aa [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
-    , (Tuple "NotObs" $ aa [ DataArg ObservationType ])
-    , (Tuple "ChoseSomething" $ aa [ GenArg ChoiceIdType ])
-    , (Tuple "ValueGE" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueGT" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueLE" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueLT" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "ValueEQ" $ aa [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
-    , (Tuple "TrueObs" eaa)
-    , (Tuple "FalseObs" eaa)
+    [ (Tuple "AndObs" $ ArgumentArray [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
+    , (Tuple "OrObs" $ ArgumentArray [ DataArgIndexed 1 ObservationType, DataArgIndexed 2 ObservationType ])
+    , (Tuple "NotObs" $ ArgumentArray [ DataArg ObservationType ])
+    , (Tuple "ChoseSomething" $ ArgumentArray [ GenArg ChoiceIdType ])
+    , (Tuple "ValueGE" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueGT" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueLE" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueLT" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "ValueEQ" $ ArgumentArray [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "TrueObs" $ ArgumentArray [])
+    , (Tuple "FalseObs" $ ArgumentArray [])
     ]
 
 getMarloweConstructors ContractType =
   Map.fromFoldable
-    [ (Tuple "Close" eaa)
-    , (Tuple "Pay" $ aa [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
-    , (Tuple "If" $ aa [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
-    , (Tuple "When" $ aa [ EmptyArrayArg, DataArg TimeoutType, DataArg ContractType ])
-    , (Tuple "Let" $ aa [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
-    , (Tuple "Assert" $ aa [ DataArg ObservationType, DataArg ContractType ])
+    [ (Tuple "Close" $ ArgumentArray [])
+    , (Tuple "Pay" $ ArgumentArray [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
+    , (Tuple "If" $ ArgumentArray [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
+    , (Tuple "When" $ ArgumentArray [ EmptyArrayArg, DataArg TimeoutType, DataArg ContractType ])
+    , (Tuple "Let" $ ArgumentArray [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
+    , (Tuple "Assert" $ ArgumentArray [ DataArg ObservationType, DataArg ContractType ])
     ]
 
-getMarloweConstructors BoundType = Map.singleton "Bound" $ aa [ DefaultNumber zero, DefaultNumber zero ]
+getMarloweConstructors BoundType = Map.singleton "Bound" $ ArgumentArray [ DefaultNumber zero, DefaultNumber zero ]
 
-getMarloweConstructors TokenType = Map.singleton "Token" $ aa [ DefaultString "", DefaultString "" ]
+getMarloweConstructors TokenType = Map.singleton "Token" $ ArgumentArray [ DefaultString "", DefaultString "" ]
 
 getMarloweConstructors PartyType =
   Map.fromFoldable
-    [ (Tuple "PK" $ aa [ DefaultString "pubKey" ])
-    , (Tuple "Role" $ aa [ DefaultString "token" ])
+    [ (Tuple "PK" $ ArgumentArray [ DefaultString "pubKey" ])
+    , (Tuple "Role" $ ArgumentArray [ DefaultString "token" ])
     ]
 
 getMarloweConstructors TimeoutType =
   Map.fromFoldable
     [ (Tuple "Slot" $ SimpleArgument $ DefaultNumber zero)
-    , (Tuple "SlotParam" $ aa [ DefaultString "slotParameterName" ])
+    , (Tuple "SlotParam" $ ArgumentArray [ DefaultString "slotParameterName" ])
     ]
 
 allMarloweConstructors :: Map String TermGenerator
