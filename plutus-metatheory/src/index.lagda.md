@@ -125,7 +125,7 @@ import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
---import Algorithmic.Erasure.Reduction
+import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 import Algorithmic.CEKV
 
