@@ -83,7 +83,7 @@ extra-deps:
 - witherable-class-0
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
-  commit: 28c37771ef30b0d751960c061ef95627f05d290e
+  commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
 - git: https://github.com/input-output-hk/cardano-crypto.git

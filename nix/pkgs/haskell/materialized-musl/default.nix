@@ -441,7 +441,7 @@
         "snap-core".flags.portable = false;
         "snap-core".flags.debug = false;
         "snap-core".flags.network-uri = true;
-        "prometheus".revision = (((hackage."prometheus")."2.1.3").revisions).default;
+        "prometheus".revision = (((hackage."prometheus")."2.2.2").revisions).default;
         "rate-limit".revision = (((hackage."rate-limit")."1.4.2").revisions).default;
         "type-equality".revision = (((hackage."type-equality")."1").revisions).default;
         "aws-lambda-haskell-runtime-wai".revision = (((hackage."aws-lambda-haskell-runtime-wai")."1.0.2").revisions).default;
