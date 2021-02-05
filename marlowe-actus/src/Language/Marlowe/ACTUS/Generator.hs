@@ -36,6 +36,17 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs       (state
 import           Ledger.Value                                             (TokenName (TokenName))
 
 
+collateral :: String -> Integer -> Integer -> Contract -> COntract
+collateral from amount timeout continue =
+    let party        = Role $ TokenName $ fromString from
+    in  When
+            [ Case
+                (Deposit party party ada amount)
+                    continue
+            ]
+            timeout
+            Close  
+
 
 invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
 invoice from to amount timeout continue =
@@ -130,7 +141,8 @@ genStaticContract terms =
                     = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
                     = invoice "counterparty" "party" (Constant $ round $ - amount) (Slot $ dayToSlotNumber cashPaymentDay)
-            in Success $ foldl (flip gen) Close cfs
+                cltrl = collateral from amount timeout continue
+            in Success $ (foldl (flip gen) Close cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
