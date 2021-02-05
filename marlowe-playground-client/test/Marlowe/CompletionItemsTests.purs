@@ -62,6 +62,8 @@ testFor TokenType = mkTest false TokenType (parse Parser.token)
 
 testFor PartyType = mkTest false PartyType (parse Parser.partyExtended)
 
+testFor TimeoutType = mkTest false TimeoutType (parse Parser.timeout)
+
 all :: TestSuite
 all =
   suite "Completion Items Tests" do

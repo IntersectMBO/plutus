@@ -12,14 +12,53 @@ import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Index (hasProperty)
 import Marlowe.Semantics (decodeProp)
 import Marlowe.Semantics as S
-import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty)
+import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, pretty)
 
 class ToCore a b where
   toCore :: a -> Maybe b
 
+data Timeout
+  = SlotParam String
+  | Slot BigInteger
+
+derive instance genericTimeout :: Generic Timeout _
+
+derive instance eqTimeout :: Eq Timeout
+
+derive instance ordTimeout :: Ord Timeout
+
+instance encodeJsonTimeout :: Encode Timeout where
+  encode (SlotParam str) = encode { slot_param: str }
+  encode (Slot val) = encode val
+
+instance decodeJsonTimeout :: Decode Timeout where
+  decode a =
+    ( SlotParam <$> decodeProp "slot_param" a
+        <|> (Slot <$> decode a)
+    )
+
+instance showTimeout :: Show Timeout where
+  show (Slot x) = show x
+  show v = genericShow v
+
+instance prettyTimeout :: Pretty Timeout where
+  pretty (Slot x) = pretty x
+  pretty v = genericPretty v
+
+instance hasArgsTimeout :: Args Timeout where
+  hasArgs (Slot _) = false
+  hasArgs x = genericHasArgs x
+  hasNestedArgs (Slot _) = false
+  hasNestedArgs x = genericHasNestedArgs x
+
+instance toCoreTimeout :: ToCore Timeout S.Slot where
+  toCore (SlotParam _) = Nothing
+  toCore (Slot x) = Just (S.Slot x)
+
 data Value
   = AvailableMoney S.AccountId S.Token
   | Constant BigInteger
+  | ConstantParam String
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
@@ -44,6 +83,7 @@ instance encodeJsonValue :: Encode Value where
       , in_account: accId
       }
   encode (Constant val) = encode val
+  encode (ConstantParam str) = encode { constant_param: str }
   encode (NegValue val) =
     encode
       { negate: val
@@ -100,6 +140,8 @@ instance decodeJsonValue :: Decode Value where
             <*> decodeProp "amount_of_token" a
         )
       <|> (Constant <$> decode a)
+      <|> ( ConstantParam <$> decodeProp "constant_param" a
+        )
       <|> (NegValue <$> decodeProp "negate" a)
       <|> ( AddValue <$> decodeProp "add" a
             <*> decodeProp "and" a
@@ -138,6 +180,7 @@ instance hasArgsValue :: Args Value where
 
 instance toCoreValue :: ToCore Value S.Value where
   toCore (Constant c) = Just $ S.Constant c
+  toCore (ConstantParam _) = Nothing
   toCore (AvailableMoney accId tok) = S.AvailableMoney <$> pure accId <*> pure tok
   toCore (NegValue v) = S.NegValue <$> toCore v
   toCore (AddValue lhs rhs) = S.AddValue <$> toCore lhs <*> toCore rhs
@@ -402,7 +445,7 @@ data Contract
   = Close
   | Pay S.AccountId Payee S.Token Value Contract
   | If Observation Contract Contract
-  | When (Array Case) S.Timeout Contract
+  | When (Array Case) Timeout Contract
   | Let S.ValueId Value Contract
   | Assert Observation Contract
 
@@ -488,6 +531,6 @@ instance toCoreContract :: ToCore Contract S.Contract where
   toCore Close = Just S.Close
   toCore (Pay accId payee tok val cont) = S.Pay <$> pure accId <*> toCore payee <*> pure tok <*> toCore val <*> toCore cont
   toCore (If obs cont1 cont2) = S.If <$> toCore obs <*> toCore cont1 <*> toCore cont2
-  toCore (When cases tim cont) = S.When <$> traverse toCore cases <*> pure tim <*> toCore cont
+  toCore (When cases tim cont) = S.When <$> traverse toCore cases <*> toCore tim <*> toCore cont
   toCore (Let varId val cont) = S.Let <$> pure varId <*> toCore val <*> toCore cont
   toCore (Assert obs cont) = S.Assert <$> toCore obs <*> toCore cont
