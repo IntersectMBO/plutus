@@ -155,7 +155,7 @@ data WithPriority t
     = WithPriority
         { _priority :: Priority
         , _thread   :: t
-        }
+        } deriving Functor
 
 type SuspendedThread effs systemEvent = WithPriority (EmThread effs systemEvent)
 

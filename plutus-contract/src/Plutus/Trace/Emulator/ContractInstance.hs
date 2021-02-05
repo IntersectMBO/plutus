@@ -22,6 +22,7 @@ module Plutus.Trace.Emulator.ContractInstance(
     contractThread
     , getThread
     , EmulatorRuntimeError
+    , runInstance
     -- * Instance state
     , ContractInstanceState(..)
     , emptyInstanceState
@@ -58,9 +59,8 @@ import           Plutus.Trace.Emulator.Types                   (ContractConstrai
                                                                 EmulatorRuntimeError (..), EmulatorThreads,
                                                                 addEventInstanceState, emptyInstanceState,
                                                                 instanceIdThreads, toInstanceState)
-import           Plutus.Trace.Scheduler                        (AgentSystemCall, EmSystemCall, MessageCall (..),
-                                                                Priority (..), ThreadId, mkAgentSysCall, mkSysCall,
-                                                                sleep)
+import           Plutus.Trace.Scheduler                        (AgentSystemCall, MessageCall (..), Priority (..),
+                                                                ThreadId, mkAgentSysCall)
 import qualified Wallet.API                                    as WAPI
 import           Wallet.Effects                                (ChainIndexEffect, ContractRuntimeEffect (..),
                                                                 NodeClientEffect, SigningProcessEffect, WalletEffect)
@@ -104,8 +104,8 @@ handleContractRuntime = interpret $ \case
                 ownId <- ask @ThreadId
                 let Notification{notificationContractEndpoint=EndpointDescription ep, notificationContractArg} = n
                     vl = object ["tag" JSON..= ep, "value" JSON..= EndpointValue notificationContractArg]
-                    e = Left $ Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
-                -- _ <- mkSysCall @_ @EmulatorMessage Normal e
+                    e = Message threadId (EndpointCall ownId (EndpointDescription ep) vl)
+                _ <- mkAgentSysCall @_ @EmulatorMessage Normal e
                 logInfo $ NotificationSuccess n
                 pure Nothing
 

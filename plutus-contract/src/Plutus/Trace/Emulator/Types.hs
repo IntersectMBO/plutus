@@ -108,8 +108,8 @@ makeLenses ''EmulatorThreads
 type EmulatorAgentThreadEffs effs =
     LogMsg ContractInstanceLog
     ': Reader Wallet
-    ': Reader ThreadId
     ': Yield (AgentSystemCall EmulatorMessage) (Maybe EmulatorMessage)
+    ': Reader ThreadId
     ': effs
 
 data Emulator

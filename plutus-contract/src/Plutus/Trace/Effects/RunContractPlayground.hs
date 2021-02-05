@@ -26,11 +26,11 @@ module Plutus.Trace.Effects.RunContractPlayground(
 
 import           Control.Lens
 import           Control.Monad                           (void)
-import           Control.Monad.Freer                     (Eff, Member, interpret, reinterpret, type (~>))
-import           Control.Monad.Freer.Coroutine           (Yield)
+import           Control.Monad.Freer                     (Eff, Member, type (~>))
+import           Control.Monad.Freer.Coroutine           (Yield (..))
 import           Control.Monad.Freer.Error               (Error, throwError)
-import           Control.Monad.Freer.Log                 (LogMsg (..), mapLog)
-import           Control.Monad.Freer.Reader              (ask, runReader)
+import           Control.Monad.Freer.Log                 (LogMsg (..))
+import           Control.Monad.Freer.Reader              (ask)
 import           Control.Monad.Freer.State               (State, gets, modify)
 import           Control.Monad.Freer.TH                  (makeEffect)
 import qualified Data.Aeson                              as JSON
@@ -38,7 +38,8 @@ import           Data.Map                                (Map)
 import           Language.Plutus.Contract                (Contract (..), ContractInstanceId, EndpointDescription (..),
                                                           HasBlockchainActions)
 import           Plutus.Trace.Effects.ContractInstanceId (ContractInstanceIdEff, nextId)
-import           Plutus.Trace.Emulator.ContractInstance  (EmulatorRuntimeError, contractThread, getThread)
+import           Plutus.Trace.Effects.RunContract        (startContractThread)
+import           Plutus.Trace.Emulator.ContractInstance  (EmulatorRuntimeError, getThread)
 import           Plutus.Trace.Emulator.Types             (ContractConstraints, ContractHandle (..),
                                                           EmulatorMessage (..), EmulatorRuntimeError (..),
                                                           EmulatorThreads, walletInstanceTag)
@@ -109,13 +110,7 @@ handleLaunchContract ::
 handleLaunchContract contract wllt = do
     i <- nextId
     let handle = ContractHandle{chContract=contract, chInstanceId = i, chInstanceTag = walletInstanceTag wllt}
-    void
-        $ fork @effs2 @EmulatorMessage "contract instance" Normal
-        (_
-            $ runReader wllt
-            $ interpret (mapLog InstanceEvent)
-            $ reinterpret (mapLog InstanceEvent)
-            $ contractThread handle)
+    void $ startContractThread @s @e @effs @effs2 wllt handle
     modify @(Map Wallet ContractInstanceId) (set (at wllt) (Just i))
 
 handleCallEndpoint ::
