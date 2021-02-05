@@ -13,17 +13,28 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error, runError, throwError)
 import           Control.Monad.Freer.Log        (LogMsg, logInfo)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
+import qualified Crypto.ECC.Ed25519Donna        as ED25519
+import           Crypto.Error                   (throwCryptoErrorIO)
+import           Crypto.PubKey.Ed25519          (generateSecretKey, secretKey, secretKeySize, toPublic)
+import           Crypto.Random                  (getRandomBytes)
 import           Data.Bifunctor                 (Bifunctor (..))
+import           Data.Bits                      (shiftL, shiftR)
+import           Data.ByteArray                 (ScrubbedBytes, unpack)
+import qualified Data.ByteString                as BS
 import qualified Data.ByteString.Lazy           as BSL
 import qualified Data.ByteString.Lazy.Char8     as BSL8
+import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import           Data.Text.Encoding             (encodeUtf8)
 import           Data.Text.Prettyprint.Doc      (Pretty (..), (<+>))
+import           Data.UUID                      (UUID)
+import           Data.UUID.V5
 import           Language.Plutus.Contract.Trace (allWallets)
-import           Ledger                         (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value)
+import           Ledger                         (Address, PubKey (..), TxOut (..), TxOutRef, TxOutTx (..), Value)
 import           Ledger.AddressMap              (UtxoMap)
 import qualified Ledger.AddressMap              as AddressMap
 import           Plutus.PAB.Arbitrary           ()
+import qualified Plutus.V1.Ledger.Bytes         as KB
 import           Servant                        (ServerError, err401, err404, err500, errBody)
 import           Test.QuickCheck                (arbitrary, generate)
 import           Wallet.API                     (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
@@ -104,3 +115,42 @@ allocateAddress ::
 allocateAddress _ = do
     logInfo CallAllocateAddress
     sendM $ liftIO $ generate arbitrary
+
+
+newtype Wallets = Wallets { getWallets :: Map PubKey Wallet }
+newtype Seed = Seed { getSeed :: ScrubbedBytes }
+
+generateSeed :: (LastMember m effs, MonadIO m) => Eff effs Seed
+generateSeed = do
+    (bytes :: ScrubbedBytes) <- sendM $ liftIO $ getRandomBytes secretKeySize
+    pure $ Seed bytes
+
+
+createWallet :: (LastMember m effs, MonadIO m) => Seed -> Eff effs Wallet
+createWallet (Seed bytes) = do
+    sk <- sendM $ liftIO $ throwCryptoErrorIO $ secretKey bytes
+    let pk = toPublic sk
+    let int = bs2i . BS.pack . unpack $ bytes
+    pure (Wallet int)
+
+
+insertWallet :: Wallet -> Wallets -> Wallets
+insertWallet w ws = do
+    let pk = PubKey . KB.fromBytes . i2bs . EM.getWallet $ w
+    Wallets $ Map.insert pk w (getWallets ws)
+
+
+-- |Helper function to convert bytestrings to integers
+bs2i :: BS.ByteString -> Integer
+bs2i = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
+{-# INLINE bs2i #-}
+
+
+-- |@i2bs bitLen i@ converts @i@ to a 'ByteString' of @bitLen@ bits (must be a multiple of 8).
+i2bs :: Integer -> BS.ByteString
+i2bs i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` 8), l' - 8)) 0
+{-# INLINE i2bs #-}
+
+
+uuidFromSeed :: Seed -> UUID
+uuidFromSeed (Seed bytes) = generateNamed namespaceDNS $ unpack bytes
