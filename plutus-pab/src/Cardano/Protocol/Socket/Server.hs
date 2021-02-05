@@ -41,7 +41,6 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type   as TxSubmis
 import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..))
 import           Ouroboros.Network.Block                             (Point (..), pointSlot)
 import           Ouroboros.Network.IOManager
-import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
 import qualified Ouroboros.Network.Point                             as OP (Block (..))
@@ -179,7 +178,7 @@ idleState ::
     ( MonadReader InternalState m
     , MonadIO m )
  => Maybe LocalChannel
- -> m (ServerStIdle Block Tip m ())
+ -> m (ServerStIdle Block (Point Block) Tip m ())
 idleState (Just channel) =
     pure ServerStIdle {
         recvMsgRequestNext = nextState channel,
@@ -195,8 +194,8 @@ nextState ::
     ( MonadReader InternalState m
     , MonadIO m )
  => LocalChannel
- -> m (Either (ServerStNext Block Tip m ())
-              (m (ServerStNext Block Tip m ())))
+ -> m (Either (ServerStNext Block (Point Block) Tip m ())
+              (m (ServerStNext Block (Point Block) Tip m ())))
 nextState localChannel@(LocalChannel channel) = do
     chainState <- ask <&> isState
     tip <- head . view Chain.chainNewestFirst <$>
@@ -216,7 +215,7 @@ findIntersect ::
     ( MonadReader InternalState m
     , MonadIO m )
  => [Point Block]
- -> m (ServerStIntersect Block Tip m ())
+ -> m (ServerStIntersect Block (Point Block) Tip m ())
 findIntersect clientPoints = do
     chainState <- ask <&> isState >>= liftIO . readMVar
     let point = listToMaybe
@@ -242,7 +241,7 @@ sendRollForward ::
  => LocalChannel
  -> Block -- tip
  -> Block -- current
- -> m (ServerStNext Block Tip m ())
+ -> m (ServerStNext Block (Point Block) Tip m ())
 sendRollForward channel tip current = pure $
     SendMsgRollForward
         current
@@ -255,7 +254,7 @@ sendRollForward channel tip current = pure $
 chainSyncServer ::
     ( MonadReader InternalState m
     , MonadIO m )
- => ChainSyncServer Block Tip m ()
+ => ChainSyncServer Block (Point Block) Tip m ()
 chainSyncServer =
     ChainSyncServer (cloneChainFrom 0 >>= idleState)
 
@@ -292,8 +291,8 @@ cloneChainFrom offset = (LocalChannel <$>) <$> go
 
 hoistChainSync ::
     MonadReader InternalState m
- => ChainSyncServer Block Block ChainSyncMonad a
- -> m (ChainSyncServer Block Block IO a)
+ => ChainSyncServer Block (Point Block) Tip ChainSyncMonad a
+ -> m (ChainSyncServer Block (Point Block) Tip IO a)
 hoistChainSync machine = do
     internalState <- ask
     pure ChainSyncServer {
@@ -306,8 +305,8 @@ hoistChainSync machine = do
 
 hoistStIdle ::
     MonadReader InternalState m
- => ServerStIdle Block Block ChainSyncMonad a
- -> m (ServerStIdle Block Block IO a)
+ => ServerStIdle Block (Point Block) Tip ChainSyncMonad a
+ -> m (ServerStIdle Block (Point Block) Tip IO a)
 hoistStIdle (ServerStIdle nextState' findIntersect' done) = do
     internalState <- ask
     pure ServerStIdle {
@@ -324,8 +323,8 @@ hoistStIdle (ServerStIdle nextState' findIntersect' done) = do
 
 hoistStIntersect ::
     MonadReader InternalState m
- => ServerStIntersect Block Block ChainSyncMonad a
- -> m (ServerStIntersect Block Block IO a)
+ => ServerStIntersect Block (Point Block) Tip ChainSyncMonad a
+ -> m (ServerStIntersect Block (Point Block) Tip IO a)
 hoistStIntersect (SendMsgIntersectFound point tip nextState') =
     SendMsgIntersectFound point tip <$> hoistChainSync nextState'
 hoistStIntersect (SendMsgIntersectNotFound tip nextState') =
@@ -333,8 +332,8 @@ hoistStIntersect (SendMsgIntersectNotFound tip nextState') =
 
 hoistStNext ::
     MonadReader InternalState m
- => ServerStNext Block Block ChainSyncMonad a
- -> m (ServerStNext Block Block IO a)
+ => ServerStNext Block (Point Block) Tip ChainSyncMonad a
+ -> m (ServerStNext Block (Point Block) Tip IO a)
 hoistStNext (SendMsgRollForward header tip nextState') =
     SendMsgRollForward header tip <$> hoistChainSync nextState'
 hoistStNext (SendMsgRollBackward header tip nextState') =
@@ -358,12 +357,9 @@ protocolLoop socketPath internalState = withIOManager $ \iocp -> do
       (AcceptedConnectionsLimit maxBound maxBound 0)
       (localAddressFromPath socketPath)
       unversionedHandshakeCodec
-      cborTermVersionDataCodec
-      (\(DictVersion _) -> acceptableVersion)
-      (simpleSingletonVersions UnversionedProtocol
-                               (NodeToNodeVersionData $ NetworkMagic 0)
-                               (DictVersion nodeToNodeCodecCBORTerm)
-                               (SomeResponderApplication (application internalState)))
+      (cborTermVersionDataCodec unversionedProtocolDataCodec)
+      acceptableVersion
+      (unversionedProtocol (SomeResponderApplication (application internalState)))
       nullErrorPolicies
       $ \_ serverAsync -> wait serverAsync
 

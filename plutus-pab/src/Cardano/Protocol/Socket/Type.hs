@@ -18,13 +18,13 @@ import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
 import           Data.Typeable
 
-import           Cardano.Prelude                                    (NoUnexpectedThunks)
 import           GHC.Generics
+import           NoThunks.Class                                     (NoThunks)
 
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
 import           Network.TypedProtocol.Codec
-import           Ouroboros.Network.Block                            (HeaderHash, StandardHash)
+import           Ouroboros.Network.Block                            (HeaderHash, Point, StandardHash)
 import           Ouroboros.Network.Mux
 import qualified Ouroboros.Network.Protocol.ChainSync.Codec         as ChainSync
 import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
@@ -42,7 +42,7 @@ type Tip = Block
 newtype BlockId = BlockId { getBlockId :: BS.ByteString }
   deriving (Eq, Ord, Generic)
   deriving anyclass (ToJSON, FromJSON)
-  deriving newtype (Serialise, NoUnexpectedThunks)
+  deriving newtype (Serialise, NoThunks)
   deriving (Pretty, Show) via LedgerBytes
 
 -- | A hash of the block's contents.
@@ -65,7 +65,7 @@ instance ShowProxy a => ShowProxy [a] where
   showProxy _ = "[" ++ showProxy (Proxy @a) ++ "]"
 
 deriving instance StandardHash Block
-deriving newtype instance NoUnexpectedThunks TxId
+deriving newtype instance NoThunks TxId
 
 -- | Limits for the protocols we use.
 maximumMiniProtocolLimits :: MiniProtocolLimits
@@ -98,7 +98,7 @@ nodeApplication chainSync txSubmission =
 type Offset = Integer
 
 -- | Boilerplate codecs used for protocol serialisation.
-codecChainSync :: Codec (ChainSync.ChainSync Block Block)
+codecChainSync :: Codec (ChainSync.ChainSync Block (Point Block) Tip)
                         DeserialiseFailure
                         IO BSL.ByteString
 codecChainSync =

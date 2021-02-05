@@ -14,15 +14,16 @@ import           Control.Concurrent
 import           Control.Concurrent.STM
 import           Control.Tracer
 
+import           Ouroboros.Network.Block                             (Point (..))
 import qualified Ouroboros.Network.Protocol.ChainSync.Client         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmission
 
 import           Ouroboros.Network.IOManager
-import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
 import           Ouroboros.Network.Protocol.Handshake.Codec
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
+import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
@@ -75,13 +76,10 @@ runClientNode socketPath = do
         connectToNode
           (localSnocket iocp socketPath)
           unversionedHandshakeCodec
-          cborTermVersionDataCodec
+          (cborTermVersionDataCodec unversionedProtocolDataCodec)
           nullNetworkConnectTracers
-          (simpleSingletonVersions
-            UnversionedProtocol
-            (NodeToNodeVersionData $ NetworkMagic 0)
-            (DictVersion nodeToNodeCodecCBORTerm)
-            (app outputQueue inputQueue))
+          acceptableVersion
+          (unversionedProtocol (app outputQueue inputQueue))
           Nothing
           (localAddressFromPath socketPath)
     pure ClientHandler {
@@ -123,17 +121,17 @@ runClientNode socketPath = do
 
 -- | The client updates the application state when the protocol state changes.
 chainSyncClient :: TQueue Block
-                -> ChainSync.ChainSyncClient Block Tip IO ()
+                -> ChainSync.ChainSyncClient Block (Point Block) Tip IO ()
 chainSyncClient outputQueue =
     ChainSync.ChainSyncClient $ pure requestNext
     where
-      requestNext :: ChainSync.ClientStIdle Block Tip IO ()
+      requestNext :: ChainSync.ClientStIdle Block (Point Block) Tip IO ()
       requestNext =
         ChainSync.SendMsgRequestNext
           handleNext
           (return handleNext)
 
-      handleNext :: ChainSync.ClientStNext Block Tip IO ()
+      handleNext :: ChainSync.ClientStNext Block (Point Block) Tip IO ()
       handleNext =
         ChainSync.ClientStNext
         {

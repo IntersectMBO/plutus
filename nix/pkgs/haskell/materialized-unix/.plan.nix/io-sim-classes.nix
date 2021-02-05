@@ -11,7 +11,7 @@
     flags = { checktvarinvariant = false; asserts = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "io-sim-classes"; version = "0.1.0.0"; };
+      identifier = { name = "io-sim-classes"; version = "0.2.0.0"; };
       license = "Apache-2.0";
       copyright = "2019 Input Output (Hong Kong) Ltd.";
       maintainer = "";
@@ -56,7 +56,7 @@
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "test-io-sim-classes" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))

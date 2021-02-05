@@ -41,6 +41,7 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."digest" or (errorHandler.buildDepError "digest"))
           (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
+          (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))

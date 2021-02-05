@@ -11,7 +11,7 @@
     flags = { development = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "goblins"; version = "0.1.0.0"; };
+      identifier = { name = "goblins"; version = "0.2.0.0"; };
       license = "BSD-3-Clause";
       copyright = "";
       maintainer = "nick@topos.org.uk";
@@ -40,7 +40,9 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-          (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."microlens" or (errorHandler.buildDepError "microlens"))
+          (hsPkgs."microlens-mtl" or (errorHandler.buildDepError "microlens-mtl"))
+          (hsPkgs."microlens-th" or (errorHandler.buildDepError "microlens-th"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
           (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
           (hsPkgs."moo" or (errorHandler.buildDepError "moo"))

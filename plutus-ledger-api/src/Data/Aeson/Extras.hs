@@ -24,11 +24,7 @@ encodeByteString :: BSS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode
 
 tryDecode :: Text.Text -> Either String BSS.ByteString
-tryDecode s =
-    let (eun16, rest) = Base16.decode . TE.encodeUtf8 $ s in
-    if BSS.null rest
-    then Right eun16
-    else Left "failed to decode base16"
+tryDecode = Base16.decode . TE.encodeUtf8
 
 decodeByteString :: Aeson.Value -> Aeson.Parser BSS.ByteString
 decodeByteString = Aeson.withText "ByteString" (either fail pure . tryDecode)

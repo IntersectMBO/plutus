@@ -11,11 +11,11 @@
     flags = { asserts = false; };
     package = {
       specVersion = "1.10";
-      identifier = { name = "io-sim"; version = "0.1.0.0"; };
+      identifier = { name = "io-sim"; version = "0.2.0.0"; };
       license = "Apache-2.0";
-      copyright = "2019 Input Output (Hong Kong) Ltd.";
+      copyright = "2019-2020 Input Output (Hong Kong) Ltd.";
       maintainer = "";
-      author = "Alexander Vieth, Marcin Szamotulski, Duncan Coutts";
+      author = "Duncan Coutts, Marcin Szamotulski, Alexander Vieth";
       homepage = "";
       url = "";
       synopsis = "A pure simlator for monadic concurrency with STM";
@@ -39,13 +39,14 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."psqueues" or (errorHandler.buildDepError "psqueues"))
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          (hsPkgs."quiet" or (errorHandler.buildDepError "quiet"))
           ];
         buildable = true;
-        modules = [ "Control/Monad/IOSim" ];
+        modules = [ "Control/Monad/IOSim/Internal" "Control/Monad/IOSim" ];
         hsSourceDirs = [ "src" ];
         };
       tests = {
-        "test-sim" = {
+        "test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."array" or (errorHandler.buildDepError "array"))

@@ -77,7 +77,6 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
-          (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -90,7 +89,6 @@
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
-          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
@@ -277,10 +275,8 @@
         "plutus-core-generate-evaluation-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
@@ -310,26 +306,20 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
-            (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-            (hsPkgs."tuple" or (errorHandler.buildDepError "tuple"))
             ];
           buildable = true;
           modules = [
@@ -362,7 +352,6 @@
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
@@ -381,7 +370,6 @@
         "untyped-plutus-core-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -432,7 +420,6 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
@@ -444,9 +431,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."weigh" or (errorHandler.buildDepError "weigh"))
             ];
           buildable = true;
@@ -456,12 +441,8 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))

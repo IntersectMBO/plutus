@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2020-11-10T00:00:00Z
+index-state: 2021-02-01T00:00:00Z
 
 packages: doc
           marlowe
@@ -45,7 +45,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
-  tag: 2547ad1e80aeabca2899951601079408becbc92c
+  tag: f73079303f663e028288f9f4a9e08bcca39a923e
 
 source-repository-package
   type: git
@@ -64,21 +64,13 @@ package inline-r
 
 -- Node protocols
 
--- We need to relax the dependency on GHC 8.6 for the
--- ouroboros-network* packages (and hashtable)
-allow-newer: Win32-network:base
-           , github:base
-           , goblins:base
-           , io-sim:base
-           , io-sim-classes:base
-           , network-mux:base
-           , ouroboros-network:base
-           -- restricts to ghc<8.10
+allow-newer: 
+           -- Has a commit to allow newer aeson, not on Hackage yet
+           monoidal-containers:aeson
+           -- Pins to an old version of Template Haskell, unclear if/when it will be updated
+           , size-based:template-haskell
+           -- web-ghc constrains us to an old version that says it needs old base
            , prometheus:base
-           -- restricts to ghc<8.10
-           , monoidal-containers:base
-           , monoidal-containers:aeson
-
            -- we make use of an older servant. this makes the older servant build for ghc-8.10
            , servant:base
            , servant:aeson
@@ -96,24 +88,14 @@ allow-newer: Win32-network:base
            , servant-swagger:swagger2
            , servant-swagger:lens
            , servant-swagger:Cabal
-           , ouroboros-network-framework:base
-           , cardano-binary:base
-           , ouroboros-network:hashable
 
            -- The following two dependencies are needed by plutus.
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
 
-           -- size-based restricts TemplateHaskell to that of  ghc<8.10
-           , size-based:template-haskell
-
 constraints:
-  -- cardano-prelude currently redefines some instances that appear in 0.3.4
-  nonempty-containers < 0.3.4
-  -- cardano-binary, of the cardano-base repository, cannot build with 5.2 but Cabal picks that one
-  , recursion-schemes < 5.2
   -- A bunch of constraints to make our forked servant-purescript build using an older servant
-  , servant < 0.17
+  servant < 0.17
   , servant-server < 0.17
   , servant-foreign < 0.15.1
   , servant-client-core < 0.17
@@ -207,7 +189,7 @@ package iohk-monitoring
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
-  tag: 5035c9ed95e9d47f050314a7d96b1b2043288f61
+  tag: 4251c0bb6e4f443f00231d28f5f70d42876da055
   subdir:
     binary
     slotting
@@ -216,15 +198,15 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-prelude
-  tag: 71ea865408f2e03e6d6832359423546699730849
-  -- Because they includes `.` subdirs need to be on the same line
-  -- See https://github.com/haskell/cabal/issues/7006
-  subdir: . test
+  tag: ee4e7b547a991876e6b05ba542f4e62909f4a571
+  subdir:
+    cardano-prelude 
+    cardano-prelude-test
 
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/ouroboros-network
-  tag: 75153affa23a0e68e035d7bb19880fe1ae35b1d4
+  tag: 6cb9052bde39472a0555d19ade8a42da63d3e904
   subdir:
     typed-protocols
     typed-protocols-examples
@@ -239,7 +221,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/iohk-monitoring-framework
-  tag: 5c9627b6aee487f9b7ec44981aba57a6afc659b1
+  tag: a89c38ed5825ba17ca79fddb85651007753d699d
   subdir:
     iohk-monitoring
     tracer-transformers
@@ -263,6 +245,6 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/goblins
-  tag: 26d35ad52fe9ade3391532dbfeb2f416f07650bc
+  tag: cde90a2b27f79187ca8310b6549331e59595e7ba
 
 -- / Node protocols
