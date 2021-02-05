@@ -129,6 +129,10 @@ data Argument
   | NewtypeArg
   | GenArg MarloweType
 
+-- | TermGenerator is a decorator for Array Argument. Array Argument is used, among other things, for generating
+-- | terms from holes. But, by default, it includes the constructor name, e.g: "Slot ?slotNumber"
+-- | In the case of Slot, we just want to generate the argument, i.e: "0", not "Slot 0",
+-- | that is what SimpleArgument does. See implementation of `constructMarloweType` function.
 data TermGenerator
   = ArgumentArray (Array Argument)
   | SimpleArgument Argument
