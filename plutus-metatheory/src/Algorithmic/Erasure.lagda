@@ -41,37 +41,6 @@ len (Γ , A)  = suc (len Γ)
 len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
-
-lemma : (b : Builtin) →  len⋆ (proj₁ (AS.SIG b)) + length (proj₁ (proj₂ (AS.SIG b))) ≡ arity b
-lemma addInteger = refl
-lemma subtractInteger = refl
-lemma multiplyInteger = refl
-lemma divideInteger = refl
-lemma quotientInteger = refl
-lemma remainderInteger = refl
-lemma modInteger = refl
-lemma lessThanInteger = refl
-lemma lessThanEqualsInteger = refl
-lemma greaterThanInteger = refl
-lemma greaterThanEqualsInteger = refl
-lemma equalsInteger = refl
-lemma concatenate = refl
-lemma takeByteString = refl
-lemma dropByteString = refl
-lemma lessThanByteString = refl
-lemma greaterThanByteString = refl
-lemma sha2-256 = refl
-lemma sha3-256 = refl
-lemma verifySignature = refl
-lemma equalsByteString = refl
-lemma ifThenElse = refl
-lemma charToString = refl
-lemma append = refl
-lemma trace = refl
-
-lemma≤ : (b : Builtin)
-  → len⋆ (proj₁ (AS.SIG b)) + length (proj₁ (proj₂ (AS.SIG b))) ≤‴ arity b
-lemma≤ b rewrite lemma b = ≤‴-refl
 \end{code}
 
 \begin{code}
@@ -97,7 +66,7 @@ erase (_·⋆_ t A)           = force (erase t)
 erase (wrap A B t)         = erase t
 erase (unwrap t)           = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (ibuiltin b)         = error
+erase (ibuiltin b)         = builtin b
 erase (error A)            = error
 \end{code}
 
@@ -195,6 +164,10 @@ lemcon' refl tcn = refl
 
 lemerror : ∀{n n'}(p : n ≡ n') →  error ≡ subst _⊢ p error
 lemerror refl = refl
+
+lembuiltin : ∀{n n'}(b : Builtin)(p : n ≡ n') →  builtin b ≡ subst _⊢ p (builtin b)
+lembuiltin b refl = refl
+
 
 lem[]' : ∀{n n'}(p : n ≡ n') →
   [] ≡ subst (λ n → Vec (n ⊢) 0) p []
@@ -309,7 +282,9 @@ same {Γ = Γ} (D.con tcn) = trans
   (cong con (sameTC {Γ = Γ} tcn))
   (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
 
-same {Γ = Γ} (D.ibuiltin b) = trans (lemerror (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ)) (lem-erase refl (itype-lem b) (ibuiltin b))) 
+same {Γ = Γ} (D.ibuiltin b) = trans
+  (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
+  (lem-erase refl (itype-lem b) (ibuiltin b)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
 open import Algorithmic.Soundness
@@ -364,6 +339,6 @@ same' {Γ = Γ} (unwrap t) = same' t
 same' {Γ = Γ} (con x) = trans
   (cong con (same'TC {Γ = Γ} x))
   (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
-same' {Γ = Γ} (ibuiltin b) = lemerror (same'Len Γ)
+same' {Γ = Γ} (ibuiltin b) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

@@ -46,37 +46,6 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
-lemma : (b : Builtin)
-  → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≡ arity b
-lemma addInteger = refl
-lemma subtractInteger = refl
-lemma multiplyInteger = refl
-lemma divideInteger = refl
-lemma quotientInteger = refl
-lemma remainderInteger = refl
-lemma modInteger = refl
-lemma lessThanInteger = refl
-lemma lessThanEqualsInteger = refl
-lemma greaterThanInteger = refl
-lemma greaterThanEqualsInteger = refl
-lemma equalsInteger = refl
-lemma concatenate = refl
-lemma takeByteString = refl
-lemma dropByteString = refl
-lemma lessThanByteString = refl
-lemma greaterThanByteString = refl
-lemma sha2-256 = refl
-lemma sha3-256 = refl
-lemma verifySignature = refl
-lemma equalsByteString = refl
-lemma ifThenElse = refl
-lemma charToString = refl
-lemma append = refl
-lemma trace = refl
-
-lemma≤ : (b : Builtin) → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
-lemma≤ b rewrite lemma b = ≤‴-refl
-
 eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero 
 eraseVar (S α) = suc (eraseVar α) 
@@ -89,10 +58,6 @@ eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
 eraseTC (char c)       = char c
 eraseTC unit           = unit
-
-eraseTel⋆ : ∀{Φ}(Γ : Ctx Φ)(Δ : Ctx⋆) → Untyped.Tel (len⋆ Δ) (len Γ) 
-eraseTel⋆ _ ∅  = []
-eraseTel⋆ Γ (Δ ,⋆ K) = eraseTel⋆ Γ Δ :< con unit
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Sum
@@ -112,7 +77,7 @@ erase (wrap A B t)      = erase t
 erase (unwrap t)        = erase t
 erase (conv p t)        = erase t
 erase {Γ = Γ} (con t)   = con (eraseTC {Γ = Γ} t)
-erase (ibuiltin b)      = error
+erase (ibuiltin b)      = builtin b
 erase (error A)         = error
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *
