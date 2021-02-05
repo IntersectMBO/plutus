@@ -17,41 +17,41 @@ import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedAr
 class ToCore a b where
   toCore :: a -> Maybe b
 
-data ExtendedTimeout
+data Timeout
   = SlotParam String
   | Slot BigInteger
 
-derive instance genericExtendedTimeout :: Generic ExtendedTimeout _
+derive instance genericTimeout :: Generic Timeout _
 
-derive instance eqExtendedTimeout :: Eq ExtendedTimeout
+derive instance eqTimeout :: Eq Timeout
 
-derive instance ordExtendedTimeout :: Ord ExtendedTimeout
+derive instance ordTimeout :: Ord Timeout
 
-instance encodeJsonExtendedTimeout :: Encode ExtendedTimeout where
+instance encodeJsonTimeout :: Encode Timeout where
   encode (SlotParam str) = encode { slot_param: str }
   encode (Slot val) = encode val
 
-instance decodeJsonExtendedTimeout :: Decode ExtendedTimeout where
+instance decodeJsonTimeout :: Decode Timeout where
   decode a =
     ( SlotParam <$> decodeProp "slot_param" a
         <|> (Slot <$> decode a)
     )
 
-instance showExtendedTimeout :: Show ExtendedTimeout where
+instance showTimeout :: Show Timeout where
   show (Slot x) = show x
   show v = genericShow v
 
-instance prettyExtendedTimeout :: Pretty ExtendedTimeout where
+instance prettyTimeout :: Pretty Timeout where
   pretty (Slot x) = pretty x
   pretty v = genericPretty v
 
-instance hasArgsExtendedTimeout :: Args ExtendedTimeout where
+instance hasArgsTimeout :: Args Timeout where
   hasArgs (Slot _) = false
   hasArgs x = genericHasArgs x
   hasNestedArgs (Slot _) = false
   hasNestedArgs x = genericHasNestedArgs x
 
-instance toCoreExtendedTimeout :: ToCore ExtendedTimeout S.Slot where
+instance toCoreTimeout :: ToCore Timeout S.Slot where
   toCore (SlotParam _) = Nothing
   toCore (Slot x) = Just (S.Slot x)
 
@@ -445,7 +445,7 @@ data Contract
   = Close
   | Pay S.AccountId Payee S.Token Value Contract
   | If Observation Contract Contract
-  | When (Array Case) ExtendedTimeout Contract
+  | When (Array Case) Timeout Contract
   | Let S.ValueId Value Contract
   | Assert Observation Contract
 

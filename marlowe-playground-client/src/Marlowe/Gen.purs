@@ -53,7 +53,7 @@ genRational = do
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
-genTimeout :: forall m. MonadGen m => MonadRec m => m H.ExtendedTimeout
+genTimeout :: forall m. MonadGen m => MonadRec m => m H.Timeout
 genTimeout = H.Slot <$> genBigInteger
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId

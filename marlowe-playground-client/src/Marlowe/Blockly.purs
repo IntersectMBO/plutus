@@ -25,7 +25,7 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), ExtendedTimeout(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
+import Marlowe.Holes (Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Timeout(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
 import Record (merge)

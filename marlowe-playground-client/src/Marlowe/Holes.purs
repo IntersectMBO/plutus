@@ -50,7 +50,7 @@ data MarloweType
   | BoundType
   | TokenType
   | PartyType
-  | ExtendedTimeoutType
+  | TimeoutType
 
 derive instance eqMarloweType :: Eq MarloweType
 
@@ -108,7 +108,7 @@ readMarloweType "TokenType" = Just TokenType
 
 readMarloweType "PartyType" = Just PartyType
 
-readMarloweType "ExtendedTimeoutType" = Just ExtendedTimeoutType
+readMarloweType "TimeoutType" = Just TimeoutType
 
 readMarloweType _ = Nothing
 
@@ -197,7 +197,7 @@ getMarloweConstructors ContractType =
     [ (Tuple "Close" eaa)
     , (Tuple "Pay" $ aa [ DataArg PartyType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
     , (Tuple "If" $ aa [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
-    , (Tuple "When" $ aa [ EmptyArrayArg, DataArg ExtendedTimeoutType, DataArg ContractType ])
+    , (Tuple "When" $ aa [ EmptyArrayArg, DataArg TimeoutType, DataArg ContractType ])
     , (Tuple "Let" $ aa [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
     , (Tuple "Assert" $ aa [ DataArg ObservationType, DataArg ContractType ])
     ]
@@ -212,7 +212,7 @@ getMarloweConstructors PartyType =
     , (Tuple "Role" $ aa [ DefaultString "token" ])
     ]
 
-getMarloweConstructors ExtendedTimeoutType =
+getMarloweConstructors TimeoutType =
   Map.fromFoldable
     [ (Tuple "Slot" $ SimpleArgument $ DefaultNumber zero)
     , (Tuple "SlotParam" $ aa [ DefaultString "slotParameterName" ])
@@ -543,38 +543,38 @@ instance boundIsMarloweType :: IsMarloweType Bound where
 instance boundHasMarloweHoles :: HasMarloweHoles Bound where
   getHoles (Bound a b) m = m
 
-data ExtendedTimeout
+data Timeout
   = Slot BigInteger
   | SlotParam String
 
-derive instance genericExtendedTimeout :: Generic ExtendedTimeout _
+derive instance genericTimeout :: Generic Timeout _
 
-derive instance eqExtendedTimeout :: Eq ExtendedTimeout
+derive instance eqTimeout :: Eq Timeout
 
-derive instance ordExtendedTimeout :: Ord ExtendedTimeout
+derive instance ordTimeout :: Ord Timeout
 
-instance showExtendedTimeout :: Show ExtendedTimeout where
+instance showTimeout :: Show Timeout where
   show (Slot x) = show x
   show v = genericShow v
 
-instance prettyExtendedTimeout :: Pretty ExtendedTimeout where
+instance prettyTimeout :: Pretty Timeout where
   pretty (Slot x) = pretty x
   pretty (SlotParam x) = genericPretty (SlotParam x)
 
-instance hasArgsExtendedTimeout :: Args ExtendedTimeout where
+instance hasArgsTimeout :: Args Timeout where
   hasArgs (Slot _) = false
   hasArgs x = genericHasArgs x
   hasNestedArgs (Slot _) = false
   hasNestedArgs x = genericHasNestedArgs x
 
-instance extendedTimeoutFromTerm :: FromTerm ExtendedTimeout EM.ExtendedTimeout where
+instance timeoutFromTerm :: FromTerm Timeout EM.Timeout where
   fromTerm (Slot b) = pure $ EM.Slot b
   fromTerm (SlotParam b) = pure $ EM.SlotParam b
 
-instance extendedTimeoutIsMarloweType :: IsMarloweType ExtendedTimeout where
-  marloweType _ = ExtendedTimeoutType
+instance timeoutIsMarloweType :: IsMarloweType Timeout where
+  marloweType _ = TimeoutType
 
-instance extendedTimeoutHasMarloweHoles :: HasMarloweHoles ExtendedTimeout where
+instance timeoutHasMarloweHoles :: HasMarloweHoles Timeout where
   getHoles (Slot a) m = m
   getHoles (SlotParam a) m = m
 
@@ -893,7 +893,7 @@ data Contract
   = Close
   | Pay AccountId (Term Payee) (Term Token) (Term Value) (Term Contract)
   | If (Term Observation) (Term Contract) (Term Contract)
-  | When (Array (Term Case)) (Term ExtendedTimeout) (Term Contract)
+  | When (Array (Term Case)) (Term Timeout) (Term Contract)
   | Let (TermWrapper ValueId) (Term Value) (Term Contract)
   | Assert (Term Observation) (Term Contract)
 

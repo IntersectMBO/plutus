@@ -182,7 +182,7 @@ In order to progress a Marlowe contract, a party must provide an evidence. For P
 So, Role parties will look like (Role "alice"), (Role "bob") and so on.
 """
 
-marloweTypeMarkerText ExtendedTimeoutType =
+marloweTypeMarkerText TimeoutType =
   """
 Timeout is the slot number after which the When will no longer accept any new events: Case branches will become unusable, and the contract will continue as specified by the timeout continuation.
 

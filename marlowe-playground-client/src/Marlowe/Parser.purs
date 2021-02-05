@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), ExtendedTimeout(SlotParam), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId, Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Timeout(SlotParam), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Holes as H
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
@@ -34,11 +34,11 @@ type HelperFunctions a
     , getRange :: Term a -> Range
     , mkBigInteger :: Int -> BigInteger
     , mkSlot :: BigInteger -> Slot
-    , mkExtendedSlot :: BigInteger -> ExtendedTimeout
-    , mkExtendedSlotParam :: String -> ExtendedTimeout
+    , mkExtendedSlot :: BigInteger -> Timeout
+    , mkExtendedSlotParam :: String -> Timeout
     , mkClose :: Contract
     , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
-    , mkWhen :: Array (Term Case) -> Term ExtendedTimeout -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> Term Timeout -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkAssert :: Term Observation -> Term Contract -> Contract
@@ -260,8 +260,8 @@ valueId = ValueId <$> text
 slot :: Parser Slot
 slot = Slot <$> maybeParens bigInteger
 
-extendedTimeout :: Parser (Term ExtendedTimeout)
-extendedTimeout = parseTerm ((SlotParam <$> maybeParens (string "SlotParam" **> text)) <|> (H.Slot <$> maybeParens bigInteger))
+timeout :: Parser (Term Timeout)
+timeout = parseTerm ((SlotParam <$> maybeParens (string "SlotParam" **> text)) <|> (H.Slot <$> maybeParens bigInteger))
 
 accountIdExtended :: Parser AccountId
 accountIdExtended = parseTerm $ parens partyExtended
@@ -437,7 +437,7 @@ recContract =
       <**> contract'
   )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
-    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> extendedTimeout <**> contract')
+    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> timeout <**> contract')
     <|> (Let <$> (string "Let" **> termWrapper valueId) <**> value' <**> contract')
     <|> (Assert <$> (string "Assert" **> observation') <**> contract')
     <|> (fail "not a valid Contract")

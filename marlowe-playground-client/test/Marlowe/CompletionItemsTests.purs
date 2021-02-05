@@ -62,7 +62,7 @@ testFor TokenType = mkTest false TokenType (parse Parser.token)
 
 testFor PartyType = mkTest false PartyType (parse Parser.partyExtended)
 
-testFor ExtendedTimeoutType = mkTest false ExtendedTimeoutType (parse Parser.extendedTimeout)
+testFor TimeoutType = mkTest false TimeoutType (parse Parser.timeout)
 
 all :: TestSuite
 all =
