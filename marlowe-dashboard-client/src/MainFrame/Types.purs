@@ -40,7 +40,7 @@ type State
     , card :: Maybe Card
     , notifications :: Array Notification
     , templates :: Array ContractTemplate
-    , contracts :: Array Contract
+    , contracts :: Array ContractInstance
     , on :: Boolean
     }
 
@@ -52,26 +52,32 @@ derive instance eqOverlay :: Eq Overlay
 
 data Screen
   = Home
-  | Contracts
+  | Contacts
+  | Contracts ContractStatus
   | SetupContract ContractTemplate
 
 derive instance eqFrame :: Eq Screen
 
+data ContractStatus
+  = Running
+  | Completed
+
+derive instance eqContractStatus :: Eq ContractStatus
+
 data Card
   = TemplateLibrary
   | TemplateDetails ContractTemplate
-  | ContractDetails Contract
+  | ContractDetails ContractInstance
 
 derive instance eqCard :: Eq Card
 
 -- notification type TBD
-type Notification
-  = Int
+data Notification
 
--- contract template type TBD
+-- contract templage type TBD
 type ContractTemplate
   = Int
 
--- TODO: move Marlowe.Semantics into web-common-marlowe and get Contract type from there
-type Contract
+-- contract instance type TBD
+type ContractInstance
   = Int

@@ -4,20 +4,18 @@ module Template.View
   ) where
 
 import Prelude hiding (div)
-import Effect.Aff.Class (class MonadAff)
-import Halogen (ComponentHTML, ClassName(ClassName))
-import Halogen.HTML (div, text)
-import Halogen.HTML.Properties (classes)
-import MainFrame.Types (Action, ChildSlots, ContractTemplate)
+import Css (classNames)
+import Halogen.HTML (HTML, div, text)
+import MainFrame.Types (Action, ContractTemplate)
 
-renderTemplateLibrary :: forall m. MonadAff m => Array ContractTemplate -> ComponentHTML Action ChildSlots m
+renderTemplateLibrary :: forall p. Array ContractTemplate -> HTML p Action
 renderTemplateLibrary contractTemplates =
   div
-    [ classes $ ClassName <$> [ "p-1", "h-full", "overflow-auto" ] ]
+    [ classNames [ "p-1", "h-full", "overflow-auto" ] ]
     [ text "Quick Access" ]
 
-renderTemplateDetails :: forall m. MonadAff m => ContractTemplate -> ComponentHTML Action ChildSlots m
+renderTemplateDetails :: forall p. ContractTemplate -> HTML p Action
 renderTemplateDetails contractTemplate =
   div
-    [ classes $ ClassName <$> [ "p-1", "h-full", "overflow-auto" ] ]
+    [ classNames [ "p-1", "h-full", "overflow-auto" ] ]
     [ text "Contract Template" ]

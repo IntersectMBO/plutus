@@ -5,11 +5,11 @@ module MainFrame.Lenses
   , _on
   ) where
 
-import Data.Maybe (Maybe)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
+import Data.Maybe (Maybe)
 import Data.Symbol (SProxy(..))
-import MainFrame.Types (Card, Contract, ContractTemplate, Notification, Screen, State, Overlay)
+import MainFrame.Types (Card, ContractInstance, ContractTemplate, Notification, Overlay, Screen, State)
 
 _overlay :: Lens' State (Maybe Overlay)
 _overlay = prop (SProxy :: SProxy "overlay")
@@ -26,7 +26,7 @@ _notifications = prop (SProxy :: SProxy "notifications")
 _templates :: Lens' State (Array ContractTemplate)
 _templates = prop (SProxy :: SProxy "templates")
 
-_contracts :: Lens' State (Array Contract)
+_contracts :: Lens' State (Array ContractInstance)
 _contracts = prop (SProxy :: SProxy "contracts")
 
 _on :: Lens' State Boolean

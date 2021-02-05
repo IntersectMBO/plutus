@@ -4,20 +4,18 @@ module Contract.View
   ) where
 
 import Prelude hiding (div)
-import Effect.Aff.Class (class MonadAff)
-import Halogen (ComponentHTML, ClassName(ClassName))
-import Halogen.HTML (div, text)
-import Halogen.HTML.Properties (classes)
-import MainFrame.Types (Action, ChildSlots, Contract, ContractTemplate)
+import Css (classNames)
+import Halogen.HTML (HTML, div, text)
+import MainFrame.Types (Action, ContractInstance, ContractTemplate)
 
-renderContractSetup :: forall m. MonadAff m => ContractTemplate -> ComponentHTML Action ChildSlots m
+renderContractSetup :: forall p. ContractTemplate -> HTML p Action
 renderContractSetup contractTemplate =
   div
-    [ classes $ ClassName <$> [ "p-1" ] ]
+    [ classNames [ "p-1" ] ]
     [ text "contract setup" ]
 
-renderContractDetails :: forall m. MonadAff m => Contract -> ComponentHTML Action ChildSlots m
+renderContractDetails :: forall p. ContractInstance -> HTML p Action
 renderContractDetails contract =
   div
-    [ classes $ ClassName <$> [ "p-1", "bg-gray" ] ]
+    [ classNames [ "p-1", "bg-gray" ] ]
     [ text "contract details" ]
