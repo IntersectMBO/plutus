@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -39,17 +38,16 @@ import           Servant                         (Application, NoContent (NoCont
                                                   (:<|>) ((:<|>)))
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv, runClientM)
 
-import           Ledger.Address                  (Address)
-import           Ledger.AddressMap               (AddressMap)
-import           Plutus.PAB.Monitoring           (handleLogMsgTrace)
-import           Plutus.PAB.PABLogMsg            (ChainIndexServerMsg (..))
-
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client             as NodeClient
 import           Cardano.Node.Follower           (NodeFollowerEffect, getSlot)
 import qualified Cardano.Node.Follower           as NodeFollower
 import           Control.Concurrent.Availability (Availability, available)
+import           Ledger.Address                  (Address)
+import           Ledger.AddressMap               (AddressMap)
+import           Plutus.PAB.Monitoring           (handleLogEffects)
+import           Plutus.PAB.PABLogMsg            (ChainIndexServerMsg (..))
 import           Wallet.Effects                  (ChainIndexEffect)
 import qualified Wallet.Effects                  as WalletEffects
 import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
@@ -68,16 +66,8 @@ app stateVar =
         (processIndexEffects stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
-handleChainIndexEffects ::
-    forall m.
-    MonadIO m
-    => Trace m ChainIndexServerMsg
-    -> Eff '[LogMsg ChainIndexServerMsg, m]
-    ~> m
-handleChainIndexEffects trace = runM . handleLogMsgTrace trace
-
 main :: Trace IO ChainIndexServerMsg -> ChainIndexConfig -> BaseUrl -> Availability -> IO ()
-main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleChainIndexEffects trace $ do
+main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleLogEffects trace $ do
     let port = baseUrlPort ciBaseUrl
     nodeClientEnv <-
         liftIO $ do
@@ -85,7 +75,7 @@ main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleChainInd
             pure $ mkClientEnv nodeManager nodeBaseUrl
     mVarState <- liftIO $ newMVar initialAppState
     logInfo StartingNodeClientThread
-    void $ liftIO $ forkIO $ handleChainIndexEffects trace $ updateThread 10 mVarState nodeClientEnv
+    void $ liftIO $ forkIO $ handleLogEffects trace $ updateThread 10 mVarState nodeClientEnv
     let warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
     logInfo $ StartingChainIndex port

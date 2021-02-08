@@ -71,7 +71,8 @@ import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
 import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
                                                                   ContractExeLogMsg (..),
-                                                                  PABLogMsg (SChainIndexServerMsg))
+                                                                  PABLogMsg (SChainIndexServerMsg, SSigningProcessMsg),
+                                                                  SigningProcessMsg)
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -475,8 +476,8 @@ runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailabilit
 
 
 -- Run the signing-process service
-runCliCommand _ _ Config {signingProcessConfig} serviceAvailability SigningProcess =
-    SigningProcess.main signingProcessConfig serviceAvailability
+runCliCommand t _ Config {signingProcessConfig} serviceAvailability SigningProcess =
+    liftIO $ SigningProcess.main (toSigningProcessLog t) signingProcessConfig serviceAvailability
 
 -- Install a contract
 runCliCommand _ _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
@@ -577,6 +578,9 @@ toPABMsg = convertLog PABMsg
 
 toChainIndexLog :: Trace m AppMsg -> Trace m ChainIndexServerMsg
 toChainIndexLog = convertLog $ PABMsg . SChainIndexServerMsg
+
+toSigningProcessLog :: Trace m AppMsg -> Trace m SigningProcessMsg
+toSigningProcessLog = convertLog $ PABMsg . SSigningProcessMsg
 
 pabComponentName :: Text.Text
 pabComponentName = "pab"
