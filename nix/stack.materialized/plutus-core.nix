@@ -311,9 +311,10 @@
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [ "Hutton" "Parser" ];
+          modules = [ "Lambda" "ParserL" ];
           hsSourceDirs = [ "plc-mini" ];
           mainPath = [ "Main.hs" ];
           };
