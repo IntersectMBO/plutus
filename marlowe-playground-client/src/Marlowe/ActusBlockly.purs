@@ -241,6 +241,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
               <> "interest payment cycle %13"
               <> "observation constraints %14"
               <> "payoff analysis constraints %15"
+              <> "collateral amount %16"
         , args0:
             [ DummyCentre
             , Value { name: "start_date", check: "date", align: Right }
@@ -257,6 +258,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            , Value { name: "collateral", check: "decimal", align: Right }
             ]
         , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
@@ -286,6 +288,7 @@ toDefinition (ActusContractType LinearAmortizer) =
               <> "principal redemption cycle * %15"
               <> "observation constraints %16"
               <> "payoff analysis constraints %17"
+              <> "collateral amount %18"
         , args0:
             [ DummyCentre
             , Value { name: "start_date", check: "date", align: Right }
@@ -304,6 +307,7 @@ toDefinition (ActusContractType LinearAmortizer) =
             , Value { name: "principal_redemption_cycle", check: "cycle", align: Right }
             , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
             , Value { name: "payoff_ctr", check: "assertion", align: Right }
+            , Value { name: "collateal", check: "decimal", align: Right }
             ]
         , colour: blockColour (ActusContractType LinearAmortizer)
         , previousStatement: Just (show BaseContractType)
@@ -600,6 +604,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , interestCalculationBaseCycle: NoActusValue
             , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
             , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            , collateral: parseFieldActusValueJson g block "collateral"
             }
     LAM ->
       Either.Right
@@ -624,6 +629,7 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
             , interestCalculationBaseCycle: parseFieldActusValueJson g block "interest_calculation_base_cycle"
             , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
             , assertion: parseFieldActusValueJson g block "payoff_ctr"
+            , collateral: parseFieldActusValueJson g block "collateral"
             }
 
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
@@ -752,7 +758,7 @@ blocklyCycleToAnchor NoActusValue = Either.Right Nothing
 blocklyCycleToAnchor x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 actusContractToTerms :: ActusContract -> Either String ContractTerms
-actusContractToTerms raw = do --todo use monad transformers?
+actusContractToTerms raw = do
   let
     c = (unwrap raw)
   contractType <- Either.Right c.contractType
@@ -796,6 +802,7 @@ actusContractToTerms raw = do --todo use monad transformers?
                 Nothing -> []
             )
         }
+  collateral <- actusDecimalToNumber c.collateral
   pure
     $ ContractTerms
         { contractId: "0"
@@ -858,6 +865,7 @@ actusContractToTerms raw = do --todo use monad transformers?
         , ct_FER: 0.0
         , ct_CURS: false
         , constraints: constraint <$> assertionCtx
+        , collateralAmount: collateral
         }
 
 aesonCompatibleOptions :: Options

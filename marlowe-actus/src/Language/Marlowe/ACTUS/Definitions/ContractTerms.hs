@@ -205,7 +205,7 @@ data ContractTerms = ContractTerms {
   -- enable settlement currency
   , ct_CURS      :: Bool
   , constraints  :: Maybe Assertions
-  , collateralAmount :: Double
+  , collateralAmount :: Integer
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

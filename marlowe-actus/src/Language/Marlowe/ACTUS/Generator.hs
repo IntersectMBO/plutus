@@ -24,7 +24,7 @@ import           Language.Marlowe                                         (Actio
 import           Language.Marlowe.ACTUS.Analysis                          (genProjectedCashflows, genZeroRiskAssertions)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (AssertionContext (..), Assertions (..),
-                                                                           ContractTerms (constraints, ct_CURS, ct_SD),
+                                                                           ContractTerms (constraints, ct_CURS, ct_SD, collateralAmount),
                                                                            TermValidationError (..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule              (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                     (constnt, dayToSlotNumber,
@@ -36,16 +36,19 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs       (state
 import           Ledger.Value                                             (TokenName (TokenName))
 
 
-collateral :: String -> Integer -> Integer -> Contract -> COntract
-collateral from amount timeout continue =
-    let party        = Role $ TokenName $ fromString from
-    in  When
-            [ Case
-                (Deposit party party ada amount)
-                    continue
-            ]
-            timeout
-            Close  
+receiveCollateral :: String -> Integer -> Integer -> Contract -> Contract
+receiveCollateral from amount timeout continue =
+    if amount == 0 
+        then continue
+        else
+            let party        = Role $ TokenName $ fromString from
+            in  When
+                    [ Case
+                        (Deposit party party ada (Constant amount))
+                            continue
+                    ]
+                    (Slot timeout)
+                    Close  
 
 
 invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
@@ -141,8 +144,8 @@ genStaticContract terms =
                     = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
                     = invoice "counterparty" "party" (Constant $ round $ - amount) (Slot $ dayToSlotNumber cashPaymentDay)
-                cltrl = collateral from amount timeout continue
-            in Success $ (foldl (flip gen) Close cfs
+                withCollateral cont = receiveCollateral "party" (collateralAmount t) (dayToSlotNumber $ ct_SD t) cont
+            in Success $ withCollateral $ foldl (flip gen) Close cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
@@ -161,7 +164,7 @@ genFsContract terms =
                 schedCfs = genProjectedCashflows terms
                 schedEvents = cashEvent <$> schedCfs
                 schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
-                previousDates = ([ct_SD terms] ++ (cashCalculationDay <$> schedCfs))
+                previousDates = ct_SD terms : (cashCalculationDay <$> schedCfs)
                 cfsDirections = amount <$> schedCfs
                 ctx = context <$> constraints terms
 
@@ -170,10 +173,11 @@ genFsContract terms =
                     inquiryFs ev terms ("_" ++ show t) date "oracle" ctx
                     $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
-                    $ if (isNothing pof) then cont
+                    $ if isNothing pof then cont
                     else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                     else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
-                    where pof = (payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf))
+                    where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
-            in Success $ inititializeStateFs terms scheduleAcc
+                withCollateral cont = receiveCollateral "party" (collateralAmount terms) (dayToSlotNumber $ ct_SD terms) cont
+            in Success $ withCollateral $ inititializeStateFs terms scheduleAcc
