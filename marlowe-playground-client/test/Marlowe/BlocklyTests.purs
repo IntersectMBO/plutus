@@ -28,7 +28,7 @@ import Text.Extra (stripParens)
 all :: TestSuite
 all =
   suite "Marlowe.Blockly" do
-    test "c2b2c" $ quickCheckGen c2b2c
+    test "codeToBlocklyToCode" $ quickCheckGen codeToBlocklyToCode
 
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
 quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
@@ -44,8 +44,8 @@ mkTestState = do
 
 -- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
 -- It uses zero to create a dummy range. By using `show` we can reasonably compare contracts
-c2b2c :: GenWithHoles Result
-c2b2c = do
+codeToBlocklyToCode :: GenWithHoles Result
+codeToBlocklyToCode = do
   contract <- genTerm "contract" genContract
   let
     positionedContract = rmap show $ lmap show $ Parser.parseContract (stripParens $ show contract)

@@ -999,28 +999,6 @@ toDefinition blockType@(ValueType UseValueValueType) =
         }
         defaultBlockDefinition
 
-toolbox :: forall a b. HTML a b
-toolbox =
-  xml [ id_ "blocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour contractColour ] (map mkBlock contractTypes)
-    , category [ name "Observations", colour observationColour ] (map mkBlock observationTypes)
-    , category [ name "Actions", colour actionColour ] (map mkBlock actionTypes)
-    , category [ name "Values", colour valueColour ] (map mkBlock valueTypes)
-    , category [ name "Payee", colour payeeColour ] (map mkBlock payeeTypes)
-    , category [ name "Party", colour partyColour ] (map mkBlock partyTypes)
-    , category [ name "Token", colour tokenColour ] (map mkBlock tokenTypes)
-    , category [ name "Bounds", colour boundsColour ] (map mkBlock [ BoundsType ])
-    ]
-  where
-  mkBlock :: forall t. Show t => t -> _
-  mkBlock t = block [ blockType (show t) ] []
-
-workspaceBlocks :: forall a b. HTML a b
-workspaceBlocks =
-  xml [ id_ "workspaceBlocks", style "display:none" ]
-    [ block [ blockType (show BaseContractType), x "13", y "187", id_ rootBlockName ] []
-    ]
-
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser' (parens p <|> p)
 

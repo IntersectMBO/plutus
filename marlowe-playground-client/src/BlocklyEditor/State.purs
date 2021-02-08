@@ -2,6 +2,7 @@
 module BlocklyEditor.State where
 
 import Prelude
+import BlocklyComponent.Types as Blockly
 import BlocklyEditor.Types (Action(..), State, _errorMessage, _hasHoles, _marloweCode)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Data.Bifunctor (lmap)
@@ -14,7 +15,6 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (HalogenM, modify_, query)
 import Halogen as H
-import BlocklyComponent.Types as Blockly
 import MainFrame.Types (ChildSlots, _blocklySlot)
 import Marlowe.Linter as Linter
 import Marlowe.Parser as Parser
