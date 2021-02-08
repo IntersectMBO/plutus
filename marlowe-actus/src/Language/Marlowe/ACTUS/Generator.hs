@@ -145,7 +145,7 @@ genStaticContract terms =
                     | otherwise
                     = invoice "counterparty" "party" (Constant $ round $ - amount) (Slot $ dayToSlotNumber cashPaymentDay)
                 withCollateral cont = receiveCollateral "party" (collateralAmount t) (dayToSlotNumber $ ct_SD t) cont
-            in Success $ withCollateral $ foldl (flip gen) Close cfs
+            in Success . withCollateral $ foldl (flip gen) Close cfs
 
 
 genFsContract :: ContractTerms -> Validation [TermValidationError] Contract
@@ -180,4 +180,4 @@ genFsContract terms =
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
                 withCollateral cont = receiveCollateral "party" (collateralAmount terms) (dayToSlotNumber $ ct_SD terms) cont
-            in Success $ withCollateral $ inititializeStateFs terms scheduleAcc
+            in Success . withCollateral $ inititializeStateFs terms scheduleAcc
