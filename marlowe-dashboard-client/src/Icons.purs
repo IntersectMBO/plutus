@@ -1,12 +1,15 @@
 -- TODO: replace web-common Icons module with this one
 module Material.Icons
-  ( close
+  ( add
+  , addCircle
+  , close
   , help
   , image
   , libraryAdd
   , menu
   , notifications
   , search
+  , wallet
   ) where
 
 import Prelude
@@ -17,6 +20,12 @@ icon :: forall p i. String -> HTML p i
 icon str = span [ class_ $ ClassName "material-icons" ] [ text str ]
 
 -----
+add :: forall p i. HTML p i
+add = icon "add"
+
+addCircle :: forall p i. HTML p i
+addCircle = icon "add_circle"
+
 close :: forall p i. HTML p i
 close = icon "close"
 
@@ -37,3 +46,6 @@ notifications = icon "notifications_none"
 
 search :: forall p i. HTML p i
 search = icon "search"
+
+wallet :: forall p i. HTML p i
+wallet = icon "account_balance_wallet"
