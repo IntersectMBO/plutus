@@ -266,16 +266,13 @@ evalForce ann term               = pure $ HForce ann term
 -- See Note [Builtin application evaluation]
 -- | Evaluate a 'Term' in the 'EvalM' monad using HOAS.
 evalTerm
-    :: forall term value unique name uni fun ann.
+    :: forall ann fun uni name unique term value evalM.
        ( term ~ Term name uni fun ann, value ~ Value unique name uni fun ann
-       , HasUnique name unique, Ix fun
+       , evalM ~ EvalM unique name uni fun ann, HasUnique name unique, Ix fun
        )
-    => BuiltinsRuntime fun value -> term -> EvalM unique name uni fun ann value
+    => BuiltinsRuntime fun value -> term -> evalM value
 evalTerm runtime = go mempty where
-    go
-        :: UniqueMap unique value
-        -> Term name uni fun ann
-        -> EvalM unique name uni fun ann value
+    go :: UniqueMap unique value -> term -> evalM value
     go _   (Constant ann val) = pure $ HConstant ann val
     -- Using 'evalBuiltinApp' here would allow us to have named constants as builtins.
     -- Not that this is supported by anything else, though.
@@ -304,7 +301,7 @@ unsafeEvaluateHoas
     :: ( term ~ Term name uni fun ann, value ~ Value unique name uni fun ann
        , HasUnique name unique, Ix fun
        , Typeable name, Typeable uni, Typeable fun, Typeable ann
-       , Pretty fun, PrettyPlc (Term name uni fun ann)
+       , Pretty fun, PrettyPlc term
        )
     => BuiltinsRuntime fun value -> term -> EvaluationResult term
 unsafeEvaluateHoas runtime = either throw id . extractEvaluationResult . evaluateHoas runtime
