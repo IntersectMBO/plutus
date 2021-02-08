@@ -68,6 +68,7 @@
             (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
             (hsPkgs."prometheus" or (errorHandler.buildDepError "prometheus"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
