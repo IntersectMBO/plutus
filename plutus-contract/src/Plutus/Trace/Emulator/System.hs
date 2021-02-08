@@ -23,7 +23,8 @@ import           Data.Foldable                 (traverse_)
 import           Data.Maybe                    (maybeToList)
 import           Wallet.Effects                (startWatching)
 import           Wallet.Emulator.Chain         (ChainControlEffect, ChainEffect, getCurrentSlot, processBlock)
-import           Wallet.Emulator.MultiAgent    (MultiAgentEffect, walletAction, walletControlAction)
+import           Wallet.Emulator.MultiAgent    (MultiAgentControlEffect, MultiAgentEffect, walletAction,
+                                                walletControlAction)
 
 import           Data.String                   (IsString (..))
 import           Plutus.Trace.Emulator.Types   (EmulatorMessage (..))
@@ -68,6 +69,7 @@ just arrive later.
 launchSystemThreads :: forall effs.
     ( Member ChainControlEffect effs
     , Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member ChainEffect effs
     )
     => [Wallet]
@@ -105,6 +107,7 @@ blockMaker = go where
 -- | Thread for a simulated agent. See note [Simulated Agents]
 agentThread :: forall effs effs2.
     ( Member MultiAgentEffect effs2
+    , Member MultiAgentControlEffect effs2
     , Member (Yield (EmSystemCall effs EmulatorMessage) (Maybe EmulatorMessage)) effs2
     )
     => Wallet

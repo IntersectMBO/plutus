@@ -57,7 +57,7 @@ import           Streaming                                  (Stream)
 import           Streaming.Prelude                          (Of)
 import           Wallet.Emulator.Chain                      (ChainControlEffect, ChainEffect)
 import           Wallet.Emulator.MultiAgent                 (EmulatorEvent, EmulatorEvent' (..), EmulatorState,
-                                                             MultiAgentEffect, schedulerEvent)
+                                                             MultiAgentControlEffect, MultiAgentEffect, schedulerEvent)
 import           Wallet.Emulator.Stream                     (EmulatorConfig (..), EmulatorErr (..),
                                                              defaultEmulatorConfig, initialChainState, runTraceStream)
 import           Wallet.Emulator.Wallet                     (Wallet (..))
@@ -133,6 +133,7 @@ runPlaygroundStream conf contract =
 
 interpretPlaygroundTrace :: forall s e effs a.
     ( Member MultiAgentEffect effs
+    , Member MultiAgentControlEffect effs
     , Member (Error EmulatorRuntimeError) effs
     , Member ChainEffect effs
     , Member ChainControlEffect effs
