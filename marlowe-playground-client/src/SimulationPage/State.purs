@@ -25,7 +25,7 @@ import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.NonEmptyList.Extra (tailIfNotEmpty)
+import Data.NonEmptyList.Extra (extendWith, tailIfNotEmpty)
 import Data.RawJson (RawJson(..))
 import Data.Traversable (for_)
 import Data.Tuple (Tuple(..))
@@ -92,8 +92,7 @@ handleAction StartSimulation = do
     --       the Actions said: "No available actions". Now it works fine, but I don't like the fact that if you call
     --       StartSimulation with a NEL of more than 1 element, you'd get weird behaviours. We should revisit the logic
     --       on _oldContracts, ResetSimulation, etc.
-    assign (_currentMarloweState <<< _executionState) (emptyExecutionStateWithSlot initialSlot)
-    modifying _marloweState (map (updatePossibleActions <<< updateStateP))
+    modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _executionState (emptyExecutionStateWithSlot initialSlot))))
     mCurrContract <- use _currentContract
     case mCurrContract of
       Just currContract -> do
