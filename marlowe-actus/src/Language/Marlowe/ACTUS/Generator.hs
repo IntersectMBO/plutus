@@ -41,7 +41,7 @@ receiveCollateral from amount timeout continue =
     if amount == 0 
         then continue
         else
-            let party        = Role $ TokenName $ fromString from
+            let party = Role $ TokenName $ fromString from
             in  When
                     [ Case
                         (Deposit party party ada (Constant amount))
@@ -51,8 +51,8 @@ receiveCollateral from amount timeout continue =
                     Close  
 
 
-invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
-invoice from to amount timeout continue =
+invoice :: String -> String -> Value Observation -> Value Observation -> Slot -> Contract -> Contract
+invoice from to amount collateralAmount timeout continue =
     let party        = Role $ TokenName $ fromString from
         counterparty = Role $ TokenName $ fromString to
     in  When
@@ -67,7 +67,12 @@ invoice from to amount timeout continue =
 
             ]
             timeout
-            Close
+            (Pay party
+                (Party counterparty)
+                ada
+                collateralAmount
+                continue
+            )
 
 maxPseudoDecimalValue :: Integer
 maxPseudoDecimalValue = 100000000000000
@@ -141,10 +146,25 @@ genStaticContract terms =
                 gen CashFlow {..}
                     | amount == 0.0 = id
                     | amount > 0.0
-                    = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
+                    = invoice 
+                        "party" 
+                        "counterparty" 
+                        (Constant $ collateralAmount t) 
+                        (Constant $ round amount) 
+                        (Slot $ dayToSlotNumber cashPaymentDay)
                     | otherwise
-                    = invoice "counterparty" "party" (Constant $ round $ - amount) (Slot $ dayToSlotNumber cashPaymentDay)
-                withCollateral cont = receiveCollateral "party" (collateralAmount t) (dayToSlotNumber $ ct_SD t) cont
+                    = invoice 
+                        "counterparty" 
+                        "party" 
+                        (Constant $ collateralAmount t) 
+                        (Constant $ round $ - amount) 
+                        (Slot $ dayToSlotNumber cashPaymentDay)
+                withCollateral cont = 
+                    receiveCollateral 
+                        "party" 
+                        (collateralAmount t) 
+                        (dayToSlotNumber $ ct_SD t) 
+                        cont
             in Success . withCollateral $ foldl (flip gen) Close cfs
 
 
@@ -174,8 +194,22 @@ genFsContract terms =
                     $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
                     $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
                     $ if isNothing pof then cont
-                    else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
-                    else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
+                    else if  r > 0.0   then 
+                        invoice 
+                            "party" 
+                            "counterparty" 
+                            (Constant $ collateralAmount terms)
+                            (UseValue $ payoffAt t) 
+                            date 
+                            cont
+                    else                    
+                        invoice 
+                            "counterparty" 
+                            "party" 
+                            (Constant $ collateralAmount terms)
+                            (NegValue $ UseValue $ payoffAt t) 
+                            date 
+                            cont
                     where pof = payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf)
                 scheduleAcc = foldr gen (postProcess Close) $
                     L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
