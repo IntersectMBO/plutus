@@ -362,9 +362,8 @@ handleAction (BlocklyEditorAction action) = do
   case action of
     BE.SendToSimulator -> do
       mCode <- use (_blocklyEditorState <<< _marloweCode)
-      for_ mCode \code -> do
-        selectView Simulation
-        void $ toSimulation $ Simulation.handleAction (ST.LoadContract code)
+      for_ mCode \contents -> do
+        sendToSimulation contents
     BE.ViewAsMarlowe -> do
       -- TODO: doing an effect that returns a maybe value and doing an action on the possible
       -- result is a pattern that we have repeated a lot in this file. See if we could refactor
