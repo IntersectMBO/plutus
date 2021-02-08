@@ -5,12 +5,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 module Cardano.ChainIndex.Server(
     -- $chainIndex
     main
     , ChainIndexConfig(..)
-    , ChainIndexServerMsg(..)
+    , ChainIndexServerMsg
     , syncState
     ) where
 
@@ -47,7 +46,6 @@ import           Control.Concurrent.Availability (Availability, available)
 import           Ledger.Address                  (Address)
 import           Ledger.AddressMap               (AddressMap)
 import           Plutus.PAB.Monitoring           (handleLogEffects)
-import           Plutus.PAB.PABLogMsg            (ChainIndexServerMsg (..))
 import           Wallet.Effects                  (ChainIndexEffect)
 import qualified Wallet.Effects                  as WalletEffects
 import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
@@ -68,18 +66,20 @@ app stateVar =
 
 main :: Trace IO ChainIndexServerMsg -> ChainIndexConfig -> BaseUrl -> Availability -> IO ()
 main trace ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = handleLogEffects trace $ do
-    let port = baseUrlPort ciBaseUrl
-    nodeClientEnv <-
-        liftIO $ do
-            nodeManager <- newManager defaultManagerSettings
-            pure $ mkClientEnv nodeManager nodeBaseUrl
+    nodeClientEnv <- liftIO getNode
     mVarState <- liftIO $ newMVar initialAppState
+
     logInfo StartingNodeClientThread
     void $ liftIO $ forkIO $ handleLogEffects trace $ updateThread 10 mVarState nodeClientEnv
-    let warpSettings :: Warp.Settings
-        warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
-    logInfo $ StartingChainIndex port
+
+    logInfo $ StartingChainIndex servicePort
     liftIO $ Warp.runSettings warpSettings $ app mVarState
+        where
+            isAvailable = available availability
+            servicePort = baseUrlPort ciBaseUrl
+            warpSettings = Warp.defaultSettings & Warp.setPort servicePort & Warp.setBeforeMainLoop isAvailable
+            getNode = newManager defaultManagerSettings >>= \manager -> pure $ mkClientEnv manager nodeBaseUrl
+
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
