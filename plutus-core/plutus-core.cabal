@@ -416,6 +416,7 @@ executable plc
         plutus-core -any,
         prettyprinter -any,
         serialise -any,
+        split -any,
         text -any,
         transformers -any
 

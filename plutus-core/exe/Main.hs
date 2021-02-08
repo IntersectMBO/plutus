@@ -9,6 +9,7 @@ import qualified Language.PlutusCore                               as PLC
 import qualified Language.PlutusCore.CBOR                          as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek        as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck         as PLC
+import           Language.PlutusCore.Evaluation.Machine.ExMemory   (ExCPU (..), ExMemory (..))
 import qualified Language.PlutusCore.Generators                    as Gen
 import qualified Language.PlutusCore.Generators.Interesting        as Gen
 import qualified Language.PlutusCore.Generators.Test               as Gen
@@ -29,6 +30,7 @@ import           Data.Bifunctor                                    (second)
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Foldable                                     (traverse_)
 import           Data.Functor                                      ((<&>))
+import           Data.List.Split                                   (splitOn)
 import qualified Data.Text                                         as T
 import           Data.Text.Encoding                                (encodeUtf8)
 import qualified Data.Text.IO                                      as T
@@ -40,6 +42,7 @@ import           System.Exit                                       (exitFailure,
 import           System.IO
 import           System.Mem                                        (performGC)
 import           Text.Printf                                       (printf)
+import           Text.Read                                         (readMaybe)
 
 {- Note [Annotation types] This program now reads and writes CBOR-serialised PLC
    ASTs.  In all cases we require the annotation type to be ().  There are two
@@ -87,6 +90,7 @@ data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving (Show, Re
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 data EvalMode    = CK | CEK deriving (Show, Read)
+data BudgetMode  = Silent | Verbose UPLC.ExBudgetMode
 data AstNameType = Named | DeBruijn  -- Do we use Names or de Bruijn indices when (de)serialising ASTs?
 type Files       = [FilePath]
 
@@ -103,7 +107,7 @@ data ConvertOptions   = ConvertOptions Language Input Format Output Format Print
 data PrintOptions     = PrintOptions Language Input PrintMode
 data ExampleOptions   = ExampleOptions ExampleMode
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
-data EvalOptions      = EvalOptions Language Input Format EvalMode PrintMode Timing
+data EvalOptions      = EvalOptions Language Input Format EvalMode BudgetMode PrintMode Timing
 data ApplyOptions     = ApplyOptions Language Files Format Output Format PrintMode
 
 -- Main commands
@@ -193,6 +197,35 @@ outputformat = option (maybeReader formatReader)
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
 
+
+-- Reader for budget.  The --restricting option requires two integer arguments
+-- and the easiest way to do this is to supply a colon-separated pair of
+-- integers.
+exbudgetReader :: ReadM UPLC.ExBudget
+exbudgetReader = do
+  s <- str
+  case splitOn ":" s of
+    [a,b] -> case (readMaybe a, readMaybe b) of
+               (Just (cpu::Integer), Just (mem::Integer)) -> pure $ UPLC.ExBudget (ExCPU cpu) (ExMemory mem)
+               _                                          -> readerError badfmt
+    _     -> readerError badfmt
+    where badfmt = "Invalid budget (expected eg 10000:50000)"
+
+restrictingbudget :: Parser BudgetMode
+restrictingbudget = Verbose . UPLC.Restricting . UPLC.ExRestrictingBudget
+                    <$> option exbudgetReader
+                            (  long "restricting"
+                            <> metavar "ExCPU:ExMemory"
+                            <> help "Run the machine in restricting mode with the given limits" )
+
+countingbudget :: Parser BudgetMode
+countingbudget = flag' (Verbose UPLC.Counting)
+                 (  long "counting"
+                 <> help "Run machine in counting mode and report results" )
+
+budgetmode :: Parser BudgetMode
+budgetmode = restrictingbudget <|> countingbudget <|> pure Silent
+
 timing :: Parser Timing
 timing = flag NoTiming Timing
   ( long "time-execution"
@@ -259,7 +292,7 @@ evalmode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <*> printmode <*> timing
+evalOpts = EvalOptions <$> languageMode <*> input <*> inputformat <*> evalmode <*> budgetmode <*> printmode <*> timing
 
 helpText :: String
 helpText =
@@ -604,7 +637,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions language inp ifmt evalMode printMode printtime) =
+runEval (EvalOptions language inp ifmt evalMode budgetMode printMode printtime) =
     case language of
 
       TypedPLC -> do
