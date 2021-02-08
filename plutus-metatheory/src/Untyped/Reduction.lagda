@@ -391,6 +391,18 @@ run t (suc n) | step p | t'' , q , mvt'' = t'' , trans—→⋆ p q , mvt''
 \end{code}
 
 \begin{code}
+deval : ∀{t} → Value t → 0 ⊢
+deval {t} _ = t
+
+progressor : ℕ → (t : 0 ⊢) → Either RuntimeError (Maybe (0 ⊢))
+progressor 0       t = inj₁ gasError
+progressor (suc n) t with progress t
+... | step {N = t'} p  = progressor n t'
+... | done v  = inj₂ $ just (deval v)
+... | error e = inj₂ $ nothing
+\end{code}
+
+\begin{code}
 open import Data.Empty
 open import Relation.Nullary
 

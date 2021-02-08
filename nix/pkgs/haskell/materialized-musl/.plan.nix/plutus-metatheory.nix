@@ -232,9 +232,15 @@
           "MAlonzo/Code/Type/RenamingSubstitution"
           "MAlonzo/Code/Utils"
           "MAlonzo/RTE"
+          "MAlonzo/Code/Algorithmic/Erasure"
+          "MAlonzo/Code/Declarative"
+          "MAlonzo/Code/Untyped"
+          "MAlonzo/Code/Untyped/Reduction"
+          "MAlonzo/Code/Untyped/RenamingSubstitution"
           "Opts"
           "Raw"
           "Scoped"
+          "Untyped"
           ];
         hsSourceDirs = [ "src" ];
         };

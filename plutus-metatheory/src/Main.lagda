@@ -38,8 +38,7 @@ open import Algorithmic
 open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
-open import Scoped.Erasure
-
+open import Algorithmic.Erasure
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -149,9 +148,14 @@ postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
 
+  prettyPrintUTm : Untyped → String
+
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# COMPILE GHC prettyPrintTm = display @T.Text . unconv 0 #-}
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
+
+{-# FOREIGN GHC import qualified Untyped as U #-}
+{-# COMPILE GHC prettyPrintUTm = display @T.Text . U.uconv 0 #-}
 
 data EvalMode : Set where
   U TL L TCK CK TCEK : EvalMode
@@ -215,7 +219,11 @@ reportError (runtimeError _) = "gasError"
 
 
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
-executePLC U t = inj₁ (runtimeError gasError)
+executePLC U t = do
+  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
+  just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
+    where nothing → inj₂ "ERROR"  
+  return $ prettyPrintUTm (extricateU t') --Untyped.ugly t'
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
