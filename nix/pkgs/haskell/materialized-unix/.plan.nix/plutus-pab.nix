@@ -137,6 +137,7 @@
           "Cardano/SigningProcess/API"
           "Cardano/SigningProcess/Server"
           "Cardano/SigningProcess/Client"
+          "Cardano/SigningProcess/Types"
           "Cardano/Wallet/API"
           "Cardano/Wallet/Client"
           "Cardano/Wallet/Mock"
