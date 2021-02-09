@@ -53,11 +53,9 @@
         "ghc-boot".revision = (((hackage."ghc-boot")."8.10.2.20201118").revisions).default;
         "wl-pprint-text".revision = (((hackage."wl-pprint-text")."1.2.0.1").revisions).default;
         "lazysmallcheck".revision = (((hackage."lazysmallcheck")."0.6").revisions).default;
-        "sequence".revision = (((hackage."sequence")."0.9.8").revisions).default;
         "attoparsec-iso8601".revision = (((hackage."attoparsec-iso8601")."1.0.2.0").revisions).default;
         "attoparsec-iso8601".flags.fast = false;
         "attoparsec-iso8601".flags.developer = false;
-        "generic-random".revision = (((hackage."generic-random")."1.3.0.1").revisions).default;
         "formatting".revision = (((hackage."formatting")."7.1.1").revisions).default;
         "pipes".revision = (((hackage."pipes")."4.3.14").revisions).default;
         "deriving-aeson".revision = (((hackage."deriving-aeson")."0.2.6").revisions).default;
@@ -490,7 +488,6 @@
         "abstract-deque".flags.usecas = false;
         "tasty-hedgehog".revision = (((hackage."tasty-hedgehog")."1.0.1.0").revisions).default;
         "time-units".revision = (((hackage."time-units")."1.0.0").revisions).default;
-        "hedgehog-quickcheck".revision = (((hackage."hedgehog-quickcheck")."0.1.1").revisions).default;
         "comonad".revision = (((hackage."comonad")."5.0.8").revisions).default;
         "comonad".flags.indexed-traversable = true;
         "comonad".flags.distributive = true;
@@ -712,7 +709,6 @@
         goblins = ./.plan.nix/goblins.nix;
         marlowe-actus = ./.plan.nix/marlowe-actus.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
-        cardano-crypto-tests = ./.plan.nix/cardano-crypto-tests.nix;
         plutus-errors = ./.plan.nix/plutus-errors.nix;
         cardano-binary-test = ./.plan.nix/cardano-binary-test.nix;
         plutus-core = ./.plan.nix/plutus-core.nix;
@@ -758,7 +754,6 @@
         marlowe-dashboard-server = ./.plan.nix/marlowe-dashboard-server.nix;
         playground-common = ./.plan.nix/playground-common.nix;
         io-sim-classes = ./.plan.nix/io-sim-classes.nix;
-        shelley-spec-ledger-test = ./.plan.nix/shelley-spec-ledger-test.nix;
         };
       };
   modules = [
@@ -796,9 +791,6 @@
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
-          "cardano-crypto-tests" = {
-            flags = { "development" = lib.mkOverride 900 false; };
-            };
           "plutus-errors" = { flags = {}; };
           "cardano-binary-test" = {
             flags = { "development" = lib.mkOverride 900 false; };
@@ -911,9 +903,6 @@
               "asserts" = lib.mkOverride 900 false;
               "checktvarinvariant" = lib.mkOverride 900 false;
               };
-            };
-          "shelley-spec-ledger-test" = {
-            flags = { "development" = lib.mkOverride 900 false; };
             };
           };
         })
