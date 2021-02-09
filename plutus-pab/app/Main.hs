@@ -387,8 +387,7 @@ reportContractHistoryParser =
 -- Command interpretation
 -----------------------------------------------------------------------------------------------------------------------
 
-{-
-#iohk-monitoring-pab#
+{- Note [Use of iohk-monitoring in PAB]
 
 We use the 'iohk-monitoring' package to process the log messages that come
 out of the 'Control.Monad.Freer.Log' effects. We create a top-level 'Tracer'
@@ -463,7 +462,7 @@ runCliCommand trace logConfig config serviceAvailability (ForkCommands commands)
     forkCommand ::  Command -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
-      -- see [note on monitoring in pab](#iohk-monitoring-pab)
+      -- see note [Use of iohk-monitoring in PAB]
       let trace' = monadLoggerTracer trace
       asyncId <- async . void . runApp (toPABMsg trace) logConfig config . handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
@@ -551,7 +550,7 @@ main = do
     (trace :: Trace IO AppMsg, switchboard) <- setupTrace_ logConfig pabComponentName
 
     -- 'TracerLoggerT IO' has instances for 'MonadLogger' and 'MonadUnliftIO'.
-    -- see [note on monitoring in pab](#iohk-monitoring-pab)
+    -- see note [Use of iohk-monitoring in PAB]
     let trace' = monadLoggerTracer trace
 
     -- enable EKG backend
