@@ -69,7 +69,10 @@ import qualified Plutus.PAB.App                                  as App
 import qualified Plutus.PAB.Core                                 as Core
 import qualified Plutus.PAB.Core.ContractInstance                as Instance
 import           Plutus.PAB.Events.Contract                      (ContractInstanceId (..))
-import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ContractExeLogMsg (..), PABLogMsg)
+import           Plutus.PAB.PABLogMsg                            (AppMsg (..), ChainIndexServerMsg,
+                                                                  ContractExeLogMsg (..),
+                                                                  PABLogMsg (SChainIndexServerMsg, SSigningProcessMsg),
+                                                                  SigningProcessMsg)
 import           Plutus.PAB.Types                                (Config (Config), ContractExe (..), PABError,
                                                                   RequestProcessingConfig (..), chainIndexConfig,
                                                                   metadataServerConfig, nodeServerConfig,
@@ -79,33 +82,39 @@ import           Plutus.PAB.Utils                                (logErrorS, ren
 import qualified Plutus.PAB.Webserver.Server                     as PABServer
 import           System.Exit                                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 
+-- | Commands that can be interpreted with 'runCliCommand'
 data Command
-    = Migrate
-    | MockNode
-    | MockWallet
-    | ChainIndex
-    | Metadata
-    | ForkCommands [Command]
-    | SigningProcess
-    | InstallContract FilePath
-    | ActivateContract FilePath
-    | ContractState UUID
-    | UpdateContract UUID EndpointDescription JSON.Value
-    | ReportContractHistory UUID
-    | ReportInstalledContracts
-    | ReportActiveContracts
-    | ProcessContractInbox UUID
-    | ProcessAllContractOutboxes
-    | ReportTxHistory
-    | PABWebserver
-    | PSGenerator
-          { _outputDir :: !FilePath
+    = Migrate -- ^ Execute a database migration
+    | MockNode -- ^ Run the mock node service
+    | MockWallet -- ^ Run the mock wallet service
+    | ChainIndex -- ^ Run the chain index service
+    | Metadata -- ^ Run the mock meta-data service
+    | ForkCommands [Command] -- ^ Fork  a list of commands
+    | SigningProcess -- ^ Run the signing process service
+    | InstallContract FilePath -- ^ Install a contract
+    | ActivateContract FilePath -- ^ Activate a contract
+    | ContractState UUID -- ^ Display the contract identified by 'UUID'
+    | UpdateContract UUID EndpointDescription JSON.Value -- ^ Update the contract details of the contract identified by 'UUID'
+    | ReportContractHistory UUID -- ^ Get the history of the contract identified by 'UUID'
+    | ReportInstalledContracts -- ^ Get installed contracts
+    | ReportActiveContracts -- ^ Get active contracts
+    | ProcessContractInbox UUID -- ^ Run the contract-inbox service
+    | ProcessAllContractOutboxes -- ^ DEPRECATED
+    | ReportTxHistory -- ^ List transaction history
+    | PABWebserver -- ^ Run the PAB webserver
+    | PSGenerator -- ^ Generate purescript bridge code
+          { _outputDir :: !FilePath -- ^ Path to write generated code to
           }
-    | WriteDefaultConfig
-          { _outputFile :: !FilePath
+    | WriteDefaultConfig -- ^ Write default logging configuration
+          { _outputFile :: !FilePath -- ^ Path to write configuration to
           }
     deriving stock (Show, Eq, Generic)
     deriving anyclass JSON.ToJSON
+
+
+-----------------------------------------------------------------------------------------------------------------------
+-- Command line parsing
+-----------------------------------------------------------------------------------------------------------------------
 
 versionOption :: Parser (a -> a)
 versionOption =
@@ -374,6 +383,10 @@ reportContractHistoryParser =
         (ReportContractHistory <$> contractIdParser)
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
+-----------------------------------------------------------------------------------------------------------------------
+-- Command interpretation
+-----------------------------------------------------------------------------------------------------------------------
+
 {- Note [Use of iohk-monitoring in PAB]
 
 We use the 'iohk-monitoring' package to process the log messages that come
@@ -409,75 +422,120 @@ We have to use 'natTracer' in some places to turn 'Trace IO a' into
 
 -}
 
-------------------------------------------------------------
--- | Translate the command line configuation into the actual code to be run.
+-- | Interpret a 'Command' in 'Eff' using the provided tracer and configurations
 --
-runCliCommand :: Trace IO AppMsg -> Configuration -> Config ->  Availability -> Command -> Eff (LogMsg AppMsg ': AppBackend (TraceLoggerT IO)) ()
+runCliCommand ::
+    Trace IO AppMsg  -- ^ PAB Tracer logging instance
+    -> Configuration -- ^ Monitoring configuration
+    -> Config        -- ^ PAB Configuration
+    -> Availability  -- ^ Token for signaling service availability
+    -> Command
+    -> Eff (LogMsg AppMsg ': AppBackend (TraceLoggerT IO)) ()
+
+-- Run database migration
 runCliCommand _ _ _ _ Migrate = raise App.migrate
+
+-- Run mock wallet service
 runCliCommand _ _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
-runCliCommand _ _ Config {nodeServerConfig} serviceAvailability MockNode =
-    NodeServer.main nodeServerConfig serviceAvailability
+
+-- Run mock node server
+runCliCommand _ _ Config {nodeServerConfig} serviceAvailability MockNode = NodeServer.main nodeServerConfig serviceAvailability
+
+-- Run mock metadata server
 runCliCommand _ _ Config {metadataServerConfig} serviceAvailability Metadata = raise $ Metadata.main metadataServerConfig serviceAvailability
-runCliCommand trace logConfig config serviceAvailability PABWebserver = raise $ PABServer.main (mapPABMsg trace) logConfig config serviceAvailability
+
+-- Run PAB webserver
+runCliCommand trace logConfig config serviceAvailability PABWebserver = raise $ PABServer.main (toPABMsg trace) logConfig config serviceAvailability
+
+-- Fork a list of commands
 runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
         putStrLn "Started all commands."
         waitAny threads
   where
-
     forkCommand ::  Command -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
       -- see note [Use of iohk-monitoring in PAB]
       let trace' = monadLoggerTracer trace
-      asyncId <- async . void . runApp (mapPABMsg trace) logConfig config . handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
+      asyncId <- async . void . runApp (toPABMsg trace) logConfig config . handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
       pure asyncId
-runCliCommand _ _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
-    ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig) serviceAvailability
-runCliCommand _ _ Config {signingProcessConfig} serviceAvailability SigningProcess =
-    SigningProcess.main signingProcessConfig serviceAvailability
+
+-- Run the chain-index service
+runCliCommand t _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
+    liftIO $ ChainIndex.main (toChainIndexLog t) chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig) serviceAvailability
+
+
+-- Run the signing-process service
+runCliCommand t _ Config {signingProcessConfig} serviceAvailability SigningProcess =
+    liftIO $ SigningProcess.main (toSigningProcessLog t) signingProcessConfig serviceAvailability
+
+-- Install a contract
 runCliCommand _ _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
+
+-- Activate a contract
 runCliCommand _ _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+
+-- Get the state of a contract
 runCliCommand _ _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
+
+-- Get all installed contracts
 runCliCommand _ _ _ _ ReportInstalledContracts = do
     logInfo InstalledContractsMsg
     traverse_ (logInfo . InstalledContract . render . pretty) =<< Core.installedContracts @ContractExe
+
+-- Get all active contracts
 runCliCommand _ _ _ _ ReportActiveContracts = do
     logInfo ActiveContractsMsg
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
     traverse_ (\(e, s) -> logInfo $ ContractInstance e (Set.toList s)) instances
+
+-- Get transaction history
 runCliCommand _ _ _ _ ReportTxHistory = do
     logInfo TransactionHistoryMsg
     traverse_ (logInfo . TxHistoryItem) =<< Core.txHistory @ContractExe
+
+-- Update a specific contract
 runCliCommand _ _ _ _ (UpdateContract uuid endpoint payload) =
     void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
+
+-- Get history of a specific contract
 runCliCommand _ _ _ _ (ReportContractHistory uuid) = do
     logInfo ContractHistoryMsg
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
     itraverse_ (\i -> logContract i) contracts
     where
       logContract index contract = logInfo $ ContractHistoryItem index contract
+
+-- DEPRECATED
 runCliCommand _ _ _ _ (ProcessContractInbox uuid) = do
     logInfo ProcessInboxMsg
     Core.processContractInbox @ContractExe (ContractInstanceId uuid)
+
+-- Run the process-outboxes command
 runCliCommand _ _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
     let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
     logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
     forever $ do
         _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
         handleError @PABError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExePABError)
+
+-- Generate PureScript bridge code
 runCliCommand _ _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
+
+-- Get default logging configuration
 runCliCommand _ _ _ _ WriteDefaultConfig{_outputFile} =
     liftIO $ defaultConfig >>= flip CM.exportConfiguration _outputFile
+
 
 main :: IO ()
 main = do
@@ -501,7 +559,7 @@ main = do
 
     serviceAvailability <- newToken
     result <-
-        runApp (mapPABMsg trace) logConfig config
+        runApp (toPABMsg trace) logConfig config
             $ handleLogMsgTrace trace'
             $ runCliCommand trace logConfig config serviceAvailability cmd
     case result of
@@ -510,8 +568,18 @@ main = do
             exitWith (ExitFailure 1)
         Right _ -> exitSuccess
 
-mapPABMsg :: Trace m AppMsg -> Trace m PABLogMsg
-mapPABMsg = contramap (second (fmap PABMsg))
+-- Convert tracer structured log data
+convertLog :: (a -> b) -> Trace m b -> Trace m a
+convertLog f = contramap (second (fmap f))
+
+toPABMsg :: Trace m AppMsg -> Trace m PABLogMsg
+toPABMsg = convertLog PABMsg
+
+toChainIndexLog :: Trace m AppMsg -> Trace m ChainIndexServerMsg
+toChainIndexLog = convertLog $ PABMsg . SChainIndexServerMsg
+
+toSigningProcessLog :: Trace m AppMsg -> Trace m SigningProcessMsg
+toSigningProcessLog = convertLog $ PABMsg . SSigningProcessMsg
 
 pabComponentName :: Text.Text
 pabComponentName = "pab"
