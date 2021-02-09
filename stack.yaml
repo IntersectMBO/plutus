@@ -83,8 +83,8 @@ extra-deps:
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 6a92d7853ea514be8b70bab5e72077bf5a510596
-- git: https://github.com/shmish111/servant-purescript.git
-  commit: ece5d1dad16a5731ac22040075615803796c7c21
+- git: https://github.com/eskimor/servant-purescript.git
+  commit: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: 2547ad1e80aeabca2899951601079408becbc92c
 # Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release

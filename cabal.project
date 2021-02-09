@@ -39,8 +39,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/shmish111/servant-purescript.git
-  tag: ece5d1dad16a5731ac22040075615803796c7c21
+  location: https://github.com/eskimor/servant-purescript.git
+  tag: 6454d5bcb9aa2a5d6e3a3dc935423b67b6f3993c
 
 source-repository-package
   type: git
@@ -69,38 +69,14 @@ allow-newer:
            monoidal-containers:aeson
            -- Pins to an old version of Template Haskell, unclear if/when it will be updated
            , size-based:template-haskell
-           -- we make use of an older servant. this makes the older servant build for ghc-8.10
-           , servant:base
-           , servant:aeson
-           , servant-server:base
-           , servant-server:aeson
-           , servant-foreign:base
-           , servant-foreign:lens
-           , servant-client-core:base
-           , servant-client-core:aeson
-           , servant-client-core:template-haskell
-           , servant-client:base
-           , servant-client:aeson
-           , servant-swagger:base
-           , servant-swagger:aeson
-           , servant-swagger:swagger2
-           , servant-swagger:lens
-           , servant-swagger:Cabal
 
            -- The following two dependencies are needed by plutus.
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
 
 constraints:
-  -- A bunch of constraints to make our forked servant-purescript build using an older servant
-  servant < 0.17
-  , servant-server < 0.17
-  , servant-foreign < 0.15.1
-  , servant-client-core < 0.17
-  , servant-client < 0.17
-  , servant-swagger < 1.1.8
   -- aws-lambda-haskell-runtime-wai doesn't compile with newer versions
-  , aws-lambda-haskell-runtime <= 3.0.3
+  aws-lambda-haskell-runtime <= 3.0.3
 
 -- These are dependencies of the (disabled) tests of some of our source-repository-package dependencies.
 -- But shellFor still wants them around (https://github.com/input-output-hk/haskell.nix/issues/993), so

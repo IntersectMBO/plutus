@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "1.10";
-      identifier = { name = "servant-purescript"; version = "0.9.0.2"; };
+      identifier = { name = "servant-purescript"; version = "0.9.0.4"; };
       license = "BSD-3-Clause";
       copyright = "Copyright: (c) 2016 Robert Klotzner";
       maintainer = "robert Dot klotzner A T gmx Dot at";
