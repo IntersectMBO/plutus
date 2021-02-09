@@ -234,55 +234,50 @@ reportError : ERROR → String
 reportError (parseError _) = "parseError"
 reportError (typeError s) = "typeError: " ++ s
 reportError (scopeError _) = "scopeError"
-reportError (runtimeError _) = "gasError"
+reportError (runtimeError gasError)         = "gasError"
+reportError (runtimeError userError)        = "userError"
+reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 
 
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
-    where nothing → inj₂ "ERROR"  
-  return $ prettyPrintUTm (extricateU t') --Untyped.ugly t'
+    where nothing → inj₁ (runtimeError userError)
+  return $ prettyPrintUTm (extricateU t')
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
-    where nothing → inj₂ "ERROR"
+    where nothing → inj₁ (runtimeError userError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
 
 executePLC L t with S.run t maxsteps
 ... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (unshifter Z (extricateScope t')))
 ... | t' ,, p ,, inj₁ nothing  = inj₁ (runtimeError gasError)
-... | t' ,, p ,, inj₂ e        = inj₂ "ERROR"
+... | t' ,, p ,, inj₂ e        = inj₁ (runtimeError userError)
 executePLC CK t = do
   □ {t = t} v ← withE runtimeError $ Scoped.CK.stepper maxsteps (ε ▻ t)
-    where ◆  → inj₂ "ERROR"
-          _  → inj₁ (runtimeError gasError)
+    where ◆ → inj₁ (runtimeError userError)
+          _ → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope t)))
 executePLC TCK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ {t = t} v ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ t)
-    where ◆ _  → inj₂ "ERROR"
+    where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
 executePLC TCEKV t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
-    where ◆ _  → inj₂ "ERROR"
+    where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
 executeUPLC : 0 ⊢ → Either ERROR String
 executeUPLC t = do
   just t' ← withE runtimeError $ U.progressor 10000000 t
-    where nothing → inj₂ "ERROR"  
+    where nothing → inj₁ (runtimeError userError)
   return $ prettyPrintUTm (extricateU t')
-  
-{-
-  (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
-    where nothing → inj₂ "ERROR"  
-  return $ prettyPrintUTm (extricateU t') --Untyped.ugly t'
--}
 
 evalByteString : EvalMode → ByteString → Either ERROR String
 evalByteString U b = do
@@ -426,7 +421,7 @@ checkKindX : Type → Kind → Either ERROR ⊤
 checkKindX ty k = do
   ty        ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
   (k' ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
-  _         ← withE ((λ e → typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
+  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
   return tt
 
 {-# COMPILE GHC checkKindX as checkKindAgda #-}

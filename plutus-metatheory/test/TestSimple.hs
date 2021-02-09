@@ -48,9 +48,13 @@ blah Nothing     = []
 blah (Just mode) = ["--mode",mode]
 
 -- this is likely to raise either an exitFailure or exitSuccess exception
+modeType :: Maybe String -> [String]
+modeType (Just "U") = []
+modeType _          = ["-t"]
+
 runTest :: String -> Maybe String -> String -> IO ()
 runTest command mode test = do
-  example <- readProcess "plc" ["example","-t","-s",test] []
+  example <- readProcess "plc" (["example","-s",test] ++ modeType mode) []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
   withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
@@ -72,7 +76,8 @@ runFailingTests command mode (test:tests) = catch
       ExitSuccess   -> exitSuccess)
 
 main = do
-  putStrLn "running succ L..."
+{-
+putStrLn "running succ L..."
   runSucceedingTests "evaluate" (Just "L") succeedingEvalTests
   putStrLn "running fail L"
   runFailingTests "evaluate" (Just "L") failingEvalTests
@@ -80,22 +85,19 @@ main = do
   runSucceedingTests "evaluate" (Just "CK") succeedingEvalTests
   putStrLn "running fail CK"
   runFailingTests "evaluate" (Just "CK") failingEvalTests
+-}
   putStrLn "running succ TCK"
   runSucceedingTests "evaluate" (Just "TCK") succeedingEvalTests
   putStrLn "running fail TCK"
   runFailingTests "evaluate" (Just "TCK") failingEvalTests
-  putStrLn "running succ TCEKC"
-  runSucceedingTests "evaluate" (Just "TCEKC") succeedingEvalTests
-  putStrLn "running fail TCEKC"
-  runFailingTests "evaluate" (Just "TCEKC") failingEvalTests
-  putStrLn "running succ TCEKV"
-  runSucceedingTests "evaluate" (Just "TCEKV") succeedingEvalTests
-  putStrLn "running fail TCEKV"
-  runFailingTests "evaluate" (Just "TCEKV") failingEvalTests
+  putStrLn "running succ TCEK"
+  runSucceedingTests "evaluate" (Just "TCEK") succeedingEvalTests
+  putStrLn "running fail TCEK"
+  runFailingTests "evaluate" (Just "TCEK") failingEvalTests
   putStrLn "running succ U..."
   runSucceedingTests "evaluate" (Just "U") succeedingEvalTests
-  putStrLn "running succ TC"
+  putStrLn "running fail U..."
   runFailingTests "evaluate" (Just "U") failingEvalTests
-  putStrLn "running succ U..."
+  putStrLn "running succ TC"
   runSucceedingTests "typecheck" Nothing succeedingTCTests
 

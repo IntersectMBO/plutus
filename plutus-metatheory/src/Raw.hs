@@ -146,6 +146,6 @@ data ERROR = TypeError T.Text
 
 data ScopeError = DeBError|FreeVariableError FreeVariableError
 
-data RuntimeError = GasError
+data RuntimeError = GasError | UserError | RuntimeTypeError
 
 
