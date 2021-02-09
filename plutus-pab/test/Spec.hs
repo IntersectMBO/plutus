@@ -4,6 +4,7 @@ module Main
 
 import qualified Cardano.Metadata.ServerSpec
 import qualified Cardano.Metadata.TypesSpec
+import qualified Cardano.Wallet.MockSpec
 import qualified Plutus.PAB.CoreSpec
 import qualified Plutus.PAB.Events.ContractSpec
 import qualified Plutus.PAB.RelationSpec
@@ -19,4 +20,5 @@ main =
         , Plutus.PAB.Events.ContractSpec.tests
         , Cardano.Metadata.ServerSpec.tests
         , Cardano.Metadata.TypesSpec.tests
+        , Cardano.Wallet.MockSpec.tests
         ]

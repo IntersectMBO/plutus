@@ -13,9 +13,7 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error, runError, throwError)
 import           Control.Monad.Freer.Log        (LogMsg, logInfo)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import qualified Crypto.ECC.Ed25519Donna        as ED25519
-import           Crypto.Error                   (throwCryptoErrorIO)
-import           Crypto.PubKey.Ed25519          (generateSecretKey, secretKey, secretKeySize, toPublic)
+import           Crypto.PubKey.Ed25519          (secretKeySize)
 import           Crypto.Random                  (getRandomBytes)
 import           Data.Bifunctor                 (Bifunctor (..))
 import           Data.Bits                      (shiftL, shiftR)
@@ -126,30 +124,28 @@ generateSeed = do
     pure $ Seed bytes
 
 
-createWallet :: (LastMember m effs, MonadIO m) => Seed -> Eff effs Wallet
-createWallet (Seed bytes) = do
-    sk <- sendM $ liftIO $ throwCryptoErrorIO $ secretKey bytes
-    let pk = toPublic sk
-    let int = bs2i . BS.pack . unpack $ bytes
-    pure (Wallet int)
+createWallet :: Seed -> Wallet
+createWallet (Seed bytes) = let
+    int = byteString2Integer . BS.pack . unpack $ bytes
+    in Wallet int
 
 
 insertWallet :: Wallet -> Wallets -> Wallets
 insertWallet w ws = do
-    let pk = PubKey . KB.fromBytes . i2bs . EM.getWallet $ w
+    let pk = PubKey . KB.fromBytes . integer2ByteString32 . EM.getWallet $ w
     Wallets $ Map.insert pk w (getWallets ws)
 
 
 -- |Helper function to convert bytestrings to integers
-bs2i :: BS.ByteString -> Integer
-bs2i = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
-{-# INLINE bs2i #-}
+byteString2Integer :: BS.ByteString -> Integer
+byteString2Integer = BS.foldl' (\i b -> (i `shiftL` 8) + fromIntegral b) 0
+{-# INLINE byteString2Integer #-}
 
 
 -- |@i2bs bitLen i@ converts @i@ to a 'ByteString' of @bitLen@ bits (must be a multiple of 8).
-i2bs :: Integer -> BS.ByteString
-i2bs i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` 8), l' - 8)) 0
-{-# INLINE i2bs #-}
+integer2ByteString32 :: Integer -> BS.ByteString
+integer2ByteString32 i = BS.unfoldr (\l' -> if l' < 0 then Nothing else Just (fromIntegral (i `shiftR` l'), l' - 8)) (31*8)
+{-# INLINE integer2ByteString32 #-}
 
 
 uuidFromSeed :: Seed -> UUID

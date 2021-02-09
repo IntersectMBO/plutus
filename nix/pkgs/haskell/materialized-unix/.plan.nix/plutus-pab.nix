@@ -387,6 +387,7 @@
             "Plutus/PAB/Events/ContractSpec"
             "Cardano/Metadata/ServerSpec"
             "Cardano/Metadata/TypesSpec"
+            "Cardano/Wallet/MockSpec"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

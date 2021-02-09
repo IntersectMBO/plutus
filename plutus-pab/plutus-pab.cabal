@@ -299,6 +299,7 @@ test-suite plutus-pab-test
         Plutus.PAB.Events.ContractSpec
         Cardano.Metadata.ServerSpec
         Cardano.Metadata.TypesSpec
+        Cardano.Wallet.MockSpec
 
     build-depends:
         QuickCheck -any,
