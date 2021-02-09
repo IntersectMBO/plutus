@@ -58,10 +58,6 @@ source-repository-package
 package eventful-sql-common
   ghc-options: -XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances -XDataKinds -XFlexibleInstances
 
--- TODO: remove whenn inline-r version>0.10.3  is pushed to hackage
-package inline-r
-    ghc-options: -XStandaloneKindSignatures
-
 -- Node protocols
 
 allow-newer: 
@@ -82,10 +78,6 @@ constraints:
 -- But shellFor still wants them around (https://github.com/input-output-hk/haskell.nix/issues/993), so
 -- we ensure they're included.
 extra-packages: data-ordlist, sequence, tasty-expected-failure, doctest-discover
-
-package iohk-monitoring
-  -- disable all warnings
-  ghc-options: -w
 
 source-repository-package
   type: git
