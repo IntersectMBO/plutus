@@ -652,15 +652,19 @@ runEval (EvalOptions language inp ifmt evalMode budgetMode printMode printtime) 
         -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
         start <- performGC >> getCPUTime
         case evaluate body of
-              PLC.EvaluationSuccess v -> succeed start v
-              PLC.EvaluationFailure   -> exitFailure
+          PLC.EvaluationSuccess v -> succeed start v
+          PLC.EvaluationFailure   -> exitFailure
 
       UntypedPLC ->
           case evalMode of
             CK  -> hPutStrLn stderr "There is no CK machine for UntypedPLC Plutus Core" >> exitFailure
             CEK -> do
                   UntypedProgram prog <- getProgram UntypedPLC ifmt inp
-                  let evaluate = UPLC.unsafeEvaluateCek PLC.defBuiltinsRuntime
+                  let budget =
+                          case budgetmode of
+                          Silent -> UPLC.Counting
+                          Verbose b -> b
+                   evaluate = UPLC.unsafeEvaluateCekWithBudget PLC.defBuiltinsRuntime budget
                       body = void . UPLC.toTerm $ prog
                   () <- Exn.evaluate $ rnf body
                   start <- getCPUTime
